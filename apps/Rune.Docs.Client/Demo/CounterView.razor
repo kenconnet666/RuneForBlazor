@@ -1,0 +1,22 @@
+@* 显示一个计数与自己的渲染次数：只读了哪个计数，就只在它变化时重新渲染 *@
+@inherits RuneComponent
+@inject CounterStore Store
+
+<div>
+    @Label = @Value
+    <span @attributes="Attrs.Merge(DemoStyles.RenderBadge)">（渲染 @(++renders) 次）</span>
+</div>
+
+@code {
+    int renders;
+
+    /// <summary>显示哪个值：A、B 或 Sum。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    int Value => Label switch
+    {
+        "A" => Store.A,
+        "B" => Store.B,
+        _ => Store.Sum,
+    };
+}
