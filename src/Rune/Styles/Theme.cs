@@ -21,6 +21,7 @@ namespace Rune.Styles;
 public sealed class Theme
 {
     readonly Dictionary<string, string> own = new(StringComparer.Ordinal);
+    readonly Dictionary<string, Theme> conditions = new(StringComparer.Ordinal);
 
     /// <summary>创建主题。</summary>
     /// <param name="name">名字（调试与类名里用）。</param>
@@ -36,6 +37,38 @@ public sealed class Theme
 
     /// <summary>基础主题。</summary>
     public Theme? BasedOn { get; }
+
+    /// <summary>是暗色主题：浏览器的原生控件、滚动条按暗色画（color-scheme: dark）。</summary>
+    public bool IsDark { get; init; }
+
+    /// <summary>
+    /// 条件成立时（@media 规则）另取的值，只写和平时不同的 token：
+    /// <c>[Media.ReducedMotion] = new("reduced-motion") { [Durations.Md] = "0ms" }</c>。
+    /// </summary>
+    public Theme this[Condition condition]
+    {
+        init
+        {
+            if (!condition.IsAtRule) throw new ArgumentException($"主题的条件只能是 @ 规则，收到 {condition.Key}", nameof(condition));
+            conditions[condition.Key] = value;
+        }
+    }
+
+    /// <summary>全部条件块（含基础主题的）：条件 → 按变量名排序的取值；同一条件下这个主题写的覆盖基础主题的。</summary>
+    public IReadOnlyList<KeyValuePair<string, IReadOnlyList<KeyValuePair<string, string>>>> ConditionalValues
+    {
+        get
+        {
+            var all = new SortedDictionary<string, SortedDictionary<string, string>>(StringComparer.Ordinal);
+            for (var theme = this; theme is not null; theme = theme.BasedOn)
+                foreach (var (condition, block) in theme.conditions)
+                {
+                    if (!all.TryGetValue(condition, out var values)) all[condition] = values = new(StringComparer.Ordinal);
+                    foreach (var (name, value) in block.own) values.TryAdd(name, value);
+                }
+            return [.. all.Select(c => new KeyValuePair<string, IReadOnlyList<KeyValuePair<string, string>>>(c.Key, [.. c.Value]))];
+        }
+    }
 
     /// <summary>长度 token 的取值（数字按 px）。</summary>
     public CssLength this[CssLength token] { init => own[VariableOf(token.ToString())] = value.ToString(); }
@@ -117,25 +150,32 @@ public static class ThemeStyles
             (ColorScheme.System, not null) => (light, dark),
             _ => (light, null),
         };
-        var colorScheme = scheme switch
-        {
-            ColorScheme.Light => "light",
-            ColorScheme.Dark when dark is not null => "dark",
-            _ when dark is not null => "light dark",
-            _ => "light",
-        };
-
-        var body = Declarations(main) + $"color-scheme:{colorScheme};";
-        var media = alternative is null ? "" : "@media (prefers-color-scheme: dark){.{0}{" + Declarations(alternative) + "}}";
-        var className = "rt" + StableHash.Of(body + media);
-        var css = $".{className}{{{body}}}" + media.Replace("{0}", className);
-        return new CompiledStyle(className, css);
+        // 先用占位的类名拼出规则，按内容算出类名后再换上（类名按内容哈希：服务端、浏览器、所有请求同名）
+        const string placeholder = "{0}";
+        var css = Rules(placeholder, main);
+        if (alternative is not null) css += "@media (prefers-color-scheme: dark){" + Rules(placeholder, alternative) + "}";
+        var className = "rt" + StableHash.Of(css);
+        return new CompiledStyle(className, css.Replace(placeholder, className, StringComparison.Ordinal));
     }
 
-    static string Declarations(Theme theme)
+    // 一套主题的规则：变量与 color-scheme（按主题本身是亮是暗），再加各条件块（@media 包在外面）
+    static string Rules(string className, Theme theme)
     {
-        var builder = new StringBuilder();
-        foreach (var (name, value) in theme.Values) builder.Append(name).Append(':').Append(value).Append(';');
-        return builder.ToString();
+        var css = new StringBuilder();
+        css.Append('.').Append(className).Append('{');
+        Declarations(css, theme.Values);
+        css.Append("color-scheme:").Append(theme.IsDark ? "dark" : "light").Append(";}");
+        foreach (var (condition, values) in theme.ConditionalValues)
+        {
+            css.Append(condition).Append("{.").Append(className).Append('{');
+            Declarations(css, values);
+            css.Append("}}");
+        }
+        return css.ToString();
+    }
+
+    static void Declarations(StringBuilder css, IReadOnlyList<KeyValuePair<string, string>> values)
+    {
+        foreach (var (name, value) in values) css.Append(name).Append(':').Append(value).Append(';');
     }
 }
