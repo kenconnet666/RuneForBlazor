@@ -1,31 +1,60 @@
-@* 表单：Field + TextField / Textarea / Checkbox / Switch 接入 Blazor 的 EditForm 与 DataAnnotations 校验 *@
+@* 表单：Form（包 EditForm）+ Field + 各输入控件，DataAnnotations 校验、提交中、错误汇总 *@
 @attribute [ComponentDemo("form", "表单与输入", Group = "表单", Order = 0)]
 @using System.ComponentModel.DataAnnotations
 @inherits RuneComponent
 
-<DemoSection Title="EditForm + DataAnnotations">
-    <EditForm Model="model" OnValidSubmit="Submit" data-testid="signup">
-        <DataAnnotationsValidator />
-        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Sx="FormWidth">
-            <Field Label="姓名" Required="true">
-                <TextField @bind-Value="model.Name" placeholder="张三" autocomplete="name" data-testid="name" />
-            </Field>
-            <Field Label="邮箱" Description="用于找回密码" Required="true">
-                <TextField @bind-Value="model.Email" Type="email" Icon="Lucide.Mail" placeholder="name@example.com" data-testid="email" />
-            </Field>
-            <Field Label="个人简介" Description="最多 60 个字">
-                <Textarea @bind-Value="model.Bio" placeholder="一句话介绍自己" data-testid="bio" />
-            </Field>
-            <Field>
-                <Checkbox @bind-Value="model.Agreed" data-testid="agree">我已阅读并同意服务条款</Checkbox>
-            </Field>
-            <Switch @bind-Value="model.Notify">有新消息时通知我</Switch>
-            <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-                <Button Type="submit" data-testid="submit">注册</Button>
-                <TextSpan Muted="true" Size="Size.Sm" data-testid="result">@result</TextSpan>
-            </Flex>
+<DemoSection Title="Form：校验、提交中、错误汇总">
+    <Form Model="model" OnValidSubmit="SubmitAsync" Sx="FormWidth" data-testid="signup">
+        <Field Label="姓名" Required="true">
+            <TextField @bind-Value="model.Name" placeholder="张三" autocomplete="name" data-testid="name" />
+        </Field>
+        <Field Label="邮箱" Description="用于找回密码" Required="true">
+            <TextField @bind-Value="model.Email" Type="email" Icon="Lucide.Mail" placeholder="name@example.com" data-testid="email" />
+        </Field>
+        <Field Label="数量" Description="1–99，按 ↑↓ 加减">
+            <NumberField @bind-Value="model.Quantity" Min="1" Max="99" data-testid="quantity" />
+        </Field>
+        <Field Label="配送方式" Required="true">
+            <RadioGroup @bind-Value="model.Shipping" Orientation="Orientation.Horizontal" data-testid="shipping">
+                <Radio Value="@("express")">快递</Radio>
+                <Radio Value="@("pickup")">自提</Radio>
+                <Radio Value="@("same-day")" Disabled="true">当日达（暂停）</Radio>
+            </RadioGroup>
+        </Field>
+        <Field Label="城市" Required="true">
+            <NativeSelect @bind-Value="model.City" Items="cities" Placeholder="选择城市" data-testid="city" />
+        </Field>
+        <Field Label="预算">
+            <Slider @bind-Value="model.Budget" Min="0" Max="5000" Step="100" ShowValue="true" ValueText="@(v => $"{v:N0} 元")" />
+        </Field>
+        <Field Label="个人简介" Description="最多 60 个字">
+            <Textarea @bind-Value="model.Bio" placeholder="一句话介绍自己" data-testid="bio" />
+        </Field>
+        <Field>
+            <Checkbox @bind-Value="model.Agreed" data-testid="agree">我已阅读并同意服务条款</Checkbox>
+        </Field>
+        <Switch @bind-Value="model.Notify">有新消息时通知我</Switch>
+        <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+            <Button Type="submit" data-testid="submit">注册（模拟保存 1 秒）</Button>
+            <TextSpan Muted="true" Size="Size.Sm" data-testid="result">@result</TextSpan>
         </Flex>
-    </EditForm>
+    </Form>
+</DemoSection>
+
+<DemoSection Title="数字、单选、下拉、滑块">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Sx="FormWidth">
+        <NumberField @bind-Value="price" Step="0.01m" Format="N2" aria-label="单价">
+            <Prefix>¥</Prefix>
+        </NumberField>
+        <TextSpan Muted="true" Size="Size.Sm" data-testid="price">单价：@(price?.ToString("N2") ?? "（空）")（decimal，步长 0.01，没有浮点误差）</TextSpan>
+        <RadioGroup @bind-Value="plan" aria-label="套餐">
+            <Radio Value="Plan.Free">免费版</Radio>
+            <Radio Value="Plan.Pro">专业版</Radio>
+            <Radio Value="Plan.Team">团队版</Radio>
+        </RadioGroup>
+        <TextSpan Muted="true" Size="Size.Sm">套餐：@plan（枚举值）</TextSpan>
+        <Slider @bind-Value="volume" Immediate="true" ShowValue="true" aria-label="音量（Immediate，拖动中就更新）" />
+    </Flex>
 </DemoSection>
 
 <DemoSection Title="单独使用">
@@ -59,6 +88,11 @@
     readonly HashSet<string> selected = ["苹果"];
     readonly SignupModel model = new();
     string? keyword;
+    decimal? price = 9.9m;
+    Plan plan = Plan.Pro;
+    int volume = 40;
+
+    enum Plan { Free, Pro, Team }
     string result = "";
 
     bool AllSelected => selected.Count == fruits.Length;
@@ -76,7 +110,13 @@
         else selected.Remove(fruit);
     }
 
-    void Submit() => result = $"已提交：{model.Name} <{model.Email}>，{(model.Notify ? "接收通知" : "不接收通知")}";
+    static readonly string[] cities = ["北京", "上海", "广州", "深圳"];
+
+    async Task SubmitAsync()
+    {
+        await Task.Delay(1000);
+        result = $"已提交：{model.Name} <{model.Email}>，{model.Quantity} 件，{model.Shipping}，{model.City}，预算 {model.Budget:N0} 元";
+    }
 
     static Style FormWidth => Css.Define(static () => new Style { MaxWidth = 420 });
 
@@ -98,5 +138,16 @@
         public bool Agreed { get; set; }
 
         public bool Notify { get; set; } = true;
+
+        [Range(1, 99, ErrorMessage = "数量在 1–99 之间")]
+        public int? Quantity { get; set; } = 1;
+
+        [Required(ErrorMessage = "请选择配送方式")]
+        public string? Shipping { get; set; }
+
+        [Required(ErrorMessage = "请选择城市")]
+        public string? City { get; set; }
+
+        public double Budget { get; set; } = 1000;
     }
 }

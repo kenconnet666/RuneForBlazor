@@ -114,6 +114,15 @@
 - **使用方的属性落在 input 上**（placeholder、name、autocomplete……），Sx 落在外框上：外框是看得见的盒子，input 是语义上的控件。
 - **勾选框、开关是原生 input** 去掉默认外观重画：键盘、表单提交、读屏都是原生的；半选只能用 JS 设置，JS 初始化器按 `data-indeterminate` 同步。
 - 文本框默认 change 时更新（失去焦点、回车），`Immediate` 才每次输入都更新：Server 模式下每次按键一次往返。
+- **NumberField 的值类型不加约束**（同 Blazor 的 InputNumber）：Razor 给泛型组件生成 `@bind` 代码时处理不了 `TValue?`（可空的值类型参数），
+  会生成引用 `global::TValue` 的代码编译失败。所以 TValue 本身可以是 `int?`，Min / Max / Step 写成 decimal，计算都在 decimal 里（没有浮点误差），
+  再按值的类型转回去。方向键在 JS 初始化器里处理（按输入框里现在的文字算，没有往返），改完发 change，C# 再夹到范围、对齐步长。
+- **单选、下拉、滑块用原生元素**：键盘、读屏、手机上的系统选择器都是原生的。下拉按位置对应值（任何类型），可搜索、多选的 Select 之后基于 Popover 做。
+- **Form 包一层 EditForm**：默认带 DataAnnotationsValidator；提交回调执行期间级联的 `FormState.Submitting` 让提交按钮显示加载中；
+  提交未通过时顶部列出错误，Field 渲染后把“字段 → 标签、控件 id”登记给 Form，汇总写成“标签：错误”并能跳到控件。
+  跳转用 `data-rune-focus` 在捕获阶段拦下：`#id` 链接会被 Blazor 按 `<base href>` 解析成别的页面（实测跳回了首页）。
+- **外框的状态只看自己的输入元素**：`:has(> :is(input, select, textarea):disabled)`。最初写的 `:has(:disabled)` 会被数字框到了上限时不可用的步进按钮、
+  下拉里不可用的占位选项匹配，整个外框变灰（实测发现）。
 
 ## 10. 生成器与分析器（`src/Rune.Generators`）
 

@@ -78,11 +78,13 @@
 - [x] 底座：`FormControl<TValue>`（@bind-Value、接入 EditContext、aria-invalid）、`Field` + `FieldContext`（标签、说明、错误、id 关联）、共用的输入外框样式
 - [x] TextField（图标、后缀、Immediate）、Textarea（高度跟着内容）
 - [x] Checkbox（半选）、Switch
-- [ ] NumberField（步进、范围、格式化）
-- [ ] RadioGroup + Radio、ToggleGroup
-- [ ] Select（原生 select 重画）、Combobox（可搜索，基于阶段 2 的 Popover 与列表键盘）
-- [ ] Slider
-- [ ] 表单外壳：`Form`（包 EditForm：布局、提交中状态、错误汇总并跳到字段）、FormSection；标签在起始边的横排布局
+- [x] NumberField（任何数字类型、decimal 计算、步进按钮与方向键、格式化、全角数字）
+- [x] RadioGroup + Radio（原生 radio，横排 / 竖排，以 Field 的标签为名称）
+- [x] NativeSelect（原生 select 重画，按位置对应任何类型的值）
+- [x] Slider（原生 range + accent-color，可选 Immediate、显示值）
+- [x] `Form`：包 EditForm，默认 DataAnnotations，提交中时提交按钮加载中，错误汇总并跳到字段
+- [ ] Select / Combobox（可搜索、多选，基于 Popover 与列表键盘）、ToggleGroup、范围滑块
+- [ ] FormSection、标签在起始边的横排布局
 
 ## 阶段 4：导航与外壳
 
