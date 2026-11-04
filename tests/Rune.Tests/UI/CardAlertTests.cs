@@ -86,7 +86,9 @@ public class CardAlertTests : BunitContext
         Assert.Empty(plain.FindAll("button"));
         var button = closable.Find("button");
         Assert.Equal("关闭", button.GetAttribute("aria-label"));
-        button.Click();
+        Assert.True(button.HasAttribute("data-rune-dismiss"));
+        // 淡出结束后 JS 初始化器在提示条上发出 rune-dismiss
+        closable.Find("[data-rune-dismissible]").TriggerEvent("onrunedismiss", EventArgs.Empty);
         Assert.Equal(1, closed);
     }
 

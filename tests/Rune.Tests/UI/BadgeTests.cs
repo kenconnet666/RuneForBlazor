@@ -80,8 +80,8 @@ public class BadgeTests : BunitContext
     [Fact]
     public void 配方按档位组合缓存_同一组合是同一个对象()
     {
-        var first = BadgeStyles.Of(new BadgeAppearance(BadgeVariant.Soft, Tone.Info, Size.Xs, Radius.Full), ComponentStyles.Empty);
-        var second = BadgeStyles.Of(new BadgeAppearance(BadgeVariant.Soft, Tone.Info, Size.Xs, Radius.Full), ComponentStyles.Empty);
+        var first = BadgeStyles.Of(new BadgeAppearance(StatusVariant.Soft, Tone.Info, Size.Xs, Radius.Full), ComponentStyles.Empty);
+        var second = BadgeStyles.Of(new BadgeAppearance(StatusVariant.Soft, Tone.Info, Size.Xs, Radius.Full), ComponentStyles.Empty);
 
         Assert.Same(first, second);
         Assert.Same(first[BadgePart.Root], second[BadgePart.Root]);

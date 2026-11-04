@@ -24,6 +24,22 @@ public enum Tone
     Danger,
 }
 
+/// <summary>标记、提示条这类状态表面的样式（同 vue-tsx-pro 的 StatusVariant），颜色见 <see cref="SharedStyles.StatusColors"/>。</summary>
+public enum StatusVariant
+{
+    /// <summary>实底：最醒目，计数、状态点。</summary>
+    Solid,
+
+    /// <summary>浅色底（默认）。</summary>
+    Soft,
+
+    /// <summary>浅色底加描边。</summary>
+    Surface,
+
+    /// <summary>只有描边。</summary>
+    Outline,
+}
+
 /// <summary>
 /// 一个色调的一组颜色。按色调变化的样式写成以它为参数的函数，每种外观只写一遍，样式里直接看得到用的是哪个 token：
 /// <code>static Style Solid(ToneColors tone) => new() { Color = tone.Contrast, BackgroundColor = tone.Solid };</code>

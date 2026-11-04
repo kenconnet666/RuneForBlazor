@@ -20,7 +20,8 @@ public class ToastTests : BunitContext
 
         cut.WaitForAssertion(() => Assert.Equal("已保存", cut.Find("[data-part=description]").TextContent));
         // 每条提示是 Alert，部件标记属于 Toaster（toaster / toast）
-        cut.Find("[data-part=toast] [data-part=close]").Click();
+        Assert.True(cut.Find("[data-part=toast] [data-part=close]").HasAttribute("data-rune-dismiss"));
+        cut.Find("[data-part=toast]").TriggerEvent("onrunedismiss", EventArgs.Empty);
         cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("[data-part=toast]")));
     }
 

@@ -9,7 +9,7 @@
     <Description>Variant 决定醒目程度：Solid 实底最醒目，Soft 浅底（默认），Surface 浅底加描边，Outline 只有描边；Tone 是状态色调。</Description>
     <ChildContent>
         <div @attributes="Attrs.Merge(MatrixGrid)">
-            @foreach (var variant in Enum.GetValues<BadgeVariant>())
+            @foreach (var variant in Enum.GetValues<StatusVariant>())
             {
                 <TextSpan Size="Size.Xs" Tone="TextTone.Muted">@variant.ToString().ToLowerInvariant()</TextSpan>
                 @foreach (var (tone, label) in tones)
@@ -34,18 +34,18 @@
             </Flex>
             <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
                 <TextSpan Size="Size.Xs" Tone="TextTone.Muted">胶囊与计数</TextSpan>
-                <Badge Radius="Radius.Full" Variant="BadgeVariant.Solid" Tone="Tone.Danger">12</Badge>
-                <Badge Radius="Radius.Full" Variant="BadgeVariant.Solid">99+</Badge>
+                <Badge Radius="Radius.Full" Variant="StatusVariant.Solid" Tone="Tone.Danger">12</Badge>
+                <Badge Radius="Radius.Full" Variant="StatusVariant.Solid">99+</Badge>
                 <Badge Radius="Radius.Full" Tone="Tone.Success">在线</Badge>
-                <Badge Radius="Radius.Full" Variant="BadgeVariant.Outline">v2.4.0</Badge>
+                <Badge Radius="Radius.Full" Variant="StatusVariant.Outline">v2.4.0</Badge>
             </Flex>
             <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
                 <TextSpan Size="Size.Xs" Tone="TextTone.Muted">图标</TextSpan>
                 <Badge Icon="Lucide.CircleCheck" Tone="Tone.Success">已通过</Badge>
                 <Badge Icon="Lucide.Clock" Tone="Tone.Warning">待审核</Badge>
-                <Badge Icon="Lucide.TriangleExclamationPoint" Tone="Tone.Danger" Variant="BadgeVariant.Surface">3 个错误</Badge>
-                <Badge Icon="Lucide.Sparkles" Tone="Tone.Accent" Variant="BadgeVariant.Solid">Beta</Badge>
-                <Badge Icon="Lucide.Flame" Tone="Tone.Warning" Variant="BadgeVariant.Outline" Radius="Radius.Full">热门</Badge>
+                <Badge Icon="Lucide.TriangleExclamationPoint" Tone="Tone.Danger" Variant="StatusVariant.Surface">3 个错误</Badge>
+                <Badge Icon="Lucide.Sparkles" Tone="Tone.Accent" Variant="StatusVariant.Solid">Beta</Badge>
+                <Badge Icon="Lucide.Flame" Tone="Tone.Warning" Variant="StatusVariant.Outline" Radius="Radius.Full">热门</Badge>
             </Flex>
         </Flex>
     </ChildContent>
@@ -72,7 +72,7 @@
                 <Small Tone="TextTone.Muted">异常状态</Small>
                 @foreach (var key in Exceptions.Keys)
                 {
-                    <StatusBadge Statuses="Exceptions" Value="key" Variant="BadgeVariant.Outline" />
+                    <StatusBadge Statuses="Exceptions" Value="key" Variant="StatusVariant.Outline" />
                 }
             </Flex>
             <TextSpan Size="Size.Sm" Tone="TextTone.Muted">
@@ -96,12 +96,12 @@
             </Flex>
             <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
                 <TextSpan Size="Size.Xs" Tone="TextTone.Muted">样式</TextSpan>
-                <Tag Variant="BadgeVariant.Solid" Tone="Tone.Accent">solid</Tag>
-                <Tag Variant="BadgeVariant.Soft" Tone="Tone.Accent">soft</Tag>
-                <Tag Variant="BadgeVariant.Surface" Tone="Tone.Accent">surface</Tag>
-                <Tag Variant="BadgeVariant.Outline" Tone="Tone.Accent">outline</Tag>
+                <Tag Variant="StatusVariant.Solid" Tone="Tone.Accent">solid</Tag>
+                <Tag Variant="StatusVariant.Soft" Tone="Tone.Accent">soft</Tag>
+                <Tag Variant="StatusVariant.Surface" Tone="Tone.Accent">surface</Tag>
+                <Tag Variant="StatusVariant.Outline" Tone="Tone.Accent">outline</Tag>
                 <Tag Radius="Radius.Full" Tone="Tone.Neutral">胶囊形</Tag>
-                <Tag Size="Size.Sm" Tone="Tone.Neutral" Variant="BadgeVariant.Surface">size=sm</Tag>
+                <Tag Size="Size.Sm" Tone="Tone.Neutral" Variant="StatusVariant.Surface">size=sm</Tag>
             </Flex>
         </Flex>
     </ChildContent>

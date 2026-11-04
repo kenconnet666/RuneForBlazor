@@ -43,8 +43,11 @@ public enum AlertPart
     /// <summary>标题（加粗的第一行）。</summary>
     Title,
 
-    /// <summary>说明。</summary>
+    /// <summary>说明（标题下面的正文）。</summary>
     Description,
+
+    /// <summary>额外内容（同时给了 Description 与 ChildContent 时的 ChildContent）。</summary>
+    Content,
 
     /// <summary>操作区（重试等按钮）。</summary>
     Action,
@@ -96,17 +99,20 @@ public static class AlertStyles
     public static PartLayers<AlertPart> Of(AlertAppearance appearance, ComponentStyles styles) =>
         Recipe.Of("alert", appearance, styles, static (AlertAppearance a, AlertPart part) => part switch
         {
+            // 色调排在前面：按部件定制能盖过它
             AlertPart.Root => Sx.Of(
+                SharedStyles.StatusColors(StatusVariantOf(a.Variant), a.Tone),
                 Root,
-                Variant(a.Variant, a.Tone),
+                SharedStyles.Fade,
                 ScaleStyles.Radius(a.Radius),
                 a.Size is { } size ? ScaleStyles.FontSize(size) : null),
-            AlertPart.Icon => Sx.Of(Icon, SharedStyles.ToneText(a.Tone)),
+            AlertPart.Icon => Icon,
             AlertPart.Body => Body,
-            AlertPart.Title => Sx.Of(Title, SharedStyles.ToneText(a.Tone)),
-            AlertPart.Description => Sx.Of(),
+            AlertPart.Title => Title,
+            AlertPart.Description => Description,
+            AlertPart.Content => Content,
             AlertPart.Action => Action,
-            _ => Close,
+            _ => Sx.Of(Close, SharedStyles.RelativeSmall),
         });
 
     /// <summary>不写图标时按色调选的图标。</summary>
@@ -118,59 +124,50 @@ public static class AlertStyles
         _ => BuiltInIcons.Info,
     };
 
-    static Style Variant(AlertVariant variant, Tone tone) => Css.Define((variant, tone), static key =>
+    static StatusVariant StatusVariantOf(AlertVariant variant) => variant switch
     {
-        var t = Tones.Of(key.tone);
-        return key.variant switch
-        {
-            AlertVariant.Surface => new Style { BackgroundColor = t.Soft, BorderColor = t.Border },
-            AlertVariant.Outline => new Style { BorderColor = t.Border },
-            _ => new Style { BackgroundColor = t.Soft },
-        };
-    });
+        AlertVariant.Surface => StatusVariant.Surface,
+        AlertVariant.Outline => StatusVariant.Outline,
+        _ => StatusVariant.Soft,
+    };
 
 
-    // 内边距用 em：跟着 Size 缩放
+    // 图标、内边距用 em 与间距 token（也是 em）：跟着 Size 缩放
     static Style Root => Css.Define(static () => new Style
     {
         BoxSizing = BoxSizing.BorderBox,
         Display = Display.Flex,
         AlignItems = AlignItems.FlexStart,
-        Gap = "0.6em",
-        PaddingBlock = "0.75em",
-        PaddingInline = "1em",
-        BorderWidth = BorderWidths.Xs,
-        BorderStyle = BorderStyle.Solid,
-        BorderColor = "transparent",
-        Color = Colors.Text,
+        Gap = Space.Sm,
+        Padding = Space.Md,
         LineHeight = LineHeights.Normal,
     });
 
-    // 图标与第一行文字居中对齐：行高 1.5em，图标 1.15em
-    static Style Icon => Css.Define(static () => new Style
-    {
-        FlexShrink = 0,
-        FontSize = "1.15em",
-        MarginBlock = "0.1em",
-    });
+    // 图标与第一行文字对齐：行高 1.5em 里居中 1em 的图标
+    static Style Icon => Css.Define(static () => new Style { FlexShrink = 0, MarginBlock = "0.25em" });
 
     static Style Body => Css.Define(static () => new Style
     {
-        Display = Display.Grid,
-        Gap = Space.Xs,
         FlexGrow = 1,
         MinWidth = 0,
+        Display = Display.Grid,
+        Gap = Space.Xs,
     });
 
     static Style Title => Css.Define(static () => new Style { FontWeight = FontWeights.Semibold });
 
+    // 正文用正文色（标题、图标跟着色调）
+    static Style Description => Css.Define(static () => new Style { Color = Colors.Text });
+
+    static Style Content => Css.Define(static () => new Style { MinWidth = 0 });
+
     static Style Action => Css.Define(static () => new Style { FlexShrink = 0, AlignSelf = AlignSelf.Center });
 
-    // 关闭按钮贴着右上角：抵消一部分内边距，与标题行对齐
+    // 关闭按钮：抵消一部分上下内边距，与标题行对齐；颜色跟着色调
     static Style Close => Css.Define(static () => new Style
     {
         FlexShrink = 0,
-        MarginBlock = "-0.25em",
-        MarginInlineEnd = "-0.4em",
+        MarginBlock = $"calc(-1 * {Space.Xs})",
+        Color = CssWide.Inherit,
     });
 }

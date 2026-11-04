@@ -2,22 +2,6 @@ using Rune.Styles;
 
 namespace Rune.UI;
 
-/// <summary>标记的样式（与按钮同名的样式同义）。</summary>
-public enum BadgeVariant
-{
-    /// <summary>实底：醒目的状态。</summary>
-    Solid,
-
-    /// <summary>浅色底（默认）。</summary>
-    Soft,
-
-    /// <summary>浅色底加描边。</summary>
-    Surface,
-
-    /// <summary>只有描边。</summary>
-    Outline,
-}
-
 /// <summary>标记还是标签（同一套外观，标签多了过渡与移除）。</summary>
 public enum BadgeKind
 {
@@ -51,7 +35,7 @@ public enum BadgePart
 public sealed record BadgeDefaults : IComponentDefaults<BadgeDefaults>
 {
     /// <summary>样式。</summary>
-    public BadgeVariant? Variant { get; init; }
+    public StatusVariant? Variant { get; init; }
 
     /// <summary>色调。</summary>
     public Tone? Tone { get; init; }
@@ -78,14 +62,14 @@ public sealed record BadgeDefaults : IComponentDefaults<BadgeDefaults>
 /// <param name="Size">字号档位；null 时比上下文字号小一号（0.85em）。</param>
 /// <param name="Radius">圆角。</param>
 /// <param name="Kind">Badge 还是 Tag（可移除的标签结束边内边距变小、离场时淡出缩小）。</param>
-public readonly record struct BadgeAppearance(BadgeVariant Variant, Tone Tone, Size Size, Radius Radius, BadgeKind Kind = BadgeKind.Badge)
+public readonly record struct BadgeAppearance(StatusVariant Variant, Tone Tone, Size Size, Radius Radius, BadgeKind Kind = BadgeKind.Badge)
 {
     /// <summary>外观：组件上写的 &gt; 配置的默认值（<see cref="BadgeDefaults"/>）&gt; 浅色底、中性、胶囊形。</summary>
-    public static BadgeAppearance Resolve(BadgeVariant? variant, Tone? tone, Size? size, Radius? radius, UIConfig config, BadgeKind kind = BadgeKind.Badge)
+    public static BadgeAppearance Resolve(StatusVariant? variant, Tone? tone, Size? size, Radius? radius, UIConfig config, BadgeKind kind = BadgeKind.Badge)
     {
         var defaults = config.Defaults.Get<BadgeDefaults>();
         return new BadgeAppearance(
-            variant ?? defaults?.Variant ?? BadgeVariant.Soft,
+            variant ?? defaults?.Variant ?? StatusVariant.Soft,
             tone ?? defaults?.Tone ?? UI.Tone.Neutral,
             size ?? defaults?.Size ?? UI.Size.Xs,
             radius ?? defaults?.Radius ?? UI.Radius.Sm,
@@ -100,25 +84,13 @@ public static class BadgeStyles
     public static PartLayers<BadgePart> Of(BadgeAppearance appearance, ComponentStyles styles) =>
         Recipe.Of("badge", appearance, styles, static (BadgeAppearance a, BadgePart part) => part switch
         {
-            BadgePart.Root => Sx.Of(Root, Variant(a.Variant, a.Tone), ScaleStyles.FontSize(a.Size), ScaleStyles.Radius(a.Radius),
+            BadgePart.Root => Sx.Of(Root, SharedStyles.StatusColors(a.Variant, a.Tone), ScaleStyles.FontSize(a.Size), ScaleStyles.Radius(a.Radius),
                 a.Kind == BadgeKind.Badge ? null : TagRoot,
                 a.Kind == BadgeKind.RemovableTag ? Removable : null),
             BadgePart.Dot => Dot,
             BadgePart.Remove => Remove,
             _ => Sx.Of(),
         });
-
-    static Style Variant(BadgeVariant variant, Tone tone) => Css.Define((variant, tone), static key =>
-    {
-        var t = Tones.Of(key.tone);
-        return key.variant switch
-        {
-            BadgeVariant.Solid => new Style { Color = t.Contrast, BackgroundColor = t.Solid },
-            BadgeVariant.Surface => new Style { Color = t.Text, BackgroundColor = t.Surface, BorderColor = t.Border },
-            BadgeVariant.Outline => new Style { Color = t.Text, BorderColor = t.Border },
-            _ => new Style { Color = t.Text, BackgroundColor = t.Soft },
-        };
-    });
 
     static Style Root => Css.Define(static () => new Style
     {
@@ -129,9 +101,6 @@ public static class BadgeStyles
         PaddingInline = Space.Sm,
         // 一行的高度：不随内容的图标、按钮撑高
         MinHeight = "1.75em",
-        BorderWidth = BorderWidths.Xs,
-        BorderStyle = BorderStyle.Solid,
-        BorderColor = "transparent",
         FontWeight = FontWeights.Medium,
         LineHeight = LineHeights.Tight,
         WhiteSpace = WhiteSpace.Nowrap,

@@ -27,6 +27,43 @@ public static class SharedStyles
 
     static Style InheritedText => Css.Define(static () => new Style { Color = CssWide.Inherit });
 
+    /// <summary>
+    /// 状态表面的颜色（同 vue-tsx-pro 的 statusToneSx）：样式 × 色调 → 文字色、底色与边框。
+    /// 每种样式都留出边框的位置（实底、浅色底时透明），切换样式时尺寸不变。标记、标签、提示条共用。
+    /// </summary>
+    public static Style StatusColors(StatusVariant variant, Tone tone) => Css.Define((variant, tone), static key =>
+    {
+        var t = Tones.Of(key.tone);
+        var (color, background, border) = key.variant switch
+        {
+            StatusVariant.Solid => (t.Contrast, t.Solid, (CssColor)"transparent"),
+            StatusVariant.Surface => (t.Text, t.Surface, t.Border),
+            StatusVariant.Outline => (t.Text, (CssColor?)null, t.Border),
+            _ => (t.Text, t.Soft, (CssColor)"transparent"),
+        };
+        return new Style
+        {
+            BorderWidth = BorderWidths.Xs,
+            BorderStyle = BorderStyle.Solid,
+            BorderColor = border,
+            Color = color,
+            BackgroundColor = background,
+        };
+    });
+
+    /// <summary>
+    /// 可关闭的元素的淡入淡出（同 vue-tsx-pro 的 presenceStyles）：关闭时 JS 初始化器加 data-dismissing 淡出，
+    /// 离场结束再交给使用方移除；没被移除时淡回来。提示条用它。
+    /// </summary>
+    public static Style Fade => Css.Define(static () => new Style
+    {
+        Transition = $"opacity {Durations.Sm} {Easings.Enter}",
+        [When.Attribute("[data-dismissing]")] = new() { Opacity = 0, Transition = $"opacity {Durations.Sm} {Easings.Exit}" },
+    });
+
+    /// <summary>相对所在文字小一档（0.93em）：提示条里的关闭按钮。</summary>
+    public static Style RelativeSmall => Css.Define(static () => new Style { FontSize = "0.93em" });
+
     /// <summary>键盘聚焦时的焦点环（画在元素外侧）。</summary>
     public static Style FocusRing => Css.Define(static () => new Style
     {

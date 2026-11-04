@@ -3,19 +3,21 @@
     <Alert Tone="Tone.Warning" Title="即将过期">你的订阅将在 3 天后到期。</Alert>
     <Alert Tone="Tone.Danger" Live="AlertLive.Assertive" OnClose="Dismiss">保存失败，请重试</Alert>
     页面加载时就在的提示不需要读屏打断；操作后才出现的用 Live 让读屏播报。
-    组件不自己消失：OnClose 里由使用方把它移除。
+    写了 OnClose 就有关闭按钮：点击后提示条先淡出（JS 初始化器做），离场结束才调用 OnClose，由使用方把它移除；没移除就重新显示。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 @{
     var appearance = AlertAppearance.Resolve(Variant, Tone, Size, Radius, Config);
     var parts = AlertStyles.Of(appearance, Config.Styles);
+    // 说明取 Description，没有时取 ChildContent；两个都有时 ChildContent 放在说明下面
+    var text = Description ?? ChildContent;
 }
 
-<div @attributes="Attrs.Merge(parts[AlertPart.Root], Rest, Managed)">
+<div data-tone="@Lower(appearance.Tone)" @attributes="Attrs.Merge(parts[AlertPart.Root], Rest, Managed)">
     @if (Loading)
     {
-        <Spinner @attributes="Attrs.MergeProps(parts[AlertPart.Icon], PropsIcon)" />
+        <Spinner @attributes="Attrs.MergeProps(parts[AlertPart.Icon], PropsSpinner)" />
     }
     else if (!HideIcon)
     {
@@ -26,9 +28,13 @@
         {
             <div @attributes="Attrs.Merge(parts[AlertPart.Title], PropsTitle)">@Title</div>
         }
-        @if (ChildContent is not null)
+        @if (text is not null)
         {
-            <div @attributes="Attrs.Merge(parts[AlertPart.Description], PropsDescription)">@ChildContent</div>
+            <div @attributes="Attrs.Merge(parts[AlertPart.Description], PropsDescription)">@text</div>
+        }
+        @if (Description is not null && ChildContent is not null)
+        {
+            <div @attributes="Attrs.Merge(parts[AlertPart.Content], PropsContent)">@ChildContent</div>
         }
     </div>
     @if (Action is not null)
@@ -37,13 +43,14 @@
     }
     @if (OnClose.HasDelegate)
     {
-        <IconButton Icon="BuiltInIcons.X" Label="@CloseLabel" Size="UI.Size.Sm" @onclick="OnClose"
-                    @attributes="Attrs.MergeProps(parts[AlertPart.Close], PropsClose)" />
+        <CloseButton Label="@CloseLabel" @attributes="Attrs.MergeProps(parts[AlertPart.Close], PropsClose, dismissButton)" />
     }
 </div>
 
 @code {
-    Memo<(AlertLive Live, bool Loading), Attrs> managed;
+    static readonly Attrs dismissButton = new() { ["data-rune-dismiss"] = true };
+
+    Memo<(AlertLive Live, bool Loading, bool Closable), Attrs> managed;
 
     /// <summary>样式，默认浅色底。</summary>
     [Parameter] public AlertVariant? Variant { get; set; }
@@ -60,7 +67,10 @@
     /// <summary>标题（加粗的第一行）。占用了原生的 title 属性（悬停提示）。</summary>
     [Parameter] public string? Title { get; set; }
 
-    /// <summary>说明（标题下面的正文）。</summary>
+    /// <summary>说明（标题下面的正文）；不写时 ChildContent 就是说明。</summary>
+    [Parameter] public RenderFragment? Description { get; set; }
+
+    /// <summary>说明；同时给了 <see cref="Description"/> 时是说明下面的额外内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>图标；不写时按色调选。</summary>
@@ -78,14 +88,17 @@
     /// <summary>右侧的操作（如“重试”按钮）。</summary>
     [Parameter] public RenderFragment? Action { get; set; }
 
-    /// <summary>关闭：给了才显示关闭按钮。</summary>
+    /// <summary>给了就显示关闭按钮；淡出结束后调用，由使用方把提示条移除。</summary>
     [Parameter] public EventCallback OnClose { get; set; }
 
     /// <summary>关闭按钮的名称（读屏读出）。</summary>
     [Parameter] public string CloseLabel { get; set; } = "关闭";
 
-    /// <summary>图标（或加载指示）的部件属性。</summary>
+    /// <summary>图标的部件属性。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>加载指示（Loading 时代替图标）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSpinner { get; set; }
 
     /// <summary>文字区的部件属性。</summary>
     [Parameter] public Attrs? PropsBody { get; set; }
@@ -96,14 +109,17 @@
     /// <summary>说明的部件属性。</summary>
     [Parameter] public Attrs? PropsDescription { get; set; }
 
+    /// <summary>额外内容的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
     /// <summary>操作区的部件属性。</summary>
     [Parameter] public Attrs? PropsAction { get; set; }
 
-    /// <summary>关闭按钮的部件属性（交给 IconButton）。</summary>
+    /// <summary>关闭按钮的部件属性（交给 CloseButton）。</summary>
     [Parameter] public Attrs? PropsClose { get; set; }
 
-    // 外层上由组件管理的属性：播报角色与忙碌状态；不变时复用同一个对象
-    Attrs Managed => managed.Get((Live, Loading), static k => new Attrs
+    // 外层上由组件管理的属性：播报角色、忙碌状态与关闭（离场结束的事件）；不变时复用同一个对象
+    Attrs Managed => managed.Get((Live, Loading, OnClose.HasDelegate), this, static (k, self) => new Attrs
     {
         Role = k.Live switch
         {
@@ -112,5 +128,11 @@
             _ => null,
         },
         ["aria-busy"] = k.Loading ? "true" : null,
+        ["data-rune-dismissible"] = k.Closable ? true : null,
+        ["onrunedismiss"] = k.Closable ? EventCallback.Factory.Create<EventArgs>(self, () => self.OnClose.InvokeAsync()) : null,
     });
+
+    static readonly string[] toneNames = [.. Enum.GetNames<Tone>().Select(name => name.ToLowerInvariant())];
+
+    static string Lower(Tone tone) => toneNames[(int)tone];
 }

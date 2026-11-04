@@ -125,7 +125,7 @@
   外面包 Tooltip 说明原因。加载中只写 aria-busy，外观不变灰。这两种状态组件去掉使用方的点击处理，并带 `data-rune-inert`，
   JS 初始化器在捕获阶段拦下点击的默认动作（提交按钮不提交表单）。加载指示推迟 200ms 才出现（同 useDelayedLoading，CSS 过渡延迟实现，
   没有往返），很快完成的操作按钮不闪一下；vue-tsx-pro 还保证指示至少显示 500ms，CSS 做不到，这里没有。
-- **可移除的标签**（同 vue-tsx-pro 的 useDismissible）：移除按钮带 `data-rune-dismiss`，标签带 `data-rune-dismissible`。JS 初始化器先加
+- **可移除的标签、可关闭的提示条**（同 vue-tsx-pro 的 useDismissible）：移除按钮带 `data-rune-dismiss`，标签带 `data-rune-dismissible`。JS 初始化器先加
   `data-dismissing` 播放离场过渡，结束后发出 `rune-dismiss`（`@onrunedismiss`），组件再调用 OnRemove；标签被移除时焦点交给同组的下一个
   （没有就上一个）可聚焦元素，等 2 秒还在（使用方没移除）就去掉 `data-dismissing` 重新显示。没有往返也不用 C# 计时。
 - **复制按钮**：给 Value 时按钮带 `data-rune-copy`，JS 初始化器在点击当下写入剪贴板（Safari 只认点击当下的写入，静态 SSR 也能用）；
