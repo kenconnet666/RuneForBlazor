@@ -61,7 +61,7 @@
 
 <DemoSection Title="气泡确认">
     <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-        <Popconfirm Title="删除这条记录？" Description="删除后无法恢复。" ConfirmText="删除" ConfirmTone="Tone.Danger" OnConfirm="() => { deleted++; }">
+        <Popconfirm Title="删除这条记录？" Description="删除后无法恢复。" ConfirmText="删除" Tone="Tone.Danger" OnConfirm="() => { deleted++; }">
             <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Trash">删除</Button></Trigger>
         </Popconfirm>
         <TextSpan Muted="true" data-testid="deleted">已删除 @deleted 次</TextSpan>

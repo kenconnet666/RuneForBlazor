@@ -13,7 +13,7 @@ public static class DemoStyles
         Gap = Space.Sm,
         Padding = Space.Md,
         BorderRadius = Radii.Md,
-        BackgroundColor = Colors.Surface,
+        BackgroundColor = Colors.SurfaceMuted,
     });
 
     /// <summary>一排横向排列的内容。</summary>
@@ -47,10 +47,10 @@ public static class DemoStyles
     public static Style ModeSwitch => Css.Define(static () => new Style
     {
         Display = "flex",
-        Gap = Space.Xxs,
-        Padding = Space.Xxs,
+        Gap = Space.Xs,
+        Padding = Space.Xs,
         BorderRadius = Radii.Md,
-        BackgroundColor = Colors.Surface,
+        BackgroundColor = Colors.SurfaceMuted,
     });
 
     /// <summary>渲染模式切换里的一项；当前模式（aria-current）高亮。</summary>
@@ -61,7 +61,7 @@ public static class DemoStyles
         BorderRadius = Radii.Sm,
         Color = Colors.Text,
         TextDecoration = "none",
-        [When.Hover] = new() { BackgroundColor = Colors.SurfaceHover },
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
         [When.Current] = new() { BackgroundColor = Tones.Accent.Solid, Color = Tones.Accent.Contrast },
     });
 
@@ -91,7 +91,7 @@ public static class DemoStyles
         BorderRadius = Radii.Md,
         OverflowWrap = "anywhere",
         TextAlign = TextAlign.Center,
-        [When.Hover] = new() { BackgroundColor = Colors.SurfaceHover },
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
     });
 
     /// <summary>强调色文字（按部件定制的例子）。</summary>

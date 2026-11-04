@@ -70,16 +70,24 @@
   与 CSS 关键字类同名的组件（`Flex`、`Grid`）登记在 css-gen 的 `COMPONENT_NAMES`，关键字类加 `Keywords` 后缀让路。
 - **元素不同就分组件**（H1–H6、TextSpan / Paragraph）：共用基类与配方，子类只给标签与默认值，基类在 C# 里用 `RenderTreeBuilder` 输出元素。
 
-## 7. 主题与配置（`src/Rune/Styles/Theme.cs`、`src/Rune.UI/Configuration`）
+## 7. 主题与配置（`src/Rune/Styles/Theme.cs`、`src/Rune.UI/Theme`、`src/Rune.UI/Configuration`）
 
-- **主题是 C# 对象**：token 是样式里写的 `var(--rune-…)`，主题给它们赋值（`new Theme("dark", basedOn: Light) { [Colors.Text] = "…" }`），
-  `ThemeStyles.ClassFor` 生成只设变量的类。换主题只换容器上的类，组件不用重新计算样式。主题与 token 只有一份定义（取代手写的 CSS），测试检查每个 token 在内置主题里都有值。
-- **作用范围**：`RuneProvider` 用 `display: contents` 的包裹元素挂主题类，不影响布局；变量沿 DOM 继承，所以静态外壳里的主题对里面的交互区域同样生效。
-- **配置**：`UIConfig`（主题、亮暗、组件默认值、按部件的样式定制）。应用级的来自 `AddRuneUI`（DI，服务端与 WebAssembly 各注册一次），
+- **主题是 C# 对象**：token 是样式里写的 `var(--rune-…)`，主题给它们赋值（`new Theme("brand", basedOn: Themes.Light) { [Tones.Accent.Solid] = "…" }`），
+  `ThemeStyles.ClassFor` 生成只设变量的类。换主题只换容器上的类，组件不用重新计算样式。
+- **token 与内置主题同 vue-tsx-pro**：分组、命名、取值都对齐（颜色与阴影取自 Radix，间距与圆角用 em 随字号缩放，动效参考 Material 3）。
+  16 套内置主题由 `tools/theme-gen` 从 vue-tsx-pro 的主题文件生成（`Themes.g.cs`），CI 校验两边一致；vue-tsx-pro 加了 token 而这边没有时脚本报错。
+  中性色调不另设 token，直接用反色表面、填充、文字、边框（同 vue-tsx-pro 的 tone-styles）。本库独有的只有层级（提示、消息提示不在顶层）。
+- **主题自己说是亮是暗**（`IsDark`）：容器上的 `color-scheme` 按主题写，固定用赛博朋克这类暗色主题时原生控件、滚动条也是暗色。
+- **条件取值**：`[Media.ReducedMotion] = new("…") { [Durations.Md] = "0ms" }`。用户要求减少动态效果时全部时长为 0，
+  用时长 token 写的过渡自动关掉，组件不再各自加“减少动效”的样式（原来的 `SharedStyles.ReducedMotion` 已删）；循环的装饰动画（加载指示）自己处理。
+- **作用范围**：`RuneProvider` 用 `display: contents` 的包裹元素挂主题类，并设文字颜色、字体、字号、行高（同 vue-tsx-pro 的 Provider），不影响布局；
+  变量与这些属性沿 DOM 继承，所以静态外壳里的主题对里面的交互区域同样生效。
+- **配置**：`UIConfig`（主题、亮暗、组件默认值、按部件的样式定制、波纹开关）。应用级的来自 `AddRuneUI`（DI，服务端与 WebAssembly 各注册一次），
   `RuneProvider` 在一片区域里叠加修改。级联值不能跨渲染模式边界，交互区域里需要局部修改时在里面再放一个 Provider。
 - **默认值**：每个组件一个 record（`CollapsibleDefaults`），属性可空，`Over` 定义叠加规则；组件上写的参数 > 最近的 Provider > 应用级 > 组件自己的默认值。
 - **按部件定制样式**：用组件的部件枚举（`CollapsiblePart.Trigger`）指定，写错编译不过；追加在组件样式之后、使用方的 Sx 之前，`Part.Of` 统一处理，组件不用为此写代码。
 - **不让下面的组件白白重新渲染**：Provider 的参数没变时给出同一个配置对象；配置是 record，级联参数与普通参数一样比较，没变就跳过。
+- **共用的交互样式**：`SharedStyles.InteractionColors`（悬停、按下时颜色与阴影的过渡）、焦点环、视觉隐藏、色调文字色、波纹宿主；浮层进出场是 `OverlayTransitions`。
 
 ## 8. 浮层（`src/Rune.UI/Overlays`、`wwwroot/Rune.UI.lib.module.js`）
 

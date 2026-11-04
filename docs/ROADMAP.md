@@ -71,6 +71,18 @@
 - [x] 演示：`DemoSection` 取代每页重复的 section + h2，横排用 Flex 组件
 - [x] 对齐 vue-tsx-pro：按钮与菜单项的波纹（JS 初始化器，可按配置 / 组件关闭）；浮层进出场统一为 `OverlayTransitions`（进场慢、离场快）
 
+## 对齐 vue-tsx-pro（阶段 3 进行中）
+
+- [x] token：颜色（填充、占位与不可用文字、三级边框、反色、遮罩、选中、高亮、代码与图表色）、四种字体、字间距、边框宽度、线条粗细、
+      完整的阴影与尺寸档位、断点；间距与圆角改用 em；动效时长 xs–xl（减少动态效果时为 0）、enter / exit 缓动同 Material 3
+- [x] 16 套内置主题由 `tools/theme-gen` 从 vue-tsx-pro 生成，CI 校验；主题带 `IsDark` 与条件取值；演示里可以切换全部主题
+- [x] 共用样式：交互过渡 `SharedStyles.InteractionColors`（取代五处各写各的过渡），删掉 `SharedStyles.ReducedMotion`（交给时长 token）
+- [x] RuneProvider 的根设文字颜色、字体、字号、行高；浮层用 SurfaceRaised、遮罩用 Overlay；标题用 Heading 字体与字间距 token
+- [x] 组件：Icon（Tone、FlipInRtl、粗细取 token）；Checkbox / Radio / Switch / Slider 的 Tone，Checkbox / Radio 的 Description；
+      Popconfirm 的 Tone、Icon、OnCancel；Field 的标签在起始边（LabelPlacement、LabelWidth、LabelHidden，Form 上统一设置）；Textarea 的 MaxRows
+- [ ] 之后补上：Card 的 loading（Skeleton 扫光）与装饰效果；Toast 的操作、进度、位置、悬停暂停；Menu 的勾选项；Drawer 可拖动宽度；
+      Switch 的 loading；Textarea 的字数统计与清空；Alert 的 description 与额外内容分开
+
 ## 阶段 3：输入与表单
 
 决定：扩展 Blazor 的 `EditContext`，不另做一套（兼容 `EditForm`、DataAnnotations、FluentValidation）。设计见 DESIGN 第 9 节。
@@ -84,7 +96,8 @@
 - [x] Slider（原生 range + accent-color，可选 Immediate、显示值）
 - [x] `Form`：包 EditForm，默认 DataAnnotations，提交中时提交按钮加载中，错误汇总并跳到字段
 - [ ] Select / Combobox（可搜索、多选，基于 Popover 与列表键盘）、ToggleGroup、范围滑块
-- [ ] FormSection、标签在起始边的横排布局
+- [x] 标签在起始边的横排布局（Field / Form 的 LabelPlacement）
+- [ ] FormSection
 
 ## 阶段 4：导航与外壳
 

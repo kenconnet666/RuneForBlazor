@@ -26,7 +26,53 @@
     </RuneProvider>
 </DemoSection>
 
-<DemoSection Title="主题">
+<DemoSection Title="内置主题（同 vue-tsx-pro，16 套）">
+    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center" Wrap="true">
+        <NativeSelect @bind-Value="theme" Items="Themes.All" ItemText="t => t.Name" aria-label="主题" Sx="ThemePicker" data-testid="theme-picker" />
+        <TextSpan Muted="true" Size="Size.Sm">@(theme.IsDark ? "暗色" : "亮色")主题：颜色、阴影、字体、圆角都来自主题</TextSpan>
+    </Flex>
+    <RuneProvider Theme="theme" DarkTheme="theme" ColorScheme="ColorScheme.Light">
+        <div @attributes="Attrs.Merge(DemoStyles.ThemePreview)" data-testid="theme-gallery">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <H3>@theme.Name</H3>
+                <Flex Wrap="true" Gap="SpaceScale.Sm">
+                    @foreach (var tone in Enum.GetValues<Tone>())
+                    {
+                        <Button Tone="tone">@tone</Button>
+                    }
+                </Flex>
+                <Flex Wrap="true" Gap="SpaceScale.Sm">
+                    @foreach (var variant in Enum.GetValues<ButtonVariant>())
+                    {
+                        <Button Variant="variant">@variant</Button>
+                    }
+                </Flex>
+                <Flex Wrap="true" Gap="SpaceScale.Sm">
+                    @foreach (var tone in Enum.GetValues<Tone>())
+                    {
+                        <Badge Tone="tone">@tone</Badge>
+                    }
+                </Flex>
+                <Alert Tone="Tone.Warning" Title="提示条">浅色底、色调文字与图标都来自主题。</Alert>
+                <Grid MinItemWidth="@("14em")" Gap="SpaceScale.Md">
+                    <Card Title="卡片">
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                            <TextField placeholder="输入框" />
+                            <Checkbox Value="true">勾选框</Checkbox>
+                            <Switch Value="true">开关</Switch>
+                        </Flex>
+                    </Card>
+                    <Card Variant="CardVariant.Elevated" Title="浮起的卡片">
+                        <Paragraph Muted="true">阴影来自主题（赛博朋克是发光的阴影）。</Paragraph>
+                        <TextLink Href="server/provider">链接</TextLink>
+                    </Card>
+                </Grid>
+            </Flex>
+        </div>
+    </RuneProvider>
+</DemoSection>
+
+<DemoSection Title="亮暗模式">
     <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
         @foreach (var scheme in Enum.GetValues<ColorScheme>())
         {
@@ -48,4 +94,7 @@
     readonly ComponentDefaults outlineByDefault = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } };
     readonly ComponentStyles accentTriggers = new() { { CollapsiblePart.Trigger, DemoStyles.AccentText } };
     ColorScheme colorScheme = ColorScheme.Dark;
+    Theme theme = Themes.Cyberpunk;
+
+    static Style ThemePicker => Css.Define(static () => new Style { Width = "14em" });
 }
