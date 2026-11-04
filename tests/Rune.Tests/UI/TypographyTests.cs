@@ -111,4 +111,36 @@ public class TypographyTests : BunitContext
         Assert.Null(a.GetAttribute("target"));
         Assert.Contains("text-decoration-line:none", RuleOf(a.ClassName!));
     }
+
+    [Fact]
+    public void 标题的锚点在有id时出现_指向本节()
+    {
+        var cut = Render<H3>(p => p.Add(x => x.Anchor, true).AddUnmatched("id", "security").AddChildContent("安全与登录"));
+        var withoutId = Render<H3>(p => p.Add(x => x.Anchor, true).AddChildContent("没有 id"));
+
+        var anchor = cut.Find("[data-part=anchor]");
+        Assert.Equal("#security", anchor.GetAttribute("href"));
+        Assert.Equal("链接到本节", anchor.GetAttribute("aria-label"));
+        Assert.Empty(withoutId.FindAll("a"));
+    }
+
+    [Fact]
+    public void 外部链接带箭头图标与读屏提示_图标与提示之间没有空白()
+    {
+        var cut = Render<TextLink>(p => p.Add(x => x.Href, "https://vuejs.org").Add(x => x.External, true).AddChildContent("Vue 文档"));
+
+        var link = cut.Find("a");
+        Assert.Equal("_blank", link.GetAttribute("target"));
+        Assert.Equal("arrow-up-right", cut.Find("svg").GetAttribute("data-icon"));
+        Assert.Equal("Vue 文档（在新窗口打开）", link.TextContent.Trim());
+    }
+
+    [Fact]
+    public void 行内语义元素各有自己的标签()
+    {
+        Assert.NotNull(Render<Mark>(p => p.AddChildContent("高亮")).Find("mark"));
+        Assert.NotNull(Render<Code>(p => p.AddChildContent("npm")).Find("code"));
+        Assert.NotNull(Render<Blockquote>(p => p.AddChildContent("引文")).Find("blockquote"));
+        Assert.NotNull(Render<Em>(p => p.AddChildContent("强调")).Find("em"));
+    }
 }

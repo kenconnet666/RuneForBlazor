@@ -2,16 +2,6 @@ using Rune.Styles;
 
 namespace Rune.UI;
 
-/// <summary>排列方向。</summary>
-public enum Orientation
-{
-    /// <summary>竖排（默认）。</summary>
-    Vertical,
-
-    /// <summary>横排，放不下时换行。</summary>
-    Horizontal,
-}
-
 /// <summary>勾选框、单选框与开关的部件。</summary>
 public enum ChoicePart
 {

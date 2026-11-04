@@ -73,4 +73,27 @@ public class LayoutTests : BunitContext
         Assert.Contains("grid-column:span 2", RuleOf(span.Find("div").ClassName!));
         Assert.Contains("grid-column:1 / -1", RuleOf(full.Find("div").ClassName!));
     }
+
+    [Fact]
+    public void 分隔线默认装饰性_带文字时两边各一段线()
+    {
+        var plain = Render<Separator>();
+        var labelled = Render<Separator>(p => p.Add(x => x.Decorative, false).AddChildContent("或者"));
+
+        Assert.Equal("true", plain.Find("div").GetAttribute("aria-hidden"));
+        var root = labelled.Find("[data-part=root]");
+        Assert.Equal("separator", root.GetAttribute("role"));
+        Assert.Equal(labelled.Find("[data-part=label]").Id, root.GetAttribute("aria-labelledby"));
+        Assert.Equal(2, labelled.FindAll("[data-part=line]").Count);
+    }
+
+    [Fact]
+    public void 图标的像素大小与描线写成属性()
+    {
+        var cut = Render<Icon>(p => p.Add(x => x.Data, BuiltInIcons.X).Add(x => x.Size, 40).Add(x => x.Draw, true));
+
+        var svg = cut.Find("svg");
+        Assert.Contains("font-size:40px", svg.GetAttribute("style"));
+        Assert.Equal("true", svg.GetAttribute("data-rune-draw"));
+    }
 }

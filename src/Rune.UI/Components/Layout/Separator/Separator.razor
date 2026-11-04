@@ -1,0 +1,65 @@
+@*
+    分隔线（div）：默认装饰性、对读屏隐藏；Decorative="false" 时是 role="separator"。
+    <Separator />、<Separator Orientation="Orientation.Vertical" />（flex 里随行高拉伸）、<Separator>或者</Separator>（横线带文字）
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var labelled = ChildContent is not null && Orientation == Orientation.Horizontal; }
+@{ var parts = SeparatorStyles.Of(Orientation, labelled, Config.Styles); }
+
+@if (!labelled)
+{
+    <div @attributes="Attrs.Merge(parts[SeparatorPart.Root], Rest, PlainManaged)"></div>
+}
+else
+{
+    <div data-label-align="@LabelAlign.ToString().ToLowerInvariant()" @attributes="Attrs.Merge(parts[SeparatorPart.Root], Rest, LabelledManaged)">
+        @if (LabelAlign != SeparatorLabelAlign.Start)
+        {
+            <span @attributes="Attrs.Merge(parts[SeparatorPart.Line], PropsLine, hiddenFromReaders)"></span>
+        }
+        <span @attributes="Attrs.Merge(parts[SeparatorPart.Label], PropsLabel, LabelManaged)">@ChildContent</span>
+        @if (LabelAlign != SeparatorLabelAlign.End)
+        {
+            <span @attributes="Attrs.Merge(parts[SeparatorPart.Line], PropsLine, hiddenFromReaders)"></span>
+        }
+    </div>
+}
+
+@code {
+    static readonly Attrs hiddenFromReaders = new() { AriaHidden = true };
+    static readonly Attrs decorativeAttrs = new() { Role = "none", AriaHidden = true };
+    static readonly Attrs horizontalSeparator = new() { Role = "separator" };
+    static readonly Attrs verticalSeparator = new() { Role = "separator", ["aria-orientation"] = "vertical" };
+    static readonly Attrs decorativeLabelled = new() { Role = "none" };
+
+    string? labelId;
+    Attrs? labelledManaged, labelManaged;
+
+    /// <summary>方向，默认横向。</summary>
+    [Parameter] public Orientation Orientation { get; set; }
+
+    /// <summary>是否只是视觉装饰，默认是：对读屏隐藏（带文字时文字仍给读屏）。</summary>
+    [Parameter] public bool Decorative { get; set; } = true;
+
+    /// <summary>带文字时文字的位置，默认居中。</summary>
+    [Parameter] public SeparatorLabelAlign LabelAlign { get; set; } = SeparatorLabelAlign.Center;
+
+    /// <summary>线上的文字（只用于横线）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>两段线的部件属性。</summary>
+    [Parameter] public Attrs? PropsLine { get; set; }
+
+    Attrs PlainManaged => Decorative ? decorativeAttrs : Orientation == Orientation.Vertical ? verticalSeparator : horizontalSeparator;
+
+    // 不是装饰时分隔线由文字命名：文字的 id 用到时才生成
+    string LabelId => labelId ??= UniqueId.Next("separator-label");
+
+    Attrs LabelledManaged => Decorative ? decorativeLabelled : labelledManaged ??= new Attrs { Role = "separator", AriaLabelledBy = LabelId };
+
+    Attrs? LabelManaged => Decorative ? null : labelManaged ??= new Attrs { Id = LabelId };
+}

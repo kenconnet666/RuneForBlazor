@@ -128,6 +128,10 @@
 - **可移除的标签**（同 vue-tsx-pro 的 useDismissible）：移除按钮带 `data-rune-dismiss`，标签带 `data-rune-dismissible`。JS 初始化器先加
   `data-dismissing` 播放离场过渡，结束后发出 `rune-dismiss`（`@onrunedismiss`），组件再调用 OnRemove；标签被移除时焦点交给同组的下一个
   （没有就上一个）可聚焦元素，等 2 秒还在（使用方没移除）就去掉 `data-dismissing` 重新显示。没有往返也不用 C# 计时。
+- **复制按钮**：给 Value 时按钮带 `data-rune-copy`，JS 初始化器在点击当下写入剪贴板（Safari 只认点击当下的写入，静态 SSR 也能用）；
+  给 GetValue 时 C# 取到值后换一个递增的 `data-rune-copy-request`，JS 看到就写入。成功后 JS 在按钮上写 `data-state="copied"`
+  （图标用 `When.Inside` 按它切换，过一会儿复原）、经共用的播报区念“已复制”，再发出 `rune-copied`（`@onrunecopied`）。
+- **图标描线**：Icon 的 Draw 写成 `data-rune-draw`，JS 初始化器在它变成 true（含第一次渲染）时用 Web Animations 把每一笔从 0 画到 1。
 - **波纹**（同 vue-tsx-pro）：按钮、菜单项带 `data-rune-ripple`，JS 初始化器在按下时从指针位置（键盘 Enter / 空格时从中心）扩散一圈 currentColor 的半透明圆，
   松开后淡出；纯客户端，Server 模式没有往返。配置 `UIConfig.Ripple`（默认开）、Provider、组件的 `Ripple` 参数逐层覆盖；像链接的按钮没有波纹。
 - **提示纯 CSS**：外层悬停或里面有键盘焦点时显示（`When.Parent`，延迟 400ms），Server 模式也没有往返；位置同样用锚点定位。

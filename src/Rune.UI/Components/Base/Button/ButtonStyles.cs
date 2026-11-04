@@ -210,6 +210,30 @@ public static class ButtonStyles
         FlexShrink = 0,
     });
 
+    /// <summary>复制按钮平时的图标：复制后（JS 在按钮上写 data-state="copied"）隐藏。</summary>
+    internal static Style CopyIdleIcon => Css.Define(static () => new Style
+    {
+        [When.Inside(When.Attribute("[data-state=copied]"))] = new() { Display = Display.None },
+    });
+
+    /// <summary>复制按钮复制后的对勾：平时隐藏，复制后弹出（减少动态效果时时长为 0）。</summary>
+    internal static Style CopiedIcon => Css.Define(static () => new Style
+    {
+        Display = Display.None,
+        [When.Inside(When.Attribute("[data-state=copied]"))] = new()
+        {
+            Display = Display.Block,
+            Keyframes = Pop,
+            AnimationDuration = Durations.Md,
+            AnimationTimingFunction = Easings.Enter,
+        },
+    });
+
+    static Keyframes Pop => Css.Define(static () => new Keyframes
+    {
+        ["from"] = new() { Transform = "scale(0.5)", Opacity = 0 },
+    });
+
     /// <summary>
     /// 加载状态推迟这么久才换成加载指示（同 vue-tsx-pro 的 useDelayedLoading）：很快完成的操作按钮不闪一下。
     /// 用 CSS 的过渡延迟实现，Server 模式没有往返；点击拦截、aria-busy 仍立即生效。

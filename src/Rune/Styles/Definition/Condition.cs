@@ -73,6 +73,14 @@ public static class When
         : new($":is({state.Key} > *)");
 
     /// <summary>
+    /// 某个祖先元素处于某个状态时：<c>[When.Inside(When.Attribute("[data-state=copied]"))]</c> 生成 <c>.x:is([data-state=copied] *)</c>。
+    /// 复制按钮复制后换图标这类“外层的状态决定里面隔了几层的部件”的样式用它（同 vue-tsx-pro 的 css.when.ancestor）。
+    /// </summary>
+    public static Condition Inside(Condition state) => state.IsAtRule
+        ? throw new ArgumentException($"祖先元素的状态要是选择器片段，收到 @ 规则 {state.Key}", nameof(state))
+        : new($":is({state.Key} *)");
+
+    /// <summary>
     /// 紧挨着的前一个兄弟元素处于某个状态时：<c>[When.After(When.Checked)]</c> 生成 <c>.x:is(:checked + *)</c>。
     /// 勾选框里跟在 input 后面的对勾图标用它。
     /// </summary>

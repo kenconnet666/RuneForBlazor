@@ -15,6 +15,10 @@
 //   data-rune-spin           数字输入框：↑↓ 加减步长、Page Up / Down 加减大步长、Home / End 到最小 / 最大，改完发 change（C# 再校正）
 //   data-rune-ripple         按钮、菜单项：按下时从指针位置（键盘 Enter / 空格时从中心）扩散一圈波纹，松开后淡出
 //   data-rune-inert          加载中、可聚焦的不可用按钮：拦下点击的默认动作（提交表单）
+//   data-rune-copy="文字"     复制按钮：点击时（data-rune-copy-on-click）或 data-rune-copy-request 变了时把文字写入剪贴板，
+//                            成功后按钮的 data-state 变成 copied（data-rune-copy-timeout 毫秒后复原）、播报 data-rune-copied-text，
+//                            发出冒泡的 rune-copied（Blazor 里是 @onrunecopied）
+//   data-rune-draw="true"    图标的描线动画：插入时为 true、或由 false 变为 true 时一笔画出（减少动态效果时直接画好）
 //   data-rune-dismiss        可移除元素（data-rune-dismissible，如标签）里的移除按钮：元素先离场（data-dismissing），
 //                            结束后发出冒泡的 rune-dismiss（Blazor 里是 @onrunedismiss）；被移除时焦点交给同组的下一个
 //                            （没有就上一个）可聚焦元素，没被移除就重新显示
@@ -40,6 +44,10 @@ function install(blazor) {
   blazor.registerCustomEventType('runetoggle', {
     browserEventName: 'rune-toggle',
     createEventArgs: (event) => ({ open: event.detail.open }),
+  });
+  blazor.registerCustomEventType('runecopied', {
+    browserEventName: 'rune-copied',
+    createEventArgs: (event) => ({ success: event.detail.success }),
   });
   blazor.registerCustomEventType('runedismiss', {
     browserEventName: 'rune-dismiss',
@@ -71,7 +79,8 @@ function install(blazor) {
     subtree: true,
     childList: true,
     attributes: true,
-    attributeFilter: ['data-open', 'data-indeterminate'],
+    attributeOldValue: true,
+    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request'],
   });
   syncWithin(document);
 }
@@ -118,15 +127,21 @@ function syncWithin(root) {
   const sync = (element) => {
     if (element.matches('[data-rune-overlay][data-open="true"]')) syncOpen(element);
     if (element.matches('input[data-indeterminate="true"]')) syncIndeterminate(element);
+    if (element.matches('svg[data-rune-draw="true"]')) drawIcon(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"]').forEach(sync);
 }
 
 function onMutations(mutations) {
   for (const mutation of mutations) {
     if (mutation.type === 'attributes') {
       if (mutation.attributeName === 'data-indeterminate') syncIndeterminate(mutation.target);
+      else if (mutation.attributeName === 'data-rune-copy-request') {
+        if (mutation.target.hasAttribute('data-rune-copy-request')) copyFrom(mutation.target);
+      } else if (mutation.attributeName === 'data-rune-draw') {
+        if (mutation.target.getAttribute('data-rune-draw') === 'true' && mutation.oldValue !== 'true') drawIcon(mutation.target);
+      }
       else if (mutation.target.matches('[data-rune-overlay]')) syncOpen(mutation.target);
       continue;
     }
@@ -172,6 +187,9 @@ function onFocusLink(event) {
 function onClick(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
+
+  const copier = target.closest('[data-rune-copy-on-click]');
+  if (copier && !copier.matches(':disabled, [aria-busy="true"]')) copyFrom(copier);
 
   const dismiss = target.closest('[data-rune-dismiss]');
   if (dismiss) {
@@ -337,6 +355,68 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
  * 实底按钮上是浅色、描边按钮上是深色；松开、移出、取消或失去焦点时淡出并移除。
  * 宿主要有 position: relative 与 overflow: hidden（SharedStyles.RippleHost）。减少动效时不扩散，只是按下时变色。
  */
+/** 复制按钮：写入剪贴板（点击当下同步开始写，Safari 才认），成功后显示对勾、播报，过一会儿复原 */
+function copyFrom(button) {
+  const text = button.getAttribute('data-rune-copy') ?? '';
+  const finish = (success) => {
+    if (success) {
+      button.setAttribute('data-state', 'copied');
+      speak(button.getAttribute('data-rune-copied-text') || '');
+      clearTimeout(copyTimers.get(button));
+      const timeout = Number(button.getAttribute('data-rune-copy-timeout')) || 2000;
+      copyTimers.set(button, setTimeout(() => button.removeAttribute('data-state'), timeout));
+    }
+    button.dispatchEvent(new CustomEvent('rune-copied', { bubbles: true, detail: { success } }));
+  };
+  if (!navigator.clipboard?.writeText) {
+    finish(false);
+    return;
+  }
+  navigator.clipboard.writeText(text).then(() => finish(true), () => finish(false));
+}
+
+const copyTimers = new WeakMap();
+
+/** 让读屏念出一句话：共用一个礼貌的播报区；先清空、稍后再写入，同一句话连说两次也会念 */
+function speak(message) {
+  if (!message) return;
+  let region = document.querySelector('[data-rune-announcer]');
+  if (!region) {
+    region = document.createElement('div');
+    region.setAttribute('data-rune-announcer', '');
+    region.setAttribute('aria-live', 'polite');
+    region.setAttribute('aria-atomic', 'true');
+    Object.assign(region.style, {
+      position: 'absolute', width: '1px', height: '1px', margin: '-1px', padding: '0',
+      overflow: 'hidden', clipPath: 'inset(50%)', whiteSpace: 'nowrap', border: '0',
+    });
+  }
+  // 模态对话框打开时放进对话框里：对话框外的内容读屏读不到
+  const host = document.querySelector('dialog[open]:modal') ?? document.body;
+  if (region.parentElement !== host) host.append(region);
+  region.textContent = '';
+  clearTimeout(speakTimer);
+  speakTimer = setTimeout(() => (region.textContent = message), 100);
+}
+
+let speakTimer;
+
+/** 图标描线：每一笔的长度统一成 1，虚线从 0 画到 1（时长、缓动取主题；减少动态效果时直接画好） */
+function drawIcon(svg) {
+  if (reducedMotion.matches) return;
+  const style = getComputedStyle(svg);
+  const duration = parseFloat(style.getPropertyValue('--rune-durations-xl')) || 500;
+  const easing = style.getPropertyValue('--rune-easings-enter').trim() || 'ease-out';
+  for (const stroke of svg.children) {
+    stroke.setAttribute('pathLength', '1');
+    // 圆头的线长度为 0 时还会画出一个点：开头用平头
+    stroke.animate(
+      [{ strokeDasharray: '0 1', strokeLinecap: 'butt' }, { strokeDasharray: '1 1', strokeLinecap: 'round' }],
+      { duration, easing },
+    );
+  }
+}
+
 /** 可移除元素的离场：先播放离场过渡，结束后交给 Blazor 移除；等一会儿还在（使用方没移除）就重新显示 */
 function startDismiss(button) {
   const target = button.closest('[data-rune-dismissible]');

@@ -49,6 +49,7 @@ const BUILT_IN = [
   'loader-circle',
   'hash',
   'arrow-up-right',
+  'circle-x',
   'copy',
 ];
 

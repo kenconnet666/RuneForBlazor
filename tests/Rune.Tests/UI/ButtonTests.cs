@@ -154,4 +154,58 @@ public class ButtonTests : BunitContext
         Assert.Single(svg.ClassList);
         Assert.Contains(Registry.Rules, rule => rule.Contains("@keyframes rk") && rule.Contains("animation-name:rk"));
     }
+
+    [Fact]
+    public void 复制按钮把文字交给JS_复制后由JS发出事件()
+    {
+        bool? copied = null;
+        var cut = Render<CopyButton>(p => p
+            .Add(x => x.Value, "sk-123")
+            .Add(x => x.OnCopied, EventCallback.Factory.Create<bool>(this, ok => copied = ok)));
+
+        var button = cut.Find("button");
+        Assert.Equal("sk-123", button.GetAttribute("data-rune-copy"));
+        Assert.True(button.HasAttribute("data-rune-copy-on-click"));
+        Assert.Equal("复制", button.GetAttribute("aria-label"));
+        button.TriggerEvent("onrunecopied", new CopiedEventArgs { Success = true });
+        Assert.True(copied);
+    }
+
+    [Fact]
+    public void 异步取值的复制按钮取到值后换请求号()
+    {
+        var cut = Render<CopyButton>(p => p.Add(x => x.GetValue, () => Task.FromResult("https://example.com/invite/1")));
+
+        var button = cut.Find("button");
+        Assert.False(button.HasAttribute("data-rune-copy-on-click"));
+        button.Click();
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("1", cut.Find("button").GetAttribute("data-rune-copy-request"));
+            Assert.Equal("https://example.com/invite/1", cut.Find("button").GetAttribute("data-rune-copy"));
+        });
+    }
+
+    [Fact]
+    public void 预设按钮带好图标与名称()
+    {
+        var close = Render<CloseButton>();
+        var clear = Render<ClearButton>(p => p.Add(x => x.Radius, Radius.Full));
+
+        Assert.Equal("关闭", close.Find("button").GetAttribute("aria-label"));
+        Assert.Equal("x", close.Find("svg").GetAttribute("data-icon"));
+        Assert.Equal("清空", clear.Find("button").GetAttribute("aria-label"));
+        Assert.Equal("circle-x", clear.Find("svg").GetAttribute("data-icon"));
+    }
+
+    [Fact]
+    public void 外部图标链接的名称带上新窗口提示()
+    {
+        var cut = Render<IconLinkButton>(p => p.Add(x => x.Href, "https://example.com").Add(x => x.External, true)
+            .Add(x => x.Icon, BuiltInIcons.X).Add(x => x.Label, "订阅"));
+
+        var link = cut.Find("a");
+        Assert.Equal("订阅（在新窗口打开）", link.GetAttribute("aria-label"));
+        Assert.Equal("noopener noreferrer", link.GetAttribute("rel"));
+    }
 }

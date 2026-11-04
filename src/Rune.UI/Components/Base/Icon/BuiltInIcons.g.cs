@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（17 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（18 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -26,6 +26,8 @@ public static partial class BuiltInIcons
     public static IconData CircleCheck => field ??= new("circle-check", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m16 9-5.5 5.5L8 12\"/>");
     /// <summary>Lucide 图标 <c>circle-exclamation-point</c>（alert、warning、danger、caution、notice、error、risk、concern）。</summary>
     public static IconData CircleExclamationPoint => field ??= new("circle-exclamation-point", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"/><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"/>");
+    /// <summary>Lucide 图标 <c>circle-x</c>（x、remove、delete、cancel、clear、close、discard、dismiss）。</summary>
+    public static IconData CircleX => field ??= new("circle-x", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m15 9-6 6\"/><path d=\"m9 9 6 6\"/>");
     /// <summary>Lucide 图标 <c>copy</c>（clone、duplicate、multiple）。</summary>
     public static IconData Copy => field ??= new("copy", "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/>");
     /// <summary>Lucide 图标 <c>hash</c>（hashtag、number、pound）。</summary>

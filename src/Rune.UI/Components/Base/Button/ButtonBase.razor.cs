@@ -72,7 +72,10 @@ public abstract partial class ButtonBase : UIComponent
     protected virtual bool SubmitsForm => false;
 
     /// <summary>当前是否加载中：写了 <see cref="Loading"/>，或是所在 Form 正在提交时的提交按钮。</summary>
-    protected bool IsLoading => Loading || (SubmitsForm && Form?.Submitting == true);
+    protected bool IsLoading => Loading || IsBusy || (SubmitsForm && Form?.Submitting == true);
+
+    /// <summary>组件自己的忙碌状态（复制按钮异步取值时），和 <see cref="Loading"/> 一样显示加载指示。</summary>
+    protected virtual bool IsBusy => false;
 
     /// <summary>是否出波纹：组件上写的 &gt; 配置；像链接的按钮（Link 样式）没有波纹。</summary>
     protected bool RippleEnabled => (Ripple ?? Config.Ripple) && (Variant ?? Config.Defaults.Get<ButtonDefaults>()?.Variant ?? DefaultVariant) != ButtonVariant.Link;

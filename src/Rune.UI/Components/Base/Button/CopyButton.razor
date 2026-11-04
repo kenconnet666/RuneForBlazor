@@ -1,0 +1,105 @@
+@*
+    复制按钮（同 vue-tsx-pro 的 CopyButton）：复制后图标换成对勾、读屏播报“已复制”，过一会儿复原。
+    <CopyButton Value="@apiKey" Label="复制 API 密钥" />
+    <CopyButton GetValue="CreateInviteAsync" OnCopied="ok => copies++" />   点击时才取值，等待时转圈
+    给 Value 时由 JS 初始化器在点击当下写入剪贴板（Safari 只认点击当下的写入，静态 SSR 也能用）；
+    给 GetValue 时 C# 取到值后交给 JS 写入。外观同 IconButton（默认无底、中性色）。
+*@
+@namespace Rune.UI
+@inherits ButtonBase
+@{ var parts = Parts(ButtonShape.Square); }
+
+<button type="button" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !IsLoading), Managed)" @onrunecopied="HandleCopied">
+    <span @attributes="Attrs.Merge(parts[ButtonPart.Content], PropsContent, IsLoading ? hiddenContent : null)"><Icon Data="BuiltInIcons.Copy" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon, idleIcon)" /><Icon Data="BuiltInIcons.Check" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon, copiedIcon)" /></span>
+    @if (IsLoading)
+    {
+        <span @attributes="Attrs.Merge(parts[ButtonPart.Spinner])">
+            <Spinner @attributes="Attrs.MergeProps(null, PropsSpinner)" />
+        </span>
+    }
+</button>
+
+@code {
+    static readonly Attrs hiddenContent = new() { ["data-hidden"] = true };
+    static readonly Attrs idleIcon = new() { Sx = ButtonStyles.CopyIdleIcon };
+    static readonly Attrs copiedIcon = new() { Sx = ButtonStyles.CopiedIcon };
+
+    /// <summary>要复制的文字。</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>点击时才取要复制的文字（内容按需生成，等待时按钮转圈）；给了它就不看 <see cref="Value"/>。</summary>
+    [Parameter] public Func<Task<string>>? GetValue { get; set; }
+
+    /// <summary>按钮的名称（读屏读出），默认“复制”。</summary>
+    [Parameter] public string Label { get; set; } = "复制";
+
+    /// <summary>复制成功后读屏播报的话，默认“已复制”。</summary>
+    [Parameter] public string CopiedText { get; set; } = "已复制";
+
+    /// <summary>对勾保持多久（毫秒）后复原，默认 2000。</summary>
+    [Parameter] public int Timeout { get; set; } = 2000;
+
+    /// <summary>不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>复制完成后调用：是否成功（不安全的上下文、用户拒绝权限、取值出错时失败）。</summary>
+    [Parameter] public EventCallback<bool> OnCopied { get; set; }
+
+    /// <inheritdoc/>
+    protected override ButtonVariant DefaultVariant => ButtonVariant.Ghost;
+
+    /// <inheritdoc/>
+    protected override Tone DefaultTone => UI.Tone.Neutral;
+
+    bool pending;
+    string? fetched;
+    int request;
+
+    Memo<(string Label, string? Text, int Request, int Timeout, string Copied, bool Disabled, bool Loading, bool Ripple, bool Click), Attrs> managed;
+
+    /// <summary>
+    /// button 上由组件管理的属性：要复制的文字、对勾停留的时长、播报的话与状态；不变时复用同一个对象。
+    /// 同步的值点击时由 JS 写入（data-rune-copy）；异步取到的值随一个递增的请求号交给 JS（data-rune-copy-request 变了就写入）。
+    /// </summary>
+    Attrs Managed => managed.Get(
+        (Label, GetValue is null ? Value : fetched, request, Timeout, CopiedText, Disabled, IsLoading, RippleEnabled, GetValue is not null),
+        this,
+        static (k, self) => Attrs.Merge(
+            StateAttrs(k.Disabled, focusable: false, k.Loading, k.Ripple),
+            new Attrs
+            {
+                AriaLabel = k.Label,
+                ["data-rune-copy"] = k.Text ?? "",
+                ["data-rune-copy-on-click"] = k.Click ? null : true,
+                ["data-rune-copy-request"] = k.Request > 0 ? k.Request.ToString(System.Globalization.CultureInfo.InvariantCulture) : null,
+                ["data-rune-copy-timeout"] = k.Timeout.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                ["data-rune-copied-text"] = k.Copied,
+                OnClick = k.Click ? self.FetchAndCopyAsync : null,
+            }));
+
+    /// <summary>异步取值：取到后换一个请求号，JS 看到就写入剪贴板。</summary>
+    async Task FetchAndCopyAsync(MouseEventArgs _)
+    {
+        if (GetValue is null || pending) return;
+        pending = true;
+        try
+        {
+            fetched = await GetValue();
+            request++;
+        }
+        catch
+        {
+            // 取值出错算复制失败，交给使用方（不抛到渲染器）
+            await OnCopied.InvokeAsync(false);
+        }
+        finally
+        {
+            pending = false;
+        }
+    }
+
+    Task HandleCopied(CopiedEventArgs e) => OnCopied.InvokeAsync(e.Success);
+
+    /// <inheritdoc/>
+    protected override bool IsBusy => pending;
+}

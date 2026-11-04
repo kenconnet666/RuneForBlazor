@@ -1,0 +1,47 @@
+@*
+    图标链接（a 元素，宽高相等）：点了去别处的图标。<IconLinkButton Href="/docs" Icon="Lucide.BookOpen" Label="文档" />
+    External 在新窗口打开。外观同 IconButton（默认无底、中性色）。
+*@
+@namespace Rune.UI
+@inherits ButtonBase
+@{ var parts = Parts(ButtonShape.Square); }
+
+<a @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !IsLoading), Managed)">
+    @RenderInner(parts, null)
+</a>
+
+@code {
+    /// <summary>链接地址。</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    /// <summary>链接的名称（读屏读出）；需要悬停提示时外面包一层 Tooltip。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>不可用：去掉 href，不能跳转、不在 Tab 顺序里。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>外部链接：新窗口打开，加 rel="noopener noreferrer"；名称后面带上“（在新窗口打开）”。</summary>
+    [Parameter] public bool External { get; set; }
+
+    /// <summary>外部链接给读屏的提示，接在名称后面。</summary>
+    [Parameter] public string ExternalHint { get; set; } = "（在新窗口打开）";
+
+    /// <inheritdoc/>
+    protected override ButtonVariant DefaultVariant => ButtonVariant.Ghost;
+
+    /// <inheritdoc/>
+    protected override Tone DefaultTone => UI.Tone.Neutral;
+
+    Memo<(string Href, string Label, bool External, string Hint, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
+
+    /// <summary>a 上由组件管理的属性：地址、名称、外链的打开方式与状态；不变时复用同一个对象。</summary>
+    Attrs Managed => managed.Get((Href, Label, External, ExternalHint, Disabled, IsLoading, RippleEnabled), static k => Attrs.Merge(
+        StateAttrs(k.Disabled, focusable: true, k.Loading, k.Ripple),
+        new Attrs
+        {
+            ["href"] = k.Disabled || k.Loading ? null : k.Href,
+            ["target"] = k.External ? "_blank" : null,
+            ["rel"] = k.External ? "noopener noreferrer" : null,
+            AriaLabel = k.External ? k.Label + k.Hint : k.Label,
+        }));
+}

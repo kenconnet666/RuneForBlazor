@@ -26,7 +26,7 @@
     [Parameter] public string? Name { get; set; }
 
     /// <summary>排列方向，默认竖排。</summary>
-    [Parameter] public Orientation Orientation { get; set; }
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
 
     /// <summary>选中时的色调，默认品牌色。</summary>
     [Parameter] public Tone Tone { get; set; } = Tone.Accent;

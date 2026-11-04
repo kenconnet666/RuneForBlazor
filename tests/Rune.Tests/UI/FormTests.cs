@@ -164,7 +164,7 @@ public class FormTests : BunitContext
         var rule = Assert.Single(registry.Rules, r => r.Contains($".{cut.Find("svg").ClassName}{{"));
         Assert.Contains("color:var(--rune-tones-danger-text)", rule);
         Assert.Contains("stroke-width:var(--rune-stroke-widths-md)", rule);
-        Assert.Contains(":dir(rtl){scale:-1 1;}", rule);
+        Assert.Contains(":dir(rtl){transform:scaleX(-1);}", rule);
         Assert.Null(cut.Find("svg").GetAttribute("stroke-width"));
         Assert.Equal("stroke-width:3", thick.Find("svg").GetAttribute("style"));
     }

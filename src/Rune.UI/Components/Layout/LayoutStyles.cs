@@ -2,6 +2,16 @@ using Rune.Styles;
 
 namespace Rune.UI;
 
+/// <summary>方向：分隔线、单选组、按钮组、滑块等共用（同 vue-tsx-pro 的 orientation）。各组件的默认方向不同，写在组件参数上。</summary>
+public enum Orientation
+{
+    /// <summary>横向。</summary>
+    Horizontal,
+
+    /// <summary>竖向。</summary>
+    Vertical,
+}
+
 /// <summary>flex 的主轴方向。</summary>
 public enum LayoutDirection
 {

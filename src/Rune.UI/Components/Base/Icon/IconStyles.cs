@@ -31,5 +31,5 @@ public static class IconStyles
     });
 
     // 有方向的图标（箭头、返回）在从右到左的语言里左右翻转
-    static Style FlipInRtl => Css.Define(static () => new Style { [When.Rtl] = new() { Scale = "-1 1" } });
+    static Style FlipInRtl => Css.Define(static () => new Style { [When.Rtl] = new() { Transform = "scaleX(-1)" } });
 }
