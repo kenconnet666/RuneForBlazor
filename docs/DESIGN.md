@@ -69,7 +69,8 @@
 
 - **目录**：`Components/{分类}/{组件}/`，分类同 vue-tsx-pro 的文档分组（Base、Layout、Display、Feedback、Overlay、Input、Form……）；
   一个组件和它的变体、样式文件放一个文件夹（`Base/Button/` 里有 Button、IconButton、LinkButton、ButtonStyles），
-  同一分类里几个组件共用的代码放在分类这一层（`Input/FormControl.cs`、`Input/ControlStyles.cs`、`Overlay/Anchor.cs`、`Layout/LayoutStyles.cs`），
+  同一分类里几个组件共用的代码放进分类下的 `Shared/`（`Input/Shared/` 的 FormControl、InputStyles，`Overlay/Shared/` 的 Floating、OverlayTransitions、ConfirmEventArgs，
+  `Layout/Shared/LayoutStyles`），所有组件共用的基础放 `Components/Shared/`（UIComponent、UniqueId）；
   关系紧的一组再收一层（`Input/Choice/` 里是勾选框、开关、单选与它们共用的 ChoiceStyles）。文件夹不对应命名空间，类型都在 `Rune.UI`。
   演示（`apps/Rune.Demo.Client/Demos/{分类}/`）、测试（`tests/Rune.Tests/{Runtime,UI,TestComponents}/`）同样按分类收纳。
 
@@ -82,11 +83,10 @@
   `Radius="Radius.Full"` 会变成字符串 "Radius.Full"，转给里面的组件时类型转换失败（运行时才报错）。只有 Sx、data-*、事件这类本来就是属性的才走 Rest。
 - **Razor 的空白**：元素与元素、表达式与元素之间的换行缩进会渲染成一个空格（`@ChildContent` 换行再写 `<Icon />`）。行内元素里多出一个空格的宽度
   （外链图标与读屏提示之间、标签文字与移除按钮之间），这些地方写在同一行；flex 容器里的纯空白文本不占位置，不用管。
-- **文字类的色调是 `TextTone`**：TextSpan / Paragraph / 标题、TextLink、Icon 的 Tone 都是它（多了 Muted、Inherit）；
-  组件自己的 `Tone`（按钮、标记、提示条）要交给图标时用 `tone.AsText()`。
 - **组件命名避开 Razor 的特殊标记**：`<text>`（代码块里的标记，不区分大小写）、HTML 空元素（`link`、`input`、`img`……写不了内容）。所以是 `TextSpan`、`TextLink`。
   与 CSS 关键字类同名的组件（`Flex`、`Grid`、`Container`）：css-gen 扫描 Rune.Styles 与 Rune.UI 的类型名，重名的关键字类加 `Keywords` 后缀让路（新增组件后重新生成，CI 的 --check 会发现）。
-- **文字的色调是 `TextTone`**（同 vue-tsx-pro 文字的 tone）：比组件的 `Tone` 多了 Muted（次要说明）与 Inherit，原来的 `Muted` 开关并进来了。
+- **文字的色调是 `TextTone`**（同 vue-tsx-pro 文字的 tone，定义在 `Theme/Tones.cs`）：TextSpan / Paragraph / 标题、TextLink、Icon 的 Tone 都是它，比组件的 `Tone` 多了 Muted（次要说明）与 Inherit；
+  组件自己的 `Tone`（按钮、标记、提示条）要交给图标时用 `tone.AsText()`。
 - **元素不同就分组件**（H1–H6、TextSpan / Paragraph / Strong / Em / Small）：共用基类与配方，子类只给标签与默认值，基类在 C# 里用 `RenderTreeBuilder` 输出元素。
 
 ## 7. 主题与配置（`src/Rune/Styles/Definition/Theme.cs`、`src/Rune.UI/Theme`、`src/Rune.UI/Configuration`）

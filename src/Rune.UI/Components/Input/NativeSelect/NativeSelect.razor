@@ -7,9 +7,12 @@
 @namespace Rune.UI
 @typeparam TValue
 @inherits FormControl<TValue>
-@{ var parts = NativeSelectStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config), Config.Styles); }
+@{
+    var shell = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config) with { Picker = true }, Config.Styles);
+    var parts = NativeSelectStyles.Of(Config.Styles);
+}
 
-<div @attributes="Attrs.Merge(parts[NativeSelectPart.Root], RootUserAttrs, ShellAttrs)">
+<div @attributes="Attrs.Merge(shell[InputPart.Root], RootUserAttrs, ShellAttrs)">
     <select @attributes="Attrs.Merge(parts[NativeSelectPart.Select], InputUserAttrs, SelectManaged)">
         @if (Placeholder is not null)
         {
@@ -20,10 +23,12 @@
             <option value="@i">@TextOf(Items[i])</option>
         }
     </select>
-    <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(parts[NativeSelectPart.Chevron])" />
+    <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(shell[InputPart.Icon], null, ChevronLayer)" />
 </div>
 
 @code {
+    static readonly Attrs ChevronLayer = new() { Sx = NativeSelectStyles.Chevron };
+
     Memo<(Attrs Control, int Index), Attrs> selectManaged;
 
     /// <summary>选项。</summary>

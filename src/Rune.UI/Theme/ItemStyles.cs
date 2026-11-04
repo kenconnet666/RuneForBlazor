@@ -34,9 +34,6 @@ public static class ItemStyles
         Transition = $"background-color {Durations.Sm} {Easings.Standard}, color {Durations.Sm} {Easings.Standard}",
     });
 
-    /// <summary>指针悬停时浅色底。</summary>
-    public static Style Hoverable => Css.Define(static () => new Style { [When.Hover] = new() { BackgroundColor = Colors.FillHover } });
-
     /// <summary>键盘高亮（data-highlighted，aria-activedescendant 指着的选项）：与悬停同色。</summary>
     public static Style Highlighted => Css.Define(static () => new Style { [When.Highlighted] = new() { BackgroundColor = Colors.FillHover } });
 

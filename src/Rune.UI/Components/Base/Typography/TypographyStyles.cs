@@ -53,49 +53,6 @@ public enum TextWrapping
     Pretty,
 }
 
-/// <summary>文字的色调（同 vue-tsx-pro 文字的 tone）：比组件的 <see cref="Tone"/> 多了次要文字与继承。</summary>
-public enum TextTone
-{
-    /// <summary>正文色。</summary>
-    Neutral,
-
-    /// <summary>次要文字色：说明、时间、辅助信息。</summary>
-    Muted,
-
-    /// <summary>品牌色文字：链接、强调。</summary>
-    Accent,
-
-    /// <summary>信息。</summary>
-    Info,
-
-    /// <summary>成功。</summary>
-    Success,
-
-    /// <summary>警告。</summary>
-    Warning,
-
-    /// <summary>危险：错误提示、破坏性操作的说明。</summary>
-    Danger,
-
-    /// <summary>跟随所在的文字颜色：放在有底色的通栏、标记里时用。</summary>
-    Inherit,
-}
-
-/// <summary>色调与文字色调的换算。</summary>
-public static class TextToneExtensions
-{
-    /// <summary>组件的色调对应的文字色调（提示条、气泡确认的图标用所在组件的色调）。</summary>
-    public static TextTone AsText(this Tone tone) => tone switch
-    {
-        Tone.Neutral => TextTone.Neutral,
-        Tone.Info => TextTone.Info,
-        Tone.Success => TextTone.Success,
-        Tone.Warning => TextTone.Warning,
-        Tone.Danger => TextTone.Danger,
-        _ => TextTone.Accent,
-    };
-}
-
 /// <summary>TextSpan、Paragraph、Strong、Em、Small 的部件。</summary>
 public enum TextPart
 {
