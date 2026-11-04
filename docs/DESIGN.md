@@ -131,7 +131,16 @@
   vue-tsx-pro 里返回 false 保持打开，Blazor 的 EventCallback 没有返回值，改成参数 `ConfirmEventArgs.KeepOpen`（同 .NET 的 CancelEventArgs）。
   取消就是关闭（取消按钮只带 `data-rune-close`），关闭时没确认过就调用 OnCancel，所以 Esc、点外面与取消按钮一样。
 - **进出场统一**：`OverlayTransitions`（同 vue-tsx-pro 的 transitions）：打开状态 `:is(:popover-open, :modal)` 里用 `@starting-style`，
-  进场 Normal 时长 + enter 缓动，离场 Fast + exit 缓动；Scale（弹出框、菜单、对话框）、Slide（抽屉）、Backdrop（遮罩）。
+  进场 Normal 时长 + enter 缓动，离场 Fast + exit 缓动；Scale（弹出框、菜单、对话框）、Fade（提示）、Backdrop（遮罩）；
+  抽屉的滑入在 DialogStyles 里（进场 Lg、离场 Md，打开时 translate 是 none，不然它会成为里面 fixed 元素的包含块）。
+- **对话框与抽屉同 vue-tsx-pro 的 ModalCore**：标题（必填，也是名称）、说明（aria-describedby）、标题行的关闭按钮（Closable）、
+  点遮罩关闭（Dismissible）、正文（只滚正文）、页脚；写了 OnConfirm 时页脚另有“取消 / 确认”，确认中关不掉。
+  BeforeClose（关之前问一次，如有未保存的改动）与确认中都要拦住浏览器自己的关闭：对话框带 `data-rune-guard-close` 时，
+  JS 初始化器拦下 Esc 的 cancel 事件、点遮罩与 data-rune-close 的点击，改发 `rune-close-request`（带原因），C# 决定后把受控的 Open 设为 false。
+  没有 BeforeClose 时不带这个属性，关闭仍由浏览器直接完成，静态 SSR 也能关。宽度档位：Dialog 的 `DialogSize`（Xs–Xl 同 Container，另有 Full），
+  Drawer 的 `ContainerSize`，默认值可以经 `DialogDefaults`、`DrawerDefaults` 统一改。
+- **锁定页面滚动**（同 vue-tsx-pro 的 lockScroll）：模态打开时 html `overflow: hidden`，在结束边补上与滚动条等宽的内边距，页面不左右跳。
+  最初用 `scrollbar-gutter: stable`，槽留在视口里，贴着结束边的抽屉与视口边缘隔着一条，对照时发现、换掉。
 - **按钮的不可用与加载中**（同 vue-tsx-pro 的 useButtonBehavior）：`Disabled` 是原生 disabled；`FocusableWhenDisabled` 改用 aria-disabled，仍能聚焦，
   外面包 Tooltip 说明原因。加载中只写 aria-busy，外观不变灰。这两种状态组件去掉使用方的点击处理，并带 `data-rune-inert`，
   JS 初始化器在捕获阶段拦下点击的默认动作（提交按钮不提交表单）。加载指示推迟 200ms 才出现（同 useDelayedLoading，CSS 过渡延迟实现，

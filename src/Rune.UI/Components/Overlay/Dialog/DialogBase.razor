@@ -1,33 +1,45 @@
 @*
-    对话框与抽屉的共同部分：原生模态 <dialog>（顶层、遮罩、焦点圈在里面、Esc 关闭、关闭后焦点还给触发元素）。
+    对话框与抽屉的共同部分（同 vue-tsx-pro 的 ModalCore）：原生模态 <dialog>（顶层、遮罩、焦点圈在里面、Esc 关闭、关闭后焦点还给触发元素）。
     打开有两种方式：@bind-Open（受控），或 Trigger（点击后由 JS 直接打开，静态 SSR 也能用）。
-    内容在交互模式下第一次打开才渲染。页脚里的按钮写 data-rune-close 点击后关闭。
+    标题行（标题与关闭按钮）、说明、正文（内容长时只滚正文）、页脚；正文在交互模式下第一次打开才渲染。页脚里的按钮写 data-rune-close 点击后关闭。
+    写了 OnConfirm 时页脚另有“取消 / 确认”：确认执行期间按钮加载中、关不掉，完成后关闭；ConfirmEventArgs.KeepOpen 时保持打开。
+    BeforeClose：用户要关闭（关闭按钮、取消、Esc、点遮罩）时先问它，返回 false 就不关（表单有未保存的改动时先确认）。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 @{ var parts = Parts; }
 
 @Trigger?.Invoke(TriggerAttrs)
-<dialog @attributes="Attrs.Merge(parts[DialogPart.Root], Rest, Managed)" @onrunetoggle="HandleToggle">
-    @if (ShouldRenderContent)
+<dialog @attributes="Attrs.Merge(parts[DialogPart.Root], Rest, Managed)" @onrunetoggle="HandleToggle" @onrunecloserequest="OnCloseRequest">
+    <div @attributes="Attrs.Merge(parts[DialogPart.Header], PropsHeader)">
+        <H2 Size="UI.Size.Lg" id="@TitleId" @attributes="Attrs.MergeProps(parts[DialogPart.Title], PropsTitle)">@Title</H2>
+        @if (Closable)
+        {
+            @* 关闭就是请求关闭：没有 BeforeClose、不在确认中时 JS 直接关（静态 SSR 也能用），否则先问 C# *@
+            <CloseButton Disabled="pending" data-rune-close @attributes="Attrs.MergeProps(parts[DialogPart.Close], PropsClose)" />
+        }
+    </div>
+    @if (Description is not null)
     {
-        @if (Title is not null || !HideClose)
+        <Paragraph id="@DescriptionId" @attributes="Attrs.MergeProps(parts[DialogPart.Description], PropsDescription)">@Description</Paragraph>
+    }
+    <div @attributes="Attrs.Merge(parts[DialogPart.Body], PropsBody)">
+        @if (ShouldRenderContent)
         {
-            <div @attributes="Attrs.Merge(parts[DialogPart.Header], PropsHeader)">
-                @if (Title is not null)
-                {
-                    <h2 id="@titleId" @attributes="Attrs.Merge(parts[DialogPart.Title], PropsTitle)">@Title</h2>
-                }
-                @if (!HideClose)
-                {
-                    <IconButton Icon="BuiltInIcons.X" Label="@(CloseLabel ?? Config.Lang.Close)" data-rune-close @attributes="Attrs.MergeProps(parts[DialogPart.Close], PropsClose)" />
-                }
-            </div>
+            @ChildContent
         }
-        <div @attributes="Attrs.Merge(parts[DialogPart.Body], PropsBody)">@ChildContent</div>
-        @if (Footer is not null)
-        {
-            <div @attributes="Attrs.Merge(parts[DialogPart.Footer], PropsFooter)">@Footer</div>
-        }
+    </div>
+    @if (Footer is not null || OnConfirm.HasDelegate)
+    {
+        <div @attributes="Attrs.Merge(parts[DialogPart.Footer], PropsFooter)">
+            @Footer
+            @if (OnConfirm.HasDelegate)
+            {
+                <Button Variant="ButtonVariant.Soft" Tone="UI.Tone.Neutral" Disabled="pending" data-rune-close
+                        @attributes="Attrs.MergeProps(null, PropsCancel)">@(CancelText ?? Config.Lang.Cancel)</Button>
+                <Button Tone="Tone" Loading="pending" @onclick="ConfirmAsync"
+                        @attributes="Attrs.MergeProps(null, PropsConfirm)">@(ConfirmText ?? Config.Lang.Confirm)</Button>
+            }
+        </div>
     }
 </dialog>

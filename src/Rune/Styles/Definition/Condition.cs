@@ -61,6 +61,9 @@ public static class When
     /// <summary>以 popover 属性弹出、正显示着的浮层（<c>:popover-open</c>）。</summary>
     public static readonly Condition PopoverOpen = new(":popover-open");
 
+    /// <summary>以模态打开的对话框（<c>:modal</c>，showModal 之后）。</summary>
+    public static readonly Condition Modal = new(":modal");
+
     /// <summary>没有子节点（空白文字也算没有）。浮层的内容第一次打开才渲染，渲染前用它把空壳藏起来。</summary>
     public static readonly Condition Empty = new(":empty");
 

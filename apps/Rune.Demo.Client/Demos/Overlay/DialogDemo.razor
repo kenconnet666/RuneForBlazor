@@ -1,62 +1,188 @@
-@* 对话框与抽屉：受控（@bind-Open）与 Trigger 两种打开方式、页脚操作、四个方向的抽屉 *@
-@attribute [ComponentDemo("dialog", "对话框与抽屉", Group = "浮层", Order = 1)]
+@*
+    对话框：示例与 vue-tsx-pro 文档站的 /components/dialog 对应。
+    alert-dialog（AlertDialog、useConfirm）与 imperative（useDialog）在阶段 8 做；部门的 Select 在阶段 5 做好前用 NativeSelect，
+    宽度的 ToggleGroup 在阶段 5 前用 NativeSelect，导入进度的 Progress 在阶段 6 前用原生 progress。
+*@
+@attribute [ComponentDemo("dialog", "对话框", Group = "浮层", Order = 3)]
 @inherits RuneComponent
+@implements IDisposable
 
-<DemoSection Title="对话框">
-    <Flex Gap="SpaceScale.Sm" Wrap="true">
-        <Button Icon="Lucide.Pencil" @onclick="() => editing = true" data-testid="open-edit">编辑订单（@@bind-Open）</Button>
-        <Dialog Title="关于" Width="DialogWidth.Sm">
-            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Surface">关于（Trigger，静态 SSR 也能开）</Button></Trigger>
-            <ChildContent>
-                <Paragraph>Rune 是一套 Blazor 组件库。对话框用原生的 dialog：焦点圈在里面，Esc 关闭，关闭后焦点回到按钮。</Paragraph>
-            </ChildContent>
-            <Footer><Button data-rune-close>知道了</Button></Footer>
-        </Dialog>
-    </Flex>
-    <TextSpan Tone="TextTone.Muted" data-testid="saved">@saved</TextSpan>
-
-    <Dialog @bind-Open="editing" Title="编辑订单 #1024" LightDismiss="false" data-testid="edit-dialog">
-        <ChildContent>
-            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
-                <Paragraph>点遮罩不会关闭（LightDismiss="false"），内容填了一半不会丢。</Paragraph>
-                <label>
-                    备注
-                    <input @bind="note" @bind:event="oninput" style="display:block;width:100%;margin-top:4px" />
-                </label>
-                @foreach (var line in Enumerable.Range(1, 12))
-                {
-                    <Paragraph Tone="TextTone.Muted">第 @line 行：正文内容多时在这里滚动，页头页脚不动。</Paragraph>
-                }
+<DemoSection Id="dialog" Title="编辑表单">
+    <Description><Code>@@bind-Open</Code> 双向绑定；<Code>Title</Code> 与 <Code>Description</Code> 是对话框的名称与描述。写了 <Code>OnConfirm</Code> 页脚就有“取消 / 确认”：执行期间确认按钮加载中、关不掉，完成后关闭；<Code>KeepOpen</Code> 时对话框留着（校验没过、保存失败）。打开时焦点落在 autofocus 的元素上（没有就是第一个可聚焦的），关闭后回到打开它的按钮。</Description>
+    <ChildContent>
+        <Card>
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md">
+                <span @attributes="Attrs.Merge(DemoStyles.Initials)">@profile.Name[..1]</span>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Grow="true">
+                    <Strong>@profile.Name</Strong>
+                    <Small Tone="TextTone.Muted">@profile.Department · @profile.Bio</Small>
+                </Flex>
+                <Button Variant="ButtonVariant.Soft" Icon="Lucide.Pencil" @onclick="Edit" data-testid="open-edit">编辑</Button>
             </Flex>
-        </ChildContent>
-        <Footer>
-            <Button Variant="ButtonVariant.Ghost" data-rune-close>取消</Button>
-            <Button @onclick="Save">保存</Button>
-        </Footer>
-    </Dialog>
+            <Dialog @bind-Open="editing" Title="编辑资料" Description="修改后立即对团队成员可见。" ConfirmText="保存" OnConfirm="SaveAsync" Lazy="false" data-testid="edit-dialog">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+                    <Field Label="姓名" Required="true" Error="@nameError">
+                        <TextField @bind-Value="draft.Name" autofocus />
+                    </Field>
+                    <Field Label="部门">
+                        <NativeSelect @bind-Value="draft.Department" Items="departments" />
+                    </Field>
+                    <Field Label="简介" Description="显示在个人主页，最多 80 字。">
+                        <Textarea @bind-Value="draft.Bio" Rows="3" />
+                    </Field>
+                </Flex>
+            </Dialog>
+        </Card>
+    </ChildContent>
 </DemoSection>
 
-<DemoSection Title="抽屉">
-    <Flex Gap="SpaceScale.Sm" Wrap="true">
-        @foreach (var side in Enum.GetValues<DrawerSide>())
-        {
-            <Drawer Side="side" Title="@($"从 {side} 滑出")">
-                <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline">@side</Button></Trigger>
-                <ChildContent><Paragraph>抽屉适合详情、筛选与较长的表单。</Paragraph></ChildContent>
-                <Footer><Button data-rune-close>关闭</Button></Footer>
-            </Drawer>
-        }
-    </Flex>
+<DemoSection Id="long-content" Title="宽度与长内容">
+    <Description><Code>Size</Code> 与 Container 同档（Xs–Xl），另有 Full 占满视口。内容长时只滚正文，标题与页脚一直看得见。这里用 <Code>Trigger</Code> 打开（不管 Open）：点击由 JS 直接打开，静态 SSR 也能用；页脚的按钮写 <Code>data-rune-close</Code> 点击后关闭。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+            <NativeSelect @bind-Value="size" Items="sizes" Size="Size.Sm" aria-label="宽度" />
+            <Dialog Size="size" Title="用户协议" Description="更新于 2026 年 10 月 1 日">
+                <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline">阅读用户协议（Size="@size"）</Button></Trigger>
+                <ChildContent>
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+                        @for (var index = 0; index < 3 * sections.Length; index++)
+                        {
+                            var (title, text) = sections[index % sections.Length];
+                            <Flex @key="index" Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                                <H3 Size="Size.Md">@title</H3>
+                                <Paragraph Size="Size.Sm">@text</Paragraph>
+                            </Flex>
+                        }
+                    </Flex>
+                </ChildContent>
+                <Footer>
+                    @* 页脚本身靠结束边排；勾选框放在起始边，这一行撑满页脚 *@
+                    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true" Grow="true">
+                        <Checkbox @bind-Value="agreed">我已阅读并同意</Checkbox>
+                        <Button Disabled="!agreed" data-rune-close>继续</Button>
+                    </Flex>
+                </Footer>
+            </Dialog>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="blocking" Title="进行中的任务">
+    <Description><Code>Closable="false"</Code> 去掉右上角的关闭按钮，<Code>Dismissible="false"</Code> 让点遮罩不关闭——任务进行中别被误关；<Kbd>Esc</Kbd> 仍然可以关（浏览器的约定），关闭后 <Code>OpenChanged</Code> 收到 false，在那里收尾。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+            <Button Icon="Lucide.Contact" @onclick="StartImport">导入通讯录</Button>
+            <Small Tone="TextTone.Muted">@(importResult ?? "导入期间点遮罩不会关闭，也没有右上角的关闭按钮")</Small>
+            <Dialog Open="importing" OpenChanged="ImportOpenChanged" Title="正在导入通讯录" Description="完成后自动关闭；可以随时取消，已导入的联系人会保留。"
+                    Closable="false" Dismissible="false">
+                <ChildContent>
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                        <Flex Justify="ContentJustify.Between"><Small>导入进度</Small><Small Tone="TextTone.Muted">@imported / @Total</Small></Flex>
+                        <progress value="@imported" max="@Total" aria-label="导入进度" style="width: 100%"></progress>
+                    </Flex>
+                </ChildContent>
+                <Footer>
+                    <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral" @onclick="CancelImport">取消导入</Button>
+                </Footer>
+            </Dialog>
+        </Flex>
+    </ChildContent>
 </DemoSection>
 
 @code {
-    bool editing;
-    string note = "";
-    string saved = "还没保存";
+    sealed record Profile(string Name, string Department, string Bio);
 
-    void Save()
+    sealed class Draft
     {
-        saved = $"已保存：{(note.Length == 0 ? "（空）" : note)}";
-        editing = false;
+        public string Name { get; set; } = "";
+        public string? Department { get; set; }
+        public string? Bio { get; set; }
     }
+
+    static readonly string[] departments = ["设计中心", "研发部", "市场部", "财务部"];
+    static readonly DialogSize[] sizes = [DialogSize.Xs, DialogSize.Sm, DialogSize.Md, DialogSize.Lg, DialogSize.Full];
+
+    static readonly (string Title, string Text)[] sections =
+    [
+        ("一、服务内容", "本服务为用户提供在线组件库文档、示例与代码演练场。我们会不断改进服务，可能增加或调整部分功能。"),
+        ("二、账号", "你需要对账号下的全部活动负责。发现账号被盗用时，请立即联系我们。"),
+        ("三、隐私", "我们只收集提供服务所必需的信息，不会向第三方出售你的个人信息。详见隐私政策。"),
+        ("四、内容", "你在演练场里写的代码归你所有。分享链接只把代码编码在地址里，不经过我们的服务器。"),
+        ("五、责任限制", "示例代码按原样提供。用于生产环境前，请自行评估其适用性与安全性。"),
+        ("六、变更", "条款更新时，我们会提前 30 天在站内公告。继续使用即视为同意更新后的条款。"),
+    ];
+
+    const int Total = 1280;
+
+    Profile profile = new("周一航", "设计中心", "做了八年交互设计，喜欢把复杂的事讲简单。");
+    Draft draft = new();
+    bool editing;
+    string? nameError;
+
+    DialogSize size = DialogSize.Md;
+    bool agreed;
+
+    bool importing;
+    int imported;
+    string? importResult;
+    CancellationTokenSource? importRun;
+
+    void Edit()
+    {
+        draft = new Draft { Name = profile.Name, Department = profile.Department, Bio = profile.Bio };
+        nameError = null;
+        editing = true;
+    }
+
+    // 姓名没填时保持打开；保存要一会儿，期间确认按钮加载中、关不掉
+    async Task SaveAsync(ConfirmEventArgs e)
+    {
+        nameError = string.IsNullOrWhiteSpace(draft.Name) ? "请填写姓名" : null;
+        if (nameError is not null)
+        {
+            e.KeepOpen = true;
+            return;
+        }
+        await Task.Delay(800);
+        profile = new Profile(draft.Name.Trim(), draft.Department ?? "", draft.Bio ?? "");
+    }
+
+    async Task StartImport()
+    {
+        imported = 0;
+        importing = true;
+        importRun?.Cancel();
+        var run = importRun = new CancellationTokenSource();
+        try
+        {
+            while (imported < Total)
+            {
+                await Task.Delay(150, run.Token);
+                imported = Math.Min(Total, imported + 96);
+                StateHasChanged();
+            }
+            importResult = $"导入了 {Total} 位联系人";
+            await Task.Delay(400, run.Token);
+            importing = false;
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    void CancelImport()
+    {
+        importRun?.Cancel();
+        importing = false;
+        importResult = $"取消了，已导入 {imported} 位";
+    }
+
+    // Esc 关掉也是取消
+    void ImportOpenChanged(bool open)
+    {
+        if (!open && importing) CancelImport();
+    }
+
+    /// <inheritdoc/>
+    public void Dispose() => importRun?.Cancel();
 }

@@ -147,13 +147,61 @@ public class OverlayTests(DemoServer demo)
     public async Task 静态渲染里用Trigger打开的对话框也能开关()
     {
         var page = await demo.OpenAsync("static", "dialog");
-        var opener = page.GetByRole(AriaRole.Button, new() { Name = "关于（Trigger，静态 SSR 也能开）" });
+        var opener = page.GetByRole(AriaRole.Button, new() { Name = "阅读用户协议" });
         await opener.ClickAsync();
 
-        var dialog = page.GetByRole(AriaRole.Dialog, new() { Name = "关于" });
+        var dialog = page.GetByRole(AriaRole.Dialog, new() { Name = "用户协议" });
         await Assertions.Expect(dialog).ToBeVisibleAsync();
-        await dialog.GetByRole(AriaRole.Button, new() { Name = "知道了" }).ClickAsync();
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "关闭" }).ClickAsync();
         await Assertions.Expect(dialog).ToBeHiddenAsync();
         await Assertions.Expect(opener).ToBeFocusedAsync();
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 对话框的确认_校验没过时保持打开_保存期间加载中_完成后关闭(string mode)
+    {
+        var page = await demo.OpenAsync(mode, "dialog");
+        await page.GetByTestId("open-edit").ClickAsync();
+        var dialog = page.GetByTestId("edit-dialog");
+        var name = dialog.GetByRole(AriaRole.Textbox, new() { Name = "姓名" });
+        await Assertions.Expect(name).ToBeFocusedAsync();
+
+        await name.FillAsync("");
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "保存" }).ClickAsync();
+        await Assertions.Expect(dialog.GetByText("请填写姓名")).ToBeVisibleAsync();
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+
+        await name.FillAsync("林小满");
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "保存" }).ClickAsync();
+        await Assertions.Expect(dialog.GetByRole(AriaRole.Button, new() { Name = "保存" })).ToHaveAttributeAsync("aria-busy", "true");
+        await Assertions.Expect(dialog).ToBeHiddenAsync();
+        await Assertions.Expect(page.GetByText("林小满").First).ToBeVisibleAsync();
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 抽屉有未保存的改动时_Esc先确认_确认放弃才关(string mode)
+    {
+        var page = await demo.OpenAsync(mode, "drawer");
+        await page.GetByRole(AriaRole.Button, new() { Name = "编辑" }).ClickAsync();
+        var drawer = page.GetByTestId("edit-drawer");
+        await Assertions.Expect(drawer).ToBeVisibleAsync();
+        await drawer.GetByRole(AriaRole.Textbox, new() { Name = "项目名称" }).FillAsync("显示器支架一体成型");
+
+        // 有改动：Esc 不直接关，先问
+        await page.Keyboard.PressAsync("Escape");
+        var ask = page.GetByRole(AriaRole.Dialog, new() { Name = "放弃未保存的改动？" });
+        await Assertions.Expect(ask).ToBeVisibleAsync();
+        await ask.GetByRole(AriaRole.Button, new() { Name = "取消" }).ClickAsync();
+        await Assertions.Expect(ask).ToBeHiddenAsync();
+        await Assertions.Expect(drawer).ToBeVisibleAsync();
+
+        await drawer.GetByRole(AriaRole.Button, new() { Name = "关闭" }).ClickAsync();
+        await ask.GetByRole(AriaRole.Button, new() { Name = "放弃" }).ClickAsync();
+        await Assertions.Expect(drawer).ToBeHiddenAsync();
+        await Assertions.Expect(page.GetByTestId("project-name")).ToHaveTextAsync("显示器支架合并");
     }
 }

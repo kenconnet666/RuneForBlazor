@@ -42,19 +42,6 @@ public static class OverlayTransitions
         },
     });
 
-    /// <summary>从某个方向滑入：抽屉。<paramref name="hidden"/> 是隐藏时的位移（<c>100% 0</c> 是从右边进来）。</summary>
-    public static Style Slide(string hidden) => Css.Define(hidden, static hidden => new Style
-    {
-        Translate = hidden,
-        Transition = Exit("translate"),
-        [opened] = new()
-        {
-            Translate = "0 0",
-            Transition = Enter("translate"),
-            [When.Starting] = new() { Translate = hidden },
-        },
-    });
-
     /// <summary>模态的遮罩：打开时变暗，关闭时淡出。</summary>
     public static Style Backdrop => Css.Define(static () => new Style
     {

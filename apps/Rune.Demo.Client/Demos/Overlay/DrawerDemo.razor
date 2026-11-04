@@ -1,0 +1,196 @@
+@*
+    抽屉：示例与 vue-tsx-pro 文档站的 /components/drawer 对应。
+    detail（DataTable、Descriptions、Timeline）与 imperative（useDrawer）在后面的阶段补；edit 的拖动调宽在阶段 6 做，
+    这里的“放弃改动？”用页面自己的 Dialog 代替 useConfirm（阶段 8）。筛选里的 Select、CheckboxGroup、NumberRangeField、
+    DateRangePicker 做好前用 NativeSelect、Checkbox、两个 NumberField 代替，日期范围先不放。
+*@
+@attribute [ComponentDemo("drawer", "抽屉", Group = "浮层", Order = 4)]
+@inherits RuneComponent
+
+<DemoSection Id="edit" Title="编辑：关闭前确认">
+    <Description><Code>OnConfirm</Code> 是保存：执行期间按钮加载中、关不掉。<Code>BeforeClose</Code> 在取消、关闭按钮、<Kbd>Esc</Kbd>、点遮罩时先问一次，返回 false 不关——有未保存的改动时确认。</Description>
+    <ChildContent>
+        <Card>
+            <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <span data-testid="project-name">@saved.Name</span>
+                    <Small Tone="TextTone.Muted">@saved.Note</Small>
+                </Flex>
+                <Button Variant="ButtonVariant.Soft" Icon="Lucide.Pencil" @onclick="EditProject">编辑</Button>
+            </Flex>
+            <Drawer @bind-Open="editing" Title="编辑项目" Description="改了没保存时关闭会先确认" BeforeClose="MayCloseAsync"
+                    ConfirmText="保存" OnConfirm="SaveProjectAsync" PropsConfirm="@(Dirty ? null : disabledButton)" data-testid="edit-drawer">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                    <Field Label="项目名称" Required="true">
+                        <TextField @bind-Value="draft.Name" Immediate="true" />
+                    </Field>
+                    <Field Label="简要描述">
+                        <Textarea @bind-Value="draft.Note" Rows="4" Immediate="true" />
+                    </Field>
+                </Flex>
+            </Drawer>
+            <Dialog Open="asking" OpenChanged="AnswerDiscard" Title="放弃未保存的改动？" Dismissible="false" Closable="false"
+                    ConfirmText="放弃" Tone="Tone.Danger" OnConfirm="() => discard?.TrySetResult(true)" />
+        </Card>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="sides" Title="方向与宽度">
+    <Description><Code>Side</Code> 取 Start、End（默认）、Top、Bottom，Start / End 跟随从右到左排版；<Code>Size</Code> 与 Container 同档，只管左右两侧的宽度，上下两侧的高度随内容。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Field Label="宽度档位（左右两侧）">
+                <NativeSelect @bind-Value="size" Items="sizes" Size="Size.Sm" />
+            </Field>
+            <Flex Gap="SpaceScale.Sm" Wrap="true">
+                @foreach (var (value, icon, label) in sides)
+                {
+                    <Button @key="value" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="icon" @onclick="() => OpenSide(value)">从@(label)滑入</Button>
+                }
+            </Flex>
+            <Drawer @bind-Open="sideOpen" Side="side" Size="size" Title="@($"Side=\"{side}\" Size=\"{size}\"")">
+                <Paragraph>Start / End 是逻辑方向：从右到左排版时左右互换。左右两侧按 Size 的档位定宽（与 Container 同档）；顶部、底部的抽屉高度随内容，最多到视口高度。</Paragraph>
+            </Drawer>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="filters" Title="筛选">
+    <Description>条件多、页面放不下时收进抽屉：改的是一份草稿，<Code>OnConfirm</Code>（查看结果）时才生效，关掉就放弃；<Code>Footer</Code> 里的“重置”排在取消、确认前面，确认按钮上写着已设几项。</Description>
+    <ChildContent>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+            <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Funnel" @onclick="OpenFilters">
+                筛选
+                @if (applied.Count > 0)
+                {
+                    <Badge Size="Size.Xs" Radius="Radius.Full">@applied.Count</Badge>
+                }
+            </Button>
+            <Small Tone="TextTone.Muted">@(applied.Count > 0 ? $"已设 {applied.Count} 项条件" : "没有筛选条件：显示全部 128 个项目")</Small>
+            <Drawer @bind-Open="filtering" Title="筛选项目" ConfirmText="@($"查看结果（已设 {filterDraft.Count} 项）")" OnConfirm="() => applied = filterDraft.Copy()">
+                <ChildContent>
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+                        <Field Label="责任团队">
+                            <NativeSelect @bind-Value="filterDraft.Team" Items="teams" Placeholder="全部团队" />
+                        </Field>
+                        <Field Label="状态">
+                            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" role="group" aria-label="状态">
+                                @foreach (var (value, label) in statuses)
+                                {
+                                    <Checkbox @key="value" Value="filterDraft.Statuses.Contains(value)" ValueChanged="on => filterDraft.Toggle(value, on)">@label</Checkbox>
+                                }
+                            </Flex>
+                        </Field>
+                        <Field Label="预计年节省（万元）">
+                            <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+                                <NumberField @bind-Value="filterDraft.SavingFrom" aria-label="最少" placeholder="最少" />
+                                <span>–</span>
+                                <NumberField @bind-Value="filterDraft.SavingTo" aria-label="最多" placeholder="最多" />
+                            </Flex>
+                        </Field>
+                    </Flex>
+                </ChildContent>
+                <Footer>
+                    <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => filterDraft = new()">重置</Button>
+                </Footer>
+            </Drawer>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    sealed record Project(string Name, string Note);
+
+    sealed class ProjectDraft
+    {
+        public string Name { get; set; } = "";
+        public string? Note { get; set; }
+    }
+
+    sealed class Filters
+    {
+        public string? Team { get; set; }
+        public HashSet<string> Statuses { get; init; } = [];
+        public decimal? SavingFrom { get; set; }
+        public decimal? SavingTo { get; set; }
+
+        public int Count => (Team is null ? 0 : 1) + (Statuses.Count > 0 ? 1 : 0) + (SavingFrom is null && SavingTo is null ? 0 : 1);
+
+        public void Toggle(string value, bool on)
+        {
+            if (on) Statuses.Add(value);
+            else Statuses.Remove(value);
+        }
+
+        public Filters Copy() => new() { Team = Team, Statuses = [.. Statuses], SavingFrom = SavingFrom, SavingTo = SavingTo };
+    }
+
+    static readonly Attrs disabledButton = new() { ["Disabled"] = true };
+    static readonly ContainerSize[] sizes = [ContainerSize.Xs, ContainerSize.Sm, ContainerSize.Md, ContainerSize.Lg];
+    static readonly (DrawerSide Side, IconData Icon, string Label)[] sides =
+    [
+        (DrawerSide.Start, Lucide.ArrowRight, "起始边"),
+        (DrawerSide.End, Lucide.ArrowLeft, "结束边"),
+        (DrawerSide.Top, Lucide.ArrowDown, "顶部"),
+        (DrawerSide.Bottom, Lucide.ArrowUp, "底部"),
+    ];
+    static readonly string[] teams = ["生产部", "研发中心", "产品部", "供应链管理"];
+    static readonly (string Value, string Label)[] statuses = [("designing", "设计中"), ("verifying", "测试中"), ("confirming", "待验收"), ("settled", "已结算")];
+
+    Project saved = new("显示器支架合并", "两件合并为一件，减少紧固件");
+    ProjectDraft draft = new();
+    bool editing;
+    bool asking;
+    TaskCompletionSource<bool>? discard;
+
+    DrawerSide side = DrawerSide.End;
+    ContainerSize size = ContainerSize.Xs;
+    bool sideOpen;
+
+    bool filtering;
+    Filters applied = new();
+    Filters filterDraft = new();
+
+    bool Dirty => draft.Name != saved.Name || draft.Note != saved.Note;
+
+    void EditProject()
+    {
+        draft = new ProjectDraft { Name = saved.Name, Note = saved.Note };
+        editing = true;
+    }
+
+    async Task SaveProjectAsync()
+    {
+        await Task.Delay(600);
+        saved = new Project(draft.Name, draft.Note ?? "");
+    }
+
+    // 能不能关：没改过，或者确认放弃（取消、关闭按钮、Esc、点遮罩都走这里）
+    async Task<bool> MayCloseAsync(DialogCloseReason reason)
+    {
+        if (!Dirty) return true;
+        discard = new TaskCompletionSource<bool>();
+        asking = true;
+        StateHasChanged();
+        return await discard.Task;
+    }
+
+    // 确认对话框关上：确认过的结果已经给出，其余（Esc）算不放弃
+    void AnswerDiscard(bool open)
+    {
+        asking = open;
+        if (!open) discard?.TrySetResult(false);
+    }
+
+    void OpenSide(DrawerSide value)
+    {
+        side = value;
+        sideOpen = true;
+    }
+
+    void OpenFilters()
+    {
+        filterDraft = applied.Copy();
+        filtering = true;
+    }
+}

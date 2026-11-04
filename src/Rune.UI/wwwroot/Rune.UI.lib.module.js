@@ -13,6 +13,8 @@
 //                            最终方向写到 data-side / data-align；里面的 data-rune-arrow 是箭头。定位好之后才可见，菜单聚焦第一项，
 //                            对话框类的浮层聚焦 autofocus 或第一个可聚焦元素
 //   data-rune-light-dismiss  对话框：点遮罩关闭（原生的 closedby="any" 还没普及）
+//   data-rune-guard-close    对话框：要关闭时（Esc、点遮罩、data-rune-close）不直接关，发出冒泡的 rune-close-request
+//                            （Blazor 里是 @onrunecloserequest，带原因 escape / outside / close），由 C# 决定关不关（确认中、关闭前确认）
 //   role="menu"              菜单：方向键、Home / End、类型搜索移动焦点；打开时聚焦第一项；选了菜单项就关闭
 //   data-rune-list="space typeahead"
 //                            列表的键盘宿主：role="listbox" 本身，或 aria-controls 指向列表的触发按钮、输入框。焦点留在宿主上，
@@ -74,9 +76,20 @@ function install(blazor) {
     browserEventName: 'rune-dismiss',
     createEventArgs: () => ({}),
   });
+  blazor.registerCustomEventType('runecloserequest', {
+    browserEventName: 'rune-close-request',
+    createEventArgs: (event) => ({ reason: event.detail.reason }),
+  });
 
   // 原生的 toggle（popover）与 close（dialog）不冒泡：在捕获阶段接住，转发成冒泡的 rune-toggle
   document.addEventListener('toggle', onPopoverToggle, true);
+  // Esc：原生 dialog 先发 cancel（不冒泡，在捕获阶段接住）；要先问 C# 的对话框拦下来，改发关闭请求
+  document.addEventListener('cancel', (event) => {
+    if (event.target instanceof HTMLDialogElement && event.target.matches('[data-rune-guard-close]')) {
+      event.preventDefault();
+      requestClose(event.target, 'escape');
+    }
+  }, true);
   document.addEventListener('close', (event) => {
     if (event.target instanceof HTMLDialogElement && event.target.matches('[data-rune-overlay]')) {
       updateScrollLock();
@@ -222,11 +235,25 @@ function focusInto(overlay) {
   (overlay.querySelector('[autofocus]') ?? overlay.querySelector(TABBABLE))?.focus();
 }
 
-// 模态对话框打开时锁定页面滚动（关掉最后一个时恢复）；滚动条的位置留着，页面不会左右跳
+// 锁定期间恢复原样的函数；没锁时为 null
+let restoreScroll = null;
+
+// 模态对话框打开时锁定页面滚动（关掉最后一个时恢复，同 vue-tsx-pro 的 lockScroll）：去掉滚动条后在结束边补上等宽的内边距，
+// 页面内容不左右跳。不用 scrollbar-gutter: stable：它留出的槽在视口里，贴着结束边的抽屉会和视口边缘隔着一条
 function updateScrollLock() {
   const locked = document.querySelector('dialog[data-rune-overlay]:modal') !== null;
-  document.documentElement.style.overflow = locked ? 'hidden' : '';
-  document.documentElement.style.scrollbarGutter = locked ? 'stable' : '';
+  if (locked === (restoreScroll !== null)) return;
+  const root = document.documentElement;
+  if (!locked) {
+    restoreScroll();
+    restoreScroll = null;
+    return;
+  }
+  const scrollbar = innerWidth - root.clientWidth;
+  const previous = { overflow: root.style.overflow, paddingInlineEnd: root.style.paddingInlineEnd };
+  if (scrollbar > 0) root.style.paddingInlineEnd = `calc(${getComputedStyle(root).paddingInlineEnd || '0px'} + ${scrollbar}px)`;
+  root.style.overflow = 'hidden';
+  restoreScroll = () => Object.assign(root.style, previous);
 }
 
 // ---- 点击 ----
@@ -281,7 +308,7 @@ function onClick(event) {
   const item = target.closest('[role^="menuitem"]:not([aria-disabled="true"]), [data-rune-close]');
   if (item) {
     const overlay = item.closest('[data-rune-overlay]');
-    if (overlay) close(overlay);
+    if (overlay) closeOrRequest(overlay, 'close');
     return;
   }
 
@@ -289,8 +316,18 @@ function onClick(event) {
   if (target instanceof HTMLDialogElement && target.matches('[data-rune-light-dismiss][open]')) {
     const rect = target.getBoundingClientRect();
     const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-    if (!inside && event.detail > 0) close(target);
+    if (!inside && event.detail > 0) closeOrRequest(target, 'outside');
   }
+}
+
+// 要先问 C# 的对话框（data-rune-guard-close）发出关闭请求，其余直接关
+function closeOrRequest(overlay, reason) {
+  if (overlay.matches('[data-rune-guard-close]')) requestClose(overlay, reason);
+  else close(overlay);
+}
+
+function requestClose(overlay, reason) {
+  overlay.dispatchEvent(new CustomEvent('rune-close-request', { bubbles: true, detail: { reason } }));
 }
 
 // ---- 键盘 ----
