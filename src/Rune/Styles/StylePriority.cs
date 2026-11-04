@@ -62,8 +62,9 @@ internal static class StylePriority
         if (condition.StartsWith("@media", StringComparison.Ordinal)) return 200;
         if (condition.StartsWith("@container", StringComparison.Ordinal)) return 300;
         if (condition.StartsWith("::", StringComparison.Ordinal)) return PseudoElement;
-        // :is([aria-selected="true"]) 取括号前的名字查表
-        var name = condition.Split('(')[0];
+        // 取第一个伪类的名字查表：:is([aria-selected="true"]) → :is，:hover:not(:disabled) → :hover
+        var end = condition.IndexOfAny(['(', ':'], 1);
+        var name = end < 0 ? condition : condition[..end];
         return pseudoClasses.GetValueOrDefault(name, 40);
     }
 

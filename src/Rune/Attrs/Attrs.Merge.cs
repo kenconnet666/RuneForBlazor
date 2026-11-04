@@ -36,6 +36,38 @@ public sealed partial class Attrs
         return new Attrs { values = merged };
     }
 
+    /// <summary>
+    /// 部件是本库的组件（按钮里的图标、加载指示）时用：规则同 <see cref="Merge"/>，但样式不在这里合成类，
+    /// 而是作为子组件的 <c>Sx</c> 参数交下去，子组件把它排在自己的样式之后、只合成一个类
+    /// （两个类各自的规则谁先插入谁就输，结果不可靠）。
+    /// <code>&lt;Icon Data="Icon" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon)" /&gt;</code>
+    /// </summary>
+    public static Attrs MergeProps(Attrs? defaults, Attrs? user = null, Attrs? managed = null)
+    {
+        var styles = CollectStyles(defaults, user, managed);
+        var merged = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        MergeInto(merged, defaults);
+        MergeInto(merged, user);
+        MergeInto(merged, managed);
+        // 键名与 RuneComponent.Sx 参数同名：展开到组件上时 Blazor 按名字设置这个参数
+        if (styles.Count > 0) merged[nameof(Sx)] = styles as Sx ?? Sx.Create([.. styles]);
+        return new Attrs { values = merged };
+    }
+
+    /// <summary>去掉某些属性（不可用、加载中时去掉使用方的点击处理）。</summary>
+    public Attrs Without(params ReadOnlySpan<string> names)
+    {
+        if (values is null) return this;
+        Dictionary<string, object>? kept = null;
+        foreach (var name in names)
+        {
+            if (!values.ContainsKey(name)) continue;
+            kept ??= new Dictionary<string, object>(values, StringComparer.OrdinalIgnoreCase);
+            kept.Remove(name);
+        }
+        return kept is null ? this : new Attrs { Sx = Sx, values = kept };
+    }
+
     /// <summary>按层的顺序收集样式；只有一层带样式时直接用它（渲染里最常见，不分配）。</summary>
     static IReadOnlyList<Style> CollectStyles(Attrs? defaults, Attrs? user, Attrs? managed)
     {

@@ -92,9 +92,14 @@ internal static class StyleCompiler
 
         if (byContent.Count >= ContentCacheLimit) byContent.Clear();
         var className = "r" + StableHash.Of(key);
-        var compiled = new CompiledStyle(className, BuildCss(className, orderedBlocks.Select(b => (b.Chain, b.Declarations))));
-        return byContent.GetOrAdd(key, compiled);
+        var css = BuildCss(className, orderedBlocks.Select(b => (b.Chain, b.Declarations)));
+        // 引用到的关键帧随类一起输出（类名里已含动画名，内容相同的类引用的也是同一组关键帧）
+        foreach (var keyframes in styles.SelectMany(AllKeyframes).Distinct()) css += keyframes.Css;
+        return byContent.GetOrAdd(key, new CompiledStyle(className, css));
     }
+
+    static IEnumerable<Keyframes> AllKeyframes(Style style) =>
+        style.UsedKeyframes.Concat(style.Conditions.Values.SelectMany(AllKeyframes));
 
     /// <summary>把样式（含嵌套条件）展开到各条件链的声明表里。</summary>
     static void Flatten(Style style, string chain, Dictionary<string, Dictionary<string, string>> blocks)

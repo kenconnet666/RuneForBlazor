@@ -8,7 +8,7 @@ namespace Rune.Styles;
 /// {
 ///     Padding = Space.Md,
 ///     Color = Colors.Text,
-///     [When.Hover] = new() { Color = Colors.Accent },
+///     [When.Hover] = new() { Color = Colors.TextMuted },
 ///     [Media.Up(768)] = new() { Padding = Space.Lg },
 /// }
 /// </code>
@@ -25,6 +25,25 @@ public sealed partial class Style
 
     /// <summary>条件（如 <c>&amp;:hover</c>、<c>@media (min-width: 768px)</c>）→ 条件成立时的样式。</summary>
     internal IReadOnlyDictionary<string, Style> Conditions => conditions;
+
+    readonly List<Keyframes> keyframes = [];
+
+    /// <summary>这段样式（不含条件块）引用的关键帧动画，随类一起输出。</summary>
+    internal IReadOnlyList<Keyframes> UsedKeyframes => keyframes;
+
+    /// <summary>
+    /// 使用一组关键帧动画：设置 animation-name，并让这组 <c>@keyframes</c> 随这个类一起输出。
+    /// 时长、次数等照常写 <c>AnimationDuration</c>、<c>AnimationIterationCount</c>。
+    /// </summary>
+    public Keyframes? Keyframes
+    {
+        init
+        {
+            if (value is null) return;
+            keyframes.Add(value);
+            declarations["animation-name"] = value.Name;
+        }
+    }
 
     /// <summary>引擎为这个实例算出的结果，按“后面还跟着哪些样式”缓存（见 <see cref="StyleCompiler"/>）。</summary>
     internal readonly StyleCompiler.InstanceCache Compiled = new();
