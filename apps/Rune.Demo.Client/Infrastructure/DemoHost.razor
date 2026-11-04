@@ -6,7 +6,8 @@
 
 <RuneStyles />
 
-<p @attributes="Attrs.Merge(DemoStyles.RenderInfo)">
+@* data-demo-interactive：端到端测试等它变成 true 再操作（交互模式接管之前点击不会触发 C# 的处理） *@
+<p data-demo-interactive="@(RendererInfo.IsInteractive ? "true" : "false")" @attributes="Attrs.Merge(DemoStyles.RenderInfo)">
     运行在 @RendererInfo.Name · @(RendererInfo.IsInteractive ? "已交互" : "未交互（静态渲染或预渲染）")
 </p>
 

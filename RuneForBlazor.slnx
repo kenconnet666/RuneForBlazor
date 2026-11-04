@@ -11,12 +11,19 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Rune.Tests/Rune.Tests.csproj" />
+    <Project Path="tests/Rune.E2E/Rune.E2E.csproj" />
   </Folder>
   <Folder Name="/tools/">
     <File Path="tools/css-gen/generate.mjs" />
     <File Path="tools/css-gen/NOTICE.md" />
     <File Path="tools/icon-gen/generate.mjs" />
     <File Path="tools/icon-gen/NOTICE.md" />
+    <File Path="tools/theme-gen/generate.mjs" />
+    <File Path="tools/theme-gen/NOTICE.md" />
+    <File Path="tools/lang-gen/generate.mjs" />
+    <File Path="tools/lang-gen/NOTICE.md" />
+    <File Path="tools/parity/parity.mjs" />
+    <File Path="tools/parity/README.md" />
   </Folder>
   <Folder Name="/解决方案项/">
     <File Path="Directory.Build.props" />

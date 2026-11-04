@@ -105,6 +105,8 @@ function install(blazor) {
     attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize'],
   });
   syncWithin(document);
+  // 装好了：端到端测试、对照工具等它出现再操作（脚本加载之前的点击没人处理）
+  document.documentElement.setAttribute('data-rune-ready', '');
 }
 
 function announce(overlay, open) {

@@ -183,6 +183,9 @@
 
 ## 11. 构建与发布
 
+- **端到端测试**（`tests/Rune.E2E`）：测试程序启动构建好的 Rune.Demo（另一个进程、真实的 Kestrel、Development 环境），用 Playwright 的 Chromium 打开 `/{模式}/{演示}`。
+  先等 `html[data-rune-ready]`（JS 初始化器装好了），交互模式再等演示宿主的 `data-demo-interactive=true`（之前的点击不会触发 C# 的处理）。CI 只在 Linux 上跑。
+
 - 库专属的设置（文档注释检查、打包信息）在 `Directory.Build.targets`：props 在项目文件之前导入，那时项目里的 `IsLibrary` 还没有值。版本号例外，写在 props（SDK 更早算版本）。
 - CI 在 Linux 上打包三个库，检查生成器在 Rune 包里、Lucide 许可证在 Rune.Icons 包里，并把包作为产物留存；发布到哪里（CD）待定。
 

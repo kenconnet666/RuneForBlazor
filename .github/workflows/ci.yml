@@ -54,6 +54,15 @@ jobs:
       - name: 测试
         run: dotnet test --project tests/Rune.Tests/Rune.Tests.csproj --configuration Release --no-build
 
+      # 端到端测试只在 Linux 上跑：装 Chromium 与它要的系统库，再启动演示项目逐个操作页面
+      - name: 安装 Playwright 的 Chromium
+        if: runner.os == 'Linux'
+        run: pwsh tests/Rune.E2E/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: 端到端测试
+        if: runner.os == 'Linux'
+        run: dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build
+
       # 只在 Linux 上打包一次：检查生成器在 Rune 包里（安装 Rune 就能用 [State]）、浮层的 JS 初始化器在 Rune.UI 包里，包作为产物留存
       - name: 打包并检查包的内容
         if: runner.os == 'Linux'

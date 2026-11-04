@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    端到端测试：启动演示项目（真实的 Kestrel），用 Playwright 的 Chromium 操作页面，覆盖组件里的键盘、焦点与 JS 初始化器的行为
+    （菜单、对话框、气泡确认、数字框、表单错误汇总、标签移除……），静态 SSR、Server、WebAssembly 各跑一遍。
+    第一次运行时 Playwright 自己下载 Chromium；xunit v3 的测试项目是可执行程序。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Rune.E2E</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.Playwright" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 只保证先构建演示项目：测试启动的是它的输出（apps/Rune.Demo/bin/…/Rune.Demo.dll），不引用程序集 -->
+    <ProjectReference Include="..\..\apps\Rune.Demo\Rune.Demo.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Microsoft.Playwright" />
+  </ItemGroup>
+
+</Project>

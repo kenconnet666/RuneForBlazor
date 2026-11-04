@@ -31,6 +31,7 @@ public sealed partial class CartStore
 | `src/Rune.Icons` | Lucide 图标全集（`Lucide.Plus`……，首次访问时才创建，WebAssembly 发布时裁剪未用到的） |
 | `apps/Rune.Demo`、`apps/Rune.Demo.Client` | 演示项目：开发组件时实际运行、观察。每个演示都能以静态 SSR、Server、WebAssembly、Auto 打开（`/server/collapsible`），新增演示只要在 `Demos/{分类}/` 放一个带 `[ComponentDemo]` 的组件。文档站等组件库成熟后用自己的组件来做 |
 | `tests/Rune.Tests` | 运行时、组件（bUnit）、生成器、并发的测试 |
+| `tests/Rune.E2E` | 端到端测试：启动演示项目，用 Playwright 的 Chromium 在静态 SSR、Server、WebAssembly 下验证键盘、焦点与 JS 初始化器的行为（第一次运行时下载 Chromium） |
 | `tools/css-gen` | 从 vue-tsx-pro 的 CSS 数据生成 `Style` 的属性表与关键字常量（带中文说明） |
 | `tools/theme-gen` | 从 vue-tsx-pro 的主题生成 16 套内置主题（`Themes.g.cs`）；CI 校验 |
 | `tools/icon-gen` | 下载 Lucide 官方 SVG（`lucide-static`，版本固定在脚本里）生成图标数据：全集、组件库内置的一小组与许可文件；CI 校验 |
