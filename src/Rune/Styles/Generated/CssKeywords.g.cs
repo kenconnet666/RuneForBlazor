@@ -2384,7 +2384,7 @@ public static class ContainIntrinsicWidth
 }
 
 /// <summary><c>container</c> 的关键字取值；类型与 <see cref="Style.Container"/> 一致，可直接赋值。</summary>
-public static class Container
+public static class ContainerKeywords
 {
     /// <summary><c>inline-size</c>：建立行内轴尺寸查询容器，不同时隔离块轴尺寸。</summary>
     public static readonly CssValue InlineSize = "inline-size";

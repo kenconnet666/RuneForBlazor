@@ -65,13 +65,42 @@ public class LayoutTests : BunitContext
     }
 
     [Fact]
-    public void GridItem跨列与占满一行()
+    public void GridItem跨列跨行与占满一行()
     {
-        var span = Render<GridItem>(p => p.Add(x => x.Span, 2));
+        var span = Render<GridItem>(p => p.Add(x => x.Span, 2).Add(x => x.RowSpan, 3));
         var full = Render<GridItem>(p => p.Add(x => x.Span, 2).Add(x => x.FullRow, true));
 
-        Assert.Contains("grid-column:span 2", RuleOf(span.Find("div").ClassName!));
+        var rule = RuleOf(span.Find("div").ClassName!);
+        Assert.Contains("grid-column:span 2 / span 2", rule);
+        Assert.Contains("grid-row:span 3 / span 3", rule);
+        // 跨多列时把列数交给 JS：网格的列比它少时改成跨当前的列数
+        Assert.Equal("2", span.Find("div").GetAttribute("data-rune-grid-span"));
         Assert.Contains("grid-column:1 / -1", RuleOf(full.Find("div").ClassName!));
+        Assert.False(full.Find("div").HasAttribute("data-rune-grid-span"));
+    }
+
+    [Fact]
+    public void 列表版的布局是ul_去掉圆点并补上列表角色()
+    {
+        var grid = Render<GridList>(p => p.Add(x => x.MinItemWidth, "9rem").AddChildContent("<li>a</li>"));
+        var flex = Render<FlexList>(p => p.AddChildContent("<li>a</li>"));
+        var item = Render<GridListItem>(p => p.Add(x => x.Span, 2));
+
+        Assert.Equal("list", grid.Find("ul").GetAttribute("role"));
+        Assert.Contains("list-style:none", RuleOf(grid.Find("ul").ClassName!));
+        Assert.Equal("list", flex.Find("ul").GetAttribute("role"));
+        Assert.NotNull(item.Find("li"));
+    }
+
+    [Fact]
+    public void 容器限制最大宽度并居中()
+    {
+        var cut = Render<Container>(p => p.Add(x => x.Size, ContainerSize.Xs));
+
+        var rule = RuleOf(cut.Find("div").ClassName!);
+        Assert.Contains("max-width:var(--rune-sizes-xs)", rule);
+        Assert.Contains("margin-inline:auto", rule);
+        Assert.Contains("padding-inline:var(--rune-space-lg)", rule);
     }
 
     [Fact]

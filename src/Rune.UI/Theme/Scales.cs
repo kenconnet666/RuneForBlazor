@@ -107,6 +107,9 @@ public static class ScaleStyles
     /// <summary>内边距。</summary>
     public static Style Padding(SpaceScale scale) => Css.Define(scale, static scale => new Style { Padding = SpaceOf(scale) });
 
+    /// <summary>左右内边距档位（容器）。</summary>
+    public static Style PaddingInline(SpaceScale scale) => Css.Define(scale, static scale => new Style { PaddingInline = SpaceOf(scale) });
+
     /// <summary>间距档位对应的 token。</summary>
     public static CssLength SpaceOf(SpaceScale scale) => scale switch
     {

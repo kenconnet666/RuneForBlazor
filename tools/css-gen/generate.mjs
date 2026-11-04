@@ -16,6 +16,7 @@ import { parseArgs } from 'node:util';
 
 const repoRoot = resolve(import.meta.dirname, '../..');
 const runeStylesDir = resolve(repoRoot, 'src/Rune/Styles');
+const runeUiDir = resolve(repoRoot, 'src/Rune.UI');
 const propertiesPath = resolve(runeStylesDir, 'Generated/Style.Properties.g.cs');
 const keywordsPath = resolve(runeStylesDir, 'Generated/CssKeywords.g.cs');
 
@@ -29,12 +30,6 @@ const GENERATED_HEADER = [
 
 /** 关键字类与 Rune.Styles 已有类型（或 Rune.UI 的组件）重名时加的后缀 */
 const KEYWORD_CLASS_SUFFIX = 'Keywords';
-
-/**
- * Rune.UI 里与关键字类同名的组件：页面通常同时 using Rune.Styles 与 Rune.UI，C# 代码里同名会有歧义，关键字类加后缀让路。
- * 组件库新增与 CSS 属性同名的组件时加在这里
- */
-const COMPONENT_NAMES = ['Flex', 'Grid'];
 
 /** 不生成常量的关键字接口：颜色名、系统色等量大且直接写字符串更合适；CSS 全局关键字单独放 CssWide */
 const SKIPPED_KEYWORD_GROUPS = new Set(['CssWideKeywords', 'CssColor', 'CssColorBase', 'CssNamedColor', 'CssSystemColor']);
@@ -62,20 +57,23 @@ const LENGTH_TOKEN_GROUPS = new Set([
 const VENDOR_PREFIXES = { Webkit: '-webkit-', Moz: '-moz-', Ms: '-ms-' };
 
 /**
- * Rune.Styles 目录里手写的类型名（含嵌套类型与 .razor 组件），关键字类不能同名。
- * 每次从源码扫描，新增类型后重新生成即可发现冲突。
+ * Rune.Styles 与 Rune.UI 里手写的类型名（含嵌套类型与 .razor 组件），关键字类不能同名：
+ * 页面通常同时 using Rune.Styles 与 Rune.UI，同名在 C# 代码里有歧义（Flex、Grid、Container 组件），关键字类加后缀让路。
+ * 每次从源码扫描，新增类型后重新生成即可发现冲突（CI 的 --check 会报出生成文件过期）。
  */
 function existingTypeNames() {
-  const names = new Set(['CssWide', ...COMPONENT_NAMES]);
+  const names = new Set(['CssWide']);
   const declaration =
     /^\s*(?:(?:public|internal|private|protected|sealed|static|readonly|abstract|partial|file)\s+)*(?:class|struct|enum|interface|record(?:\s+(?:struct|class))?)\s+(\w+)/;
-  for (const file of readdirSync(runeStylesDir, { recursive: true }).map(String)) {
-    if (file.endsWith('.g.cs')) continue;
-    if (extname(file) === '.razor') names.add(basename(file, '.razor'));
-    if (extname(file) !== '.cs') continue;
-    for (const line of readFileSync(resolve(runeStylesDir, file), 'utf8').split(/\r?\n/)) {
-      const name = line.match(declaration)?.[1];
-      if (name) names.add(name);
+  for (const dir of [runeStylesDir, runeUiDir]) {
+    for (const file of readdirSync(dir, { recursive: true }).map(String)) {
+      if (file.endsWith('.g.cs') || /(^|[\\/])(bin|obj)[\\/]/.test(file)) continue;
+      if (extname(file) === '.razor') names.add(basename(file, '.razor'));
+      if (extname(file) !== '.cs') continue;
+      for (const line of readFileSync(resolve(dir, file), 'utf8').split(/\r?\n/)) {
+        const name = line.match(declaration)?.[1];
+        if (name) names.add(name);
+      }
     }
   }
   return names;
@@ -346,7 +344,7 @@ function generateKeywords(properties, interfaces, warnings) {
     let className = property.csName;
     if (reserved.has(className)) {
       className += KEYWORD_CLASS_SUFFIX;
-      warnings.push(`${property.csName} 与 Rune.Styles 已有类型重名，关键字类改名为 ${className}`);
+      warnings.push(`${property.csName} 与 Rune.Styles / Rune.UI 已有类型重名，关键字类改名为 ${className}`);
     }
     const members = new Map();
     for (const entry of keywords) {

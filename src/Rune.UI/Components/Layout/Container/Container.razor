@@ -1,0 +1,19 @@
+@*
+    容器（div）：限制最大宽度并水平居中，窄屏时左右留内边距。
+    <Container Size="ContainerSize.Sm">…</Container>   Xs 30rem（登录）、Sm 40rem（表单、设置）、Md 48rem（文章）、Lg 64rem（默认）、Xl 80rem（仪表盘）
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(LayoutStyles.Container(Size, Padding, Config.Styles)[LayoutPart.Root], Rest)">@ChildContent</div>
+
+@code {
+    /// <summary>最大宽度档位，对应主题 sizes 的容器宽度，默认 Lg。</summary>
+    [Parameter] public ContainerSize Size { get; set; } = ContainerSize.Lg;
+
+    /// <summary>左右内边距档位，默认 Lg；窄屏时内容不会贴边。</summary>
+    [Parameter] public SpaceScale Padding { get; set; } = SpaceScale.Lg;
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

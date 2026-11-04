@@ -18,6 +18,7 @@
 //   data-rune-copy="文字"     复制按钮：点击时（data-rune-copy-on-click）或 data-rune-copy-request 变了时把文字写入剪贴板，
 //                            成功后按钮的 data-state 变成 copied（data-rune-copy-timeout 毫秒后复原）、播报 data-rune-copied-text，
 //                            发出冒泡的 rune-copied（Blazor 里是 @onrunecopied）
+//   data-rune-grid-span="n"  网格里跨 n 列的项：网格实际的列比 n 少时（按宽度自动换列的网格变窄）改成跨当前的列数
 //   data-rune-draw="true"    图标的描线动画：插入时为 true、或由 false 变为 true 时一笔画出（减少动态效果时直接画好）
 //   data-rune-dismiss        可移除元素（data-rune-dismissible，如标签）里的移除按钮：元素先离场（data-dismissing），
 //                            结束后发出冒泡的 rune-dismiss（Blazor 里是 @onrunedismiss）；被移除时焦点交给同组的下一个
@@ -128,9 +129,10 @@ function syncWithin(root) {
     if (element.matches('[data-rune-overlay][data-open="true"]')) syncOpen(element);
     if (element.matches('input[data-indeterminate="true"]')) syncIndeterminate(element);
     if (element.matches('svg[data-rune-draw="true"]')) drawIcon(element);
+    if (element.matches('[data-rune-grid-span]')) watchGrid(element.parentElement);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span]').forEach(sync);
 }
 
 function onMutations(mutations) {
@@ -400,6 +402,30 @@ function speak(message) {
 }
 
 let speakTimer;
+
+/** 量网格实际有几列（计算后的 grid-template-columns 有几段），跨列多于它的项改成跨当前的列数 */
+const gridObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver((entries) => {
+  for (const { target } of entries) clampGridSpans(target);
+});
+const watchedGrids = new WeakSet();
+
+function watchGrid(grid) {
+  if (!grid || !gridObserver) return;
+  if (!watchedGrids.has(grid)) {
+    watchedGrids.add(grid);
+    gridObserver.observe(grid);
+  }
+  clampGridSpans(grid);
+}
+
+function clampGridSpans(grid) {
+  const tracks = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+  for (const item of grid.children) {
+    const span = Number(item.getAttribute('data-rune-grid-span'));
+    if (!span) continue;
+    item.style.gridColumn = tracks > 0 && tracks < span ? `span ${tracks} / span ${tracks}` : '';
+  }
+}
 
 /** 图标描线：每一笔的长度统一成 1，虚线从 0 画到 1（时长、缓动取主题；减少动态效果时直接画好） */
 function drawIcon(svg) {

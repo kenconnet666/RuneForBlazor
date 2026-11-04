@@ -102,6 +102,7 @@ public enum LayoutPart
 /// <param name="ColumnGap">列间隙，盖过 Gap。</param>
 /// <param name="Inline">行内（inline-flex）。</param>
 /// <param name="Grow">在父级的 flex 布局里占满剩余空间。</param>
+/// <param name="List">列表（FlexList）：去掉圆点与缩进。</param>
 public readonly record struct FlexAppearance(
     LayoutDirection? Direction = null,
     ItemAlign? Align = null,
@@ -111,7 +112,8 @@ public readonly record struct FlexAppearance(
     SpaceScale? RowGap = null,
     SpaceScale? ColumnGap = null,
     bool Inline = false,
-    bool Grow = false);
+    bool Grow = false,
+    bool List = false);
 
 /// <summary>Grid 的外观：交给 <see cref="LayoutStyles.Grid"/> 的档位组合。</summary>
 /// <param name="Columns">等宽列数。</param>
@@ -122,6 +124,7 @@ public readonly record struct FlexAppearance(
 /// <param name="Align">单元格在块方向的对齐。</param>
 /// <param name="Justify">单元格在行内方向的对齐。</param>
 /// <param name="Flow">自动排布方向。</param>
+/// <param name="List">列表（GridList）：去掉圆点与缩进。</param>
 public readonly record struct GridAppearance(
     int? Columns = null,
     bool AutoFit = false,
@@ -130,7 +133,27 @@ public readonly record struct GridAppearance(
     SpaceScale? ColumnGap = null,
     ItemAlign? Align = null,
     ItemAlign? Justify = null,
-    GridFlow? Flow = null);
+    GridFlow? Flow = null,
+    bool List = false);
+
+/// <summary>容器的最大宽度档位，对应主题 sizes 的容器宽度（rem，跟随浏览器字号）。</summary>
+public enum ContainerSize
+{
+    /// <summary>30rem：窄内容，如登录表单。</summary>
+    Xs,
+
+    /// <summary>40rem：表单页、设置页。</summary>
+    Sm,
+
+    /// <summary>48rem：文章、详情页。</summary>
+    Md,
+
+    /// <summary>64rem：常规页面（默认）。</summary>
+    Lg,
+
+    /// <summary>80rem：宽表格、仪表盘。</summary>
+    Xl,
+}
 
 /// <summary>布局组件（Flex、Grid、GridItem）的样式（配方）。</summary>
 public static class LayoutStyles
@@ -151,7 +174,8 @@ public static class LayoutStyles
             a.Gap is { } gap ? ScaleStyles.Gap(gap) : null,
             a.RowGap is { } rowGap ? ScaleStyles.RowGap(rowGap) : null,
             a.ColumnGap is { } columnGap ? ScaleStyles.ColumnGap(columnGap) : null,
-            a.Grow ? Grow : null));
+            a.Grow ? Grow : null,
+            a.List ? ListReset : null));
 
     /// <summary>Grid 的部件默认层。</summary>
     public static PartLayers<LayoutPart> Grid(GridAppearance appearance, ComponentStyles styles) =>
@@ -163,16 +187,41 @@ public static class LayoutStyles
             a.ColumnGap is { } columnGap ? ScaleStyles.ColumnGap(columnGap) : null,
             a.Align is { } align ? AlignItemsOf(align) : null,
             a.Justify is { } justify ? JustifyItemsOf(justify) : null,
-            a.Flow is { } flow ? FlowOf(flow) : null));
+            a.Flow is { } flow ? FlowOf(flow) : null,
+            a.List ? ListReset : null));
 
-    /// <summary>GridItem 的部件默认层：跨几列；<see cref="int.MaxValue"/> 表示占满一整行。</summary>
-    public static PartLayers<LayoutPart> GridItem(int? span, ComponentStyles styles) =>
-        Recipe.Of("grid-item", span, styles, static (int? span, LayoutPart _) => span switch
+    /// <summary>GridItem 的部件默认层：跨几列（<see cref="int.MaxValue"/> 表示占满一整行）、跨几行。</summary>
+    public static PartLayers<LayoutPart> GridItem(int? span, int? rowSpan, ComponentStyles styles) =>
+        Recipe.Of("grid-item", (span, rowSpan), styles, static ((int? Span, int? RowSpan) a, LayoutPart _) => Sx.Of(
+            a.Span switch
+            {
+                int.MaxValue => FullRow,
+                > 1 and int span => SpanOf(span),
+                _ => null,
+            },
+            a.RowSpan is > 1 and int rows ? RowSpanOf(rows) : null));
+
+    /// <summary>Container 的部件默认层。</summary>
+    public static PartLayers<LayoutPart> Container(ContainerSize size, SpaceScale padding, ComponentStyles styles) =>
+        Recipe.Of("container", (size, padding), styles, static ((ContainerSize Size, SpaceScale Padding) a, LayoutPart _) =>
+            Sx.Of(ContainerRoot, ContainerWidth(a.Size), ScaleStyles.PaddingInline(a.Padding)));
+
+    static Style ContainerRoot => Css.Define(static () => new Style { BoxSizing = BoxSizing.BorderBox, Width = "100%", MarginInline = "auto" });
+
+    static Style ContainerWidth(ContainerSize size) => Css.Define(size, static size => new Style
+    {
+        MaxWidth = size switch
         {
-            null => Sx.Of(),
-            int.MaxValue => FullRow,
-            _ => SpanOf(span.Value),
-        });
+            ContainerSize.Xs => Sizes.Xs,
+            ContainerSize.Sm => Sizes.Sm,
+            ContainerSize.Md => Sizes.Md,
+            ContainerSize.Xl => Sizes.Xl,
+            _ => Sizes.Lg,
+        },
+    });
+
+    // 列表当布局容器：去掉默认的圆点与缩进（组件同时补上 role="list"）
+    static Style ListReset => Css.Define(static () => new Style { ListStyle = "none", Margin = 0, Padding = 0 });
 
     static Style FlexRoot => Css.Define(static () => new Style { Display = Display.Flex });
 
@@ -248,5 +297,7 @@ public static class LayoutStyles
 
     static Style FullRow => Css.Define(static () => new Style { GridColumn = "1 / -1" });
 
-    static Style SpanOf(int span) => Css.Define(span, static span => new Style { GridColumn = $"span {span}" });
+    static Style SpanOf(int span) => Css.Define(span, static span => new Style { GridColumn = $"span {span} / span {span}" });
+
+    static Style RowSpanOf(int rows) => Css.Define(rows, static rows => new Style { GridRow = $"span {rows} / span {rows}" });
 }

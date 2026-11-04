@@ -1,0 +1,322 @@
+@*
+    布局：示例与 vue-tsx-pro 文档站的 /components/flex 一一对应（Flex、Grid、GridList、Separator、Container）。
+    还没做的组件先用近似的写法占位：Flex 示例的控制条（ToggleGroup）先用下拉框，头像（Avatar）先用圆形色块，
+    Descriptions 先用两行文字；做好后换上。
+*@
+@attribute [ComponentDemo("flex", "布局", Group = "布局", Order = 0)]
+@inherits RuneComponent
+
+<DemoSection Id="flex" Title="Flex">
+    <Description>不拆 Stack / Group：竖排写 Direction="LayoutDirection.Column"。Gap 取主题的间距档位（None、Xs–Xl），整站的疏密跟着主题一起变。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <TextSpan Size="Size.Sm" Sx="ControlLabel">direction</TextSpan>
+                    <NativeSelect @bind-Value="direction" Items="directions" ItemText="Lower" Size="Size.Sm" aria-label="direction" />
+                </Flex>
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <TextSpan Size="Size.Sm" Sx="ControlLabel">gap</TextSpan>
+                    <NativeSelect @bind-Value="gap" Items="gaps" ItemText="Lower" Size="Size.Sm" aria-label="gap" />
+                </Flex>
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <TextSpan Size="Size.Sm" Sx="ControlLabel">align</TextSpan>
+                    <NativeSelect @bind-Value="align" Items="aligns" ItemText="Lower" Size="Size.Sm" aria-label="align" />
+                </Flex>
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <TextSpan Size="Size.Sm" Sx="ControlLabel">justify</TextSpan>
+                    <NativeSelect @bind-Value="justify" Items="justifies" ItemText="Lower" Size="Size.Sm" aria-label="justify" />
+                </Flex>
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <TextSpan Size="Size.Sm" Sx="ControlLabel">wrap</TextSpan>
+                    <Switch @bind-Checked="wrap" aria-label="wrap" />
+                </Flex>
+            </Flex>
+            <Flex Direction="direction" Align="align" Justify="justify" Gap="gap" Wrap="wrap" Sx="Stage" data-testid="stage">
+                @for (var i = 0; i < heights.Length; i++)
+                {
+                    var height = heights[i];
+                    <div @attributes="Attrs.Merge(Box)" style="@BoxSize(height)">@(i + 1)</div>
+                }
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="auto-grid" Title="自动换列">
+    <Description>MinItemWidth 给每项的最小宽度，容器多宽就放几列，不需要断点；项目少于放得下的列数时各项拉宽占满（auto-fit）。这里用 GridList：渲染为 ul，子元素用 li，读屏念“列表，6 项”。</Description>
+    <ChildContent>
+        <GridList MinItemWidth="@("9rem")" Gap="SpaceScale.Md" aria-label="热卖家具">
+            @foreach (var (icon, name, price) in products)
+            {
+                <li>
+                    <Card Padding="SpaceScale.Sm">
+                        <div @attributes="Attrs.Merge(Cover)"><Icon Data="icon" /></div>
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                            <TextSpan Size="Size.Sm">@name</TextSpan>
+                            <Strong>¥@price.ToString("N0") <Small Tone="TextTone.Muted">起</Small></Strong>
+                        </Flex>
+                    </Card>
+                </li>
+            }
+        </GridList>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="labelled-separator" Title="带文字的分隔线">
+    <Description>Separator 里写文字：默认居中，两边各一段线；LabelAlign="Start" 文字在前、线在后，像一节的小标题。文字照常给读屏，两段线对读屏隐藏；Decorative="false" 时整条是 role="separator"，以文字为名称。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Md">
+            <Card>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                    <TextField placeholder="工号或邮箱" aria-label="账号" />
+                    <TextField type="password" placeholder="密码" aria-label="密码" />
+                    <Button>登录</Button>
+                    <Separator>或者</Separator>
+                    <Grid Columns="2" Gap="SpaceScale.Sm">
+                        <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.MessageSquareText">企业微信</Button>
+                        <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Smartphone">短信验证码</Button>
+                    </Grid>
+                </Flex>
+            </Card>
+            <Card>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                    <Separator LabelAlign="SeparatorLabelAlign.Start">更改前</Separator>
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                        <TextSpan Size="Size.Sm">件号：G26</TextSpan>
+                        <TextSpan Size="Size.Sm">材料：铝合金 6061</TextSpan>
+                    </Flex>
+                    <Separator LabelAlign="SeparatorLabelAlign.Start" Decorative="false">更改后</Separator>
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                        <TextSpan Size="Size.Sm">件号：G29</TextSpan>
+                        <TextSpan Size="Size.Sm">材料：铝合金 7075</TextSpan>
+                    </Flex>
+                </Flex>
+            </Card>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="dashboard" Title="固定列数与跨格">
+    <Description>Columns 固定等宽列；GridItem 的 Span、RowSpan 跨几列、几行，FullRow 占满一整行（GridList 里用 GridListItem）。Flow="GridFlow.RowDense" 回填前面留下的空位。</Description>
+    <ChildContent>
+        <Grid Columns="4" Gap="SpaceScale.Sm" Flow="GridFlow.RowDense">
+            @foreach (var (title, note, span, rowSpan) in cells)
+            {
+                <GridItem Span="span" RowSpan="rowSpan">
+                    <Card Padding="SpaceScale.Sm" Sx="Cell">
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                            <Strong>@title</Strong>
+                            <Small Tone="TextTone.Muted">@note</Small>
+                        </Flex>
+                    </Card>
+                </GridItem>
+            }
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="separator" Title="分隔线与列表">
+    <Description>Separator 默认是装饰性的、对读屏隐藏；分隔两组不同内容、需要读屏感知时写 Decorative="false"，渲染为 role="separator"。竖向的在 Flex 里自动撑满行高。</Description>
+    <ChildContent>
+        <Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <H3 Size="Size.Lg">用 CSS 变量写一套主题系统</H3>
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+                    <span @attributes="Attrs.Merge(AvatarStandIn)" aria-hidden="true">周</span>
+                    <Small>周一航</Small>
+                    <Separator Orientation="Orientation.Vertical" />
+                    <Small Tone="TextTone.Muted">10 月 18 日</Small>
+                    <Separator Orientation="Orientation.Vertical" />
+                    <Small Tone="TextTone.Muted">阅读约 8 分钟</Small>
+                </Flex>
+                <Separator />
+                <Paragraph Size="Size.Sm">
+                    defineVars 声明变量，createTheme 覆盖一组取值，套在任意子树上就能局部换肤；组件只认 token，不写死颜色。
+                </Paragraph>
+                <Separator Decorative="false" />
+                <FlexList Gap="SpaceScale.Lg" aria-label="互动数据">
+                    @foreach (var (icon, label, value) in stats)
+                    {
+                        <li>
+                            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                                <Icon Data="icon" />
+                                <Small Tone="TextTone.Muted">@label @value</Small>
+                            </Flex>
+                        </li>
+                    }
+                </FlexList>
+            </Flex>
+        </Card>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="container" Title="Container">
+    <Description>限制最大宽度并水平居中：Xs 30rem（登录）、Sm 40rem（表单、设置）、Md 48rem（文章）、Lg 64rem（默认）、Xl 80rem（仪表盘）。</Description>
+    <ChildContent>
+        <div @attributes="Attrs.Merge(Page)">
+            <Container Size="ContainerSize.Xs">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Sx="LoginForm">
+                    <H3 Size="Size.Lg">登录</H3>
+                    <Field Label="邮箱"><TextField type="email" placeholder="you@example.com" /></Field>
+                    <Field Label="密码"><TextField type="password" /></Field>
+                    <Button>登录</Button>
+                    <Small Tone="TextTone.Muted">Container size="xs"：最宽 30rem，居中，左右留 padding</Small>
+                </Flex>
+            </Container>
+        </div>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="grow" Title="伸展、行内与行列间距">
+    <Description>Grow 让 Flex 在父级的 flex 里占满剩余空间，并且可以收缩到比内容窄——头像旁边的长标题才能截断；Inline 是行内的 flex，放在一段文字中间。Grid 的 RowGap、ColumnGap 分别覆盖 Gap。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Card Padding="SpaceScale.Sm">
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <span @attributes="Attrs.Merge(AvatarStandIn)" aria-hidden="true">林</span>
+                    <Flex Direction="LayoutDirection.Column" Grow="true">
+                        <Strong Truncate="true">林小满上传了《第三季度经营分析报告（终版，含附录与数据来源说明）》</Strong>
+                        <Small Tone="TextTone.Muted" Truncate="true">设计中心 · 10 分钟前 · 来自网页端</Small>
+                    </Flex>
+                    <Badge Tone="Tone.Success">已审核</Badge>
+                </Flex>
+            </Card>
+            <TextSpan>
+                状态：<Flex Inline="true" Align="ItemAlign.Center" Gap="SpaceScale.Xs"><Icon Data="Lucide.CircleCheck" Tone="TextTone.Success" />已通过</Flex>，下一步由财务确认。
+            </TextSpan>
+            <Grid Columns="3" RowGap="SpaceScale.Lg" ColumnGap="SpaceScale.Xs">
+                @foreach (var name in documents)
+                {
+                    <Card Padding="SpaceScale.Sm">
+                        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                            <Icon Data="Lucide.FileText" Tone="TextTone.Muted" />
+                            <Small>@name</Small>
+                        </Flex>
+                    </Card>
+                }
+            </Grid>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly LayoutDirection[] directions = [LayoutDirection.Row, LayoutDirection.Column];
+    static readonly SpaceScale[] gaps = [SpaceScale.None, SpaceScale.Xs, SpaceScale.Sm, SpaceScale.Md, SpaceScale.Lg, SpaceScale.Xl];
+    static readonly ItemAlign[] aligns = [ItemAlign.Start, ItemAlign.Center, ItemAlign.End, ItemAlign.Stretch, ItemAlign.Baseline];
+    static readonly ContentJustify[] justifies = [ContentJustify.Start, ContentJustify.Center, ContentJustify.End, ContentJustify.Between, ContentJustify.Evenly];
+
+    // 高矮不一，才看得出 align 的差别
+    static readonly double[] heights = [2, 3.5, 2.5, 4, 3];
+
+    LayoutDirection direction = LayoutDirection.Row;
+    SpaceScale gap = SpaceScale.Sm;
+    ItemAlign align = ItemAlign.Center;
+    ContentJustify justify = ContentJustify.Start;
+    bool wrap;
+
+    static readonly (IconData Icon, string Name, int Price)[] products =
+    [
+        (Lucide.Sofa, "云朵三人沙发", 4299),
+        (Lucide.Armchair, "藤编单椅", 899),
+        (Lucide.BedDouble, "实木双人床", 3599),
+        (Lucide.Lamp, "黄铜落地灯", 659),
+        (Lucide.Armchair, "人体工学椅", 1999),
+        (Lucide.LampDesk, "护眼台灯", 329),
+    ];
+
+    // 四列三行正好 12 格：跨两列的 3 个、跨两行的 1 个、单格的 4 个
+    static readonly (string Title, string Note, int? Span, int? RowSpan)[] cells =
+    [
+        ("销售趋势", "跨两列", 2, null),
+        ("待办", "跨两行", null, 2),
+        ("新客户", "1 格", null, null),
+        ("转化率", "1 格", null, null),
+        ("退款", "1 格", null, null),
+        ("客单价", "1 格", null, null),
+        ("库存预警", "跨两列", 2, null),
+        ("物流异常", "跨两列", 2, null),
+    ];
+
+    static readonly (IconData Icon, string Label, string Value)[] stats =
+    [
+        (Lucide.Eye, "阅读", "3.2 万"),
+        (Lucide.ThumbsUp, "赞", "1,284"),
+        (Lucide.MessageSquare, "评论", "96"),
+    ];
+
+    static readonly string[] documents = ["合同", "报价单", "发票", "验收单", "对账单", "回款记录"];
+
+    static string Lower<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
+
+    static string BoxSize(double height) =>
+        FormattableString.Invariant($"height:{height}rem;padding-inline:{height / 4}rem");
+
+    static Style ControlLabel => Css.Define(static () => new Style { MinWidth = "3.5em", Color = Colors.TextMuted });
+
+    static Style Stage => Css.Define(static () => new Style
+    {
+        MinHeight = "11rem",
+        Padding = Space.Md,
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Dashed,
+        BorderColor = Colors.Border,
+        BorderRadius = Radii.Md,
+    });
+
+    static Style Box => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = "center",
+        MinWidth = "3rem",
+        BorderRadius = Radii.Sm,
+        BackgroundColor = Tones.Accent.Soft,
+        Color = Tones.Accent.Text,
+        FontWeight = FontWeights.Semibold,
+    });
+
+    static Style Cover => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = "center",
+        Height = "5rem",
+        MarginBlockEnd = Space.Sm,
+        BorderRadius = Radii.Sm,
+        BackgroundColor = Colors.Fill,
+        Color = Colors.TextMuted,
+        FontSize = "2rem",
+    });
+
+    // 卡片撑满格子：跨两行的格子里卡片也一样高
+    static Style Cell => Css.Define(static () => new Style { MinHeight = "4.5rem", Height = "100%" });
+
+    static Style Page => Css.Define(static () => new Style
+    {
+        PaddingBlock = Space.Xl,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.Fill,
+    });
+
+    static Style LoginForm => Css.Define(static () => new Style
+    {
+        Padding = Space.Xl,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.SurfaceRaised,
+        BoxShadow = Shadows.Sm,
+    });
+
+    // 头像（Avatar）做好前的占位：小号圆形、浅色底
+    static Style AvatarStandIn => Css.Define(static () => new Style
+    {
+        Display = Display.InlineFlex,
+        AlignItems = AlignItems.Center,
+        JustifyContent = JustifyContent.Center,
+        Width = "2em",
+        Height = "2em",
+        FlexShrink = 0,
+        BorderRadius = Radii.Full,
+        BackgroundColor = Tones.Accent.Soft,
+        Color = Tones.Accent.Text,
+        FontSize = FontSizes.Sm,
+    });
+}

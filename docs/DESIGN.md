@@ -81,7 +81,7 @@
 - **文字类的色调是 `TextTone`**：TextSpan / Paragraph / 标题、TextLink、Icon 的 Tone 都是它（多了 Muted、Inherit）；
   组件自己的 `Tone`（按钮、标记、提示条）要交给图标时用 `tone.AsText()`。
 - **组件命名避开 Razor 的特殊标记**：`<text>`（代码块里的标记，不区分大小写）、HTML 空元素（`link`、`input`、`img`……写不了内容）。所以是 `TextSpan`、`TextLink`。
-  与 CSS 关键字类同名的组件（`Flex`、`Grid`）登记在 css-gen 的 `COMPONENT_NAMES`，关键字类加 `Keywords` 后缀让路。
+  与 CSS 关键字类同名的组件（`Flex`、`Grid`、`Container`）：css-gen 扫描 Rune.Styles 与 Rune.UI 的类型名，重名的关键字类加 `Keywords` 后缀让路（新增组件后重新生成，CI 的 --check 会发现）。
 - **文字的色调是 `TextTone`**（同 vue-tsx-pro 文字的 tone）：比组件的 `Tone` 多了 Muted（次要说明）与 Inherit，原来的 `Muted` 开关并进来了。
 - **元素不同就分组件**（H1–H6、TextSpan / Paragraph / Strong / Em / Small）：共用基类与配方，子类只给标签与默认值，基类在 C# 里用 `RenderTreeBuilder` 输出元素。
 
