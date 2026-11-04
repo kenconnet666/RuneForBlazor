@@ -1,5 +1,5 @@
 using Rune.UI;
-using Rune.Demo.Client.Demos;
+using Rune.Demo.Client.Demos.Foundation;
 using Rune.Demo.Components;
 
 var builder = WebApplication.CreateBuilder(args);

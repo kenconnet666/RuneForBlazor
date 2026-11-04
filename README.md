@@ -25,11 +25,11 @@ public sealed partial class CartStore
 
 | 路径 | 说明 |
 | --- | --- |
-| `src/Rune` | 运行时：信号（`Reactivity/`）、组件基类与双向绑定（`Components/`）、属性合并（`Attrs/`）、样式引擎（`Styles/`） |
+| `src/Rune` | 运行时：信号（`Reactivity/`）、组件基类与双向绑定（`Components/`）、属性合并（`Attrs/`）、样式引擎（`Styles/`：值类型、样式定义、编译引擎、生成的属性表各一个子目录） |
 | `src/Rune.Generators` | 源代码生成器：`[State]` 属性的实现与 RUNE 诊断（netstandard2.0） |
-| `src/Rune.UI` | 组件库：tokens、色调与内置主题（`Theme/`）、配置层与 `RuneProvider`（`Configuration/`）、配方与部件约定（`Parts/`）、浮层的锚点与事件（`Overlays/`）、组件（`Components/`）、浮层的 JS 初始化器（`wwwroot/`） |
+| `src/Rune.UI` | 组件库：tokens、色调与内置主题（`Theme/`）、配置层与 `RuneProvider`（`Configuration/`）、配方与部件约定（`Parts/`）、组件（`Components/{分类}/{组件}/`，分类同 vue-tsx-pro 的文档分组，分类共用的代码放在分类这一层）、JS 初始化器（`wwwroot/`） |
 | `src/Rune.Icons` | Lucide 图标全集（`Lucide.Plus`……，首次访问时才创建，WebAssembly 发布时裁剪未用到的） |
-| `apps/Rune.Demo`、`apps/Rune.Demo.Client` | 演示项目：开发组件时实际运行、观察。每个演示都能以静态 SSR、Server、WebAssembly、Auto 打开（`/server/collapsible`），新增演示只要在 `Demos/` 放一个带 `[ComponentDemo]` 的组件。文档站等组件库成熟后用自己的组件来做 |
+| `apps/Rune.Demo`、`apps/Rune.Demo.Client` | 演示项目：开发组件时实际运行、观察。每个演示都能以静态 SSR、Server、WebAssembly、Auto 打开（`/server/collapsible`），新增演示只要在 `Demos/{分类}/` 放一个带 `[ComponentDemo]` 的组件。文档站等组件库成熟后用自己的组件来做 |
 | `tests/Rune.Tests` | 运行时、组件（bUnit）、生成器、并发的测试 |
 | `tools/css-gen` | 从 vue-tsx-pro 的 CSS 数据生成 `Style` 的属性表与关键字常量（带中文说明） |
 | `tools/theme-gen` | 从 vue-tsx-pro 的主题生成 16 套内置主题（`Themes.g.cs`）；CI 校验 |

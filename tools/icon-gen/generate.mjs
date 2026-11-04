@@ -8,7 +8,7 @@
 // 输出：
 //   src/Rune.Icons/Lucide.g.cs                     全集，Rune.Icons.Lucide.Plus
 //   src/Rune.Icons/LICENSE-lucide.txt              Lucide 的许可（随包分发）
-//   src/Rune.UI/Components/Icon/BuiltInIcons.g.cs  组件库自己要用的图标（见 BUILT_IN），Rune.UI.BuiltInIcons.Plus
+//   src/Rune.UI/Components/Base/Icon/BuiltInIcons.g.cs  组件库自己要用的图标（见 BUILT_IN），Rune.UI.BuiltInIcons.Plus
 //
 // 数据：icons/<名字>.svg 是每个图标的 SVG，取 <svg> 里面的元素作为 IconData.Body（外层的 svg 属性由 Icon 组件统一给）；
 // tags.json 的键是现行的图标名，值是搜索关键词（写进文档注释，IDE 里能搜到）。不在 tags.json 里的 SVG 是改名前的旧名，
@@ -29,7 +29,7 @@ const LUCIDE_VERSION = '1.68.0';
 const repoRoot = resolve(import.meta.dirname, '../..');
 const lucidePath = resolve(repoRoot, 'src/Rune.Icons/Lucide.g.cs');
 const licensePath = resolve(repoRoot, 'src/Rune.Icons/LICENSE-lucide.txt');
-const builtInPath = resolve(repoRoot, 'src/Rune.UI/Components/Icon/BuiltInIcons.g.cs');
+const builtInPath = resolve(repoRoot, 'src/Rune.UI/Components/Base/Icon/BuiltInIcons.g.cs');
 
 /** 组件库内置的图标：组件自己要用的，新增组件需要图标时往这里加一项再重新生成 */
 const BUILT_IN = [

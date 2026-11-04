@@ -1,7 +1,7 @@
 # 图标数据的来源
 
 `generate.mjs` 用 `npm pack` 下载 npm 包 [`lucide-static`](https://www.npmjs.com/package/lucide-static)（版本见脚本里的 `LUCIDE_VERSION`，当前 1.68.0，来自 [Lucide](https://lucide.dev)），
-读取其中的官方 SVG 文件（`icons/*.svg`）与关键词（`tags.json`），生成 `src/Rune.Icons/Lucide.g.cs`（全集）与 `src/Rune.UI/Components/Icon/BuiltInIcons.g.cs`（组件库内置的小集合），
+读取其中的官方 SVG 文件（`icons/*.svg`）与关键词（`tags.json`），生成 `src/Rune.Icons/Lucide.g.cs`（全集）与 `src/Rune.UI/Components/Base/Icon/BuiltInIcons.g.cs`（组件库内置的小集合），
 并把包里的 LICENSE 复制为 `src/Rune.Icons/LICENSE-lucide.txt`。
 
 | 内容 | 来源 | 许可 |

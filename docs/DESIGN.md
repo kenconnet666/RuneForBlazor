@@ -44,6 +44,8 @@
 
 ## 5. 样式（`src/Rune/Styles`）
 
+目录按职责分：`Values/`（CssValues、CssVar 这类值类型）、`Definition/`（Style、Sx、条件、关键帧、Css.Define、Theme）、`Engine/`（编译、优先级、注册表、`RuneStyles` 输出组件）、`Generated/`（css-gen 生成的属性表与关键字），命名空间都是 `Rune.Styles`。
+
 - **写法**：`new Style { Display = Display.Flex, Padding = Space.Md, [When.Hover] = new() { … }, [Media.Up(768)] = new() { … } }`。515 个 CSS 属性与 318 个属性的关键字常量由 `tools/css-gen` 从 vue-tsx-pro 的数据生成，带中文说明；颜色属性是 `CssColor`、长度属性是 `CssLength`，token 写错类型编译不过。数字按属性补单位（px / 不补 / ms，同 StyleX）。
   关键字类与属性同名（`Display`、`Width`）：组件里如果有同名的参数，`Width.Auto` 会解析成参数，样式类（静态类）里不受影响。
 - **一直在变的值**（进度、宽度）用 `CssVar<T>`：样式引用变量、类不变，值经 `Attrs.Vars` 写在元素的 style 上；写进样式会让每个值多一条规则。
@@ -61,6 +63,12 @@
 
 ## 6. 组件约定（`src/Rune.UI`）
 
+- **目录**：`Components/{分类}/{组件}/`，分类同 vue-tsx-pro 的文档分组（Base、Layout、Display、Feedback、Overlay、Input、Form……）；
+  一个组件和它的变体、样式文件放一个文件夹（`Base/Button/` 里有 Button、IconButton、LinkButton、ButtonStyles），
+  同一分类里几个组件共用的代码放在分类这一层（`Input/FormControl.cs`、`Input/ControlStyles.cs`、`Overlay/Anchor.cs`、`Layout/LayoutStyles.cs`），
+  关系紧的一组再收一层（`Input/Choice/` 里是勾选框、开关、单选与它们共用的 ChoiceStyles）。文件夹不对应命名空间，类型都在 `Rune.UI`。
+  演示（`apps/Rune.Demo.Client/Demos/{分类}/`）、测试（`tests/Rune.Tests/{Runtime,UI,TestComponents}/`）同样按分类收纳。
+
 - **配方**：`Recipe.Of(组件名, 档位组合, 定制, (档位, 部件) => 样式)`，每个部件一个 switch 分支；按档位组合缓存，统一加上按部件定制与部件标记，得到 `PartLayers<TPart>`。
 - **色调**：每个色调一组颜色 token（`Tones.Danger.Soft`……），按色调变化的样式写成以它为参数的函数，每种外观只写一遍，样式里仍直接是主题 token（vue-tsx-pro 试过的“色调变量”多一层 CSS 变量、读样式时看不到实际 token，这里没有那一层）。
 - **部件是本库组件时**（按钮里的图标、加载指示）用 `Attrs.MergeProps`：样式作为子组件的 `Sx` 参数交下去，子组件排在自己的样式之后只合成一个类；两个类各自的规则谁先插入谁赢，结果不可靠。
@@ -70,7 +78,7 @@
   与 CSS 关键字类同名的组件（`Flex`、`Grid`）登记在 css-gen 的 `COMPONENT_NAMES`，关键字类加 `Keywords` 后缀让路。
 - **元素不同就分组件**（H1–H6、TextSpan / Paragraph）：共用基类与配方，子类只给标签与默认值，基类在 C# 里用 `RenderTreeBuilder` 输出元素。
 
-## 7. 主题与配置（`src/Rune/Styles/Theme.cs`、`src/Rune.UI/Theme`、`src/Rune.UI/Configuration`）
+## 7. 主题与配置（`src/Rune/Styles/Definition/Theme.cs`、`src/Rune.UI/Theme`、`src/Rune.UI/Configuration`）
 
 - **主题是 C# 对象**：token 是样式里写的 `var(--rune-…)`，主题给它们赋值（`new Theme("brand", basedOn: Themes.Light) { [Tones.Accent.Solid] = "…" }`），
   `ThemeStyles.ClassFor` 生成只设变量的类。换主题只换容器上的类，组件不用重新计算样式。
@@ -89,7 +97,7 @@
 - **不让下面的组件白白重新渲染**：Provider 的参数没变时给出同一个配置对象；配置是 record，级联参数与普通参数一样比较，没变就跳过。
 - **共用的交互样式**：`SharedStyles.InteractionColors`（悬停、按下时颜色与阴影的过渡）、焦点环、视觉隐藏、色调文字色、波纹宿主；浮层进出场是 `OverlayTransitions`。
 
-## 8. 浮层（`src/Rune.UI/Overlays`、`wwwroot/Rune.UI.lib.module.js`）
+## 8. 浮层（`src/Rune.UI/Components/Overlay`、`wwwroot/Rune.UI.lib.module.js`）
 
 - **尽量用浏览器原生**：弹出层是 `popover="auto"`（顶层、点外面与 Esc 关闭、同时只开一个、`popovertarget` 打开），对话框与抽屉是模态 `<dialog>`
   （焦点圈在里面、Esc 关闭、关闭后焦点还给触发元素），位置用 CSS 锚点定位（`Anchor`：`anchor-name` / `position-anchor` / `position-area`，放不下自动翻面），
@@ -112,7 +120,7 @@
 - **消息提示**：`ToastService`（scoped）把列表放在 `State` 里，`Toaster` 读到它就随变化重新渲染，后台线程调用也安全；每条是一个 Alert。
   Toaster 要放在交互区域里（同一个电路 / WebAssembly 实例才拿得到同一个服务）。
 
-## 9. 表单（`src/Rune.UI/Forms`）
+## 9. 表单（`src/Rune.UI/Components/Input`、`src/Rune.UI/Components/Form`）
 
 - **接入 Blazor 自己的表单**：不另做一套。控件继承 `FormControl<TValue>`：`@bind-Value` 给出的 `ValueExpression` 换成 `FieldIdentifier`，
   改值后 `NotifyFieldChanged`（DataAnnotations、FluentValidation 等照常工作），这个字段有错误时控件标 `aria-invalid`。单独使用时就是普通的受控 / 非受控控件。

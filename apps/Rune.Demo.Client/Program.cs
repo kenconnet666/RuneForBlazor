@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Rune.UI;
-using Rune.Demo.Client.Demos;
+using Rune.Demo.Client.Demos.Foundation;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
