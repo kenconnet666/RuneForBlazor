@@ -1,0 +1,36 @@
+@* 折叠面板：受控、非受控、外观与使用方覆盖 *@
+@attribute [ComponentDemo("collapsible", "折叠面板", Group = "展示")]
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>受控（@@bind-Open）</h2>
+    <Collapsible @bind-Open="open" Variant="CollapsibleVariant.Outline">
+        <Title>父级的值是 @open</Title>
+        <ChildContent>点击标题时组件把新值交给父级，父级更新后组件跟着变。</ChildContent>
+    </Collapsible>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        <button @onclick="() => open = !open">从外部切换</button>
+    </div>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>非受控</h2>
+    <Collapsible Open="true">
+        <Title>只给了初始值</Title>
+        <ChildContent>组件自己维护展开状态，父级不会因此重新渲染。</ChildContent>
+    </Collapsible>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>使用方覆盖</h2>
+    <Collapsible Variant="CollapsibleVariant.Outline"
+                 PropsTrigger="@(new() { Sx = DemoStyles.AccentWhenExpanded, AriaLabel = "高级设置" })"
+                 data-testid="custom">
+        <Title>展开时标题变成强调色</Title>
+        <ChildContent>样式来自 PropsTrigger.Sx，只覆盖“展开”这一个状态；aria-label 来自使用方，展开状态仍由组件管理。</ChildContent>
+    </Collapsible>
+</section>
+
+@code {
+    bool open;
+}

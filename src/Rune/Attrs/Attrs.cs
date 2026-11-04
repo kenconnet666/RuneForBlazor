@@ -17,8 +17,9 @@ public sealed partial class Attrs : IEnumerable<KeyValuePair<string, object>>
     /// <summary>空的一层。</summary>
     public static readonly Attrs Empty = new();
 
-    // 属性名不区分大小写（HTML 的规则）；没有属性时不创建字典
-    Dictionary<string, object>? values;
+    // 属性表：没有属性时不创建；自己创建的按 HTML 的规则不区分大小写。
+    // From 直接引用组件收到的 AdditionalAttributes（只读，不复制），所以类型是只读接口
+    IReadOnlyDictionary<string, object>? values;
 
     /// <summary>样式，展开时换成 class；合并时各层的样式按层的顺序叠加。</summary>
     public Sx? Sx { get; init; }
@@ -96,9 +97,8 @@ public sealed partial class Attrs : IEnumerable<KeyValuePair<string, object>>
     public static Attrs From(IReadOnlyDictionary<string, object>? attributes, Sx? sx)
     {
         if (attributes is null || attributes.Count == 0) return sx is null ? Empty : new Attrs { Sx = sx };
-        var attrs = new Attrs { Sx = sx };
-        attrs.values = new Dictionary<string, object>(attributes, StringComparer.OrdinalIgnoreCase);
-        return attrs;
+        // 每次渲染都会包一次：直接引用，不复制字典
+        return new Attrs { Sx = sx, values = attributes };
     }
 
     /// <summary>只有样式的一层：<c>Attrs.Merge(ButtonStyles.Root, Rest)</c>。</summary>
@@ -126,7 +126,10 @@ public sealed partial class Attrs : IEnumerable<KeyValuePair<string, object>>
     void Set(string name, object? value)
     {
         if (value is null) return;
-        (values ??= new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase))[name] = value;
+        // 只在对象初始化器里调用，这时 values 要么为空、要么是这个对象自己刚建的字典（From 包装的字典不会走到这里）
+        var own = values as Dictionary<string, object> ?? new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        own[name] = value;
+        values = own;
     }
 
     // aria 的布尔属性要写成字符串 "true" / "false"：Blazor 会把 false 的布尔值当成“不写这个属性”

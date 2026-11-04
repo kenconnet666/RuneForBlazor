@@ -51,7 +51,22 @@ public abstract class RuneComponent : IComponent, IHandleEvent, IHandleAfterRend
     /// <see cref="AdditionalAttributes"/> 与 <see cref="Sx"/> 合成的一层，作为“使用方”层交给主元素的合并：
     /// <c>@attributes="Attrs.Merge(s.Root, Rest, managed)"</c>。
     /// </summary>
-    protected Attrs Rest => Attrs.From(AdditionalAttributes, Sx);
+    protected Attrs Rest
+    {
+        get
+        {
+            // 每次渲染都要用：参数没变（例如状态变化引起的重新渲染）时返回同一个对象，不重复包装
+            if (rest is null || !ReferenceEquals(restSource.Attributes, AdditionalAttributes) || !ReferenceEquals(restSource.Sx, Sx))
+            {
+                rest = Attrs.From(AdditionalAttributes, Sx);
+                restSource = (AdditionalAttributes, Sx);
+            }
+            return rest;
+        }
+    }
+
+    Attrs? rest;
+    (IReadOnlyDictionary<string, object>? Attributes, Sx? Sx) restSource;
 
     /// <summary>渲染器信息（是否交互、在哪种平台上）。</summary>
     protected RendererInfo RendererInfo => renderHandle.RendererInfo;

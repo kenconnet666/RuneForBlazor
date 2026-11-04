@@ -1,0 +1,25 @@
+@*
+    演示的宿主：按名字找到演示组件并渲染。它是交互模式的根（页面给它加 @rendermode），
+    所以参数只能是能序列化的字符串，不能直接传组件类型；交互模式下新用到的样式由这里的 RuneStyles 输出。
+*@
+@inherits RuneComponent
+
+<RuneStyles />
+
+<p @attributes="Attrs.Merge(DemoStyles.RenderInfo)">
+    运行在 @RendererInfo.Name · @(RendererInfo.IsInteractive ? "已交互" : "未交互（静态渲染或预渲染）")
+</p>
+
+@if (DemoCatalog.Find(Slug) is { } demo)
+{
+    <DynamicComponent Type="demo.Component" />
+}
+else
+{
+    <p>没有名为 “@Slug” 的演示。</p>
+}
+
+@code {
+    /// <summary>演示的名字（地址里的那一段）。</summary>
+    [Parameter, EditorRequired] public string Slug { get; set; } = "";
+}

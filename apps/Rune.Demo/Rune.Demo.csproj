@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <!-- 文档与演示的服务端：静态 SSR、Interactive Server，并托管 Rune.Docs.Client 的 WebAssembly -->
+  <!-- 文档与演示的服务端：静态 SSR、Interactive Server，并托管 Rune.Demo.Client 的 WebAssembly -->
   <PropertyGroup>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Rune.Docs.Client\Rune.Docs.Client.csproj" />
+    <ProjectReference Include="..\Rune.Demo.Client\Rune.Demo.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
   </ItemGroup>
 

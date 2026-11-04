@@ -1,0 +1,35 @@
+@* 首页：演示目录。每个演示都能以四种渲染模式打开 *@
+@page "/"
+@inherits RuneComponent
+
+<PageTitle>Rune 演示</PageTitle>
+
+<h1>Rune 演示</h1>
+<p>
+    开发组件时在这里实际运行、观察。左侧选组件，页面顶部切换渲染模式；
+    改代码用 <code>dotnet watch --project apps/Rune.Demo</code>，保存后热重载。
+</p>
+
+@foreach (var group in DemoCatalog.All.GroupBy(d => d.Group))
+{
+    <section @attributes="Attrs.Merge(DemoStyles.Section)">
+        <h2>@group.Key</h2>
+        @foreach (var demo in group)
+        {
+            <div @attributes="Attrs.Merge(DemoStyles.Row)">
+                <strong>@demo.Title</strong>
+                @foreach (var (mode, title) in DemoRenderModes.All)
+                {
+                    <a href="@($"{mode}/{demo.Slug}")">@title</a>
+                }
+            </div>
+        }
+    </section>
+}
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>渲染方式</h2>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        <a href="streaming">流式渲染</a>
+    </div>
+</section>

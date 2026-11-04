@@ -1,0 +1,24 @@
+@* 信号：共享状态只重新渲染读了它的组件；组件里的 [State] 交给 @bind *@
+@attribute [ComponentDemo("signals", "信号与共享状态", Group = "基础", Order = 0)]
+@inherits RuneComponent
+@inject CounterStore Store
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>只重新渲染读了它的组件</h2>
+    <p>每行显示自己的渲染次数：加 A 时只有 A 与 Sum 重新渲染，B 不动。</p>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        <button @onclick="() => Store.A++">A + 1</button>
+        <button @onclick="() => Store.B++">B + 1</button>
+    </div>
+    <CounterView Label="A" />
+    <CounterView Label="B" />
+    <CounterView Label="Sum" />
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>组件里的 [State] 与双向绑定</h2>
+    <Collapsible @bind-Open="FiltersOpen" Variant="CollapsibleVariant.Outline">
+        <Title>FiltersOpen = @FiltersOpen</Title>
+        <ChildContent>FiltersOpen 是 SignalsDemo.razor.cs 里的 [State] 属性，交给 @@bind-Open。</ChildContent>
+    </Collapsible>
+</section>

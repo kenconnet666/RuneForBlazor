@@ -1,6 +1,6 @@
 using Rune;
-using Rune.Docs.Client.Demo;
-using Rune.Docs.Components;
+using Rune.Demo.Client.Demos;
+using Rune.Demo.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,7 +8,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-// 服务端渲染与 Interactive Server 用这里的服务；WebAssembly 用 Rune.Docs.Client/Program.cs 里的同一套
+// 服务端渲染与 Interactive Server 用这里的服务；WebAssembly 用 Rune.Demo.Client/Program.cs 里的同一套
 builder.Services.AddRune();
 builder.Services.AddScoped<CounterStore>();
 
@@ -32,6 +32,6 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(Rune.Docs.Client._Imports).Assembly);
+    .AddAdditionalAssemblies(typeof(Rune.Demo.Client._Imports).Assembly);
 
 app.Run();

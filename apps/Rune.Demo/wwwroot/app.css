@@ -36,8 +36,12 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
-/* 文档站外壳 */
+/* 演示项目的外壳（不属于组件库） */
 body { margin: 0; font-family: system-ui, sans-serif; background: var(--rune-colors-background); color: var(--rune-colors-text); }
-.docs-nav { display: flex; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--rune-colors-border); }
-.docs-nav a { color: var(--rune-colors-accent); text-decoration: none; }
-.docs-main { max-width: 760px; padding: 24px; display: grid; gap: 16px; }
+.demo-shell { display: grid; grid-template-columns: 200px 1fr; min-height: 100vh; }
+.demo-nav { display: flex; flex-direction: column; gap: 2px; padding: 16px; border-inline-end: 1px solid var(--rune-colors-border); }
+.demo-nav a { color: var(--rune-colors-text); text-decoration: none; padding: 4px 8px; border-radius: var(--rune-radii-sm); }
+.demo-nav a:hover { background: var(--rune-colors-surface-hover); }
+.demo-brand { font-weight: 600; margin-block-end: 8px; }
+.demo-nav-group { margin-block-start: 12px; font-size: 12px; color: var(--rune-colors-text-muted); padding-inline: 8px; }
+.demo-main { max-width: 860px; padding: 24px; display: grid; gap: 16px; align-content: start; }
