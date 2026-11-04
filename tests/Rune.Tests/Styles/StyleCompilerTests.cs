@@ -7,6 +7,32 @@ public class StyleCompilerTests
     static CompiledStyle Compile(params Style[] styles) => StyleCompiler.Compile(styles)!;
 
     [Fact]
+    public void 起始样式包在外面_排在同一选择器的普通规则后面()
+    {
+        var compiled = Compile(new Style
+        {
+            Opacity = 0,
+            [When.PopoverOpen] = new() { Opacity = 1, [When.Starting] = new() { Opacity = 0 } },
+            [Pseudo.Backdrop] = new() { Opacity = 0.5 },
+        });
+        var c = compiled.ClassName;
+
+        var open = compiled.Css.IndexOf($".{c}:popover-open{{opacity:1;}}", StringComparison.Ordinal);
+        var starting = compiled.Css.IndexOf($"@starting-style{{.{c}:popover-open{{opacity:0;}}}}", StringComparison.Ordinal);
+        Assert.True(open >= 0 && starting > open);
+        Assert.Contains($".{c}::backdrop{{opacity:0.5;}}", compiled.Css);
+    }
+
+    [Fact]
+    public void 父元素的状态写成is选择器()
+    {
+        var compiled = Compile(new Style { [When.Parent(When.Hover)] = new() { Opacity = 1 } });
+
+        Assert.Contains($".{compiled.ClassName}:is(:hover > *){{opacity:1;}}", compiled.Css);
+        Assert.Throws<ArgumentException>(() => When.Parent(Media.Up(768)));
+    }
+
+    [Fact]
     public void 数字按属性补单位()
     {
         var css = Compile(new Style { Padding = 8, LineHeight = 1.5, TransitionDuration = 200, Opacity = 0 }).Css;

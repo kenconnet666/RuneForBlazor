@@ -39,7 +39,7 @@ internal static class StylePriority
         [":target"] = 84, [":visited"] = 85, [":enabled"] = 91, [":disabled"] = 92, [":required"] = 93,
         [":optional"] = 94, [":read-only"] = 95, [":read-write"] = 96, [":placeholder-shown"] = 97,
         [":in-range"] = 98, [":out-of-range"] = 99, [":default"] = 100, [":checked"] = 101, [":indeterminate"] = 101,
-        [":valid"] = 103, [":invalid"] = 104, [":user-invalid"] = 105, [":autofill"] = 110, [":modal"] = 121,
+        [":valid"] = 103, [":invalid"] = 104, [":user-invalid"] = 105, [":autofill"] = 110, [":modal"] = 121, [":popover-open"] = 121,
         [":fullscreen"] = 122, [":hover"] = 130, [":focus-within"] = 140, [":focus"] = 150,
         [":focus-visible"] = 160, [":active"] = 170,
     };
@@ -61,6 +61,8 @@ internal static class StylePriority
         if (condition.StartsWith("@supports", StringComparison.Ordinal)) return 30;
         if (condition.StartsWith("@media", StringComparison.Ordinal)) return 200;
         if (condition.StartsWith("@container", StringComparison.Ordinal)) return 300;
+        // 起始样式要排在同一选择器的普通规则后面，才能盖过它们作为过渡的起点
+        if (condition.StartsWith("@starting-style", StringComparison.Ordinal)) return 400;
         if (condition.StartsWith("::", StringComparison.Ordinal)) return PseudoElement;
         // 取第一个伪类的名字查表：:is([aria-selected="true"]) → :is，:hover:not(:disabled) → :hover
         var end = condition.IndexOfAny(['(', ':'], 1);

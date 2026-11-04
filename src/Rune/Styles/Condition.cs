@@ -58,6 +58,26 @@ public static class When
     /// <summary>打开（弹层、details）：<c>open</c> 或 <c>data-state="open"</c>。</summary>
     public static readonly Condition Open = new(""":is([open],[data-state="open"])""");
 
+    /// <summary>以 popover 属性弹出、正显示着的浮层（<c>:popover-open</c>）。</summary>
+    public static readonly Condition PopoverOpen = new(":popover-open");
+
+    /// <summary>没有子节点（空白文字也算没有）。浮层的内容第一次打开才渲染，渲染前用它把空壳藏起来。</summary>
+    public static readonly Condition Empty = new(":empty");
+
+    /// <summary>
+    /// 父元素处于某个状态时：<c>[When.Parent(When.Hover)] = new() { Visibility = "visible" }</c> 生成 <c>.x:is(:hover &gt; *)</c>。
+    /// 提示这类“悬停在外层上时显示里面某个部件”的样式用它，不用为父元素另起类名。
+    /// </summary>
+    public static Condition Parent(Condition state) => state.IsAtRule
+        ? throw new ArgumentException($"父元素的状态要是选择器片段，收到 @ 规则 {state.Key}", nameof(state))
+        : new($":is({state.Key} > *)");
+
+    /// <summary>
+    /// 进场的起始样式（<c>@starting-style</c>）：元素刚显示（插入、display 从 none 变成可见、弹出）时从这里过渡到正常样式。
+    /// 退场配合 <c>transition-behavior: allow-discrete</c> 过渡 display / overlay，不需要 JS。
+    /// </summary>
+    public static readonly Condition Starting = new("@starting-style");
+
     /// <summary>当前项（导航）：<c>aria-current</c>（不为 false）或 <c>data-current</c>。</summary>
     public static readonly Condition Current = new(""":is([aria-current]:not([aria-current="false"]),[data-current])""");
 
@@ -94,6 +114,9 @@ public static class Pseudo
 
     /// <summary>内容之后插入的盒子（需要写 Content）。</summary>
     public static readonly Condition After = new("::after");
+
+    /// <summary>模态对话框、全屏元素下面的遮罩。</summary>
+    public static readonly Condition Backdrop = new("::backdrop");
 
     /// <summary>输入框的占位文字。</summary>
     public static readonly Condition Placeholder = new("::placeholder");
