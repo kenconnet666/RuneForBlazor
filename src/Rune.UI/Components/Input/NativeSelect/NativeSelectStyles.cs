@@ -25,7 +25,7 @@ public static class NativeSelectStyles
             NativeSelectPart.Root => Sx.Of(
                 InputStyles.FocusRingWithin,
                 InputStyles.Root,
-                a.Variant == InputVariant.Soft ? Soft : null,
+                a.Variant == InputVariant.Soft ? InputStyles.Soft : null,
                 InputStyles.StateRoot,
                 Pointer,
                 ScaleStyles.Radius(a.Radius),
@@ -33,13 +33,6 @@ public static class NativeSelectStyles
             NativeSelectPart.Select => Sx.Of(InputStyles.InputElement, Select),
             _ => Sx.Of(InputStyles.Icon, Chevron),
         });
-
-    static Style Soft => Css.Define(static () => new Style
-    {
-        BorderColor = "transparent",
-        BackgroundColor = Colors.Fill,
-        [When.Hover] = new() { BorderColor = "transparent" },
-    });
 
     // 整个外壳都能点开（文本框的外壳是文字光标）
     static Style Pointer => Css.Define(static () => new Style { Cursor = Cursor.Pointer });

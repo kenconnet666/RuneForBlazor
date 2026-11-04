@@ -126,4 +126,12 @@ public static class DemoStyles
         Color = Tones.Accent.Text,
         FontWeight = FontWeights.Semibold,
     });
+
+    /// <summary>小号头像的替身（Avatar 的 xs）：放在选项、触发框里。</summary>
+    public static Style InitialsXs => Css.Define(static () => new Style
+    {
+        Width = "1.75em",
+        Height = "1.75em",
+        FontSize = "0.75em",
+    });
 }

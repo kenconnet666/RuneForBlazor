@@ -61,6 +61,7 @@ public sealed record InputDefaults : IComponentDefaults<InputDefaults>
 /// <param name="Rows">多行时最少几行高。</param>
 /// <param name="MaxRows">多行时最多几行高（超过时滚动）。</param>
 /// <param name="Fixed">多行时固定高度，可以拖动改变。</param>
+/// <param name="Picker">下拉选择（Select）：整个外壳都能点开（指针），在 ControlGroup 里也按内容宽。</param>
 public readonly record struct InputAppearance(
     InputVariant Variant,
     Size? Size,
@@ -69,7 +70,8 @@ public readonly record struct InputAppearance(
     bool Multiline = false,
     int Rows = 0,
     int? MaxRows = null,
-    bool Fixed = false)
+    bool Fixed = false,
+    bool Picker = false)
 {
     /// <summary>外观：组件上写的 &gt; 配置的默认值（<see cref="InputDefaults"/>）&gt; 表面色、中圆角。</summary>
     public static InputAppearance Resolve(InputVariant? variant, Size? size, Radius? radius, bool readOnly, UIConfig config)
@@ -96,6 +98,7 @@ public static class InputStyles
                 a.Variant == InputVariant.Soft ? Soft : null,
                 a.ReadOnly ? ReadOnlyRoot : null,
                 StateRoot,
+                a.Picker ? PickerRoot : null,
                 a.Multiline ? MultilineRoot : null,
                 ScaleStyles.Radius(a.Radius),
                 a.Size is { } size ? ScaleStyles.FontSize(size) : null),
@@ -143,14 +146,16 @@ public static class InputStyles
         [When.Hover] = new() { BorderColor = Colors.BorderStrong },
     });
 
-    static Style Soft => Css.Define(static () => new Style
+    /// <summary>浅色底、没有描边（Soft 样式）。下拉框也用。</summary>
+    internal static Style Soft => Css.Define(static () => new Style
     {
         BorderColor = "transparent",
         BackgroundColor = Colors.Fill,
         [When.Hover] = new() { BorderColor = "transparent" },
     });
 
-    static Style ReadOnlyRoot => Css.Define(static () => new Style
+    /// <summary>只读：底色变浅，不显示悬停。下拉框也用。</summary>
+    internal static Style ReadOnlyRoot => Css.Define(static () => new Style
     {
         BorderColor = Colors.BorderMuted,
         BackgroundColor = Colors.Fill,
@@ -168,6 +173,8 @@ public static class InputStyles
         },
         [disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
     });
+
+    static Style PickerRoot => Css.Define(static () => new Style { Cursor = Cursor.Pointer, FlexGrow = 0 });
 
     static Style MultilineRoot => Css.Define(static () => new Style { AlignItems = AlignItems.Stretch, PaddingBlock = Space.Xs });
 
@@ -199,8 +206,8 @@ public static class InputStyles
 
     static Style Affix => Css.Define(static () => new Style { FlexShrink = 0, Color = Colors.TextMuted, WhiteSpace = WhiteSpace.Nowrap });
 
-    // 框里的小按钮：比独立的图标按钮紧凑，仍不小于 24px 的点击区域
-    static Style Button => Css.Define(static () => new Style
+    /// <summary>框里的小按钮（清空、显示密码、加减）：比独立的图标按钮紧凑，仍不小于 24px 的点击区域。下拉框也用。</summary>
+    internal static Style Button => Css.Define(static () => new Style
     {
         FlexShrink = 0,
         Width = $"max(1.5em, {Sizes.MinTarget})",
@@ -209,6 +216,6 @@ public static class InputStyles
         Color = Colors.TextMuted,
     });
 
-    static readonly Condition invalid = When.Has("> :is(input, select, textarea)[aria-invalid=\"true\"]");
-    static readonly Condition disabled = When.Has("> :is(input, select, textarea):disabled");
+    static readonly Condition invalid = When.Has("> :is(input, select, textarea, [role=combobox])[aria-invalid=\"true\"]");
+    static readonly Condition disabled = When.Has("> :is(input, select, textarea, [role=combobox]):disabled");
 }

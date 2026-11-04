@@ -104,7 +104,7 @@ public class InputTests : BunitContext
 
         var registry = Services.GetRequiredService<Rune.Styles.StyleRegistry>();
         // 占位选项不可用（必填）不能让整个外框看起来不可用
-        Assert.Contains(registry.Rules, r => r.Contains(":has(> :is(input, select, textarea):disabled)"));
+        Assert.Contains(registry.Rules, r => r.Contains(":has(> :is(input, select, textarea, [role=combobox]):disabled)"));
         Assert.DoesNotContain(registry.Rules, r => r.Contains(":has(:disabled)"));
     }
 

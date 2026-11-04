@@ -1,0 +1,193 @@
+@*
+    下拉选择：示例与 vue-tsx-pro 文档站的 /components/select 对应。
+    头像（Avatar、AvatarGroup）在阶段 7 做好前用 DemoStyles.Initials 代替；拼音匹配（createPinyinMatcher）见 ROADMAP 的“待决”。
+*@
+@attribute [ComponentDemo("select", "下拉选择", Group = "表单", Order = 5)]
+@inherits RuneComponent
+
+<DemoSection Id="basic" Title="单选与多选">
+    <Description><Code>Items</Code> 可以是字符串、ListboxOption（值、文字、图标、说明、分组、不可用），或任意数据加 <Code>ToOption</Code>；ChildContent 自定义选项内容，拿到的是原始数据。<Code>SelectionMode.Multiple</Code> 多选，已选的显示成可移除的标签。键盘同原生 select：关闭时按字母直接选中以它开头的项。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Grid MinItemWidth="@("13rem")" Gap="SpaceScale.Md">
+                <Field Label="类型">
+                    <Select Items="types" @bind-Value="type" data-testid="type" />
+                </Field>
+                <Field Label="负责人">
+                    <Select Items="members" ToOption="@(m => new ListboxOption(m.Id, m.Name, Group: m.Team))" @bind-Value="assignee" Placeholder="未分配" Clearable="true" data-testid="assignee">
+                        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                            <span @attributes="Attrs.Merge(new Attrs { Sx = Sx.Of(DemoStyles.Initials, DemoStyles.InitialsXs) })">@context.Item.Name[..1]</span>
+                            <span>@context.Item.Name</span>
+                        </Flex>
+                    </Select>
+                </Field>
+            </Grid>
+            <Field Label="标签" Description="多选：已选的在触发框里显示成标签">
+                <Select Items="labels" SelectionMode="SelectionMode.Multiple" @bind-Values="tags" Clearable="true" data-testid="tags" />
+            </Field>
+            <Small Tone="TextTone.Muted" data-testid="basic-summary">@type · @(assignee ?? "未分配") · @(tags.Count > 0 ? string.Join("、", tags) : "无标签")</Small>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="appearance" Title="图标、外观与状态">
+    <Description><Code>Icon</Code>、<Code>Variant</Code>、<Code>Size</Code>、<Code>Radius</Code> 与其他输入框同一套。只读时能聚焦、能看到已选的内容，不能打开、不能清空；Field 上的 <Code>Required</Code>、<Code>ReadOnly</Code>、<Code>Disabled</Code>、<Code>Error</Code> 都交给里面的 Select。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("14rem")" Gap="SpaceScale.Lg">
+            <Field Label="界面语言">
+                <Select Items="languages" @bind-Value="language" Icon="Lucide.Globe" />
+            </Field>
+            <Field Label="Variant=&quot;Soft&quot; Radius=&quot;Full&quot;">
+                <Select Items="cities" @bind-Value="city" Icon="Lucide.MapPin" Variant="InputVariant.Soft" Radius="Radius.Full" Clearable="true" Placeholder="选择城市" />
+            </Field>
+            <Field Label="必填" Required="true" Error="@(city is null ? "请选择城市" : null)">
+                <Select Items="cities" @bind-Value="city" Placeholder="选择城市" />
+            </Field>
+            <Field Label="Size=&quot;Sm&quot;">
+                <Select Items="languages" @bind-Value="language" Size="Size.Sm" />
+            </Field>
+            <Field Label="只读" ReadOnly="true" Description="能聚焦、能看，不能打开">
+                <Select Items="languages" Value="en-US" Icon="Lucide.Globe" data-testid="readonly" />
+            </Field>
+            <Field Label="不可用" Disabled="true">
+                <Select Items="languages" Value="ja-JP" />
+            </Field>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="tags" Title="多选的标签：收起、移除与新建">
+    <Description>多选时已选的项是触发按钮前面的一排标签，点 × 移除（先淡出）。<Code>MaxTagCount</Code> 是数字时只显示前几个，<Code>TagLimit.Responsive</Code> 时排成一行、按宽度放，其余收进“+N”。这排标签只给指针用：读屏从触发按钮里念出全部已选内容，键盘在列表里取消勾选，或按 <Kbd>Backspace</Kbd> 移除最后一项。<Code>Creatable</Code> 自带搜索框，输入的文字没有对应的选项时列表末尾多一项“新建”，选中后值就是这段文字，在 <Code>OnCreate</Code> 里把它加进 Items。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Field Label="抄送" Description="一行放不下的收进“+N”">
+                <Select Items="people" SelectionMode="SelectionMode.Multiple" @bind-Values="cc" MaxTagCount="TagLimit.Responsive" Searchable="true" Clearable="true" data-testid="cc" />
+            </Field>
+            <Field Label="适用车型" Description="只显示前两个">
+                <Select Items="models" SelectionMode="SelectionMode.Multiple" @bind-Values="fits" MaxTagCount="2" data-testid="fits" />
+            </Field>
+            <Field Label="工单标签" Description="输入没有的标签，选“新建”加进选项">
+                <Select Items="ticketLabels" SelectionMode="SelectionMode.Multiple" @bind-Values="picked" Creatable="true" OnCreate="@(text => ticketLabels = [.. ticketLabels, text])"
+                        Placeholder="选择或新建标签" data-testid="ticket-labels" />
+            </Field>
+            <Small Tone="TextTone.Muted">抄送 @cc.Count 人 · 车型 @fits.Count 个 · 标签：@(picked.Count > 0 ? string.Join("、", picked) : "无")</Small>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="searchable" Title="可搜索">
+    <Description>选项多（供应商、人员、件号）时写 <Code>Searchable</Code>：弹出层顶部是搜索框，打开后焦点就在里面，输入即按显示文字过滤（忽略大小写与重音，<Code>Filter</Code> 可以换规则；<Code>UIConfig.TextMatcher</Code> 可以加拼音匹配）。<Kbd>↑</Kbd> <Kbd>↓</Kbd> 移动、<Kbd>Enter</Kbd> 选中，<Kbd>Esc</Kbd> 关闭并把焦点还给触发按钮。已选的项被过滤掉、或 Items 换成了另一页的搜索结果时，触发框里照样显示它的文字。远程搜索给 <Code>Load</Code>（见下一个示例）；自己管请求时用 <Code>@@bind-Search</Code> 拿到搜索词、<Code>LocalFilter="false"</Code> 关掉本地过滤。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Md">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <Field Label="涉及供应商" Description="六十个选项：打开后直接输入“密封”试试">
+                    <Select Items="suppliers" @bind-Value="supplier" Searchable="true" data-testid="supplier" />
+                </Field>
+                <Small Tone="TextTone.Muted" data-testid="supplier-value">值：@(supplier ?? "—")</Small>
+            </Flex>
+            <Field Label="第二供应商（多选）">
+                <Select Items="suppliers" SelectionMode="SelectionMode.Multiple" @bind-Values="partners" Searchable="true" Clearable="true" />
+            </Field>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="custom" Title="异步加载与自定义显示">
+    <Description><Code>Load(搜索词, 取消令牌)</Code> 在打开时请求（Searchable 时搜索词停下 300 ms 再请求），只采用最后一次，请求期间列表里是骨架行，失败时提示重试；<Code>Items</Code> 是第一次结果之前的选项（编辑页放上已选的那几项）。<Code>RenderValue</Code> 自定义触发框里的已选内容（这里是头像叠放加名字），没有选择时显示占位文字；分组来自选项的 <Code>Group</Code>。</Description>
+    <ChildContent>
+        <Field Label="项目成员" Description="打开时才加载成员列表">
+            <Select TItem="Member" Load="FetchMembersAsync" ToOption="@(m => new ListboxOption(m.Id, m.Name, Group: m.Team))" SelectionMode="SelectionMode.Multiple"
+                    @bind-Values="team" Clearable="true" Placeholder="添加成员" data-testid="members">
+                <RenderValue>
+                    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                        <span @attributes="Attrs.Merge(StackLayer)">
+                            @foreach (var member in context.Take(3))
+                            {
+                                <span @key="member.Id" @attributes="Attrs.Merge(StackedInitialsLayer)">@member.Name[..1]</span>
+                            }
+                        </span>
+                        <TextSpan Size="Size.Sm">@(context.Count > 3 ? $"{context[0].Name} 等 {context.Count} 人" : string.Join("、", context.Select(m => m.Name)))</TextSpan>
+                    </Flex>
+                </RenderValue>
+                <ChildContent>
+                    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                        <span @attributes="Attrs.Merge(new Attrs { Sx = DemoStyles.Initials })">@context.Item.Name[..1]</span>
+                        <Flex Direction="LayoutDirection.Column">
+                            <TextSpan Size="Size.Sm">@context.Item.Name</TextSpan>
+                            <Small Tone="TextTone.Muted">@context.Item.Team</Small>
+                        </Flex>
+                    </Flex>
+                </ChildContent>
+            </Select>
+        </Field>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    sealed record Member(string Id, string Name, string Team);
+
+    static readonly ListboxOption[] types =
+    [
+        new("bug", "缺陷", Icon: Lucide.Bug, Description: "功能不符合预期"),
+        new("feature", "需求", Icon: Lucide.Lightbulb, Description: "新功能或改进"),
+        new("chore", "杂项", Icon: Lucide.Wrench, Description: "依赖升级、重构"),
+        new("question", "咨询", Icon: Lucide.CircleDot, Disabled: true),
+    ];
+
+    static readonly Member[] members =
+    [
+        new("zyh", "周一航", "设计"), new("xy", "许悠", "设计"), new("lxm", "林小满", "前端"), new("zhr", "赵浩然", "前端"), new("cm", "陈默", "后端"),
+    ];
+
+    static readonly string[] labels = ["紧急", "前端", "后端", "设计", "文档", "性能", "无障碍"];
+
+    static readonly ListboxOption[] languages = [new("zh-CN", "简体中文"), new("en-US", "English"), new("ja-JP", "日本語")];
+    static readonly string[] cities = ["北京", "上海", "广州", "深圳", "杭州"];
+
+    static readonly string[] people = ["周一航", "许悠", "林小满", "赵浩然", "陈默", "韩笑", "宋知遥", "顾北辰", "沈清禾"];
+    static readonly string[] models = ["X3 标准版", "X3 长续航", "X5 四驱", "X5 越野", "M7 商务", "M7 豪华"];
+
+    // 六十家虚构的供应商，按地区分组
+    static readonly string[] regions = ["华东", "华北", "华南", "西南", "东北", "海外"];
+    static readonly string[] kinds = ["塑胶", "五金", "钣金", "标准件", "密封件", "线束", "液压", "涂装", "铸锻", "电子"];
+    static readonly ListboxOption[] suppliers = [.. regions.SelectMany((region, r) => kinds.Select((kind, k) => new ListboxOption(
+        $"S{r}{k}", $"{region}{kind}供应商{"甲乙丙丁戊己庚辛壬癸"[k]}", Description: $"供应商代码 S-{202600 + r * 10 + k}", Group: region)))];
+
+    static readonly Member[] directory =
+    [
+        new("zyh", "周一航", "设计"), new("xy", "许悠", "设计"), new("lxm", "林小满", "前端"),
+        new("zhr", "赵浩然", "前端"), new("cm", "陈默", "后端"), new("wq", "王晴", "测试"),
+    ];
+
+    // 头像叠放：后一个压住前一个的一部分，描一圈底色隔开
+    static readonly Attrs StackLayer = new() { Sx = Stack };
+    static readonly Attrs StackedInitialsLayer = new() { Sx = Sx.Of(DemoStyles.Initials, DemoStyles.InitialsXs, Stacked) };
+
+    static Style Stack => Css.Define(static () => new Style { Display = Display.InlineFlex, PaddingInlineStart = "0.4em" });
+
+    static Style Stacked => Css.Define(static () => new Style { MarginInlineStart = "-0.4em", BoxShadow = $"0 0 0 2px {Colors.Surface}" });
+
+    string? type = "bug";
+    string? assignee = "lxm";
+    IReadOnlyList<string> tags = ["前端", "无障碍"];
+
+    string? language = "zh-CN";
+    string? city;
+
+    IReadOnlyList<string> cc = ["许悠", "林小满", "赵浩然", "陈默", "韩笑", "宋知遥", "顾北辰", "沈清禾"];
+    IReadOnlyList<string> fits = ["X3 标准版", "X3 长续航", "X5 四驱"];
+    string[] ticketLabels = ["紧急", "前端", "后端", "设计", "性能"];
+    IReadOnlyList<string> picked = ["紧急"];
+
+    string? supplier = "S00";
+    IReadOnlyList<string> partners = ["S13", "S51"];
+
+    IReadOnlyList<string> team = [];
+
+    // 假的成员接口：900 ms 后返回全部成员；关掉弹层（请求被取消）时中止
+    static async Task<IEnumerable<Member>> FetchMembersAsync(string query, CancellationToken cancellation)
+    {
+        await Task.Delay(900, cancellation);
+        return directory;
+    }
+}

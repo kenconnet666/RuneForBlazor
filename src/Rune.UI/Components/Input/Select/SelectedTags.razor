@@ -1,0 +1,68 @@
+@*
+    多选下拉的触发按钮前面那一排已选标签：Select、TreeSelect 共用（同 vue-tsx-pro 的 SelectedTags）。
+    <SelectedTags Tags="selected" MaxTagCount="TagLimit.Responsive" OnRemove="RemoveAsync" />
+    标签不能放进触发按钮里（按钮里不能有按钮），所以排在它前面。这排标签只给指针用：aria-hidden、移除按钮不进 Tab 顺序、按下时不抢焦点
+    （外壳的 data-rune-control）；读屏从触发按钮里念全部已选，键盘在列表里取消勾选，或在触发按钮上按 Backspace。
+    MaxTagCount 是数字时只显示前几个；Responsive 时排成一行，JS 初始化器按宽度量出放得下几个（data-rune-overflow），其余收进“+N”。
+    未声明的属性落到这一排的 span 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = SelectedTagsStyles.Of(Responsive, Config.Styles);
+    var shown = MaxTagCount?.Count is { } max ? Tags.Take(Math.Max(0, max)).ToList() : Tags;
+    var hidden = Tags.Count - shown.Count;
+    var removable = OnRemove.HasDelegate;
+}
+
+<span @attributes="Attrs.Merge(parts[SelectedTagsPart.Root], Rest, RootManaged)">
+    @foreach (var tag in shown)
+    {
+        var value = tag.Value;
+        <Tag @key="value" Size="Size.Sm" Variant="StatusVariant.Soft" OnRemove="@(removable ? EventCallback.Factory.Create(this, () => OnRemove.InvokeAsync(value)) : default)"
+             PropsRemove="RemoveButton" @attributes="Attrs.MergeProps(TagLayer, PropsTag, Responsive ? OverflowItem : null)">@tag.Label</Tag>
+    }
+    @* Responsive 时“+N”一直在（没有折起的项时藏起来，但 JS 仍要量它的宽度）；文字由 JS 从 data-rune-more 里按折起的个数取 *@
+    @if (Responsive || hidden > 0)
+    {
+        <Tag Size="Size.Sm" Variant="StatusVariant.Soft" @attributes="Attrs.MergeProps(TagLayer, PropsTag, Responsive ? OverflowRest : null)">@Config.Lang.SelectMoreTags(hidden)</Tag>
+    }
+</span>
+
+@code {
+    // 移除按钮不进 Tab 顺序：键盘用 Backspace 或在列表里取消勾选
+    // 只交样式：部件标记、按部件的定制都是 Tag 自己的
+    static readonly Attrs TagLayer = new() { Sx = SelectedTagsStyles.Tag };
+    static readonly Attrs RemoveButton = new() { ["tabindex"] = "-1" };
+    static readonly Attrs OverflowItem = new() { ["data-rune-overflow-item"] = true };
+    // 第一次量出来之前先藏着：都放得下时本来就不显示
+    static readonly Attrs OverflowRest = new() { ["data-rune-overflow-rest"] = true, ["data-overflow-hidden"] = true };
+
+    Memo<(bool Responsive, int Count, Lang Lang), Attrs> rootManaged;
+
+    /// <summary>要显示的标签（值与文字）。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ListboxOption> Tags { get; set; } = [];
+
+    /// <summary>最多显示几个，其余收进“+N”；<see cref="TagLimit.Responsive"/> 时排成一行、按宽度放；null 时全部显示（会换行）。</summary>
+    [Parameter] public TagLimit? MaxTagCount { get; set; }
+
+    /// <summary>点了标签的移除按钮（参数是值）；不写时（只读、不可用）标签没有移除按钮。</summary>
+    [Parameter] public EventCallback<string> OnRemove { get; set; }
+
+    /// <summary>每个标签的部件属性（交给 Tag）。</summary>
+    [Parameter] public Attrs? PropsTag { get; set; }
+
+    bool Responsive => MaxTagCount?.IsResponsive == true;
+
+    // 这一排上由组件管理的属性：只给指针用；按宽度放时交给 JS 的约定与“+1”…“+N”的文字
+    Attrs RootManaged => rootManaged.Get((Responsive, Tags.Count, Config.Lang), static k => new Attrs
+    {
+        AriaHidden = true,
+        ["data-rune-overflow"] = k.Responsive ? true : null,
+        ["data-rune-more"] = k.Responsive ? MoreLabels(k.Lang, k.Count) : null,
+    });
+
+    // “+1”到“+N”：语言包的文字可能随数量变化（复数），不在 JS 里拼
+    static string MoreLabels(Lang lang, int count) =>
+        ListboxInterop.StringArray(Enumerable.Range(1, count).Select(n => lang.SelectMoreTags(n)));
+}

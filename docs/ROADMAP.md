@@ -105,6 +105,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 ## 阶段 5：输入与选择（阶段 3 后半）
 
 - [ ] Select（单选、多选、可搜索、清空、远程选项、已选标签“+N”）、Combobox、Autocomplete、ListPopover
+      （已做：Select、ListPopover、SelectedTags（按数量、按宽度收起）、远程选项 RemoteItems、文字匹配 UIConfig.Matches；Combobox、Autocomplete 待做）
 - [ ] TagsInput、SelectedTags、ToggleGroup、ControlGroup、CheckboxGroup（Checkbox 的 items）
 - [ ] Slider 的范围（两个滑块）、刻度、竖向；Rating；OtpField；NumberRangeField；ColorField；CharacterCount（Textarea 的字数统计与清空）
 - [ ] Cascader、Transfer、Mentions、FileDrop / Upload（拖放、进度、列表）
@@ -169,4 +170,5 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 - CD：NuGet 发到 nuget.org 还是私有源；文档站（含 Server 模式）部署到哪里。
 - 地图图表（MapChart）要地图数据（GeoJSON），来源与许可待定。
+- 拼音匹配（vue-tsx-pro 的 createPinyinMatcher，用 pinyin-pro）：.NET 这边要选一个拼音库（字典约 300 KB，许可待查）做成可选包，接到 UIConfig.TextMatcher。
 - vue-tsx-pro 的可选模块（代码编辑器、流程图 diagram、地图、三维与特效背景、xlsx）是否移植。

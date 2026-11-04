@@ -1,0 +1,116 @@
+@*
+    选项弹出层（popover="auto" 的 div）：Select、Combobox、TagsInput 共用（同 vue-tsx-pro 的 ListPopover）。只负责渲染：
+    <ListPopover TItem="TItem" Id="@popoverId" AnchorId="@shellId" ListId="@listId" Entries="entries" Selected="values" OnPick="PickAsync" OnToggle="Toggled" />
+    浮层由触发元素的 popovertarget 打开（JS 初始化器也会在键盘操作时打开），贴着 AnchorId（输入框外壳）定位、与它同宽、最高到视口剩下的空间；
+    开关经 OnToggle 报给使用方。里面是可选的头部（搜索框）与滚动的选项列表（ListboxView：选项多时按这一层虚拟滚动）。
+    键盘宿主（触发按钮、搜索框）用 aria-controls 指向 ListId：方向键移动高亮、Enter 选中，单选时 JS 选中后关闭浮层。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits UIComponent
+@{ var parts = ListPopoverStyles.Of(Size, Config.Styles); }
+
+<div @attributes="Attrs.Merge(parts[ListPopoverPart.Root], PropsPopover, PanelManaged)">
+    @if (Header is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[ListPopoverPart.Header])">@Header</div>
+    }
+    <div @attributes="Attrs.Merge(parts[ListPopoverPart.Body])">
+        <ListboxView TItem="TItem" Id="@ListId" Entries="Entries" Selected="Selected" Multiple="Multiple" Loading="Loading" OnPick="OnPick"
+                     ChildContent="ChildContent" Empty="Empty" EmptyText="@EmptyText" @attributes="Attrs.MergeProps(null, PropsListbox, ListManaged)" />
+    </div>
+</div>
+
+@code {
+    Memo<(string Id, string AnchorId, Placement Placement, bool? Open), Attrs> panelManaged;
+    Memo<(string? LabelledBy, string? Label, string? Query, string? Results), Attrs> listManaged;
+
+    /// <summary>浮层的 id：触发按钮的 popovertarget 指向它。</summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+
+    /// <summary>定位的锚点（输入框外壳）的 id：浮层贴着它、与它同宽。</summary>
+    [Parameter, EditorRequired] public string AnchorId { get; set; } = "";
+
+    /// <summary>列表的 id：键盘宿主的 aria-controls 指向它。</summary>
+    [Parameter, EditorRequired] public string ListId { get; set; } = "";
+
+    /// <summary>弹出位置，默认下方、与起始边对齐。</summary>
+    [Parameter] public Placement Placement { get; set; } = Placement.BottomStart;
+
+    /// <summary>受控的打开状态；null 时由浏览器管理（popovertarget、点外面、Esc）。</summary>
+    [Parameter] public bool? Open { get; set; }
+
+    /// <summary>浏览器报告打开或关闭。</summary>
+    [Parameter] public EventCallback<OverlayToggleEventArgs> OnToggle { get; set; }
+
+    /// <summary>字号档位：同输入框外壳（浮层不是外壳的后代，继承不到）。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>列表的名称：外部标签的 id（有它时优先）。</summary>
+    [Parameter] public string? LabelledBy { get; set; }
+
+    /// <summary>列表的名称：没有外部标签时用这段文字（aria-label）。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>列表上方、不随列表滚动的内容（搜索框）。</summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>当前的搜索词：变了时 JS 高亮第一个匹配项，并在停顿后播报 <see cref="Results"/>。</summary>
+    [Parameter] public string? Query { get; set; }
+
+    /// <summary>搜索后播报的结果（“12 个选项”“没有匹配的选项”）。</summary>
+    [Parameter] public string? Results { get; set; }
+
+    /// <inheritdoc cref="ListboxView{TItem}.Entries"/>
+    [Parameter, EditorRequired] public IReadOnlyList<ListEntry<TItem>> Entries { get; set; } = [];
+
+    /// <inheritdoc cref="ListboxView{TItem}.Selected"/>
+    [Parameter] public IReadOnlyList<string> Selected { get; set; } = [];
+
+    /// <inheritdoc cref="ListboxView{TItem}.Multiple"/>
+    [Parameter] public bool Multiple { get; set; }
+
+    /// <inheritdoc cref="ListboxView{TItem}.Loading"/>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <inheritdoc cref="ListboxView{TItem}.OnPick"/>
+    [Parameter] public EventCallback<string> OnPick { get; set; }
+
+    /// <inheritdoc cref="ListboxView{TItem}.ChildContent"/>
+    [Parameter] public RenderFragment<ListOptionState<TItem>>? ChildContent { get; set; }
+
+    /// <inheritdoc cref="ListboxView{TItem}.Empty"/>
+    [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <inheritdoc cref="ListboxView{TItem}.EmptyText"/>
+    [Parameter] public string? EmptyText { get; set; }
+
+    /// <summary>使用方给浮层的部件属性。</summary>
+    [Parameter] public Attrs? PropsPopover { get; set; }
+
+    /// <summary>使用方给列表（ListboxView）的部件属性：可以写它的参数，如 PropsOption。</summary>
+    [Parameter] public Attrs? PropsListbox { get; set; }
+
+    // 浮层上由组件管理的属性：popover、贴着外壳定位、同宽、限高，开关报给使用方
+    Attrs PanelManaged => panelManaged.Get((Id, AnchorId, Placement, Open), this, static (k, owner) => Attrs.Merge(
+        Floating.Placed(k.Placement, null),
+        new Attrs
+        {
+            Id = k.Id,
+            ["popover"] = "auto",
+            ["data-rune-overlay"] = true,
+            ["data-open"] = k.Open is { } open ? (open ? "true" : "false") : null,
+            ["data-anchor"] = k.AnchorId,
+            ["data-match-width"] = true,
+            ["data-fit-height"] = true,
+            ["onrunetoggle"] = EventCallback.Factory.Create<OverlayToggleEventArgs>(owner, (OverlayToggleEventArgs e) => owner.OnToggle.InvokeAsync(e)),
+        }));
+
+    Attrs ListManaged => listManaged.Get((LabelledBy, Label, Query, Results), static k => new Attrs
+    {
+        AriaLabelledBy = k.LabelledBy,
+        AriaLabel = k.LabelledBy is null ? k.Label : null,
+        ["data-rune-query"] = k.Query,
+        ["data-rune-results"] = k.Results,
+    });
+}

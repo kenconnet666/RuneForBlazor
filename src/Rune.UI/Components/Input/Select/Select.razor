@@ -1,0 +1,98 @@
+@*
+    下拉选择（WAI-ARIA 的 select-only combobox）：点触发框弹出选项列表，单选或多选（同 vue-tsx-pro 的 Select）。
+    <Field Label="城市"><Select Items="cities" @bind-Value="city" Placeholder="选择城市" /></Field>
+    <Select Items="tags" SelectionMode="SelectionMode.Multiple" @bind-Values="picked" Clearable aria-label="标签" />
+    <Select Items="users" ToOption="u => new(u.Id, u.Name)" @bind-Value="userId" />
+    <Select Items="suppliers" Searchable @bind-Value="supplier" />      选项多时：弹出层顶部带搜索框
+    <Select TItem="User" Load="SearchUsersAsync" ToOption="…" Searchable @bind-Value="owner" />   远程选项
+
+    外壳同输入框（Variant、Size、Radius、Icon），弹出层是 ListPopover（贴着外壳、同宽、最高到视口剩下的空间），列表同 Listbox。
+    焦点一直在触发按钮上，高亮项经 aria-activedescendant 告诉读屏；键盘由 JS 初始化器处理（不用每按一次方向键往返一次）：
+    关闭时 ↓ / Enter / 空格打开（↑ 打开并高亮最后一项），单选时直接按字母选中以它开头的项（同原生 select）；
+    打开时 ↑↓、Home / End、Page Up / Down 移动，Enter / 空格选中（单选随后关闭），Esc、Tab 关闭。打开靠原生的 popovertarget，静态 SSR 也能打开。
+    多选时已选的项是触发按钮前面的一排标签（SelectedTags），按 Backspace 移除最后一项。写了 Name 时用隐藏的 input 随表单提交（多选时每个值一个）。
+
+    Searchable 时弹出层顶部有搜索框：打开后焦点在里面，输入即过滤（按显示文字，忽略大小写与重音，见 UIConfig.Matches；Filter 可以换规则）。
+    已选的项被过滤掉、或 Items 换了（远程搜索）时，触发框里仍显示它的文字。Load 是远程选项：打开时请求，搜索词停下 300 ms 再请求，只采用最后一次。
+    Creatable 时自带搜索框，输入的文字没有对应的选项时列表末尾多一项“新建”：选中后值就是这段文字，OnCreate 报告它。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits FormControl<string?>
+@{
+    var shell = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config) with { Picker = true }, Config.Styles);
+    var parts = SelectStyles.Of(Config.Styles);
+    var values = Selected;
+    var chosen = Chosen(values);
+    var tagged = Multiple && RenderValue is null && chosen.Count > 0;
+    var shown = Shown;
+}
+
+<div @attributes="Attrs.Merge(shell[InputPart.Root], RootUserAttrs, ShellManaged)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsIcon)" />
+    }
+    @if (tagged)
+    {
+        <SelectedTags Tags="@(chosen.Select(c => c.Option).ToList())" MaxTagCount="MaxTagCount" OnRemove="@(Locked ? default : RemoveCallback)" PropsTag="PropsTag"
+                      @attributes="Attrs.MergeProps(null, PropsTags)" />
+    }
+    <button @attributes="Attrs.Merge(parts[SelectPart.Trigger], InputUserAttrs, TriggerManaged(tagged))">
+        <span @attributes="Attrs.Merge(parts[SelectPart.Value], PropsValue)">
+            @if (tagged)
+            {
+                @* 标签那一排是 aria-hidden：读屏从这里念出全部已选 *@
+                <span @attributes="Attrs.Merge(VisuallyHiddenLayer)">@Config.Lang.SelectSummary([.. chosen.Select(c => c.Option.Label)])</span>
+            }
+            else if (chosen.Count == 0)
+            {
+                <span @attributes="Attrs.Merge(parts[SelectPart.Placeholder])">@(Placeholder ?? Config.Lang.SelectPlaceholder)</span>
+            }
+            else if (RenderValue is not null)
+            {
+                @RenderValue([.. chosen.Where(c => c.HasItem).Select(c => c.Item)])
+            }
+            else
+            {
+                @chosen[0].Option.Label
+            }
+        </span>
+    </button>
+    @if (Clearable && values.Count > 0 && !Locked)
+    {
+        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="ClearAsync" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusTrigger)" />
+    }
+    <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsChevron, ChevronLayer)" />
+    @if (Name is not null)
+    {
+        foreach (var value in values)
+        {
+            <input type="hidden" name="@Name" value="@value" disabled="@IsDisabled" />
+        }
+    }
+</div>
+<ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@ShellId" ListId="@ListId" Placement="Placement" Open="Open" OnToggle="ToggledAsync" Size="Size"
+             LabelledBy="@(AriaLabel is null ? Field?.LabelId : null)" Label="@AriaLabel" Header="@(WithSearch ? SearchHeader : null)"
+             Query="@(WithSearch ? SearchText : null)" Results="@Results(shown.Entries.Count)" Entries="shown.Entries" Selected="values" Multiple="Multiple"
+             Loading="@(Loading || remote?.Loading == true)" OnPick="PickAsync" ChildContent="OptionContent" Empty="@(EmptyText is null ? Empty : null)"
+             EmptyText="@EmptyText" PropsPopover="PropsPopover" PropsListbox="PropsListbox" />
+
+@code {
+    static readonly Attrs VisuallyHiddenLayer = new() { Sx = SharedStyles.VisuallyHidden };
+    static readonly Attrs ChevronLayer = new() { Sx = SelectStyles.Chevron };
+
+    // 搜索框：占满头部、浅色底；不归外面的 Field 管（它的 id、标签、错误属于 Select 本身）
+    RenderFragment SearchHeader => searchHeader ??= @<CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
+        <TextField Type="search" Icon="BuiltInIcons.Search" Variant="InputVariant.Soft" Immediate="true" Value="@SearchText" ValueChanged="SetSearchAsync"
+                   @attributes="Attrs.MergeProps(SearchDefaults, PropsSearch, SearchManaged)" />
+    </CascadingValue>;
+    RenderFragment? searchHeader;
+
+    // 自定义选项内容时，“新建”那一项仍按默认的样子画（它不是 Items 里的数据）
+    RenderFragment<ListOptionState<TItem>>? OptionContent => ChildContent is null ? null : optionContent ??= state =>
+        ReferenceEquals(state.Option, Shown.Creation)
+            ? @<text><Icon Data="state.Option.Icon" /><span>@state.Option.Label</span></text>
+            : ChildContent(state);
+    RenderFragment<ListOptionState<TItem>>? optionContent;
+}

@@ -201,7 +201,16 @@
   键盘移到没渲染的项时先按比例估算着滚过去，Virtualize 渲染出来后再精确滚进可见范围。
   类型搜索与菜单共用一个实现（连续输入拼词、停顿 500 毫秒清空、同一个字母轮换）。
   vue-tsx-pro 的 Listbox 用 css.create，没有部件标记：对照工具另按 role 配对。
-- **外框的状态只看自己的输入元素**：`:has(> :is(input, select, textarea):disabled)`。最初写的 `:has(:disabled)` 会被数字框到了上限时不可用的步进按钮、
+  渲染拆成 `ListboxView`（只画列表与选项）：Listbox 在它外面加值与焦点，弹出的选项列表 `ListPopover`（Select，之后的 Combobox、TagsInput）在它外面加浮层与头部。
+- **Select**：外壳、前置图标、清空按钮、箭头是输入框的部件（`InputStyles`，`InputAppearance.Picker`），按 InputPart 定制时一起变，同 vue-tsx-pro；
+  触发按钮是 `role="combobox"` 的 button，用原生 `popovertarget` 打开（静态 SSR 也能开），弹层 `data-anchor` 贴着外壳、`data-match-width` 同宽。
+  开关、高亮、焦点都在 JS：关闭时 ↓ / Enter / 空格打开、↑ 打开到最后一项、单选按字母直接选中；打开后高亮已选项；单选列表点选后关闭；
+  弹层关闭时焦点在里面（搜索框）就还给触发按钮；`aria-expanded` 与外壳的 `data-state` 在开关时由 JS 写（C# 收到 rune-toggle 后写同样的值）。
+  搜索框也是列表的宿主（`data-rune-list="text"`，Home / End 留给输入），过滤在 C#；列表的 `data-rune-query` 变了时 JS 高亮第一个匹配项并播报 `data-rune-results`。
+  多选时标签排在触发按钮前面（按钮里不能有按钮），触发按钮让出宽度、只留读屏用的文字，点外壳空白处与点它一样；Backspace 经 `data-rune-backspace`
+  发 `rune-command`（不用每次按键往返）。按宽度收起标签由 JS 量（`data-rune-overflow`，同 vue-tsx-pro 的 useOverflowItems），“+N”的文字由 C# 按语言包给全（`data-rune-more`）。
+  远程选项 `RemoteItems`：打开时请求、输入停下 300 ms 再请求、只采用最后一次。过滤用 `UIConfig.Matches`（按语言忽略大小写、重音与全半角，可另配 `TextMatcher`）。
+- **外框的状态只看自己的输入元素**：`:has(> :is(input, select, textarea, [role=combobox]):disabled)`。最初写的 `:has(:disabled)` 会被数字框到了上限时不可用的步进按钮、
   下拉里不可用的占位选项匹配，整个外框变灰（实测发现）。
 
 ## 10. 生成器与分析器（`src/Rune.Generators`）

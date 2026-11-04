@@ -1,0 +1,194 @@
+@*
+    选项列表的渲染（role="listbox" 的元素与其中的选项），同 vue-tsx-pro 的 ListboxView：Listbox 与弹出的选项列表（ListPopover：Select、Combobox）共用。
+    <ListboxView TItem="TItem" Id="@listId" Entries="entries" Selected="values" Multiple="multiple" OnPick="PickAsync" />
+    只管画：选了哪些（Selected）、点了哪一项之后怎么改值（OnPick）由使用方决定；列表的名称、键盘宿主（tabindex、data-rune-list）
+    等属性由使用方写在 @attributes 上。选项的 id 是 {Id}-{序号}，JS 初始化器按序号移动高亮（见 ListboxInterop）。
+    Loading：选项换成骨架行（很快返回时不显示，见 DelayedLoading），列表带 aria-busy。
+    选项多时（交互模式下超过 VirtualThreshold 个）虚拟滚动：只渲染看得见的几十行（Blazor 的 Virtualize，滚动容器是最近的可滚动祖先），
+    全部选项的文字与不可用写在列表的 data-rune-options 上，键盘照样能移到任何一项。静态 SSR 没法按滚动加载，全部渲染。
+*@
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@namespace Rune.UI
+@typeparam TItem
+@inherits UIComponent
+@{
+    var parts = ListboxStyles.Of(OwnScroll, Config.Styles);
+    var rows = Rows;
+}
+
+<div @attributes="Attrs.Merge(parts[ListboxPart.Root], Rest, RootManaged)">
+    @if (indicator.Shown)
+    {
+        for (var row = 0; row < SkeletonRows; row++)
+        {
+            <Skeleton @key="row" Delay="@(row * ShimmerStyles.Stagger)" @attributes="Attrs.MergeProps(parts[ListboxPart.Skeleton], SkeletonWidths[row], PropsSkeleton)" />
+        }
+    }
+    else if (Entries.Count == 0)
+    {
+        @* 加载刚开始、骨架还没到显示的时候（防闪烁）先空着 *@
+        if (!Loading)
+        {
+            @(Empty ?? DefaultEmpty)
+        }
+    }
+    else if (IsVirtual)
+    {
+        <Virtualize Items="rows" ItemSize="EstimatedRowHeight" OverscanCount="6" Context="row">@RenderRow(row, parts)</Virtualize>
+    }
+    else
+    {
+        foreach (var row in rows)
+        {
+            @RenderRow(row, parts)
+        }
+    }
+</div>
+
+@code {
+    static readonly Attrs LabelLayer = new() { Sx = ItemStyles.Label };
+
+    /// <summary>选项超过这么多个（且在交互模式下）时虚拟滚动；不多时全部渲染：DOM 小，滚动、页内查找都是原生的。</summary>
+    public const int VirtualThreshold = 100;
+
+    // 一行的估计高度（px）：虚拟滚动据此算占位，渲染后以实际高度为准
+    const float EstimatedRowHeight = 36;
+
+    // 加载中显示几行骨架，一行比一行短
+    const int SkeletonRows = 4;
+    static readonly Attrs[] SkeletonWidths = [.. Enumerable.Range(0, SkeletonRows).Select(row => new Attrs { InlineStyle = $"width:{85 - row * 15}%" })];
+
+    RenderFragment? defaultEmpty;
+    RenderFragment DefaultEmpty => defaultEmpty ??=
+        @<Empty Size="Size.Sm" HideIcon Description="@(b => b.AddContent(0, EmptyText ?? Config.Lang.SelectEmpty))" @attributes="Attrs.MergeProps(PropsEmpty)" />;
+
+    DelayedLoading? delayedLoading;
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+
+    Memo<IReadOnlyList<ListEntry<TItem>>, ListRow[]> rows;
+    Memo<IReadOnlyList<ListEntry<TItem>>, string> optionTable;
+    Memo<IReadOnlyList<string>, HashSet<string>> selectedSet;
+    Memo<(string Id, bool Multiple, bool Loading, string? Options, int Selected), Attrs> rootManaged;
+
+    /// <summary>列表的 id：选项的 id 由它拼出（{Id}-{序号}），宿主的 aria-controls 指向它。</summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+
+    /// <summary>要显示的选项（已按分组排好，见 <see cref="ListState.Entries"/>）。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ListEntry<TItem>> Entries { get; set; } = [];
+
+    /// <summary>已选的值。</summary>
+    [Parameter] public IReadOnlyList<string> Selected { get; set; } = [];
+
+    /// <summary>多选（aria-multiselectable）。</summary>
+    [Parameter] public bool Multiple { get; set; }
+
+    /// <summary>加载中：选项换成骨架行（很快返回时不显示），列表带 aria-busy。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>列表自己滚动（单独使用的 Listbox，最高 20em）；放在会滚动的浮层里时不要。</summary>
+    [Parameter] public bool OwnScroll { get; set; }
+
+    /// <summary>点了一项（点击，或键盘 Enter 由 JS 转成点击）；不可用的项不会调用。</summary>
+    [Parameter] public EventCallback<string> OnPick { get; set; }
+
+    /// <summary>自定义选项内容：拿到原始数据、选项信息与是否已选。</summary>
+    [Parameter] public RenderFragment<ListOptionState<TItem>>? ChildContent { get; set; }
+
+    /// <summary>没有选项时显示的内容；不写时是 Empty（文案取语言包）。</summary>
+    [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <summary>没有选项时的文字（Empty 没写时用）；不写时取语言包（没有选项）。搜索没有匹配、加载失败时由使用方换掉。</summary>
+    [Parameter] public string? EmptyText { get; set; }
+
+    /// <summary>选项的部件属性。</summary>
+    [Parameter] public Attrs? PropsOption { get; set; }
+
+    /// <summary>分组标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsGroupLabel { get; set; }
+
+    /// <summary>已选标记的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsCheck { get; set; }
+
+    /// <summary>空状态的部件属性（交给 Empty）。</summary>
+    [Parameter] public Attrs? PropsEmpty { get; set; }
+
+    /// <summary>加载中占位行的部件属性（交给 Skeleton）。</summary>
+    [Parameter] public Attrs? PropsSkeleton { get; set; }
+
+    ListRow[] Rows => rows.Get(Entries, static entries => ListState.Rows(entries));
+
+    HashSet<string> SelectedSet => selectedSet.Get(Selected, static values => [.. values]);
+
+    bool IsVirtual => RendererInfo.IsInteractive && Entries.Count > VirtualThreshold;
+
+    // 虚拟滚动时交给 JS 的选项表：看不见的选项不在 DOM 里，键盘移动、类型搜索要用它们的文字与是否不可用
+    string? OptionTable => IsVirtual ? optionTable.Get(Entries, static entries => ListboxInterop.OptionTable(entries)) : null;
+
+    // 虚拟滚动时第一个已选的可用项的序号：高亮默认项时要用（它可能没渲染）
+    int FirstSelectedIndex()
+    {
+        if (!IsVirtual) return -1;
+        var selected = SelectedSet;
+        for (var index = 0; index < Entries.Count; index++)
+        {
+            var option = Entries[index].Option;
+            if (!option.Disabled && selected.Contains(option.Value)) return index;
+        }
+        return -1;
+    }
+
+    // 列表上由组件管理的属性：角色、多选、加载中、交给 JS 的选项表
+    Attrs RootManaged => rootManaged.Get((Id, Multiple, Loading, OptionTable, FirstSelectedIndex()), static k => new Attrs
+    {
+        Id = k.Id,
+        Role = "listbox",
+        ["aria-multiselectable"] = k.Multiple ? "true" : null,
+        ["aria-busy"] = k.Loading ? "true" : null,
+        ["data-rune-options"] = k.Options,
+        ["data-rune-selected"] = k.Options is null ? null : k.Selected.ToString(System.Globalization.CultureInfo.InvariantCulture),
+    });
+
+    // 一行：分组标题或选项。选项的 id 是 {列表 id}-{序号}，JS 按序号找到高亮项
+    RenderFragment RenderRow(ListRow row, PartLayers<ListboxPart> parts)
+    {
+        var (option, item) = Entries[row.Index];
+        if (row.IsGroupLabel)
+        {
+            // 只是视觉上的标题：组名经各选项的 aria-describedby 念出
+            return @<span id="@GroupLabelId(row.Index)" aria-hidden="true" @attributes="Attrs.Merge(parts[ListboxPart.GroupLabel], PropsGroupLabel)">@option.Group</span>;
+        }
+        var selected = SelectedSet.Contains(option.Value);
+        return @<div @key="option.Value" id="@($"{Id}-{row.Index}")" role="option" aria-selected="@(selected ? "true" : "false")"
+                     aria-disabled="@(option.Disabled ? "true" : null)" aria-setsize="@Entries.Count" aria-posinset="@(row.Index + 1)"
+                     aria-describedby="@(row.GroupStart < 0 ? null : GroupLabelId(row.GroupStart))" data-label="@option.Label"
+                     data-state="@(selected ? "checked" : "unchecked")"
+                     @onclick="() => PickAsync(option)" @attributes="Attrs.Merge(parts[ListboxPart.Option], PropsOption)">
+            @if (ChildContent is not null)
+            {
+                @ChildContent(new ListOptionState<TItem>(item, option, selected))
+            }
+            else
+            {
+                if (option.Icon is not null)
+                {
+                    <Icon Data="option.Icon" />
+                }
+                <span @attributes="Attrs.Merge(parts[ListboxPart.Content])"><span @attributes="Attrs.Merge(LabelLayer)">@option.Label</span>@if (option.Description is not null)
+                    {
+                        <span @attributes="Attrs.Merge(parts[ListboxPart.Description])">@option.Description</span>
+                    }</span>
+            }
+            <Icon Data="BuiltInIcons.Check" @attributes="Attrs.MergeProps(parts[ListboxPart.Check], PropsCheck)" />
+        </div>;
+    }
+
+    string GroupLabelId(int start) => $"{Id}-group-{start}";
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => indicator.Update(Loading);
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => delayedLoading?.Dispose();
+
+    Task PickAsync(ListboxOption option) => option.Disabled ? Task.CompletedTask : OnPick.InvokeAsync(option.Value);
+}

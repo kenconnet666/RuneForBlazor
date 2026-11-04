@@ -17,6 +17,15 @@ public sealed record UIConfig(Theme Theme, Theme? DarkTheme, ColorScheme ColorSc
 {
     /// <summary>语言：组件里的文案（关闭、清空、共 N 条）与地区信息，默认简体中文。</summary>
     public Lang Lang { get; init; } = Lang.ZhCn;
+
+    /// <summary>
+    /// 另配的文字匹配（如拼音：“bj”搜到“北京”）：选项过滤时与内置匹配（按语言忽略大小写与重音）任一命中都算；null 时只用内置的。
+    /// </summary>
+    public TextMatcher? TextMatcher { get; init; }
+
+    /// <summary>当前配置下的文字匹配：内置匹配（按 <see cref="Lang"/> 的语言）或 <see cref="TextMatcher"/> 任一命中。</summary>
+    public bool Matches(string text, string query) =>
+        TextMatching.For(Lang.Code)(text, query) || (TextMatcher?.Invoke(text, query) ?? false);
 }
 
 /// <summary>应用级配置（<see cref="RuneUIServiceCollectionExtensions.AddRuneUI"/> 里设置）。</summary>
@@ -42,6 +51,9 @@ public sealed class RuneUIOptions
 
     /// <summary>语言，默认简体中文（<see cref="Lang.ZhCn"/>）；英文界面用 <see cref="Lang.EnUs"/>。</summary>
     public Lang Lang { get; set; } = Lang.ZhCn;
+
+    /// <inheritdoc cref="UIConfig.TextMatcher"/>
+    public TextMatcher? TextMatcher { get; set; }
 }
 
 /// <summary>注册组件库的服务。</summary>
@@ -58,7 +70,7 @@ public static class RuneUIServiceCollectionExtensions
         var options = new RuneUIOptions();
         configure?.Invoke(options);
         services.AddRune();
-        services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple) { Lang = options.Lang });
+        services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher });
         services.AddScoped<ToastService>();
         return services;
     }

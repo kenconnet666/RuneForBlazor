@@ -21,7 +21,17 @@
 //                            ↑↓、Home / End、Page Up / Down 移动高亮（宿主的 data-rune-active 与 aria-activedescendant、选项的 data-highlighted），
 //                            Enter（space 时还有空格）点击高亮项（C# 处理选中），typeahead 时按字母跳到以它开头的项；
 //                            列表自己获得焦点时高亮第一个已选项（没有就第一个可用项）；指针移过选项时高亮它。
-//                            虚拟滚动的列表带 data-rune-options（全部选项的文字与不可用）与 data-rune-selected（第一个已选项的序号）
+//                            虚拟滚动的列表带 data-rune-options（全部选项的文字与不可用）与 data-rune-selected（第一个已选项的序号）。
+//                            text 时宿主是输入框（搜索框）：Home / End、空格、字母留给输入
+//   选项弹出层（Select）     触发按钮是带 popovertarget 的列表宿主：关闭时 ↓ / Enter / 空格打开（↑ 打开并高亮最后一项），单选时按字母直接选中；
+//                            打开后高亮默认项，Tab 关闭；单选列表选中一项后关闭；关闭时焦点在弹层里就还给触发按钮。
+//                            触发按钮的 aria-expanded 与外壳（data-rune-control）的 data-state 在开关时同步；点外壳的空白处与点触发按钮一样
+//   data-anchor="id"         锚定浮层贴着这个 id 的元素定位（Select 的弹层贴着输入框外壳），而不是触发元素
+//   data-rune-query="词"      弹层里的列表：搜索词变了时高亮第一个匹配项，停顿后播报 data-rune-results（“12 个选项”）
+//   data-rune-backspace="命令" 按 Backspace（输入框里是空的时候）发出冒泡的 rune-command（Blazor 里是 @onrunecommand，带命令名）：
+//                            多选下拉移除最后一个已选项
+//   data-rune-overflow       一行标签（Select 的 MaxTagCount 按宽度）：量出放得下几个 data-rune-overflow-item，其余写 data-overflow-hidden
+//                            （CSS 藏起来但仍可测量），data-rune-overflow-rest（“+N”）的文字取自 data-rune-more 里的第 N 项
 //   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
 //                            （可以移到提示上），键盘聚焦时立即显示；失焦、按下、Esc 隐藏；同一时间只显示一个
 //   data-indeterminate       勾选框的半选：原生的 indeterminate 只能用 JS 设置，按这个属性同步
@@ -80,6 +90,10 @@ function install(blazor) {
     browserEventName: 'rune-close-request',
     createEventArgs: (event) => ({ reason: event.detail.reason }),
   });
+  blazor.registerCustomEventType('runecommand', {
+    browserEventName: 'rune-command',
+    createEventArgs: (event) => ({ name: event.detail.name }),
+  });
 
   // 原生的 toggle（popover）与 close（dialog）不冒泡：在捕获阶段接住，转发成冒泡的 rune-toggle
   document.addEventListener('toggle', onPopoverToggle, true);
@@ -131,7 +145,7 @@ function install(blazor) {
     childList: true,
     attributes: true,
     attributeOldValue: true,
-    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize'],
+    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query'],
   });
   syncWithin(document);
   // 装好了：端到端测试、对照工具等它出现再操作（脚本加载之前的点击没人处理）
@@ -183,9 +197,10 @@ function syncWithin(root) {
     if (element.matches('svg[data-rune-draw="true"]')) drawIcon(element);
     if (element.matches('[data-rune-grid-span]')) watchGrid(element.parentElement);
     if (element.matches('textarea[data-rune-autosize]')) autosize(element);
+    if (element.matches('[data-rune-overflow]')) watchOverflow(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow]').forEach(sync);
 }
 
 function onMutations(mutations) {
@@ -193,6 +208,7 @@ function onMutations(mutations) {
     if (mutation.type === 'attributes') {
       if (mutation.attributeName === 'data-indeterminate') syncIndeterminate(mutation.target);
       else if (mutation.attributeName === 'data-rune-autosize') autosize(mutation.target);
+      else if (mutation.attributeName === 'data-rune-query') onQueryChanged(mutation.target);
       else if (mutation.attributeName === 'data-rune-copy-request') {
         if (mutation.target.hasAttribute('data-rune-copy-request')) copyFrom(mutation.target);
       } else if (mutation.attributeName === 'data-rune-draw') {
@@ -204,12 +220,16 @@ function onMutations(mutations) {
     for (const node of mutation.addedNodes) {
       if (node instanceof Element) syncWithin(node);
     }
+    if (!(mutation.target instanceof Element)) continue;
     // 列表重新渲染（虚拟滚动换了一批选项、选项变了）：高亮放回高亮项上
-    if (mutation.addedNodes.length > 0 && mutation.target instanceof Element) {
+    if (mutation.addedNodes.length > 0) {
       const list = mutation.target.closest('[role="listbox"]');
       const host = list && hostOf(list);
       if (host?.hasAttribute('data-rune-active')) syncHighlight(host, list);
     }
+    // 一行标签里加减了标签（或“+N”的文字变了）：重新量
+    const row = mutation.target.closest('[data-rune-overflow]');
+    if (row) scheduleOverflow(row);
   }
 }
 
@@ -219,9 +239,14 @@ function onPopoverToggle(event) {
   const opened = event.newState === 'open';
   if (overlay.matches('[data-rune-floating]')) {
     if (!opened) releaseFloating(overlay);
-    else if (overlay.matches('[data-rune-overlay]')) anchorFloating(overlay).then(() => focusInto(overlay));
+    else if (overlay.matches('[data-rune-overlay]')) anchorFloating(overlay).then(() => {
+      focusInto(overlay);
+      listPopoverOpened(overlay);
+    });
     else anchorFloating(overlay);
   }
+  if (!opened) listPopoverClosed(overlay);
+  syncTriggerExpanded(overlay, opened);
   if (overlay.matches('[popover][data-rune-overlay]')) announce(overlay, opened);
 }
 
@@ -274,6 +299,9 @@ function onFocusLink(event) {
 function onClick(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
+
+  closeAfterPick(target);
+  toggleFromShell(target);
 
   const refocus = target.closest('[data-rune-refocus]');
   if (refocus) document.getElementById(refocus.getAttribute('data-rune-refocus'))?.focus({ preventScroll: true });
@@ -334,6 +362,7 @@ function requestClose(overlay, reason) {
 
 function onKeyDown(event) {
   if (event.key === 'Escape' && shownTooltip) hideTooltip(shownTooltip);
+  if (event.key === 'Backspace') sendBackspaceCommand(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
@@ -434,9 +463,11 @@ function listOf(host) {
   return id ? document.getElementById(id) : null;
 }
 
-/** 列表的键盘宿主（焦点所在、写 aria-activedescendant 的元素）。 */
+/** 列表的键盘宿主（焦点所在、写 aria-activedescendant 的元素）：有几个时（触发按钮与搜索框）取有焦点的那个。 */
 function hostOf(list) {
   if (list.hasAttribute('data-rune-list')) return list;
+  const active = document.activeElement;
+  if (active?.matches('[data-rune-list]') && listOf(active) === list) return active;
   return list.id ? document.querySelector(`[data-rune-list][aria-controls="${CSS.escape(list.id)}"]`) : null;
 }
 
@@ -547,9 +578,20 @@ function moveInList(host, event) {
   const table = optionTable(list);
   // 可用项的序号：方向键、类型搜索都跳过不可用的项
   const usable = table.flatMap((option, index) => (option.disabled ? [] : [index]));
+  const panel = host.popoverTargetElement;
+  if (panel && !panel.matches(':popover-open')) {
+    keyOnClosedTrigger(host, panel, list, event, flags, usable.map((index) => table[index].label), usable);
+    return;
+  }
+  if (event.key === 'Tab') {
+    // 弹层里不用 Tab 切换：关掉，焦点照常移到下一个
+    list.closest('[popover]')?.hidePopover();
+    return;
+  }
   const current = usable.indexOf(activeIndex(host, list));
   const step = listMoves[event.key];
-  if (step !== undefined) {
+  // 输入框里 Home / End 移动光标
+  if (step !== undefined && !(flags.includes('text') && typeof step === 'string')) {
     event.preventDefault();
     if (usable.length === 0) return;
     let next;
@@ -585,6 +627,189 @@ function highlightUnderPointer(event) {
   const list = option.closest('[role="listbox"]');
   const host = list && hostOf(list);
   if (host) highlight(host, list, indexOfOption(option), false);
+}
+
+// ---- 选项弹出层（Select） ----
+//
+// 触发按钮（popovertarget 指向弹层的列表宿主）打开弹层；焦点一直在触发按钮上（可搜索时在弹层里的搜索框上），
+// 高亮经 aria-activedescendant 告诉读屏。选中由 C# 处理（点击选项），这里只管开关、高亮与焦点。
+
+// 用 ↑ 打开的触发按钮：打开后高亮最后一项
+const highlightLastOnOpen = new WeakSet();
+
+// 按下时弹层开着的外壳：按下已经把弹层当作点在外面关掉了（popover="auto"），松开后的点击不要再打开
+const pressedWhileOpen = new WeakSet();
+
+/** 弹层的触发按钮（列表宿主）。 */
+function listTriggerOf(panel) {
+  return panel.id ? document.querySelector(`[data-rune-list][popovertarget="${CSS.escape(panel.id)}"]`) : null;
+}
+
+/** 关闭时在触发按钮上按键：↓ / Enter / 空格打开，↑ 打开并高亮最后一项；单选时按字母直接选中以它开头的项（同原生 select）。 */
+function keyOnClosedTrigger(host, panel, list, event, flags, labels, usable) {
+  if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    panel.showPopover();
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    highlightLastOnOpen.add(host);
+    panel.showPopover();
+  } else if (flags.includes('typeahead') && list.getAttribute('aria-multiselectable') !== 'true') {
+    const selected = list.querySelector('[role="option"][aria-selected="true"]');
+    const match = typeahead(list, event.key, labels, selected ? usable.indexOf(indexOfOption(selected)) : -1);
+    if (match < 0) return;
+    event.preventDefault();
+    const option = optionAt(list, usable[match]);
+    if (option && option.getAttribute('aria-selected') !== 'true') option.click();
+  }
+}
+
+/** 定位好、焦点移进去之后：在当前宿主（搜索框或触发按钮）上高亮已选的项（没有就第一项），用 ↑ 打开时是最后一项。 */
+function listPopoverOpened(panel) {
+  const trigger = listTriggerOf(panel);
+  const list = panel.querySelector('[role="listbox"]');
+  if (!trigger || !list || !panel.matches(':popover-open')) return;
+  const host = hostOf(list) ?? trigger;
+  if (!highlightLastOnOpen.delete(trigger)) {
+    highlightDefault(host, list);
+    return;
+  }
+  const table = optionTable(list);
+  highlight(host, list, table.findLastIndex((option) => !option.disabled), true);
+}
+
+/** 关闭后：清掉高亮；焦点在弹层里（搜索框，关上后落到 body）时还给触发按钮。 */
+function listPopoverClosed(panel) {
+  const trigger = listTriggerOf(panel);
+  const list = panel.querySelector('[role="listbox"]');
+  if (!trigger || !list) return;
+  highlightLastOnOpen.delete(trigger);
+  for (const host of [trigger, ...panel.querySelectorAll('[data-rune-list]')]) highlight(host, list, -1, false);
+  const active = document.activeElement;
+  if (!active || active === document.body || panel.contains(active)) trigger.focus();
+}
+
+/** 触发按钮的 aria-expanded、外壳的 data-state 跟着弹层（C# 收到 rune-toggle 后写的是同样的值；静态 SSR 只有这里写）。 */
+function syncTriggerExpanded(panel, opened) {
+  const trigger = listTriggerOf(panel);
+  if (!trigger) return;
+  trigger.setAttribute('aria-expanded', String(opened));
+  trigger.closest('[data-rune-control]')?.setAttribute('data-state', opened ? 'open' : 'closed');
+}
+
+/** 单选列表在弹层里选中了一项（点击，或 Enter 转成的点击）：关闭弹层。 */
+function closeAfterPick(target) {
+  const option = target.closest('[role="option"]:not([aria-disabled="true"])');
+  const list = option?.closest('[role="listbox"]');
+  if (!list || list.getAttribute('aria-multiselectable') === 'true') return;
+  const panel = list.closest('[popover]');
+  if (panel?.matches(':popover-open')) panel.hidePopover();
+}
+
+/** 点在下拉外壳的空白处（含已选标签的文字）：与点触发按钮一样切换打开。 */
+function toggleFromShell(target) {
+  const shell = target.closest('[data-rune-control]');
+  const trigger = shell?.querySelector(':scope > button[role="combobox"][popovertarget]');
+  if (!trigger || trigger.disabled || target.closest('button, a, input')) return;
+  if (pressedWhileOpen.has(shell)) return;
+  trigger.click();
+}
+
+// 搜索词变了（C# 渲染了过滤后的选项）：有词时高亮第一个匹配项，清空时回到默认项；停顿后播报结果数
+const resultTimers = new WeakMap();
+const RESULT_ANNOUNCE_DELAY = 500;
+
+function onQueryChanged(list) {
+  if (!list.closest('[popover]')?.matches(':popover-open')) return;
+  const host = hostOf(list);
+  const query = list.getAttribute('data-rune-query') ?? '';
+  if (host) {
+    if (query) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
+    else highlightDefault(host, list);
+  }
+  clearTimeout(resultTimers.get(list));
+  if (!query) return;
+  resultTimers.set(list, setTimeout(() => {
+    const results = list.getAttribute('data-rune-results');
+    if (results) speak(results);
+  }, RESULT_ANNOUNCE_DELAY));
+}
+
+/** Backspace（输入框里是空的时候）：把 data-rune-backspace 的命令交给 C#（多选下拉移除最后一项）。 */
+function sendBackspaceCommand(event) {
+  const target = event.target;
+  if (!(target instanceof Element) || event.altKey || event.ctrlKey || event.metaKey) return;
+  const name = target.getAttribute('data-rune-backspace');
+  if (!name || (target instanceof HTMLInputElement && target.value !== '')) return;
+  event.preventDefault();
+  target.dispatchEvent(new CustomEvent('rune-command', { bubbles: true, detail: { name } }));
+}
+
+// ---- 一行标签按宽度收起 ----
+//
+// 同 vue-tsx-pro 的 useOverflowItems（参考 rc-overflow）：所有标签都渲染，放不下的移出排版、藏起来但仍可测量；
+// 宽度变了、标签加减了就重新量。量不到布局（宽度为 0）时全部显示。至少显示一个。
+
+const overflowObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver((entries) => {
+  for (const entry of entries) scheduleOverflow(entry.target);
+});
+const watchedOverflow = new WeakSet();
+const pendingOverflow = new Set();
+
+function watchOverflow(row) {
+  if (!watchedOverflow.has(row)) {
+    watchedOverflow.add(row);
+    overflowObserver?.observe(row);
+  }
+  scheduleOverflow(row);
+}
+
+// 同一帧里的多次请求合成一次测量
+function scheduleOverflow(row) {
+  if (pendingOverflow.size === 0) {
+    requestAnimationFrame(() => {
+      const rows = [...pendingOverflow];
+      pendingOverflow.clear();
+      rows.forEach(measureOverflow);
+    });
+  }
+  pendingOverflow.add(row);
+}
+
+function measureOverflow(row) {
+  if (!row.isConnected) return;
+  const items = [...row.querySelectorAll(':scope > [data-rune-overflow-item]')];
+  const rest = row.querySelector(':scope > [data-rune-overflow-rest]');
+  const style = getComputedStyle(row);
+  const available = row.clientWidth - (parseFloat(style.paddingInlineStart) || 0) - (parseFloat(style.paddingInlineEnd) || 0);
+  const gap = parseFloat(style.columnGap) || 0;
+  const widths = items.map((item) => item.getBoundingClientRect().width);
+  const restWidth = rest?.getBoundingClientRect().width ?? 0;
+  const visible = available <= 0 && widths.every((width) => width === 0)
+    ? items.length
+    : Math.max(fitCount(widths, restWidth, gap, available), Math.min(1, items.length));
+  items.forEach((item, index) => item.toggleAttribute('data-overflow-hidden', index >= visible));
+  if (!rest) return;
+  const hidden = items.length - visible;
+  rest.toggleAttribute('data-overflow-hidden', hidden === 0);
+  const label = hidden > 0 ? JSON.parse(row.getAttribute('data-rune-more') ?? '[]')[hidden - 1] : null;
+  // 文字没变时不写：写了会触发 DOM 变化，又排一次测量
+  if (label && rest.textContent !== label) rest.textContent = label;
+}
+
+/** 都放得下时全部显示；否则留出“+N”的宽度后尽量多放。 */
+function fitCount(widths, restWidth, gap, available) {
+  const total = widths.reduce((sum, width, index) => sum + width + (index ? gap : 0), 0);
+  if (total <= available) return widths.length;
+  let used = restWidth;
+  let count = 0;
+  for (const width of widths) {
+    const next = used + gap + width;
+    if (next > available) break;
+    used = next;
+    count++;
+  }
+  return count;
 }
 
 // ---- 提示 ----
@@ -809,6 +1034,10 @@ function focusOnShell(event) {
   if (!(target instanceof Element)) return;
   const shell = target.closest('[data-rune-control]');
   if (!shell) return;
+  // 下拉：记下按下时弹层开没开（见 toggleFromShell）
+  const panel = shell.querySelector(':scope > button[role="combobox"]')?.popoverTargetElement;
+  if (panel?.matches(':popover-open')) pressedWhileOpen.add(shell);
+  else pressedWhileOpen.delete(shell);
   const button = target.closest('button');
   if (button && shell.contains(button) && button.getAttribute('tabindex') === '-1' && !button.disabled) {
     // 焦点留在输入框里（读屏、键盘接着用）；按住的按钮连续点击
@@ -817,7 +1046,7 @@ function focusOnShell(event) {
     return;
   }
   if (target.closest('input, textarea, select, button, a')) return;
-  const control = shell.querySelector(':scope > :is(input, textarea, select)');
+  const control = shell.querySelector(':scope > :is(input, textarea, select, button[role="combobox"])');
   if (!control || control.disabled) return;
   event.preventDefault();
   control.focus();
@@ -986,8 +1215,10 @@ const TRANSFORM_ORIGIN = { top: 'bottom', right: 'left', bottom: 'top', left: 'r
 const ARROW_EDGE = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' };
 const ARROW_ROTATION = { top: 45, right: 135, bottom: 225, left: -45 };
 
-/** 浮层的触发元素：popovertarget 指向它（Popover、Menu），或 data-rune-tooltip 指向它（Tooltip）。 */
+/** 浮层的锚点：data-anchor 指定的元素（Select 的输入框外壳），或触发元素（popovertarget、data-rune-tooltip 指向它）。 */
 function floatingAnchorOf(overlay) {
+  const anchor = overlay.dataset.anchor && document.getElementById(overlay.dataset.anchor);
+  if (anchor) return anchor;
   const id = CSS.escape(overlay.id);
   return document.querySelector(`[popovertarget="${id}"], [data-rune-tooltip="${id}"]`);
 }
