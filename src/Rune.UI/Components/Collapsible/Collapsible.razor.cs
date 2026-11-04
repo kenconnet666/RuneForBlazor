@@ -34,7 +34,7 @@ public partial class Collapsible : UIComponent
     Bindable<bool> open { get => field ??= new(() => Open, () => OpenChanged); }
 
     /// <summary>各部件的默认层：外观取参数、配置的默认值、组件默认值，定制取配置。</summary>
-    CollapsibleParts Parts => CollapsibleStyles.Of(
+    PartLayers<CollapsiblePart> Parts => CollapsibleStyles.Of(
         Variant ?? Config.Defaults.Get<CollapsibleDefaults>()?.Variant ?? CollapsibleVariant.Plain,
         Config.Styles);
 

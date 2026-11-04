@@ -1,0 +1,8 @@
+@*
+    图标（svg）：<Icon Data="Lucide.Plus" />。大小跟着字号（1em），颜色跟着文字颜色。
+    装饰性的图标（旁边有文字）不写 Label，对读屏隐藏；单独表达意思的图标写 Label 作为它的名称。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<svg @attributes="Attrs.Merge(IconStyles.Of(Size, Config.Styles)[IconPart.Root], Rest, Managed)">@((MarkupString)Data.Body)</svg>

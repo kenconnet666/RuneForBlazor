@@ -1,0 +1,33 @@
+@*
+    按钮家族的共用部分：外观参数、内部排布（前置图标、文字、后置图标、加载指示）。
+    每个具体组件（Button、LinkButton、IconButton）只写自己的元素与行为。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@code {
+    // 加载中：内容层隐藏但保留宽度与读屏名称
+    static readonly Attrs hiddenContent = new() { ["data-hidden"] = true };
+
+    /// <summary>按钮内部：内容层（前置图标、文字、后置图标）与加载中的指示层。</summary>
+    protected RenderFragment RenderInner(PartLayers<ButtonPart> parts, RenderFragment? text) =>
+        @<text>
+            <span @attributes="Attrs.Merge(parts[ButtonPart.Content], PropsContent, Loading ? hiddenContent : null)">
+                @if (Icon is not null)
+                {
+                    <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon)" />
+                }
+                @text
+                @if (IconEnd is not null)
+                {
+                    <Icon Data="IconEnd" @attributes="Attrs.MergeProps(parts[ButtonPart.IconEnd], PropsIconEnd)" />
+                }
+            </span>
+            @if (Loading)
+            {
+                <span @attributes="Attrs.Merge(parts[ButtonPart.Spinner])">
+                    <Spinner @attributes="Attrs.MergeProps(null, PropsSpinner)" />
+                </span>
+            }
+        </text>;
+}

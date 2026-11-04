@@ -4,6 +4,7 @@ namespace Rune.UI;
 
 // 主题 tokens：每个 token 是一个 CSS 变量（--rune-组-名），取值由主题提供（Themes.cs 里是内置的亮色与暗色主题）。
 // 组件里只用 token，不写裸的颜色、间距；token 带类型，颜色只能用在颜色属性上，间距只能用在长度属性上。
+// 按色调变化的颜色在 Tones.cs（Tones.Accent.Solid……）。
 
 /// <summary>间距：内边距、外边距、间隙。</summary>
 public static class Space
@@ -48,12 +49,6 @@ public static class Colors
     /// <summary>边框、分隔线。</summary>
     public static readonly CssColor Border = "var(--rune-colors-border)";
 
-    /// <summary>品牌强调色（主按钮、选中项）。</summary>
-    public static readonly CssColor Accent = "var(--rune-colors-accent)";
-
-    /// <summary>强调色上的文字。</summary>
-    public static readonly CssColor AccentContrast = "var(--rune-colors-accent-contrast)";
-
     /// <summary>焦点环。</summary>
     public static readonly CssColor FocusRing = "var(--rune-colors-focus-ring)";
 }
@@ -69,6 +64,16 @@ public static class Radii
 
     /// <summary>大圆角：对话框。</summary>
     public static readonly CssLength Lg = "var(--rune-radii-lg)";
+
+    /// <summary>胶囊形：两端全圆（标签、开关）。</summary>
+    public static readonly CssLength Full = "var(--rune-radii-full)";
+}
+
+/// <summary>透明度。</summary>
+public static class Opacities
+{
+    /// <summary>不可用的控件。</summary>
+    public static readonly CssValue Disabled = "var(--rune-opacities-disabled)";
 }
 
 /// <summary>字重。</summary>

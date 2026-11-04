@@ -12,13 +12,13 @@
 @inherits UIComponent
 @{ var parts = Parts; }
 
-<div @attributes="Attrs.Merge(parts.Root, Rest)" data-state="@(open.Value ? "open" : "closed")">
-    <button type="button" @attributes="Attrs.Merge(parts.Trigger, PropsTrigger, TriggerManaged)">
+<div @attributes="Attrs.Merge(parts[CollapsiblePart.Root], Rest)" data-state="@(open.Value ? "open" : "closed")">
+    <button type="button" @attributes="Attrs.Merge(parts[CollapsiblePart.Trigger], PropsTrigger, TriggerManaged)">
         @Title
     </button>
     @if (open.Value)
     {
-        <div @attributes="Attrs.Merge(parts.Content, PropsContent, ContentManaged)">
+        <div @attributes="Attrs.Merge(parts[CollapsiblePart.Content], PropsContent, ContentManaged)">
             @ChildContent
         </div>
     }

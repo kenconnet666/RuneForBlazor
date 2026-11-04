@@ -1,0 +1,70 @@
+@*
+    标签（span）：可以移除的标记，如筛选条件、已选的人。
+    <Tag OnRemove="() => Remove(item)" RemoveLabel="@($"移除 {item.Name}")">@item.Name</Tag>
+    给了 OnRemove 才显示移除按钮；组件不自己消失，由使用方把它从列表里拿掉。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = BadgeStyles.Of(BadgeAppearance.Resolve(Variant, Tone, Size, Radius, Config), Config.Styles); }
+
+<span @attributes="Attrs.Merge(parts[BadgePart.Root], Rest)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[BadgePart.Icon], PropsIcon)" />
+    }
+    @ChildContent
+    @if (OnRemove.HasDelegate)
+    {
+        <button type="button" @attributes="Attrs.Merge(parts[BadgePart.Remove], PropsRemove, RemoveManaged)">
+            <Icon Data="BuiltInIcons.X" />
+        </button>
+    }
+</span>
+
+@code {
+    Attrs? removeManaged;
+    string? removeManagedFor;
+
+    /// <summary>样式，默认浅色底。</summary>
+    [Parameter] public BadgeVariant? Variant { get; set; }
+
+    /// <summary>色调，默认中性。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>字号档位；不写时比上下文字号小一号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认胶囊形。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    /// <summary>文字前的图标。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>标签的文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>移除：给了才显示移除按钮。</summary>
+    [Parameter] public EventCallback OnRemove { get; set; }
+
+    /// <summary>移除按钮的名称（读屏读出），默认“移除”；建议写成“移除 张三”这样能区分的说法。</summary>
+    [Parameter] public string RemoveLabel { get; set; } = "移除";
+
+    /// <summary>图标的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>移除按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsRemove { get; set; }
+
+    // 移除按钮上由组件管理的属性：名称与点击；名称不变时复用同一个对象
+    Attrs RemoveManaged
+    {
+        get
+        {
+            if (removeManaged is not null && removeManagedFor == RemoveLabel) return removeManaged;
+            removeManagedFor = RemoveLabel;
+            return removeManaged = new Attrs { AriaLabel = RemoveLabel, Title = RemoveLabel, OnClick = HandleRemove };
+        }
+    }
+
+    Task HandleRemove(MouseEventArgs _) => OnRemove.InvokeAsync();
+}

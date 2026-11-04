@@ -1,0 +1,41 @@
+@*
+    看起来像按钮的链接（a 元素）：<LinkButton Href="/orders/new" Icon="Lucide.Plus">新建订单</LinkButton>。
+    跳转用它，执行操作用 Button。不可用时去掉 href（不能跳转），保留 aria-disabled。
+*@
+@namespace Rune.UI
+@inherits ButtonBase
+@{ var parts = Parts(FullWidth ? ButtonShape.FullWidth : ButtonShape.Normal); }
+
+<a @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !Loading), Managed)">
+    @RenderInner(parts, ChildContent)
+</a>
+
+@code {
+    /// <summary>链接地址。</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    /// <summary>链接文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>不可用：去掉 href，不能跳转、不在 Tab 顺序里。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>占满容器宽度。</summary>
+    [Parameter] public bool FullWidth { get; set; }
+
+    /// <inheritdoc/>
+    protected override ButtonVariant DefaultVariant => ButtonVariant.Solid;
+
+    /// <inheritdoc/>
+    protected override Tone DefaultTone => UI.Tone.Accent;
+
+    /// <summary>a 上由组件管理的属性：地址（不可用时去掉）与状态。</summary>
+    Attrs Managed => new()
+    {
+        ["href"] = Disabled || Loading ? null : Href,
+        AriaDisabled = Disabled || Loading ? true : null,
+        ["aria-busy"] = Loading ? "true" : null,
+        ["data-disabled"] = Disabled ? true : null,
+        ["data-loading"] = Loading ? true : null,
+    };
+}

@@ -35,23 +35,17 @@ public sealed record CollapsibleDefaults : IComponentDefaults<CollapsibleDefault
     public CollapsibleDefaults Over(CollapsibleDefaults outer) => new() { Variant = Variant ?? outer.Variant };
 }
 
-/// <summary>折叠面板各部件的默认层。</summary>
-/// <param name="Root">外层容器。</param>
-/// <param name="Trigger">展开收起的按钮。</param>
-/// <param name="Content">内容区。</param>
-public sealed record CollapsibleParts(Attrs Root, Attrs Trigger, Attrs Content);
-
 /// <summary>折叠面板的样式（配方）：部件 × 档位 × 定制，每种组合只创建一次。</summary>
 public static class CollapsibleStyles
 {
-    const string Scope = "collapsible";
-
     /// <summary>某个外观、某套定制下各部件的默认层。</summary>
-    public static CollapsibleParts Of(CollapsibleVariant variant, ComponentStyles styles) =>
-        Css.Define((variant, styles), static key => new CollapsibleParts(
-            Root: Part.Of(Scope, CollapsiblePart.Root, key.variant == CollapsibleVariant.Outline ? [Root, OutlineRoot] : Root, key.styles),
-            Trigger: Part.Of(Scope, CollapsiblePart.Trigger, [Trigger, SharedStyles.FocusRingInset, SharedStyles.ReducedMotion], key.styles),
-            Content: Part.Of(Scope, CollapsiblePart.Content, Content, key.styles)));
+    public static PartLayers<CollapsiblePart> Of(CollapsibleVariant variant, ComponentStyles styles) =>
+        Recipe.Of("collapsible", variant, styles, static (CollapsibleVariant variant, CollapsiblePart part) => part switch
+        {
+            CollapsiblePart.Root => variant == CollapsibleVariant.Outline ? [Root, OutlineRoot] : Root,
+            CollapsiblePart.Trigger => [Trigger, SharedStyles.FocusRingInset, SharedStyles.ReducedMotion],
+            _ => Content,
+        });
 
     static Style Root => Css.Define(static () => new Style
     {

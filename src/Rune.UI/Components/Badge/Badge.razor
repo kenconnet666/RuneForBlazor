@@ -1,0 +1,38 @@
+@*
+    标记（span）：状态、数量、分类。<Badge Tone="Tone.Success" Icon="BuiltInIcons.CircleCheck">已完成</Badge>
+    默认浅色底、中性色、胶囊形，比旁边的文字小一号。可移除的用 Tag。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = BadgeStyles.Of(BadgeAppearance.Resolve(Variant, Tone, Size, Radius, Config), Config.Styles); }
+
+<span @attributes="Attrs.Merge(parts[BadgePart.Root], Rest)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[BadgePart.Icon], PropsIcon)" />
+    }
+    @ChildContent
+</span>
+
+@code {
+    /// <summary>样式，默认浅色底。</summary>
+    [Parameter] public BadgeVariant? Variant { get; set; }
+
+    /// <summary>色调，默认中性。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>字号档位；不写时比上下文字号小一号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认胶囊形。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    /// <summary>文字前的图标。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>图标的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>标记的文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

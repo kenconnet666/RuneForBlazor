@@ -63,12 +63,18 @@ public class ThemeTests : IDisposable
     [Fact]
     public void 内置主题给每个token都定义了值()
     {
-        var tokens = typeof(Themes).Assembly.GetTypes()
+        var fields = typeof(Themes).Assembly.GetTypes()
             .Where(t => t is { IsAbstract: true, IsSealed: true, Namespace: "Rune.UI" })
             .SelectMany(t => t.GetFields(BindingFlags.Public | BindingFlags.Static))
-            .Where(f => f.FieldType == typeof(CssLength) || f.FieldType == typeof(CssColor) || f.FieldType == typeof(CssValue))
-            .Select(f => (Name: $"{f.DeclaringType!.Name}.{f.Name}", Token: f.GetValue(null)!.ToString()!))
             .ToList();
+        var single = fields
+            .Where(f => f.FieldType == typeof(CssLength) || f.FieldType == typeof(CssColor) || f.FieldType == typeof(CssValue))
+            .Select(f => (Name: $"{f.DeclaringType!.Name}.{f.Name}", Token: f.GetValue(null)!.ToString()!));
+        // 色调：每个色调一组颜色 token（Tones.Accent.Solid……）
+        var tones = fields
+            .Where(f => f.FieldType == typeof(ToneColors))
+            .SelectMany(f => ((ToneColors)f.GetValue(null)!).All.Select(token => (Name: $"Tones.{f.Name}", Token: token.ToString())));
+        var tokens = single.Concat(tones).ToList();
 
         Assert.NotEmpty(tokens);
         foreach (var theme in new[] { Themes.Light, Themes.Dark })
