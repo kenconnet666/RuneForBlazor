@@ -30,9 +30,8 @@ internal static class ParameterChangeDetector
         var unmatchedCount = 0;
         foreach (var parameter in parameters)
         {
-            // 级联值可能是被原地修改的对象（EditContext 之类），交给组件自己处理
-            if (parameter.Cascading) return true;
-
+            // 级联值与普通参数同样比较：可比较的（record 形式的配置）没变就跳过；
+            // EditContext 这类会被原地修改的对象不在可比较的类型里，照常当作变了
             object? current;
             if (properties.TryGetValue(parameter.Name, out var property))
             {
@@ -73,10 +72,19 @@ internal static class ParameterChangeDetector
     static bool IsRecord(Type type) =>
         type.GetProperty("EqualityContract", BindingFlags.NonPublic | BindingFlags.Instance) is not null;
 
+    // 沿继承链逐层取：GetProperties 不返回基类的私有属性（基类里私有的级联参数也要认）
+    static IEnumerable<PropertyInfo> DeclaredProperties(Type type)
+    {
+        for (var current = type; current is not null && current != typeof(object); current = current.BaseType)
+            foreach (var property in current.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                yield return property;
+    }
+
     static IReadOnlyDictionary<string, PropertyInfo> FindParameterProperties(Type type) =>
-        type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-            .Where(p => p.IsDefined(typeof(ParameterAttribute), inherit: true)
-                        && p.GetCustomAttribute<ParameterAttribute>()?.CaptureUnmatchedValues != true)
+        DeclaredProperties(type)
+            .Where(p => p.IsDefined(typeof(CascadingParameterAttributeBase), inherit: true)
+                        || (p.IsDefined(typeof(ParameterAttribute), inherit: true)
+                            && p.GetCustomAttribute<ParameterAttribute>()?.CaptureUnmatchedValues != true))
             // Blazor 的参数名不区分大小写
             .ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
 }

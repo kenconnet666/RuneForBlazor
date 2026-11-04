@@ -135,7 +135,12 @@ public abstract class RuneComponent : IComponent, IHandleEvent, IHandleAfterRend
     void RenderWithTracking(RenderTreeBuilder builder)
     {
         hasPendingQueuedRender = false;
-        hasNeverRendered = false;
+        if (hasNeverRendered)
+        {
+            // 第一次渲染时在渲染器的线程上：绑定登记表，让这个组件交出去的内容片段在别的组件里执行时也能找到它
+            StyleRegistry.BindToRenderer();
+            hasNeverRendered = false;
+        }
 
         bool missedChange;
         using (StyleRegistry.Enter(StyleRegistry))

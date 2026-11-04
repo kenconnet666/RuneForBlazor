@@ -16,7 +16,12 @@
 
 @code {
     /// <inheritdoc/>
-    protected override void OnInitialized() => Registry.Changed += OnRulesChanged;
+    protected override void OnInitialized()
+    {
+        // 在渲染器的线程上：把登记表绑定到这个渲染器，之后任何组件（含非 Rune 组件执行的内容片段）都能找到它
+        Registry.BindToRenderer();
+        Registry.Changed += OnRulesChanged;
+    }
 
     // 规则多半在别的组件渲染时登记，这时可能在渲染器的线程上，也可能不在
     void OnRulesChanged() => _ = InvokeAsync(StateHasChanged);

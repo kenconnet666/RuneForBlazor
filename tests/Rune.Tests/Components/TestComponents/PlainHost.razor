@@ -1,0 +1,6 @@
+@* 普通组件（不继承 RuneComponent）执行的内容片段里用样式：由 CascadingValue 渲染 *@
+@inject StyleRegistry Registry
+
+<CascadingValue Value="1">
+    <span @attributes="Attrs.Merge(PlainHostStyles.Badge)">片段里的样式</span>
+</CascadingValue>
