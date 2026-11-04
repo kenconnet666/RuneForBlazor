@@ -1,0 +1,130 @@
+@*
+    数字输入框：示例与 vue-tsx-pro 文档站的 /components/number-field 对应。
+    格式用 .NET 的数字格式（vue-tsx-pro 是 Intl.NumberFormat 的选项），单位写成格式里的字面文字或 Suffix；
+    数值区间（NumberRangeField）在阶段 5 做，做好后补上。
+*@
+@attribute [ComponentDemo("number-field", "数字输入框", Group = "表单", Order = 2)]
+@inherits RuneComponent
+
+<DemoSection Id="basic" Title="基础用法">
+    <Description>输入时是普通文字，失焦或回车时解析、夹到 Min–Max、对齐到 Step；解析不了时恢复原值，清空写回 null。Format 是 .NET 的数字格式，认当前文化的小数点与千分位，也认中文输入法打出的全角数字。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("14em")" Gap="SpaceScale.Lg">
+            <Field Label="数量" Description="1–99，↑ ↓ 加减 1，Page Up / Down 加减 10">
+                <NumberField @bind-Value="quantity" Min="1" Max="99" data-testid="quantity" />
+            </Field>
+            <Field Label="重量" Description="步长 0.1，提交时对齐，没有浮点误差">
+                <NumberField @bind-Value="weight" Min="0" Step="0.1m" Format="0.0## 'kg'" />
+            </Field>
+            <Field Label="折扣" Description="存 0–1 的小数，显示成百分比">
+                <NumberField @bind-Value="discount" Min="0" Max="1" Step="0.05m" Format="P0" />
+            </Field>
+            <Field Label="室外温度" Description="可以是负数，Home / End 到两端">
+                <NumberField @bind-Value="temperature" Min="-40" Max="60" Format="0'°C'" />
+            </Field>
+            <Field Label="评分" Description="空着时为 null，按 ↑ 从 min 开始">
+                <NumberField @bind-Value="rating" Min="1" Max="5" placeholder="1–5" />
+            </Field>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="precise" Title="精确数值">
+    <Description>值的类型不限：decimal 加减与对齐步长都精确运算，不经过浮点数；long 超过 2⁵³ 也不丢位。double 能用，但大数、长小数会丢精度。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("16em")" Gap="SpaceScale.Lg">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Field Label="单价（decimal）" Description="按两次 ↑：0.1 → 0.3，精确">
+                    <NumberField @bind-Value="price" Step="0.1m" Format="C2" />
+                </Field>
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">值：<Code>@(price?.ToString() ?? "null")</Code></TextSpan>
+            </Flex>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Field Label="合计（decimal?）" Description="一开始为空，写回的也是 decimal">
+                    <NumberField @bind-Value="total" Step="0.01m" Min="0" placeholder="0.00" />
+                </Field>
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">值：<Code>@(total?.ToString() ?? "null")</Code></TextSpan>
+            </Flex>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Field Label="播放量（long）" Description="超过 2⁵³ 的整数，加减不丢位">
+                    <NumberField @bind-Value="views" />
+                </Field>
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">值：<Code>@views</Code></TextSpan>
+            </Flex>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Field Label="对照：double" Description="步长 0.1 也能对齐，但大数、长小数会丢精度">
+                    <NumberField @bind-Value="floating" Step="0.1m" />
+                </Field>
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">值：<Code>@floating</Code></TextSpan>
+            </Flex>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="units" Title="单位与缩放">
+    <Description>Suffix、Prefix 把单位放进输入框。只读时不显示加减按钮。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("14em")" Gap="SpaceScale.Lg">
+            <Field Label="预算"><NumberField @bind-Value="budget" Min="0" Step="1000"><Prefix>¥</Prefix><Suffix>元</Suffix></NumberField></Field>
+            <Field Label="容量"><NumberField @bind-Value="capacity" Min="0"><Suffix>GB</Suffix></NumberField></Field>
+            <Field Label="只读"><NumberField Value="42" ReadOnly="true"><Suffix>件</Suffix></NumberField></Field>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="appearance" Title="外观与状态">
+    <Description>外观同 TextField：Variant、Size、Radius；减少、增加按钮不在 Tab 顺序里。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("13em")" Gap="SpaceScale.Lg">
+            @foreach (var size in sizes)
+            {
+                <Field Label="@($"surface · {Lower(size)}")"><NumberField @bind-Value="shared" Size="size" /></Field>
+            }
+            @foreach (var size in sizes)
+            {
+                <Field Label="@($"soft · {Lower(size)}")"><NumberField @bind-Value="shared" Variant="InputVariant.Soft" Size="size" /></Field>
+            }
+            <Field Label="胶囊形"><NumberField @bind-Value="shared" Radius="Radius.Full" /></Field>
+            <Field Label="可清空" Description="clearable：选填的数量，清空后值是 null"><NumberField @bind-Value="shared" Clearable="true" /></Field>
+            <Field Label="不要加减按钮" Description="stepper={false}，方向键照常可用"><NumberField @bind-Value="shared" Stepper="false" /></Field>
+            <Field Label="只读"><NumberField @bind-Value="shared" ReadOnly="true" /></Field>
+            <Field Label="不可用"><NumberField @bind-Value="shared" Disabled="true" /></Field>
+            <Field Label="出错" Error="库存只剩 10 件"><NumberField @bind-Value="shared" Max="10" /></Field>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="submit" Title="表单提交">
+    <Description>写了 name 时，原生表单提交的是十进制文本（不带千分位与货币符号），不是输入框里显示的格式。</Description>
+    <ChildContent>
+        <form @onsubmit="Submit" @onsubmit:preventDefault>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <Grid MinItemWidth="@("14em")" Gap="SpaceScale.Lg">
+                    <Field Label="单价" Description="显示 ¥12,345.60，提交 12345.6">
+                        <NumberField @bind-Value="unitPrice" name="price" Step="0.01m" Format="C2" />
+                    </Field>
+                    <Field Label="数量"><NumberField @bind-Value="count" name="quantity" Min="1" /></Field>
+                </Grid>
+                <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+                    <Button Type="submit">提交</Button>
+                    <Small Tone="TextTone.Muted">@(submitted is null ? "还没有提交" : submitted)</Small>
+                </Flex>
+            </Flex>
+        </form>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly Size[] sizes = [Size.Sm, Size.Md, Size.Lg];
+
+    int? quantity = 2, rating, shared = 12, count = 3;
+    decimal? weight = 1.5m, discount = 0.85m, temperature = -4, price = 0.1m, total, budget = 50000, capacity = 256, unitPrice = 12345.6m;
+    long views = 9_007_199_254_740_993;
+    double floating = 0.1;
+    string? submitted;
+
+    // 同原生表单提交的内容：十进制文本，不带千分位与货币符号
+    void Submit() => submitted = FormattableString.Invariant($"price={unitPrice}&quantity={count}");
+
+    static string Lower<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
+}

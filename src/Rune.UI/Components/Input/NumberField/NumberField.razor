@@ -6,6 +6,7 @@
     Min、Max、Step 写成 decimal（同 Blazor 的 InputNumber，值的类型不限）。输入时是普通文本，失去焦点或回车时解析、夹到 Min–Max、
     对齐到 Step 后写回（decimal 计算，没有浮点误差），解析不了时恢复原值；认全角数字与当前文化的千分位。
     ↑ / ↓ 加减 Step，Page Up / Page Down 加减 BigStep，Home / End 到 Min / Max（JS 初始化器处理，没有往返）。
+    写了 name 时原生表单提交的是十进制文本（不带千分位与货币符号）：name 落在一个隐藏的 input 上，不是显示格式的输入框。
 *@
 @namespace Rune.UI
 @typeparam TValue
@@ -26,19 +27,28 @@
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsPrefix)">@Prefix</label>
     }
     <input @key="version" type="text" inputmode="decimal" autocomplete="off"
-           @attributes="Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged)" />
+           @attributes="Attrs.Merge(parts[InputPart.Input], VisibleUserAttrs, InputManaged)" />
     @if (Suffix is not null)
     {
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsSuffix)">@Suffix</label>
     }
+    @if (Clearable && !IsDisabled && !IsReadOnly && current is not null && NumberText.TryFromDecimal<TValue>(null, out _))
+    {
+        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="() => ApplyAsync(null)"
+                     @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsClear, RefocusInput)" />
+    }
     @if (ShowStepper)
     {
-        <IconButton Icon="BuiltInIcons.Minus" Label="@DecrementLabel" Radius="UI.Radius.Full" tabindex="-1"
+        <IconButton Icon="BuiltInIcons.Minus" Label="@DecrementLabel" Radius="UI.Radius.Full" tabindex="-1" data-rune-repeat
                     Disabled="@(IsDisabled || AtLimit(current, Min, -1))" @onclick="() => StepAsync(-1)"
                     @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsDecrement)" />
-        <IconButton Icon="BuiltInIcons.Plus" Label="@IncrementLabel" Radius="UI.Radius.Full" tabindex="-1"
+        <IconButton Icon="BuiltInIcons.Plus" Label="@IncrementLabel" Radius="UI.Radius.Full" tabindex="-1" data-rune-repeat
                     Disabled="@(IsDisabled || AtLimit(current, Max, 1))" @onclick="() => StepAsync(1)"
                     @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsIncrement)" />
+    }
+    @if (FormName is { } name)
+    {
+        <input type="hidden" name="@name" value="@current?.ToString(CultureInfo.InvariantCulture)" disabled="@IsDisabled" />
     }
 </div>
 
@@ -92,6 +102,15 @@
     /// <summary>数字后的内容（单位）。</summary>
     [Parameter] public RenderFragment? Suffix { get; set; }
 
+    /// <summary>有值时显示清空按钮（可空的值类型才有：清空后是 null）。</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>清空按钮的名称（读屏读出）。</summary>
+    [Parameter] public string ClearLabel { get; set; } = "清空";
+
+    /// <summary>清空按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsClear { get; set; }
+
     /// <summary>减少按钮的名称（读屏读出）。</summary>
     [Parameter] public string DecrementLabel { get; set; } = "减少";
 
@@ -105,6 +124,18 @@
     [Parameter] public Attrs? PropsSuffix { get; set; }
 
     bool ShowStepper => Stepper && !IsReadOnly;
+
+    Memo<string, Attrs> refocusInput;
+    Memo<IReadOnlyDictionary<string, object>?, Attrs> visibleUserAttrs;
+
+    // 清空后焦点回到输入框
+    Attrs RefocusInput => refocusInput.Get(ControlId, static id => new Attrs { ["data-rune-refocus"] = id });
+
+    // 表单提交用的字段名：落在隐藏的 input 上（提交十进制文本），显示的输入框不带它
+    string? FormName => AdditionalAttributes?.TryGetValue("name", out var name) == true ? name as string : null;
+
+    Attrs VisibleUserAttrs => visibleUserAttrs.Get(AdditionalAttributes, static attributes =>
+        Attrs.From(attributes, null) is var all && attributes?.ContainsKey("name") == true ? all.Without("name") : all);
 
     static bool AtLimit(decimal? current, decimal? bound, int direction) =>
         current is { } value && bound is { } limit && (direction < 0 ? value <= limit : value >= limit);

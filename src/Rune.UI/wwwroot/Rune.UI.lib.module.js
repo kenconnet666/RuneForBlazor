@@ -19,7 +19,9 @@
 //                            成功后按钮的 data-state 变成 copied（data-rune-copy-timeout 毫秒后复原）、播报 data-rune-copied-text，
 //                            发出冒泡的 rune-copied（Blazor 里是 @onrunecopied）
 //   data-rune-grid-span="n"  网格里跨 n 列的项：网格实际的列比 n 少时（按宽度自动换列的网格变窄）改成跨当前的列数
-//   data-rune-control        输入框的外壳：点在空白处（内边距、图标、前后缀）时聚焦里面的输入元素
+//   data-rune-control        输入框的外壳：点在空白处（内边距、图标、前后缀）时聚焦里面的输入元素；
+//                            框里不在 Tab 顺序里的按钮（数字框的加减）按下时不抢走输入框的焦点
+//   data-rune-repeat         按住时连续点击（数字框的加减）：停一会儿后每隔一小段时间再点一次，松开为止
 //   data-rune-refocus="id"   点击后把焦点交给这个 id 的元素（清空按钮清空后回到输入框）
 //   data-rune-reveal="id"    显示密码按钮：切换这个 id 的输入框的 type（password / text）与按钮的 aria-pressed
 //   data-rune-count="id"     有字数计数的输入框：输入时更新这个 id 的计数（看得见的字数与超出上限的 data-over）
@@ -466,7 +468,15 @@ function focusOnShell(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
   const shell = target.closest('[data-rune-control]');
-  if (!shell || target.closest('input, textarea, select, button, a')) return;
+  if (!shell) return;
+  const button = target.closest('button');
+  if (button && shell.contains(button) && button.getAttribute('tabindex') === '-1' && !button.disabled) {
+    // 焦点留在输入框里（读屏、键盘接着用）；按住的按钮连续点击
+    event.preventDefault();
+    if (button.hasAttribute('data-rune-repeat')) repeatWhileHeld(button);
+    return;
+  }
+  if (target.closest('input, textarea, select, button, a')) return;
   const control = shell.querySelector(':scope > :is(input, textarea, select)');
   if (!control || control.disabled) return;
   event.preventDefault();
@@ -482,6 +492,20 @@ function updateCount(input) {
   const value = counter.querySelector('[aria-hidden="true"]');
   if (value) value.textContent = max ? `${count} / ${max}` : String(count);
   counter.toggleAttribute('data-over', max != null && count > max);
+}
+
+/** 按住时连续点击：400ms 后每 80ms 点一次（第一下由松开时的 click 完成），松开、移开或按钮变成不可用时停 */
+function repeatWhileHeld(button) {
+  let timer = setTimeout(function tick() {
+    if (button.disabled || !button.isConnected) return stop();
+    button.click();
+    timer = setTimeout(tick, 80);
+  }, 400);
+  const stop = () => {
+    clearTimeout(timer);
+    for (const type of ['pointerup', 'pointercancel', 'pointerleave']) button.removeEventListener(type, stop);
+  };
+  for (const type of ['pointerup', 'pointercancel', 'pointerleave']) button.addEventListener(type, stop);
 }
 
 /** 多行文本框随内容增高：先让高度回到 auto 才量得出变矮后的 scrollHeight；上下限由 CSS 夹住 */
