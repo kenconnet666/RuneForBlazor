@@ -1,0 +1,29 @@
+@* 消息提示：ToastService 显示、各色调、自动消失与手动关闭、后台线程里显示 *@
+@attribute [ComponentDemo("toast", "消息提示", Group = "反馈", Order = 1)]
+@inherits RuneComponent
+@inject ToastService Toasts
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>显示提示</h2>
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <Button Tone="Tone.Success" @onclick="@(() => Toasts.Show("订单已保存。", Tone.Success))" data-testid="toast-success">成功</Button>
+        <Button Variant="ButtonVariant.Soft" @onclick="@(() => Toasts.Show("有 3 条新消息。", title: "收件箱"))">信息（带标题）</Button>
+        <Button Variant="ButtonVariant.Soft" Tone="Tone.Warning" @onclick="@(() => Toasts.Show("库存低于 10 件。", Tone.Warning))">警告</Button>
+        <Button Variant="ButtonVariant.Soft" Tone="Tone.Danger" @onclick="@(() => Toasts.Show("网络错误，保存失败。", Tone.Danger, "保存失败"))">错误（不自动消失）</Button>
+        <Button Variant="ButtonVariant.Surface" @onclick="FromBackground">两秒后从后台线程显示</Button>
+        <Button Variant="ButtonVariant.Ghost" @onclick="Toasts.Clear">全部清除</Button>
+    </Flex>
+    <Paragraph Muted="true" Size="Size.Sm">
+        列表放在信号里：Toaster 读了它，后台线程调用 Show 也会自动刷新。静态 SSR 下没有交互，按钮不起作用。
+    </Paragraph>
+</section>
+
+<Toaster />
+
+@code {
+    void FromBackground() => _ = Task.Run(async () =>
+    {
+        await Task.Delay(2000);
+        Toasts.Show("后台任务完成。", Tone.Info, "导出");
+    });
+}

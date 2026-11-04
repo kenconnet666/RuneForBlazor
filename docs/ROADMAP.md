@@ -55,10 +55,12 @@
 
 ## 阶段 2：浮层与反馈
 
-- [ ] JS 互操作底座（从阶段 0 挪来：用到时再做，不凭空设计）：焦点管理、点击外部、锁定滚动、进出场（Presence）；JS 模块按需导入
-- [ ] Popover、Tooltip、Menu / Dropdown（浮层第一次打开才渲染内容）
-- [ ] Dialog（原生 `<dialog>`）、Drawer
-- [ ] Toast、Popconfirm
+- [x] JS 底座：一个 JS 初始化器做全局事件委托，组件只写 data 属性、不调用 IJSRuntime（见 DESIGN 第 8 节）。
+      焦点管理、点外面关闭交给原生 popover / dialog，进出场交给 `@starting-style`，锁定滚动、菜单键盘、受控开关同步在 JS 里
+- [x] 样式条件：`When.PopoverOpen`、`When.Empty`、`When.Parent(…)`、`When.Starting`（@starting-style）、`Pseudo.Backdrop`
+- [x] Popover、Menu（键盘、首字母、选中后关闭）、Tooltip（纯 CSS）；Popover 内容第一次打开才渲染
+- [x] Dialog、Drawer（原生模态 `<dialog>`，`@bind-Open` 或 Trigger，四个方向）
+- [x] Toast（`ToastService` + `Toaster`，信号驱动）、Popconfirm
 
 ## 阶段 3：输入与表单
 
@@ -92,7 +94,7 @@
 
 ## 待决
 
-1. 浮层定位：原生 `popover` + CSS anchor positioning（倾向，加一小段 JS 兜底），还是移植 Floating UI 这类 JS 定位库
+1. ~~浮层定位~~：已定为原生 `popover` + CSS 锚点定位，JS 兜底（阶段 2）
 2. 表单：扩展 Blazor 的 `EditContext`（倾向，兼容 `EditForm`、DataAnnotations、FluentValidation），还是另做一套
 3. 首批组件范围：按上面的阶段顺序，还是从 vue-tsx-pro 的约 168 个组件里另挑
 4. CD：NuGet 发到 nuget.org 还是私有源；文档站（含 Server 模式）部署到哪里

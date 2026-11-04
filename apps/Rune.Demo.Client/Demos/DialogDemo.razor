@@ -1,0 +1,64 @@
+@* 对话框与抽屉：受控（@bind-Open）与 Trigger 两种打开方式、页脚操作、四个方向的抽屉 *@
+@attribute [ComponentDemo("dialog", "对话框与抽屉", Group = "浮层", Order = 1)]
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>对话框</h2>
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <Button Icon="Lucide.Pencil" @onclick="() => editing = true" data-testid="open-edit">编辑订单（@@bind-Open）</Button>
+        <Dialog Title="关于" Width="DialogWidth.Sm">
+            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Surface">关于（Trigger，静态 SSR 也能开）</Button></Trigger>
+            <ChildContent>
+                <Paragraph>Rune 是一套 Blazor 组件库。对话框用原生的 dialog：焦点圈在里面，Esc 关闭，关闭后焦点回到按钮。</Paragraph>
+            </ChildContent>
+            <Footer><Button data-rune-close>知道了</Button></Footer>
+        </Dialog>
+    </Flex>
+    <TextSpan Muted="true" data-testid="saved">@saved</TextSpan>
+
+    <Dialog @bind-Open="editing" Title="编辑订单 #1024" LightDismiss="false" data-testid="edit-dialog">
+        <ChildContent>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Paragraph>点遮罩不会关闭（LightDismiss="false"），内容填了一半不会丢。</Paragraph>
+                <label>
+                    备注
+                    <input @bind="note" @bind:event="oninput" style="display:block;width:100%;margin-top:4px" />
+                </label>
+                @foreach (var line in Enumerable.Range(1, 12))
+                {
+                    <Paragraph Muted="true">第 @line 行：正文内容多时在这里滚动，页头页脚不动。</Paragraph>
+                }
+            </Flex>
+        </ChildContent>
+        <Footer>
+            <Button Variant="ButtonVariant.Ghost" data-rune-close>取消</Button>
+            <Button @onclick="Save">保存</Button>
+        </Footer>
+    </Dialog>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>抽屉</h2>
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        @foreach (var placement in Enum.GetValues<Placement>())
+        {
+            <Drawer Placement="placement" Title="@($"从 {placement} 滑出")">
+                <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline">@placement</Button></Trigger>
+                <ChildContent><Paragraph>抽屉适合详情、筛选与较长的表单。</Paragraph></ChildContent>
+                <Footer><Button data-rune-close>关闭</Button></Footer>
+            </Drawer>
+        }
+    </Flex>
+</section>
+
+@code {
+    bool editing;
+    string note = "";
+    string saved = "还没保存";
+
+    void Save()
+    {
+        saved = $"已保存：{(note.Length == 0 ? "（空）" : note)}";
+        editing = false;
+    }
+}
