@@ -12,7 +12,7 @@ namespace Rune;
 /// Blazor 自己只认基本类型：只要有一个参数是对象（RenderFragment、回调、样式），子组件就跟着父级重新渲染。
 /// 这里多认几类“比较结果可信”的值：
 /// <list type="bullet">
-/// <item><description>委托（RenderFragment、Action 等）：目标对象与方法都相同就相等，只引用组件成员的 ChildContent 每次都相等；</description></item>
+/// <item><description>回调（Action、Func 等委托）：目标对象与方法都相同就相等。内容片段（RenderFragment）除外：它的输出取决于父级渲染时的状态，一律当作变了；</description></item>
 /// <item><description>EventCallback、结构体、record：按值比较；</description></item>
 /// <item><description>信号（<see cref="State{T}"/> 等）、<see cref="Style"/>、<see cref="Sx"/>：本身不可变或会自己通知，比较引用即可。</description></item>
 /// </list>
@@ -62,11 +62,17 @@ internal static class ParameterChangeDetector
     static bool IsComparable(Type type) =>
         type.IsValueType
         || type == typeof(string)
-        || typeof(Delegate).IsAssignableFrom(type)
+        // 回调在调用时才读状态，同一个方法与目标就是同一个回调；
+        // 内容片段不行：它在渲染时读父级的状态，普通字段变了不会通知，跳过就会显示旧内容
+        || (typeof(Delegate).IsAssignableFrom(type) && !IsRenderFragment(type))
         || typeof(Signal).IsAssignableFrom(type)
         || type == typeof(Style)
         || type == typeof(Sx)
         || IsRecord(type);
+
+    static bool IsRenderFragment(Type type) =>
+        type == typeof(RenderFragment)
+        || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(RenderFragment<>));
 
     // record 有编译器生成的 EqualityContract 属性
     static bool IsRecord(Type type) =>
