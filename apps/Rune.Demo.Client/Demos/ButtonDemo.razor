@@ -1,0 +1,70 @@
+@* 按钮家族：样式 × 色调、尺寸、图标、加载中、不可用、图标按钮、链接按钮 *@
+@attribute [ComponentDemo("button", "按钮", Group = "基础组件", Order = 0)]
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>样式 × 色调</h2>
+    @foreach (var variant in Enum.GetValues<ButtonVariant>())
+    {
+        <div @attributes="Attrs.Merge(DemoStyles.Row)" data-testid="@($"variant-{variant}")">
+            <span @attributes="Attrs.Merge(DemoStyles.RowLabel)">@variant</span>
+            @foreach (var tone in Enum.GetValues<Tone>())
+            {
+                <Button Variant="variant" Tone="tone">@tone</Button>
+            }
+        </div>
+    }
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>尺寸与圆角</h2>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        @foreach (var size in Enum.GetValues<Size>())
+        {
+            <Button Size="size" Icon="Lucide.Plus">@size</Button>
+        }
+    </div>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        @foreach (var radius in Enum.GetValues<Radius>())
+        {
+            <Button Variant="ButtonVariant.Surface" Radius="radius">@radius</Button>
+        }
+    </div>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>状态</h2>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        <Button Loading="saving" Icon="Lucide.Save" @onclick="SaveAsync" data-testid="save">保存（点了加载 1.5 秒）</Button>
+        <Button Disabled="true">不可用</Button>
+        <Button Variant="ButtonVariant.Outline" IconEnd="Lucide.ArrowRight" @onclick="() => clicks++" data-testid="counter">点击 @clicks 次</Button>
+    </div>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        <Button FullWidth="true" Variant="ButtonVariant.Soft">占满宽度</Button>
+    </div>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>图标按钮与链接按钮</h2>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        <IconButton Icon="Lucide.Pencil" Label="编辑" />
+        <IconButton Icon="Lucide.Copy" Label="复制" Variant="ButtonVariant.Surface" />
+        <IconButton Icon="Lucide.Trash" Label="删除" Tone="Tone.Danger" />
+        <IconButton Icon="Lucide.RefreshCw" Label="刷新" Loading="true" />
+        <LinkButton Href="server/badge" IconEnd="Lucide.ArrowRight">去看标记</LinkButton>
+        <LinkButton Href="server/badge" Disabled="true" Variant="ButtonVariant.Outline">不可用的链接</LinkButton>
+        <Button Variant="ButtonVariant.Link">像链接的按钮</Button>
+    </div>
+</section>
+
+@code {
+    bool saving;
+    int clicks;
+
+    async Task SaveAsync()
+    {
+        saving = true;
+        await Task.Delay(1500);
+        saving = false;
+    }
+}

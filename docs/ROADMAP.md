@@ -36,13 +36,17 @@
 - [x] NuGet 打包：生成器放进 Rune 包的 `analyzers/dotnet/cs`、SourceLink、README、MIT；CI 打包并检查包的内容、留存产物
 - [x] 样式登记表按渲染器查找：非 Rune 组件执行的内容片段（CascadingValue、Virtualize、EditForm 的 ChildContent）里也能用样式
 - [x] 顺带修正：库专属的构建设置挪到 `Directory.Build.targets`（原来写在 props 里，条件永远不成立：文档注释检查、打包都没生效）
-- [ ] 配方 API：Collapsible、Button、Badge 三个组件做完后再抽通用的配方类型（第三次出现才抽象）→ 阶段 1 里做
+- [x] 配方 API：见阶段 1
 
 ## 阶段 1：基础组件
 
-- [ ] 按钮家族（Button、IconButton、LinkButton）、Icon（Lucide 数据生成 C#）
+- [x] 按钮家族（Button、IconButton、LinkButton）：样式 × 色调写成以色调 token 为参数的函数；加载中可聚焦不可点；图标按钮必填名称
+- [x] Icon、Spinner：Lucide 1891 个图标生成 C#（`Rune.Icons`，每个图标首次访问时才创建），组件库内置 16 个；关键帧动画进样式引擎
+- [x] 配方 API 定型（`Recipe.Of` + `PartLayers<TPart>`，Collapsible、Button、Badge 三处用到）；部件是本库组件时样式作为 Sx 交下去（`Attrs.MergeProps`）
 - [ ] Text、Heading、Link、Kbd、VisuallyHidden
-- [ ] Badge、Tag、Spinner
+- [x] Badge、Tag（可移除）
+- [x] 色调 token（6 个色调 × 7 种用途）、字号与圆角档位
+- [x] 修正：内容片段（RenderFragment）参数不再按委托相等跳过渲染（演示项目里计数按钮的文字不更新，实测发现）
 - [ ] 布局：Stack、Flex、Grid
 - [ ] Card、Alert
 

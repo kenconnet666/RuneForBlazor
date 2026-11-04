@@ -1,0 +1,48 @@
+@* 标记与标签：样式 × 色调、图标、可移除的标签 *@
+@attribute [ComponentDemo("badge", "标记与标签", Group = "基础组件", Order = 1)]
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>样式 × 色调</h2>
+    @foreach (var variant in Enum.GetValues<BadgeVariant>())
+    {
+        <div @attributes="Attrs.Merge(DemoStyles.Row)">
+            <span @attributes="Attrs.Merge(DemoStyles.RowLabel)">@variant</span>
+            @foreach (var tone in Enum.GetValues<Tone>())
+            {
+                <Badge Variant="variant" Tone="tone">@tone</Badge>
+            }
+        </div>
+    }
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>在文字中</h2>
+    <p>订单 #1024 <Badge Tone="Tone.Success" Icon="BuiltInIcons.CircleCheck">已完成</Badge>，
+        退款 <Badge Tone="Tone.Warning" Icon="BuiltInIcons.TriangleAlert">处理中</Badge>，
+        标记默认比旁边的文字小一号。</p>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        <Badge Size="Size.Lg" Radius="Radius.Sm" Variant="BadgeVariant.Solid" Tone="Tone.Accent">Lg · 小圆角</Badge>
+    </div>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>可移除的标签</h2>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)" data-testid="tags">
+        @foreach (var name in people)
+        {
+            <Tag @key="name" Tone="Tone.Accent" RemoveLabel="@($"移除 {name}")" OnRemove="() => people.Remove(name)">@name</Tag>
+        }
+        @if (people.Count == 0)
+        {
+            <Button Variant="ButtonVariant.Ghost" Icon="Lucide.RotateCcw" @onclick="Reset">恢复</Button>
+        }
+    </div>
+</section>
+
+@code {
+    static readonly string[] initial = ["张三", "李四", "王五"];
+    List<string> people = [.. initial];
+
+    void Reset() => people = [.. initial];
+}

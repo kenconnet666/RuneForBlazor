@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
     <ProjectReference Include="..\..\src\Rune.UI\Rune.UI.csproj" />
     <ProjectReference Include="..\..\src\Rune\Rune.csproj" />
+    <ProjectReference Include="..\..\src\Rune.Icons\Rune.Icons.csproj" />
     <!-- [State] 生成器：以分析器方式引用 -->
     <ProjectReference Include="..\..\src\Rune.Generators\Rune.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>

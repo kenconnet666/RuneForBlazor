@@ -1,0 +1,45 @@
+@* 图标：Lucide 全集按名字搜索（图标在第一次用到时才创建）、大小与颜色跟着文字 *@
+@attribute [ComponentDemo("icon", "图标", Group = "基础组件", Order = 2)]
+@using System.Reflection
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>跟着文字的大小与颜色</h2>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        @foreach (var size in Enum.GetValues<Size>())
+        {
+            <span><Icon Data="Lucide.Star" Size="size" /> @size</span>
+        }
+        <span style="color: crimson"><Icon Data="Lucide.Heart" Label="喜欢" /> 有名称的图标（读屏读出“喜欢”）</span>
+    </div>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>Lucide 全集（@all.Value.Count 个）</h2>
+    <input placeholder="按名字搜索，如 arrow" @bind="query" @bind:event="oninput" data-testid="icon-search" />
+    <div @attributes="Attrs.Merge(DemoStyles.IconGrid)">
+        @foreach (var (name, read) in Matches.Take(120))
+        {
+            <div @attributes="Attrs.Merge(DemoStyles.IconCell)" title="@name">
+                <Icon Data="read()" Size="Size.Xl" />
+                <small>@name</small>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    string query = "";
+
+    // 只取属性的名字与读取方法，不读值：图标在显示时才创建
+    static readonly Lazy<IReadOnlyList<(string Name, Func<IconData> Read)>> all = new(() =>
+        typeof(Lucide).GetProperties(BindingFlags.Public | BindingFlags.Static)
+            .Where(p => p.PropertyType == typeof(IconData))
+            .Select(p => (p.Name, (Func<IconData>)p.GetMethod!.CreateDelegate(typeof(Func<IconData>))))
+            .ToList());
+
+    IEnumerable<(string Name, Func<IconData> Read)> Matches =>
+        string.IsNullOrWhiteSpace(query)
+            ? all.Value
+            : all.Value.Where(i => i.Name.Contains(query.Replace("-", ""), StringComparison.OrdinalIgnoreCase));
+}

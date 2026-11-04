@@ -62,11 +62,40 @@ public static class DemoStyles
         Color = Colors.Text,
         TextDecoration = "none",
         [When.Hover] = new() { BackgroundColor = Colors.SurfaceHover },
-        [When.Current] = new() { BackgroundColor = Colors.Accent, Color = Colors.AccentContrast },
+        [When.Current] = new() { BackgroundColor = Tones.Accent.Solid, Color = Tones.Accent.Contrast },
+    });
+
+    /// <summary>一排演示前面的说明文字（固定宽度，几排对齐）。</summary>
+    public static Style RowLabel => Css.Define(static () => new Style
+    {
+        Width = 72,
+        FontSize = 12,
+        Color = Colors.TextMuted,
+    });
+
+    /// <summary>图标网格。</summary>
+    public static Style IconGrid => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "repeat(auto-fill, minmax(96px, 1fr))",
+        Gap = Space.Sm,
+    });
+
+    /// <summary>图标网格里的一格。</summary>
+    public static Style IconCell => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        JustifyItems = JustifyItems.Center,
+        Gap = Space.Xs,
+        Padding = Space.Sm,
+        BorderRadius = Radii.Md,
+        OverflowWrap = "anywhere",
+        TextAlign = TextAlign.Center,
+        [When.Hover] = new() { BackgroundColor = Colors.SurfaceHover },
     });
 
     /// <summary>强调色文字（按部件定制的例子）。</summary>
-    public static Style AccentText => Css.Define(static () => new Style { Color = Colors.Accent });
+    public static Style AccentText => Css.Define(static () => new Style { Color = Tones.Accent.Text });
 
     /// <summary>主题预览区：用主题的背景色，切换主题时看得出来。</summary>
     public static Style ThemePreview => Css.Define(static () => new Style
@@ -80,6 +109,6 @@ public static class DemoStyles
     /// <summary>使用方覆盖的例子：展开时把标题改成强调色（只改这一个状态下的颜色）。</summary>
     public static Style AccentWhenExpanded => Css.Define(static () => new Style
     {
-        [When.Expanded] = new() { Color = Colors.Accent },
+        [When.Expanded] = new() { Color = Tones.Accent.Text },
     });
 }

@@ -27,7 +27,8 @@
 
 - `RuneComponent` 自己实现 `IComponent`，在 `BuildRenderTree` 前后开关依赖收集与样式登记；生命周期照 .NET 10 的 `ComponentBase` 复刻（Razor 只要求基类有 `protected virtual void BuildRenderTree(RenderTreeBuilder)`）。
 - 内容里（`ChildContent`）读到的状态归执行它的子组件：状态变了只重新渲染子组件。
-- **参数没变就跳过渲染**（`ParameterChangeDetector`）：Blazor 自己只认基本类型。这里另外认委托（只引用组件成员的 `RenderFragment` 每次都相等）、`EventCallback`、结构体、record、信号、`Style` / `Sx`。
+- **参数没变就跳过渲染**（`ParameterChangeDetector`）：Blazor 自己只认基本类型。这里另外认回调（`Action` 等委托，目标与方法相同就相等）、`EventCallback`、结构体、record、信号、`Style` / `Sx`。
+  内容片段（`RenderFragment`）不认：它的输出取决于父级渲染时的状态，普通字段变了不会通知，按委托相等跳过会显示旧内容（演示项目里计数按钮的文字不更新，实测发现后改回）。
   其他引用类型（`List`、普通类）可能被原地修改，一律当作变了——即使引用相同（测试覆盖了这个坑）。
 - **热重载时不能跳过**：热重载会把同样的参数再传一遍，必须检查 `IsRenderingOnMetadataUpdate`，否则新代码不生效。
 - `Bindable<T>`：`Xxx` + `XxxChanged` 协议。给了 `XxxChanged` 是受控（父级决定是否采纳）；只给值是初始值、父级传来新值时跟着变；都不给是组件自己的状态。
@@ -58,7 +59,14 @@
   （CascadingValue、Virtualize、EditForm 的 ChildContent）里一用样式就报错。现在按渲染器找：Server 与服务端渲染的每个电路、每次请求
   都在自己的同步上下文上渲染，登记表绑定到这个上下文（创建时、RuneComponent / RuneStyles 第一次渲染时绑定）；WebAssembly 单线程、只有一个作用域。
 
-## 6. 主题与配置（`src/Rune/Styles/Theme.cs`、`src/Rune.UI/Configuration`）
+## 6. 组件约定（`src/Rune.UI`）
+
+- **配方**：`Recipe.Of(组件名, 档位组合, 定制, (档位, 部件) => 样式)`，每个部件一个 switch 分支；按档位组合缓存，统一加上按部件定制与部件标记，得到 `PartLayers<TPart>`。
+- **色调**：每个色调一组颜色 token（`Tones.Danger.Soft`……），按色调变化的样式写成以它为参数的函数，每种外观只写一遍，样式里仍直接是主题 token（vue-tsx-pro 试过的“色调变量”多一层 CSS 变量、读样式时看不到实际 token，这里没有那一层）。
+- **部件是本库组件时**（按钮里的图标、加载指示）用 `Attrs.MergeProps`：样式作为子组件的 `Sx` 参数交下去，子组件排在自己的样式之后只合成一个类；两个类各自的规则谁先插入谁赢，结果不可靠。
+- **组件管理的属性**按状态预先建好或按输入记住（按钮只有四种组合），渲染时不分配。
+
+## 7. 主题与配置（`src/Rune/Styles/Theme.cs`、`src/Rune.UI/Configuration`）
 
 - **主题是 C# 对象**：token 是样式里写的 `var(--rune-…)`，主题给它们赋值（`new Theme("dark", basedOn: Light) { [Colors.Text] = "…" }`），
   `ThemeStyles.ClassFor` 生成只设变量的类。换主题只换容器上的类，组件不用重新计算样式。主题与 token 只有一份定义（取代手写的 CSS），测试检查每个 token 在内置主题里都有值。
@@ -69,7 +77,7 @@
 - **按部件定制样式**：用组件的部件枚举（`CollapsiblePart.Trigger`）指定，写错编译不过；追加在组件样式之后、使用方的 Sx 之前，`Part.Of` 统一处理，组件不用为此写代码。
 - **不让下面的组件白白重新渲染**：Provider 的参数没变时给出同一个配置对象；配置是 record，级联参数与普通参数一样比较，没变就跳过。
 
-## 7. 生成器与分析器（`src/Rune.Generators`）
+## 8. 生成器与分析器（`src/Rune.Generators`）
 
 - 后备字段懒创建：热重载新增的实例字段在已有对象上是 null（字段初始化器不会再跑）。普通字段写法在 Server 上会让整个电路崩溃；.NET 10 的 WebAssembly 也接受新增实例字段（官方文档说不支持，已过时）。
 - `XxxState` 的访问级别取 get 与 set 里更严格的那个，`private set` 不会被它绕过。
@@ -79,12 +87,12 @@
 - 新增诊断要登记在 `AnalyzerReleases.Unshipped.md`。
 - 生成器随 Rune 包发布（`analyzers/dotnet/cs`），仓库里的项目各自以分析器方式引用它。
 
-## 8. 构建与发布
+## 9. 构建与发布
 
 - 库专属的设置（文档注释检查、打包信息）在 `Directory.Build.targets`：props 在项目文件之前导入，那时项目里的 `IsLibrary` 还没有值。版本号例外，写在 props（SDK 更早算版本）。
 - CI 在 Linux 上打包两个库、检查生成器在 Rune 包里，并把包作为产物留存；发布到哪里（CD）待定。
 
-## 9. 已知限制与下一步
+## 10. 已知限制与下一步
 
 - 组件库样式预生成静态 CSS（减少内联 `<style>`）是优化，不改 API。
 - 主题对象由 `Css.Define` 定义，热重载改主题值后，应用级配置（DI 单例）仍拿着旧主题，要重启；Provider 上直接传的主题会更新。
