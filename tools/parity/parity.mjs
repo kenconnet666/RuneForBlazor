@@ -54,6 +54,9 @@ const TEXT = [
   'transition-property', 'transition-duration', 'transition-timing-function',
   'animation-name', 'animation-duration', 'fill', 'stroke', 'stroke-width',
 ];
+/** 另按标签配对的语义元素（一边没有部件标记时也能比） */
+const SEMANTIC_TAGS = 'h1, h2, h3, h4, h5, h6, p, strong, em, small, kbd, mark, code, blockquote, a, button, label, input, textarea, select, hr';
+
 /** 交互状态只看会变的属性 */
 const STATE_PROPS = [
   'color', 'background-color', 'border-top-color', 'box-shadow', 'opacity',
@@ -64,7 +67,7 @@ const STATE_PROPS = [
  * 在页面里执行：找到示例小节，列出效果区里带部件标记的元素（与它们里面的 svg），读计算后的样式。
  * 颜色统一画到画布上读回 rgba，两边写法不同（oklch、color-mix、十六进制）也能比较。
  */
-function collect({ side, ids, props, canvasWidth }) {
+function collect({ side, ids, props, canvasWidth, SEMANTIC_TAGS }) {
   const probe = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
   const colorPattern = /(?:rgba?|hsla?|oklch|oklab|lab|lch|color)\([^()]*\)|#[0-9a-f]{3,8}\b|\b(?:transparent|currentcolor|white|black)\b/gi;
   const rgba = (value) => {
@@ -105,21 +108,25 @@ function collect({ side, ids, props, canvasWidth }) {
     }
     const counts = new Map();
     const elements = [];
+    // 一个元素可以有几个键（部件标记、语义标签），交互状态按 data-parity-keys 找回元素
     const add = (element, key) => {
       const index = counts.get(key) ?? 0;
       counts.set(key, index + 1);
-      element.dataset.parityKey = `${heading.id}|${key}#${index}`;
-      elements.push({ key: `${key}#${index}`, element });
+      const full = `${key}#${index}`;
+      element.dataset.parityKeys = `${element.dataset.parityKeys ?? ''} ${heading.id}|${full}`.trim();
+      elements.push({ key: full, element });
+      return full;
     };
-    for (const element of canvas.querySelectorAll('[data-scope], svg')) {
-      if (element.dataset.scope && element.tagName !== "svg") {
-        add(element, `${element.dataset.scope}/${element.dataset.part ?? '?'}`);
-      } else {
-        // 图标按所在组件的根部件配对：vue 的图标常常不是单独的部件，本库的在 icon 部件里
-        const owner = element.parentElement.closest('[data-part=root]');
-        const ownerKey = owner && canvas.contains(owner) ? owner.dataset.parityKey.split('|')[1] : 'canvas';
-        add(element, `${ownerKey}>svg`);
-      }
+    for (const element of canvas.querySelectorAll('[data-scope]:not(svg)')) {
+      add(element, `${element.dataset.scope}/${element.dataset.part ?? '?'}`);
+    }
+    // 语义元素另按标签配对：vue-tsx-pro 的 Kbd、Code、Mark、文字等没有部件标记；
+    // 图标（svg）、只有文字的 span（Text、按钮的内容层）也一样，按出现的顺序配对
+    for (const element of canvas.querySelectorAll(`${SEMANTIC_TAGS}, svg, span`)) {
+      if (element.tagName === 'SPAN' && (element.childElementCount > 0 || !element.textContent.trim())) continue;
+      // 没显示的（关着的提示、浮层）不按顺序配对：两边放的位置不同，会把后面的顺序打乱
+      if (!element.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+      add(element, `<${element.tagName.toLowerCase()}>`);
     }
     const read = (element) => {
       const style = getComputedStyle(element);
@@ -222,7 +229,8 @@ async function open(context, side, theme) {
 async function readStates(page, keys) {
   const states = {};
   for (const key of keys) {
-    const locator = page.locator(`[data-parity-key="${key}"]`);
+    const locator = page.locator(`[data-parity-keys~="${key}"]`);
+    if ((await locator.count()) === 0) continue;
     const interactive = await locator.evaluate((element) =>
       element.matches('button, a[href], input, select, textarea, [tabindex], [role=button], [role=menuitem]'),
     );
@@ -242,8 +250,9 @@ async function readStates(page, keys) {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     const active = await read();
-    await page.mouse.up();
+    // 先移开再松开：不触发点击（移除标签、提交表单、跳转）
     await page.mouse.move(0, 0);
+    await page.mouse.up();
     states[key] = { hover, focus, active };
   }
   return states;
@@ -264,9 +273,9 @@ for (const theme of options.themes.split(',')) {
   const runeContext = await browser.newContext(contextOptions);
   const [vue, rune] = await Promise.all([open(vueContext, 'vue', theme), open(runeContext, 'rune', theme)]);
   const props = [...new Set([...NUMERIC, ...TEXT])].filter((prop) => prop !== 'width' && prop !== 'height');
-  const vueData = await vue.page.evaluate(collect, { side: 'vue', ids, props });
+  const vueData = await vue.page.evaluate(collect, { side: 'vue', ids, props, SEMANTIC_TAGS });
   const canvasWidth = Object.fromEntries(Object.entries(vueData).map(([id, section]) => [id, section.canvasWidth]));
-  const runeData = await rune.page.evaluate(collect, { side: 'rune', ids, props, canvasWidth });
+  const runeData = await rune.page.evaluate(collect, { side: 'rune', ids, props, canvasWidth, SEMANTIC_TAGS });
 
   report.push(`## ${theme}`, '');
   for (const id of Object.keys(vueData)) {
