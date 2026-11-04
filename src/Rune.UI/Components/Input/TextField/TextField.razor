@@ -1,58 +1,133 @@
 @*
     文本框：<TextField @bind-Value="name" placeholder="姓名" />、<TextField @bind-Value="email" Type="email" Icon="Lucide.Mail" />
     默认失去焦点或回车时更新值；搜索框这类要边输边用的写 Immediate="true"（Server 模式下每次按键一次往返）。
-    placeholder、name、autocomplete、maxlength 等落在 input 上；Sx 落在外框上。放在 Field 里得到标签与错误信息。
+    placeholder、name、autocomplete、maxlength 等落在 input 上；Sx 落在外壳上。放在 Field 里得到标签与错误信息。
+    Type="password" 时有显示 / 隐藏密码的按钮（JS 初始化器切换，没有往返）；Clearable 有内容时显示清空按钮。
 *@
 @namespace Rune.UI
 @inherits FormControl<string?>
-@{ var parts = TextFieldStyles.Of(Size, Radius ?? Defaults?.Radius ?? UI.Radius.Md, multiline: false, Config.Styles); }
+@{
+    var parts = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config), Config.Styles);
+    var editable = !IsDisabled && !IsReadOnly;
+}
 
-<div @attributes="Attrs.Merge(parts[TextFieldPart.Root], RootUserAttrs)">
+<div @attributes="Attrs.Merge(parts[InputPart.Root], RootUserAttrs, ShellAttrs)">
     @if (Icon is not null)
     {
-        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[TextFieldPart.Icon], PropsIcon)" />
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[InputPart.Icon], PropsIcon)" />
     }
-    <input type="@Type" @attributes="Attrs.Merge(parts[TextFieldPart.Input], InputUserAttrs, InputManaged)" />
+    @if (Prefix is not null)
+    {
+        <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsPrefix)">@Prefix</label>
+    }
+    <input type="@Type" @attributes="Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged)" />
     @if (Suffix is not null)
     {
-        <span @attributes="Attrs.Merge(parts[TextFieldPart.Suffix], PropsSuffix)">@Suffix</span>
+        <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsSuffix)">@Suffix</label>
+    }
+    @if (Clearable && editable && !string.IsNullOrEmpty(CurrentValue))
+    {
+        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="() => SetValueAsync(string.Empty)"
+                     @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsClear, RefocusInput)" />
+    }
+    @if (Type == "password")
+    {
+        <RevealButton Label="@RevealLabel" Radius="UI.Radius.Full" Disabled="IsDisabled" @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsReveal, RevealTarget)" />
+    }
+    @if (ShowCount)
+    {
+        <CharacterCount Count="@(CurrentValue?.Length ?? 0)" Max="MaxLength" id="@CountId" @attributes="Attrs.MergeProps(null, PropsCount)" />
+    }
+    @if (IconEnd is not null)
+    {
+        <Icon Data="IconEnd" @attributes="Attrs.MergeProps(parts[InputPart.Icon], PropsIconEnd)" />
     }
 </div>
 
 @code {
-    Memo<(Attrs Control, string? Value, bool Immediate), Attrs> inputManaged;
+    Memo<(Attrs Control, string? Value, bool Immediate, string? CountId), Attrs> inputManaged;
+    string? countId;
+    Memo<string, Attrs> refocusInput, revealTarget;
 
     /// <summary>input 的 type：text（默认）、email、password、search、url、tel。</summary>
     [Parameter] public string Type { get; set; } = "text";
 
+    /// <summary>样式，默认表面色加描边。</summary>
+    [Parameter] public InputVariant? Variant { get; set; }
+
     /// <summary>字号档位，高度与内边距随之缩放；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }
 
-    /// <summary>圆角，默认中圆角。</summary>
+    /// <summary>圆角，默认中圆角；搜索框常用 Full（胶囊形）。</summary>
     [Parameter] public Radius? Radius { get; set; }
 
     /// <summary>每次输入都更新值；默认失去焦点或回车时更新。</summary>
     [Parameter] public bool? Immediate { get; set; }
 
-    /// <summary>前面的图标。</summary>
+    /// <summary>有内容时显示清空按钮。</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>前置图标。</summary>
     [Parameter] public IconData? Icon { get; set; }
 
-    /// <summary>后面的内容：单位、按钮。</summary>
+    /// <summary>后置图标。</summary>
+    [Parameter] public IconData? IconEnd { get; set; }
+
+    /// <summary>输入框前的固定文字（如 https://、¥），不算在值里。</summary>
+    [Parameter] public RenderFragment? Prefix { get; set; }
+
+    /// <summary>输入框后的固定文字（如 .com、元），不算在值里。</summary>
     [Parameter] public RenderFragment? Suffix { get; set; }
 
-    /// <summary>图标的部件属性（交给 Icon）。</summary>
+    /// <summary>显示字数计数；上限取 maxlength，超出时用危险色。输入时 JS 初始化器更新看得见的字数，没有往返。</summary>
+    [Parameter] public bool ShowCount { get; set; }
+
+    /// <summary>字数计数的部件属性（交给 CharacterCount）。</summary>
+    [Parameter] public Attrs? PropsCount { get; set; }
+
+    /// <summary>清空按钮的名称（读屏读出）。</summary>
+    [Parameter] public string ClearLabel { get; set; } = "清空";
+
+    /// <summary>显示 / 隐藏密码按钮的名称（读屏读出，按下状态用 aria-pressed 表示）。</summary>
+    [Parameter] public string RevealLabel { get; set; } = "显示密码";
+
+    /// <summary>前置图标的部件属性（交给 Icon）。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }
 
-    /// <summary>后面内容的部件属性。</summary>
+    /// <summary>后置图标的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsIconEnd { get; set; }
+
+    /// <summary>前缀文字的部件属性（指向输入框的 label）。</summary>
+    [Parameter] public Attrs? PropsPrefix { get; set; }
+
+    /// <summary>后缀文字的部件属性（指向输入框的 label）。</summary>
     [Parameter] public Attrs? PropsSuffix { get; set; }
 
-    TextFieldDefaults? Defaults => Config.Defaults.Get<TextFieldDefaults>();
+    /// <summary>清空按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsClear { get; set; }
 
-    // input 上由组件管理的属性：表单状态（ControlAttrs）、值与更新值的事件；输入不变时是同一个对象
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Immediate ?? Defaults?.Immediate ?? false), this,
+    /// <summary>显示 / 隐藏密码按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsReveal { get; set; }
+
+    InputDefaults? Defaults => Config.Defaults.Get<InputDefaults>();
+
+    // 清空后焦点回到输入框
+    Attrs RefocusInput => refocusInput.Get(ControlId, static id => new Attrs { ["data-rune-refocus"] = id });
+
+    Attrs RevealTarget => revealTarget.Get(ControlId, static id => new Attrs { ["data-rune-reveal"] = id });
+
+    // 字数计数的 id：用到时才生成
+    string CountId => countId ??= UniqueId.Next("text-field-count");
+
+    int? MaxLength => CharacterCounting.MaxLengthOf(AdditionalAttributes);
+
+    // input 上由组件管理的属性：表单状态（ControlAttrs）、值与更新值的事件、字数计数的关联；输入不变时是同一个对象
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Immediate ?? Defaults?.Immediate ?? false, ShowCount ? CountId : null), this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
         {
             ["value"] = k.Value,
             [k.Immediate ? "oninput" : "onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync((string?)e.Value)),
+            AriaDescribedBy = CharacterCounting.DescribedBy(k.Control.AriaDescribedBy, k.CountId),
+            ["data-rune-count"] = k.CountId,
         }));
 }

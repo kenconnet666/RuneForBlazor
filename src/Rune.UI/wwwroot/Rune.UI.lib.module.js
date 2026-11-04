@@ -19,6 +19,11 @@
 //                            成功后按钮的 data-state 变成 copied（data-rune-copy-timeout 毫秒后复原）、播报 data-rune-copied-text，
 //                            发出冒泡的 rune-copied（Blazor 里是 @onrunecopied）
 //   data-rune-grid-span="n"  网格里跨 n 列的项：网格实际的列比 n 少时（按宽度自动换列的网格变窄）改成跨当前的列数
+//   data-rune-control        输入框的外壳：点在空白处（内边距、图标、前后缀）时聚焦里面的输入元素
+//   data-rune-refocus="id"   点击后把焦点交给这个 id 的元素（清空按钮清空后回到输入框）
+//   data-rune-reveal="id"    显示密码按钮：切换这个 id 的输入框的 type（password / text）与按钮的 aria-pressed
+//   data-rune-count="id"     有字数计数的输入框：输入时更新这个 id 的计数（看得见的字数与超出上限的 data-over）
+//   data-rune-autosize       多行文本框：输入时、值变了（属性值随之变化）时按 scrollHeight 设高度（上下限由 CSS 的 min/max-height 夹住）
 //   data-rune-draw="true"    图标的描线动画：插入时为 true、或由 false 变为 true 时一笔画出（减少动态效果时直接画好）
 //   data-rune-dismiss        可移除元素（data-rune-dismissible，如标签）里的移除按钮：元素先离场（data-dismissing），
 //                            结束后发出冒泡的 rune-dismiss（Blazor 里是 @onrunedismiss）；被移除时焦点交给同组的下一个
@@ -71,6 +76,12 @@ function install(blazor) {
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKeyDown);
   document.addEventListener('pointerdown', startRipple);
+  document.addEventListener('pointerdown', focusOnShell);
+  document.addEventListener('input', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLTextAreaElement && target.hasAttribute('data-rune-autosize')) autosize(target);
+    if (target instanceof Element && target.hasAttribute('data-rune-count')) updateCount(target);
+  });
   document.addEventListener('focusin', onFocusIn);
   document.addEventListener('focusout', clearTooltipDismissal);
   document.addEventListener('pointerout', clearTooltipDismissal);
@@ -81,7 +92,7 @@ function install(blazor) {
     childList: true,
     attributes: true,
     attributeOldValue: true,
-    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request'],
+    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize'],
   });
   syncWithin(document);
 }
@@ -130,15 +141,17 @@ function syncWithin(root) {
     if (element.matches('input[data-indeterminate="true"]')) syncIndeterminate(element);
     if (element.matches('svg[data-rune-draw="true"]')) drawIcon(element);
     if (element.matches('[data-rune-grid-span]')) watchGrid(element.parentElement);
+    if (element.matches('textarea[data-rune-autosize]')) autosize(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize]').forEach(sync);
 }
 
 function onMutations(mutations) {
   for (const mutation of mutations) {
     if (mutation.type === 'attributes') {
       if (mutation.attributeName === 'data-indeterminate') syncIndeterminate(mutation.target);
+      else if (mutation.attributeName === 'data-rune-autosize') autosize(mutation.target);
       else if (mutation.attributeName === 'data-rune-copy-request') {
         if (mutation.target.hasAttribute('data-rune-copy-request')) copyFrom(mutation.target);
       } else if (mutation.attributeName === 'data-rune-draw') {
@@ -189,6 +202,19 @@ function onFocusLink(event) {
 function onClick(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
+
+  const refocus = target.closest('[data-rune-refocus]');
+  if (refocus) document.getElementById(refocus.getAttribute('data-rune-refocus'))?.focus({ preventScroll: true });
+
+  const reveal = target.closest('[data-rune-reveal]');
+  if (reveal && !reveal.matches(':disabled')) {
+    const input = document.getElementById(reveal.getAttribute('data-rune-reveal'));
+    if (input instanceof HTMLInputElement) {
+      const shown = input.type === 'password';
+      input.type = shown ? 'text' : 'password';
+      reveal.setAttribute('aria-pressed', String(shown));
+    }
+  }
 
   const copier = target.closest('[data-rune-copy-on-click]');
   if (copier && !copier.matches(':disabled, [aria-busy="true"]')) copyFrom(copier);
@@ -425,6 +451,35 @@ function clampGridSpans(grid) {
     if (!span) continue;
     item.style.gridColumn = tracks > 0 && tracks < span ? `span ${tracks} / span ${tracks}` : '';
   }
+}
+
+/** 点在输入框外壳的空白处（不是输入元素本身，也不是框里的按钮、链接）：焦点交给里面的输入元素，不让外壳把焦点抢走 */
+function focusOnShell(event) {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const shell = target.closest('[data-rune-control]');
+  if (!shell || target.closest('input, textarea, select, button, a')) return;
+  const control = shell.querySelector(':scope > :is(input, textarea, select)');
+  if (!control || control.disabled) return;
+  event.preventDefault();
+  control.focus();
+}
+
+/** 输入时更新字数计数里看得见的字数（读屏的完整句子在值提交后由组件更新） */
+function updateCount(input) {
+  const counter = document.getElementById(input.getAttribute('data-rune-count'));
+  if (!counter) return;
+  const count = input.value.length;
+  const max = Number(counter.getAttribute('data-max')) || null;
+  const value = counter.querySelector('[aria-hidden="true"]');
+  if (value) value.textContent = max ? `${count} / ${max}` : String(count);
+  counter.toggleAttribute('data-over', max != null && count > max);
+}
+
+/** 多行文本框随内容增高：先让高度回到 auto 才量得出变矮后的 scrollHeight；上下限由 CSS 夹住 */
+function autosize(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = `${textarea.scrollHeight}px`;
 }
 
 /** 图标描线：每一笔的长度统一成 1，虚线从 0 画到 1（时长、缓动取主题；减少动态效果时直接画好） */

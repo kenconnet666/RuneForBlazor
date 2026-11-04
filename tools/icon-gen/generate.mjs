@@ -50,6 +50,9 @@ const BUILT_IN = [
   'hash',
   'arrow-up-right',
   'circle-x',
+  'eye',
+  'eye-off',
+  'asterisk',
   'copy',
 ];
 

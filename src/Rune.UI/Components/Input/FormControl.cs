@@ -94,6 +94,9 @@ public abstract class FormControl<TValue> : UIComponent
     /// </summary>
     protected Attrs InputUserAttrs => inputUserAttrs.Get(AdditionalAttributes, static attributes => Attrs.From(attributes, null));
 
+    /// <summary>外壳上由组件管理的标记：点在外壳的空白处（内边距、图标、前后缀）时 JS 初始化器把焦点交给里面的输入元素。</summary>
+    protected static readonly Attrs ShellAttrs = new() { ["data-rune-control"] = true };
+
     /// <summary>使用方的 Sx：落在外框（看得见的那个盒子）上。</summary>
     protected Attrs RootUserAttrs => rootUserAttrs.Get(Sx, static sx => sx is null ? Attrs.Empty : new Attrs { Sx = sx });
 

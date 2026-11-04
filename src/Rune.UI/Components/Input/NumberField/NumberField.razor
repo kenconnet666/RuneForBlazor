@@ -12,32 +12,33 @@
 @inherits FormControl<TValue>
 @using System.Globalization
 @{
-    var parts = TextFieldStyles.Of(Size, Radius ?? Config.Defaults.Get<TextFieldDefaults>()?.Radius ?? UI.Radius.Md, multiline: false, Config.Styles);
-    var steppers = NumberFieldStyles.Of(Config.Styles);
+    var parts = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config), Config.Styles);
     var current = NumberText.ToDecimal(CurrentValue);
 }
 
-<div @attributes="Attrs.Merge(parts[TextFieldPart.Root], RootUserAttrs)">
+<div @attributes="Attrs.Merge(parts[InputPart.Root], RootUserAttrs, ShellAttrs)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[InputPart.Icon], PropsIcon)" />
+    }
     @if (Prefix is not null)
     {
-        <span @attributes="Attrs.Merge(parts[TextFieldPart.Icon], PropsPrefix)">@Prefix</span>
+        <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsPrefix)">@Prefix</label>
     }
     <input @key="version" type="text" inputmode="decimal" autocomplete="off"
-           @attributes="Attrs.Merge(parts[TextFieldPart.Input], InputUserAttrs, InputManaged)" />
+           @attributes="Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged)" />
     @if (Suffix is not null)
     {
-        <span @attributes="Attrs.Merge(parts[TextFieldPart.Suffix], PropsSuffix)">@Suffix</span>
+        <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsSuffix)">@Suffix</label>
     }
     @if (ShowStepper)
     {
-        <span @attributes="Attrs.Merge(steppers[NumberFieldPart.Stepper])">
-            <IconButton Icon="BuiltInIcons.Minus" Label="@DecrementLabel" Size="UI.Size.Xs" tabindex="-1"
-                        Disabled="@(IsDisabled || AtLimit(current, Min, -1))" @onclick="() => StepAsync(-1)"
-                        @attributes="Attrs.MergeProps(steppers[NumberFieldPart.Decrement])" />
-            <IconButton Icon="BuiltInIcons.Plus" Label="@IncrementLabel" Size="UI.Size.Xs" tabindex="-1"
-                        Disabled="@(IsDisabled || AtLimit(current, Max, 1))" @onclick="() => StepAsync(1)"
-                        @attributes="Attrs.MergeProps(steppers[NumberFieldPart.Increment])" />
-        </span>
+        <IconButton Icon="BuiltInIcons.Minus" Label="@DecrementLabel" Radius="UI.Radius.Full" tabindex="-1"
+                    Disabled="@(IsDisabled || AtLimit(current, Min, -1))" @onclick="() => StepAsync(-1)"
+                    @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsDecrement)" />
+        <IconButton Icon="BuiltInIcons.Plus" Label="@IncrementLabel" Radius="UI.Radius.Full" tabindex="-1"
+                    Disabled="@(IsDisabled || AtLimit(current, Max, 1))" @onclick="() => StepAsync(1)"
+                    @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsIncrement)" />
     }
 </div>
 
@@ -64,6 +65,21 @@
     /// <summary>显示减少 / 增加按钮，默认是；只读时不显示。</summary>
     [Parameter] public bool Stepper { get; set; } = true;
 
+    /// <summary>样式，默认表面色加描边。</summary>
+    [Parameter] public InputVariant? Variant { get; set; }
+
+    /// <summary>前置图标。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>前置图标的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>减少按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsDecrement { get; set; }
+
+    /// <summary>增加按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsIncrement { get; set; }
+
     /// <summary>字号档位；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }
 
@@ -82,10 +98,10 @@
     /// <summary>增加按钮的名称。</summary>
     [Parameter] public string IncrementLabel { get; set; } = "增加";
 
-    /// <summary>前缀的部件属性。</summary>
+    /// <summary>前缀的部件属性（指向输入框的 label）。</summary>
     [Parameter] public Attrs? PropsPrefix { get; set; }
 
-    /// <summary>后缀的部件属性。</summary>
+    /// <summary>后缀的部件属性（指向输入框的 label）。</summary>
     [Parameter] public Attrs? PropsSuffix { get; set; }
 
     bool ShowStepper => Stepper && !IsReadOnly;

@@ -11,36 +11,31 @@
 @inherits UIComponent
 @using Microsoft.AspNetCore.Components.Forms
 @{
-    var placement = LabelPlacement ?? Form?.LabelPlacement ?? FieldLabelPlacement.Top;
-    var parts = FieldStyles.Of(placement, LabelHidden, Config.Styles);
+    var appearance = Appearance;
+    var parts = FieldStyles.Of(appearance, Config.Styles);
     var errors = Errors;
+    var startLayout = appearance.Placement == FieldLabelPlacement.Start && !LabelHidden;
 }
 
-<div @attributes="Attrs.Merge(parts[FieldPart.Root], Rest, LayoutAttrs(placement))">
+<div data-label-placement="@(startLayout ? "start" : "top")" data-invalid="@(errors.Count > 0 ? "true" : null)" data-disabled="@(Disabled ? "true" : null)"
+     @attributes="Attrs.Merge(parts[FieldPart.Root], Rest, LayoutAttrs(startLayout))">
     @if (Label is not null)
     {
-        <label id="@labelId" for="@controlId" @attributes="Attrs.Merge(parts[FieldPart.Label], PropsLabel)">
-            @Label
-            @if (Required)
+        <label id="@labelId" for="@controlId" @attributes="Attrs.Merge(parts[FieldPart.Label], PropsLabel)">@Label@if (Required)
             {
-                <span aria-hidden="true" @attributes="Attrs.Merge(parts[FieldPart.RequiredMark])">*</span>
-            }
-        </label>
+                <Icon Data="BuiltInIcons.Asterisk" @attributes="Attrs.MergeProps(parts[FieldPart.RequiredMark])" />
+            }</label>
     }
-    <div @attributes="Attrs.Merge(parts[FieldPart.Control], PropsControl)">
-        <CascadingValue Value="ContextFor(errors.Count > 0)">@ChildContent</CascadingValue>
-        @if (Description is not null)
-        {
-            <div id="@descriptionId" @attributes="Attrs.Merge(parts[FieldPart.Description], PropsDescription)">@Description</div>
-        }
-        @if (errors.Count > 0)
-        {
-            <div id="@errorId" @attributes="Attrs.Merge(parts[FieldPart.Error], PropsError)">
-                <Icon Data="BuiltInIcons.CircleExclamationPoint" />
-                <span>@string.Join("；", errors)</span>
-            </div>
-        }
-    </div>
+    @if (startLayout)
+    {
+        <div @attributes="Attrs.Merge(parts[FieldPart.Control], PropsControl)">
+            @Content(errors)
+        </div>
+    }
+    else
+    {
+        @Content(errors)
+    }
 </div>
 
 @code {
@@ -76,10 +71,13 @@
     /// <summary>标签在起始边时标签列的宽度，默认 8em；不写时取所在 Form 的。</summary>
     [Parameter] public CssLength? LabelWidth { get; set; }
 
+    /// <summary>标签在起始边时标签文字的对齐，默认靠结束边（贴着控件）。</summary>
+    [Parameter] public FieldLabelAlign? LabelAlign { get; set; }
+
     /// <summary>视觉上隐藏标签（读屏仍读得到）：上下文已经说明了是什么（表格里的单元格、搜索框）。</summary>
     [Parameter] public bool LabelHidden { get; set; }
 
-    /// <summary>控件、说明、错误的容器的部件属性。</summary>
+    /// <summary>标签在起始边时控件、说明、错误的容器的部件属性。</summary>
     [Parameter] public Attrs? PropsControl { get; set; }
 
     /// <summary>控件。</summary>
@@ -101,11 +99,26 @@
     [CascadingParameter] FormState? Form { get; set; }
 
     FieldIdentifier? registered;
+
+    // 控件与说明、错误：标签在上方时直接排在外层里，在起始边时放进第二列的容器
+    RenderFragment Content(IReadOnlyList<string> errors) => @<text>
+        <CascadingValue Value="ContextFor(errors.Count > 0)">@ChildContent</CascadingValue>
+        @if (Description is not null)
+        {
+            <span id="@descriptionId" @attributes="Attrs.Merge(FieldStyles.Of(Appearance, Config.Styles)[FieldPart.Description], PropsDescription)">@Description</span>
+        }
+        @if (errors.Count > 0)
+        {
+            <span id="@errorId" @attributes="Attrs.Merge(FieldStyles.Of(Appearance, Config.Styles)[FieldPart.Error], PropsError)"><Icon Data="BuiltInIcons.CircleExclamationPoint" Sx="FieldStyles.ErrorIcon" />@string.Join("；", errors)</span>
+        }
+    </text>;
+
+    FieldAppearance Appearance => new(LabelPlacement ?? Form?.LabelPlacement ?? FieldLabelPlacement.Top, LabelAlign ?? FieldLabelAlign.End, LabelHidden, Label is not null, Disabled);
     Memo<CssLength, Attrs> layoutAttrs;
 
     // 标签在起始边时标签列的宽度：任意长度，经 CSS 变量写在元素上（类不随宽度变化）；没写时用样式里的默认值
-    Attrs? LayoutAttrs(FieldLabelPlacement placement) =>
-        placement == FieldLabelPlacement.Start && (LabelWidth ?? Form?.LabelWidth) is { } width
+    Attrs? LayoutAttrs(bool startLayout) =>
+        startLayout && (LabelWidth ?? Form?.LabelWidth) is { } width
             ? layoutAttrs.Get(width, static w => new Attrs { Vars = [FieldStyles.LabelWidth.Set(w)] })
             : null;
 

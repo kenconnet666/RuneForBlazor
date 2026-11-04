@@ -210,6 +210,19 @@ public static class ButtonStyles
         FlexShrink = 0,
     });
 
+    /// <summary>显示密码按钮平时的图标（睁眼）：按下后（aria-pressed）隐藏。</summary>
+    internal static Style RevealIcon => Css.Define(static () => new Style
+    {
+        [When.Inside(When.Pressed)] = new() { Display = Display.None },
+    });
+
+    /// <summary>显示密码按钮按下后的图标（闭眼）。</summary>
+    internal static Style ConcealIcon => Css.Define(static () => new Style
+    {
+        Display = Display.None,
+        [When.Inside(When.Pressed)] = new() { Display = Display.Block },
+    });
+
     /// <summary>复制按钮平时的图标：复制后（JS 在按钮上写 data-state="copied"）隐藏。</summary>
     internal static Style CopyIdleIcon => Css.Define(static () => new Style
     {

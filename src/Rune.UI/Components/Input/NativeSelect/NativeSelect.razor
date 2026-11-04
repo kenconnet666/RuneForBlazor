@@ -7,9 +7,9 @@
 @namespace Rune.UI
 @typeparam TValue
 @inherits FormControl<TValue>
-@{ var parts = NativeSelectStyles.Of(Size, Radius ?? Config.Defaults.Get<TextFieldDefaults>()?.Radius ?? UI.Radius.Md, Config.Styles); }
+@{ var parts = NativeSelectStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config), Config.Styles); }
 
-<div @attributes="Attrs.Merge(parts[NativeSelectPart.Root], RootUserAttrs)">
+<div @attributes="Attrs.Merge(parts[NativeSelectPart.Root], RootUserAttrs, ShellAttrs)">
     <select @attributes="Attrs.Merge(parts[NativeSelectPart.Select], InputUserAttrs, SelectManaged)">
         @if (Placeholder is not null)
         {
@@ -34,6 +34,9 @@
 
     /// <summary>没有选择时显示的文字（第一个空选项）；必填时这个选项不能选回去。</summary>
     [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>样式，默认表面色加描边。</summary>
+    [Parameter] public InputVariant? Variant { get; set; }
 
     /// <summary>字号档位；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }

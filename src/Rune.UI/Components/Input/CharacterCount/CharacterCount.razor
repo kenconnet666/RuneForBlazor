@@ -1,0 +1,28 @@
+@*
+    字数计数（同 vue-tsx-pro 的 CharacterCount）：“12 / 100”，超出上限时用危险色；读屏念完整的句子（“已输入 12 个字符，最多 100 个”）。
+    TextField、Textarea 的 ShowCount 用它；自己做的输入组件（富文本、代码编辑器）直接用：
+    <CharacterCount Count="bio.Length" Max="30" />
+    id 给输入框的 aria-describedby 关联。输入框写了 data-rune-count="计数的 id" 时，JS 初始化器在输入时更新看得见的字数（没有往返）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var over = Max is { } max && Count > max;
+    var parts = CharacterCountStyles.Of(over, Config.Styles);
+}
+
+<span data-over="@(over ? "true" : null)" data-max="@Max" @attributes="Attrs.Merge(parts[CharacterCountPart.Root], Rest)"><span aria-hidden="true" @attributes="Attrs.Merge(parts[CharacterCountPart.Value], PropsValue)">@(Max is { } limit ? $"{Count} / {limit}" : Count.ToString())</span><VisuallyHidden @attributes="Attrs.MergeProps(parts[CharacterCountPart.Label], PropsLabel)">@(Max is { } most ? $"已输入 {Count} 个字符，最多 {most} 个" : $"已输入 {Count} 个字符")</VisuallyHidden></span>
+
+@code {
+    /// <summary>已输入的字符数。</summary>
+    [Parameter] public int Count { get; set; }
+
+    /// <summary>上限；不给时只显示字数。</summary>
+    [Parameter] public int? Max { get; set; }
+
+    /// <summary>看得见的字数（“12 / 100”，对读屏隐藏）的部件属性。</summary>
+    [Parameter] public Attrs? PropsValue { get; set; }
+
+    /// <summary>给读屏的完整句子的部件属性（交给 VisuallyHidden）。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+}

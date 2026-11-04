@@ -1,23 +1,66 @@
 @*
-    多行文本框：<Textarea @bind-Value="note" placeholder="备注" />
-    高度跟着内容长（支持 field-sizing 的浏览器），也可以竖向拖大；MaxRows 限制最多长到几行高。用法同 TextField。
+    多行文本框：<Textarea @bind-Value="note" placeholder="备注" />、<Textarea @bind-Value="note" Rows="3" MaxRows="8" />
+    外壳同 TextField；高度随内容增长，在 Rows 与 MaxRows 之间（JS 初始化器按 scrollHeight 设高度，各浏览器一致）；
+    Fixed 时固定为 Rows 行，可以拖动右下角改变高度。值在失去焦点时更新。
 *@
 @namespace Rune.UI
 @inherits FormControl<string?>
-@{ var parts = TextFieldStyles.Of(Size, Radius ?? Config.Defaults.Get<TextFieldDefaults>()?.Radius ?? UI.Radius.Md, multiline: true, Config.Styles, MaxRows); }
+@{ var parts = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config) with { Multiline = true, Rows = Rows, MaxRows = MaxRows, Fixed = Fixed }, Config.Styles); }
 
-<div @attributes="Attrs.Merge(parts[TextFieldPart.Root], RootUserAttrs)">
-    <textarea rows="@Rows" @attributes="Attrs.Merge(parts[TextFieldPart.Input], InputUserAttrs, InputManaged)"></textarea>
+<div @attributes="Attrs.Merge(parts[InputPart.Root], RootUserAttrs, ShellAttrs)">
+    <textarea rows="@Rows" @attributes="Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged)"></textarea>
+    @if (Clearable && !IsDisabled && !IsReadOnly && !string.IsNullOrEmpty(CurrentValue))
+    {
+        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="() => SetValueAsync(string.Empty)"
+                     @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsClear, ClearManaged)" />
+    }
+    @if (ShowCount)
+    {
+        <CharacterCount Count="@(CurrentValue?.Length ?? 0)" Max="MaxLength" id="@CountId" @attributes="Attrs.MergeProps(null, PropsCount, countPlacement)" />
+    }
 </div>
 
 @code {
-    Memo<(Attrs Control, string? Value), Attrs> inputManaged;
+    // 计数贴在右下角，清空按钮贴在第一行（多行时不随内容居中）
+    static readonly Attrs countPlacement = new() { Sx = TextareaStyles.Count };
 
-    /// <summary>初始行数（不支持 field-sizing 的浏览器里的高度），默认 3。</summary>
+    Memo<(Attrs Control, string? Value, bool Fixed, string? CountId), Attrs> inputManaged;
+    Memo<string, Attrs> clearManaged;
+    string? countId;
+
+    /// <summary>有内容时显示清空按钮（右上角）。</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>显示字数计数；上限取 maxlength，超出时用危险色。</summary>
+    [Parameter] public bool ShowCount { get; set; }
+
+    /// <summary>清空按钮的名称（读屏读出）。</summary>
+    [Parameter] public string ClearLabel { get; set; } = "清空";
+
+    /// <summary>字数计数的部件属性（交给 CharacterCount）。</summary>
+    [Parameter] public Attrs? PropsCount { get; set; }
+
+    /// <summary>清空按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsClear { get; set; }
+
+    string CountId => countId ??= UniqueId.Next("textarea-count");
+
+    int? MaxLength => CharacterCounting.MaxLengthOf(AdditionalAttributes);
+
+    // 清空后焦点回到文本框
+    Attrs ClearManaged => clearManaged.Get(ControlId, static id => new Attrs { Sx = TextareaStyles.Clear, ["data-rune-refocus"] = id });
+
+    /// <summary>最少几行高，默认 3。</summary>
     [Parameter] public int Rows { get; set; } = 3;
 
-    /// <summary>高度跟着内容长时最多几行，超过时滚动；不写时不限。</summary>
+    /// <summary>随内容增高时最多几行，超过时滚动；不写时不限。</summary>
     [Parameter] public int? MaxRows { get; set; }
+
+    /// <summary>不随内容增高，固定为 Rows 行（可以拖动右下角改变高度）。</summary>
+    [Parameter] public bool Fixed { get; set; }
+
+    /// <summary>样式，默认表面色加描边。</summary>
+    [Parameter] public InputVariant? Variant { get; set; }
 
     /// <summary>字号档位；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }
@@ -25,11 +68,15 @@
     /// <summary>圆角，默认中圆角。</summary>
     [Parameter] public Radius? Radius { get; set; }
 
-    // 多行文本在失去焦点时更新（输入中换行、修改都不触发往返）
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue), this,
+    // textarea 上由组件管理的属性：表单状态、值与自动增高的标记。
+    // 值变了换一个新的 data-rune-autosize：JS 看到属性变化就重新量高度（使用方改值时也跟着变）
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Fixed, ShowCount ? CountId : null), this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
         {
             ["value"] = k.Value,
+            ["data-rune-autosize"] = k.Fixed ? null : (k.Value?.Length ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture),
             ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync((string?)e.Value)),
+            AriaDescribedBy = CharacterCounting.DescribedBy(k.Control.AriaDescribedBy, k.CountId),
+            ["data-rune-count"] = k.CountId,
         }));
 }

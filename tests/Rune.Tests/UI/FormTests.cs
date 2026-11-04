@@ -195,11 +195,36 @@ public class FormTests : BunitContext
     }
 
     [Fact]
-    public void 多行文本框最多几行高()
+    public void 多行文本框在Rows与MaxRows之间自动增高_Fixed时可以拖动()
     {
-        var cut = Render<Textarea>(p => p.Add(x => x.MaxRows, 6));
+        var growing = Render<Textarea>(p => p.Add(x => x.Rows, 2).Add(x => x.MaxRows, 6));
+        var fixedHeight = Render<Textarea>(p => p.Add(x => x.Rows, 3).Add(x => x.MaxRows, 6).Add(x => x.Fixed, true));
 
         var registry = Services.GetRequiredService<Rune.Styles.StyleRegistry>();
-        Assert.Contains(registry.Rules, r => r.Contains($".{cut.Find("textarea").ClassName}{{") && r.Contains("max-height:calc(6lh + 1em)"));
+        var rule = Assert.Single(registry.Rules, r => r.Contains($".{growing.Find("textarea").ClassName}{{"));
+        Assert.Contains("min-height:2lh", rule);
+        Assert.Contains("max-height:6lh", rule);
+        Assert.True(growing.Find("textarea").HasAttribute("data-rune-autosize"));
+        var fixedRule = Assert.Single(registry.Rules, r => r.Contains($".{fixedHeight.Find("textarea").ClassName}{{"));
+        Assert.Contains("resize:vertical", fixedRule);
+        Assert.DoesNotContain("max-height", fixedRule);
+        Assert.False(fixedHeight.Find("textarea").HasAttribute("data-rune-autosize"));
+    }
+
+    [Fact]
+    public void 文本框的字数计数_清空与显示密码()
+    {
+        var cut = Render<TextField>(p => p.Add(x => x.Value, "abc").Add(x => x.ShowCount, true).Add(x => x.Clearable, true)
+            .Add(x => x.Type, "password").AddUnmatched("maxlength", "20"));
+
+        var input = cut.Find("input");
+        var count = cut.Find("[data-scope=character-count]");
+        Assert.Equal(count.Id, input.GetAttribute("data-rune-count"));
+        Assert.Contains(count.Id!, input.GetAttribute("aria-describedby"));
+        Assert.Equal("3 / 20", count.QuerySelector("[aria-hidden=true]")!.TextContent);
+        Assert.Equal(input.Id, cut.Find("button[aria-label=清空]").GetAttribute("data-rune-refocus"));
+        Assert.Equal(input.Id, cut.Find("button[aria-label=显示密码]").GetAttribute("data-rune-reveal"));
+        cut.Find("button[aria-label=清空]").Click();
+        Assert.Equal("", cut.Find("input").GetAttribute("value"));
     }
 }

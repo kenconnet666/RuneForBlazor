@@ -6,12 +6,14 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（18 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（21 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
     /// <summary>Lucide 图标 <c>arrow-up-right</c>（direction、movement、diagonal、northeast、north-east、north east）。</summary>
     public static IconData ArrowUpRight => field ??= new("arrow-up-right", "<path d=\"M7 7h10v10\"/><path d=\"M7 17 17 7\"/>");
+    /// <summary>Lucide 图标 <c>asterisk</c>（symbol、mark、pointer、pencil、sign、alert、notification、indicator）。</summary>
+    public static IconData Asterisk => field ??= new("asterisk", "<path d=\"M12 5v14\"/><path d=\"m18.065 8.496-12.125 7\"/><path d=\"m5.94 8.504 12.125 7\"/>");
     /// <summary>Lucide 图标 <c>check</c>（checkmark、done、completed、finished、successful、confirmed、verified、validated）。</summary>
     public static IconData Check => field ??= new("check", "<path d=\"M20 6 9 17l-5-5\"/>");
     /// <summary>Lucide 图标 <c>chevron-down</c>（direction、movement、vertical、downward、downwards、south、descend、page down）。</summary>
@@ -30,6 +32,10 @@ public static partial class BuiltInIcons
     public static IconData CircleX => field ??= new("circle-x", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m15 9-6 6\"/><path d=\"m9 9 6 6\"/>");
     /// <summary>Lucide 图标 <c>copy</c>（clone、duplicate、multiple）。</summary>
     public static IconData Copy => field ??= new("copy", "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/>");
+    /// <summary>Lucide 图标 <c>eye</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>
+    public static IconData Eye => field ??= new("eye", "<path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>");
+    /// <summary>Lucide 图标 <c>eye-off</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>
+    public static IconData EyeOff => field ??= new("eye-off", "<path d=\"M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49\"/><path d=\"M14.084 14.158a3 3 0 0 1-4.242-4.242\"/><path d=\"M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143\"/><path d=\"m2 2 20 20\"/>");
     /// <summary>Lucide 图标 <c>hash</c>（hashtag、number、pound）。</summary>
     public static IconData Hash => field ??= new("hash", "<line x1=\"4\" x2=\"20\" y1=\"9\" y2=\"9\"/><line x1=\"4\" x2=\"20\" y1=\"15\" y2=\"15\"/><line x1=\"10\" x2=\"8\" y1=\"3\" y2=\"21\"/><line x1=\"16\" x2=\"14\" y1=\"3\" y2=\"21\"/>");
     /// <summary>Lucide 图标 <c>info</c>（alphabet、character、text、font、typography、about、advice、clue）。</summary>

@@ -146,6 +146,12 @@
   控件把绑定的字段报给 Field（`FieldRegistration` 是信号，报上来后 Field 自动重新渲染），Field 显示表单里这个字段的错误。
 - **必填用 aria-required**：原生 `required` 会在提交前拦下表单、弹浏览器自己的气泡，EditForm 根本收不到提交（实测发现）。校验统一交给表单。
 - **使用方的属性落在 input 上**（placeholder、name、autocomplete……），Sx 落在外框上：外框是看得见的盒子，input 是语义上的控件。
+- **输入框共用一个外壳配方**（`InputStyles`，scope 为 input，同 vue-tsx-pro 的 inputRecipe）：部件 Root / Input / Icon / Affix / Button，
+  样式 Surface / Soft，只读；焦点环是外壳上的 outline（focus-within）；校验未通过、不可用按里面输入元素的 aria-invalid、:disabled 用 :has 变化。
+  TextField、Textarea、NumberField 直接用它，NativeSelect 用它的片段。默认值是 `InputDefaults`（同 defaults.Input）。
+- **输入框的客户端行为都在 JS 初始化器里**（没有往返）：点外壳空白处聚焦输入元素（`data-rune-control`）、清空后焦点回到输入框（`data-rune-refocus`）、
+  显示密码切换 type 与 aria-pressed（`data-rune-reveal`）、输入时更新字数计数（`data-rune-count`）、多行文本框按 scrollHeight 增高
+  （`data-rune-autosize`，值变了属性跟着变，使用方改值也会重新量；没用 field-sizing：Firefox 不支持）。
 - **勾选框、开关是原生 input** 去掉默认外观重画：键盘、表单提交、读屏都是原生的；半选只能用 JS 设置，JS 初始化器按 `data-indeterminate` 同步。
 - 文本框默认 change 时更新（失去焦点、回车），`Immediate` 才每次输入都更新：Server 模式下每次按键一次往返。
 - **NumberField 的值类型不加约束**（同 Blazor 的 InputNumber）：Razor 给泛型组件生成 `@bind` 代码时处理不了 `TValue?`（可空的值类型参数），

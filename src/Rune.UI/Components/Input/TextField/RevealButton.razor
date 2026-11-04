@@ -1,0 +1,33 @@
+@*
+    密码框里的“显示密码”按钮（TextField 用）：JS 初始化器在点击时切换输入框的 type 与 aria-pressed，没有往返；
+    名称不变、用 aria-pressed 表示状态（读屏念“显示密码，已按下”），图标按 aria-pressed 换成闭眼。
+*@
+@namespace Rune.UI
+@inherits ButtonBase
+@{ var parts = Parts(ButtonShape.Square); }
+
+<button type="button" aria-pressed="false" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled), Managed)">
+    <span @attributes="Attrs.Merge(parts[ButtonPart.Content], PropsContent)"><Icon Data="BuiltInIcons.Eye" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon, shownIcon)" /><Icon Data="BuiltInIcons.EyeOff" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon, hiddenIcon)" /></span>
+</button>
+
+@code {
+    static readonly Attrs shownIcon = new() { Sx = ButtonStyles.RevealIcon };
+    static readonly Attrs hiddenIcon = new() { Sx = ButtonStyles.ConcealIcon };
+
+    /// <summary>按钮的名称（读屏读出）。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <inheritdoc/>
+    protected override ButtonVariant DefaultVariant => ButtonVariant.Ghost;
+
+    /// <inheritdoc/>
+    protected override Tone DefaultTone => UI.Tone.Neutral;
+
+    Memo<(string Label, bool Disabled), Attrs> managed;
+
+    Attrs Managed => managed.Get((Label, Disabled), static k =>
+        Attrs.Merge(StateAttrs(k.Disabled, focusable: false, loading: false, ripple: false), new Attrs { AriaLabel = k.Label }));
+}
