@@ -1,0 +1,76 @@
+# 持续集成：每次推送与 PR 都在 Linux、Windows 上构建并运行全部测试，并检查生成的样式属性表与数据源一致。
+name: CI
+
+on:
+  push:
+    branches: [master, "feat/**", "fix/**"]
+  pull_request:
+  workflow_dispatch:
+
+# 同一分支有新的推送时取消还在跑的旧任务
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # css-gen 的数据来源：生成 Style.Properties.g.cs 时 vue-tsx-pro 的版本。重新生成属性表时一起更新这里
+  VUE_TSX_PRO_REF: 7c4e61da2874fc00bfc9c79e9e59c5123ed608a5
+
+jobs:
+  build-test:
+    name: 构建与测试（${{ matrix.os }}）
+    strategy:
+      fail-fast: false
+      matrix:
+        # 开发在 Windows 上，部署通常在 Linux 上：两边都跑
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 安装 .NET SDK（版本取自 global.json）
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: 缓存 NuGet 包
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: 还原
+        run: dotnet restore RuneForBlazor.slnx
+
+      - name: 构建（警告即错误）
+        run: dotnet build RuneForBlazor.slnx --configuration Release --no-restore
+
+      - name: 测试
+        run: dotnet test --project tests/Rune.Tests/Rune.Tests.csproj --configuration Release --no-build
+
+  css-gen:
+    name: 样式属性表与数据源一致
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 取 vue-tsx-pro 的 CSS 数据
+        uses: actions/checkout@v7
+        with:
+          repository: kenconnet666/vue-tsx-pro
+          ref: ${{ env.VUE_TSX_PRO_REF }}
+          path: .deps/vue-tsx-pro
+          sparse-checkout: packages/tsx/src/styles
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: 检查 Style.Properties.g.cs
+        run: node tools/css-gen/generate.mjs --check --source .deps/vue-tsx-pro

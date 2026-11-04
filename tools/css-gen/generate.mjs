@@ -262,7 +262,8 @@ const result = generate();
 for (const w of result.warnings) console.warn(`警告：${w}`);
 
 if (values.check) {
-  const current = existsSync(outputPath) ? readFileSync(outputPath, 'utf8') : null;
+  // 按 LF 比较：Windows 上 git 可能把工作区文件换成 CRLF
+  const current = existsSync(outputPath) ? readFileSync(outputPath, 'utf8').replaceAll('\r\n', '\n') : null;
   if (current !== result.content) {
     console.error('Style.Properties.g.cs 与数据源不一致，请运行 node tools/css-gen/generate.mjs');
     process.exit(1);
