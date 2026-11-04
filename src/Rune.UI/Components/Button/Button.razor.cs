@@ -23,22 +23,17 @@ public partial class Button : ButtonBase
     /// <inheritdoc/>
     protected override Tone DefaultTone => UI.Tone.Accent;
 
-    /// <summary>button 上由组件管理的属性：不可用、加载中（可聚焦但不可操作）。只有四种组合，预先建好，渲染时不分配。</summary>
-    Attrs Managed => managedByState[(Disabled ? 2 : 0) + (Loading ? 1 : 0)];
+    /// <summary>button 上由组件管理的属性：不可用、加载中（可聚焦但不可操作）、波纹。只有八种组合，预先建好，渲染时不分配。</summary>
+    Attrs Managed => managedByState[(Disabled ? 4 : 0) + (Loading ? 2 : 0) + (RippleEnabled ? 1 : 0)];
 
-    static readonly Attrs[] managedByState =
-    [
-        Attrs.Empty,
-        StateAttrs(disabled: false, loading: true),
-        StateAttrs(disabled: true, loading: false),
-        StateAttrs(disabled: true, loading: true),
-    ];
+    static readonly Attrs[] managedByState = [.. Enumerable.Range(0, 8).Select(i => StateAttrs(disabled: (i & 4) != 0, loading: (i & 2) != 0, ripple: (i & 1) != 0))];
 
-    static Attrs StateAttrs(bool disabled, bool loading) => new()
+    static Attrs StateAttrs(bool disabled, bool loading, bool ripple) => new()
     {
         ["disabled"] = disabled ? true : null,
         ["aria-busy"] = loading ? "true" : null,
         AriaDisabled = loading ? true : null,
         ["data-loading"] = loading ? true : null,
+        ["data-rune-ripple"] = ripple ? true : null,
     };
 }

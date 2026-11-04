@@ -12,7 +12,8 @@ namespace Rune.UI;
 /// <param name="ColorScheme">亮暗模式。</param>
 /// <param name="Defaults">组件默认值。</param>
 /// <param name="Styles">按部件的样式定制。</param>
-public sealed record UIConfig(Theme Theme, Theme? DarkTheme, ColorScheme ColorScheme, ComponentDefaults Defaults, ComponentStyles Styles);
+/// <param name="Ripple">可点击的组件（按钮、菜单项）按下时的波纹，默认开启；组件的 Ripple 参数可以单独覆盖。</param>
+public sealed record UIConfig(Theme Theme, Theme? DarkTheme, ColorScheme ColorScheme, ComponentDefaults Defaults, ComponentStyles Styles, bool Ripple = true);
 
 /// <summary>应用级配置（<see cref="RuneUIServiceCollectionExtensions.AddRuneUI"/> 里设置）。</summary>
 public sealed class RuneUIOptions
@@ -31,6 +32,9 @@ public sealed class RuneUIOptions
 
     /// <summary>按部件的样式定制。</summary>
     public ComponentStyles Styles { get; set; } = ComponentStyles.Empty;
+
+    /// <summary>可点击的组件按下时的波纹，默认开启。</summary>
+    public bool Ripple { get; set; } = true;
 }
 
 /// <summary>注册组件库的服务。</summary>
@@ -47,7 +51,7 @@ public static class RuneUIServiceCollectionExtensions
         var options = new RuneUIOptions();
         configure?.Invoke(options);
         services.AddRune();
-        services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles));
+        services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple));
         services.AddScoped<ToastService>();
         return services;
     }

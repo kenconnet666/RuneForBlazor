@@ -23,10 +23,10 @@
     /// <inheritdoc/>
     protected override Tone DefaultTone => UI.Tone.Neutral;
 
-    Memo<(string Label, bool Disabled, bool Loading), Attrs> managed;
+    Memo<(string Label, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
 
-    /// <summary>button 上由组件管理的属性：名称、不可用、加载中；不变时复用同一个对象。</summary>
-    Attrs Managed => managed.Get((Label, Disabled, Loading), static k => new Attrs
+    /// <summary>button 上由组件管理的属性：名称、不可用、加载中、波纹；不变时复用同一个对象。</summary>
+    Attrs Managed => managed.Get((Label, Disabled, Loading, RippleEnabled), static k => new Attrs
     {
         AriaLabel = k.Label,
         Title = k.Label,
@@ -34,5 +34,6 @@
         ["aria-busy"] = k.Loading ? "true" : null,
         AriaDisabled = k.Loading ? true : null,
         ["data-loading"] = k.Loading ? true : null,
+        ["data-rune-ripple"] = k.Ripple ? true : null,
     });
 }

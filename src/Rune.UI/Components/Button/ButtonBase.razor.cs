@@ -23,6 +23,9 @@ public abstract partial class ButtonBase : UIComponent
     /// <summary>加载中：显示旋转指示，宽度不变，点击无效，焦点保留；读屏会得知 aria-busy。</summary>
     [Parameter] public bool Loading { get; set; }
 
+    /// <summary>按下时的波纹；不写时沿用配置（<see cref="UIConfig.Ripple"/>，默认开启）。</summary>
+    [Parameter] public bool? Ripple { get; set; }
+
     /// <summary>文字前的图标：<c>Lucide.Plus</c>。</summary>
     [Parameter] public IconData? Icon { get; set; }
 
@@ -58,6 +61,9 @@ public abstract partial class ButtonBase : UIComponent
             Radius ?? defaults?.Radius ?? UI.Radius.Md,
             shape);
     }
+
+    /// <summary>是否出波纹：组件上写的 &gt; 配置；像链接的按钮（Link 样式）没有波纹。</summary>
+    protected bool RippleEnabled => (Ripple ?? Config.Ripple) && (Variant ?? Config.Defaults.Get<ButtonDefaults>()?.Variant ?? DefaultVariant) != ButtonVariant.Link;
 
     /// <summary>各部件的默认层。</summary>
     protected PartLayers<ButtonPart> Parts(ButtonShape shape) => ButtonStyles.Of(Appearance(shape), Config.Styles);

@@ -10,6 +10,8 @@
 //   data-rune-light-dismiss  对话框：点遮罩关闭（原生的 closedby="any" 还没普及）
 //   role="menu"              菜单：方向键、Home / End、首字母移动焦点；打开时聚焦第一项；选了菜单项就关闭
 //   data-rune-tooltip-root   提示：Esc 隐藏；触发元素获得焦点时 aria-describedby 指向提示
+//   data-indeterminate       勾选框的半选：原生的 indeterminate 只能用 JS 设置，按这个属性同步
+//   data-rune-ripple         按钮、菜单项：按下时从指针位置（键盘 Enter / 空格时从中心）扩散一圈波纹，松开后淡出
 //
 // 模态对话框打开时锁定页面滚动；不支持锚点定位的浏览器在浮层打开时按触发元素摆放一次。
 
@@ -45,18 +47,19 @@ function install(blazor) {
 
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('pointerdown', startRipple);
   document.addEventListener('focusin', onFocusIn);
   document.addEventListener('focusout', clearTooltipDismissal);
   document.addEventListener('pointerout', clearTooltipDismissal);
 
-  // 受控的浮层：组件改 data-open，这里同步原生状态；新插入的浮层（第一次渲染就是打开的）一并处理
+  // 组件改属性（data-open、data-indeterminate），这里同步原生状态；新插入的元素（第一次渲染就带着状态）一并处理
   new MutationObserver(onMutations).observe(document.documentElement, {
     subtree: true,
     childList: true,
     attributes: true,
-    attributeFilter: ['data-open'],
+    attributeFilter: ['data-open', 'data-indeterminate'],
   });
-  document.querySelectorAll('[data-rune-overlay][data-open]').forEach(syncOpen);
+  syncWithin(document);
 }
 
 function announce(overlay, open) {
@@ -92,16 +95,29 @@ function syncOpen(overlay) {
   else if (overlay.dataset.open === 'false') close(overlay);
 }
 
+function syncIndeterminate(input) {
+  input.indeterminate = input.dataset.indeterminate === 'true';
+}
+
+/** 同步一个元素（含自身）里所有带状态属性的元素 */
+function syncWithin(root) {
+  const sync = (element) => {
+    if (element.matches('[data-rune-overlay][data-open="true"]')) syncOpen(element);
+    if (element.matches('input[data-indeterminate="true"]')) syncIndeterminate(element);
+  };
+  if (root instanceof Element) sync(root);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"]').forEach(sync);
+}
+
 function onMutations(mutations) {
   for (const mutation of mutations) {
     if (mutation.type === 'attributes') {
-      if (mutation.target.matches('[data-rune-overlay]')) syncOpen(mutation.target);
+      if (mutation.attributeName === 'data-indeterminate') syncIndeterminate(mutation.target);
+      else if (mutation.target.matches('[data-rune-overlay]')) syncOpen(mutation.target);
       continue;
     }
     for (const node of mutation.addedNodes) {
-      if (!(node instanceof Element)) continue;
-      if (node.matches('[data-rune-overlay][data-open="true"]')) syncOpen(node);
-      node.querySelectorAll('[data-rune-overlay][data-open="true"]').forEach(syncOpen);
+      if (node instanceof Element) syncWithin(node);
     }
   }
 }
@@ -157,6 +173,7 @@ function onClick(event) {
 
 function onKeyDown(event) {
   if (event.key === 'Escape') dismissTooltips();
+  if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
   if (menu) moveInMenu(menu, event);
 }
@@ -224,6 +241,56 @@ function onFocusIn(event) {
   const root = target.closest('[data-rune-tooltip-root]');
   const tooltipId = root?.getAttribute('data-rune-tooltip-root');
   if (tooltipId && !target.hasAttribute('aria-describedby')) target.setAttribute('aria-describedby', tooltipId);
+}
+
+// ---- 波纹 ----
+
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+/**
+ * 在带 data-rune-ripple 的元素上开始一个波纹（同 vue-tsx-pro 的 ripple）：半透明的当前文字颜色，
+ * 实底按钮上是浅色、描边按钮上是深色；松开、移出、取消或失去焦点时淡出并移除。
+ * 宿主要有 position: relative 与 overflow: hidden（SharedStyles.RippleHost）。减少动效时不扩散，只是按下时变色。
+ */
+function startRipple(event) {
+  const keyboard = event instanceof KeyboardEvent;
+  const host = event.target instanceof Element ? event.target.closest('[data-rune-ripple]') : null;
+  if (!host || host.matches(':disabled, [aria-disabled="true"], [aria-busy="true"]')) return;
+  if (keyboard ? event.repeat || event.target !== host : event.button !== 0) return;
+
+  const rect = host.getBoundingClientRect();
+  const x = keyboard ? rect.width / 2 : event.clientX - rect.left;
+  const y = keyboard ? rect.height / 2 : event.clientY - rect.top;
+  // 圆心到最远的角的距离：扩散完正好盖满整个元素
+  const radius = Math.hypot(Math.max(x, rect.width - x), Math.max(y, rect.height - y));
+  const ripple = document.createElement('span');
+  ripple.setAttribute('aria-hidden', 'true');
+  Object.assign(ripple.style, {
+    position: 'absolute',
+    left: `${x - radius}px`,
+    top: `${y - radius}px`,
+    width: `${radius * 2}px`,
+    height: `${radius * 2}px`,
+    borderRadius: '50%',
+    pointerEvents: 'none',
+    backgroundColor: 'color-mix(in srgb, currentColor 22%, transparent)',
+  });
+  host.append(ripple);
+  const motion = !reducedMotion.matches;
+  const easing = getComputedStyle(host).getPropertyValue('--rune-easings-standard').trim() || 'ease-out';
+  ripple.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: motion ? 450 : 0, easing, fill: 'forwards' });
+
+  const releaseEvents = keyboard
+    ? [['keyup', host], ['blur', host]]
+    : [['pointerup', window], ['pointercancel', window], ['pointerleave', host]];
+  const release = () => {
+    for (const [type, target] of releaseEvents) target.removeEventListener(type, release);
+    const fade = motion ? 250 : 0;
+    ripple.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fade, easing: 'ease-in', fill: 'forwards' }).finished.then(() => ripple.remove());
+    // 页面不渲染时（后台标签页）动画不推进、finished 不会完成：到时间兜底移除
+    setTimeout(() => ripple.remove(), fade + 100);
+  };
+  for (const [type, target] of releaseEvents) target.addEventListener(type, release);
 }
 
 // ---- 不支持锚点定位时的兜底 ----

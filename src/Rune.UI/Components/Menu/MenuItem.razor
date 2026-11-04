@@ -41,9 +41,17 @@
     /// <summary>图标的部件属性。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }
 
-    // 菜单项不在 Tab 顺序里（菜单里用方向键移动）；只有两种状态，预先建好
-    Attrs Managed => Disabled ? disabledAttrs : enabledAttrs;
+    /// <summary>按下时的波纹；不写时沿用配置。</summary>
+    [Parameter] public bool? Ripple { get; set; }
 
-    static readonly Attrs enabledAttrs = new() { Role = "menuitem", TabIndex = -1 };
-    static readonly Attrs disabledAttrs = new() { Role = "menuitem", TabIndex = -1, AriaDisabled = true };
+    // 菜单项不在 Tab 顺序里（菜单里用方向键移动）；只有四种组合，预先建好
+    Attrs Managed => managedByState[(Disabled ? 2 : 0) + ((Ripple ?? Config.Ripple) ? 1 : 0)];
+
+    static readonly Attrs[] managedByState = [.. Enumerable.Range(0, 4).Select(i => new Attrs
+    {
+        Role = "menuitem",
+        TabIndex = -1,
+        AriaDisabled = (i & 2) != 0 ? true : null,
+        ["data-rune-ripple"] = (i & 1) != 0 ? true : null,
+    })];
 }

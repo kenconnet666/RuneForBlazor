@@ -98,6 +98,7 @@ public static class ButtonStyles
         {
             ButtonPart.Root => Sx.Of(
                 Root,
+                SharedStyles.RippleHost,
                 Variant(a.Variant, a.Tone),
                 a.Variant == ButtonVariant.Link ? null : ScaleStyles.Radius(a.Radius),
                 a.Size is { } size ? ScaleStyles.FontSize(size) : null,

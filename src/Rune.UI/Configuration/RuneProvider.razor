@@ -25,7 +25,7 @@
 
 @code {
     UIConfig config = default!;
-    (UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentDefaults? Defaults, ComponentStyles? Styles) built;
+    Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentDefaults? Defaults, ComponentStyles? Styles, bool? Ripple), UIConfig> built;
 
     /// <summary>主题（亮色）。</summary>
     [Parameter] public Theme? Theme { get; set; }
@@ -41,6 +41,9 @@
 
     /// <summary>按部件的样式定制，排在外层的后面。</summary>
     [Parameter] public ComponentStyles? Styles { get; set; }
+
+    /// <summary>按钮、菜单项按下时的波纹。</summary>
+    [Parameter] public bool? Ripple { get; set; }
 
     /// <summary>区域里的内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -59,18 +62,15 @@
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
-        var outer = Config;
-        var inputs = (outer, Theme, DarkTheme, ColorScheme, Defaults, Styles);
         // 输入没变时保留同一个配置对象：下面的组件拿到的级联值不变，不会被迫重新渲染
-        if (config is not null && inputs == built) return;
-        built = inputs;
-        config = outer with
+        config = built.Get((Config, Theme, DarkTheme, ColorScheme, Defaults, Styles, Ripple), static k => k.Outer with
         {
-            Theme = Theme ?? outer.Theme,
-            DarkTheme = DarkTheme ?? outer.DarkTheme,
-            ColorScheme = ColorScheme ?? outer.ColorScheme,
-            Defaults = Defaults is null ? outer.Defaults : outer.Defaults.Then(Defaults),
-            Styles = Styles is null ? outer.Styles : outer.Styles.Then(Styles),
-        };
+            Theme = k.Theme ?? k.Outer.Theme,
+            DarkTheme = k.Dark ?? k.Outer.DarkTheme,
+            ColorScheme = k.Scheme ?? k.Outer.ColorScheme,
+            Defaults = k.Defaults is null ? k.Outer.Defaults : k.Outer.Defaults.Then(k.Defaults),
+            Styles = k.Styles is null ? k.Outer.Styles : k.Outer.Styles.Then(k.Styles),
+            Ripple = k.Ripple ?? k.Outer.Ripple,
+        });
     }
 }

@@ -30,6 +30,16 @@ public static class SharedStyles
         },
     });
 
+    /// <summary>
+    /// 波纹的宿主（带 data-rune-ripple 的按钮、菜单项）：波纹相对它定位，超出圆角的部分裁掉。
+    /// 波纹本身由 JS 初始化器在按下时画（纯客户端，Server 模式也没有往返）。
+    /// </summary>
+    public static Style RippleHost => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        Overflow = "hidden",
+    });
+
     /// <summary>视觉上隐藏、读屏仍能读到（给图标按钮补文字说明）。</summary>
     public static Style VisuallyHidden => Css.Define(static () => new Style
     {

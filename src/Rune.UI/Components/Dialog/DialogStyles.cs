@@ -42,7 +42,7 @@ public enum DialogPart
 
 /// <summary>
 /// 对话框与抽屉的样式（配方）。原生的模态 <c>&lt;dialog&gt;</c> 已在顶层、带遮罩；这里换成主题的表面，
-/// 进出场用 <c>@starting-style</c> 与 display / overlay 的离散过渡（关闭后先播完动画再隐藏，不需要 JS）。
+/// 进出场与遮罩用 <see cref="OverlayTransitions"/>（对话框缩放，抽屉从一边滑入）。
 /// </summary>
 public static class DialogStyles
 {
@@ -50,7 +50,7 @@ public static class DialogStyles
     public static PartLayers<DialogPart> Dialog(DialogWidth width, ComponentStyles styles) =>
         Recipe.Of("dialog", width, styles, static (DialogWidth width, DialogPart part) => part switch
         {
-            DialogPart.Root => Sx.Of(Surface, Centered, WidthOf(width), SharedStyles.ReducedMotion),
+            DialogPart.Root => Sx.Of(Surface, OverlayTransitions.Scale, OverlayTransitions.Backdrop, Centered, WidthOf(width), SharedStyles.ReducedMotion),
             _ => Inner(part),
         });
 
@@ -60,6 +60,8 @@ public static class DialogStyles
         {
             DialogPart.Root => Sx.Of(
                 Surface,
+                OverlayTransitions.Slide(HiddenOffset(a.Placement)),
+                OverlayTransitions.Backdrop,
                 Side(a.Placement),
                 a.Placement is Placement.Start or Placement.End ? WidthOf(a.Width) : null,
                 SharedStyles.ReducedMotion),
@@ -89,36 +91,14 @@ public static class DialogStyles
         FontSize = FontSizes.Md,
         LineHeight = LineHeights.Normal,
         Overflow = "hidden",
-        Opacity = 0,
-        Transition = $"opacity {Durations.Normal} {Easings.Standard}, translate {Durations.Normal} {Easings.Standard}, scale {Durations.Normal} {Easings.Standard}, " +
-                     $"overlay {Durations.Normal} allow-discrete, display {Durations.Normal} allow-discrete",
-        [Pseudo.Backdrop] = new()
-        {
-            BackgroundColor = "rgb(0 0 0 / 0%)",
-            Transition = $"background-color {Durations.Normal}, overlay {Durations.Normal} allow-discrete, display {Durations.Normal} allow-discrete",
-        },
         // 打开时才是 flex：dialog 关闭时浏览器给的 display: none 不能被盖掉
-        [When.Open] = new()
-        {
-            Display = Display.Flex,
-            Opacity = 1,
-            Translate = "0 0",
-            Scale = 1,
-            [Pseudo.Backdrop] = new()
-            {
-                BackgroundColor = "rgb(0 0 0 / 45%)",
-                [When.Starting] = new() { BackgroundColor = "rgb(0 0 0 / 0%)" },
-            },
-        },
+        [When.Open] = new() { Display = Display.Flex },
     });
 
-    // 居中的对话框：从略小放大到正常
     static Style Centered => Css.Define(static () => new Style
     {
         MaxHeight = "calc(100dvh - 64px)",
         BorderRadius = Radii.Lg,
-        Scale = 0.96,
-        [When.Open] = new() { [When.Starting] = new() { Opacity = 0, Scale = 0.96 } },
     });
 
     static Style WidthOf(DialogWidth width) => Css.Define(width, static width => new Style
@@ -133,17 +113,18 @@ public static class DialogStyles
         MaxWidth = "calc(100vw - 32px)",
     });
 
-    // 抽屉：贴边、占满那一边（另一个方向按内容或宽度档位），从那一边滑进来
-    static Style Side(Placement placement) => Css.Define(placement, static placement =>
+    // 抽屉隐藏时的位移：移到它那一边的外面
+    static string HiddenOffset(Placement placement) => placement switch
     {
-        var hidden = placement switch
-        {
-            Placement.Start => "-100% 0",
-            Placement.Top => "0 -100%",
-            Placement.Bottom => "0 100%",
-            _ => "100% 0",
-        };
-        return placement switch
+        Placement.Start => "-100% 0",
+        Placement.Top => "0 -100%",
+        Placement.Bottom => "0 100%",
+        _ => "100% 0",
+    };
+
+    // 抽屉：贴边、占满那一边（另一个方向按内容或宽度档位）
+    static Style Side(Placement placement) => Css.Define(placement, static placement =>
+        placement switch
         {
             Placement.Start or Placement.End => new Style
             {
@@ -152,8 +133,6 @@ public static class DialogStyles
                 Height = "100dvh",
                 MaxHeight = "100dvh",
                 BorderRadius = 0,
-                Translate = hidden,
-                [When.Open] = new() { [When.Starting] = new() { Opacity = 0, Translate = hidden } },
             },
             _ => new Style
             {
@@ -163,11 +142,8 @@ public static class DialogStyles
                 MaxWidth = "100vw",
                 MaxHeight = "85dvh",
                 BorderRadius = 0,
-                Translate = hidden,
-                [When.Open] = new() { [When.Starting] = new() { Opacity = 0, Translate = hidden } },
             },
-        };
-    });
+        });
 
     static Style Header => Css.Define(static () => new Style
     {

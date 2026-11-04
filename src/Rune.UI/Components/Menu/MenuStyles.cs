@@ -32,7 +32,7 @@ public static class MenuStyles
     public static PartLayers<MenuPart> Of(Placement placement, ComponentStyles styles) =>
         Recipe.Of("menu", placement, styles, static (Placement placement, MenuPart part) => part switch
         {
-            MenuPart.Root => Sx.Of(PopoverStyles.Surface, Anchor.Position(placement, alignStart: true), Root, SharedStyles.ReducedMotion),
+            MenuPart.Root => Sx.Of(PopoverStyles.Surface, OverlayTransitions.Scale, Anchor.Position(placement, alignStart: true), Root, SharedStyles.ReducedMotion),
             _ => Separator,
         });
 
@@ -40,7 +40,7 @@ public static class MenuStyles
     public static PartLayers<MenuItemPart> Item(Tone tone, ComponentStyles styles) =>
         Recipe.Of("menu-item", tone, styles, static (Tone tone, MenuItemPart part) => part switch
         {
-            MenuItemPart.Root => Sx.Of(ItemRoot, SharedStyles.ToneText(tone), SharedStyles.FocusRingInset),
+            MenuItemPart.Root => Sx.Of(ItemRoot, SharedStyles.RippleHost, SharedStyles.ToneText(tone), SharedStyles.FocusRingInset),
             MenuItemPart.Icon => ItemIcon,
             _ => Shortcut,
         });
