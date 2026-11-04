@@ -54,6 +54,21 @@ jobs:
       - name: 测试
         run: dotnet test --project tests/Rune.Tests/Rune.Tests.csproj --configuration Release --no-build
 
+      # 只在 Linux 上打包一次：检查生成器在 Rune 包里（安装 Rune 就能用 [State]），包作为产物留存
+      - name: 打包并检查包的内容
+        if: runner.os == 'Linux'
+        run: |
+          dotnet pack src/Rune/Rune.csproj --configuration Release --no-build --output artifacts
+          dotnet pack src/Rune.UI/Rune.UI.csproj --configuration Release --no-build --output artifacts
+          unzip -l "$(ls artifacts/Rune.[0-9]*.nupkg)" | grep -q "analyzers/dotnet/cs/Rune.Generators.dll"
+
+      - name: 上传包
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          name: packages
+          path: artifacts/*
+
   css-gen:
     name: 样式属性表与数据源一致
     runs-on: ubuntu-latest

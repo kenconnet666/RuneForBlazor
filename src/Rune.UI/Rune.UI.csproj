@@ -4,6 +4,7 @@
   <PropertyGroup>
     <IsLibrary>true</IsLibrary>
     <RootNamespace>Rune.UI</RootNamespace>
+    <Description>基于 Rune 的 Blazor 组件库：主题与 tokens、组件默认值与按部件的样式定制、组件。</Description>
   </PropertyGroup>
 
   <ItemGroup>

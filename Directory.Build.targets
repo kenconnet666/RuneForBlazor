@@ -1,0 +1,33 @@
+<Project>
+  <!--
+    按项目自己声明的属性区分的设置。放在 targets 而不是 props：props 在项目文件之前导入，
+    那时项目里写的 IsLibrary 还没有值，条件永远不成立
+  -->
+
+  <!-- 只有对外发布的库打包；应用、测试、生成器（随 Rune 包一起发）都不单独打包 -->
+  <PropertyGroup Condition="'$(IsLibrary)' != 'true'">
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- 对外发布的库：公开成员必须写文档注释（CS1591 视为错误），以及 NuGet 包的信息 -->
+  <PropertyGroup Condition="'$(IsLibrary)' == 'true'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <Authors>kenconnet666</Authors>
+    <Copyright>Copyright (c) 2026 kenconnet666</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/kenconnet666/RuneForBlazor</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kenconnet666/RuneForBlazor</RepositoryUrl>
+    <PackageTags>blazor;components;signals;css-in-csharp</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- SourceLink（SDK 自带）：调试时能跳进包的源码 -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsLibrary)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+</Project>
