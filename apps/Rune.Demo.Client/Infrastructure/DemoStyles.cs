@@ -1,5 +1,5 @@
 using Rune.Styles;
-using Rune.UI.Theme;
+using Rune.UI;
 
 namespace Rune.Demo.Client.Infrastructure;
 
@@ -63,6 +63,18 @@ public static class DemoStyles
         TextDecoration = "none",
         [When.Hover] = new() { BackgroundColor = Colors.SurfaceHover },
         [When.Current] = new() { BackgroundColor = Colors.Accent, Color = Colors.AccentContrast },
+    });
+
+    /// <summary>强调色文字（按部件定制的例子）。</summary>
+    public static Style AccentText => Css.Define(static () => new Style { Color = Colors.Accent });
+
+    /// <summary>主题预览区：用主题的背景色，切换主题时看得出来。</summary>
+    public static Style ThemePreview => Css.Define(static () => new Style
+    {
+        Padding = Space.Md,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.Background,
+        Color = Colors.Text,
     });
 
     /// <summary>使用方覆盖的例子：展开时把标题改成强调色（只改这一个状态下的颜色）。</summary>

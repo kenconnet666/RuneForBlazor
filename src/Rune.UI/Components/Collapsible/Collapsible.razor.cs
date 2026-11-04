@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Web;
 namespace Rune.UI;
 
 /// <summary>折叠面板：一个按钮控制一块内容的展开与收起。</summary>
-public partial class Collapsible : RuneComponent
+public partial class Collapsible : UIComponent
 {
     // 按钮与内容区互相引用（aria-controls / aria-labelledby）
     readonly string triggerId = UniqueId.Next("collapsible-trigger");
@@ -16,8 +16,8 @@ public partial class Collapsible : RuneComponent
     /// <summary>展开后显示的内容；收起时不渲染。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>外观，默认 <see cref="CollapsibleVariant.Plain"/>。</summary>
-    [Parameter] public CollapsibleVariant Variant { get; set; }
+    /// <summary>外观；不写时取配置里的默认值（<see cref="CollapsibleDefaults"/>），再没有就是 <see cref="CollapsibleVariant.Plain"/>。</summary>
+    [Parameter] public CollapsibleVariant? Variant { get; set; }
 
     /// <summary>是否展开。可以 <c>@bind-Open</c> 双向绑定，也可以只给初始值。</summary>
     [Parameter] public bool Open { get; set; }
@@ -32,6 +32,11 @@ public partial class Collapsible : RuneComponent
     [Parameter] public Attrs? PropsContent { get; set; }
 
     Bindable<bool> open { get => field ??= new(() => Open, () => OpenChanged); }
+
+    /// <summary>各部件的默认层：外观取参数、配置的默认值、组件默认值，定制取配置。</summary>
+    CollapsibleParts Parts => CollapsibleStyles.Of(
+        Variant ?? Config.Defaults.Get<CollapsibleDefaults>()?.Variant ?? CollapsibleVariant.Plain,
+        Config.Styles);
 
     /// <summary>按钮上由组件管理的属性：展开状态、关联的内容区、点击切换。</summary>
     Attrs TriggerManaged => new()

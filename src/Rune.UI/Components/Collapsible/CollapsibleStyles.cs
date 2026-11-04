@@ -1,5 +1,4 @@
 using Rune.Styles;
-using Rune.UI.Theme;
 
 namespace Rune.UI;
 
@@ -13,55 +12,81 @@ public enum CollapsibleVariant
     Outline,
 }
 
+/// <summary>折叠面板的部件：用于部件标记（data-part）与按部件的样式定制（<see cref="ComponentStyles"/>）。</summary>
+public enum CollapsiblePart
+{
+    /// <summary>外层容器。</summary>
+    Root,
+
+    /// <summary>展开收起的按钮。</summary>
+    Trigger,
+
+    /// <summary>内容区。</summary>
+    Content,
+}
+
+/// <summary>折叠面板的默认值（<see cref="ComponentDefaults"/> 里设置）。</summary>
+public sealed record CollapsibleDefaults : IComponentDefaults<CollapsibleDefaults>
+{
+    /// <summary>外观。</summary>
+    public CollapsibleVariant? Variant { get; init; }
+
+    /// <inheritdoc/>
+    public CollapsibleDefaults Over(CollapsibleDefaults outer) => new() { Variant = Variant ?? outer.Variant };
+}
+
 /// <summary>折叠面板各部件的默认层。</summary>
 /// <param name="Root">外层容器。</param>
 /// <param name="Trigger">展开收起的按钮。</param>
 /// <param name="Content">内容区。</param>
 public sealed record CollapsibleParts(Attrs Root, Attrs Trigger, Attrs Content);
 
-/// <summary>折叠面板的样式（配方）：部件 × 档位，每个档位只创建一次。</summary>
+/// <summary>折叠面板的样式（配方）：部件 × 档位 × 定制，每种组合只创建一次。</summary>
 public static class CollapsibleStyles
 {
-    /// <summary>某个外观下各部件的默认层。</summary>
-    public static CollapsibleParts Of(CollapsibleVariant variant) => Css.Define(variant, static variant => new CollapsibleParts(
-        Root: Part.Of("collapsible", "root", variant == CollapsibleVariant.Outline ? [Root, OutlineRoot] : Root),
-        Trigger: Part.Of("collapsible", "trigger", Trigger),
-        Content: Part.Of("collapsible", "content", Content)));
+    const string Scope = "collapsible";
+
+    /// <summary>某个外观、某套定制下各部件的默认层。</summary>
+    public static CollapsibleParts Of(CollapsibleVariant variant, ComponentStyles styles) =>
+        Css.Define((variant, styles), static key => new CollapsibleParts(
+            Root: Part.Of(Scope, CollapsiblePart.Root, key.variant == CollapsibleVariant.Outline ? [Root, OutlineRoot] : Root, key.styles),
+            Trigger: Part.Of(Scope, CollapsiblePart.Trigger, [Trigger, SharedStyles.FocusRingInset, SharedStyles.ReducedMotion], key.styles),
+            Content: Part.Of(Scope, CollapsiblePart.Content, Content, key.styles)));
 
     static Style Root => Css.Define(static () => new Style
     {
-        Display = "grid",
+        Display = Display.Grid,
         Color = Colors.Text,
     });
 
     static Style OutlineRoot => Css.Define(static () => new Style
     {
         BorderWidth = 1,
-        BorderStyle = "solid",
+        BorderStyle = BorderStyle.Solid,
         BorderColor = Colors.Border,
         BorderRadius = Radii.Md,
-        Overflow = "hidden",
+        Overflow = Overflow.Hidden,
     });
 
     static Style Trigger => Css.Define(static () => new Style
     {
-        Display = "flex",
-        AlignItems = "center",
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
         Gap = Space.Sm,
+        MinHeight = Sizes.MinTarget,
         PaddingBlock = Space.Sm,
         PaddingInline = Space.Md,
         BorderWidth = 0,
         BackgroundColor = "transparent",
         Color = "inherit",
         Font = "inherit",
-        TextAlign = "start",
-        Cursor = "pointer",
+        TextAlign = TextAlign.Start,
+        Cursor = Cursor.Pointer,
         TransitionProperty = "background-color",
         TransitionDuration = Durations.Fast,
+        TransitionTimingFunction = Easings.Standard,
         [When.Hover] = new() { BackgroundColor = Colors.SurfaceHover },
-        [When.FocusVisible] = new() { Outline = $"2px solid {Colors.FocusRing}", OutlineOffset = -2 },
         [When.Expanded] = new() { FontWeight = FontWeights.Semibold },
-        [Media.ReducedMotion] = new() { TransitionDuration = "0s" },
     });
 
     static Style Content => Css.Define(static () => new Style

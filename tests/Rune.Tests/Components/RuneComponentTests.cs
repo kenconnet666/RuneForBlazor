@@ -1,6 +1,7 @@
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Rune.Tests.Components.TestComponents;
+using Rune.UI;
 
 namespace Rune.Tests.Components;
 
@@ -10,7 +11,7 @@ public class RuneComponentTests : BunitContext
 
     public RuneComponentTests()
     {
-        Services.AddRune();
+        Services.AddRuneUI();
         Services.AddSingleton(store);
     }
 

@@ -1,0 +1,54 @@
+@* 配置与主题：RuneProvider 嵌套修改默认值、按部件定制样式、切换亮暗主题 *@
+@attribute [ComponentDemo("provider", "配置与主题", Group = "基础", Order = 1)]
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>组件默认值</h2>
+    <p>这片区域把折叠面板的默认外观改成 Outline：组件上没写 Variant，取的是 Provider 的默认值。</p>
+    <RuneProvider Defaults="@outlineByDefault">
+        <Collapsible data-testid="default-variant">
+            <Title>没写 Variant 的折叠面板</Title>
+            <ChildContent>外观来自 Provider。</ChildContent>
+        </Collapsible>
+        <Collapsible Variant="CollapsibleVariant.Plain" data-testid="explicit-variant">
+            <Title>显式写了 Variant="Plain"</Title>
+            <ChildContent>组件上写的参数优先。</ChildContent>
+        </Collapsible>
+    </RuneProvider>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>按部件定制样式</h2>
+    <p>这片区域给所有折叠面板的按钮（CollapsiblePart.Trigger）追加了样式：标题用强调色。</p>
+    <RuneProvider Styles="@accentTriggers">
+        <Collapsible Variant="CollapsibleVariant.Outline" data-testid="styled-trigger">
+            <Title>按钮样式来自 Provider</Title>
+            <ChildContent>没有改组件，也没有在使用处写 Sx。</ChildContent>
+        </Collapsible>
+    </RuneProvider>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>主题</h2>
+    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+        @foreach (var scheme in Enum.GetValues<ColorScheme>())
+        {
+            <button aria-pressed="@(scheme == colorScheme ? "true" : "false")" @onclick="() => colorScheme = scheme">@scheme</button>
+        }
+    </div>
+    <RuneProvider ColorScheme="colorScheme">
+        <div @attributes="Attrs.Merge(DemoStyles.ThemePreview)" data-testid="theme-preview">
+            <Collapsible Open="true" Variant="CollapsibleVariant.Outline">
+                <Title>当前：@colorScheme</Title>
+                <ChildContent>这片区域的颜色来自 Provider 的主题；切换时只换包裹元素上的类，组件不用重新计算样式。</ChildContent>
+            </Collapsible>
+        </div>
+    </RuneProvider>
+</section>
+
+@code {
+    // 配置对象在组件里只创建一次：Provider 按引用判断配置有没有变
+    readonly ComponentDefaults outlineByDefault = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } };
+    readonly ComponentStyles accentTriggers = new() { { CollapsiblePart.Trigger, DemoStyles.AccentText } };
+    ColorScheme colorScheme = ColorScheme.Dark;
+}

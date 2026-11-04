@@ -1,8 +1,8 @@
 using Rune.Styles;
 
-namespace Rune.UI.Theme;
+namespace Rune.UI;
 
-// 主题 tokens：每个 token 是一个 CSS 变量（--rune-组-名），取值由主题提供（wwwroot/rune-ui.css 是默认主题）。
+// 主题 tokens：每个 token 是一个 CSS 变量（--rune-组-名），取值由主题提供（Themes.cs 里是内置的亮色与暗色主题）。
 // 组件里只用 token，不写裸的颜色、间距；token 带类型，颜色只能用在颜色属性上，间距只能用在长度属性上。
 
 /// <summary>间距：内边距、外边距、间隙。</summary>
@@ -89,4 +89,85 @@ public static class Durations
 
     /// <summary>展开收起、进出场。</summary>
     public static readonly CssValue Normal = "var(--rune-durations-normal)";
+}
+
+/// <summary>字号。组件根元素设字号，内部尺寸用 em 跟着缩放。</summary>
+public static class FontSizes
+{
+    /// <summary>12px：辅助说明、标记。</summary>
+    public static readonly CssLength Xs = "var(--rune-font-sizes-xs)";
+
+    /// <summary>13px：紧凑控件。</summary>
+    public static readonly CssLength Sm = "var(--rune-font-sizes-sm)";
+
+    /// <summary>14px：正文、控件默认。</summary>
+    public static readonly CssLength Md = "var(--rune-font-sizes-md)";
+
+    /// <summary>16px：强调正文、小标题。</summary>
+    public static readonly CssLength Lg = "var(--rune-font-sizes-lg)";
+
+    /// <summary>20px：标题。</summary>
+    public static readonly CssLength Xl = "var(--rune-font-sizes-xl)";
+}
+
+/// <summary>行高（不带单位）。</summary>
+public static class LineHeights
+{
+    /// <summary>1.25：标题、单行控件。</summary>
+    public static readonly CssValue Tight = "var(--rune-line-heights-tight)";
+
+    /// <summary>1.5：正文。</summary>
+    public static readonly CssValue Normal = "var(--rune-line-heights-normal)";
+}
+
+/// <summary>阴影。</summary>
+public static class Shadows
+{
+    /// <summary>轻微浮起：卡片悬停。</summary>
+    public static readonly CssValue Sm = "var(--rune-shadows-sm)";
+
+    /// <summary>浮层：下拉、弹出框。</summary>
+    public static readonly CssValue Md = "var(--rune-shadows-md)";
+
+    /// <summary>对话框。</summary>
+    public static readonly CssValue Lg = "var(--rune-shadows-lg)";
+}
+
+/// <summary>缓动曲线。</summary>
+public static class Easings
+{
+    /// <summary>常规进出。</summary>
+    public static readonly CssValue Standard = "var(--rune-easings-standard)";
+
+    /// <summary>进场（减速）。</summary>
+    public static readonly CssValue Enter = "var(--rune-easings-enter)";
+
+    /// <summary>离场（加速）。</summary>
+    public static readonly CssValue Exit = "var(--rune-easings-exit)";
+}
+
+/// <summary>层级：浮层之间的上下关系集中在这里定，组件里不写裸的 z-index。</summary>
+public static class ZIndices
+{
+    /// <summary>下拉、弹出框。</summary>
+    public static readonly CssValue Dropdown = "var(--rune-z-indices-dropdown)";
+
+    /// <summary>对话框、抽屉。</summary>
+    public static readonly CssValue Modal = "var(--rune-z-indices-modal)";
+
+    /// <summary>消息提示（盖在对话框上）。</summary>
+    public static readonly CssValue Toast = "var(--rune-z-indices-toast)";
+
+    /// <summary>悬停提示（最上层）。</summary>
+    public static readonly CssValue Tooltip = "var(--rune-z-indices-tooltip)";
+}
+
+/// <summary>尺寸。</summary>
+public static class Sizes
+{
+    /// <summary>可点击区域的最小尺寸（WCAG 2.5.8：24px）。</summary>
+    public static readonly CssLength MinTarget = "var(--rune-sizes-min-target)";
+
+    /// <summary>控件的默认高度。</summary>
+    public static readonly CssLength Control = "var(--rune-sizes-control)";
 }

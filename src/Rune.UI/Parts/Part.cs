@@ -3,19 +3,30 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>
-/// 组件内部节点（部件）的默认属性层：样式加上部件标记 <c>data-scope="collapsible" data-part="trigger"</c>。
-/// 部件标记让使用方的全局 CSS、端到端测试能稳定地选中部件，不依赖生成的类名。
+/// 组件内部节点（部件）的默认属性层：组件自己的样式、配置里对这个部件的定制，以及部件标记
+/// <c>data-scope="collapsible" data-part="trigger"</c>（让使用方的全局 CSS、端到端测试能稳定地选中部件，不依赖生成的类名）。
 /// </summary>
 public static class Part
 {
-    /// <summary>创建部件的默认层；在样式定义里调用（<see cref="Css.Define{TKey,T}"/>），每个档位只创建一次。</summary>
+    /// <summary>
+    /// 创建部件的默认层。在样式定义里调用（<see cref="Css.Define{TKey,T}"/>，按档位与定制缓存），渲染时不再创建。
+    /// </summary>
     /// <param name="scope">组件名（连字符小写）。</param>
-    /// <param name="name">部件名（连字符小写）。</param>
-    /// <param name="sx">部件的默认样式。</param>
-    public static Attrs Of(string scope, string name, Sx sx) => new()
+    /// <param name="part">部件。</param>
+    /// <param name="sx">组件自己的样式。</param>
+    /// <param name="styles">配置里的按部件定制，排在组件样式之后。</param>
+    public static Attrs Of<TPart>(string scope, TPart part, Sx sx, ComponentStyles styles) where TPart : struct, Enum
     {
-        Sx = sx,
-        ["data-scope"] = scope,
-        ["data-part"] = name,
-    };
+        var customized = styles.Of(part);
+        return new Attrs
+        {
+            Sx = customized.Count == 0 ? sx : Sx.Create([.. sx, .. customized]),
+            ["data-scope"] = scope,
+            ["data-part"] = NameOf(part),
+        };
+    }
+
+    /// <summary>部件名：枚举名转连字符小写（<c>TriggerIcon</c> → <c>trigger-icon</c>）。</summary>
+    static string NameOf<TPart>(TPart part) where TPart : struct, Enum =>
+        string.Concat(part.ToString().Select((c, i) => char.IsUpper(c) ? (i == 0 ? "" : "-") + char.ToLowerInvariant(c) : c.ToString()));
 }

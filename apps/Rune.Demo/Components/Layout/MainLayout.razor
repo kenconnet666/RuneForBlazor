@@ -1,7 +1,8 @@
-@* 演示项目的外壳：左侧是演示目录，切换演示时保持当前的渲染模式 *@
+@* 演示项目的外壳：左侧是演示目录，切换演示时保持当前的渲染模式；RuneProvider 套上应用级主题 *@
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
 
+<RuneProvider>
 <div class="demo-shell">
     <nav class="demo-nav" aria-label="演示目录">
         <a href="" class="demo-brand">Rune 演示</a>
@@ -21,6 +22,7 @@
         @Body
     </main>
 </div>
+</RuneProvider>
 
 <div id="blazor-error-ui" data-nosnippet>
     出现了未处理的错误。

@@ -8,7 +8,7 @@ namespace Rune.Tests.Components;
 
 public class CollapsibleTests : BunitContext
 {
-    public CollapsibleTests() => Services.AddRune();
+    public CollapsibleTests() => Services.AddRuneUI();
 
     IRenderedComponent<Collapsible> RenderCollapsible(Action<ComponentParameterCollectionBuilder<Collapsible>>? parameters = null) =>
         Render<Collapsible>(p =>

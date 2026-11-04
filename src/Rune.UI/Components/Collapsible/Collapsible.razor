@@ -9,8 +9,8 @@
 *@
 @* 组件文件按功能分文件夹，命名空间统一是 Rune.UI（与代码隐藏文件一致）；Razor 默认会把文件夹名接进命名空间 *@
 @namespace Rune.UI
-@inherits RuneComponent
-@{ var parts = CollapsibleStyles.Of(Variant); }
+@inherits UIComponent
+@{ var parts = Parts; }
 
 <div @attributes="Attrs.Merge(parts.Root, Rest)" data-state="@(open.Value ? "open" : "closed")">
     <button type="button" @attributes="Attrs.Merge(parts.Trigger, PropsTrigger, TriggerManaged)">
