@@ -1,0 +1,24 @@
+@* 演示页里的一块：标题加内容，表面色底。 *@
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(Surface, Rest)">
+    <H2 Size="Size.Lg">@Title</H2>
+    @ChildContent
+</section>
+
+@code {
+    /// <summary>这一块的标题。</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>演示内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    static Style Surface => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        Gap = Space.Sm,
+        Padding = Space.Md,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.Surface,
+    });
+}

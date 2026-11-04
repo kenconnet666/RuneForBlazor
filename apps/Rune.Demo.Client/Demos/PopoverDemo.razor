@@ -2,8 +2,7 @@
 @attribute [ComponentDemo("popover", "弹出层与提示", Group = "浮层", Order = 0)]
 @inherits RuneComponent
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>弹出框</h2>
+<DemoSection Title="弹出框">
     <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
         <Popover Title="筛选" data-testid="filter-popover">
             <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Surface" Icon="Lucide.Funnel">筛选</Button></Trigger>
@@ -33,10 +32,9 @@
             </Popover>
         }
     </Flex>
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>菜单</h2>
+<DemoSection Title="菜单">
     <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
         <Menu data-testid="row-menu">
             <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Surface" IconEnd="Lucide.ChevronDown">操作</Button></Trigger>
@@ -50,27 +48,25 @@
         </Menu>
         <TextSpan Muted="true" data-testid="menu-last">上次选择：@(last ?? "无")</TextSpan>
     </Flex>
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>提示</h2>
+<DemoSection Title="提示">
     <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
         <Tooltip Content="编辑"><IconButton Icon="Lucide.Pencil" Label="编辑" /></Tooltip>
         <Tooltip Content="复制到剪贴板" Placement="Placement.Bottom"><IconButton Icon="Lucide.Copy" Label="复制" /></Tooltip>
         <Tooltip Content="删除后可以在回收站里找回 30 天" Placement="Placement.End"><IconButton Icon="Lucide.Trash" Label="删除" Tone="Tone.Danger" /></Tooltip>
         <TextSpan Muted="true" Size="Size.Sm">悬停或 Tab 聚焦一会儿后出现，Esc 隐藏（纯 CSS，没有往返）</TextSpan>
     </Flex>
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>气泡确认</h2>
+<DemoSection Title="气泡确认">
     <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
         <Popconfirm Title="删除这条记录？" Description="删除后无法恢复。" ConfirmText="删除" ConfirmTone="Tone.Danger" OnConfirm="() => { deleted++; }">
             <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Trash">删除</Button></Trigger>
         </Popconfirm>
         <TextSpan Muted="true" data-testid="deleted">已删除 @deleted 次</TextSpan>
     </Flex>
-</section>
+</DemoSection>
 
 @code {
     static readonly string[] statuses = ["全部", "待处理", "进行中", "已完成"];

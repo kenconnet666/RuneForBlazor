@@ -41,7 +41,7 @@
 ## 阶段 1：基础组件
 
 - [x] 按钮家族（Button、IconButton、LinkButton）：样式 × 色调写成以色调 token 为参数的函数；加载中可聚焦不可点；图标按钮必填名称
-- [x] Icon、Spinner：Lucide 1891 个图标生成 C#（`Rune.Icons`，每个图标首次访问时才创建），组件库内置 16 个；关键帧动画进样式引擎
+- [x] Icon、Spinner：Lucide 图标生成 C#（`Rune.Icons`，每个图标首次访问时才创建），组件库内置 16 个；关键帧动画进样式引擎
 - [x] 配方 API 定型（`Recipe.Of` + `PartLayers<TPart>`，Collapsible、Button、Badge 三处用到）；部件是本库组件时样式作为 Sx 交下去（`Attrs.MergeProps`）
 - [x] 文字：TextSpan、Paragraph、H1–H6（一个元素一个组件，共用一个配方）、TextLink（外链新窗口与读屏提示）、Kbd、VisuallyHidden。
       不叫 Text / Link：Razor 在代码块里把 `<text>` 当作自己的标记，`<link>` 是 HTML 空元素，两者都写不了内容
@@ -61,6 +61,14 @@
 - [x] Popover、Menu（键盘、首字母、选中后关闭）、Tooltip（纯 CSS）；Popover 内容第一次打开才渲染
 - [x] Dialog、Drawer（原生模态 `<dialog>`，`@bind-Open` 或 Trigger，四个方向）
 - [x] Toast（`ToastService` + `Toaster`，信号驱动）、Popconfirm
+
+## 整理（阶段 2 之后）
+
+- [x] 图标：脚本直接下载 Lucide 官方 SVG（`lucide-static` 1.68.0，2020 个图标；改名前的 289 个旧名生成 [Obsolete] 转发），关键词写进文档注释；CI 校验生成文件
+- [x] 手写的 SVG 都换成 Lucide：Spinner 是旋转的 `loader-circle`（经 Icon 组件，名称存在时 role 让给 status）
+- [x] 合并重复：色调文字色（四处）→ `SharedStyles.ToneText`；无档位的配方 `Recipe.Of(组件名, 定制, 部件 => 样式)`；Icon 的手写缓存 → `Memo`
+- [x] 文件归位：TextLink 归到 Typography，内置图标归到 Icon，Dialog / Drawer、TextSpan / Paragraph 各自一个文件
+- [x] 演示：`DemoSection` 取代每页重复的 section + h2，横排用 Flex 组件
 
 ## 阶段 3：输入与表单
 

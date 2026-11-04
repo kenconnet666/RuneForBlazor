@@ -3,22 +3,20 @@
 @inherits RuneComponent
 @inject CounterStore Store
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>只重新渲染读了它的组件</h2>
+<DemoSection Title="只重新渲染读了它的组件">
     <p>每行显示自己的渲染次数：加 A 时只有 A 与 Sum 重新渲染，B 不动。</p>
-    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+    <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
         <button @onclick="() => Store.A++">A + 1</button>
         <button @onclick="() => Store.B++">B + 1</button>
-    </div>
+    </Flex>
     <CounterView Label="A" />
     <CounterView Label="B" />
     <CounterView Label="Sum" />
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>组件里的 [State] 与双向绑定</h2>
+<DemoSection Title="组件里的 [State] 与双向绑定">
     <Collapsible @bind-Open="FiltersOpen" Variant="CollapsibleVariant.Outline">
         <Title>FiltersOpen = @FiltersOpen</Title>
         <ChildContent>FiltersOpen 是 SignalsDemo.razor.cs 里的 [State] 属性，交给 @@bind-Open。</ChildContent>
     </Collapsible>
-</section>
+</DemoSection>

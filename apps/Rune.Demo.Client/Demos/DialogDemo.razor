@@ -2,8 +2,7 @@
 @attribute [ComponentDemo("dialog", "对话框与抽屉", Group = "浮层", Order = 1)]
 @inherits RuneComponent
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>对话框</h2>
+<DemoSection Title="对话框">
     <Flex Gap="SpaceScale.Sm" Wrap="true">
         <Button Icon="Lucide.Pencil" @onclick="() => editing = true" data-testid="open-edit">编辑订单（@@bind-Open）</Button>
         <Dialog Title="关于" Width="DialogWidth.Sm">
@@ -35,10 +34,9 @@
             <Button @onclick="Save">保存</Button>
         </Footer>
     </Dialog>
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>抽屉</h2>
+<DemoSection Title="抽屉">
     <Flex Gap="SpaceScale.Sm" Wrap="true">
         @foreach (var placement in Enum.GetValues<Placement>())
         {
@@ -49,7 +47,7 @@
             </Drawer>
         }
     </Flex>
-</section>
+</DemoSection>
 
 @code {
     bool editing;

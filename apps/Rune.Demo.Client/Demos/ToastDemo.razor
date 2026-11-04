@@ -3,8 +3,7 @@
 @inherits RuneComponent
 @inject ToastService Toasts
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>显示提示</h2>
+<DemoSection Title="显示提示">
     <Flex Gap="SpaceScale.Sm" Wrap="true">
         <Button Tone="Tone.Success" @onclick="@(() => Toasts.Show("订单已保存。", Tone.Success))" data-testid="toast-success">成功</Button>
         <Button Variant="ButtonVariant.Soft" @onclick="@(() => Toasts.Show("有 3 条新消息。", title: "收件箱"))">信息（带标题）</Button>
@@ -16,7 +15,7 @@
     <Paragraph Muted="true" Size="Size.Sm">
         列表放在信号里：Toaster 读了它，后台线程调用 Show 也会自动刷新。静态 SSR 下没有交互，按钮不起作用。
     </Paragraph>
-</section>
+</DemoSection>
 
 <Toaster />
 

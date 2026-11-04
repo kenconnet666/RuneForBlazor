@@ -2,8 +2,7 @@
 @attribute [ComponentDemo("provider", "配置与主题", Group = "基础", Order = 1)]
 @inherits RuneComponent
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>组件默认值</h2>
+<DemoSection Title="组件默认值">
     <p>这片区域把折叠面板的默认外观改成 Outline：组件上没写 Variant，取的是 Provider 的默认值。</p>
     <RuneProvider Defaults="@outlineByDefault">
         <Collapsible data-testid="default-variant">
@@ -15,10 +14,9 @@
             <ChildContent>组件上写的参数优先。</ChildContent>
         </Collapsible>
     </RuneProvider>
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>按部件定制样式</h2>
+<DemoSection Title="按部件定制样式">
     <p>这片区域给所有折叠面板的按钮（CollapsiblePart.Trigger）追加了样式：标题用强调色。</p>
     <RuneProvider Styles="@accentTriggers">
         <Collapsible Variant="CollapsibleVariant.Outline" data-testid="styled-trigger">
@@ -26,16 +24,15 @@
             <ChildContent>没有改组件，也没有在使用处写 Sx。</ChildContent>
         </Collapsible>
     </RuneProvider>
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>主题</h2>
-    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+<DemoSection Title="主题">
+    <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
         @foreach (var scheme in Enum.GetValues<ColorScheme>())
         {
             <button aria-pressed="@(scheme == colorScheme ? "true" : "false")" @onclick="() => colorScheme = scheme">@scheme</button>
         }
-    </div>
+    </Flex>
     <RuneProvider ColorScheme="colorScheme">
         <div @attributes="Attrs.Merge(DemoStyles.ThemePreview)" data-testid="theme-preview">
             <Collapsible Open="true" Variant="CollapsibleVariant.Outline">
@@ -44,7 +41,7 @@
             </Collapsible>
         </div>
     </RuneProvider>
-</section>
+</DemoSection>
 
 @code {
     // 配置对象在组件里只创建一次：Provider 按引用判断配置有没有变

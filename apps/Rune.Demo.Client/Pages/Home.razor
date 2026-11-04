@@ -12,24 +12,22 @@
 
 @foreach (var group in DemoCatalog.All.GroupBy(d => d.Group))
 {
-    <section @attributes="Attrs.Merge(DemoStyles.Section)">
-        <h2>@group.Key</h2>
+    <DemoSection Title="@group.Key">
         @foreach (var demo in group)
         {
-            <div @attributes="Attrs.Merge(DemoStyles.Row)">
+            <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
                 <strong>@demo.Title</strong>
                 @foreach (var (mode, title) in DemoRenderModes.All)
                 {
                     <a href="@($"{mode}/{demo.Slug}")">@title</a>
                 }
-            </div>
+            </Flex>
         }
-    </section>
+    </DemoSection>
 }
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>渲染方式</h2>
-    <div @attributes="Attrs.Merge(DemoStyles.Row)">
+<DemoSection Title="渲染方式">
+    <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
         <a href="streaming">流式渲染</a>
-    </div>
-</section>
+    </Flex>
+</DemoSection>

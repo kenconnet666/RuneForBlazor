@@ -2,8 +2,7 @@
 @attribute [ComponentDemo("layout", "布局", Group = "布局", Order = 0)]
 @inherits RuneComponent
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>Flex：主轴分布</h2>
+<DemoSection Title="Flex：主轴分布">
     @foreach (var justify in Enum.GetValues<ContentJustify>())
     {
         <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
@@ -15,10 +14,9 @@
             </Flex>
         </Flex>
     }
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>Flex：竖排、对齐与占满剩余空间</h2>
+<DemoSection Title="Flex：竖排、对齐与占满剩余空间">
     <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Sx="Track">
         <Icon Data="Lucide.User" Size="Size.Xl" />
         <Flex Grow="true" Direction="LayoutDirection.Column" Gap="SpaceScale.Xxs">
@@ -27,10 +25,9 @@
         </Flex>
         <Button Variant="ButtonVariant.Surface" Size="Size.Sm">私信</Button>
     </Flex>
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>Grid：固定列数与跨列</h2>
+<DemoSection Title="Grid：固定列数与跨列">
     <Grid Columns="4" Gap="SpaceScale.Sm" data-testid="grid-columns">
         <GridItem Span="2"><span @attributes="Attrs.Merge(Box)">跨 2 列</span></GridItem>
         <span @attributes="Attrs.Merge(Box)">3</span>
@@ -41,10 +38,9 @@
             <span @attributes="Attrs.Merge(Box)">@i</span>
         }
     </Grid>
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>Grid：按最小宽度自动换列（拖窗口宽度看效果）</h2>
+<DemoSection Title="Grid：按最小宽度自动换列（拖窗口宽度看效果）">
     <Flex Gap="SpaceScale.Xs" Align="ItemAlign.Center">
         <TextSpan Size="Size.Sm" Muted="true">最小宽度</TextSpan>
         @foreach (var width in widths)
@@ -58,7 +54,7 @@
             <span @attributes="Attrs.Merge(Box)">项目 @i</span>
         }
     </Grid>
-</section>
+</DemoSection>
 
 @code {
     static readonly string[] widths = ["8em", "12em", "16em"];

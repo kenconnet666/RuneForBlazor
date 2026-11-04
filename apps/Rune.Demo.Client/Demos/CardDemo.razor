@@ -2,8 +2,7 @@
 @attribute [ComponentDemo("card", "卡片", Group = "展示", Order = 0)]
 @inherits RuneComponent
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>样式</h2>
+<DemoSection Title="样式">
     <Grid MinItemWidth="@("14em")" Gap="SpaceScale.Md">
         @foreach (var variant in Enum.GetValues<CardVariant>())
         {
@@ -12,10 +11,9 @@
             </Card>
         }
     </Grid>
-</section>
+</DemoSection>
 
-<section @attributes="Attrs.Merge(DemoStyles.Section)">
-    <h2>页头、页脚与操作</h2>
+<DemoSection Title="页头、页脚与操作">
     <Grid MinItemWidth="@("18em")" Gap="SpaceScale.Md">
         <Card Title="超时最久的项目" data-testid="card-full">
             <Extra><TextLink Href="server/card" Underline="LinkUnderline.Hover">全部</TextLink></Extra>
@@ -48,7 +46,7 @@
             </ChildContent>
         </Card>
     </Grid>
-</section>
+</DemoSection>
 
 @code {
     static readonly (string Name, int Days)[] overdue =
