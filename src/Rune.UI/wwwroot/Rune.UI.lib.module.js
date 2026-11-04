@@ -11,9 +11,10 @@
 //   role="menu"              菜单：方向键、Home / End、类型搜索移动焦点；打开时聚焦第一项；选了菜单项就关闭
 //   data-rune-list="space typeahead"
 //                            列表的键盘宿主：role="listbox" 本身，或 aria-controls 指向列表的触发按钮、输入框。焦点留在宿主上，
-//                            ↑↓、Home / End、Page Up / Down 移动高亮（选项的 data-highlighted 与宿主的 aria-activedescendant），
+//                            ↑↓、Home / End、Page Up / Down 移动高亮（宿主的 data-rune-active 与 aria-activedescendant、选项的 data-highlighted），
 //                            Enter（space 时还有空格）点击高亮项（C# 处理选中），typeahead 时按字母跳到以它开头的项；
-//                            列表自己获得焦点时高亮第一个已选项（没有就第一个可用项）；指针移过选项时高亮它
+//                            列表自己获得焦点时高亮第一个已选项（没有就第一个可用项）；指针移过选项时高亮它。
+//                            虚拟滚动的列表带 data-rune-options（全部选项的文字与不可用）与 data-rune-selected（第一个已选项的序号）
 //   data-rune-tooltip-root   提示：Esc 隐藏；触发元素获得焦点时 aria-describedby 指向提示
 //   data-indeterminate       勾选框的半选：原生的 indeterminate 只能用 JS 设置，按这个属性同步
 //   data-rune-focus="id"     点击时聚焦这个 id 的控件并滚到它（表单错误汇总里的链接）
@@ -182,6 +183,12 @@ function onMutations(mutations) {
     for (const node of mutation.addedNodes) {
       if (node instanceof Element) syncWithin(node);
     }
+    // 列表重新渲染（虚拟滚动换了一批选项、选项变了）：高亮放回高亮项上
+    if (mutation.addedNodes.length > 0 && mutation.target instanceof Element) {
+      const list = mutation.target.closest('[role="listbox"]');
+      const host = list && hostOf(list);
+      if (host?.hasAttribute('data-rune-active')) syncHighlight(host, list);
+    }
   }
 }
 
@@ -349,9 +356,20 @@ function typeahead(owner, key, labels, current) {
 }
 
 // ---- 列表 ----
+//
+// 高亮按序号记在宿主的 data-rune-active 上（选项的 id 是 `{列表 id}-{序号}`，aria-activedescendant 照此拼出），
+// 渲染出来的那一项另写 data-highlighted 给样式用。虚拟滚动的列表里看不见的选项不在 DOM 里：C# 把各项的文字、
+// 不可用写在列表的 data-rune-options 上，键盘照样能移到任何一项；目标还没渲染时先按比例估算着滚过去，
+// 渲染出来后（DOM 变化时同步一次）再精确地滚进可见范围。
 
 // 一次按键移动几项；first / last 到头尾
 const listMoves = { ArrowDown: 1, ArrowUp: -1, PageDown: 10, PageUp: -10, Home: 'first', End: 'last' };
+
+// data-rune-options 解析一次：值没变时直接用
+const optionTables = new WeakMap();
+
+// 高亮项还没渲染、等着滚进可见范围的宿主
+const pendingScroll = new WeakSet();
 
 /** 宿主控制的列表：宿主本身是 listbox，或经 aria-controls 指向它。 */
 function listOf(host) {
@@ -366,35 +384,102 @@ function hostOf(list) {
   return list.id ? document.querySelector(`[data-rune-list][aria-controls="${CSS.escape(list.id)}"]`) : null;
 }
 
-function enabledOptions(list) {
-  return [...list.querySelectorAll('[role="option"]:not([aria-disabled="true"])')];
-}
-
-function highlightedOption(list) {
-  return list.querySelector('[role="option"][data-highlighted]');
-}
-
-/** 高亮一个选项（null 取消）；scroll 时滚进可见范围（键盘移动；指针移过的本来就看得见）。 */
-function highlight(host, list, option, scroll) {
-  const previous = highlightedOption(list);
-  if (previous !== option) {
-    previous?.removeAttribute('data-highlighted');
-    option?.setAttribute('data-highlighted', '');
+/** 各选项的文字与是否不可用，按序号排列：虚拟滚动的列表取 data-rune-options，否则从 DOM 读。 */
+function optionTable(list) {
+  const json = list.getAttribute('data-rune-options');
+  if (!json) {
+    return [...list.querySelectorAll('[role="option"]')].map((option) => ({
+      label: option.dataset.label ?? option.textContent,
+      disabled: option.getAttribute('aria-disabled') === 'true',
+    }));
   }
-  if (option?.id) host.setAttribute('aria-activedescendant', option.id);
-  else host.removeAttribute('aria-activedescendant');
-  if (!option || !scroll) return;
-  // 高亮的是第一项、上面是组名时连组名一起滚进来：组名不被挡住
-  const label = list.querySelector('[role="option"]') === option ? option.previousElementSibling : null;
+  const cached = optionTables.get(list);
+  if (cached?.json === json) return cached.table;
+  const { labels, disabled } = JSON.parse(json);
+  const off = new Set(disabled);
+  const table = labels.map((label, index) => ({ label, disabled: off.has(index) }));
+  optionTables.set(list, { json, table });
+  return table;
+}
+
+function optionAt(list, index) {
+  return index < 0 ? null : document.getElementById(`${list.id}-${index}`);
+}
+
+function indexOfOption(option) {
+  return Number(option.getAttribute('aria-posinset')) - 1;
+}
+
+/** 高亮项的序号；没有、或选项变少后已经不在了时 -1。 */
+function activeIndex(host, list) {
+  const index = Number(host.getAttribute('data-rune-active') ?? -1);
+  return index >= 0 && index < optionTable(list).length ? index : -1;
+}
+
+/** 高亮一项（-1 取消）；scroll 时滚进可见范围（键盘移动；指针移过的本来就看得见）。 */
+function highlight(host, list, index, scroll) {
+  if (index < 0) {
+    host.removeAttribute('data-rune-active');
+    host.removeAttribute('aria-activedescendant');
+  } else {
+    host.setAttribute('data-rune-active', String(index));
+    host.setAttribute('aria-activedescendant', `${list.id}-${index}`);
+  }
+  if (scroll && index >= 0) pendingScroll.add(host);
+  syncHighlight(host, list);
+}
+
+/** 把 data-highlighted 放到高亮项上（它刚渲染出来时也调用），等着滚动的话滚进可见范围。 */
+function syncHighlight(host, list) {
+  const index = activeIndex(host, list);
+  const option = optionAt(list, index);
+  for (const other of list.querySelectorAll('[role="option"][data-highlighted]')) {
+    if (other !== option) other.removeAttribute('data-highlighted');
+  }
+  option?.setAttribute('data-highlighted', '');
+  if (!pendingScroll.has(host)) return;
+  if (index < 0) {
+    pendingScroll.delete(host);
+  } else if (option) {
+    pendingScroll.delete(host);
+    scrollOptionIntoView(list, option, index);
+  } else {
+    estimateScroll(list, index);
+  }
+}
+
+function scrollOptionIntoView(list, option, index) {
+  // 第一项上面是组名时连组名一起滚进来：组名不被挡住
+  const label = index === 0 && option.previousElementSibling?.id?.startsWith(`${list.id}-group-`) ? option.previousElementSibling : null;
   (label ?? option).scrollIntoView({ block: 'nearest' });
   if (label) option.scrollIntoView({ block: 'nearest' });
 }
 
-/** 列表获得焦点、下拉打开时：高亮第一个已选项，没有已选时高亮第一个可用项。 */
+// 高亮项还没渲染（虚拟滚动）：按它在全部选项里的位置估算着滚过去，让虚拟滚动把它附近的选项渲染出来
+function estimateScroll(list, index) {
+  const scroller = scrollParent(list);
+  if (!scroller) return;
+  const size = optionTable(list).length;
+  scroller.scrollTop = (index / size) * scroller.scrollHeight - scroller.clientHeight / 2;
+}
+
+function scrollParent(element) {
+  for (let node = element; node; node = node.parentElement) {
+    const overflow = getComputedStyle(node).overflowY;
+    if ((overflow === 'auto' || overflow === 'scroll') && node.scrollHeight > node.clientHeight) return node;
+  }
+  return null;
+}
+
+/** 列表获得焦点、下拉打开时：高亮第一个已选的可用项，没有就第一个可用项。 */
 function highlightDefault(host, list) {
-  const options = enabledOptions(list);
-  const option = options.find((o) => o.getAttribute('aria-selected') === 'true') ?? options[0] ?? null;
-  highlight(host, list, option, true);
+  const table = optionTable(list);
+  // 虚拟滚动时已选项可能没渲染：C# 把它的序号写在 data-rune-selected 上
+  const attribute = list.getAttribute('data-rune-selected');
+  const selected = attribute !== null
+    ? Number(attribute)
+    : [...list.querySelectorAll('[role="option"][aria-selected="true"]')].map(indexOfOption).find((index) => !table[index]?.disabled) ?? -1;
+  highlight(host, list, selected >= 0 ? selected : table.findIndex((option) => !option.disabled), true);
 }
 
 function moveInList(host, event) {
@@ -403,32 +488,34 @@ function moveInList(host, event) {
   const list = listOf(host);
   if (!list) return;
   const flags = (host.getAttribute('data-rune-list') ?? '').split(' ');
-  const options = enabledOptions(list);
-  const current = options.indexOf(highlightedOption(list));
+  const table = optionTable(list);
+  // 可用项的序号：方向键、类型搜索都跳过不可用的项
+  const usable = table.flatMap((option, index) => (option.disabled ? [] : [index]));
+  const current = usable.indexOf(activeIndex(host, list));
   const step = listMoves[event.key];
   if (step !== undefined) {
     event.preventDefault();
-    if (options.length === 0) return;
+    if (usable.length === 0) return;
     let next;
     if (step === 'first') next = 0;
-    else if (step === 'last') next = options.length - 1;
-    else if (current < 0) next = step > 0 ? 0 : options.length - 1;
-    else next = Math.min(Math.max(current + step, 0), options.length - 1);
-    highlight(host, list, options[next], true);
+    else if (step === 'last') next = usable.length - 1;
+    else if (current < 0) next = step > 0 ? 0 : usable.length - 1;
+    else next = Math.min(Math.max(current + step, 0), usable.length - 1);
+    highlight(host, list, usable[next], true);
     return;
   }
   if (event.key === 'Enter' || (event.key === ' ' && flags.includes('space'))) {
-    const option = highlightedOption(list);
+    const option = optionAt(list, activeIndex(host, list));
     // 没有高亮项时 Enter 照常（提交表单），空格不滚动页面
     if (option || event.key === ' ') event.preventDefault();
     if (option && option.getAttribute('aria-disabled') !== 'true') option.click();
     return;
   }
   if (!flags.includes('typeahead')) return;
-  const match = typeahead(list, event.key, options.map((o) => o.dataset.label ?? o.textContent), current);
+  const match = typeahead(list, event.key, usable.map((index) => table[index].label), current);
   if (match < 0) return;
   event.preventDefault();
-  highlight(host, list, options[match], true);
+  highlight(host, list, usable[match], true);
 }
 
 // 焦点留在宿主上（列表、触发按钮、输入框）：按下选项不把焦点移走
@@ -441,7 +528,7 @@ function highlightUnderPointer(event) {
   if (!option || option.hasAttribute('data-highlighted') || option.getAttribute('aria-disabled') === 'true') return;
   const list = option.closest('[role="listbox"]');
   const host = list && hostOf(list);
-  if (host) highlight(host, list, option, false);
+  if (host) highlight(host, list, indexOfOption(option), false);
 }
 
 // ---- 提示 ----
@@ -468,7 +555,7 @@ function onFocusIn(event) {
   const tooltipId = root?.getAttribute('data-rune-tooltip-root');
   if (tooltipId && !target.hasAttribute('aria-describedby')) target.setAttribute('aria-describedby', tooltipId);
   // 列表自己获得焦点：还没有高亮项时高亮默认项（触发按钮、输入框做宿主时由打开下拉的一方决定）
-  if (target.matches('[role="listbox"][data-rune-list]') && !highlightedOption(target)) highlightDefault(target, target);
+  if (target.matches('[role="listbox"][data-rune-list]') && activeIndex(target, target) < 0) highlightDefault(target, target);
 }
 
 // ---- 数字输入框 ----

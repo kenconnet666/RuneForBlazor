@@ -7,15 +7,17 @@
     焦点在列表上，高亮项经 aria-activedescendant 告诉读屏：↑↓、Home / End、Page Up / Down 移动，Enter / 空格选中，按字母跳到以它开头的项
     （JS 初始化器在浏览器里移动高亮，不用每按一次方向键往返一次；选中才回到 C#）。
     Loading：选项换成骨架行（很快返回时不显示，见 DelayedLoading），列表带 aria-busy。
+    选项多时（交互模式下超过 VirtualThreshold 个）虚拟滚动：只渲染看得见的几十行（Blazor 的 Virtualize），
+    全部选项的文字与不可用写在列表的 data-rune-options 上，键盘照样能移到任何一项。静态 SSR 没法按滚动加载，全部渲染。
 *@
+@using Microsoft.AspNetCore.Components.Web.Virtualization
 @namespace Rune.UI
 @typeparam TItem
 @inherits FormControl<string?>
 @{
     var parts = ListboxStyles.Of(ownScroll: true, Config.Styles);
     var entries = Entries;
-    string? group = null;
-    string? groupId = null;
+    var rows = Rows;
 }
 
 <div @attributes="Attrs.Merge(parts[ListboxPart.Root], Rest, RootManaged)">
@@ -36,46 +38,28 @@
     }
     else
     {
-        for (var i = 0; i < entries.Count; i++)
+        if (IsVirtual)
         {
-            var (option, item) = entries[i];
-            if (option.Group is not null && option.Group != group)
+            <Virtualize Items="rows" ItemSize="EstimatedRowHeight" OverscanCount="6" Context="row">@RenderRow(row, parts, entries)</Virtualize>
+        }
+        else
+        {
+            foreach (var row in rows)
             {
-                groupId = $"{ControlId}-group-{i}";
-                @* 只是视觉上的标题：组名经各选项的 aria-describedby 念出 *@
-                <span id="@groupId" aria-hidden="true" @attributes="Attrs.Merge(parts[ListboxPart.GroupLabel], PropsGroupLabel)">@option.Group</span>
+                @RenderRow(row, parts, entries)
             }
-            group = option.Group;
-            var selected = IsSelected(option.Value);
-            var value = option.Value;
-            <div @key="option.Value" id="@($"{ControlId}-{i}")" role="option" aria-selected="@(selected ? "true" : "false")"
-                 aria-disabled="@(option.Disabled ? "true" : null)" aria-setsize="@entries.Count" aria-posinset="@(i + 1)"
-                 aria-describedby="@(option.Group is null ? null : groupId)" data-label="@option.Label"
-                 data-state="@(selected ? "checked" : "unchecked")"
-                 @onclick="() => PickAsync(value)" @attributes="Attrs.Merge(parts[ListboxPart.Option], PropsOption)">
-                @if (ChildContent is not null)
-                {
-                    @ChildContent(new ListOptionState<TItem>(item, option, selected))
-                }
-                else
-                {
-                    @if (option.Icon is not null)
-                    {
-                        <Icon Data="option.Icon" />
-                    }
-                    <span @attributes="Attrs.Merge(parts[ListboxPart.Content])"><span @attributes="Attrs.Merge(LabelLayer)">@option.Label</span>@if (option.Description is not null)
-                        {
-                            <span @attributes="Attrs.Merge(parts[ListboxPart.Description])">@option.Description</span>
-                        }</span>
-                }
-                <Icon Data="BuiltInIcons.Check" @attributes="Attrs.MergeProps(parts[ListboxPart.Check], PropsCheck)" />
-            </div>
         }
     }
 </div>
 
 @code {
     static readonly Attrs LabelLayer = new() { Sx = ItemStyles.Label };
+
+    /// <summary>选项超过这么多个（且在交互模式下）时虚拟滚动；不多时全部渲染：DOM 小，滚动、页内查找都是原生的。</summary>
+    public const int VirtualThreshold = 100;
+
+    // 一行的估计高度（px）：虚拟滚动据此算占位，渲染后以实际高度为准
+    const float EstimatedRowHeight = 36;
 
     // 加载中显示几行骨架，一行比一行短
     const int SkeletonRows = 4;
@@ -89,7 +73,9 @@
     DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
 
     Memo<(IEnumerable<TItem> Items, Func<TItem, ListboxOption>? ToOption), IReadOnlyList<ListEntry<TItem>>> entries;
-    Memo<(Attrs Control, string? LabelledBy, bool Multiple, bool Disabled, bool Loading), Attrs> rootManaged;
+    Memo<IReadOnlyList<ListEntry<TItem>>, ListRow[]> rows;
+    Memo<IReadOnlyList<ListEntry<TItem>>, string> optionTable;
+    Memo<(Attrs Control, string? LabelledBy, bool Multiple, bool Disabled, bool Loading, string? Options, int Selected), Attrs> rootManaged;
 
     /// <summary>数据：ListboxOption、字符串，或任意数据加 ToOption。</summary>
     [Parameter, EditorRequired] public IEnumerable<TItem> Items { get; set; } = [];
@@ -135,6 +121,26 @@
 
     IReadOnlyList<ListEntry<TItem>> Entries => entries.Get((Items, ToOption), static k => ListState.Entries(k.Items, k.ToOption));
 
+    ListRow[] Rows => rows.Get(Entries, static entries => ListState.Rows(entries));
+
+    bool IsVirtual => RendererInfo.IsInteractive && Entries.Count > VirtualThreshold;
+
+    // 虚拟滚动时交给 JS 的选项表：看不见的选项不在 DOM 里，键盘移动、类型搜索要用它们的文字与是否不可用
+    string? OptionTable => IsVirtual ? optionTable.Get(Entries, static entries => ListboxInterop.OptionTable(entries)) : null;
+
+    // 虚拟滚动时第一个已选的可用项的序号：列表获得焦点时高亮它（它可能没渲染）
+    int FirstSelectedIndex()
+    {
+        if (!IsVirtual) return -1;
+        var entries = Entries;
+        for (var index = 0; index < entries.Count; index++)
+        {
+            var option = entries[index].Option;
+            if (!option.Disabled && IsSelected(option.Value)) return index;
+        }
+        return -1;
+    }
+
     IReadOnlyList<string> Selected => SelectionMode == SelectionMode.Multiple
         ? Values ?? []
         : CurrentValue is { } value ? [value] : [];
@@ -143,7 +149,8 @@
 
     // 列表上由组件管理的属性：角色、可聚焦、多选、表单状态（Field 的标签经 aria-labelledby 命名）、交给 JS 的键盘约定
     Attrs RootManaged => rootManaged.Get(
-        (ControlAttrs, AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId, SelectionMode == SelectionMode.Multiple, IsDisabled, Loading),
+        (ControlAttrs, AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId, SelectionMode == SelectionMode.Multiple, IsDisabled, Loading,
+            OptionTable, FirstSelectedIndex()),
         static k => new Attrs
         {
             Id = k.Control.Id,
@@ -158,7 +165,45 @@
             ["aria-busy"] = k.Loading ? "true" : null,
             // 列表自己有焦点：空格选中、字母类型搜索
             ["data-rune-list"] = "space typeahead",
+            ["data-rune-options"] = k.Options,
+            ["data-rune-selected"] = k.Options is null ? null : k.Selected.ToString(System.Globalization.CultureInfo.InvariantCulture),
         });
+
+    // 一行：分组标题或选项。选项的 id 是 {列表 id}-{序号}，JS 按序号找到高亮项
+    RenderFragment RenderRow(ListRow row, PartLayers<ListboxPart> parts, IReadOnlyList<ListEntry<TItem>> entries)
+    {
+        var (option, item) = entries[row.Index];
+        if (row.IsGroupLabel)
+        {
+            // 只是视觉上的标题：组名经各选项的 aria-describedby 念出
+            return @<span id="@GroupLabelId(row.Index)" aria-hidden="true" @attributes="Attrs.Merge(parts[ListboxPart.GroupLabel], PropsGroupLabel)">@option.Group</span>;
+        }
+        var selected = IsSelected(option.Value);
+        return @<div @key="option.Value" id="@($"{ControlId}-{row.Index}")" role="option" aria-selected="@(selected ? "true" : "false")"
+                     aria-disabled="@(option.Disabled ? "true" : null)" aria-setsize="@entries.Count" aria-posinset="@(row.Index + 1)"
+                     aria-describedby="@(row.GroupStart < 0 ? null : GroupLabelId(row.GroupStart))" data-label="@option.Label"
+                     data-state="@(selected ? "checked" : "unchecked")"
+                     @onclick="() => PickAsync(option.Value)" @attributes="Attrs.Merge(parts[ListboxPart.Option], PropsOption)">
+            @if (ChildContent is not null)
+            {
+                @ChildContent(new ListOptionState<TItem>(item, option, selected))
+            }
+            else
+            {
+                if (option.Icon is not null)
+                {
+                    <Icon Data="option.Icon" />
+                }
+                <span @attributes="Attrs.Merge(parts[ListboxPart.Content])"><span @attributes="Attrs.Merge(LabelLayer)">@option.Label</span>@if (option.Description is not null)
+                    {
+                        <span @attributes="Attrs.Merge(parts[ListboxPart.Description])">@option.Description</span>
+                    }</span>
+            }
+            <Icon Data="BuiltInIcons.Check" @attributes="Attrs.MergeProps(parts[ListboxPart.Check], PropsCheck)" />
+        </div>;
+    }
+
+    string GroupLabelId(int start) => $"{ControlId}-group-{start}";
 
     /// <inheritdoc/>
     protected override void OnParametersSet()

@@ -174,7 +174,11 @@
 - **列表（Listbox，之后的 Select、Combobox 共用）**：数据层是 `ListState`（选项、分组排序、切换选择，同 vue-tsx-pro 的 list-state），
   高亮与键盘在 JS 初始化器的 `data-rune-list`：焦点留在宿主（列表本身，或 aria-controls 指向列表的触发按钮、输入框）上，方向键、Home / End、
   Page Up / Down、类型搜索只改选项的 `data-highlighted` 与宿主的 `aria-activedescendant`，没有往返；Enter / 空格点击高亮项，选中才回到 C#。
-  高亮存在 DOM 上（`data-highlighted` 是唯一的来源），Blazor 只比较自己渲染的属性，重新渲染不会把它抹掉。
+  高亮按序号记在宿主的 `data-rune-active` 上（选项的 id 是 `{列表 id}-{序号}`），渲染出来的那项另写 `data-highlighted` 给样式用；
+  这些属性都不在 Blazor 的渲染树里，重新渲染不会抹掉，列表重新渲染（DOM 有新增节点）时 JS 再把 data-highlighted 放回去。
+  选项超过 100 个且在交互模式下用 Blazor 的 `Virtualize`（静态 SSR 没法按滚动加载，全部渲染）：看不见的选项不在 DOM 里，
+  C# 把全部选项的文字与不可用写成 `data-rune-options`（手写 JSON，不经反射序列化），第一个已选项的序号写成 `data-rune-selected`；
+  键盘移到没渲染的项时先按比例估算着滚过去，Virtualize 渲染出来后再精确滚进可见范围。
   类型搜索与菜单共用一个实现（连续输入拼词、停顿 500 毫秒清空、同一个字母轮换）。
   vue-tsx-pro 的 Listbox 用 css.create，没有部件标记：对照工具另按 role 配对。
 - **外框的状态只看自己的输入元素**：`:has(> :is(input, select, textarea):disabled)`。最初写的 `:has(:disabled)` 会被数字框到了上限时不可用的步进按钮、

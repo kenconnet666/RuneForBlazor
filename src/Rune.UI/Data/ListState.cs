@@ -27,6 +27,12 @@ public enum SelectionMode
     Multiple,
 }
 
+/// <summary>渲染用的一行：分组标题或选项（分组标题是单独的一行，虚拟滚动按行算）。</summary>
+/// <param name="Index">选项的序号；分组标题行是组里第一个选项的序号。</param>
+/// <param name="IsGroupLabel">是分组标题。</param>
+/// <param name="GroupStart">选项所在组的第一个选项的序号（组名的 id 由它拼出）；没有分组时 -1。</param>
+public readonly record struct ListRow(int Index, bool IsGroupLabel, int GroupStart);
+
 /// <summary>列表里的一项：选项的显示信息，加上它来自的原始数据。</summary>
 /// <param name="Option">显示信息。</param>
 /// <param name="Item">Items 里对应的那一项：自定义渲染拿到的就是它。</param>
@@ -60,6 +66,26 @@ public static class ListState
         foreach (var entry in entries)
             if (!groups.Contains(entry.Option.Group)) groups.Add(entry.Option.Group);
         return [.. groups.SelectMany(group => entries.Where(e => e.Option.Group == group))];
+    }
+
+    /// <summary>展开成渲染用的行：每组前插一行组名（<paramref name="entries"/> 已按分组排好）。</summary>
+    public static ListRow[] Rows<TItem>(IReadOnlyList<ListEntry<TItem>> entries)
+    {
+        var rows = new List<ListRow>(entries.Count);
+        string? group = null;
+        var start = -1;
+        for (var index = 0; index < entries.Count; index++)
+        {
+            var current = entries[index].Option.Group;
+            if (current is not null && current != group)
+            {
+                start = index;
+                rows.Add(new(index, true, index));
+            }
+            group = current;
+            rows.Add(new(index, false, current is null ? -1 : start));
+        }
+        return [.. rows];
     }
 
     /// <summary>

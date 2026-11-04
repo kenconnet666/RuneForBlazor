@@ -1,4 +1,5 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Rune.UI;
 
@@ -6,7 +7,12 @@ namespace Rune.Tests.UI;
 
 public class SkeletonTests : BunitContext
 {
-    public SkeletonTests() => Services.AddRuneUI();
+    public SkeletonTests()
+    {
+        Services.AddRuneUI();
+        // Listbox 按渲染模式决定是否虚拟滚动
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+    }
 
     [Fact]
     public void 骨架_包着内容时撑出大小_对读屏隐藏且内容不可聚焦_加载完只剩内容()

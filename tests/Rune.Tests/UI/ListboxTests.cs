@@ -7,7 +7,12 @@ namespace Rune.Tests.UI;
 
 public class ListboxTests : BunitContext
 {
-    public ListboxTests() => Services.AddRuneUI();
+    public ListboxTests()
+    {
+        Services.AddRuneUI();
+        // Listbox 按渲染模式决定是否虚拟滚动
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+    }
 
     static readonly ListboxOption[] plans =
     [
@@ -127,5 +132,30 @@ public class ListboxTests : BunitContext
         Assert.Contains(Lang.ZhCn.SelectEmpty, cut.Find("[role=listbox] p").TextContent);
         // 没有图标：Empty 的 HideIcon
         Assert.Empty(cut.FindAll("[role=listbox] svg"));
+    }
+
+    [Fact]
+    public void 列表框_选项多时虚拟滚动_全部选项的文字与不可用交给JS()
+    {
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var items = Enumerable.Range(0, 500).Select(i => new ListboxOption($"v{i}", $"第 {i} 项", Disabled: i == 3)).ToArray();
+        var cut = Render<Listbox<ListboxOption>>(p => p.Add(x => x.Items, items).Add(x => x.Value, "v42"));
+
+        var list = cut.Find("[role=listbox]");
+        Assert.True(cut.FindAll("[role=option]").Count < items.Length);
+        var table = list.GetAttribute("data-rune-options")!;
+        Assert.StartsWith("{\"labels\":[\"第 0 项\",", table);
+        Assert.EndsWith("\"disabled\":[3]}", table);
+        Assert.Equal("42", list.GetAttribute("data-rune-selected"));
+    }
+
+    [Fact]
+    public void 列表框_静态渲染时不虚拟滚动()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var items = Enumerable.Range(0, 150).Select(i => $"第 {i} 项").ToArray();
+        var cut = Render<Listbox<string>>(p => p.Add(x => x.Items, items));
+        Assert.Equal(150, cut.FindAll("[role=option]").Count);
+        Assert.Null(cut.Find("[role=listbox]").GetAttribute("data-rune-options"));
     }
 }

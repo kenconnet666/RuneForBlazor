@@ -60,8 +60,11 @@ public class OverlayTests(DemoServer demo)
         await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "取消" })).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("Escape");
         await Assertions.Expect(trigger).ToBeFocusedAsync();
+        // 等离场过渡结束再点：过渡中的浮层还盖在触发按钮上，点击会落在它上面
+        await Assertions.Expect(page.GetByRole(AriaRole.Alertdialog)).ToBeHiddenAsync();
 
         await trigger.ClickAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "取消" })).ToBeFocusedAsync();
         await page.GetByRole(AriaRole.Alertdialog).GetByRole(AriaRole.Button, new() { Name = "删除" }).ClickAsync();
         await Assertions.Expect(page.GetByTestId("deleted")).ToContainTextAsync("已删除 1 次");
     }

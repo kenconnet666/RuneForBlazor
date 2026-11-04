@@ -41,6 +41,9 @@ public class ListTests(DemoServer demo)
         await page.Keyboard.PressAsync("End");
         await Assertions.Expect(highlighted).ToHaveAttributeAsync("data-label", "自定义字段 994");
         await Assertions.Expect(highlighted).ToBeInViewportAsync();
+        await Assertions.Expect(list).ToHaveAttributeAsync("aria-activedescendant", new System.Text.RegularExpressions.Regex("-999$"));
+        // 虚拟滚动：一千个选项只渲染了看得见的一批；按字母跳到的“收货地址”在最上面，此时还没渲染
+        Assert.True(await list.Locator("[role=option]").CountAsync() < 100);
 
         // Playwright 按不出键盘布局之外的字符：直接发一个带这个字符的 keydown
         await list.DispatchEventAsync("keydown", new Dictionary<string, object> { ["key"] = "收", ["bubbles"] = true });
