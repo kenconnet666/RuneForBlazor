@@ -82,8 +82,14 @@ public static class FontWeights
     /// <summary>正文。</summary>
     public static readonly CssValue Normal = "var(--rune-font-weights-normal)";
 
+    /// <summary>略加强调：导航项、表头。</summary>
+    public static readonly CssValue Medium = "var(--rune-font-weights-medium)";
+
     /// <summary>强调、标题。</summary>
     public static readonly CssValue Semibold = "var(--rune-font-weights-semibold)";
+
+    /// <summary>粗体：数字指标。</summary>
+    public static readonly CssValue Bold = "var(--rune-font-weights-bold)";
 }
 
 /// <summary>动效时长。</summary>
@@ -111,8 +117,21 @@ public static class FontSizes
     /// <summary>16px：强调正文、小标题。</summary>
     public static readonly CssLength Lg = "var(--rune-font-sizes-lg)";
 
-    /// <summary>20px：标题。</summary>
+    /// <summary>20px：三级标题。</summary>
     public static readonly CssLength Xl = "var(--rune-font-sizes-xl)";
+
+    /// <summary>24px：二级标题。</summary>
+    public static readonly CssLength Xxl = "var(--rune-font-sizes-xxl)";
+
+    /// <summary>30px：页面主标题。</summary>
+    public static readonly CssLength Xxxl = "var(--rune-font-sizes-xxxl)";
+}
+
+/// <summary>字体族。</summary>
+public static class Fonts
+{
+    /// <summary>等宽字体：按键、编号。</summary>
+    public static readonly CssValue Mono = "var(--rune-fonts-mono)";
 }
 
 /// <summary>行高（不带单位）。</summary>

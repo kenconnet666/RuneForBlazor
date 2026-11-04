@@ -1,0 +1,43 @@
+@*
+    一维布局（div，display: flex）。不另做 Stack：竖排写 Direction="LayoutDirection.Column"。
+    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">…</Flex>
+    需要语义容器（nav、ul）时在外面包，或把这些参数换成 Sx。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(LayoutStyles.Flex(Appearance, Config.Styles)[LayoutPart.Root], Rest)">@ChildContent</div>
+
+@code {
+    /// <summary>主轴方向，默认横排。</summary>
+    [Parameter] public LayoutDirection? Direction { get; set; }
+
+    /// <summary>交叉轴对齐（align-items），默认拉伸。</summary>
+    [Parameter] public ItemAlign? Align { get; set; }
+
+    /// <summary>主轴分布（justify-content），默认靠起点。</summary>
+    [Parameter] public ContentJustify? Justify { get; set; }
+
+    /// <summary>放不下时换行。</summary>
+    [Parameter] public bool Wrap { get; set; }
+
+    /// <summary>间隙档位。</summary>
+    [Parameter] public SpaceScale? Gap { get; set; }
+
+    /// <summary>换行时行与行之间的间隙，盖过 <see cref="Gap"/>。</summary>
+    [Parameter] public SpaceScale? RowGap { get; set; }
+
+    /// <summary>同一行里项与项之间的间隙，盖过 <see cref="Gap"/>。</summary>
+    [Parameter] public SpaceScale? ColumnGap { get; set; }
+
+    /// <summary>行内（inline-flex）：和文字排在一行。</summary>
+    [Parameter] public bool Inline { get; set; }
+
+    /// <summary>在父级的 flex 布局里占满剩余空间，并允许收缩到比内容窄（里面的文字才能截断）。</summary>
+    [Parameter] public bool Grow { get; set; }
+
+    /// <summary>子元素。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    FlexAppearance Appearance => new(Direction, Align, Justify, Wrap, Gap, RowGap, ColumnGap, Inline, Grow);
+}

@@ -1,0 +1,116 @@
+@*
+    提示条（div）：页面或区块里的说明、成功、警告、错误信息。图标按色调自动选，可以换或去掉；可以关闭。
+    <Alert Tone="Tone.Warning" Title="即将过期">你的订阅将在 3 天后到期。</Alert>
+    <Alert Tone="Tone.Danger" Live="AlertLive.Assertive" OnClose="Dismiss">保存失败，请重试</Alert>
+    页面加载时就在的提示不需要读屏打断；操作后才出现的用 Live 让读屏播报。
+    组件不自己消失：OnClose 里由使用方把它移除。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var appearance = AlertAppearance.Resolve(Variant, Tone, Size, Radius, Config);
+    var parts = AlertStyles.Of(appearance, Config.Styles);
+}
+
+<div @attributes="Attrs.Merge(parts[AlertPart.Root], Rest, Managed)">
+    @if (Loading)
+    {
+        <Spinner @attributes="Attrs.MergeProps(parts[AlertPart.Icon], PropsIcon)" />
+    }
+    else if (!HideIcon)
+    {
+        <Icon Data="@(Icon ?? AlertStyles.DefaultIcon(appearance.Tone))" @attributes="Attrs.MergeProps(parts[AlertPart.Icon], PropsIcon)" />
+    }
+    <div @attributes="Attrs.Merge(parts[AlertPart.Body], PropsBody)">
+        @if (Title is not null)
+        {
+            <div @attributes="Attrs.Merge(parts[AlertPart.Title], PropsTitle)">@Title</div>
+        }
+        @if (ChildContent is not null)
+        {
+            <div @attributes="Attrs.Merge(parts[AlertPart.Description], PropsDescription)">@ChildContent</div>
+        }
+    </div>
+    @if (Action is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[AlertPart.Action], PropsAction)">@Action</div>
+    }
+    @if (OnClose.HasDelegate)
+    {
+        <IconButton Icon="BuiltInIcons.X" Label="@CloseLabel" Size="UI.Size.Sm" @onclick="OnClose"
+                    @attributes="Attrs.MergeProps(parts[AlertPart.Close], PropsClose)" />
+    }
+</div>
+
+@code {
+    Memo<(AlertLive Live, bool Loading), Attrs> managed;
+
+    /// <summary>样式，默认浅色底。</summary>
+    [Parameter] public AlertVariant? Variant { get; set; }
+
+    /// <summary>色调，默认提示色（Info）；也决定默认图标。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>字号档位：图标、内边距随之缩放；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认中圆角；贴着页面顶部的通栏写 None。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    /// <summary>标题（加粗的第一行）。占用了原生的 title 属性（悬停提示）。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>说明（标题下面的正文）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>图标；不写时按色调选。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>不显示图标。</summary>
+    [Parameter] public bool HideIcon { get; set; }
+
+    /// <summary>进行中（如“正在上传”）：图标换成加载指示，带 aria-busy。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>读屏播报方式，默认不主动播报。</summary>
+    [Parameter] public AlertLive Live { get; set; }
+
+    /// <summary>右侧的操作（如“重试”按钮）。</summary>
+    [Parameter] public RenderFragment? Action { get; set; }
+
+    /// <summary>关闭：给了才显示关闭按钮。</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    /// <summary>关闭按钮的名称（读屏读出）。</summary>
+    [Parameter] public string CloseLabel { get; set; } = "关闭";
+
+    /// <summary>图标（或加载指示）的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>文字区的部件属性。</summary>
+    [Parameter] public Attrs? PropsBody { get; set; }
+
+    /// <summary>标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>操作区的部件属性。</summary>
+    [Parameter] public Attrs? PropsAction { get; set; }
+
+    /// <summary>关闭按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsClose { get; set; }
+
+    // 外层上由组件管理的属性：播报角色与忙碌状态；不变时复用同一个对象
+    Attrs Managed => managed.Get((Live, Loading), static k => new Attrs
+    {
+        Role = k.Live switch
+        {
+            AlertLive.Polite => "status",
+            AlertLive.Assertive => "alert",
+            _ => null,
+        },
+        ["aria-busy"] = k.Loading ? "true" : null,
+    });
+}

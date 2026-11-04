@@ -31,8 +31,13 @@ public static class Themes
         [FontSizes.Md] = 14,
         [FontSizes.Lg] = 16,
         [FontSizes.Xl] = 20,
+        [FontSizes.Xxl] = 24,
+        [FontSizes.Xxxl] = 30,
+        [Fonts.Mono] = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
         [FontWeights.Normal] = 400,
+        [FontWeights.Medium] = 500,
         [FontWeights.Semibold] = 600,
+        [FontWeights.Bold] = 700,
         [LineHeights.Tight] = 1.25,
         [LineHeights.Normal] = 1.5,
 

@@ -1,0 +1,13 @@
+@*
+    视觉上隐藏、读屏仍能读到的文字（span）：给只有图标的控件、表格里的状态色块补文字说明。
+    <VisuallyHidden>（在新窗口打开）</VisuallyHidden>
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<span @attributes="Attrs.Merge(TypographyStyles.VisuallyHidden(Config.Styles)[VisuallyHiddenPart.Root], Rest)">@ChildContent</span>
+
+@code {
+    /// <summary>给读屏的文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

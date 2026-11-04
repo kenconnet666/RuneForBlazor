@@ -1,0 +1,54 @@
+@*
+    文字链接（a）：<TextLink Href="/orders">查看订单</TextLink>。默认强调色、带下划线。
+    外部链接：<TextLink Href="https://example.com" External="true">帮助文档</TextLink>，新窗口打开，带外链图标与读屏提示。
+    按钮样式的链接用 LinkButton。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = LinkStyles.Of(ShownTone, ShownUnderline, Config.Styles); }
+
+<a @attributes="Attrs.Merge(parts[LinkPart.Root], Rest, Managed)">
+    @ChildContent
+    @if (External)
+    {
+        <Icon Data="BuiltInIcons.ExternalLink" @attributes="Attrs.MergeProps(parts[LinkPart.Icon], PropsIcon)" />
+        <span @attributes="Attrs.Merge(parts[LinkPart.Hint])">@ExternalHint</span>
+    }
+</a>
+
+@code {
+    Memo<(string Href, bool External), Attrs> managed;
+
+    /// <summary>链接地址；必填：没有地址的“链接”应该用按钮。</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    /// <summary>色调，默认强调色。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>下划线，默认一直显示。</summary>
+    [Parameter] public LinkUnderline? Underline { get; set; }
+
+    /// <summary>外部链接：新窗口打开，加 rel="noopener noreferrer"、外链图标与读屏提示。</summary>
+    [Parameter] public bool External { get; set; }
+
+    /// <summary>外部链接给读屏的提示。</summary>
+    [Parameter] public string ExternalHint { get; set; } = "（在新窗口打开）";
+
+    /// <summary>外链图标的部件属性（交给 Icon 组件）。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>链接文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    Tone ShownTone => Tone ?? Config.Defaults.Get<LinkDefaults>()?.Tone ?? UI.Tone.Accent;
+
+    LinkUnderline ShownUnderline => Underline ?? Config.Defaults.Get<LinkDefaults>()?.Underline ?? LinkUnderline.Always;
+
+    // a 上由组件管理的属性：地址与外链的打开方式；地址不变时复用同一个对象
+    Attrs Managed => managed.Get((Href, External), static k => new Attrs
+    {
+        ["href"] = k.Href,
+        ["target"] = k.External ? "_blank" : null,
+        ["rel"] = k.External ? "noopener noreferrer" : null,
+    });
+}

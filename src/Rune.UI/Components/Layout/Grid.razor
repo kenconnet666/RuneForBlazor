@@ -1,0 +1,50 @@
+@*
+    二维布局（div，display: grid）。
+    <Grid Columns="3" Gap="SpaceScale.Md">…</Grid>                 固定列数，等宽
+    <Grid MinItemWidth="@("14em")" Gap="SpaceScale.Md">…</Grid>   按宽度自动换列：容器多宽就放几列，不需要断点
+    跨列用 GridItem。响应式不引入断点：MinItemWidth 覆盖最常见的自动换列，其余用 Sx 加媒体查询。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(LayoutStyles.Grid(Appearance, Config.Styles)[LayoutPart.Root], Rest, Managed)">@ChildContent</div>
+
+@code {
+    Memo<CssLength, Attrs> managed;
+
+    /// <summary>等宽列数；与 <see cref="MinItemWidth"/> 同时给时以后者为准。</summary>
+    [Parameter] public int? Columns { get; set; }
+
+    /// <summary>
+    /// 每项的最小宽度：按容器宽度自动决定列数，窄于它时单列。项目比放得下的列数少时各项拉宽占满，不在右边留空。
+    /// </summary>
+    [Parameter] public CssLength? MinItemWidth { get; set; }
+
+    /// <summary>间隙档位。</summary>
+    [Parameter] public SpaceScale? Gap { get; set; }
+
+    /// <summary>行间隙，盖过 <see cref="Gap"/>。</summary>
+    [Parameter] public SpaceScale? RowGap { get; set; }
+
+    /// <summary>列间隙，盖过 <see cref="Gap"/>。</summary>
+    [Parameter] public SpaceScale? ColumnGap { get; set; }
+
+    /// <summary>单元格在块方向的对齐（align-items），默认拉伸。</summary>
+    [Parameter] public ItemAlign? Align { get; set; }
+
+    /// <summary>单元格在行内方向的对齐（justify-items），默认拉伸。</summary>
+    [Parameter] public ItemAlign? Justify { get; set; }
+
+    /// <summary>自动排布方向（grid-auto-flow）；Dense 回填空位。</summary>
+    [Parameter] public GridFlow? Flow { get; set; }
+
+    /// <summary>单元格。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    GridAppearance Appearance => new(Columns, MinItemWidth is not null, Gap, RowGap, ColumnGap, Align, Justify, Flow);
+
+    // 最小宽度经 CSS 变量写在元素上（类不随宽度变化）；宽度不变时复用同一个对象
+    Attrs? Managed => MinItemWidth is { } width
+        ? managed.Get(width, static width => new Attrs { Vars = [LayoutStyles.MinItemWidth.Set(width)] })
+        : null;
+}

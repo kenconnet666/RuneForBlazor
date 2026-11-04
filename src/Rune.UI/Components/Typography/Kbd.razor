@@ -1,0 +1,12 @@
+@*
+    按键（kbd）：快捷键说明。组合键写成几个 Kbd：<Kbd>Ctrl</Kbd> + <Kbd>K</Kbd>
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<kbd @attributes="Attrs.Merge(TypographyStyles.Kbd(Config.Styles)[KbdPart.Root], Rest)">@ChildContent</kbd>
+
+@code {
+    /// <summary>按键名。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}
