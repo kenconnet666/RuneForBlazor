@@ -72,6 +72,20 @@ jobs:
           name: packages
           path: artifacts/*
 
+  icon-gen:
+    name: 图标数据与 Lucide 一致
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # 脚本用 npm pack 下载 lucide-static（版本写在脚本里）
+      - name: 检查 Lucide.g.cs、BuiltInIcons.g.cs 与许可文件
+        run: node tools/icon-gen/generate.mjs --check
+
   css-gen:
     name: 样式属性表与数据源一致
     runs-on: ubuntu-latest

@@ -1,36 +1,19 @@
 @*
-    加载指示：<Spinner Label="正在加载" />。单独使用时写 Label，读屏会播报；
-    放在已经标了 aria-busy 的元素里（按钮的加载中）时不写，对读屏隐藏。
+    加载指示：Lucide 的 loader-circle 匀速旋转。<Spinner Label="正在加载" />
+    单独使用时写 Label，读屏会播报（role="status"）；放在已经标了 aria-busy 的元素里（按钮的加载中）时不写，对读屏隐藏。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 
-<svg @attributes="Attrs.Merge(SpinnerStyles.Of(Size, Config.Styles)[SpinnerPart.Root], Rest, Managed)">
-    <circle cx="12" cy="12" r="9" stroke-opacity="0.25" />
-    <path d="M21 12a9 9 0 0 0-9-9" />
-</svg>
+<Icon Data="BuiltInIcons.LoaderCircle" Label="@Label" Size="Size"
+      @attributes="Attrs.MergeProps(SpinnerStyles.Of(Config.Styles)[SpinnerPart.Root], Rest, Label is null ? null : statusRole)" />
 
 @code {
-    Memo<string?, Attrs> managed;
+    static readonly Attrs statusRole = new() { Role = "status" };
 
     /// <summary>播报给读屏的说明；不写时对读屏隐藏。</summary>
     [Parameter] public string? Label { get; set; }
 
     /// <summary>字号档位；不写时跟着上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }
-
-    // svg 上由组件管理的属性；说明不变时复用同一个对象
-    Attrs Managed => managed.Get(Label, Build);
-
-    static Attrs Build(string? label) => new()
-    {
-        ["viewBox"] = "0 0 24 24",
-        ["fill"] = "none",
-        ["stroke"] = "currentColor",
-        ["stroke-width"] = "2.5",
-        ["stroke-linecap"] = "round",
-        Role = label is null ? null : "status",
-        AriaLabel = label,
-        AriaHidden = label is null ? true : null,
-    };
 }

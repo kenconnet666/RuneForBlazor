@@ -56,7 +56,7 @@ public class CardAlertTests : BunitContext
         var cut = Render<Alert>(p => p.Add(x => x.Tone, Tone.Warning).Add(x => x.Title, "即将过期").AddChildContent("3 天后到期"));
 
         Assert.Contains("background-color:var(--rune-tones-warning-soft)", RuleOf(cut.Find("[data-scope=alert]").ClassName!));
-        Assert.Equal(BuiltInIcons.TriangleAlert, AlertStyles.DefaultIcon(Tone.Warning));
+        Assert.Equal(BuiltInIcons.TriangleExclamationPoint, AlertStyles.DefaultIcon(Tone.Warning));
         Assert.Equal("即将过期", cut.Find("[data-part=title]").TextContent);
         Assert.Equal("3 天后到期", cut.Find("[data-part=description]").TextContent);
         // 页面加载时就在的提示不主动播报
@@ -71,8 +71,8 @@ public class CardAlertTests : BunitContext
         var root = cut.Find("[data-scope=alert]");
         Assert.Equal("alert", root.GetAttribute("role"));
         Assert.Equal("true", root.GetAttribute("aria-busy"));
-        // 图标位置换成加载指示（圆环）；部件标记属于提示条
-        Assert.NotNull(cut.Find("svg[data-part=icon] circle"));
+        // 图标位置换成加载指示（Lucide 的 loader-circle）；部件标记属于提示条
+        Assert.Equal("loader-circle", cut.Find("svg[data-part=icon]").GetAttribute("data-icon"));
     }
 
     [Fact]

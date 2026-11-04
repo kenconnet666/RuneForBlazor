@@ -101,9 +101,9 @@ public static class AlertStyles
                 Variant(a.Variant, a.Tone),
                 ScaleStyles.Radius(a.Radius),
                 a.Size is { } size ? ScaleStyles.FontSize(size) : null),
-            AlertPart.Icon => Sx.Of(Icon, ToneText(a.Tone)),
+            AlertPart.Icon => Sx.Of(Icon, SharedStyles.ToneText(a.Tone)),
             AlertPart.Body => Body,
-            AlertPart.Title => Sx.Of(Title, ToneText(a.Tone)),
+            AlertPart.Title => Sx.Of(Title, SharedStyles.ToneText(a.Tone)),
             AlertPart.Description => Sx.Of(),
             AlertPart.Action => Action,
             _ => Close,
@@ -113,8 +113,8 @@ public static class AlertStyles
     public static IconData DefaultIcon(Tone tone) => tone switch
     {
         UI.Tone.Success => BuiltInIcons.CircleCheck,
-        UI.Tone.Warning => BuiltInIcons.TriangleAlert,
-        UI.Tone.Danger => BuiltInIcons.CircleAlert,
+        UI.Tone.Warning => BuiltInIcons.TriangleExclamationPoint,
+        UI.Tone.Danger => BuiltInIcons.CircleExclamationPoint,
         _ => BuiltInIcons.Info,
     };
 
@@ -129,7 +129,6 @@ public static class AlertStyles
         };
     });
 
-    static Style ToneText(Tone tone) => Css.Define(tone, static tone => new Style { Color = Tones.Of(tone).Text });
 
     // 内边距用 em：跟着 Size 缩放
     static Style Root => Css.Define(static () => new Style
