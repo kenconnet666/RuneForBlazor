@@ -48,6 +48,7 @@ public static class RuneUIServiceCollectionExtensions
         configure?.Invoke(options);
         services.AddRune();
         services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles));
+        services.AddScoped<ToastService>();
         return services;
     }
 }

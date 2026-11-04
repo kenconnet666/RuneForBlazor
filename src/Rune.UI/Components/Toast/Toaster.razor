@@ -1,0 +1,30 @@
+@*
+    消息提示的显示区域：页面角落的一列。放在交互区域里（通常是布局），每个页面一个：<Toaster />
+    调用 ToastService.Show 显示提示。每条是一个 Alert（浅色底加描边、带阴影），可以关闭。
+    区域是 aria-live="polite"，新提示礼貌播报；Danger 的提示是 role="alert"，立即播报。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@inject ToastService Toasts
+@{ var parts = ToastStyles.Of(Config.Styles); }
+
+<section aria-label="@Label" aria-live="polite" @attributes="Attrs.Merge(parts[ToasterPart.Root], Rest)">
+    @foreach (var toast in Toasts.Items)
+    {
+        <Alert @key="toast.Id" Variant="AlertVariant.Surface" Tone="toast.Tone" Title="@toast.Title"
+               Live="@(toast.Tone == Tone.Danger ? AlertLive.Assertive : AlertLive.Off)"
+               CloseLabel="@CloseLabel" OnClose="() => Toasts.Dismiss(toast)"
+               @attributes="Attrs.MergeProps(parts[ToasterPart.Toast], PropsToast)">@toast.Message</Alert>
+    }
+</section>
+
+@code {
+    /// <summary>区域的名称（读屏读出）。</summary>
+    [Parameter] public string Label { get; set; } = "通知";
+
+    /// <summary>关闭按钮的名称。</summary>
+    [Parameter] public string CloseLabel { get; set; } = "关闭";
+
+    /// <summary>每条提示的部件属性（交给 Alert）。</summary>
+    [Parameter] public Attrs? PropsToast { get; set; }
+}

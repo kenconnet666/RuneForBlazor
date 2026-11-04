@@ -1,0 +1,33 @@
+@*
+    对话框与抽屉的共同部分：原生模态 <dialog>（顶层、遮罩、焦点圈在里面、Esc 关闭、关闭后焦点还给触发元素）。
+    打开有两种方式：@bind-Open（受控），或 Trigger（点击后由 JS 直接打开，静态 SSR 也能用）。
+    内容在交互模式下第一次打开才渲染。页脚里的按钮写 data-rune-close 点击后关闭。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = Parts; }
+
+@Trigger?.Invoke(TriggerAttrs)
+<dialog @attributes="Attrs.Merge(parts[DialogPart.Root], Rest, Managed)" @onrunetoggle="HandleToggle">
+    @if (ShouldRenderContent)
+    {
+        @if (Title is not null || !HideClose)
+        {
+            <div @attributes="Attrs.Merge(parts[DialogPart.Header], PropsHeader)">
+                @if (Title is not null)
+                {
+                    <h2 id="@titleId" @attributes="Attrs.Merge(parts[DialogPart.Title], PropsTitle)">@Title</h2>
+                }
+                @if (!HideClose)
+                {
+                    <IconButton Icon="BuiltInIcons.X" Label="@CloseLabel" data-rune-close @attributes="Attrs.MergeProps(parts[DialogPart.Close], PropsClose)" />
+                }
+            </div>
+        }
+        <div @attributes="Attrs.Merge(parts[DialogPart.Body], PropsBody)">@ChildContent</div>
+        @if (Footer is not null)
+        {
+            <div @attributes="Attrs.Merge(parts[DialogPart.Footer], PropsFooter)">@Footer</div>
+        }
+    }
+</dialog>
