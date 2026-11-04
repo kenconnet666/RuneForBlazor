@@ -3024,28 +3024,6 @@ public static class FillRule
     public static readonly CssValue Nonzero = "nonzero";
 }
 
-/// <summary><c>flex</c> 的关键字取值；类型与 <see cref="Style.Flex"/> 一致，可直接赋值。</summary>
-public static class Flex
-{
-    /// <summary><c>auto</c>：等价于 1 1 auto：可增长、可收缩，基础尺寸由主尺寸属性或内容决定。最终比例还受最小/最大尺寸约束，不保证所有项目等宽。1 1 0% 以零百分比为基础分配，auto 的基础尺寸通常受内容或主尺寸属性影响。</summary>
-    public static readonly CssValue Auto = "auto";
-
-    /// <summary><c>content</c>：按内容确定基础尺寸，而不直接使用 width 或 height 作为基础尺寸。</summary>
-    public static readonly CssValue Content = "content";
-
-    /// <summary><c>fit-content</c>：在最小和最大内部尺寸之间按可用空间夹取尺寸。</summary>
-    public static readonly CssValue FitContent = "fit-content";
-
-    /// <summary><c>max-content</c>：采用内容的最大内部尺寸，通常不进行软换行。</summary>
-    public static readonly CssValue MaxContent = "max-content";
-
-    /// <summary><c>min-content</c>：采用内容的最小内部尺寸，文字会考虑可用的软换行机会。</summary>
-    public static readonly CssValue MinContent = "min-content";
-
-    /// <summary><c>none</c>：等价于 0 0 auto：不增长也不收缩，保留自动基础尺寸。auto 会增长和收缩；none 两者都不参与。</summary>
-    public static readonly CssValue None = "none";
-}
-
 /// <summary><c>flex-basis</c> 的关键字取值；类型与 <see cref="Style.FlexBasis"/> 一致，可直接赋值。</summary>
 public static class FlexBasis
 {
@@ -3104,6 +3082,28 @@ public static class FlexFlow
 
     /// <summary><c>wrap-reverse</c>：允许换行并反转交叉轴上各行的排列方向。</summary>
     public static readonly CssValue WrapReverse = "wrap-reverse";
+}
+
+/// <summary><c>flex</c> 的关键字取值；类型与 <see cref="Style.Flex"/> 一致，可直接赋值。</summary>
+public static class FlexKeywords
+{
+    /// <summary><c>auto</c>：等价于 1 1 auto：可增长、可收缩，基础尺寸由主尺寸属性或内容决定。最终比例还受最小/最大尺寸约束，不保证所有项目等宽。1 1 0% 以零百分比为基础分配，auto 的基础尺寸通常受内容或主尺寸属性影响。</summary>
+    public static readonly CssValue Auto = "auto";
+
+    /// <summary><c>content</c>：按内容确定基础尺寸，而不直接使用 width 或 height 作为基础尺寸。</summary>
+    public static readonly CssValue Content = "content";
+
+    /// <summary><c>fit-content</c>：在最小和最大内部尺寸之间按可用空间夹取尺寸。</summary>
+    public static readonly CssValue FitContent = "fit-content";
+
+    /// <summary><c>max-content</c>：采用内容的最大内部尺寸，通常不进行软换行。</summary>
+    public static readonly CssValue MaxContent = "max-content";
+
+    /// <summary><c>min-content</c>：采用内容的最小内部尺寸，文字会考虑可用的软换行机会。</summary>
+    public static readonly CssValue MinContent = "min-content";
+
+    /// <summary><c>none</c>：等价于 0 0 auto：不增长也不收缩，保留自动基础尺寸。auto 会增长和收缩；none 两者都不参与。</summary>
+    public static readonly CssValue None = "none";
 }
 
 /// <summary><c>flex-wrap</c> 的关键字取值；类型与 <see cref="Style.FlexWrap"/> 一致，可直接赋值。</summary>
@@ -3791,37 +3791,6 @@ public static class ForcedColorAdjust
     public static readonly CssValue None = "none";
 }
 
-/// <summary><c>grid</c> 的关键字取值；类型与 <see cref="Style.Grid"/> 一致，可直接赋值。</summary>
-public static class Grid
-{
-    /// <summary><c>auto</c>：由内容决定：作为最大值时等同 <c>max-content</c>，作为最小值时取项目的最小贡献；有剩余空间时还会被拉伸分担。</summary>
-    public static readonly CssLength Auto = "auto";
-
-    /// <summary><c>auto-fill</c>：在 <c>repeat()</c> 中按容器可用空间尽可能多地重复轨道；放不下内容的空轨道仍保留占位。</summary>
-    public static readonly CssLength AutoFill = "auto-fill";
-
-    /// <summary><c>auto-fit</c>：在 <c>repeat()</c> 中同样尽可能多地重复轨道，但没有内容的空轨道会折叠为 0，剩余空间让给有内容的轨道。</summary>
-    public static readonly CssLength AutoFit = "auto-fit";
-
-    /// <summary><c>auto-flow</c>：声明该方向的轨道由自动放置生成：写在 <c>/</c> 前表示按行填充（<c>grid-auto-flow: row</c>），写在 <c>/</c> 后表示按列填充（<c>grid-auto-flow: column</c>）。</summary>
-    public static readonly CssLength AutoFlow = "auto-flow";
-
-    /// <summary><c>dense</c>：与 <c>auto-flow</c> 搭配，启用 dense 紧凑装箱：回头填补前面的空洞，项目可能偏离源码顺序。</summary>
-    public static readonly CssLength Dense = "dense";
-
-    /// <summary><c>max-content</c>：轨道取其中项目的最大内容尺寸，即内容不换行、不折叠时的自然尺寸。</summary>
-    public static readonly CssLength MaxContent = "max-content";
-
-    /// <summary><c>min-content</c>：轨道取其中项目的最小内容尺寸，即内容不溢出时能缩到的最小尺寸。</summary>
-    public static readonly CssLength MinContent = "min-content";
-
-    /// <summary><c>none</c>：不定义显式轨道和命名区域，网格由隐式轨道（<c>grid-auto-*</c>）自动生成。</summary>
-    public static readonly CssLength None = "none";
-
-    /// <summary><c>subgrid</c>：该元素在行方向不自建轨道，直接沿用父网格对应的行轨道，使子项目与父网格对齐；后面可追加网格线名称。</summary>
-    public static readonly CssLength Subgrid = "subgrid";
-}
-
 /// <summary><c>grid-area</c> 的关键字取值；类型与 <see cref="Style.GridArea"/> 一致，可直接赋值。</summary>
 public static class GridArea
 {
@@ -3899,6 +3868,37 @@ public static class GridColumnStart
 
     /// <summary><c>span</c>：与数字或线名搭配（如 <c>span 2</c>）：不指定具体线，而是从另一端起跨越指定数量的轨道。</summary>
     public static readonly CssValue Span = "span";
+}
+
+/// <summary><c>grid</c> 的关键字取值；类型与 <see cref="Style.Grid"/> 一致，可直接赋值。</summary>
+public static class GridKeywords
+{
+    /// <summary><c>auto</c>：由内容决定：作为最大值时等同 <c>max-content</c>，作为最小值时取项目的最小贡献；有剩余空间时还会被拉伸分担。</summary>
+    public static readonly CssLength Auto = "auto";
+
+    /// <summary><c>auto-fill</c>：在 <c>repeat()</c> 中按容器可用空间尽可能多地重复轨道；放不下内容的空轨道仍保留占位。</summary>
+    public static readonly CssLength AutoFill = "auto-fill";
+
+    /// <summary><c>auto-fit</c>：在 <c>repeat()</c> 中同样尽可能多地重复轨道，但没有内容的空轨道会折叠为 0，剩余空间让给有内容的轨道。</summary>
+    public static readonly CssLength AutoFit = "auto-fit";
+
+    /// <summary><c>auto-flow</c>：声明该方向的轨道由自动放置生成：写在 <c>/</c> 前表示按行填充（<c>grid-auto-flow: row</c>），写在 <c>/</c> 后表示按列填充（<c>grid-auto-flow: column</c>）。</summary>
+    public static readonly CssLength AutoFlow = "auto-flow";
+
+    /// <summary><c>dense</c>：与 <c>auto-flow</c> 搭配，启用 dense 紧凑装箱：回头填补前面的空洞，项目可能偏离源码顺序。</summary>
+    public static readonly CssLength Dense = "dense";
+
+    /// <summary><c>max-content</c>：轨道取其中项目的最大内容尺寸，即内容不换行、不折叠时的自然尺寸。</summary>
+    public static readonly CssLength MaxContent = "max-content";
+
+    /// <summary><c>min-content</c>：轨道取其中项目的最小内容尺寸，即内容不溢出时能缩到的最小尺寸。</summary>
+    public static readonly CssLength MinContent = "min-content";
+
+    /// <summary><c>none</c>：不定义显式轨道和命名区域，网格由隐式轨道（<c>grid-auto-*</c>）自动生成。</summary>
+    public static readonly CssLength None = "none";
+
+    /// <summary><c>subgrid</c>：该元素在行方向不自建轨道，直接沿用父网格对应的行轨道，使子项目与父网格对齐；后面可追加网格线名称。</summary>
+    public static readonly CssLength Subgrid = "subgrid";
 }
 
 /// <summary><c>grid-row</c> 的关键字取值；类型与 <see cref="Style.GridRow"/> 一致，可直接赋值。</summary>

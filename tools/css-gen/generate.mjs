@@ -27,8 +27,14 @@ const GENERATED_HEADER = [
   '',
 ];
 
-/** 关键字类与 Rune.Styles 已有类型重名时加的后缀 */
+/** 关键字类与 Rune.Styles 已有类型（或 Rune.UI 的组件）重名时加的后缀 */
 const KEYWORD_CLASS_SUFFIX = 'Keywords';
+
+/**
+ * Rune.UI 里与关键字类同名的组件：页面通常同时 using Rune.Styles 与 Rune.UI，C# 代码里同名会有歧义，关键字类加后缀让路。
+ * 组件库新增与 CSS 属性同名的组件时加在这里
+ */
+const COMPONENT_NAMES = ['Flex', 'Grid'];
 
 /** 不生成常量的关键字接口：颜色名、系统色等量大且直接写字符串更合适；CSS 全局关键字单独放 CssWide */
 const SKIPPED_KEYWORD_GROUPS = new Set(['CssWideKeywords', 'CssColor', 'CssColorBase', 'CssNamedColor', 'CssSystemColor']);
@@ -60,7 +66,7 @@ const VENDOR_PREFIXES = { Webkit: '-webkit-', Moz: '-moz-', Ms: '-ms-' };
  * 每次从源码扫描，新增类型后重新生成即可发现冲突。
  */
 function existingTypeNames() {
-  const names = new Set(['CssWide']);
+  const names = new Set(['CssWide', ...COMPONENT_NAMES]);
   const declaration =
     /^\s*(?:(?:public|internal|private|protected|sealed|static|readonly|abstract|partial|file)\s+)*(?:class|struct|enum|interface|record(?:\s+(?:struct|class))?)\s+(\w+)/;
   for (const file of readdirSync(stylesOutDir)) {
