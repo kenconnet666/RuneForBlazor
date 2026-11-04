@@ -1,4 +1,4 @@
-namespace Rune.Docs.Client.Demo;
+namespace Rune.Demo.Client.Demos;
 
 /// <summary>
 /// 演示用的共享状态（scoped 服务）：普通类里的 [State]，读写像普通属性。

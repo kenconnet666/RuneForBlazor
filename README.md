@@ -1,7 +1,8 @@
 # Rune for Blazor
 
 基于 .NET 10 Blazor 的组件库底座：容易理解的响应式状态、可以逐层覆盖的属性合并，以及与属性一起管理的强类型运行时样式。
-设计思路来自姊妹项目 [vue-tsx-pro](../../IdeaProjects/vue-tsx-pro)，按 Blazor 与 C# 的特点重新设计，取舍见 [docs/DESIGN.md](docs/DESIGN.md)。
+设计思路来自姊妹项目 [vue-tsx-pro](../../IdeaProjects/vue-tsx-pro)，按 Blazor 与 C# 的特点重新设计，取舍见 [docs/DESIGN.md](docs/DESIGN.md)，
+接下来的计划见 [docs/ROADMAP.md](docs/ROADMAP.md)。
 
 ```razor
 @* 组件：状态、双向绑定、部件样式与使用方覆盖 *@
@@ -27,7 +28,7 @@ public sealed partial class CartStore
 | `src/Rune` | 运行时：信号（`Reactivity/`）、组件基类与双向绑定（`Components/`）、属性合并（`Attrs/`）、样式引擎（`Styles/`） |
 | `src/Rune.Generators` | 源代码生成器：`[State]` 属性的实现与 RUNE 诊断（netstandard2.0） |
 | `src/Rune.UI` | 组件库：主题 tokens（`Theme/`）、部件约定（`Parts/`）、组件（`Components/`），默认主题在 `wwwroot/rune-ui.css` |
-| `apps/Rune.Docs`、`apps/Rune.Docs.Client` | 文档与演示：静态 SSR、Server、WebAssembly、Auto、流式渲染 |
+| `apps/Rune.Demo`、`apps/Rune.Demo.Client` | 演示项目：开发组件时实际运行、观察。每个演示都能以静态 SSR、Server、WebAssembly、Auto 打开（`/server/collapsible`），新增演示只要在 `Demos/` 放一个带 `[ComponentDemo]` 的组件。文档站等组件库成熟后用自己的组件来做 |
 | `tests/Rune.Tests` | 运行时、组件（bUnit）、生成器、并发的测试 |
 | `tools/css-gen` | 从 vue-tsx-pro 的 CSS 数据生成 `Style` 的属性表（带中文说明） |
 
@@ -57,7 +58,7 @@ builder.Services.AddRune();
 ```bash
 dotnet build RuneForBlazor.slnx
 dotnet test --project tests/Rune.Tests/Rune.Tests.csproj
-dotnet watch --project apps/Rune.Docs
+dotnet watch --project apps/Rune.Demo    # 演示项目，保存后热重载
 node tools/css-gen/generate.mjs           # 重新生成 Style 属性表
 node tools/css-gen/generate.mjs --check   # 只检查是否与数据源一致
 ```

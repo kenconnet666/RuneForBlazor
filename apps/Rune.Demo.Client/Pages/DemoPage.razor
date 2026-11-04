@@ -1,0 +1,47 @@
+@*
+    演示页：/{模式}/{演示}，例如 /server/collapsible、/wasm/collapsible。
+    页面本身静态渲染，按地址里的模式给演示宿主加上渲染模式；同一个演示切换模式只换地址的第一段。
+*@
+@page "/{Mode}/{Slug}"
+@inherits RuneComponent
+
+<PageTitle>@(demo?.Title ?? Slug) · @ModeTitle</PageTitle>
+
+<header @attributes="Attrs.Merge(DemoStyles.PageHeader)">
+    <h1>@(demo?.Title ?? Slug)</h1>
+    <nav aria-label="渲染模式" @attributes="Attrs.Merge(DemoStyles.ModeSwitch)">
+        @foreach (var (slug, title) in DemoRenderModes.All)
+        {
+            <a href="@($"{slug}/{Slug}")" aria-current="@(slug == Mode ? "page" : null)"
+               @attributes="Attrs.Merge(DemoStyles.ModeLink)">@title</a>
+        }
+    </nav>
+</header>
+
+@if (!DemoRenderModes.IsKnown(Mode))
+{
+    <p>不认识的渲染模式 “@Mode”，可选：@string.Join("、", DemoRenderModes.All.Select(m => m.Slug))。</p>
+}
+else if (DemoRenderModes.Of(Mode) is { } renderMode)
+{
+    <DemoHost Slug="@Slug" @rendermode="renderMode" />
+}
+else
+{
+    <DemoHost Slug="@Slug" />
+}
+
+@code {
+    DemoEntry? demo;
+
+    /// <summary>渲染模式：static、server、wasm、auto。</summary>
+    [Parameter] public string Mode { get; set; } = DemoRenderModes.Default;
+
+    /// <summary>演示的名字。</summary>
+    [Parameter] public string Slug { get; set; } = "";
+
+    string ModeTitle => DemoRenderModes.All.FirstOrDefault(m => m.Slug == Mode).Title ?? Mode;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => demo = DemoCatalog.Find(Slug);
+}

@@ -1,19 +1,41 @@
+@* 演示项目的外壳：左侧是演示目录，切换演示时保持当前的渲染模式 *@
 @inherits LayoutComponentBase
+@inject NavigationManager Navigation
 
-<nav class="docs-nav">
-    <a href="">首页（静态 SSR）</a>
-    <a href="demo/server">交互：Server</a>
-    <a href="demo/wasm">交互：WebAssembly</a>
-    <a href="demo/auto">交互：Auto</a>
-    <a href="demo/streaming">流式渲染</a>
-</nav>
+<div class="demo-shell">
+    <nav class="demo-nav" aria-label="演示目录">
+        <a href="" class="demo-brand">Rune 演示</a>
+        @foreach (var group in DemoCatalog.All.GroupBy(d => d.Group))
+        {
+            <div class="demo-nav-group">@group.Key</div>
+            @foreach (var demo in group)
+            {
+                <a href="@($"{CurrentMode}/{demo.Slug}")">@demo.Title</a>
+            }
+        }
+        <div class="demo-nav-group">渲染方式</div>
+        <a href="streaming">流式渲染</a>
+    </nav>
 
-<main class="docs-main">
-    @Body
-</main>
+    <main class="demo-main">
+        @Body
+    </main>
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
     出现了未处理的错误。
     <a href="." class="reload">重新加载</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    // 地址的第一段是渲染模式时沿用它，否则用默认模式
+    string CurrentMode
+    {
+        get
+        {
+            var first = Navigation.ToBaseRelativePath(Navigation.Uri).Split('/', '?', '#')[0];
+            return DemoRenderModes.IsKnown(first) ? first : DemoRenderModes.Default;
+        }
+    }
+}
