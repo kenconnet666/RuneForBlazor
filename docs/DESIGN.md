@@ -64,7 +64,11 @@
 - **配方**：`Recipe.Of(组件名, 档位组合, 定制, (档位, 部件) => 样式)`，每个部件一个 switch 分支；按档位组合缓存，统一加上按部件定制与部件标记，得到 `PartLayers<TPart>`。
 - **色调**：每个色调一组颜色 token（`Tones.Danger.Soft`……），按色调变化的样式写成以它为参数的函数，每种外观只写一遍，样式里仍直接是主题 token（vue-tsx-pro 试过的“色调变量”多一层 CSS 变量、读样式时看不到实际 token，这里没有那一层）。
 - **部件是本库组件时**（按钮里的图标、加载指示）用 `Attrs.MergeProps`：样式作为子组件的 `Sx` 参数交下去，子组件排在自己的样式之后只合成一个类；两个类各自的规则谁先插入谁赢，结果不可靠。
-- **组件管理的属性**按状态预先建好或按输入记住（按钮只有四种组合），渲染时不分配。
+- **组件管理的属性**按状态预先建好（按钮只有四种组合），或用 `Memo<TKey, T>` 按输入记住（字段，不是 readonly），渲染时不分配；
+  创建时要用组件本身（事件处理器）时用带状态的重载，lambda 仍写成 static。
+- **组件命名避开 Razor 的特殊标记**：`<text>`（代码块里的标记，不区分大小写）、HTML 空元素（`link`、`input`、`img`……写不了内容）。所以是 `TextSpan`、`TextLink`。
+  与 CSS 关键字类同名的组件（`Flex`、`Grid`）登记在 css-gen 的 `COMPONENT_NAMES`，关键字类加 `Keywords` 后缀让路。
+- **元素不同就分组件**（H1–H6、TextSpan / Paragraph）：共用基类与配方，子类只给标签与默认值，基类在 C# 里用 `RenderTreeBuilder` 输出元素。
 
 ## 7. 主题与配置（`src/Rune/Styles/Theme.cs`、`src/Rune.UI/Configuration`）
 
@@ -90,7 +94,7 @@
 ## 9. 构建与发布
 
 - 库专属的设置（文档注释检查、打包信息）在 `Directory.Build.targets`：props 在项目文件之前导入，那时项目里的 `IsLibrary` 还没有值。版本号例外，写在 props（SDK 更早算版本）。
-- CI 在 Linux 上打包两个库、检查生成器在 Rune 包里，并把包作为产物留存；发布到哪里（CD）待定。
+- CI 在 Linux 上打包三个库，检查生成器在 Rune 包里、Lucide 许可证在 Rune.Icons 包里，并把包作为产物留存；发布到哪里（CD）待定。
 
 ## 10. 已知限制与下一步
 

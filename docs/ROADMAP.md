@@ -43,12 +43,15 @@
 - [x] 按钮家族（Button、IconButton、LinkButton）：样式 × 色调写成以色调 token 为参数的函数；加载中可聚焦不可点；图标按钮必填名称
 - [x] Icon、Spinner：Lucide 1891 个图标生成 C#（`Rune.Icons`，每个图标首次访问时才创建），组件库内置 16 个；关键帧动画进样式引擎
 - [x] 配方 API 定型（`Recipe.Of` + `PartLayers<TPart>`，Collapsible、Button、Badge 三处用到）；部件是本库组件时样式作为 Sx 交下去（`Attrs.MergeProps`）
-- [ ] Text、Heading、Link、Kbd、VisuallyHidden
+- [x] 文字：TextSpan、Paragraph、H1–H6（一个元素一个组件，共用一个配方）、TextLink（外链新窗口与读屏提示）、Kbd、VisuallyHidden。
+      不叫 Text / Link：Razor 在代码块里把 `<text>` 当作自己的标记，`<link>` 是 HTML 空元素，两者都写不了内容
 - [x] Badge、Tag（可移除）
 - [x] 色调 token（6 个色调 × 7 种用途）、字号与圆角档位
 - [x] 修正：内容片段（RenderFragment）参数不再按委托相等跳过渲染（演示项目里计数按钮的文字不更新，实测发现）
-- [ ] 布局：Stack、Flex、Grid
-- [ ] Card、Alert
+- [x] 布局：Flex（不另做 Stack，竖排写 Direction）、Grid（固定列数 / 按最小宽度自动换列，宽度经 CSS 变量）、GridItem；
+      CSS 关键字类 `Flex`、`Grid` 改名 `FlexKeywords`、`GridKeywords` 给组件让路（css-gen 的保留名）
+- [x] Card（四种样式、标题 / 自定义页头、Extra、页脚）、Alert（样式 × 色调、按色调选图标、操作、关闭、进行中、读屏播报）
+- [x] 整理：组件管理的属性统一用 `Memo<TKey, T>` 按输入复用（原先各组件手写缓存，IconButton、LinkButton 每次渲染都新建）；演示目录按指定顺序分组
 
 ## 阶段 2：浮层与反馈
 

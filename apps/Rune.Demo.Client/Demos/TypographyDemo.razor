@@ -1,0 +1,79 @@
+@* 文字与标题：Text、Paragraph、H1–H6、Link、Kbd、VisuallyHidden *@
+@attribute [ComponentDemo("typography", "文字与链接", Group = "基础组件", Order = 3)]
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>标题</h2>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <H1>H1 订单详情</H1>
+        <H2>H2 收货地址</H2>
+        <H3>H3 商品清单</H3>
+        <H4>H4 付款方式</H4>
+        <H5>H5 备注</H5>
+        <H2 Size="Size.Lg" Tone="Tone.Accent">H2 改成 Lg 字号（结构不变）</H2>
+    </Flex>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>文字</h2>
+    <Flex Wrap="true" Gap="SpaceScale.Md" Align="ItemAlign.Baseline">
+        @foreach (var size in Enum.GetValues<Size>())
+        {
+            <TextSpan Size="size">@size</TextSpan>
+        }
+    </Flex>
+    <Flex Wrap="true" Gap="SpaceScale.Md">
+        @foreach (var weight in Enum.GetValues<Weight>())
+        {
+            <TextSpan Weight="weight">@weight</TextSpan>
+        }
+    </Flex>
+    <Flex Wrap="true" Gap="SpaceScale.Md">
+        <TextSpan Muted="true">次要文字</TextSpan>
+        @foreach (var tone in Enum.GetValues<Tone>())
+        {
+            <TextSpan Tone="tone">@tone</TextSpan>
+        }
+    </Flex>
+    <Flex Wrap="true" Gap="SpaceScale.Md">
+        <TextSpan Mono="true">PO-2026-0187</TextSpan>
+        <TextSpan Numeric="true" Tone="Tone.Danger">超时 13 天</TextSpan>
+        <TextSpan Numeric="true">¥ 1,280.00</TextSpan>
+    </Flex>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>段落：截断与多行省略</h2>
+    <Paragraph Truncate="true" Sx="Narrow" data-testid="truncate">单行省略：这是一段比较长的文字，容器只有 280px 宽，放不下的部分显示为省略号。</Paragraph>
+    <Paragraph LineClamp="lines" Sx="Narrow" data-testid="clamp">
+        多行省略：Blazor 的组件整体重新渲染，组件库在此之上补充了信号、属性合并与强类型样式。
+        样式按内容哈希生成类名，服务端与浏览器一致；同一外观的组件共用同一个类。
+        这段文字超出行数的部分显示为省略号，切换行数时只换一个类。
+    </Paragraph>
+    <Flex Gap="SpaceScale.Xs">
+        @for (var i = 1; i <= 3; i++)
+        {
+            var n = i;
+            <Button Size="Size.Sm" Variant="@(lines == n ? ButtonVariant.Solid : ButtonVariant.Surface)" @onclick="() => lines = n">@n 行</Button>
+        }
+    </Flex>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>链接、按键与视觉隐藏</h2>
+    <Paragraph>
+        正文里的链接带下划线：<TextLink Href="server/button">查看按钮</TextLink>；
+        外部链接新窗口打开：<TextLink Href="https://learn.microsoft.com/aspnet/core/blazor" External="true">Blazor 文档</TextLink>；
+        悬停才显示下划线：<TextLink Href="server/badge" Underline="LinkUnderline.Hover" Tone="Tone.Neutral">标记</TextLink>。
+    </Paragraph>
+    <Paragraph>按 <Kbd>Ctrl</Kbd> + <Kbd>K</Kbd> 打开搜索，<Kbd>Esc</Kbd> 关闭。</Paragraph>
+    <Paragraph>
+        状态：<Badge Tone="Tone.Success">●<VisuallyHidden>正常</VisuallyHidden></Badge>（色块旁边有只给读屏的文字）
+    </Paragraph>
+</section>
+
+@code {
+    int lines = 2;
+
+    static Style Narrow => Css.Define(static () => new Style { MaxWidth = 280 });
+}

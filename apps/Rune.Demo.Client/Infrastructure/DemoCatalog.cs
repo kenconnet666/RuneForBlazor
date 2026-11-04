@@ -20,6 +20,9 @@ public static class DemoCatalog
 {
     static readonly Lazy<IReadOnlyList<DemoEntry>> entries = new(Scan);
 
+    /// <summary>分组的显示顺序（按字符串排会把“布局”排到“基础”前面）；不在表里的分组排在最后。</summary>
+    static readonly string[] groupOrder = ["基础", "基础组件", "布局", "展示", "反馈", "浮层"];
+
     /// <summary>全部演示，按分组、排序、名字排好。</summary>
     public static IReadOnlyList<DemoEntry> All => entries.Value;
 
@@ -33,7 +36,8 @@ public static class DemoCatalog
             from type in typeof(DemoCatalog).Assembly.GetTypes()
             let demo = type.GetCustomAttribute<ComponentDemoAttribute>()
             where demo is not null && typeof(IComponent).IsAssignableFrom(type)
-            orderby demo.Group, demo.Order, demo.Title
+            let groupIndex = Array.IndexOf(groupOrder, demo.Group) is var i and >= 0 ? i : int.MaxValue
+            orderby groupIndex, demo.Group, demo.Order, demo.Title
             select new DemoEntry(demo.Slug, demo.Title, demo.Group, demo.Order, type);
         var list = found.ToList();
 

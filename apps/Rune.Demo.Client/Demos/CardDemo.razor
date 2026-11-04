@@ -1,0 +1,60 @@
+@* 卡片：四种样式、页头（标题 / 自定义）、Extra、页脚、内边距 *@
+@attribute [ComponentDemo("card", "卡片", Group = "展示", Order = 0)]
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>样式</h2>
+    <Grid MinItemWidth="@("14em")" Gap="SpaceScale.Md">
+        @foreach (var variant in Enum.GetValues<CardVariant>())
+        {
+            <Card Variant="variant" Title="@variant.ToString()" data-testid="@($"card-{variant}")">
+                <TextSpan Muted="true">把一组相关内容放在一块表面上。</TextSpan>
+            </Card>
+        }
+    </Grid>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>页头、页脚与操作</h2>
+    <Grid MinItemWidth="@("18em")" Gap="SpaceScale.Md">
+        <Card Title="超时最久的项目" data-testid="card-full">
+            <Extra><TextLink Href="server/card" Underline="LinkUnderline.Hover">全部</TextLink></Extra>
+            <ChildContent>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                    @foreach (var (name, days) in overdue)
+                    {
+                        <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                            <TextSpan Truncate="true">@name</TextSpan>
+                            <TextSpan Numeric="true" Wrap="TextWrapping.Nowrap" Tone="Tone.Danger">@days 天</TextSpan>
+                        </Flex>
+                    }
+                </Flex>
+            </ChildContent>
+            <Footer>
+                <Button Variant="ButtonVariant.Ghost">稍后</Button>
+                <Button>处理</Button>
+            </Footer>
+        </Card>
+        <Card Padding="SpaceScale.Md">
+            <Header>
+                <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+                    <Icon Data="Lucide.Package" />
+                    <H3 Size="Size.Md">订单 #1024</H3>
+                </Flex>
+                <Badge Tone="Tone.Success">已发货</Badge>
+            </Header>
+            <ChildContent>
+                <Paragraph>自定义页头：标题用 H3 保留文档结构，右边放状态。</Paragraph>
+            </ChildContent>
+        </Card>
+    </Grid>
+</section>
+
+@code {
+    static readonly (string Name, int Days)[] overdue =
+    [
+        ("华东仓 3 月盘点差异复核", 13),
+        ("供应商资质年审（很长的名称会被截断）", 9),
+        ("退货入库", 4),
+    ];
+}

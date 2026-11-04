@@ -1,0 +1,60 @@
+@* 提示条：样式 × 色调、标题与说明、操作、关闭、进行中、读屏播报 *@
+@attribute [ComponentDemo("alert", "提示条", Group = "反馈", Order = 0)]
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>样式 × 色调</h2>
+    @foreach (var variant in Enum.GetValues<AlertVariant>())
+    {
+        <Grid MinItemWidth="@("16em")" Gap="SpaceScale.Sm">
+            @foreach (var tone in tones)
+            {
+                <Alert Variant="variant" Tone="tone">@variant · @tone</Alert>
+            }
+        </Grid>
+    }
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>标题、操作与关闭</h2>
+    <Alert Tone="Tone.Warning" Title="订阅即将过期">
+        <ChildContent>你的订阅将在 3 天后到期，到期后无法创建新项目。</ChildContent>
+        <Action><Button Size="Size.Sm" Variant="ButtonVariant.Surface" Tone="Tone.Warning">续订</Button></Action>
+    </Alert>
+    @if (showClosable)
+    {
+        <Alert Tone="Tone.Success" Title="导入完成" OnClose="() => showClosable = false" data-testid="closable">成功 120 条，失败 3 条。
+            <TextLink Href="server/alert">查看失败原因</TextLink>
+        </Alert>
+    }
+    else
+    {
+        <Flex>
+            <Button Variant="ButtonVariant.Ghost" Icon="Lucide.RotateCcw" @onclick="() => showClosable = true">恢复</Button>
+        </Flex>
+    }
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>进行中与读屏播报</h2>
+    <Alert Tone="Tone.Info" Loading="uploading" Live="AlertLive.Polite" data-testid="upload">
+        @(uploading ? "正在上传 3 个文件…" : "上传完成。")
+    </Alert>
+    <Flex Gap="SpaceScale.Sm">
+        <Button Size="Size.Sm" Loading="uploading" @onclick="UploadAsync">开始上传（2 秒）</Button>
+    </Flex>
+    <Alert Tone="Tone.Danger" Size="Size.Sm" Radius="Radius.None" HideIcon="true">小号、直角、不带图标</Alert>
+</section>
+
+@code {
+    static readonly Tone[] tones = [Tone.Info, Tone.Success, Tone.Warning, Tone.Danger];
+    bool showClosable = true;
+    bool uploading;
+
+    async Task UploadAsync()
+    {
+        uploading = true;
+        await Task.Delay(2000);
+        uploading = false;
+    }
+}

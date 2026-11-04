@@ -1,0 +1,87 @@
+@* 布局：Flex（方向、对齐、分布、换行、间隙、Grow）与 Grid（固定列数、自动换列、跨列） *@
+@attribute [ComponentDemo("layout", "布局", Group = "布局", Order = 0)]
+@inherits RuneComponent
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>Flex：主轴分布</h2>
+    @foreach (var justify in Enum.GetValues<ContentJustify>())
+    {
+        <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+            <span @attributes="Attrs.Merge(DemoStyles.RowLabel)">@justify</span>
+            <Flex Grow="true" Justify="justify" Gap="SpaceScale.Xs" Sx="Track" data-testid="@($"justify-{justify}")">
+                <span @attributes="Attrs.Merge(Box)">A</span>
+                <span @attributes="Attrs.Merge(Box)">B</span>
+                <span @attributes="Attrs.Merge(Box)">C</span>
+            </Flex>
+        </Flex>
+    }
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>Flex：竖排、对齐与占满剩余空间</h2>
+    <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Sx="Track">
+        <Icon Data="Lucide.User" Size="Size.Xl" />
+        <Flex Grow="true" Direction="LayoutDirection.Column" Gap="SpaceScale.Xxs">
+            <TextSpan Weight="Weight.Semibold" Truncate="true">张三（很长的名字在窄屏时省略而不是把右边的按钮挤出去）</TextSpan>
+            <TextSpan Muted="true" Size="Size.Sm">采购部 · 上次登录 3 分钟前</TextSpan>
+        </Flex>
+        <Button Variant="ButtonVariant.Surface" Size="Size.Sm">私信</Button>
+    </Flex>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>Grid：固定列数与跨列</h2>
+    <Grid Columns="4" Gap="SpaceScale.Sm" data-testid="grid-columns">
+        <GridItem Span="2"><span @attributes="Attrs.Merge(Box)">跨 2 列</span></GridItem>
+        <span @attributes="Attrs.Merge(Box)">3</span>
+        <span @attributes="Attrs.Merge(Box)">4</span>
+        <GridItem FullRow="true"><span @attributes="Attrs.Merge(Box)">占满一行</span></GridItem>
+        @for (var i = 1; i <= 4; i++)
+        {
+            <span @attributes="Attrs.Merge(Box)">@i</span>
+        }
+    </Grid>
+</section>
+
+<section @attributes="Attrs.Merge(DemoStyles.Section)">
+    <h2>Grid：按最小宽度自动换列（拖窗口宽度看效果）</h2>
+    <Flex Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+        <TextSpan Size="Size.Sm" Muted="true">最小宽度</TextSpan>
+        @foreach (var width in widths)
+        {
+            <Button Size="Size.Sm" Variant="@(minWidth == width ? ButtonVariant.Solid : ButtonVariant.Surface)" @onclick="() => minWidth = width">@width</Button>
+        }
+    </Flex>
+    <Grid MinItemWidth="minWidth" Gap="SpaceScale.Sm" data-testid="grid-auto">
+        @for (var i = 1; i <= 6; i++)
+        {
+            <span @attributes="Attrs.Merge(Box)">项目 @i</span>
+        }
+    </Grid>
+</section>
+
+@code {
+    static readonly string[] widths = ["8em", "12em", "16em"];
+    string minWidth = "12em";
+
+    static Style Box => Css.Define(static () => new Style
+    {
+        Display = Display.Block,
+        PaddingBlock = Space.Sm,
+        PaddingInline = Space.Md,
+        BorderRadius = Radii.Sm,
+        BackgroundColor = Tones.Accent.Soft,
+        Color = Tones.Accent.Text,
+        TextAlign = TextAlign.Center,
+    });
+
+    static Style Track => Css.Define(static () => new Style
+    {
+        MinWidth = 0,
+        Padding = Space.Xs,
+        BorderRadius = Radii.Md,
+        BorderWidth = 1,
+        BorderStyle = BorderStyle.Dashed,
+        BorderColor = Colors.Border,
+    });
+}
