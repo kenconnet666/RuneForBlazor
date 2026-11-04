@@ -11,8 +11,7 @@
 </svg>
 
 @code {
-    Attrs? managed;
-    string? managedFor;
+    Memo<string?, Attrs> managed;
 
     /// <summary>播报给读屏的说明；不写时对读屏隐藏。</summary>
     [Parameter] public string? Label { get; set; }
@@ -21,7 +20,7 @@
     [Parameter] public Size? Size { get; set; }
 
     // svg 上由组件管理的属性；说明不变时复用同一个对象
-    Attrs Managed => managed is not null && managedFor == Label ? managed : managed = Build(managedFor = Label);
+    Attrs Managed => managed.Get(Label, Build);
 
     static Attrs Build(string? label) => new()
     {

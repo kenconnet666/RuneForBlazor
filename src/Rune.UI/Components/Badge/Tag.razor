@@ -22,8 +22,7 @@
 </span>
 
 @code {
-    Attrs? removeManaged;
-    string? removeManagedFor;
+    Memo<string, Attrs> removeManaged;
 
     /// <summary>样式，默认浅色底。</summary>
     [Parameter] public BadgeVariant? Variant { get; set; }
@@ -56,15 +55,8 @@
     [Parameter] public Attrs? PropsRemove { get; set; }
 
     // 移除按钮上由组件管理的属性：名称与点击；名称不变时复用同一个对象
-    Attrs RemoveManaged
-    {
-        get
-        {
-            if (removeManaged is not null && removeManagedFor == RemoveLabel) return removeManaged;
-            removeManagedFor = RemoveLabel;
-            return removeManaged = new Attrs { AriaLabel = RemoveLabel, Title = RemoveLabel, OnClick = HandleRemove };
-        }
-    }
+    Attrs RemoveManaged => removeManaged.Get(RemoveLabel, this, static (label, tag) =>
+        new Attrs { AriaLabel = label, Title = label, OnClick = tag.HandleRemove });
 
     Task HandleRemove(MouseEventArgs _) => OnRemove.InvokeAsync();
 }

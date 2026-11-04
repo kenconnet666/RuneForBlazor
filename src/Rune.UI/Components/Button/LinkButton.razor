@@ -29,13 +29,15 @@
     /// <inheritdoc/>
     protected override Tone DefaultTone => UI.Tone.Accent;
 
-    /// <summary>a 上由组件管理的属性：地址（不可用时去掉）与状态。</summary>
-    Attrs Managed => new()
+    Memo<(string Href, bool Disabled, bool Loading), Attrs> managed;
+
+    /// <summary>a 上由组件管理的属性：地址（不可用时去掉）与状态；不变时复用同一个对象。</summary>
+    Attrs Managed => managed.Get((Href, Disabled, Loading), static k => new Attrs
     {
-        ["href"] = Disabled || Loading ? null : Href,
-        AriaDisabled = Disabled || Loading ? true : null,
-        ["aria-busy"] = Loading ? "true" : null,
-        ["data-disabled"] = Disabled ? true : null,
-        ["data-loading"] = Loading ? true : null,
-    };
+        ["href"] = k.Disabled || k.Loading ? null : k.Href,
+        AriaDisabled = k.Disabled || k.Loading ? true : null,
+        ["aria-busy"] = k.Loading ? "true" : null,
+        ["data-disabled"] = k.Disabled ? true : null,
+        ["data-loading"] = k.Loading ? true : null,
+    });
 }

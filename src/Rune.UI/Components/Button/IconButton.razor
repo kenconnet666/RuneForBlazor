@@ -1,5 +1,5 @@
 @*
-    图标按钮（button 元素，宽高相等）：<IconButton Icon="Lucide.Trash2" Label="删除" @onclick="Remove" />。
+    图标按钮（button 元素，宽高相等）：<IconButton Icon="Lucide.Trash" Label="删除" @onclick="Remove" />。
     Label 必填：图标按钮没有文字，Label 就是它的名称（读屏读出、悬停提示）。默认无底、中性色。
 *@
 @namespace Rune.UI
@@ -23,14 +23,16 @@
     /// <inheritdoc/>
     protected override Tone DefaultTone => UI.Tone.Neutral;
 
-    /// <summary>button 上由组件管理的属性：名称、不可用、加载中。</summary>
-    Attrs Managed => new()
+    Memo<(string Label, bool Disabled, bool Loading), Attrs> managed;
+
+    /// <summary>button 上由组件管理的属性：名称、不可用、加载中；不变时复用同一个对象。</summary>
+    Attrs Managed => managed.Get((Label, Disabled, Loading), static k => new Attrs
     {
-        AriaLabel = Label,
-        Title = Label,
-        ["disabled"] = Disabled ? true : null,
-        ["aria-busy"] = Loading ? "true" : null,
-        AriaDisabled = Loading ? true : null,
-        ["data-loading"] = Loading ? true : null,
-    };
+        AriaLabel = k.Label,
+        Title = k.Label,
+        ["disabled"] = k.Disabled ? true : null,
+        ["aria-busy"] = k.Loading ? "true" : null,
+        AriaDisabled = k.Loading ? true : null,
+        ["data-loading"] = k.Loading ? true : null,
+    });
 }
