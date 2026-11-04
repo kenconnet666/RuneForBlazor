@@ -89,11 +89,12 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [x] `tools/parity`：按上面“对照的做法”第 3 条实现；README 写用法；拿已完成的组件试一遍，修掉报告里的差异
       （按钮已对齐：亮暗主题、悬停聚焦按下一致；Badge、Kbd、Card 在各自页面对照时改）
 - [ ] 演示页改名对齐文档站的路由（typography → text、layout → flex / grid 等），示例按文档站补齐；已完成组件逐个过一遍对照报告
-      （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（radio 已对齐，CheckboxGroup、items、开关的 loading 与轨道内容待做）、flex（除了还没做的 ToggleGroup、Avatar、Descriptions、输入框）；card 差 loading 与 effects 示例；缺的组件做到时补示例：Descriptions、Table、Select、ButtonGroup、Avatar、ToggleGroup；toast 的完整功能在阶段 6）
+      （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（radio 已对齐，CheckboxGroup、items、开关的 loading 与轨道内容待做）、listbox（loading 与虚拟滚动待做）、flex（除了还没做的 ToggleGroup、Avatar、Descriptions、输入框）；card 差 loading 与 effects 示例；缺的组件做到时补示例：Descriptions、Table、Select、ButtonGroup、Avatar、ToggleGroup；toast 的完整功能在阶段 6）
 - [x] 语言包：`UIConfig.Lang` 与 `RuneProvider` 的 `Lang`；`tools/lang-gen` 从 vue-tsx-pro 的语言包生成 zh-CN、en-US；已有组件里的文字（关闭、确定、取消、增加、减少……）改成取语言包
 - [x] 端到端测试项目 `tests/Rune.E2E`（Microsoft.Playwright，Chromium）：启动演示项目，覆盖已有的键盘与焦点逻辑（菜单、对话框、气泡确认、数字框方向键、表单错误汇总跳转）；进 CI
       （另有数字框按住连加、显示密码、清空回焦、复制、标签移除后的焦点；之后每个有键盘或焦点逻辑的组件都加用例）
-- [ ] 列表状态与键盘（同 vue-tsx-pro 的 `list-state.ts`）：高亮项、`aria-activedescendant`、方向键 / Home / End / PageUp / PageDown、首字母、多选；Listbox 组件；后面的 Select、Combobox、Tree、Tabs、Menu 共用
+- [x] 列表状态与键盘（同 vue-tsx-pro 的 `list-state.ts`）：高亮项、`aria-activedescendant`、方向键 / Home / End / PageUp / PageDown、首字母、多选；Listbox 组件；后面的 Select、Combobox、Tree、Tabs、Menu 共用
+      （数据层 `ListState`、`ItemStyles`；键盘在 JS 初始化器的 `data-rune-list`，菜单改用同一个类型搜索；Listbox 的 loading 骨架行等骨架屏、虚拟滚动等下面的虚拟滚动条目；顺手做了 Empty）
 - [ ] 骨架与扫光：Skeleton、SkeletonText、`ShimmerStyles`（同 `utils/style/shimmer.ts`）；延迟显示加载态（同 `useDelayedLoading`）
 - [ ] JS 初始化器按需补的能力（用到时再加，每项写进 DESIGN 第 8 节）：尺寸变化（ResizeObserver → data 属性或事件）、拖动（指针捕获）、复制到剪贴板、滚动到可见、宽度与触发元素一致的浮层
 - [ ] 虚拟滚动：包一层 Blazor 的 `Virtualize`，与列表状态配合（VirtualList、DataTable、长下拉要用）
@@ -110,7 +111,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 ## 阶段 6：基础与反馈补齐
 
 - [ ] 基础：ButtonGroup（相连的按钮）、CloseButton、CopyButton、IconLinkButton、Indicator、StatusDot、Mark、Code / CodeText / CodeBlock（不带高亮，带复制）、Blockquote、List、Can（权限）
-- [ ] 反馈：Banner、Empty、Result、Progress（线形、环形）、LoadingBar、LoadingOverlay
+- [ ] 反馈：Banner、Empty（已做）、Result、Progress（线形、环形）、LoadingBar、LoadingOverlay
 - [ ] 补齐已有组件：Toast（标题与说明、操作、进度、位置、最多条数与堆叠、悬停暂停、important）、Alert（description 与额外内容分开、关闭时淡出）、
       Card（loading 骨架、装饰效果 tilt / spotlight / beam）、Switch（loading、开关内的文字）、Menu（勾选项、单选项、子菜单、分组标题、说明）、Drawer（可拖动宽度）
 

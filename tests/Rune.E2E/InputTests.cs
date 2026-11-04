@@ -21,6 +21,8 @@ public class InputTests(DemoServer demo)
         await page.Keyboard.PressAsync("Home");
         await page.Keyboard.PressAsync("Tab");
         await Assertions.Expect(quantity).ToHaveValueAsync("1");
+        // 输入框的值是 JS 当场改的；等 C# 的渲染回来（到了最小值，减少按钮不可用）再填，否则迟到的渲染会盖掉填进去的文字
+        await Assertions.Expect(quantity.Locator("xpath=..").GetByRole(AriaRole.Button, new() { Name = "减少" })).ToBeDisabledAsync();
 
         await quantity.FillAsync("150");
         await page.Keyboard.PressAsync("Enter");

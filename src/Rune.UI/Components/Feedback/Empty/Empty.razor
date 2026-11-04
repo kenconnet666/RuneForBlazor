@@ -1,0 +1,66 @@
+@*
+    空状态（div）：列表、表格、搜索结果没有内容时的图标、标题、说明与操作，居中排列（同 vue-tsx-pro 的 Empty）。
+    <Empty Title="还没有项目" Description="新建一个项目开始吧"><Action><Button>新建项目</Button></Action></Empty>
+    <Empty Icon="Lucide.SearchX" Title="没有找到结果" Size="Size.Sm" />
+    放在下拉框、小卡片里用 Size.Sm；HideIcon 去掉图标（只剩文字）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = EmptyStyles.Of(Size, Config.Styles);
+}
+
+<div @attributes="Attrs.Merge(parts[EmptyPart.Root], Rest)">
+    @if (!HideIcon)
+    {
+        <Icon Data="@(Icon ?? BuiltInIcons.Inbox)" @attributes="Attrs.MergeProps(parts[EmptyPart.Icon], PropsIcon)" />
+    }
+    @if (Title is not null)
+    {
+        <TextSpan @attributes="Attrs.MergeProps(parts[EmptyPart.Title], PropsTitle)">@Title</TextSpan>
+    }
+    @if (Description is not null)
+    {
+        <Paragraph @attributes="Attrs.MergeProps(parts[EmptyPart.Description], PropsDescription)">@Description</Paragraph>
+    }
+    @ChildContent
+    @if (Action is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[EmptyPart.Action], PropsAction)">@Action</div>
+    }
+</div>
+
+@code {
+    /// <summary>字号档位，内部尺寸随之缩放；放在下拉框、小卡片里用 Sm。不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>图标；不写时是收件箱。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>不显示图标。</summary>
+    [Parameter] public bool HideIcon { get; set; }
+
+    /// <summary>标题。占用了原生的 title 属性（悬停提示）。</summary>
+    [Parameter] public RenderFragment? Title { get; set; }
+
+    /// <summary>标题下面的说明。</summary>
+    [Parameter] public RenderFragment? Description { get; set; }
+
+    /// <summary>说明下面的操作（按钮、链接）。</summary>
+    [Parameter] public RenderFragment? Action { get; set; }
+
+    /// <summary>标题、说明之外的内容（放在操作之前）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>图标的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>标题的部件属性（交给 TextSpan）。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>说明的部件属性（交给 Paragraph）。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>操作区的部件属性。</summary>
+    [Parameter] public Attrs? PropsAction { get; set; }
+}

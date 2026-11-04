@@ -128,6 +128,11 @@ function collect({ side, ids, props, canvasWidth, SEMANTIC_TAGS }) {
       if (!element.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
       add(element, `<${element.tagName.toLowerCase()}>`);
     }
+    // 有角色的元素按角色配对：vue-tsx-pro 里用 css.create 而不是配方的组件（Listbox 等）没有部件标记
+    for (const element of canvas.querySelectorAll('[role]:not([role=presentation], [role=none], [role=img], svg)')) {
+      if (!element.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+      add(element, `[role=${element.getAttribute('role')}]`);
+    }
     const read = (element) => {
       const style = getComputedStyle(element);
       const values = {};
@@ -232,7 +237,7 @@ async function readStates(page, keys) {
     const locator = page.locator(`[data-parity-keys~="${key}"]`);
     if ((await locator.count()) === 0) continue;
     const interactive = await locator.evaluate((element) =>
-      element.matches('button, a[href], input, select, textarea, [tabindex], [role=button], [role=menuitem]'),
+      element.matches('button, a[href], input, select, textarea, [tabindex], [role=button], [role=menuitem], [role=option]'),
     );
     if (!interactive || !(await locator.isVisible())) continue;
     const read = () =>

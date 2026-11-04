@@ -54,6 +54,7 @@ const BUILT_IN = [
   'eye-off',
   'asterisk',
   'copy',
+  'inbox',
 ];
 
 /** 文档注释里最多列几个关键词 */

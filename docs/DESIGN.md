@@ -168,6 +168,12 @@
 - **Form 包一层 EditForm**：默认带 DataAnnotationsValidator；提交回调执行期间级联的 `FormState.Submitting` 让提交按钮显示加载中；
   提交未通过时顶部列出错误，Field 渲染后把“字段 → 标签、控件 id”登记给 Form，汇总写成“标签：错误”并能跳到控件。
   跳转用 `data-rune-focus` 在捕获阶段拦下：`#id` 链接会被 Blazor 按 `<base href>` 解析成别的页面（实测跳回了首页）。
+- **列表（Listbox，之后的 Select、Combobox 共用）**：数据层是 `ListState`（选项、分组排序、切换选择，同 vue-tsx-pro 的 list-state），
+  高亮与键盘在 JS 初始化器的 `data-rune-list`：焦点留在宿主（列表本身，或 aria-controls 指向列表的触发按钮、输入框）上，方向键、Home / End、
+  Page Up / Down、类型搜索只改选项的 `data-highlighted` 与宿主的 `aria-activedescendant`，没有往返；Enter / 空格点击高亮项，选中才回到 C#。
+  高亮存在 DOM 上（`data-highlighted` 是唯一的来源），Blazor 只比较自己渲染的属性，重新渲染不会把它抹掉。
+  类型搜索与菜单共用一个实现（连续输入拼词、停顿 500 毫秒清空、同一个字母轮换）。
+  vue-tsx-pro 的 Listbox 用 css.create，没有部件标记：对照工具另按 role 配对。
 - **外框的状态只看自己的输入元素**：`:has(> :is(input, select, textarea):disabled)`。最初写的 `:has(:disabled)` 会被数字框到了上限时不可用的步进按钮、
   下拉里不可用的占位选项匹配，整个外框变灰（实测发现）。
 

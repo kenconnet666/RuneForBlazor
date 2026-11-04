@@ -8,7 +8,12 @@
 //   data-rune-open="id"      点击时打开这个 id 的浮层（对话框的触发按钮；popover 用原生的 popovertarget）
 //   data-rune-close          点击时关闭所在的浮层（对话框的取消按钮、关闭按钮）
 //   data-rune-light-dismiss  对话框：点遮罩关闭（原生的 closedby="any" 还没普及）
-//   role="menu"              菜单：方向键、Home / End、首字母移动焦点；打开时聚焦第一项；选了菜单项就关闭
+//   role="menu"              菜单：方向键、Home / End、类型搜索移动焦点；打开时聚焦第一项；选了菜单项就关闭
+//   data-rune-list="space typeahead"
+//                            列表的键盘宿主：role="listbox" 本身，或 aria-controls 指向列表的触发按钮、输入框。焦点留在宿主上，
+//                            ↑↓、Home / End、Page Up / Down 移动高亮（选项的 data-highlighted 与宿主的 aria-activedescendant），
+//                            Enter（space 时还有空格）点击高亮项（C# 处理选中），typeahead 时按字母跳到以它开头的项；
+//                            列表自己获得焦点时高亮第一个已选项（没有就第一个可用项）；指针移过选项时高亮它
 //   data-rune-tooltip-root   提示：Esc 隐藏；触发元素获得焦点时 aria-describedby 指向提示
 //   data-indeterminate       勾选框的半选：原生的 indeterminate 只能用 JS 设置，按这个属性同步
 //   data-rune-focus="id"     点击时聚焦这个 id 的控件并滚到它（表单错误汇总里的链接）
@@ -80,6 +85,8 @@ function install(blazor) {
   document.addEventListener('keydown', onKeyDown);
   document.addEventListener('pointerdown', startRipple);
   document.addEventListener('pointerdown', focusOnShell);
+  document.addEventListener('pointerdown', keepFocusOnListHost);
+  document.addEventListener('pointermove', highlightUnderPointer);
   document.addEventListener('change', (event) => {
     const target = event.target;
     if (target instanceof HTMLInputElement && target.checked && target.hasAttribute('data-rune-check-draw')) {
@@ -268,6 +275,7 @@ function onKeyDown(event) {
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
   if (menu) moveInMenu(menu, event);
+  if (event.target instanceof Element && event.target.matches('[data-rune-list]')) moveInList(event.target, event);
 }
 
 function menuItems(menu) {
@@ -297,17 +305,143 @@ function moveInMenu(menu, event) {
       close(menu);
       return;
     default:
-      // 首字母：从当前项之后找第一个以它开头的菜单项
-      if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
-        const key = event.key.toLocaleLowerCase();
-        const ordered = [...items.slice(index + 1), ...items.slice(0, index + 1)];
-        next = ordered.find((item) => item.textContent.trim().toLocaleLowerCase().startsWith(key));
+      if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+        const match = typeahead(menu, event.key, items.map((item) => item.textContent), index);
+        if (match >= 0) next = items[match];
       }
   }
   if (next) {
     event.preventDefault();
     next.focus();
   }
+}
+
+// ---- 类型搜索 ----
+
+// 每个菜单、列表各有一个输入缓冲（同 vue-tsx-pro 的 createTypeahead）
+const typeaheadQueries = new WeakMap();
+
+/**
+ * 类型搜索（WAI-ARIA 的 type-ahead）：在菜单、列表里直接按字母，跳到以它开头的项。
+ * 连续输入拼成一个词（“ex” 跳到 Export）；停顿 500 毫秒后重新开始；反复按同一个字母在以它开头的项之间轮换。
+ * labels 是各项的文字，current 是当前项的序号（没有时 -1）；返回该落到的项的序号，不是可打印字符或没有匹配时 -1。
+ */
+function typeahead(owner, key, labels, current) {
+  const state = typeaheadQueries.get(owner) ?? { query: '', timer: 0 };
+  // 只认单个可打印字符；空格开头时不算（空格是激活键）
+  if (!/^.$/su.test(key) || (key === ' ' && !state.query)) return -1;
+  typeaheadQueries.set(owner, state);
+  clearTimeout(state.timer);
+  state.timer = setTimeout(() => (state.query = ''), 500);
+  state.query += key.toLocaleLowerCase();
+
+  const normalized = labels.map((label) => label.trim().toLocaleLowerCase());
+  // 同一个字母反复按：从下一项开始找以它开头的，轮换
+  const first = state.query.slice(0, key.length);
+  const repeated = state.query === first.repeat(state.query.length / first.length);
+  const search = repeated ? first : state.query;
+  const start = repeated ? current + 1 : Math.max(current, 0);
+  for (let offset = 0; offset < normalized.length; offset++) {
+    const index = (start + offset) % normalized.length;
+    if (normalized[index].startsWith(search)) return index;
+  }
+  return -1;
+}
+
+// ---- 列表 ----
+
+// 一次按键移动几项；first / last 到头尾
+const listMoves = { ArrowDown: 1, ArrowUp: -1, PageDown: 10, PageUp: -10, Home: 'first', End: 'last' };
+
+/** 宿主控制的列表：宿主本身是 listbox，或经 aria-controls 指向它。 */
+function listOf(host) {
+  if (host.getAttribute('role') === 'listbox') return host;
+  const id = host.getAttribute('aria-controls');
+  return id ? document.getElementById(id) : null;
+}
+
+/** 列表的键盘宿主（焦点所在、写 aria-activedescendant 的元素）。 */
+function hostOf(list) {
+  if (list.hasAttribute('data-rune-list')) return list;
+  return list.id ? document.querySelector(`[data-rune-list][aria-controls="${CSS.escape(list.id)}"]`) : null;
+}
+
+function enabledOptions(list) {
+  return [...list.querySelectorAll('[role="option"]:not([aria-disabled="true"])')];
+}
+
+function highlightedOption(list) {
+  return list.querySelector('[role="option"][data-highlighted]');
+}
+
+/** 高亮一个选项（null 取消）；scroll 时滚进可见范围（键盘移动；指针移过的本来就看得见）。 */
+function highlight(host, list, option, scroll) {
+  const previous = highlightedOption(list);
+  if (previous !== option) {
+    previous?.removeAttribute('data-highlighted');
+    option?.setAttribute('data-highlighted', '');
+  }
+  if (option?.id) host.setAttribute('aria-activedescendant', option.id);
+  else host.removeAttribute('aria-activedescendant');
+  if (!option || !scroll) return;
+  // 高亮的是第一项、上面是组名时连组名一起滚进来：组名不被挡住
+  const label = list.querySelector('[role="option"]') === option ? option.previousElementSibling : null;
+  (label ?? option).scrollIntoView({ block: 'nearest' });
+  if (label) option.scrollIntoView({ block: 'nearest' });
+}
+
+/** 列表获得焦点、下拉打开时：高亮第一个已选项，没有已选时高亮第一个可用项。 */
+function highlightDefault(host, list) {
+  const options = enabledOptions(list);
+  const option = options.find((o) => o.getAttribute('aria-selected') === 'true') ?? options[0] ?? null;
+  highlight(host, list, option, true);
+}
+
+function moveInList(host, event) {
+  if (event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+  if (host.getAttribute('aria-disabled') === 'true') return;
+  const list = listOf(host);
+  if (!list) return;
+  const flags = (host.getAttribute('data-rune-list') ?? '').split(' ');
+  const options = enabledOptions(list);
+  const current = options.indexOf(highlightedOption(list));
+  const step = listMoves[event.key];
+  if (step !== undefined) {
+    event.preventDefault();
+    if (options.length === 0) return;
+    let next;
+    if (step === 'first') next = 0;
+    else if (step === 'last') next = options.length - 1;
+    else if (current < 0) next = step > 0 ? 0 : options.length - 1;
+    else next = Math.min(Math.max(current + step, 0), options.length - 1);
+    highlight(host, list, options[next], true);
+    return;
+  }
+  if (event.key === 'Enter' || (event.key === ' ' && flags.includes('space'))) {
+    const option = highlightedOption(list);
+    // 没有高亮项时 Enter 照常（提交表单），空格不滚动页面
+    if (option || event.key === ' ') event.preventDefault();
+    if (option && option.getAttribute('aria-disabled') !== 'true') option.click();
+    return;
+  }
+  if (!flags.includes('typeahead')) return;
+  const match = typeahead(list, event.key, options.map((o) => o.dataset.label ?? o.textContent), current);
+  if (match < 0) return;
+  event.preventDefault();
+  highlight(host, list, options[match], true);
+}
+
+// 焦点留在宿主上（列表、触发按钮、输入框）：按下选项不把焦点移走
+function keepFocusOnListHost(event) {
+  if (event.target instanceof Element && event.target.closest('[role="listbox"] [role="option"]')) event.preventDefault();
+}
+
+function highlightUnderPointer(event) {
+  const option = event.target instanceof Element ? event.target.closest('[role="option"]') : null;
+  if (!option || option.hasAttribute('data-highlighted') || option.getAttribute('aria-disabled') === 'true') return;
+  const list = option.closest('[role="listbox"]');
+  const host = list && hostOf(list);
+  if (host) highlight(host, list, option, false);
 }
 
 // ---- 提示 ----
@@ -333,6 +467,8 @@ function onFocusIn(event) {
   const root = target.closest('[data-rune-tooltip-root]');
   const tooltipId = root?.getAttribute('data-rune-tooltip-root');
   if (tooltipId && !target.hasAttribute('aria-describedby')) target.setAttribute('aria-describedby', tooltipId);
+  // 列表自己获得焦点：还没有高亮项时高亮默认项（触发按钮、输入框做宿主时由打开下拉的一方决定）
+  if (target.matches('[role="listbox"][data-rune-list]') && !highlightedOption(target)) highlightDefault(target, target);
 }
 
 // ---- 数字输入框 ----

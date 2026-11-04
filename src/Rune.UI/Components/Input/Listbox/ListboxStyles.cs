@@ -1,0 +1,85 @@
+using Rune.Styles;
+
+namespace Rune.UI;
+
+/// <summary>列表框的部件（同 vue-tsx-pro 的 Listbox）。</summary>
+public enum ListboxPart
+{
+    /// <summary>列表（div，role="listbox"）。</summary>
+    Root,
+
+    /// <summary>分组标题（只是视觉上的一行，组名经选项的 aria-describedby 念出）。</summary>
+    GroupLabel,
+
+    /// <summary>选项（div，role="option"）。</summary>
+    Option,
+
+    /// <summary>选项的文字与说明。</summary>
+    Content,
+
+    /// <summary>选项的说明。</summary>
+    Description,
+
+    /// <summary>已选标记（对勾）。</summary>
+    Check,
+}
+
+/// <summary>列表框的样式（同 vue-tsx-pro 的 listboxStyles 与 itemStyles）。</summary>
+public static class ListboxStyles
+{
+    /// <summary>各部件的默认层；<paramref name="ownScroll"/> 时列表自己滚动（单独使用的 Listbox，最高 20em）。</summary>
+    public static PartLayers<ListboxPart> Of(bool ownScroll, ComponentStyles styles) =>
+        Recipe.Of("listbox", ownScroll, styles, static (bool ownScroll, ListboxPart part) => part switch
+        {
+            ListboxPart.Root => Sx.Of(Root, ownScroll ? Scroll : null, SharedStyles.FocusRing),
+            ListboxPart.GroupLabel => Sx.Of(GroupLabel, SharedStyles.TextColor(TextTone.Muted)),
+            ListboxPart.Option => Sx.Of(ItemStyles.Row, ItemStyles.Highlighted, ItemStyles.Selected, ItemStyles.Disabled),
+            ListboxPart.Content => Content,
+            ListboxPart.Description => Description,
+            _ => Check,
+        });
+
+    static Style Root => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        Padding = Space.Xs,
+        LineHeight = LineHeights.Normal,
+        OutlineStyle = "none",
+    });
+
+    // 自己是滚动容器时：限制高度，滚动不传给页面
+    static Style Scroll => Css.Define(static () => new Style
+    {
+        MaxHeight = "20em",
+        OverflowY = Overflow.Auto,
+        OverscrollBehavior = "contain",
+    });
+
+    static Style GroupLabel => Css.Define(static () => new Style
+    {
+        Display = Display.Block,
+        PaddingTop = Space.Sm,
+        PaddingBottom = Space.Xs,
+        PaddingInline = Space.Sm,
+        FontSize = FontSizes.Sm,
+        FontWeight = FontWeights.Semibold,
+    });
+
+    static Style Content => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        FlexGrow = 1,
+        MinWidth = 0,
+    });
+
+    static Style Description => Css.Define(static () => new Style { FontSize = FontSizes.Sm, Color = Colors.TextMuted });
+
+    // 对勾只在已选的选项里显示，位置照样占着（文字不跳）
+    static Style Check => Css.Define(static () => new Style
+    {
+        FlexShrink = 0,
+        Visibility = "hidden",
+        [When.Inside(When.Selected)] = new() { Visibility = "visible" },
+    });
+}

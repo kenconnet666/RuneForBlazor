@@ -37,7 +37,10 @@ public class OverlayTests(DemoServer demo)
     {
         var page = await demo.OpenAsync(mode, "popover");
         await page.GetByRole(AriaRole.Button, new() { Name = "操作" }).ClickAsync();
+        // 等焦点进了菜单再按键：否则方向键与 Enter 落在触发按钮上（Enter 把菜单关掉，什么也没选）
+        await Assertions.Expect(page.GetByRole(AriaRole.Menuitem, new() { Name = "编辑" })).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("ArrowDown");
+        await Assertions.Expect(page.GetByRole(AriaRole.Menuitem, new() { Name = "复制" })).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("Enter");
 
         await Assertions.Expect(page.GetByRole(AriaRole.Menu)).ToBeHiddenAsync();

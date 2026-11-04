@@ -1,0 +1,149 @@
+@*
+    列表框（role="listbox"）：在一列选项里单选或多选（同 vue-tsx-pro 的 Listbox）。
+    <Listbox Items="cities" @bind-Value="city" aria-label="城市" />
+    <Listbox Items="tags" SelectionMode="SelectionMode.Multiple" @bind-Values="picked" aria-label="标签" />
+    <Listbox Items="users" ToOption="u => new(u.Id, u.Name)" @bind-Value="userId" aria-label="成员" />
+    选项是 ListboxOption（值、文字、不可用、说明、图标、分组）或字符串，别的数据用 ToOption 转换；自定义内容的 ChildContent 拿到原始数据。
+    焦点在列表上，高亮项经 aria-activedescendant 告诉读屏：↑↓、Home / End、Page Up / Down 移动，Enter / 空格选中，按字母跳到以它开头的项
+    （JS 初始化器在浏览器里移动高亮，不用每按一次方向键往返一次；选中才回到 C#）。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits FormControl<string?>
+@{
+    var parts = ListboxStyles.Of(ownScroll: true, Config.Styles);
+    var entries = Entries;
+    string? group = null;
+    string? groupId = null;
+}
+
+<div @attributes="Attrs.Merge(parts[ListboxPart.Root], Rest, RootManaged)">
+    @if (entries.Count == 0)
+    {
+        @if (Empty is not null)
+        {
+            @Empty
+        }
+        else
+        {
+            <Empty Size="Size.Sm" HideIcon Description="@(b => b.AddContent(0, Config.Lang.SelectEmpty))" @attributes="Attrs.MergeProps(PropsEmpty)" />
+        }
+    }
+    @for (var i = 0; i < entries.Count; i++)
+    {
+        var (option, item) = entries[i];
+        if (option.Group is not null && option.Group != group)
+        {
+            groupId = $"{ControlId}-group-{i}";
+            @* 只是视觉上的标题：组名经各选项的 aria-describedby 念出 *@
+            <span id="@groupId" aria-hidden="true" @attributes="Attrs.Merge(parts[ListboxPart.GroupLabel], PropsGroupLabel)">@option.Group</span>
+        }
+        group = option.Group;
+        var selected = IsSelected(option.Value);
+        var value = option.Value;
+        <div @key="option.Value" id="@($"{ControlId}-{i}")" role="option" aria-selected="@(selected ? "true" : "false")"
+             aria-disabled="@(option.Disabled ? "true" : null)" aria-setsize="@entries.Count" aria-posinset="@(i + 1)"
+             aria-describedby="@(option.Group is null ? null : groupId)" data-label="@option.Label"
+             data-state="@(selected ? "checked" : "unchecked")"
+             @onclick="() => PickAsync(value)" @attributes="Attrs.Merge(parts[ListboxPart.Option], PropsOption)">
+            @if (ChildContent is not null)
+            {
+                @ChildContent(new ListOptionState<TItem>(item, option, selected))
+            }
+            else
+            {
+                @if (option.Icon is not null)
+                {
+                    <Icon Data="option.Icon" />
+                }
+                <span @attributes="Attrs.Merge(parts[ListboxPart.Content])"><span @attributes="Attrs.Merge(LabelLayer)">@option.Label</span>@if (option.Description is not null)
+                    {
+                        <span @attributes="Attrs.Merge(parts[ListboxPart.Description])">@option.Description</span>
+                    }</span>
+            }
+            <Icon Data="BuiltInIcons.Check" @attributes="Attrs.MergeProps(parts[ListboxPart.Check], PropsCheck)" />
+        </div>
+    }
+</div>
+
+@code {
+    static readonly Attrs LabelLayer = new() { Sx = ItemStyles.Label };
+
+    Memo<(IEnumerable<TItem> Items, Func<TItem, ListboxOption>? ToOption), IReadOnlyList<ListEntry<TItem>>> entries;
+    Memo<(Attrs Control, string? LabelledBy, bool Multiple, bool Disabled), Attrs> rootManaged;
+
+    /// <summary>数据：ListboxOption、字符串，或任意数据加 ToOption。</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem> Items { get; set; } = [];
+
+    /// <summary>数据 → 选项（值、文字、不可用、分组……）；Items 是 ListboxOption 或字符串时可以不写。</summary>
+    [Parameter] public Func<TItem, ListboxOption>? ToOption { get; set; }
+
+    /// <summary>单选（默认，值是 Value）或多选（值是 Values）。</summary>
+    [Parameter] public SelectionMode SelectionMode { get; set; }
+
+    /// <summary>多选时选中的值。</summary>
+    [Parameter] public IReadOnlyList<string>? Values { get; set; }
+
+    /// <summary>多选时选择变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> ValuesChanged { get; set; }
+
+    /// <summary>点选了一项（点击或 Enter；再选已选的那项也会调用）：放在弹层里时据此关闭。</summary>
+    [Parameter] public EventCallback<string> OnPick { get; set; }
+
+    /// <summary>自定义选项内容：拿到 Items 里的原始数据与是否已选。</summary>
+    [Parameter] public RenderFragment<ListOptionState<TItem>>? ChildContent { get; set; }
+
+    /// <summary>没有选项时显示的内容；不写时是 Empty（文案取语言包）。</summary>
+    [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <summary>选项的部件属性。</summary>
+    [Parameter] public Attrs? PropsOption { get; set; }
+
+    /// <summary>分组标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsGroupLabel { get; set; }
+
+    /// <summary>已选标记的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsCheck { get; set; }
+
+    /// <summary>空状态的部件属性（交给 Empty）。</summary>
+    [Parameter] public Attrs? PropsEmpty { get; set; }
+
+    IReadOnlyList<ListEntry<TItem>> Entries => entries.Get((Items, ToOption), static k => ListState.Entries(k.Items, k.ToOption));
+
+    IReadOnlyList<string> Selected => SelectionMode == SelectionMode.Multiple
+        ? Values ?? []
+        : CurrentValue is { } value ? [value] : [];
+
+    bool IsSelected(string value) => SelectionMode == SelectionMode.Multiple ? Values?.Contains(value) == true : CurrentValue == value;
+
+    // 列表上由组件管理的属性：角色、可聚焦、多选、表单状态（Field 的标签经 aria-labelledby 命名）、交给 JS 的键盘约定
+    Attrs RootManaged => rootManaged.Get(
+        (ControlAttrs, AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId, SelectionMode == SelectionMode.Multiple, IsDisabled),
+        static k => new Attrs
+        {
+            Id = k.Control.Id,
+            Role = "listbox",
+            ["tabindex"] = k.Disabled ? "-1" : "0",
+            AriaLabelledBy = k.LabelledBy,
+            AriaDescribedBy = k.Control.AriaDescribedBy,
+            ["aria-multiselectable"] = k.Multiple ? "true" : null,
+            AriaDisabled = k.Disabled ? true : null,
+            ["aria-required"] = k.Control["aria-required"],
+            ["aria-invalid"] = k.Control["aria-invalid"],
+            // 列表自己有焦点：空格选中、字母类型搜索
+            ["data-rune-list"] = "space typeahead",
+        });
+
+    async Task PickAsync(string value)
+    {
+        if (IsDisabled || IsReadOnly) return;
+        var option = Entries.FirstOrDefault(e => e.Option.Value == value).Option;
+        if (option is null || option.Disabled) return;
+        if (ListState.Toggle(Selected, value, SelectionMode, IsRequired) is { } next)
+        {
+            if (SelectionMode == SelectionMode.Multiple) await ValuesChanged.InvokeAsync(next);
+            else await SetValueAsync(next.Count == 0 ? null : next[0]);
+        }
+        await OnPick.InvokeAsync(value);
+    }
+}
