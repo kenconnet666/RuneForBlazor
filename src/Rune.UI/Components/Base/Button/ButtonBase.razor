@@ -18,9 +18,9 @@
                     <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon)" />
                 }
                 @text
-                @if (IconEnd is not null)
+                @if (TrailingIcon is { } trailing)
                 {
-                    <Icon Data="IconEnd" @attributes="Attrs.MergeProps(parts[ButtonPart.IconEnd], PropsIconEnd)" />
+                    <Icon Data="trailing" @attributes="Attrs.MergeProps(parts[ButtonPart.IconEnd], PropsIconEnd)" />
                 }
             </span>
             @if (IsLoading)

@@ -11,11 +11,14 @@
 </button>
 
 @code {
-    /// <summary>按钮的名称（读屏读出，也作为悬停提示）。</summary>
+    /// <summary>按钮的名称（读屏读出）；需要悬停提示时外面包一层 Tooltip。</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
 
-    /// <summary>不可用（原生 disabled）。</summary>
+    /// <summary>不可用：原生 disabled，不能聚焦。</summary>
     [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>不可用时仍可聚焦：改用 aria-disabled，点击无效（需要 Tooltip 说明原因时用）。</summary>
+    [Parameter] public bool FocusableWhenDisabled { get; set; }
 
     /// <inheritdoc/>
     protected override ButtonVariant DefaultVariant => ButtonVariant.Ghost;
@@ -23,17 +26,9 @@
     /// <inheritdoc/>
     protected override Tone DefaultTone => UI.Tone.Neutral;
 
-    Memo<(string Label, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
+    Memo<(string Label, bool Disabled, bool Focusable, bool Loading, bool Ripple), Attrs> managed;
 
-    /// <summary>button 上由组件管理的属性：名称、不可用、加载中、波纹；不变时复用同一个对象。</summary>
-    Attrs Managed => managed.Get((Label, Disabled, IsLoading, RippleEnabled), static k => new Attrs
-    {
-        AriaLabel = k.Label,
-        Title = k.Label,
-        ["disabled"] = k.Disabled ? true : null,
-        ["aria-busy"] = k.Loading ? "true" : null,
-        AriaDisabled = k.Loading ? true : null,
-        ["data-loading"] = k.Loading ? true : null,
-        ["data-rune-ripple"] = k.Ripple ? true : null,
-    });
+    /// <summary>button 上由组件管理的属性：名称与状态（见 <see cref="ButtonBase.StateAttrs"/>）；不变时复用同一个对象。</summary>
+    Attrs Managed => managed.Get((Label, Disabled, FocusableWhenDisabled, IsLoading, RippleEnabled), static k =>
+        Attrs.Merge(StateAttrs(k.Disabled, k.Focusable, k.Loading, k.Ripple), new Attrs { AriaLabel = k.Label }));
 }

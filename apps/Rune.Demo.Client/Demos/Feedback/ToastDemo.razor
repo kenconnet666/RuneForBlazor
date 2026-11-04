@@ -12,7 +12,7 @@
         <Button Variant="ButtonVariant.Surface" @onclick="FromBackground">两秒后从后台线程显示</Button>
         <Button Variant="ButtonVariant.Ghost" @onclick="Toasts.Clear">全部清除</Button>
     </Flex>
-    <Paragraph Muted="true" Size="Size.Sm">
+    <Paragraph Tone="TextTone.Muted" Size="Size.Sm">
         列表放在信号里：Toaster 读了它，后台线程调用 Show 也会自动刷新。静态 SSR 下没有交互，按钮不起作用。
     </Paragraph>
 </DemoSection>

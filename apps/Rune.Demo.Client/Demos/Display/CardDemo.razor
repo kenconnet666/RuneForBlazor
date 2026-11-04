@@ -7,7 +7,7 @@
         @foreach (var variant in Enum.GetValues<CardVariant>())
         {
             <Card Variant="variant" Title="@variant.ToString()" data-testid="@($"card-{variant}")">
-                <TextSpan Muted="true">把一组相关内容放在一块表面上。</TextSpan>
+                <TextSpan Tone="TextTone.Muted">把一组相关内容放在一块表面上。</TextSpan>
             </Card>
         }
     </Grid>
@@ -23,7 +23,7 @@
                     {
                         <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
                             <TextSpan Truncate="true">@name</TextSpan>
-                            <TextSpan Numeric="true" Wrap="TextWrapping.Nowrap" Tone="Tone.Danger">@days 天</TextSpan>
+                            <TextSpan Numeric="true" Wrap="TextWrapping.Nowrap" Tone="TextTone.Danger">@days 天</TextSpan>
                         </Flex>
                     }
                 </Flex>

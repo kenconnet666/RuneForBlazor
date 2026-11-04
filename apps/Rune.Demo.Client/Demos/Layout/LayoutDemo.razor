@@ -21,7 +21,7 @@
         <Icon Data="Lucide.User" Size="Size.Xl" />
         <Flex Grow="true" Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
             <TextSpan Weight="Weight.Semibold" Truncate="true">张三（很长的名字在窄屏时省略而不是把右边的按钮挤出去）</TextSpan>
-            <TextSpan Muted="true" Size="Size.Sm">采购部 · 上次登录 3 分钟前</TextSpan>
+            <TextSpan Tone="TextTone.Muted" Size="Size.Sm">采购部 · 上次登录 3 分钟前</TextSpan>
         </Flex>
         <Button Variant="ButtonVariant.Surface" Size="Size.Sm">私信</Button>
     </Flex>
@@ -42,7 +42,7 @@
 
 <DemoSection Title="Grid：按最小宽度自动换列（拖窗口宽度看效果）">
     <Flex Gap="SpaceScale.Xs" Align="ItemAlign.Center">
-        <TextSpan Size="Size.Sm" Muted="true">最小宽度</TextSpan>
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">最小宽度</TextSpan>
         @foreach (var width in widths)
         {
             <Button Size="Size.Sm" Variant="@(minWidth == width ? ButtonVariant.Solid : ButtonVariant.Surface)" @onclick="() => minWidth = width">@width</Button>

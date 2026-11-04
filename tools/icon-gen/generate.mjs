@@ -48,6 +48,7 @@ const BUILT_IN = [
   'search',
   'loader-circle',
   'external-link',
+  'arrow-up-right',
   'copy',
 ];
 

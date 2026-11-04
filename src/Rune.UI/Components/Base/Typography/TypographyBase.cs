@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace Rune.UI;
 
 /// <summary>
-/// 文字组件（TextSpan、Paragraph、H1–H6）的基类：一个元素一个组件（语义不同的元素不靠参数切换标签），
+/// 文字组件（TextSpan、Paragraph、Strong、Em、Small、H1–H6）的基类：一个元素一个组件（语义不同的元素不靠参数切换标签），
 /// 参数相同、样式由同一个配方生成。没写的参数都继承上下文。
 /// </summary>
 public abstract class TypographyBase : UIComponent
@@ -15,11 +15,8 @@ public abstract class TypographyBase : UIComponent
     /// <summary>字重；不写时继承（标题默认 Semibold）。</summary>
     [Parameter] public Weight? Weight { get; set; }
 
-    /// <summary>色调（文字色）；不写时继承。</summary>
-    [Parameter] public Tone? Tone { get; set; }
-
-    /// <summary>次要文字（说明、时间），优先于 <see cref="Tone"/>。</summary>
-    [Parameter] public bool Muted { get; set; }
+    /// <summary>色调（文字色）：Muted 是次要说明，其余是正文色、品牌色与提示色的文字色；不写时继承。</summary>
+    [Parameter] public TextTone? Tone { get; set; }
 
     /// <summary>水平对齐（只在块级元素上有效）。</summary>
     [Parameter] public TextAlignment? Align { get; set; }
@@ -56,7 +53,7 @@ public abstract class TypographyBase : UIComponent
 
     /// <summary>当前的外观。</summary>
     protected TypographyAppearance Appearance =>
-        new(Kind, Size ?? DefaultSize, Weight ?? DefaultWeight, Tone, Muted, Align, Wrap, Truncate, LineClamp, Numeric, Mono);
+        new(Kind, Size ?? DefaultSize, Weight ?? DefaultWeight, Tone, Align, Wrap, Truncate, LineClamp, Numeric, Mono);
 
     /// <summary>根元素的默认层（文字与标题用各自的配方，按部件定制互不影响）。</summary>
     protected abstract Attrs RootLayer { get; }

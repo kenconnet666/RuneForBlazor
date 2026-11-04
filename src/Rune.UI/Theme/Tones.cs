@@ -31,7 +31,8 @@ public enum Tone
 /// </summary>
 public sealed record ToneColors
 {
-    ToneColors(CssColor solid, CssColor solidHover, CssColor contrast, CssColor text, CssColor soft, CssColor softHover, CssColor border)
+    ToneColors(CssColor solid, CssColor solidHover, CssColor contrast, CssColor text, CssColor soft, CssColor softHover, CssColor border,
+        CssColor? surface = null, CssColor? quietHover = null)
     {
         Solid = solid;
         SolidHover = solidHover;
@@ -40,6 +41,8 @@ public sealed record ToneColors
         Soft = soft;
         SoftHover = softHover;
         Border = border;
+        Surface = surface ?? soft;
+        QuietHover = quietHover ?? soft;
     }
 
     /// <summary>一组自己的 token（主题里给值）。</summary>
@@ -55,7 +58,9 @@ public sealed record ToneColors
         Colors.Text,
         Colors.Fill,
         Colors.FillHover,
-        Colors.Border);
+        Colors.Border,
+        surface: Colors.Surface,
+        quietHover: Colors.FillHover);
 
     /// <summary>实底的背景（主按钮、实底标记）。</summary>
     public CssColor Solid { get; }
@@ -78,8 +83,14 @@ public sealed record ToneColors
     /// <summary>描边。</summary>
     public CssColor Border { get; }
 
+    /// <summary>浅色底加描边（Surface 样式）的背景：彩色色调是浅色底，中性是表面色。</summary>
+    public CssColor Surface { get; }
+
+    /// <summary>透明底（描边、幽灵样式）悬停时的背景：彩色色调是浅色底，中性是填充的悬停色。</summary>
+    public CssColor QuietHover { get; }
+
     /// <summary>这组颜色的全部取值（主题检查、测试用）。</summary>
-    public IEnumerable<CssColor> All => [Solid, SolidHover, Contrast, Text, Soft, SoftHover, Border];
+    public IEnumerable<CssColor> All => [Solid, SolidHover, Contrast, Text, Soft, SoftHover, Border, Surface, QuietHover];
 
     static CssColor Token(string tone, string use) => $"var(--rune-tones-{tone}-{use})";
 }

@@ -49,6 +49,8 @@ function install(blazor) {
 
   // 捕获阶段：要赶在 Blazor 的链接拦截之前（它会把 #id 按 <base href> 解析成别的页面并跳过去）
   document.addEventListener('click', onFocusLink, true);
+  // 加载中、可聚焦的不可用按钮：拦下点击的默认动作（提交表单、跟随链接）；使用方的点击处理组件已经去掉
+  document.addEventListener('click', blockInert, true);
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKeyDown);
   document.addEventListener('pointerdown', startRipple);
@@ -145,6 +147,10 @@ function updateScrollLock() {
 }
 
 // ---- 点击 ----
+
+function blockInert(event) {
+  if (event.target instanceof Element && event.target.closest('[data-rune-inert]')) event.preventDefault();
+}
 
 function onFocusLink(event) {
   const link = event.target instanceof Element ? event.target.closest('[data-rune-focus]') : null;

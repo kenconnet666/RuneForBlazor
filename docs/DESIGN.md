@@ -76,7 +76,8 @@
   创建时要用组件本身（事件处理器）时用带状态的重载，lambda 仍写成 static。
 - **组件命名避开 Razor 的特殊标记**：`<text>`（代码块里的标记，不区分大小写）、HTML 空元素（`link`、`input`、`img`……写不了内容）。所以是 `TextSpan`、`TextLink`。
   与 CSS 关键字类同名的组件（`Flex`、`Grid`）登记在 css-gen 的 `COMPONENT_NAMES`，关键字类加 `Keywords` 后缀让路。
-- **元素不同就分组件**（H1–H6、TextSpan / Paragraph）：共用基类与配方，子类只给标签与默认值，基类在 C# 里用 `RenderTreeBuilder` 输出元素。
+- **文字的色调是 `TextTone`**（同 vue-tsx-pro 文字的 tone）：比组件的 `Tone` 多了 Muted（次要说明）与 Inherit，原来的 `Muted` 开关并进来了。
+- **元素不同就分组件**（H1–H6、TextSpan / Paragraph / Strong / Em / Small）：共用基类与配方，子类只给标签与默认值，基类在 C# 里用 `RenderTreeBuilder` 输出元素。
 
 ## 7. 主题与配置（`src/Rune/Styles/Definition/Theme.cs`、`src/Rune.UI/Theme`、`src/Rune.UI/Configuration`）
 
@@ -114,6 +115,10 @@
   打开时要立即聚焦里面的元素（JS 聚焦第一个菜单项、`autofocus` 的取消按钮）。静态渲染没有交互，一开始就渲染。
 - **进出场统一**：`OverlayTransitions`（同 vue-tsx-pro 的 transitions）：打开状态 `:is(:popover-open, :modal)` 里用 `@starting-style`，
   进场 Normal 时长 + enter 缓动，离场 Fast + exit 缓动；Scale（弹出框、菜单、对话框）、Slide（抽屉）、Backdrop（遮罩）。
+- **按钮的不可用与加载中**（同 vue-tsx-pro 的 useButtonBehavior）：`Disabled` 是原生 disabled；`FocusableWhenDisabled` 改用 aria-disabled，仍能聚焦，
+  外面包 Tooltip 说明原因。加载中只写 aria-busy，外观不变灰。这两种状态组件去掉使用方的点击处理，并带 `data-rune-inert`，
+  JS 初始化器在捕获阶段拦下点击的默认动作（提交按钮不提交表单）。加载指示推迟 200ms 才出现（同 useDelayedLoading，CSS 过渡延迟实现，
+  没有往返），很快完成的操作按钮不闪一下；vue-tsx-pro 还保证指示至少显示 500ms，CSS 做不到，这里没有。
 - **波纹**（同 vue-tsx-pro）：按钮、菜单项带 `data-rune-ripple`，JS 初始化器在按下时从指针位置（键盘 Enter / 空格时从中心）扩散一圈 currentColor 的半透明圆，
   松开后淡出；纯客户端，Server 模式没有往返。配置 `UIConfig.Ripple`（默认开）、Provider、组件的 `Ripple` 参数逐层覆盖；像链接的按钮没有波纹。
 - **提示纯 CSS**：外层悬停或里面有键盘焦点时显示（`When.Parent`，延迟 400ms），Server 模式也没有往返；位置同样用锚点定位。

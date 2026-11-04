@@ -36,7 +36,7 @@
         <Switch @bind-Value="model.Notify">有新消息时通知我</Switch>
         <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
             <Button Type="submit" data-testid="submit">注册（模拟保存 1 秒）</Button>
-            <TextSpan Muted="true" Size="Size.Sm" data-testid="result">@result</TextSpan>
+            <TextSpan Tone="TextTone.Muted" Size="Size.Sm" data-testid="result">@result</TextSpan>
         </Flex>
     </Form>
 </DemoSection>
@@ -46,13 +46,13 @@
         <NumberField @bind-Value="price" Step="0.01m" Format="N2" aria-label="单价">
             <Prefix>¥</Prefix>
         </NumberField>
-        <TextSpan Muted="true" Size="Size.Sm" data-testid="price">单价：@(price?.ToString("N2") ?? "（空）")（decimal，步长 0.01，没有浮点误差）</TextSpan>
+        <TextSpan Tone="TextTone.Muted" Size="Size.Sm" data-testid="price">单价：@(price?.ToString("N2") ?? "（空）")（decimal，步长 0.01，没有浮点误差）</TextSpan>
         <RadioGroup @bind-Value="plan" aria-label="套餐">
             <Radio Value="Plan.Free">免费版</Radio>
             <Radio Value="Plan.Pro">专业版</Radio>
             <Radio Value="Plan.Team">团队版</Radio>
         </RadioGroup>
-        <TextSpan Muted="true" Size="Size.Sm">套餐：@plan（枚举值）</TextSpan>
+        <TextSpan Tone="TextTone.Muted" Size="Size.Sm">套餐：@plan（枚举值）</TextSpan>
         <Slider @bind-Value="volume" Immediate="true" ShowValue="true" aria-label="音量（Immediate，拖动中就更新）" />
     </Flex>
 </DemoSection>
@@ -60,7 +60,7 @@
 <DemoSection Title="单独使用">
     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Sx="FormWidth">
         <TextField @bind-Value="keyword" Immediate="true" Icon="Lucide.Search" placeholder="边输边搜（Immediate）" data-testid="search" />
-        <TextSpan Muted="true" Size="Size.Sm">关键词：@(string.IsNullOrEmpty(keyword) ? "（空）" : keyword)</TextSpan>
+        <TextSpan Tone="TextTone.Muted" Size="Size.Sm">关键词：@(string.IsNullOrEmpty(keyword) ? "（空）" : keyword)</TextSpan>
         <TextField Value="@("只读的值")" ReadOnly="true" />
         <TextField placeholder="不可用" Disabled="true" />
         <TextField placeholder="金额" Size="Size.Lg">

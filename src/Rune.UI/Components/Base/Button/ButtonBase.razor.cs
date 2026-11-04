@@ -50,6 +50,9 @@ public abstract partial class ButtonBase : UIComponent
     /// <summary>这个组件自己的默认色调。</summary>
     protected abstract Tone DefaultTone { get; }
 
+    /// <summary>文字后实际显示的图标（外部链接没写 IconEnd 时是外链箭头）。</summary>
+    protected virtual IconData? TrailingIcon => IconEnd;
+
     /// <summary>当前生效的外观。</summary>
     protected ButtonAppearance Appearance(ButtonShape shape)
     {
@@ -82,4 +85,24 @@ public abstract partial class ButtonBase : UIComponent
     /// 加载中的按钮仍可聚焦（用 aria-disabled 而不是 disabled），点击不能触发使用方的处理。
     /// </summary>
     protected Attrs UserAttrs(bool interactive) => interactive ? Rest : Rest.Without("onclick");
+
+    /// <summary>
+    /// 按钮家族的状态属性（同 vue-tsx-pro 的 useButtonBehavior）：不可用分原生 disabled 与可聚焦的 aria-disabled；
+    /// 加载中只写 aria-busy，外观不变灰。加载中、可聚焦的不可用带 data-rune-inert：JS 初始化器拦下点击的默认动作（提交表单），
+    /// 使用方的点击处理由 <see cref="UserAttrs"/> 去掉。
+    /// </summary>
+    /// <param name="disabled">不可用。</param>
+    /// <param name="focusable">不可用时仍可聚焦（链接没有原生 disabled，总是 true）。</param>
+    /// <param name="loading">加载中。</param>
+    /// <param name="ripple">按下时出波纹。</param>
+    protected static Attrs StateAttrs(bool disabled, bool focusable, bool loading, bool ripple) => new()
+    {
+        ["disabled"] = disabled && !focusable ? true : null,
+        AriaDisabled = disabled && focusable ? true : null,
+        ["aria-busy"] = loading ? "true" : null,
+        ["data-disabled"] = disabled ? true : null,
+        ["data-loading"] = loading ? true : null,
+        ["data-rune-inert"] = loading || (disabled && focusable) ? true : null,
+        ["data-rune-ripple"] = ripple ? true : null,
+    };
 }

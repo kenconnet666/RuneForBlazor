@@ -8,7 +8,7 @@
             <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Surface" Icon="Lucide.Funnel">筛选</Button></Trigger>
             <ChildContent>
                 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
-                    <TextSpan Muted="true" Size="Size.Sm">内容第一次打开才渲染；点外面或按 Esc 关闭。</TextSpan>
+                    <TextSpan Tone="TextTone.Muted" Size="Size.Sm">内容第一次打开才渲染；点外面或按 Esc 关闭。</TextSpan>
                     <Flex Gap="SpaceScale.Xs" Wrap="true">
                         @foreach (var status in statuses)
                         {
@@ -21,7 +21,7 @@
                 </Flex>
             </ChildContent>
         </Popover>
-        <TextSpan Muted="true">当前筛选：@filter</TextSpan>
+        <TextSpan Tone="TextTone.Muted">当前筛选：@filter</TextSpan>
     </Flex>
     <Flex Gap="SpaceScale.Sm" Wrap="true">
         @foreach (var placement in Enum.GetValues<Placement>())
@@ -46,7 +46,7 @@
                 <MenuItem Icon="Lucide.Trash" Tone="Tone.Danger" @onclick="@(() => last = "删除")">删除</MenuItem>
             </ChildContent>
         </Menu>
-        <TextSpan Muted="true" data-testid="menu-last">上次选择：@(last ?? "无")</TextSpan>
+        <TextSpan Tone="TextTone.Muted" data-testid="menu-last">上次选择：@(last ?? "无")</TextSpan>
     </Flex>
 </DemoSection>
 
@@ -55,7 +55,7 @@
         <Tooltip Content="编辑"><IconButton Icon="Lucide.Pencil" Label="编辑" /></Tooltip>
         <Tooltip Content="复制到剪贴板" Placement="Placement.Bottom"><IconButton Icon="Lucide.Copy" Label="复制" /></Tooltip>
         <Tooltip Content="删除后可以在回收站里找回 30 天" Placement="Placement.End"><IconButton Icon="Lucide.Trash" Label="删除" Tone="Tone.Danger" /></Tooltip>
-        <TextSpan Muted="true" Size="Size.Sm">悬停或 Tab 聚焦一会儿后出现，Esc 隐藏（纯 CSS，没有往返）</TextSpan>
+        <TextSpan Tone="TextTone.Muted" Size="Size.Sm">悬停或 Tab 聚焦一会儿后出现，Esc 隐藏（纯 CSS，没有往返）</TextSpan>
     </Flex>
 </DemoSection>
 
@@ -64,7 +64,7 @@
         <Popconfirm Title="删除这条记录？" Description="删除后无法恢复。" ConfirmText="删除" Tone="Tone.Danger" OnConfirm="() => { deleted++; }">
             <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Trash">删除</Button></Trigger>
         </Popconfirm>
-        <TextSpan Muted="true" data-testid="deleted">已删除 @deleted 次</TextSpan>
+        <TextSpan Tone="TextTone.Muted" data-testid="deleted">已删除 @deleted 次</TextSpan>
     </Flex>
 </DemoSection>
 

@@ -6,10 +6,12 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（16 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（17 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
+    /// <summary>Lucide 图标 <c>arrow-up-right</c>（direction、movement、diagonal、northeast、north-east、north east）。</summary>
+    public static IconData ArrowUpRight => field ??= new("arrow-up-right", "<path d=\"M7 7h10v10\"/><path d=\"M7 17 17 7\"/>");
     /// <summary>Lucide 图标 <c>check</c>（checkmark、done、completed、finished、successful、confirmed、verified、validated）。</summary>
     public static IconData Check => field ??= new("check", "<path d=\"M20 6 9 17l-5-5\"/>");
     /// <summary>Lucide 图标 <c>chevron-down</c>（direction、movement、vertical、downward、downwards、south、descend、page down）。</summary>

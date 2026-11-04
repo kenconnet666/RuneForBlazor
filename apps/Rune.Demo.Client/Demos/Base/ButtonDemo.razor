@@ -1,66 +1,279 @@
-@* 按钮家族：样式 × 色调、尺寸、图标、加载中、不可用、图标按钮、链接按钮 *@
+@* 按钮：示例与 vue-tsx-pro 文档站的 /components/button 一一对应（id、场景、顺序相同）。按钮组（group）等 ButtonGroup 做好后补上。 *@
 @attribute [ComponentDemo("button", "按钮", Group = "基础组件", Order = 0)]
 @inherits RuneComponent
 
-<DemoSection Title="样式 × 色调">
-    @foreach (var variant in Enum.GetValues<ButtonVariant>())
-    {
-        <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center" data-testid="@($"variant-{variant}")">
-            <span @attributes="Attrs.Merge(DemoStyles.RowLabel)">@variant</span>
-            @foreach (var tone in Enum.GetValues<Tone>())
+<DemoSection Id="basic" Title="基础用法">
+    <Description>一组操作里只有一个主要操作用默认的实底样式，其余按重要程度依次减弱；破坏性操作放在另一侧。</Description>
+    <ChildContent>
+        <Card PropsFooter="spaceBetween">
+            <Header>
+                <Flex Justify="ContentJustify.Between" Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+                    <Strong>Vue 3.5 的响应式解构</Strong>
+                    <TextSpan Size="Size.Sm" Tone="TextTone.Muted">@(published ? "已发布" : "草稿 · 3 分钟前保存")</TextSpan>
+                </Flex>
+            </Header>
+            <ChildContent>
+                <Paragraph Tone="TextTone.Muted">
+                    一组操作里只有“发布”用实底；“预览”“取消”依次减弱，“删除”放在另一侧，离主要操作远一点。
+                </Paragraph>
+            </ChildContent>
+            <Footer>
+                <Button Variant="ButtonVariant.Ghost" Tone="Tone.Danger" Icon="Lucide.Trash">删除</Button>
+                <Flex Gap="SpaceScale.Sm" Wrap="true">
+                    <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral">取消</Button>
+                    <Button Variant="ButtonVariant.Outline" Icon="Lucide.Eye">预览</Button>
+                    <Button Icon="Lucide.Send" @onclick="() => published = !published" data-testid="publish">@(published ? "撤回" : "发布")</Button>
+                </Flex>
+            </Footer>
+        </Card>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="variants" Title="样式">
+    <Description>六种样式对应不同的强调程度：Solid 最醒目，Link 像文字链接，放在句子中间。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("9rem")" Gap="SpaceScale.Lg">
+            @foreach (var (variant, usage) in variants)
             {
-                <Button Variant="variant" Tone="tone">@tone</Button>
+                <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Start" Gap="SpaceScale.Xs">
+                    <Button Variant="variant">@variant.ToString().ToLowerInvariant()</Button>
+                    <Small Tone="TextTone.Muted">@usage</Small>
+                </Flex>
+            }
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="tones" Title="色调">
+    <Description>六种色调与六种样式任意组合：Neutral 用于不需要强调的操作，Danger 用于删除这类破坏性操作。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            @foreach (var (tone, label) in tones)
+            {
+                <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center" data-testid="@($"tone-{tone}")">
+                    @foreach (var (variant, _) in variants)
+                    {
+                        <Button Tone="tone" Variant="variant">@label</Button>
+                    }
+                </Flex>
             }
         </Flex>
-    }
+    </ChildContent>
 </DemoSection>
 
-<DemoSection Title="尺寸与圆角">
-    <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-        @foreach (var size in Enum.GetValues<Size>())
-        {
-            <Button Size="size" Icon="Lucide.Plus">@size</Button>
-        }
-    </Flex>
-    <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-        @foreach (var radius in Enum.GetValues<Radius>())
-        {
-            <Button Variant="ButtonVariant.Surface" Radius="radius">@radius</Button>
-        }
-    </Flex>
+<DemoSection Id="sizes" Title="尺寸">
+    <Description>Size 对应主题的字号档位，内边距、图标随之按比例缩放；不写时继承所在文字的字号。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                @foreach (var size in sizes)
+                {
+                    <Button Size="size" Icon="Lucide.Plus">@Lower(size)</Button>
+                }
+            </Flex>
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                @foreach (var size in sizes)
+                {
+                    <Button Size="size" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">@Lower(size)</Button>
+                }
+            </Flex>
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                @foreach (var size in sizes)
+                {
+                    <IconButton Size="size" Variant="ButtonVariant.Soft" Icon="Lucide.Settings" Label="@($"设置（{Lower(size)}）")" />
+                }
+            </Flex>
+        </Flex>
+    </ChildContent>
 </DemoSection>
 
-<DemoSection Title="状态">
-    <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-        <Button Loading="saving" Icon="Lucide.Save" @onclick="SaveAsync" data-testid="save">保存（点了加载 1.5 秒）</Button>
-        <Button Disabled="true">不可用</Button>
-        <Button Variant="ButtonVariant.Outline" IconEnd="Lucide.ArrowRight" @onclick="() => clicks++" data-testid="counter">点击 @clicks 次</Button>
-    </Flex>
-    <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-        <Button FullWidth="true" Variant="ButtonVariant.Soft">占满宽度</Button>
-    </Flex>
+<DemoSection Id="radius" Title="圆角">
+    <Description>Radius 从直角到胶囊形，七档与 Badge、Card、输入框共用；图标按钮写 Full 是圆形。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                @foreach (var radius in Enum.GetValues<Radius>())
+                {
+                    <Button Radius="radius">@Lower(radius)</Button>
+                }
+            </Flex>
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                @foreach (var radius in Enum.GetValues<Radius>())
+                {
+                    <Button Radius="radius" Variant="ButtonVariant.Outline" Icon="Lucide.Plus">@Lower(radius)</Button>
+                }
+            </Flex>
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                @foreach (var radius in Enum.GetValues<Radius>())
+                {
+                    <IconButton Radius="radius" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Heart" Label="@($"收藏（{Lower(radius)}）")" />
+                }
+            </Flex>
+        </Flex>
+    </ChildContent>
 </DemoSection>
 
-<DemoSection Title="图标按钮与链接按钮">
-    <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-        <IconButton Icon="Lucide.Pencil" Label="编辑" />
-        <IconButton Icon="Lucide.Copy" Label="复制" Variant="ButtonVariant.Surface" />
-        <IconButton Icon="Lucide.Trash" Label="删除" Tone="Tone.Danger" />
-        <IconButton Icon="Lucide.RefreshCw" Label="刷新" Loading="true" />
-        <LinkButton Href="server/badge" IconEnd="Lucide.ArrowRight">去看标记</LinkButton>
-        <LinkButton Href="server/badge" Disabled="true" Variant="ButtonVariant.Outline">不可用的链接</LinkButton>
-        <Button Variant="ButtonVariant.Link">像链接的按钮</Button>
-    </Flex>
+<DemoSection Id="icons" Title="图标">
+    <Description>Icon 在文字前，IconEnd 在文字后；文字旁也可以放快捷键、计数。只有图标时用 IconButton，必须写 Label。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                <Button Icon="Lucide.Plus">新建</Button>
+                <Button Variant="ButtonVariant.Soft" Icon="Lucide.Download">下载</Button>
+                <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" IconEnd="Lucide.ChevronDown">更多</Button>
+                <Button Variant="ButtonVariant.Ghost" IconEnd="Lucide.ArrowRight">下一步</Button>
+                <Button Variant="ButtonVariant.Link" IconEnd="Lucide.ExternalLink">查看文档</Button>
+            </Flex>
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                <Button Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.Search">搜索 <Kbd>Ctrl K</Kbd></Button>
+                <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral">
+                    未读消息 <Badge Variant="BadgeVariant.Solid" Tone="Tone.Danger" Radius="Radius.Full">12</Badge>
+                </Button>
+                <IconButton Icon="Lucide.Pencil" Label="编辑" />
+                <IconButton Icon="Lucide.Share2" Label="分享" />
+                <IconButton Icon="Lucide.Trash" Tone="Tone.Danger" Label="删除" />
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="loading" Title="加载中">
+    <Description>加载中显示旋转指示，宽度不变，点击无效，焦点留在按钮上。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                <Button Loading="saving" @onclick="() => RunAsync(v => saving = v, 1500)" data-testid="save">保存</Button>
+                <Button Variant="ButtonVariant.Outline" Icon="Lucide.Send" Loading="submitting" @onclick="() => RunAsync(v => submitting = v, 2000)">提交审核</Button>
+                <Button Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Trash" Loading="deleting" @onclick="() => RunAsync(v => deleting = v, 1200)">删除</Button>
+                <IconButton Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.RefreshCw" Label="刷新" Loading="refreshing" @onclick="() => RunAsync(v => refreshing = v, 1000)" />
+            </Flex>
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                <Button Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Loading="quick" @onclick="() => RunAsync(v => quick = v, 100)">很快完成（0.1 秒）</Button>
+                <Small Tone="TextTone.Muted">不到 0.2 秒的操作不换成加载指示，按钮不会闪一下</Small>
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="full-width" Title="占满宽度">
+    <Description>FullWidth 让按钮占满容器宽度，并排的几个平分：登录框、移动端底部的操作。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <Button FullWidth="true" Size="Size.Lg" Icon="Lucide.LogIn">登录</Button>
+            <Small Tone="TextTone.Muted" Align="TextAlignment.Center">或者</Small>
+            <Flex Gap="SpaceScale.Sm">
+                <Button FullWidth="true" Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.Smartphone">手机验证码</Button>
+                <Button FullWidth="true" Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.Mail">邮箱验证码</Button>
+            </Flex>
+            <Button FullWidth="true" Variant="ButtonVariant.Link" Tone="Tone.Neutral">忘记密码？</Button>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="links" Title="链接按钮">
+    <Description>跳转到别的页面用 LinkButton（a 元素）而不是 Button 加点击跳转：能右键、在新标签页打开，读屏念“链接”。External 在新窗口打开。</Description>
+    <ChildContent>
+        <Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Strong>还没有订单</Strong>
+                    <Paragraph Size="Size.Sm" Tone="TextTone.Muted">新建第一张订单，或者先看看怎么批量导入。</Paragraph>
+                </Flex>
+                <Flex Gap="SpaceScale.Sm" Wrap="true">
+                    <LinkButton Href="server/button" Icon="Lucide.Plus">新建订单</LinkButton>
+                    <LinkButton Href="server/badge" Variant="ButtonVariant.Soft" Icon="Lucide.BookOpen">导入指南</LinkButton>
+                    <LinkButton Href="https://vuejs.org" External="true" Variant="ButtonVariant.Ghost" IconEnd="Lucide.ArrowRight">Vue 文档</LinkButton>
+                </Flex>
+            </Flex>
+        </Card>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="disabled" Title="不可用">
+    <Description>Disabled 是原生的不可用，按钮不能聚焦；需要说明原因时加 FocusableWhenDisabled，按钮仍能聚焦，悬停或聚焦时提示照常显示。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                @foreach (var (variant, _) in variants)
+                {
+                    <Button Variant="variant" Disabled="true">@variant.ToString().ToLowerInvariant()</Button>
+                }
+            </Flex>
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+                <Tooltip Content="填完必填项后才能提交">
+                    <Button Disabled="true" FocusableWhenDisabled="true" data-testid="focusable-disabled">提交</Button>
+                </Tooltip>
+                <Tooltip Content="还有未结清的订单">
+                    <Button Variant="ButtonVariant.Soft" Tone="Tone.Danger" Disabled="true" FocusableWhenDisabled="true">注销账号</Button>
+                </Tooltip>
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="types" Title="表单里的按钮与波纹">
+    <Description>Type 默认是 button，放在表单里也不会误提交；submit 提交所在的表单，reset 触发表单的 reset 事件。Ripple="false" 关掉单个按钮的点击波纹。</Description>
+    <ChildContent>
+        <form @onsubmit="() => saved = nickname" @onsubmit:preventDefault @onreset="Reset" @onreset:preventDefault>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Field Label="昵称">
+                    <TextField @bind-Value="nickname" name="nickname" />
+                </Field>
+                <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center" Wrap="true">
+                    <Button Type="submit">保存</Button>
+                    <Button Type="reset" Variant="ButtonVariant.Outline">重置</Button>
+                    <Button Variant="ButtonVariant.Ghost" Ripple="false" @onclick="() => nickname = string.Empty">清空（无波纹）</Button>
+                </Flex>
+                <Small Tone="TextTone.Muted">@(saved is { Length: > 0 } ? $"已保存：{saved}" : "还没有保存")</Small>
+            </Flex>
+        </form>
+    </ChildContent>
 </DemoSection>
 
 @code {
-    bool saving;
-    int clicks;
+    const string InitialNickname = "林小满";
 
-    async Task SaveAsync()
+    static readonly (ButtonVariant Variant, string Usage)[] variants =
+    [
+        (ButtonVariant.Solid, "主要操作，每组最多一个"),
+        (ButtonVariant.Soft, "需要突出的次要操作"),
+        (ButtonVariant.Surface, "表单、设置页里的次要操作"),
+        (ButtonVariant.Outline, "次要操作"),
+        (ButtonVariant.Ghost, "工具栏、行内操作"),
+        (ButtonVariant.Link, "句子中间的操作"),
+    ];
+
+    static readonly (Tone Tone, string Label)[] tones =
+    [
+        (Tone.Neutral, "取消"),
+        (Tone.Accent, "确定"),
+        (Tone.Info, "详情"),
+        (Tone.Success, "完成"),
+        (Tone.Warning, "注意"),
+        (Tone.Danger, "删除"),
+    ];
+
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg, Size.Xl];
+
+    // 页脚默认靠右排；删除放到另一侧，离主要操作远一点
+    static readonly Attrs spaceBetween = new Style { JustifyContent = JustifyContent.SpaceBetween, FlexWrap = FlexWrap.Wrap };
+
+    bool published, saving, submitting, deleting, refreshing, quick;
+    string nickname = InitialNickname;
+    string saved = "";
+
+    static string Lower<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
+
+    static async Task RunAsync(Action<bool> set, int milliseconds)
     {
-        saving = true;
-        await Task.Delay(1500);
-        saving = false;
+        set(true);
+        await Task.Delay(milliseconds);
+        set(false);
+    }
+
+    void Reset()
+    {
+        nickname = InitialNickname;
+        saved = "";
     }
 }

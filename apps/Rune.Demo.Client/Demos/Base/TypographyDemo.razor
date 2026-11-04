@@ -9,7 +9,7 @@
         <H3>H3 商品清单</H3>
         <H4>H4 付款方式</H4>
         <H5>H5 备注</H5>
-        <H2 Size="Size.Lg" Tone="Tone.Accent">H2 改成 Lg 字号（结构不变）</H2>
+        <H2 Size="Size.Lg" Tone="TextTone.Accent">H2 改成 Lg 字号（结构不变）</H2>
     </Flex>
 </DemoSection>
 
@@ -27,15 +27,14 @@
         }
     </Flex>
     <Flex Wrap="true" Gap="SpaceScale.Md">
-        <TextSpan Muted="true">次要文字</TextSpan>
-        @foreach (var tone in Enum.GetValues<Tone>())
+        @foreach (var tone in Enum.GetValues<TextTone>())
         {
             <TextSpan Tone="tone">@tone</TextSpan>
         }
     </Flex>
     <Flex Wrap="true" Gap="SpaceScale.Md">
         <TextSpan Mono="true">PO-2026-0187</TextSpan>
-        <TextSpan Numeric="true" Tone="Tone.Danger">超时 13 天</TextSpan>
+        <TextSpan Numeric="true" Tone="TextTone.Danger">超时 13 天</TextSpan>
         <TextSpan Numeric="true">¥ 1,280.00</TextSpan>
     </Flex>
 </DemoSection>

@@ -86,7 +86,8 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 ## 阶段 4：对照工具与基础设施（后面阶段要用的先铺好）
 
-- [ ] `tools/parity`：按上面“对照的做法”第 3 条实现；README 写用法；拿已完成的组件试一遍，修掉报告里的差异
+- [x] `tools/parity`：按上面“对照的做法”第 3 条实现；README 写用法；拿已完成的组件试一遍，修掉报告里的差异
+      （按钮已对齐：亮暗主题、悬停聚焦按下一致；Badge、Kbd、Card 在各自页面对照时改）
 - [ ] 演示页改名对齐文档站的路由（typography → text、layout → flex / grid 等），示例按文档站补齐；已完成组件逐个过一遍对照报告
 - [ ] 语言包：`UIConfig.Lang` 与 `RuneProvider` 的 `Lang`；`tools/lang-gen` 从 vue-tsx-pro 的语言包生成 zh-CN、en-US；已有组件里的文字（关闭、确定、取消、增加、减少……）改成取语言包
 - [ ] 端到端测试项目 `tests/Rune.E2E`（Microsoft.Playwright，Chromium）：启动演示项目，覆盖已有的键盘与焦点逻辑（菜单、对话框、气泡确认、数字框方向键、表单错误汇总跳转）；进 CI

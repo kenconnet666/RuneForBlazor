@@ -13,7 +13,7 @@
             <Footer><Button data-rune-close>知道了</Button></Footer>
         </Dialog>
     </Flex>
-    <TextSpan Muted="true" data-testid="saved">@saved</TextSpan>
+    <TextSpan Tone="TextTone.Muted" data-testid="saved">@saved</TextSpan>
 
     <Dialog @bind-Open="editing" Title="编辑订单 #1024" LightDismiss="false" data-testid="edit-dialog">
         <ChildContent>
@@ -25,7 +25,7 @@
                 </label>
                 @foreach (var line in Enumerable.Range(1, 12))
                 {
-                    <Paragraph Muted="true">第 @line 行：正文内容多时在这里滚动，页头页脚不动。</Paragraph>
+                    <Paragraph Tone="TextTone.Muted">第 @line 行：正文内容多时在这里滚动，页头页脚不动。</Paragraph>
                 }
             </Flex>
         </ChildContent>

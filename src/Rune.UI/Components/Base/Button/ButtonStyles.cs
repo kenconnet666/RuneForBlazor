@@ -101,7 +101,7 @@ public static class ButtonStyles
                 SharedStyles.RippleHost,
                 SharedStyles.InteractionColors,
                 Variant(a.Variant, a.Tone),
-                a.Variant == ButtonVariant.Link ? null : ScaleStyles.Radius(a.Radius),
+                ScaleStyles.Radius(a.Radius),
                 a.Size is { } size ? ScaleStyles.FontSize(size) : null,
                 a.Shape switch
                 {
@@ -140,28 +140,27 @@ public static class ButtonStyles
             {
                 Color = t.Text,
                 BorderColor = t.Border,
-                BackgroundColor = t.Soft,
+                BackgroundColor = t.Surface,
                 [When.HoverEnabled] = new() { BackgroundColor = t.SoftHover },
             },
             ButtonVariant.Outline => new Style
             {
                 Color = t.Text,
                 BorderColor = t.Border,
-                [When.HoverEnabled] = new() { BackgroundColor = t.Soft },
+                [When.HoverEnabled] = new() { BackgroundColor = t.QuietHover },
             },
             ButtonVariant.Ghost => new Style
             {
                 Color = t.Text,
-                [When.HoverEnabled] = new() { BackgroundColor = t.Soft },
+                [When.HoverEnabled] = new() { BackgroundColor = t.QuietHover },
             },
+            // 像链接：不要最小高度与左右内边距，上下内边距、边框与圆角照旧（焦点环的形状与按钮一致）
             _ => new Style
             {
                 Color = t.Text,
                 MinHeight = 0,
-                PaddingBlock = 0,
                 PaddingInline = 0,
-                BorderWidth = 0,
-                FontWeight = FontWeights.Normal,
+                FontWeight = FontWeights.Medium,
                 TextUnderlineOffset = "0.2em",
                 [When.HoverEnabled] = new() { TextDecorationLine = TextDecorationLine.Underline },
             },
@@ -179,15 +178,17 @@ public static class ButtonStyles
         Display = Display.InlineFlex,
         AlignItems = AlignItems.Center,
         JustifyContent = JustifyContent.Center,
+        Gap = Space.Sm,
         MinHeight = $"max({Sizes.Control}, {Sizes.MinTarget})",
         Margin = 0,
-        PaddingBlock = "0.25em",
-        PaddingInline = "1em",
+        PaddingBlock = Space.Xs,
+        PaddingInline = Space.Lg,
         BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = "transparent",
         BackgroundColor = "transparent",
         Font = "inherit",
+        TextAlign = "inherit",
         FontWeight = FontWeights.Semibold,
         LineHeight = LineHeights.Tight,
         WhiteSpace = WhiteSpace.Nowrap,
@@ -198,7 +199,6 @@ public static class ButtonStyles
         TouchAction = TouchAction.Manipulation,
         WebkitTapHighlightColor = "transparent",
         [When.Disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
-        [When.Attribute("""[aria-busy="true"]""")] = new() { Cursor = Cursor.Progress },
     });
 
     static Style FullWidth => Css.Define(static () => new Style { Display = Display.Flex, Width = "100%" });
@@ -210,15 +210,23 @@ public static class ButtonStyles
         FlexShrink = 0,
     });
 
-    // 加载中隐藏内容但保留占位与读屏名称（不用 visibility: hidden，那样读屏也读不到）
+    /// <summary>
+    /// 加载状态推迟这么久才换成加载指示（同 vue-tsx-pro 的 useDelayedLoading）：很快完成的操作按钮不闪一下。
+    /// 用 CSS 的过渡延迟实现，Server 模式没有往返；点击拦截、aria-busy 仍立即生效。
+    /// </summary>
+    const string LoadingDelay = "200ms";
+
+    // 加载中隐藏内容但保留占位与读屏名称（不用 visibility: hidden，那样读屏也读不到）；
+    // 过渡写在隐藏状态里：进入时推迟，恢复时立即
     static Style Content => Css.Define(static () => new Style
     {
         Display = Display.InlineFlex,
         AlignItems = AlignItems.Center,
-        Gap = "0.5em",
-        [When.Attribute("[data-hidden]")] = new() { Opacity = 0 },
+        Gap = Space.Sm,
+        [When.Attribute("[data-hidden]")] = new() { Opacity = 0, Transition = $"opacity 0s linear {LoadingDelay}" },
     });
 
+    // 指示层插入时从透明开始，推迟后才出现
     static Style SpinnerOverlay => Css.Define(static () => new Style
     {
         Position = Position.Absolute,
@@ -226,5 +234,7 @@ public static class ButtonStyles
         Display = Display.Flex,
         AlignItems = AlignItems.Center,
         JustifyContent = JustifyContent.Center,
+        Transition = $"opacity 0s linear {LoadingDelay}",
+        [When.Starting] = new() { Opacity = 0 },
     });
 }

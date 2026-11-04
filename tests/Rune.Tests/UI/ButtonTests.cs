@@ -39,11 +39,42 @@ public class ButtonTests : BunitContext
         var button = cut.Find("button");
         Assert.False(button.HasAttribute("disabled"));
         Assert.Equal("true", button.GetAttribute("aria-busy"));
-        Assert.Equal("true", button.GetAttribute("aria-disabled"));
+        Assert.False(button.HasAttribute("aria-disabled"));
+        Assert.True(button.HasAttribute("data-rune-inert"));
         Assert.Contains("保存", button.TextContent);
         Assert.NotNull(cut.Find("[data-part=spinner] svg"));
         Assert.Throws<MissingEventHandlerException>(() => button.Click());
         Assert.Equal(0, clicks);
+    }
+
+    [Fact]
+    public void 可聚焦的不可用用aria_disabled_点击无效()
+    {
+        var clicks = 0;
+        var cut = Render<Button>(p => p
+            .Add(x => x.Disabled, true)
+            .Add(x => x.FocusableWhenDisabled, true)
+            .AddChildContent("提交")
+            .AddUnmatched("onclick", EventCallback.Factory.Create<MouseEventArgs>(this, () => clicks++)));
+
+        var button = cut.Find("button");
+        Assert.False(button.HasAttribute("disabled"));
+        Assert.Equal("true", button.GetAttribute("aria-disabled"));
+        Assert.True(button.HasAttribute("data-rune-inert"));
+        Assert.Throws<MissingEventHandlerException>(() => button.Click());
+        Assert.Equal(0, clicks);
+    }
+
+    [Fact]
+    public void 外部链接按钮新窗口打开并提示读屏()
+    {
+        var cut = Render<LinkButton>(p => p.Add(x => x.Href, "https://vuejs.org").Add(x => x.External, true).AddChildContent("Vue 文档"));
+
+        var link = cut.Find("a");
+        Assert.Equal("_blank", link.GetAttribute("target"));
+        Assert.Equal("noopener noreferrer", link.GetAttribute("rel"));
+        Assert.Contains("在新窗口打开", link.TextContent);
+        Assert.NotNull(cut.Find("[data-part=icon-end]"));
     }
 
     [Fact]

@@ -29,7 +29,7 @@
 <DemoSection Title="内置主题（同 vue-tsx-pro，16 套）">
     <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center" Wrap="true">
         <NativeSelect @bind-Value="theme" Items="Themes.All" ItemText="t => t.Name" aria-label="主题" Sx="ThemePicker" data-testid="theme-picker" />
-        <TextSpan Muted="true" Size="Size.Sm">@(theme.IsDark ? "暗色" : "亮色")主题：颜色、阴影、字体、圆角都来自主题</TextSpan>
+        <TextSpan Tone="TextTone.Muted" Size="Size.Sm">@(theme.IsDark ? "暗色" : "亮色")主题：颜色、阴影、字体、圆角都来自主题</TextSpan>
     </Flex>
     <RuneProvider Theme="theme" DarkTheme="theme" ColorScheme="ColorScheme.Light">
         <div @attributes="Attrs.Merge(DemoStyles.ThemePreview)" data-testid="theme-gallery">
@@ -63,7 +63,7 @@
                         </Flex>
                     </Card>
                     <Card Variant="CardVariant.Elevated" Title="浮起的卡片">
-                        <Paragraph Muted="true">阴影来自主题（赛博朋克是发光的阴影）。</Paragraph>
+                        <Paragraph Tone="TextTone.Muted">阴影来自主题（赛博朋克是发光的阴影）。</Paragraph>
                         <TextLink Href="server/provider">链接</TextLink>
                     </Card>
                 </Grid>

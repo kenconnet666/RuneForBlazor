@@ -1,13 +1,14 @@
 @*
     看起来像按钮的链接（a 元素）：<LinkButton Href="/orders/new" Icon="Lucide.Plus">新建订单</LinkButton>。
     跳转用它，执行操作用 Button。不可用时去掉 href（不能跳转），保留 aria-disabled。
+    外部链接写 External：新窗口打开，文字后默认是外链箭头，读屏会听到“在新窗口打开”。
 *@
 @namespace Rune.UI
 @inherits ButtonBase
 @{ var parts = Parts(FullWidth ? ButtonShape.FullWidth : ButtonShape.Normal); }
 
 <a @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !IsLoading), Managed)">
-    @RenderInner(parts, ChildContent)
+    @RenderInner(parts, External ? ExternalText : ChildContent)
 </a>
 
 @code {
@@ -23,22 +24,39 @@
     /// <summary>占满容器宽度。</summary>
     [Parameter] public bool FullWidth { get; set; }
 
+    /// <summary>外部链接：新窗口打开，加 rel="noopener noreferrer"；没写 IconEnd 时文字后是外链箭头。</summary>
+    [Parameter] public bool External { get; set; }
+
+    /// <summary>外部链接给读屏的提示。</summary>
+    [Parameter] public string ExternalHint { get; set; } = "（在新窗口打开）";
+
     /// <inheritdoc/>
     protected override ButtonVariant DefaultVariant => ButtonVariant.Solid;
 
     /// <inheritdoc/>
     protected override Tone DefaultTone => UI.Tone.Accent;
 
-    Memo<(string Href, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
+    /// <inheritdoc/>
+    protected override IconData? TrailingIcon => IconEnd ?? (External ? BuiltInIcons.ArrowUpRight : null);
 
-    /// <summary>a 上由组件管理的属性：地址（不可用时去掉）与状态；不变时复用同一个对象。</summary>
-    Attrs Managed => managed.Get((Href, Disabled, IsLoading, RippleEnabled), static k => new Attrs
+    RenderFragment ExternalText => ChildContent is null ? Hint : builder =>
     {
-        ["href"] = k.Disabled || k.Loading ? null : k.Href,
-        AriaDisabled = k.Disabled || k.Loading ? true : null,
-        ["aria-busy"] = k.Loading ? "true" : null,
-        ["data-disabled"] = k.Disabled ? true : null,
-        ["data-loading"] = k.Loading ? true : null,
-        ["data-rune-ripple"] = k.Ripple ? true : null,
-    });
+        builder.AddContent(0, ChildContent);
+        builder.AddContent(1, Hint);
+    };
+
+    RenderFragment Hint => @<VisuallyHidden>@ExternalHint</VisuallyHidden>;
+
+    Memo<(string Href, bool External, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
+
+    /// <summary>a 上由组件管理的属性：地址（不可用时去掉）、外链的打开方式与状态；不变时复用同一个对象。</summary>
+    Attrs Managed => managed.Get((Href, External, Disabled, IsLoading, RippleEnabled), static k => Attrs.Merge(
+        // 链接没有原生 disabled：不可用总是 aria-disabled
+        StateAttrs(k.Disabled, focusable: true, k.Loading, k.Ripple),
+        new Attrs
+        {
+            ["href"] = k.Disabled || k.Loading ? null : k.Href,
+            ["target"] = k.External ? "_blank" : null,
+            ["rel"] = k.External ? "noopener noreferrer" : null,
+        }));
 }

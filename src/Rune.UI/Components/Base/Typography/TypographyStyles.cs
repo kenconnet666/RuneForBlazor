@@ -50,7 +50,35 @@ public enum TextWrapping
     Pretty,
 }
 
-/// <summary>TextSpan、Paragraph 的部件。</summary>
+/// <summary>文字的色调（同 vue-tsx-pro 文字的 tone）：比组件的 <see cref="Tone"/> 多了次要文字与继承。</summary>
+public enum TextTone
+{
+    /// <summary>正文色。</summary>
+    Neutral,
+
+    /// <summary>次要文字色：说明、时间、辅助信息。</summary>
+    Muted,
+
+    /// <summary>品牌色文字：链接、强调。</summary>
+    Accent,
+
+    /// <summary>信息。</summary>
+    Info,
+
+    /// <summary>成功。</summary>
+    Success,
+
+    /// <summary>警告。</summary>
+    Warning,
+
+    /// <summary>危险：错误提示、破坏性操作的说明。</summary>
+    Danger,
+
+    /// <summary>跟随所在的文字颜色：放在有底色的通栏、标记里时用。</summary>
+    Inherit,
+}
+
+/// <summary>TextSpan、Paragraph、Strong、Em、Small 的部件。</summary>
 public enum TextPart
 {
     /// <summary>文字元素本身。</summary>
@@ -96,7 +124,6 @@ public enum TypographyKind
 /// <param name="Size">字号档位。</param>
 /// <param name="Weight">字重。</param>
 /// <param name="Tone">色调（文字色）。</param>
-/// <param name="Muted">次要文字（说明、时间），优先于 <paramref name="Tone"/>。</param>
 /// <param name="Align">水平对齐。</param>
 /// <param name="Wrap">换行方式。</param>
 /// <param name="Truncate">单行省略。</param>
@@ -107,8 +134,7 @@ public readonly record struct TypographyAppearance(
     TypographyKind Kind,
     Size? Size = null,
     Weight? Weight = null,
-    Tone? Tone = null,
-    bool Muted = false,
+    TextTone? Tone = null,
     TextAlignment? Align = null,
     TextWrapping? Wrap = null,
     bool Truncate = false,
@@ -116,10 +142,10 @@ public readonly record struct TypographyAppearance(
     bool Numeric = false,
     bool Mono = false);
 
-/// <summary>文字类组件（TextSpan、Paragraph、H1–H6、Kbd、VisuallyHidden）的样式（配方）：每个选项一段样式，按外观组合缓存。</summary>
+/// <summary>文字类组件（TextSpan、Paragraph、Strong、Em、Small、H1–H6、Kbd、VisuallyHidden）的样式（配方）：每个选项一段样式，按外观组合缓存。</summary>
 public static class TypographyStyles
 {
-    /// <summary>TextSpan、Paragraph 的部件默认层。</summary>
+    /// <summary>TextSpan、Paragraph、Strong、Em、Small 的部件默认层。</summary>
     public static PartLayers<TextPart> Text(TypographyAppearance appearance, ComponentStyles styles) =>
         Recipe.Of("text", appearance, styles, static (TypographyAppearance a, TextPart _) => Compose(a));
 
@@ -146,7 +172,7 @@ public static class TypographyStyles
         a.Size is { } size ? ScaleStyles.FontSize(size) : null,
         a.Kind == TypographyKind.Heading ? Tracking(a.Size) : null,
         a.Weight is { } weight ? WeightOf(weight) : null,
-        a.Muted ? Muted : a.Tone is { } tone ? SharedStyles.ToneText(tone) : null,
+        a.Tone is { } tone ? ToneOf(tone) : null,
         a.Align is { } align ? AlignOf(align) : null,
         a.Wrap is { } wrap ? WrapOf(wrap) : null,
         a.Truncate ? Truncate : null,
@@ -187,7 +213,21 @@ public static class TypographyStyles
         },
     });
 
+    static Style ToneOf(TextTone tone) => tone switch
+    {
+        TextTone.Neutral => SharedStyles.ToneText(Tone.Neutral),
+        TextTone.Muted => Muted,
+        TextTone.Accent => SharedStyles.ToneText(Tone.Accent),
+        TextTone.Info => SharedStyles.ToneText(Tone.Info),
+        TextTone.Success => SharedStyles.ToneText(Tone.Success),
+        TextTone.Warning => SharedStyles.ToneText(Tone.Warning),
+        TextTone.Danger => SharedStyles.ToneText(Tone.Danger),
+        _ => InheritColor,
+    };
+
     static Style Muted => Css.Define(static () => new Style { Color = Colors.TextMuted });
+
+    static Style InheritColor => Css.Define(static () => new Style { Color = CssWide.Inherit });
 
 
     static Style AlignOf(TextAlignment align) => Css.Define(align, static align => new Style

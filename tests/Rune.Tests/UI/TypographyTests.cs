@@ -25,13 +25,21 @@ public class TypographyTests : BunitContext
     }
 
     [Fact]
-    public void 次要文字优先于色调()
+    public void 次要文字用次要文字色()
     {
-        var cut = Render<TextSpan>(p => p.Add(x => x.Muted, true).Add(x => x.Tone, Tone.Danger).AddChildContent("3 分钟前"));
+        var cut = Render<TextSpan>(p => p.Add(x => x.Tone, TextTone.Muted).AddChildContent("3 分钟前"));
 
-        var rule = RuleOf(cut.Find("span").ClassName!);
-        Assert.Contains("color:var(--rune-colors-text-muted)", rule);
-        Assert.DoesNotContain("danger", rule);
+        Assert.Contains("color:var(--rune-colors-text-muted)", RuleOf(cut.Find("span").ClassName!));
+    }
+
+    [Fact]
+    public void Strong与Small有自己的默认值()
+    {
+        var strong = Render<Strong>(p => p.AddChildContent("重要"));
+        var small = Render<Small>(p => p.AddChildContent("细则"));
+
+        Assert.Contains("font-weight:var(--rune-font-weights-semibold)", RuleOf(strong.Find("strong").ClassName!));
+        Assert.Contains("font-size:var(--rune-font-sizes-xs)", RuleOf(small.Find("small").ClassName!));
     }
 
     [Fact]
