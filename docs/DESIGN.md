@@ -47,6 +47,10 @@
 目录按职责分：`Values/`（CssValues、CssVar 这类值类型）、`Definition/`（Style、Sx、条件、关键帧、Css.Define、Theme）、`Engine/`（编译、优先级、注册表、`RuneStyles` 输出组件）、`Generated/`（css-gen 生成的属性表与关键字），命名空间都是 `Rune.Styles`。
 
 - **写法**：`new Style { Display = Display.Flex, Padding = Space.Md, [When.Hover] = new() { … }, [Media.Up(768)] = new() { … } }`。515 个 CSS 属性与 318 个属性的关键字常量由 `tools/css-gen` 从 vue-tsx-pro 的数据生成，带中文说明；颜色属性是 `CssColor`、长度属性是 `CssLength`，token 写错类型编译不过。数字按属性补单位（px / 不补 / ms，同 StyleX）。
+  值里没有数字的属性（display、cursor、font……，按 StyleX 的类型表判断）是 `CssKeyword`：只收字符串与关键字，`Display = 5` 编译不过（否则输出 `5px`）。
+  单位有类型化的写法：`CssLength.Em(0.875)`、`Rem`、`Percent`、`Vw`、`Dvh`、`Ch`、`Auto`、`None`，角度 `CssValue.Deg(180)`；颜色关键字是 `CssColors`
+  （transparent、currentcolor、强制颜色模式的系统色），全局关键字是 `CssWide`。尺寸约定同 vue-tsx-pro：组件内部用 em（随字号整体缩放），
+  边框、焦点环、分隔线用 px 但必须经 `BorderWidths` token（主题统一改粗），最小点击区域 `Sizes.MinTarget` 24px。
   关键字类与属性同名（`Display`、`Width`）：组件里如果有同名的参数，`Width.Auto` 会解析成参数，样式类（静态类）里不受影响。
 - **一直在变的值**（进度、宽度）用 `CssVar<T>`：样式引用变量、类不变，值经 `Attrs.Vars` 写在元素的 style 上；写进样式会让每个值多一条规则。
 - **条件**：`When.*` 的状态别名同时认原生、ARIA、data 属性（同 vue-tsx-pro 的 CONDITIONS），状态变化只改属性、类名不变。

@@ -69,7 +69,7 @@ public sealed partial class Style
         init => declarations[property] = value;
     }
 
-    // 生成的属性表调用下面三个方法；null 表示“不写这个属性”
+    // 生成的属性表调用下面四个方法；null 表示“不写这个属性”
 
     void Set(string property, CssValue? value, NumberUnit unit)
     {
@@ -82,6 +82,11 @@ public sealed partial class Style
     }
 
     void Set(string property, CssColor? value)
+    {
+        if (value is { } v) declarations[property] = v.ToString();
+    }
+
+    void Set(string property, CssKeyword? value)
     {
         if (value is { } v) declarations[property] = v.ToString();
     }

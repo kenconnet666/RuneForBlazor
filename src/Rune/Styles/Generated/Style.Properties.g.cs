@@ -31,7 +31,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/align-content"/>
-    public CssValue? AlignContent { init => Set("align-content", value, NumberUnit.Pixels); }
+    public CssKeyword? AlignContent { init => Set("align-content", value); }
 
     /// <summary>设置容器内项目在交叉轴或块轴上的默认对齐方式。（align-items）</summary>
     /// <remarks>
@@ -48,7 +48,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/align-items"/>
-    public CssValue? AlignItems { init => Set("align-items", value, NumberUnit.Pixels); }
+    public CssKeyword? AlignItems { init => Set("align-items", value); }
 
     /// <summary>单独覆盖一个项目的交叉轴或块轴对齐方式。（align-self）</summary>
     /// <remarks>
@@ -62,7 +62,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/align-self"/>
-    public CssValue? AlignSelf { init => Set("align-self", value, NumberUnit.Pixels); }
+    public CssKeyword? AlignSelf { init => Set("align-self", value); }
 
     /// <summary>旧版瀑布流布局提案中沿块轴对齐轨道的属性；使用前核对实现与规范版本。（align-tracks）</summary>
     /// <remarks>
@@ -72,7 +72,7 @@ public sealed partial class Style
     /// </list>
     /// <para>初始值 <c>normal</c>；不继承；非标准。</para>
     /// </remarks>
-    public CssValue? AlignTracks { init => Set("align-tracks", value, NumberUnit.Pixels); }
+    public CssKeyword? AlignTracks { init => Set("align-tracks", value); }
 
     /// <summary>选择行内或 SVG 文本参与对齐时使用的基线。（alignment-baseline）</summary>
     /// <remarks>
@@ -94,7 +94,7 @@ public sealed partial class Style
     /// <para>初始值 <c>baseline</c>；不继承；Baseline：2026 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/alignment-baseline"/>
-    public CssValue? AlignmentBaseline { init => Set("alignment-baseline", value, NumberUnit.Pixels); }
+    public CssKeyword? AlignmentBaseline { init => Set("alignment-baseline", value); }
 
     /// <summary>为元素声明锚点名称，供锚点定位的元素引用。（anchor-name）</summary>
     /// <remarks>
@@ -105,21 +105,21 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；实验性；Baseline：2026 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/anchor-name"/>
-    public CssValue? AnchorName { init => Set("anchor-name", value, NumberUnit.Pixels); }
+    public CssKeyword? AnchorName { init => Set("anchor-name", value); }
 
     /// <summary>集中设置关键帧动画的名称、时长、缓动、延迟、次数及播放行为。（animation）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation"/>
-    public CssValue? Animation { init => Set("animation", value, NumberUnit.Pixels); }
+    public CssKeyword? Animation { init => Set("animation", value); }
 
     /// <summary>设置动画效果与底层属性值的替换、叠加或累积方式。（animation-composition）</summary>
     /// <remarks>
     /// <para>初始值 <c>replace</c>；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation-composition"/>
-    public CssValue? AnimationComposition { init => Set("animation-composition", value, NumberUnit.Pixels); }
+    public CssKeyword? AnimationComposition { init => Set("animation-composition", value); }
 
     /// <summary>设置动画开始前的延迟；负值表示从动画中途开始播放。（animation-delay）</summary>
     /// <remarks>
@@ -133,7 +133,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation-direction"/>
-    public CssValue? AnimationDirection { init => Set("animation-direction", value, NumberUnit.Pixels); }
+    public CssKeyword? AnimationDirection { init => Set("animation-direction", value); }
 
     /// <summary>设置动画完成一次循环的时长。（animation-duration）</summary>
     /// <remarks>
@@ -160,7 +160,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation-fill-mode"/>
-    public CssValue? AnimationFillMode { init => Set("animation-fill-mode", value, NumberUnit.Pixels); }
+    public CssKeyword? AnimationFillMode { init => Set("animation-fill-mode", value); }
 
     /// <summary>设置动画循环次数，或无限循环。（animation-iteration-count）</summary>
     /// <remarks>
@@ -178,21 +178,21 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation-name"/>
-    public CssValue? AnimationName { init => Set("animation-name", value, NumberUnit.Pixels); }
+    public CssKeyword? AnimationName { init => Set("animation-name", value); }
 
     /// <summary>控制动画运行或暂停，暂停后可从原位置继续。（animation-play-state）</summary>
     /// <remarks>
     /// <para>初始值 <c>running</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation-play-state"/>
-    public CssValue? AnimationPlayState { init => Set("animation-play-state", value, NumberUnit.Pixels); }
+    public CssKeyword? AnimationPlayState { init => Set("animation-play-state", value); }
 
     /// <summary>设置动画附着到时间线的起止范围。（animation-range）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation-range"/>
-    public CssLength? AnimationRange { init => Set("animation-range", value); }
+    public CssKeyword? AnimationRange { init => Set("animation-range", value); }
 
     /// <summary>设置动画在时间线上的附着范围终点。（animation-range-end）</summary>
     /// <remarks>
@@ -203,7 +203,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation-range-end"/>
-    public CssLength? AnimationRangeEnd { init => Set("animation-range-end", value); }
+    public CssKeyword? AnimationRangeEnd { init => Set("animation-range-end", value); }
 
     /// <summary>设置动画在时间线上的附着范围起点。（animation-range-start）</summary>
     /// <remarks>
@@ -214,21 +214,21 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation-range-start"/>
-    public CssLength? AnimationRangeStart { init => Set("animation-range-start", value); }
+    public CssKeyword? AnimationRangeStart { init => Set("animation-range-start", value); }
 
     /// <summary>选择驱动动画的时间线，例如文档时间或滚动进度。（animation-timeline）</summary>
     /// <remarks>
     /// <para>初始值 <c>auto</c>；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation-timeline"/>
-    public CssValue? AnimationTimeline { init => Set("animation-timeline", value, NumberUnit.Pixels); }
+    public CssKeyword? AnimationTimeline { init => Set("animation-timeline", value); }
 
     /// <summary>设置动画每个关键帧区间内进度变化的缓动函数。（animation-timing-function）</summary>
     /// <remarks>
     /// <para>初始值 <c>ease</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/animation-timing-function"/>
-    public CssValue? AnimationTimingFunction { init => Set("animation-timing-function", value, NumberUnit.Pixels); }
+    public CssKeyword? AnimationTimingFunction { init => Set("animation-timing-function", value); }
 
     /// <summary>控制元素是否采用平台原生控件外观。（appearance）</summary>
     /// <remarks>
@@ -240,7 +240,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/appearance"/>
-    public CssValue? Appearance { init => Set("appearance", value, NumberUnit.Pixels); }
+    public CssKeyword? Appearance { init => Set("appearance", value); }
 
     /// <summary>设置盒子的首选宽高比，参与自动尺寸计算。（aspect-ratio）</summary>
     /// <remarks>
@@ -256,7 +256,7 @@ public sealed partial class Style
     public CssValue? AspectRatio { init => Set("aspect-ratio", value, NumberUnit.None); }
 
     /// <summary>语音合成中声音的水平方位（azimuth），来自已废弃的 CSS2 听觉样式，浏览器不支持。</summary>
-    public CssValue? Azimuth { init => Set("azimuth", value, NumberUnit.Pixels); }
+    public CssKeyword? Azimuth { init => Set("azimuth", value); }
 
     /// <summary>对元素背后的图像区域应用模糊等滤镜，通常需要透明或半透明背景。（backdrop-filter）</summary>
     /// <remarks>
@@ -267,7 +267,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2024 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/backdrop-filter"/>
-    public CssValue? BackdropFilter { init => Set("backdrop-filter", value, NumberUnit.Pixels); }
+    public CssKeyword? BackdropFilter { init => Set("backdrop-filter", value); }
 
     /// <summary>控制经过三维变换后背向观察者的元素背面是否可见。（backface-visibility）</summary>
     /// <remarks>
@@ -279,7 +279,7 @@ public sealed partial class Style
     /// <para>初始值 <c>visible</c>；不继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/backface-visibility"/>
-    public CssValue? BackfaceVisibility { init => Set("backface-visibility", value, NumberUnit.Pixels); }
+    public CssKeyword? BackfaceVisibility { init => Set("backface-visibility", value); }
 
     /// <summary>集中设置背景颜色、图像、位置、尺寸、重复及绘制区域。（background）</summary>
     /// <remarks>
@@ -293,14 +293,14 @@ public sealed partial class Style
     /// <para>初始值 <c>scroll</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/background-attachment"/>
-    public CssValue? BackgroundAttachment { init => Set("background-attachment", value, NumberUnit.Pixels); }
+    public CssKeyword? BackgroundAttachment { init => Set("background-attachment", value); }
 
     /// <summary>设置背景图层彼此之间以及与背景色之间的混合模式。（background-blend-mode）</summary>
     /// <remarks>
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/background-blend-mode"/>
-    public CssValue? BackgroundBlendMode { init => Set("background-blend-mode", value, NumberUnit.Pixels); }
+    public CssKeyword? BackgroundBlendMode { init => Set("background-blend-mode", value); }
 
     /// <summary>设置背景允许绘制到的边界区域。（background-clip）</summary>
     /// <remarks>
@@ -311,7 +311,7 @@ public sealed partial class Style
     /// <para>初始值 <c>border-box</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/background-clip"/>
-    public CssValue? BackgroundClip { init => Set("background-clip", value, NumberUnit.Pixels); }
+    public CssKeyword? BackgroundClip { init => Set("background-clip", value); }
 
     /// <summary>设置元素背景颜色，位于背景图像下方。（background-color）</summary>
     /// <remarks>
@@ -329,21 +329,21 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/background-image"/>
-    public CssValue? BackgroundImage { init => Set("background-image", value, NumberUnit.Pixels); }
+    public CssKeyword? BackgroundImage { init => Set("background-image", value); }
 
     /// <summary>设置背景图像定位所依据的盒子区域。（background-origin）</summary>
     /// <remarks>
     /// <para>初始值 <c>padding-box</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/background-origin"/>
-    public CssValue? BackgroundOrigin { init => Set("background-origin", value, NumberUnit.Pixels); }
+    public CssKeyword? BackgroundOrigin { init => Set("background-origin", value); }
 
     /// <summary>设置背景图像在定位区域内的位置。（background-position）</summary>
     /// <remarks>
     /// <para>初始值 <c>0% 0%</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/background-position"/>
-    public CssLength? BackgroundPosition { init => Set("background-position", value); }
+    public CssKeyword? BackgroundPosition { init => Set("background-position", value); }
 
     /// <summary>设置背景图像的水平位置。（background-position-x）</summary>
     /// <remarks>
@@ -358,7 +358,7 @@ public sealed partial class Style
     /// <para>初始值 <c>0%</c>；不继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/background-position-x"/>
-    public CssLength? BackgroundPositionX { init => Set("background-position-x", value); }
+    public CssKeyword? BackgroundPositionX { init => Set("background-position-x", value); }
 
     /// <summary>设置背景图像的垂直位置。（background-position-y）</summary>
     /// <remarks>
@@ -373,14 +373,14 @@ public sealed partial class Style
     /// <para>初始值 <c>0%</c>；不继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/background-position-y"/>
-    public CssLength? BackgroundPositionY { init => Set("background-position-y", value); }
+    public CssKeyword? BackgroundPositionY { init => Set("background-position-y", value); }
 
     /// <summary>设置背景图像在水平和垂直方向上的重复方式。（background-repeat）</summary>
     /// <remarks>
     /// <para>初始值 <c>repeat</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/background-repeat"/>
-    public CssValue? BackgroundRepeat { init => Set("background-repeat", value, NumberUnit.Pixels); }
+    public CssKeyword? BackgroundRepeat { init => Set("background-repeat", value); }
 
     /// <summary>设置背景图像尺寸，以及覆盖或完整容纳图像的缩放方式。（background-size）</summary>
     /// <remarks>
@@ -395,7 +395,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto auto</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/background-size"/>
-    public CssLength? BackgroundSize { init => Set("background-size", value); }
+    public CssKeyword? BackgroundSize { init => Set("background-size", value); }
 
     /// <summary>使 SVG 文本基线相对于其基准位置偏移。（baseline-shift）</summary>
     /// <remarks>
@@ -410,7 +410,7 @@ public sealed partial class Style
     public CssLength? BaselineShift { init => Set("baseline-shift", value); }
 
     /// <summary>IE 专有的 HTC 行为绑定（behavior），已废弃，现代浏览器不支持。</summary>
-    public CssValue? Behavior { init => Set("behavior", value, NumberUnit.Pixels); }
+    public CssKeyword? Behavior { init => Set("behavior", value); }
 
     /// <summary>设置逻辑块轴尺寸；水平书写时通常对应高度。（block-size）</summary>
     /// <remarks>
@@ -468,7 +468,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-block-end-style"/>
-    public CssValue? BorderBlockEndStyle { init => Set("border-block-end-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderBlockEndStyle { init => Set("border-block-end-style", value); }
 
     /// <summary>设置逻辑块轴结束侧的边框宽度。（border-block-end-width）</summary>
     /// <remarks>
@@ -496,7 +496,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-block-start-style"/>
-    public CssValue? BorderBlockStartStyle { init => Set("border-block-start-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderBlockStartStyle { init => Set("border-block-start-style", value); }
 
     /// <summary>设置逻辑块轴起始侧的边框宽度。（border-block-start-width）</summary>
     /// <remarks>
@@ -510,7 +510,7 @@ public sealed partial class Style
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2023 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-block-style"/>
-    public CssValue? BorderBlockStyle { init => Set("border-block-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderBlockStyle { init => Set("border-block-style", value); }
 
     /// <summary>设置逻辑块轴两侧的边框宽度。（border-block-width）</summary>
     /// <remarks>
@@ -552,7 +552,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-bottom-style"/>
-    public CssValue? BorderBottomStyle { init => Set("border-bottom-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderBottomStyle { init => Set("border-bottom-style", value); }
 
     /// <summary>设置下边框宽度。（border-bottom-width）</summary>
     /// <remarks>
@@ -571,7 +571,7 @@ public sealed partial class Style
     /// <para>初始值 <c>separate</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-collapse"/>
-    public CssValue? BorderCollapse { init => Set("border-collapse", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderCollapse { init => Set("border-collapse", value); }
 
     /// <summary>设置四边边框颜色，支持按上、右、下、左顺序简写。（border-color）</summary>
     /// <remarks>
@@ -620,7 +620,7 @@ public sealed partial class Style
     /// <para>初始值 <c>stretch</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-image-repeat"/>
-    public CssValue? BorderImageRepeat { init => Set("border-image-repeat", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderImageRepeat { init => Set("border-image-repeat", value); }
 
     /// <summary>设置边框图像的切片位置及是否填充中间区域。（border-image-slice）</summary>
     /// <remarks>
@@ -642,7 +642,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-image-source"/>
-    public CssValue? BorderImageSource { init => Set("border-image-source", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderImageSource { init => Set("border-image-source", value); }
 
     /// <summary>设置边框图像各边的绘制宽度。（border-image-width）</summary>
     /// <remarks>
@@ -688,7 +688,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-inline-end-style"/>
-    public CssValue? BorderInlineEndStyle { init => Set("border-inline-end-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderInlineEndStyle { init => Set("border-inline-end-style", value); }
 
     /// <summary>设置逻辑行内轴结束侧边框宽度。（border-inline-end-width）</summary>
     /// <remarks>
@@ -716,7 +716,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-inline-start-style"/>
-    public CssValue? BorderInlineStartStyle { init => Set("border-inline-start-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderInlineStartStyle { init => Set("border-inline-start-style", value); }
 
     /// <summary>设置逻辑行内轴起始侧边框宽度。（border-inline-start-width）</summary>
     /// <remarks>
@@ -730,7 +730,7 @@ public sealed partial class Style
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2023 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-inline-style"/>
-    public CssValue? BorderInlineStyle { init => Set("border-inline-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderInlineStyle { init => Set("border-inline-style", value); }
 
     /// <summary>设置逻辑行内轴两侧边框宽度。（border-inline-width）</summary>
     /// <remarks>
@@ -758,7 +758,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-left-style"/>
-    public CssValue? BorderLeftStyle { init => Set("border-left-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderLeftStyle { init => Set("border-left-style", value); }
 
     /// <summary>设置左边框宽度。（border-left-width）</summary>
     /// <remarks>
@@ -795,7 +795,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-right-style"/>
-    public CssValue? BorderRightStyle { init => Set("border-right-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderRightStyle { init => Set("border-right-style", value); }
 
     /// <summary>设置右边框宽度。（border-right-width）</summary>
     /// <remarks>
@@ -836,7 +836,7 @@ public sealed partial class Style
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-style"/>
-    public CssValue? BorderStyle { init => Set("border-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderStyle { init => Set("border-style", value); }
 
     /// <summary>设置上边框的宽度、线型和颜色。（border-top）</summary>
     /// <remarks>
@@ -871,7 +871,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/border-top-style"/>
-    public CssValue? BorderTopStyle { init => Set("border-top-style", value, NumberUnit.Pixels); }
+    public CssKeyword? BorderTopStyle { init => Set("border-top-style", value); }
 
     /// <summary>设置上边框宽度。（border-top-width）</summary>
     /// <remarks>
@@ -911,7 +911,7 @@ public sealed partial class Style
     /// <para>初始值 <c>stretch</c>；不继承；非标准。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/box-align"/>
-    public CssValue? BoxAlign { init => Set("box-align", value, NumberUnit.Pixels); }
+    public CssKeyword? BoxAlign { init => Set("box-align", value); }
 
     /// <summary>设置盒子被分成多行、多栏或多页时装饰如何绘制。（box-decoration-break）</summary>
     /// <remarks>
@@ -923,7 +923,7 @@ public sealed partial class Style
     /// <para>初始值 <c>slice</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/box-decoration-break"/>
-    public CssValue? BoxDecorationBreak { init => Set("box-decoration-break", value, NumberUnit.Pixels); }
+    public CssKeyword? BoxDecorationBreak { init => Set("box-decoration-break", value); }
 
     /// <summary>旧版弹性盒中子元素排列方向是否反转（box-direction），已废弃，请用 flexDirection。</summary>
     /// <remarks>
@@ -935,7 +935,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；非标准。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/box-direction"/>
-    public CssValue? BoxDirection { init => Set("box-direction", value, NumberUnit.Pixels); }
+    public CssKeyword? BoxDirection { init => Set("box-direction", value); }
 
     /// <summary>旧版弹性盒中子元素的伸缩比例（box-flex），已废弃，请用 flexGrow。</summary>
     /// <remarks>
@@ -961,7 +961,7 @@ public sealed partial class Style
     /// <para>初始值 <c>single</c>；不继承；非标准。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/box-lines"/>
-    public CssValue? BoxLines { init => Set("box-lines", value, NumberUnit.Pixels); }
+    public CssKeyword? BoxLines { init => Set("box-lines", value); }
 
     /// <summary>旧版弹性盒中子元素的显示顺序（box-ordinal-group），已废弃，请用 order。</summary>
     /// <remarks>
@@ -982,7 +982,7 @@ public sealed partial class Style
     /// <para>初始值 <c>inline-axis</c>；不继承；非标准。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/box-orient"/>
-    public CssValue? BoxOrient { init => Set("box-orient", value, NumberUnit.Pixels); }
+    public CssKeyword? BoxOrient { init => Set("box-orient", value); }
 
     /// <summary>设置盒子的外部或内部阴影，可叠加多层。（box-shadow）</summary>
     /// <remarks>
@@ -1008,7 +1008,7 @@ public sealed partial class Style
     /// <para>初始值 <c>content-box</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/box-sizing"/>
-    public CssValue? BoxSizing { init => Set("box-sizing", value, NumberUnit.Pixels); }
+    public CssKeyword? BoxSizing { init => Set("box-sizing", value); }
 
     /// <summary>旧版弹性盒中是否隐藏元素（box-suppress），草案属性，浏览器不支持。</summary>
     /// <remarks>
@@ -1019,7 +1019,7 @@ public sealed partial class Style
     /// <item><description><c>show</c>：元素按 <c>display</c> 正常生成盒子，即不做任何抑制，是默认值。早期草案属性，浏览器不支持。</description></item>
     /// </list>
     /// </remarks>
-    public CssValue? BoxSuppress { init => Set("box-suppress", value, NumberUnit.Pixels); }
+    public CssKeyword? BoxSuppress { init => Set("box-suppress", value); }
 
     /// <summary>设置元素之后的分页、分栏或区域分片行为。（break-after）</summary>
     /// <remarks>
@@ -1041,7 +1041,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2021 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/break-after"/>
-    public CssValue? BreakAfter { init => Set("break-after", value, NumberUnit.Pixels); }
+    public CssKeyword? BreakAfter { init => Set("break-after", value); }
 
     /// <summary>设置元素之前的分页、分栏或区域分片行为。（break-before）</summary>
     /// <remarks>
@@ -1063,7 +1063,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2021 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/break-before"/>
-    public CssValue? BreakBefore { init => Set("break-before", value, NumberUnit.Pixels); }
+    public CssKeyword? BreakBefore { init => Set("break-before", value); }
 
     /// <summary>设置元素内部是否允许分页、分栏或区域分片。（break-inside）</summary>
     /// <remarks>
@@ -1078,7 +1078,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2021 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/break-inside"/>
-    public CssValue? BreakInside { init => Set("break-inside", value, NumberUnit.Pixels); }
+    public CssKeyword? BreakInside { init => Set("break-inside", value); }
 
     /// <summary>设置表格标题相对于表格的放置侧。（caption-side）</summary>
     /// <remarks>
@@ -1094,7 +1094,7 @@ public sealed partial class Style
     /// <para>初始值 <c>top</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/caption-side"/>
-    public CssValue? CaptionSide { init => Set("caption-side", value, NumberUnit.Pixels); }
+    public CssKeyword? CaptionSide { init => Set("caption-side", value); }
 
     /// <summary>集中设置文本插入光标的颜色和形状。（caret）</summary>
     /// <remarks>
@@ -1124,7 +1124,7 @@ public sealed partial class Style
     /// </list>
     /// <para>初始值 <c>auto</c>；继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
-    public CssValue? CaretShape { init => Set("caret-shape", value, NumberUnit.Pixels); }
+    public CssKeyword? CaretShape { init => Set("caret-shape", value); }
 
     /// <summary>要求元素避让指定侧的前置浮动元素。（clear）</summary>
     /// <remarks>
@@ -1140,7 +1140,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/clear"/>
-    public CssValue? Clear { init => Set("clear", value, NumberUnit.Pixels); }
+    public CssKeyword? Clear { init => Set("clear", value); }
 
     /// <summary>使用旧式矩形裁剪绝对定位元素；新代码优先考虑 clip-path。（clip）</summary>
     /// <remarks>
@@ -1151,7 +1151,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；已废弃；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/clip"/>
-    public CssValue? Clip { init => Set("clip", value, NumberUnit.Pixels); }
+    public CssKeyword? Clip { init => Set("clip", value); }
 
     /// <summary>通过基本形状、路径或引用裁剪元素的可见区域。（clip-path）</summary>
     /// <remarks>
@@ -1162,7 +1162,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/clip-path"/>
-    public CssValue? ClipPath { init => Set("clip-path", value, NumberUnit.Pixels); }
+    public CssKeyword? ClipPath { init => Set("clip-path", value); }
 
     /// <summary>设置 SVG 裁剪路径判断内部区域所用的填充规则。（clip-rule）</summary>
     /// <remarks>
@@ -1174,7 +1174,7 @@ public sealed partial class Style
     /// <para>初始值 <c>nonzero</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/clip-rule"/>
-    public CssValue? ClipRule { init => Set("clip-rule", value, NumberUnit.Pixels); }
+    public CssKeyword? ClipRule { init => Set("clip-rule", value); }
 
     /// <summary>设置文字前景色，同时作为 currentColor 的来源。（color）</summary>
     /// <remarks>
@@ -1199,7 +1199,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/color-scheme"/>
-    public CssValue? ColorScheme { init => Set("color-scheme", value, NumberUnit.Pixels); }
+    public CssKeyword? ColorScheme { init => Set("color-scheme", value); }
 
     /// <summary>设置多栏布局的目标栏数。（column-count）</summary>
     /// <remarks>
@@ -1222,7 +1222,7 @@ public sealed partial class Style
     /// <para>初始值 <c>balance</c>；不继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/column-fill"/>
-    public CssValue? ColumnFill { init => Set("column-fill", value, NumberUnit.Pixels); }
+    public CssKeyword? ColumnFill { init => Set("column-fill", value); }
 
     /// <summary>设置布局中相邻列之间的间距。（column-gap）</summary>
     /// <remarks>
@@ -1254,7 +1254,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/column-rule-style"/>
-    public CssValue? ColumnRuleStyle { init => Set("column-rule-style", value, NumberUnit.Pixels); }
+    public CssKeyword? ColumnRuleStyle { init => Set("column-rule-style", value); }
 
     /// <summary>设置多栏分隔线的宽度。（column-rule-width）</summary>
     /// <remarks>
@@ -1273,7 +1273,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2023 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/column-span"/>
-    public CssValue? ColumnSpan { init => Set("column-span", value, NumberUnit.Pixels); }
+    public CssKeyword? ColumnSpan { init => Set("column-span", value); }
 
     /// <summary>设置多栏布局的首选栏宽，实际栏宽由容器空间决定。（column-width）</summary>
     /// <remarks>
@@ -1308,7 +1308,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/contain"/>
-    public CssValue? Contain { init => Set("contain", value, NumberUnit.Pixels); }
+    public CssKeyword? Contain { init => Set("contain", value); }
 
     /// <summary>设置块轴尺寸隔离或跳过内容渲染时使用的替代内部尺寸。（contain-intrinsic-block-size）</summary>
     /// <remarks>
@@ -1375,7 +1375,7 @@ public sealed partial class Style
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/container"/>
-    public CssValue? Container { init => Set("container", value, NumberUnit.Pixels); }
+    public CssKeyword? Container { init => Set("container", value); }
 
     /// <summary>为查询容器命名，供 @container 条件规则选择。（container-name）</summary>
     /// <remarks>
@@ -1386,7 +1386,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/container-name"/>
-    public CssValue? ContainerName { init => Set("container-name", value, NumberUnit.Pixels); }
+    public CssKeyword? ContainerName { init => Set("container-name", value); }
 
     /// <summary>建立指定类型的查询容器，并施加所需的隔离行为。（container-type）</summary>
     /// <remarks>
@@ -1401,7 +1401,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/container-type"/>
-    public CssValue? ContainerType { init => Set("container-type", value, NumberUnit.Pixels); }
+    public CssKeyword? ContainerType { init => Set("container-type", value); }
 
     /// <summary>设置生成内容、替换内容或伪元素的内容。（content）</summary>
     /// <remarks>
@@ -1413,7 +1413,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/content"/>
-    public CssValue? Content { init => Set("content", value, NumberUnit.Pixels); }
+    public CssKeyword? Content { init => Set("content", value); }
 
     /// <summary>控制是否渲染元素内容，并允许浏览器跳过暂时不可见的子树。（content-visibility）</summary>
     /// <remarks>
@@ -1428,70 +1428,70 @@ public sealed partial class Style
     /// <para>初始值 <c>visible</c>；不继承；Baseline：2024 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/content-visibility"/>
-    public CssValue? ContentVisibility { init => Set("content-visibility", value, NumberUnit.Pixels); }
+    public CssKeyword? ContentVisibility { init => Set("content-visibility", value); }
 
     /// <summary>单独设置左下角的形状（corner-bottom-left-shape），与 borderRadius 配合；浏览器支持仍有限。</summary>
     /// <remarks>
     /// <para>初始值 <c>round</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/corner-bottom-left-shape"/>
-    public CssValue? CornerBottomLeftShape { init => Set("corner-bottom-left-shape", value, NumberUnit.Pixels); }
+    public CssKeyword? CornerBottomLeftShape { init => Set("corner-bottom-left-shape", value); }
 
     /// <summary>单独设置右下角的形状（corner-bottom-right-shape），与 borderRadius 配合；浏览器支持仍有限。</summary>
     /// <remarks>
     /// <para>初始值 <c>round</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/corner-bottom-right-shape"/>
-    public CssValue? CornerBottomRightShape { init => Set("corner-bottom-right-shape", value, NumberUnit.Pixels); }
+    public CssKeyword? CornerBottomRightShape { init => Set("corner-bottom-right-shape", value); }
 
     /// <summary>单独设置块结束、行内结束方向那个角的形状（corner-end-end-shape），与 borderRadius 配合；浏览器支持仍有限。</summary>
     /// <remarks>
     /// <para>初始值 <c>round</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/corner-end-end-shape"/>
-    public CssValue? CornerEndEndShape { init => Set("corner-end-end-shape", value, NumberUnit.Pixels); }
+    public CssKeyword? CornerEndEndShape { init => Set("corner-end-end-shape", value); }
 
     /// <summary>单独设置块结束、行内起始方向那个角的形状（corner-end-start-shape），与 borderRadius 配合；浏览器支持仍有限。</summary>
     /// <remarks>
     /// <para>初始值 <c>round</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/corner-end-start-shape"/>
-    public CssValue? CornerEndStartShape { init => Set("corner-end-start-shape", value, NumberUnit.Pixels); }
+    public CssKeyword? CornerEndStartShape { init => Set("corner-end-start-shape", value); }
 
     /// <summary>设置四个角的形状，如 round、squircle、bevel、notch（corner-shape），与 borderRadius 配合；浏览器支持仍有限。</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/corner-shape"/>
-    public CssValue? CornerShape { init => Set("corner-shape", value, NumberUnit.Pixels); }
+    public CssKeyword? CornerShape { init => Set("corner-shape", value); }
 
     /// <summary>单独设置块起始、行内结束方向那个角的形状（corner-start-end-shape），与 borderRadius 配合；浏览器支持仍有限。</summary>
     /// <remarks>
     /// <para>初始值 <c>round</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/corner-start-end-shape"/>
-    public CssValue? CornerStartEndShape { init => Set("corner-start-end-shape", value, NumberUnit.Pixels); }
+    public CssKeyword? CornerStartEndShape { init => Set("corner-start-end-shape", value); }
 
     /// <summary>单独设置块起始、行内起始方向那个角的形状（corner-start-start-shape），与 borderRadius 配合；浏览器支持仍有限。</summary>
     /// <remarks>
     /// <para>初始值 <c>round</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/corner-start-start-shape"/>
-    public CssValue? CornerStartStartShape { init => Set("corner-start-start-shape", value, NumberUnit.Pixels); }
+    public CssKeyword? CornerStartStartShape { init => Set("corner-start-start-shape", value); }
 
     /// <summary>单独设置左上角的形状（corner-top-left-shape），与 borderRadius 配合；浏览器支持仍有限。</summary>
     /// <remarks>
     /// <para>初始值 <c>round</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/corner-top-left-shape"/>
-    public CssValue? CornerTopLeftShape { init => Set("corner-top-left-shape", value, NumberUnit.Pixels); }
+    public CssKeyword? CornerTopLeftShape { init => Set("corner-top-left-shape", value); }
 
     /// <summary>单独设置右上角的形状（corner-top-right-shape），与 borderRadius 配合；浏览器支持仍有限。</summary>
     /// <remarks>
     /// <para>初始值 <c>round</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/corner-top-right-shape"/>
-    public CssValue? CornerTopRightShape { init => Set("corner-top-right-shape", value, NumberUnit.Pixels); }
+    public CssKeyword? CornerTopRightShape { init => Set("corner-top-right-shape", value); }
 
     /// <summary>增加或减少指定 CSS 计数器的值。（counter-increment）</summary>
     /// <remarks>
@@ -1502,7 +1502,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/counter-increment"/>
-    public CssValue? CounterIncrement { init => Set("counter-increment", value, NumberUnit.Pixels); }
+    public CssKeyword? CounterIncrement { init => Set("counter-increment", value); }
 
     /// <summary>创建或重置 CSS 计数器。（counter-reset）</summary>
     /// <remarks>
@@ -1554,7 +1554,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/cursor"/>
-    public CssValue? Cursor { init => Set("cursor", value, NumberUnit.Pixels); }
+    public CssKeyword? Cursor { init => Set("cursor", value); }
 
     /// <summary>设置文本基本方向，参与双向文本及部分布局计算。（direction）</summary>
     /// <remarks>
@@ -1566,7 +1566,7 @@ public sealed partial class Style
     /// <para>初始值 <c>ltr</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/direction"/>
-    public CssValue? Direction { init => Set("direction", value, NumberUnit.Pixels); }
+    public CssKeyword? Direction { init => Set("direction", value); }
 
     /// <summary>决定元素是否生成布局盒子，以及元素自身和内部内容如何排版。（display）</summary>
     /// <remarks>
@@ -1584,7 +1584,7 @@ public sealed partial class Style
     /// <para>初始值 <c>inline</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/display"/>
-    public CssValue? Display { init => Set("display", value, NumberUnit.Pixels); }
+    public CssKeyword? Display { init => Set("display", value); }
 
     /// <summary>单独设置 display 的内部布局方式（display-inside），早期草案，浏览器不支持；请用 display 的双值写法。</summary>
     /// <remarks>
@@ -1598,7 +1598,7 @@ public sealed partial class Style
     /// <item><description><c>table</c>：元素内部使用表格布局。早期草案属性，浏览器不支持。</description></item>
     /// </list>
     /// </remarks>
-    public CssValue? DisplayInside { init => Set("display-inside", value, NumberUnit.Pixels); }
+    public CssKeyword? DisplayInside { init => Set("display-inside", value); }
 
     /// <summary>单独设置元素是否生成列表项标记（display-list），早期草案，浏览器不支持。</summary>
     /// <remarks>
@@ -1608,13 +1608,13 @@ public sealed partial class Style
     /// <item><description><c>none</c>：元素不生成列表项标记，按普通盒子显示。早期草案属性，浏览器不支持。</description></item>
     /// </list>
     /// </remarks>
-    public CssValue? DisplayList { init => Set("display-list", value, NumberUnit.Pixels); }
+    public CssKeyword? DisplayList { init => Set("display-list", value); }
 
     /// <summary>单独设置 display 的外部显示类型（display-outside），早期草案，浏览器不支持。</summary>
     /// <remarks>
     /// <para>常用值：<c>block-level</c>、<c>contents</c>、<c>inline-level</c>、<c>none</c>、<c>ruby-base</c>、<c>ruby-base-container</c>、<c>ruby-text</c>、<c>ruby-text-container</c>、<c>run-in</c>、<c>table-caption</c>、<c>table-cell</c>、<c>table-column</c>、<c>table-column-group</c>、<c>table-footer-group</c>、<c>table-header-group</c>、<c>table-row</c>、<c>table-row-group</c></para>
     /// </remarks>
-    public CssValue? DisplayOutside { init => Set("display-outside", value, NumberUnit.Pixels); }
+    public CssKeyword? DisplayOutside { init => Set("display-outside", value); }
 
     /// <summary>选择 SVG 文本布局的主导基线及基线表。（dominant-baseline）</summary>
     /// <remarks>
@@ -1636,7 +1636,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/dominant-baseline"/>
-    public CssValue? DominantBaseline { init => Set("dominant-baseline", value, NumberUnit.Pixels); }
+    public CssKeyword? DominantBaseline { init => Set("dominant-baseline", value); }
 
     /// <summary>控制分离边框表格中空单元格的边框和背景是否绘制。（empty-cells）</summary>
     /// <remarks>
@@ -1648,7 +1648,7 @@ public sealed partial class Style
     /// <para>初始值 <c>show</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/empty-cells"/>
-    public CssValue? EmptyCells { init => Set("empty-cells", value, NumberUnit.Pixels); }
+    public CssKeyword? EmptyCells { init => Set("empty-cells", value); }
 
     /// <summary>设置 SVG 图形内部的填充绘制方式。（fill）</summary>
     /// <remarks>
@@ -1674,7 +1674,7 @@ public sealed partial class Style
     /// <para>初始值 <c>nonzero</c>；继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/fill-rule"/>
-    public CssValue? FillRule { init => Set("fill-rule", value, NumberUnit.Pixels); }
+    public CssKeyword? FillRule { init => Set("fill-rule", value); }
 
     /// <summary>对元素的最终图像应用模糊、亮度等滤镜。（filter）</summary>
     /// <remarks>
@@ -1685,7 +1685,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/filter"/>
-    public CssValue? Filter { init => Set("filter", value, NumberUnit.Pixels); }
+    public CssKeyword? Filter { init => Set("filter", value); }
 
     /// <summary>集中设置弹性项目的增长系数、收缩系数和基础尺寸。（flex）</summary>
     /// <remarks>
@@ -1728,14 +1728,14 @@ public sealed partial class Style
     /// <para>初始值 <c>row</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/flex-direction"/>
-    public CssValue? FlexDirection { init => Set("flex-direction", value, NumberUnit.Pixels); }
+    public CssKeyword? FlexDirection { init => Set("flex-direction", value); }
 
     /// <summary>同时设置弹性布局的主轴方向和换行方式。（flex-flow）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/flex-flow"/>
-    public CssValue? FlexFlow { init => Set("flex-flow", value, NumberUnit.Pixels); }
+    public CssKeyword? FlexFlow { init => Set("flex-flow", value); }
 
     /// <summary>设置弹性项目分配正剩余空间时的增长系数。（flex-grow）</summary>
     /// <remarks>
@@ -1767,7 +1767,7 @@ public sealed partial class Style
     /// <para>初始值 <c>nowrap</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/flex-wrap"/>
-    public CssValue? FlexWrap { init => Set("flex-wrap", value, NumberUnit.Pixels); }
+    public CssKeyword? FlexWrap { init => Set("flex-wrap", value); }
 
     /// <summary>将元素浮动到指定侧，使相邻行内内容围绕它排列。（float）</summary>
     /// <remarks>
@@ -1784,21 +1784,21 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/float"/>
-    public CssValue? Float { init => Set("float", value, NumberUnit.Pixels); }
+    public CssKeyword? Float { init => Set("float", value); }
 
     /// <summary>集中设置字体样式、粗细、大小、行高和字体族等信息。（font）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font"/>
-    public CssLength? Font { init => Set("font", value); }
+    public CssKeyword? Font { init => Set("font", value); }
 
     /// <summary>设置按优先级排列的字体族及通用字体回退。（font-family）</summary>
     /// <remarks>
     /// <para>初始值 <c>dependsOnUserAgent</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-family"/>
-    public CssValue? FontFamily { init => Set("font-family", value, NumberUnit.Pixels); }
+    public CssKeyword? FontFamily { init => Set("font-family", value); }
 
     /// <summary>通过 OpenType 特性标签控制字体的底层排版功能。（font-feature-settings）</summary>
     /// <remarks>
@@ -1809,7 +1809,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-feature-settings"/>
-    public CssValue? FontFeatureSettings { init => Set("font-feature-settings", value, NumberUnit.Pixels); }
+    public CssKeyword? FontFeatureSettings { init => Set("font-feature-settings", value); }
 
     /// <summary>设置是否应用字体提供的字偶间距调整。（font-kerning）</summary>
     /// <remarks>
@@ -1822,7 +1822,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-kerning"/>
-    public CssValue? FontKerning { init => Set("font-kerning", value, NumberUnit.Pixels); }
+    public CssKeyword? FontKerning { init => Set("font-kerning", value); }
 
     /// <summary>覆盖字体排版使用的语言系统标签，不改变文本实际语言。（font-language-override）</summary>
     /// <remarks>
@@ -1833,7 +1833,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-language-override"/>
-    public CssValue? FontLanguageOverride { init => Set("font-language-override", value, NumberUnit.Pixels); }
+    public CssKeyword? FontLanguageOverride { init => Set("font-language-override", value); }
 
     /// <summary>控制支持光学尺寸轴的字体是否按字号优化字形。（font-optical-sizing）</summary>
     /// <remarks>
@@ -1845,7 +1845,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-optical-sizing"/>
-    public CssValue? FontOpticalSizing { init => Set("font-optical-sizing", value, NumberUnit.Pixels); }
+    public CssKeyword? FontOpticalSizing { init => Set("font-optical-sizing", value); }
 
     /// <summary>选择或覆盖彩色字体使用的调色板。（font-palette）</summary>
     /// <remarks>
@@ -1858,7 +1858,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-palette"/>
-    public CssValue? FontPalette { init => Set("font-palette", value, NumberUnit.Pixels); }
+    public CssKeyword? FontPalette { init => Set("font-palette", value); }
 
     /// <summary>设置字体大小，也影响 em 等相对单位的计算。（font-size）</summary>
     /// <remarks>
@@ -1889,7 +1889,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；已废弃；Baseline：2020 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-stretch"/>
-    public CssValue? FontStretch { init => Set("font-stretch", value, NumberUnit.Pixels); }
+    public CssKeyword? FontStretch { init => Set("font-stretch", value); }
 
     /// <summary>选择正常、斜体或倾斜字体样式。（font-style）</summary>
     /// <remarks>
@@ -1902,7 +1902,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-style"/>
-    public CssValue? FontStyle { init => Set("font-style", value, NumberUnit.Pixels); }
+    public CssKeyword? FontStyle { init => Set("font-style", value); }
 
     /// <summary>控制缺少真实字体字形时浏览器可否合成粗体、斜体等样式。（font-synthesis）</summary>
     /// <remarks>
@@ -1917,7 +1917,7 @@ public sealed partial class Style
     /// <para>初始值 <c>weight style small-caps position </c>；继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-synthesis"/>
-    public CssValue? FontSynthesis { init => Set("font-synthesis", value, NumberUnit.Pixels); }
+    public CssKeyword? FontSynthesis { init => Set("font-synthesis", value); }
 
     /// <summary>控制浏览器是否可以合成上标和下标字形。（font-synthesis-position）</summary>
     /// <remarks>
@@ -1929,7 +1929,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-synthesis-position"/>
-    public CssValue? FontSynthesisPosition { init => Set("font-synthesis-position", value, NumberUnit.Pixels); }
+    public CssKeyword? FontSynthesisPosition { init => Set("font-synthesis-position", value); }
 
     /// <summary>控制浏览器是否可以合成小型大写字形。（font-synthesis-small-caps）</summary>
     /// <remarks>
@@ -1941,7 +1941,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-synthesis-small-caps"/>
-    public CssValue? FontSynthesisSmallCaps { init => Set("font-synthesis-small-caps", value, NumberUnit.Pixels); }
+    public CssKeyword? FontSynthesisSmallCaps { init => Set("font-synthesis-small-caps", value); }
 
     /// <summary>控制浏览器是否可以合成倾斜字体。（font-synthesis-style）</summary>
     /// <remarks>
@@ -1953,7 +1953,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-synthesis-style"/>
-    public CssValue? FontSynthesisStyle { init => Set("font-synthesis-style", value, NumberUnit.Pixels); }
+    public CssKeyword? FontSynthesisStyle { init => Set("font-synthesis-style", value); }
 
     /// <summary>控制浏览器是否可以合成加粗字体。（font-synthesis-weight）</summary>
     /// <remarks>
@@ -1965,7 +1965,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-synthesis-weight"/>
-    public CssValue? FontSynthesisWeight { init => Set("font-synthesis-weight", value, NumberUnit.Pixels); }
+    public CssKeyword? FontSynthesisWeight { init => Set("font-synthesis-weight", value); }
 
     /// <summary>集中设置字体的连字、大小写、数字及其他变体。（font-variant）</summary>
     /// <remarks>
@@ -1987,7 +1987,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-variant"/>
-    public CssValue? FontVariant { init => Set("font-variant", value, NumberUnit.Pixels); }
+    public CssKeyword? FontVariant { init => Set("font-variant", value); }
 
     /// <summary>选择字体提供的替代字形。（font-variant-alternates）</summary>
     /// <remarks>
@@ -1999,7 +1999,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-variant-alternates"/>
-    public CssValue? FontVariantAlternates { init => Set("font-variant-alternates", value, NumberUnit.Pixels); }
+    public CssKeyword? FontVariantAlternates { init => Set("font-variant-alternates", value); }
 
     /// <summary>设置小型大写等大小写字形变体。（font-variant-caps）</summary>
     /// <remarks>
@@ -2016,7 +2016,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-variant-caps"/>
-    public CssValue? FontVariantCaps { init => Set("font-variant-caps", value, NumberUnit.Pixels); }
+    public CssKeyword? FontVariantCaps { init => Set("font-variant-caps", value); }
 
     /// <summary>设置东亚文字字形及宽度变体。（font-variant-east-asian）</summary>
     /// <remarks>
@@ -2028,7 +2028,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-variant-east-asian"/>
-    public CssValue? FontVariantEastAsian { init => Set("font-variant-east-asian", value, NumberUnit.Pixels); }
+    public CssKeyword? FontVariantEastAsian { init => Set("font-variant-east-asian", value); }
 
     /// <summary>设置字体连字的启用方式。（font-variant-ligatures）</summary>
     /// <remarks>
@@ -2040,7 +2040,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-variant-ligatures"/>
-    public CssValue? FontVariantLigatures { init => Set("font-variant-ligatures", value, NumberUnit.Pixels); }
+    public CssKeyword? FontVariantLigatures { init => Set("font-variant-ligatures", value); }
 
     /// <summary>设置数字的等宽、比例、分数及其他排版变体。（font-variant-numeric）</summary>
     /// <remarks>
@@ -2053,7 +2053,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-variant-numeric"/>
-    public CssValue? FontVariantNumeric { init => Set("font-variant-numeric", value, NumberUnit.Pixels); }
+    public CssKeyword? FontVariantNumeric { init => Set("font-variant-numeric", value); }
 
     /// <summary>选择字体提供的上标或下标字形。（font-variant-position）</summary>
     /// <remarks>
@@ -2066,7 +2066,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-variant-position"/>
-    public CssValue? FontVariantPosition { init => Set("font-variant-position", value, NumberUnit.Pixels); }
+    public CssKeyword? FontVariantPosition { init => Set("font-variant-position", value); }
 
     /// <summary>直接设置可变字体各个轴的数值。（font-variation-settings）</summary>
     /// <remarks>
@@ -2077,7 +2077,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2021 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/font-variation-settings"/>
-    public CssValue? FontVariationSettings { init => Set("font-variation-settings", value, NumberUnit.Pixels); }
+    public CssKeyword? FontVariationSettings { init => Set("font-variation-settings", value); }
 
     /// <summary>设置字体粗细，实际可用字重取决于字体。（font-weight）</summary>
     /// <remarks>
@@ -2105,7 +2105,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/forced-color-adjust"/>
-    public CssValue? ForcedColorAdjust { init => Set("forced-color-adjust", value, NumberUnit.Pixels); }
+    public CssKeyword? ForcedColorAdjust { init => Set("forced-color-adjust", value); }
 
     /// <summary>设置行与列之间的间距，用于 Grid、Flex 和多栏等布局。（gap）</summary>
     /// <remarks>
@@ -2138,7 +2138,7 @@ public sealed partial class Style
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2020 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/grid"/>
-    public CssLength? Grid { init => Set("grid", value); }
+    public CssKeyword? Grid { init => Set("grid", value); }
 
     /// <summary>设置网格项目的区域名，或行起点、列起点、行终点、列终点。（grid-area）</summary>
     /// <remarks>
@@ -2167,7 +2167,7 @@ public sealed partial class Style
     /// <para>初始值 <c>row</c>；不继承；Baseline：2020 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/grid-auto-flow"/>
-    public CssValue? GridAutoFlow { init => Set("grid-auto-flow", value, NumberUnit.Pixels); }
+    public CssKeyword? GridAutoFlow { init => Set("grid-auto-flow", value); }
 
     /// <summary>设置隐式生成的网格行尺寸。（grid-auto-rows）</summary>
     /// <remarks>
@@ -2248,7 +2248,7 @@ public sealed partial class Style
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2020 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/grid-template"/>
-    public CssLength? GridTemplate { init => Set("grid-template", value); }
+    public CssKeyword? GridTemplate { init => Set("grid-template", value); }
 
     /// <summary>用区域名称矩阵定义网格布局区域。（grid-template-areas）</summary>
     /// <remarks>
@@ -2259,7 +2259,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2020 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/grid-template-areas"/>
-    public CssValue? GridTemplateAreas { init => Set("grid-template-areas", value, NumberUnit.Pixels); }
+    public CssKeyword? GridTemplateAreas { init => Set("grid-template-areas", value); }
 
     /// <summary>定义显式网格的列轨道尺寸及网格线名称。（grid-template-columns）</summary>
     /// <remarks>
@@ -2273,7 +2273,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2020 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/grid-template-columns"/>
-    public CssLength? GridTemplateColumns { init => Set("grid-template-columns", value); }
+    public CssKeyword? GridTemplateColumns { init => Set("grid-template-columns", value); }
 
     /// <summary>定义显式网格的行轨道尺寸及网格线名称。（grid-template-rows）</summary>
     /// <remarks>
@@ -2287,7 +2287,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2020 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/grid-template-rows"/>
-    public CssLength? GridTemplateRows { init => Set("grid-template-rows", value); }
+    public CssKeyword? GridTemplateRows { init => Set("grid-template-rows", value); }
 
     /// <summary>控制标点是否可以悬挂在行盒边缘之外。（hanging-punctuation）</summary>
     /// <remarks>
@@ -2302,7 +2302,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/hanging-punctuation"/>
-    public CssValue? HangingPunctuation { init => Set("hanging-punctuation", value, NumberUnit.Pixels); }
+    public CssKeyword? HangingPunctuation { init => Set("hanging-punctuation", value); }
 
     /// <summary>设置元素的物理高度，盒子范围受 box-sizing 影响。（height）</summary>
     /// <remarks>
@@ -2329,7 +2329,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/hyphenate-character"/>
-    public CssValue? HyphenateCharacter { init => Set("hyphenate-character", value, NumberUnit.Pixels); }
+    public CssKeyword? HyphenateCharacter { init => Set("hyphenate-character", value); }
 
     /// <summary>限制可断词的最小单词长度以及断点两侧的最少字符数。（hyphenate-limit-chars）</summary>
     /// <remarks>
@@ -2353,7 +2353,7 @@ public sealed partial class Style
     /// <para>初始值 <c>manual</c>；继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/hyphens"/>
-    public CssValue? Hyphens { init => Set("hyphens", value, NumberUnit.Pixels); }
+    public CssKeyword? Hyphens { init => Set("hyphens", value); }
 
     /// <summary>设置图像是否按元数据等信息调整方向。（image-orientation）</summary>
     /// <remarks>
@@ -2379,7 +2379,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/image-rendering"/>
-    public CssValue? ImageRendering { init => Set("image-rendering", value, NumberUnit.Pixels); }
+    public CssKeyword? ImageRendering { init => Set("image-rendering", value); }
 
     /// <summary>设置图像的分辨率解释方式；使用前核对目标浏览器支持。（image-resolution）</summary>
     /// <remarks>
@@ -2391,7 +2391,7 @@ public sealed partial class Style
     /// <para>初始值 <c>1dppx</c>；继承；实验性。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/image-resolution"/>
-    public CssValue? ImageResolution { init => Set("image-resolution", value, NumberUnit.Pixels); }
+    public CssKeyword? ImageResolution { init => Set("image-resolution", value); }
 
     /// <summary>控制输入框的输入法状态（ime-mode），已废弃，大多数浏览器不支持。</summary>
     /// <remarks>
@@ -2405,7 +2405,7 @@ public sealed partial class Style
     /// </list>
     /// <para>初始值 <c>auto</c>；不继承；已废弃；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
-    public CssValue? ImeMode { init => Set("ime-mode", value, NumberUnit.Pixels); }
+    public CssKeyword? ImeMode { init => Set("ime-mode", value); }
 
     /// <summary>设置段落首字下沉或抬升时占用的行数与对齐位置。（initial-letter）</summary>
     /// <remarks>
@@ -2416,7 +2416,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/initial-letter"/>
-    public CssValue? InitialLetter { init => Set("initial-letter", value, NumberUnit.Pixels); }
+    public CssKeyword? InitialLetter { init => Set("initial-letter", value); }
 
     /// <summary>设置首字下沉时字形与正文使用的对齐基线。（initial-letter-align）</summary>
     /// <remarks>
@@ -2429,7 +2429,7 @@ public sealed partial class Style
     /// </list>
     /// <para>初始值 <c>auto</c>；不继承；实验性。</para>
     /// </remarks>
-    public CssValue? InitialLetterAlign { init => Set("initial-letter-align", value, NumberUnit.Pixels); }
+    public CssKeyword? InitialLetterAlign { init => Set("initial-letter-align", value); }
 
     /// <summary>设置逻辑行内轴尺寸；水平书写时通常对应宽度。（inline-size）</summary>
     /// <remarks>
@@ -2506,7 +2506,7 @@ public sealed partial class Style
     /// <para>初始值 <c>numeric-only</c>；继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/interpolate-size"/>
-    public CssValue? InterpolateSize { init => Set("interpolate-size", value, NumberUnit.Pixels); }
+    public CssKeyword? InterpolateSize { init => Set("interpolate-size", value); }
 
     /// <summary>控制元素是否建立独立的层叠上下文，隔离混合效果。（isolation）</summary>
     /// <remarks>
@@ -2519,7 +2519,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/isolation"/>
-    public CssValue? Isolation { init => Set("isolation", value, NumberUnit.Pixels); }
+    public CssKeyword? Isolation { init => Set("isolation", value); }
 
     /// <summary>分配布局主轴或行内轴的剩余空间，控制内容整体对齐。（justify-content）</summary>
     /// <remarks>
@@ -2534,7 +2534,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/justify-content"/>
-    public CssValue? JustifyContent { init => Set("justify-content", value, NumberUnit.Pixels); }
+    public CssKeyword? JustifyContent { init => Set("justify-content", value); }
 
     /// <summary>设置容器内项目在行内轴上的默认对齐方式；不控制 Flex 项目的主轴对齐。（justify-items）</summary>
     /// <remarks>
@@ -2542,7 +2542,7 @@ public sealed partial class Style
     /// <para>初始值 <c>legacy</c>；不继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/justify-items"/>
-    public CssValue? JustifyItems { init => Set("justify-items", value, NumberUnit.Pixels); }
+    public CssKeyword? JustifyItems { init => Set("justify-items", value); }
 
     /// <summary>单独设置项目在其布局区域内的行内轴对齐方式。（justify-self）</summary>
     /// <remarks>
@@ -2562,7 +2562,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2020 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/justify-self"/>
-    public CssValue? JustifySelf { init => Set("justify-self", value, NumberUnit.Pixels); }
+    public CssKeyword? JustifySelf { init => Set("justify-self", value); }
 
     /// <summary>旧版瀑布流布局提案中沿行内轴对齐轨道的属性；使用前核对实现与规范版本。（justify-tracks）</summary>
     /// <remarks>
@@ -2574,7 +2574,7 @@ public sealed partial class Style
     /// </list>
     /// <para>初始值 <c>normal</c>；不继承；非标准。</para>
     /// </remarks>
-    public CssValue? JustifyTracks { init => Set("justify-tracks", value, NumberUnit.Pixels); }
+    public CssKeyword? JustifyTracks { init => Set("justify-tracks", value); }
 
     /// <summary>SVG 文字的字距调整（kerning），已废弃，请用 fontKerning 或 letterSpacing。</summary>
     /// <remarks>
@@ -2616,7 +2616,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2023 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/line-break"/>
-    public CssValue? LineBreak { init => Set("line-break", value, NumberUnit.Pixels); }
+    public CssKeyword? LineBreak { init => Set("line-break", value); }
 
     /// <summary>设置行盒高度；无单位数值按元素自身字号计算。（line-height）</summary>
     /// <remarks>
@@ -2643,7 +2643,7 @@ public sealed partial class Style
     /// <para>简写属性，初始值见各分项；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/list-style"/>
-    public CssValue? ListStyle { init => Set("list-style", value, NumberUnit.Pixels); }
+    public CssKeyword? ListStyle { init => Set("list-style", value); }
 
     /// <summary>设置用作列表标记的图像。（list-style-image）</summary>
     /// <remarks>
@@ -2654,7 +2654,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/list-style-image"/>
-    public CssValue? ListStyleImage { init => Set("list-style-image", value, NumberUnit.Pixels); }
+    public CssKeyword? ListStyleImage { init => Set("list-style-image", value); }
 
     /// <summary>设置列表标记位于主块盒内部还是外部。（list-style-position）</summary>
     /// <remarks>
@@ -2666,7 +2666,7 @@ public sealed partial class Style
     /// <para>初始值 <c>outside</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/list-style-position"/>
-    public CssValue? ListStylePosition { init => Set("list-style-position", value, NumberUnit.Pixels); }
+    public CssKeyword? ListStylePosition { init => Set("list-style-position", value); }
 
     /// <summary>设置列表标记或计数器的样式。（list-style-type）</summary>
     /// <remarks>
@@ -2677,7 +2677,7 @@ public sealed partial class Style
     /// <para>初始值 <c>disc</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/list-style-type"/>
-    public CssValue? ListStyleType { init => Set("list-style-type", value, NumberUnit.Pixels); }
+    public CssKeyword? ListStyleType { init => Set("list-style-type", value); }
 
     /// <summary>设置盒子四周的外边距，可使用负值或自动外边距。（margin）</summary>
     /// <remarks>
@@ -2828,7 +2828,7 @@ public sealed partial class Style
     /// <para>简写属性，初始值见各分项；继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/marker"/>
-    public CssValue? Marker { init => Set("marker", value, NumberUnit.Pixels); }
+    public CssKeyword? Marker { init => Set("marker", value); }
 
     /// <summary>设置 SVG 路径终点的标记图形。（marker-end）</summary>
     /// <remarks>
@@ -2839,7 +2839,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/marker-end"/>
-    public CssValue? MarkerEnd { init => Set("marker-end", value, NumberUnit.Pixels); }
+    public CssKeyword? MarkerEnd { init => Set("marker-end", value); }
 
     /// <summary>设置 SVG 路径中间顶点的标记图形。（marker-mid）</summary>
     /// <remarks>
@@ -2850,7 +2850,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/marker-mid"/>
-    public CssValue? MarkerMid { init => Set("marker-mid", value, NumberUnit.Pixels); }
+    public CssKeyword? MarkerMid { init => Set("marker-mid", value); }
 
     /// <summary>列表标记与内容之间的距离（marker-offset），已从规范中移除。</summary>
     /// <remarks>
@@ -2867,21 +2867,21 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/marker-start"/>
-    public CssValue? MarkerStart { init => Set("marker-start", value, NumberUnit.Pixels); }
+    public CssKeyword? MarkerStart { init => Set("marker-start", value); }
 
     /// <summary>集中设置遮罩图层的图像、位置、尺寸、重复及合成方式。（mask）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask"/>
-    public CssLength? Mask { init => Set("mask", value); }
+    public CssKeyword? Mask { init => Set("mask", value); }
 
     /// <summary>设置基于九宫格图像切片的边框遮罩。（mask-border）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-border"/>
-    public CssLength? MaskBorder { init => Set("mask-border", value); }
+    public CssKeyword? MaskBorder { init => Set("mask-border", value); }
 
     /// <summary>设置边框遮罩使用 alpha 还是亮度信息。（mask-border-mode）</summary>
     /// <remarks>
@@ -2893,7 +2893,7 @@ public sealed partial class Style
     /// <para>初始值 <c>alpha</c>；不继承。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-border-mode"/>
-    public CssValue? MaskBorderMode { init => Set("mask-border-mode", value, NumberUnit.Pixels); }
+    public CssKeyword? MaskBorderMode { init => Set("mask-border-mode", value); }
 
     /// <summary>设置边框遮罩超出边框盒的距离。（mask-border-outset）</summary>
     /// <remarks>
@@ -2914,7 +2914,7 @@ public sealed partial class Style
     /// <para>初始值 <c>stretch</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-border-repeat"/>
-    public CssValue? MaskBorderRepeat { init => Set("mask-border-repeat", value, NumberUnit.Pixels); }
+    public CssKeyword? MaskBorderRepeat { init => Set("mask-border-repeat", value); }
 
     /// <summary>设置边框遮罩图像的切片位置。（mask-border-slice）</summary>
     /// <remarks>
@@ -2936,7 +2936,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-border-source"/>
-    public CssValue? MaskBorderSource { init => Set("mask-border-source", value, NumberUnit.Pixels); }
+    public CssKeyword? MaskBorderSource { init => Set("mask-border-source", value); }
 
     /// <summary>设置边框遮罩各边的宽度。（mask-border-width）</summary>
     /// <remarks>
@@ -2958,28 +2958,28 @@ public sealed partial class Style
     /// <para>初始值 <c>border-box</c>；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-clip"/>
-    public CssValue? MaskClip { init => Set("mask-clip", value, NumberUnit.Pixels); }
+    public CssKeyword? MaskClip { init => Set("mask-clip", value); }
 
     /// <summary>设置多个遮罩图层之间的合成运算。（mask-composite）</summary>
     /// <remarks>
     /// <para>初始值 <c>add</c>；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-composite"/>
-    public CssValue? MaskComposite { init => Set("mask-composite", value, NumberUnit.Pixels); }
+    public CssKeyword? MaskComposite { init => Set("mask-composite", value); }
 
     /// <summary>设置遮罩使用的图像、渐变或 SVG 遮罩引用。（mask-image）</summary>
     /// <remarks>
     /// <para>初始值 <c>none</c>；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-image"/>
-    public CssValue? MaskImage { init => Set("mask-image", value, NumberUnit.Pixels); }
+    public CssKeyword? MaskImage { init => Set("mask-image", value); }
 
     /// <summary>设置遮罩按 alpha、亮度或源类型解释。（mask-mode）</summary>
     /// <remarks>
     /// <para>初始值 <c>match-source</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-mode"/>
-    public CssValue? MaskMode { init => Set("mask-mode", value, NumberUnit.Pixels); }
+    public CssKeyword? MaskMode { init => Set("mask-mode", value); }
 
     /// <summary>设置遮罩图像定位所依据的盒子。（mask-origin）</summary>
     /// <remarks>
@@ -2990,21 +2990,21 @@ public sealed partial class Style
     /// <para>初始值 <c>border-box</c>；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-origin"/>
-    public CssValue? MaskOrigin { init => Set("mask-origin", value, NumberUnit.Pixels); }
+    public CssKeyword? MaskOrigin { init => Set("mask-origin", value); }
 
     /// <summary>设置遮罩图像在定位区域中的位置。（mask-position）</summary>
     /// <remarks>
     /// <para>初始值 <c>0% 0%</c>；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-position"/>
-    public CssLength? MaskPosition { init => Set("mask-position", value); }
+    public CssKeyword? MaskPosition { init => Set("mask-position", value); }
 
     /// <summary>设置遮罩图像的重复方式。（mask-repeat）</summary>
     /// <remarks>
     /// <para>初始值 <c>repeat</c>；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-repeat"/>
-    public CssValue? MaskRepeat { init => Set("mask-repeat", value, NumberUnit.Pixels); }
+    public CssKeyword? MaskRepeat { init => Set("mask-repeat", value); }
 
     /// <summary>设置遮罩图像的尺寸。（mask-size）</summary>
     /// <remarks>
@@ -3017,7 +3017,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-size"/>
-    public CssLength? MaskSize { init => Set("mask-size", value); }
+    public CssKeyword? MaskSize { init => Set("mask-size", value); }
 
     /// <summary>设置 SVG mask 元素使用亮度还是 alpha 作为遮罩。（mask-type）</summary>
     /// <remarks>
@@ -3029,7 +3029,7 @@ public sealed partial class Style
     /// <para>初始值 <c>luminance</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-type"/>
-    public CssValue? MaskType { init => Set("mask-type", value, NumberUnit.Pixels); }
+    public CssKeyword? MaskType { init => Set("mask-type", value); }
 
     /// <summary>旧版瀑布流布局提案中的自动放置策略；使用前核对实现与规范版本。（masonry-auto-flow）</summary>
     /// <remarks>
@@ -3043,7 +3043,7 @@ public sealed partial class Style
     /// <para>初始值 <c>pack</c>；不继承；非标准。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/grid-auto-flow"/>
-    public CssValue? MasonryAutoFlow { init => Set("masonry-auto-flow", value, NumberUnit.Pixels); }
+    public CssKeyword? MasonryAutoFlow { init => Set("masonry-auto-flow", value); }
 
     /// <summary>设置数学公式的嵌套深度，用于数学字号等排版计算。（math-depth）</summary>
     /// <remarks>
@@ -3066,7 +3066,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；实验性；Baseline：2025 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/math-shift"/>
-    public CssValue? MathShift { init => Set("math-shift", value, NumberUnit.Pixels); }
+    public CssKeyword? MathShift { init => Set("math-shift", value); }
 
     /// <summary>设置数学公式采用正常还是紧凑排版。（math-style）</summary>
     /// <remarks>
@@ -3078,7 +3078,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/math-style"/>
-    public CssValue? MathStyle { init => Set("math-style", value, NumberUnit.Pixels); }
+    public CssKeyword? MathStyle { init => Set("math-style", value); }
 
     /// <summary>限制元素逻辑块轴的最大尺寸。（max-block-size）</summary>
     /// <remarks>
@@ -3173,7 +3173,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mix-blend-mode"/>
-    public CssValue? MixBlendMode { init => Set("mix-blend-mode", value, NumberUnit.Pixels); }
+    public CssKeyword? MixBlendMode { init => Set("mix-blend-mode", value); }
 
     /// <summary>设置运动路径的旧式简写；对应现代 offset 属性族。（motion）</summary>
     /// <remarks>
@@ -3188,7 +3188,7 @@ public sealed partial class Style
     public CssValue? MotionOffset { init => Set("motion-offset", value, NumberUnit.Pixels); }
 
     /// <summary>设置运动路径的旧属性；对应 offset-path。（motion-path）</summary>
-    public CssValue? MotionPath { init => Set("motion-path", value, NumberUnit.Pixels); }
+    public CssKeyword? MotionPath { init => Set("motion-path", value); }
 
     /// <summary>设置运动路径旋转方式的旧属性；对应 offset-rotate。（motion-rotation）</summary>
     /// <remarks>
@@ -3203,7 +3203,7 @@ public sealed partial class Style
     /// <item><description><c>grayscale</c>：macOS 上改用灰度抗锯齿而非次像素渲染，文字更细，常用于深色背景上的浅色文字。非标准，仅 Firefox（macOS）支持。</description></item>
     /// </list>
     /// </remarks>
-    public CssValue? MozOsxFontSmoothing { init => Set("-moz-osx-font-smoothing", value, NumberUnit.Pixels); }
+    public CssKeyword? MozOsxFontSmoothing { init => Set("-moz-osx-font-smoothing", value); }
 
     /// <summary>IE 与旧版 Edge 的滚动条显示方式（-ms-overflow-style）；现代浏览器隐藏滚动条请用 scrollbarWidth。</summary>
     /// <remarks>
@@ -3216,7 +3216,7 @@ public sealed partial class Style
     /// </list>
     /// <para>初始值 <c>auto</c>；继承；非标准。</para>
     /// </remarks>
-    public CssValue? MsOverflowStyle { init => Set("-ms-overflow-style", value, NumberUnit.Pixels); }
+    public CssKeyword? MsOverflowStyle { init => Set("-ms-overflow-style", value); }
 
     /// <summary>设置替换元素的内容如何适应其内容盒，例如图像的裁切和缩放。（object-fit）</summary>
     /// <remarks>
@@ -3233,21 +3233,21 @@ public sealed partial class Style
     /// <para>初始值 <c>fill</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/object-fit"/>
-    public CssValue? ObjectFit { init => Set("object-fit", value, NumberUnit.Pixels); }
+    public CssKeyword? ObjectFit { init => Set("object-fit", value); }
 
     /// <summary>设置替换元素内容在内容盒内的对齐位置。（object-position）</summary>
     /// <remarks>
     /// <para>初始值 <c>50% 50%</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/object-position"/>
-    public CssLength? ObjectPosition { init => Set("object-position", value); }
+    public CssKeyword? ObjectPosition { init => Set("object-position", value); }
 
     /// <summary>集中设置运动路径、起始位置、距离、方向和锚点。（offset）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/offset"/>
-    public CssLength? Offset { init => Set("offset", value); }
+    public CssKeyword? Offset { init => Set("offset", value); }
 
     /// <summary>设置元素沿运动路径移动时与路径相接的内部锚点。（offset-anchor）</summary>
     /// <remarks>
@@ -3258,7 +3258,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/offset-anchor"/>
-    public CssLength? OffsetAnchor { init => Set("offset-anchor", value); }
+    public CssKeyword? OffsetAnchor { init => Set("offset-anchor", value); }
 
     /// <summary>设置元素沿运动路径行进的距离。（offset-distance）</summary>
     /// <remarks>
@@ -3276,7 +3276,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/offset-path"/>
-    public CssValue? OffsetPath { init => Set("offset-path", value, NumberUnit.Pixels); }
+    public CssKeyword? OffsetPath { init => Set("offset-path", value); }
 
     /// <summary>设置运动路径的初始位置。（offset-position）</summary>
     /// <remarks>
@@ -3288,7 +3288,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/offset-position"/>
-    public CssLength? OffsetPosition { init => Set("offset-position", value); }
+    public CssKeyword? OffsetPosition { init => Set("offset-position", value); }
 
     /// <summary>设置元素沿运动路径移动时的方向和附加旋转。（offset-rotate）</summary>
     /// <remarks>
@@ -3300,7 +3300,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/offset-rotate"/>
-    public CssValue? OffsetRotate { init => Set("offset-rotate", value, NumberUnit.Pixels); }
+    public CssKeyword? OffsetRotate { init => Set("offset-rotate", value); }
 
     /// <summary>设置元素及其子树合成后的整体不透明度。（opacity）</summary>
     /// <remarks>
@@ -3363,7 +3363,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/outline-style"/>
-    public CssValue? OutlineStyle { init => Set("outline-style", value, NumberUnit.Pixels); }
+    public CssKeyword? OutlineStyle { init => Set("outline-style", value); }
 
     /// <summary>设置轮廓线宽度。（outline-width）</summary>
     /// <remarks>
@@ -3387,7 +3387,7 @@ public sealed partial class Style
     /// <para>初始值 <c>visible</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overflow"/>
-    public CssValue? Overflow { init => Set("overflow", value, NumberUnit.Pixels); }
+    public CssKeyword? Overflow { init => Set("overflow", value); }
 
     /// <summary>控制元素是否参与滚动锚定，以减少内容变化造成的视口跳动。（overflow-anchor）</summary>
     /// <remarks>
@@ -3399,7 +3399,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2026 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overflow-anchor"/>
-    public CssValue? OverflowAnchor { init => Set("overflow-anchor", value, NumberUnit.Pixels); }
+    public CssKeyword? OverflowAnchor { init => Set("overflow-anchor", value); }
 
     /// <summary>设置逻辑块轴上的溢出行为。（overflow-block）</summary>
     /// <remarks>
@@ -3414,14 +3414,14 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2025 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overflow-block"/>
-    public CssValue? OverflowBlock { init => Set("overflow-block", value, NumberUnit.Pixels); }
+    public CssKeyword? OverflowBlock { init => Set("overflow-block", value); }
 
     /// <summary>设置 overflow:clip 的裁剪边界允许向外扩展的距离。（overflow-clip-margin）</summary>
     /// <remarks>
     /// <para>初始值 <c>0px</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overflow-clip-margin"/>
-    public CssLength? OverflowClipMargin { init => Set("overflow-clip-margin", value); }
+    public CssKeyword? OverflowClipMargin { init => Set("overflow-clip-margin", value); }
 
     /// <summary>设置不可正常断开的长文本是否允许额外换行。（overflow-wrap）</summary>
     /// <remarks>
@@ -3435,7 +3435,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2021 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overflow-wrap"/>
-    public CssValue? OverflowWrap { init => Set("overflow-wrap", value, NumberUnit.Pixels); }
+    public CssKeyword? OverflowWrap { init => Set("overflow-wrap", value); }
 
     /// <summary>设置水平方向的溢出行为。（overflow-x）</summary>
     /// <remarks>
@@ -3450,7 +3450,7 @@ public sealed partial class Style
     /// <para>初始值 <c>visible</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overflow-x"/>
-    public CssValue? OverflowX { init => Set("overflow-x", value, NumberUnit.Pixels); }
+    public CssKeyword? OverflowX { init => Set("overflow-x", value); }
 
     /// <summary>设置垂直方向的溢出行为。（overflow-y）</summary>
     /// <remarks>
@@ -3465,7 +3465,7 @@ public sealed partial class Style
     /// <para>初始值 <c>visible</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overflow-y"/>
-    public CssValue? OverflowY { init => Set("overflow-y", value, NumberUnit.Pixels); }
+    public CssKeyword? OverflowY { init => Set("overflow-y", value); }
 
     /// <summary>控制滚动到边界后的滚动链和越界反馈行为。（overscroll-behavior）</summary>
     /// <remarks>
@@ -3479,7 +3479,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overscroll-behavior"/>
-    public CssValue? OverscrollBehavior { init => Set("overscroll-behavior", value, NumberUnit.Pixels); }
+    public CssKeyword? OverscrollBehavior { init => Set("overscroll-behavior", value); }
 
     /// <summary>控制逻辑块轴上到达滚动边界后的行为。（overscroll-behavior-block）</summary>
     /// <remarks>
@@ -3492,7 +3492,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overscroll-behavior-block"/>
-    public CssValue? OverscrollBehaviorBlock { init => Set("overscroll-behavior-block", value, NumberUnit.Pixels); }
+    public CssKeyword? OverscrollBehaviorBlock { init => Set("overscroll-behavior-block", value); }
 
     /// <summary>控制逻辑行内轴上到达滚动边界后的行为。（overscroll-behavior-inline）</summary>
     /// <remarks>
@@ -3505,7 +3505,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overscroll-behavior-inline"/>
-    public CssValue? OverscrollBehaviorInline { init => Set("overscroll-behavior-inline", value, NumberUnit.Pixels); }
+    public CssKeyword? OverscrollBehaviorInline { init => Set("overscroll-behavior-inline", value); }
 
     /// <summary>控制水平方向到达滚动边界后的行为。（overscroll-behavior-x）</summary>
     /// <remarks>
@@ -3518,7 +3518,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overscroll-behavior-x"/>
-    public CssValue? OverscrollBehaviorX { init => Set("overscroll-behavior-x", value, NumberUnit.Pixels); }
+    public CssKeyword? OverscrollBehaviorX { init => Set("overscroll-behavior-x", value); }
 
     /// <summary>控制垂直方向到达滚动边界后的行为。（overscroll-behavior-y）</summary>
     /// <remarks>
@@ -3531,7 +3531,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overscroll-behavior-y"/>
-    public CssValue? OverscrollBehaviorY { init => Set("overscroll-behavior-y", value, NumberUnit.Pixels); }
+    public CssKeyword? OverscrollBehaviorY { init => Set("overscroll-behavior-y", value); }
 
     /// <summary>设置内容与边框之间的四边内边距，不接受负值。（padding）</summary>
     /// <remarks>
@@ -3621,7 +3621,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/page"/>
-    public CssValue? Page { init => Set("page", value, NumberUnit.Pixels); }
+    public CssKeyword? Page { init => Set("page", value); }
 
     /// <summary>打印时元素之后是否分页（page-break-after），旧写法，请改用 breakAfter。</summary>
     /// <remarks>
@@ -3636,7 +3636,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；已废弃；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/page-break-after"/>
-    public CssValue? PageBreakAfter { init => Set("page-break-after", value, NumberUnit.Pixels); }
+    public CssKeyword? PageBreakAfter { init => Set("page-break-after", value); }
 
     /// <summary>打印时元素之前是否分页（page-break-before），旧写法，请改用 breakBefore。</summary>
     /// <remarks>
@@ -3651,7 +3651,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；已废弃；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/page-break-before"/>
-    public CssValue? PageBreakBefore { init => Set("page-break-before", value, NumberUnit.Pixels); }
+    public CssKeyword? PageBreakBefore { init => Set("page-break-before", value); }
 
     /// <summary>打印时是否允许在元素内部分页（page-break-inside），旧写法，请改用 breakInside。</summary>
     /// <remarks>
@@ -3663,7 +3663,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；已废弃；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/page-break-inside"/>
-    public CssValue? PageBreakInside { init => Set("page-break-inside", value, NumberUnit.Pixels); }
+    public CssKeyword? PageBreakInside { init => Set("page-break-inside", value); }
 
     /// <summary>设置 SVG 填充、描边和标记的绘制先后顺序。（paint-order）</summary>
     /// <remarks>
@@ -3744,28 +3744,28 @@ public sealed partial class Style
     /// <para>初始值 <c>50% 50%</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/perspective-origin"/>
-    public CssLength? PerspectiveOrigin { init => Set("perspective-origin", value); }
+    public CssKeyword? PerspectiveOrigin { init => Set("perspective-origin", value); }
 
     /// <summary>同时设置 align-content 与 justify-content。（place-content）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/place-content"/>
-    public CssValue? PlaceContent { init => Set("place-content", value, NumberUnit.Pixels); }
+    public CssKeyword? PlaceContent { init => Set("place-content", value); }
 
     /// <summary>同时设置 align-items 与 justify-items。（place-items）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/place-items"/>
-    public CssValue? PlaceItems { init => Set("place-items", value, NumberUnit.Pixels); }
+    public CssKeyword? PlaceItems { init => Set("place-items", value); }
 
     /// <summary>同时设置 align-self 与 justify-self。（place-self）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/place-self"/>
-    public CssValue? PlaceSelf { init => Set("place-self", value, NumberUnit.Pixels); }
+    public CssKeyword? PlaceSelf { init => Set("place-self", value); }
 
     /// <summary>设置元素何时可以成为指针命中目标；SVG 还支持按填充和描边命中。（pointer-events）</summary>
     /// <remarks>
@@ -3779,7 +3779,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/pointer-events"/>
-    public CssValue? PointerEvents { init => Set("pointer-events", value, NumberUnit.Pixels); }
+    public CssKeyword? PointerEvents { init => Set("pointer-events", value); }
 
     /// <summary>设置元素的定位方式，并决定偏移属性如何参与布局。（position）</summary>
     /// <remarks>
@@ -3796,7 +3796,7 @@ public sealed partial class Style
     /// <para>初始值 <c>static</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/position"/>
-    public CssValue? Position { init => Set("position", value, NumberUnit.Pixels); }
+    public CssKeyword? Position { init => Set("position", value); }
 
     /// <summary>选择绝对定位元素使用的默认锚点。（position-anchor）</summary>
     /// <remarks>
@@ -3810,7 +3810,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；实验性；Baseline：2026 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/position-anchor"/>
-    public CssValue? PositionAnchor { init => Set("position-anchor", value, NumberUnit.Pixels); }
+    public CssKeyword? PositionAnchor { init => Set("position-anchor", value); }
 
     /// <summary>选择相对于锚点的定位区域。（position-area）</summary>
     /// <remarks>
@@ -3821,14 +3821,14 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；实验性；Baseline：2026 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/position-area"/>
-    public CssValue? PositionArea { init => Set("position-area", value, NumberUnit.Pixels); }
+    public CssKeyword? PositionArea { init => Set("position-area", value); }
 
     /// <summary>同时设置锚点定位的候选回退方式及尝试顺序。（position-try）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；实验性；Baseline：2026 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/position-try"/>
-    public CssValue? PositionTry { init => Set("position-try", value, NumberUnit.Pixels); }
+    public CssKeyword? PositionTry { init => Set("position-try", value); }
 
     /// <summary>设置锚点定位溢出时尝试的替代位置。（position-try-fallbacks）</summary>
     /// <remarks>
@@ -3839,10 +3839,10 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；实验性；Baseline：2026 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/position-try-fallbacks"/>
-    public CssValue? PositionTryFallbacks { init => Set("position-try-fallbacks", value, NumberUnit.Pixels); }
+    public CssKeyword? PositionTryFallbacks { init => Set("position-try-fallbacks", value); }
 
     /// <summary>锚点定位放不下时依次尝试的备选位置（position-try-options），是 positionTryFallbacks 的旧名，请改用后者。</summary>
-    public CssValue? PositionTryOptions { init => Set("position-try-options", value, NumberUnit.Pixels); }
+    public CssKeyword? PositionTryOptions { init => Set("position-try-options", value); }
 
     /// <summary>设置锚点定位元素根据锚点可见性和溢出情况是否显示。（position-visibility）</summary>
     /// <remarks>
@@ -3855,7 +3855,7 @@ public sealed partial class Style
     /// <para>初始值 <c>anchors-visible</c>；不继承；实验性；Baseline：2026 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/position-visibility"/>
-    public CssValue? PositionVisibility { init => Set("position-visibility", value, NumberUnit.Pixels); }
+    public CssKeyword? PositionVisibility { init => Set("position-visibility", value); }
 
     /// <summary>设置打印时浏览器是否可以为节墨或可读性调整颜色。（print-color-adjust）</summary>
     /// <remarks>
@@ -3867,7 +3867,7 @@ public sealed partial class Style
     /// <para>初始值 <c>economy</c>；继承；Baseline：2025 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/print-color-adjust"/>
-    public CssValue? PrintColorAdjust { init => Set("print-color-adjust", value, NumberUnit.Pixels); }
+    public CssKeyword? PrintColorAdjust { init => Set("print-color-adjust", value); }
 
     /// <summary>设置生成引号所用的开闭字符对。（quotes）</summary>
     /// <remarks>
@@ -3879,7 +3879,7 @@ public sealed partial class Style
     /// <para>初始值 <c>dependsOnUserAgent</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/quotes"/>
-    public CssValue? Quotes { init => Set("quotes", value, NumberUnit.Pixels); }
+    public CssKeyword? Quotes { init => Set("quotes", value); }
 
     /// <summary>设置用户是否能调整元素尺寸以及可调整的方向。（resize）</summary>
     /// <remarks>
@@ -3893,7 +3893,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/resize"/>
-    public CssValue? Resize { init => Set("resize", value, NumberUnit.Pixels); }
+    public CssKeyword? Resize { init => Set("resize", value); }
 
     /// <summary>语音合成在元素前后的静默时长（rest），属于 CSS Speech 模块，浏览器基本不支持。</summary>
     /// <remarks>
@@ -3988,7 +3988,7 @@ public sealed partial class Style
     /// <para>初始值 <c>space-around</c>；继承；Baseline：2024 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/ruby-align"/>
-    public CssValue? RubyAlign { init => Set("ruby-align", value, NumberUnit.Pixels); }
+    public CssKeyword? RubyAlign { init => Set("ruby-align", value); }
 
     /// <summary>设置相邻注音容器的合并方式；使用前核对目标浏览器。（ruby-merge）</summary>
     /// <remarks>
@@ -4000,7 +4000,7 @@ public sealed partial class Style
     /// </list>
     /// <para>初始值 <c>separate</c>；继承；实验性。</para>
     /// </remarks>
-    public CssValue? RubyMerge { init => Set("ruby-merge", value, NumberUnit.Pixels); }
+    public CssKeyword? RubyMerge { init => Set("ruby-merge", value); }
 
     /// <summary>设置注音文字相对于基底文字的位置。（ruby-position）</summary>
     /// <remarks>
@@ -4013,7 +4013,7 @@ public sealed partial class Style
     /// <para>初始值 <c>alternate</c>；继承；Baseline：2024 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/ruby-position"/>
-    public CssValue? RubyPosition { init => Set("ruby-position", value, NumberUnit.Pixels); }
+    public CssKeyword? RubyPosition { init => Set("ruby-position", value); }
 
     /// <summary>独立设置元素的缩放比例。（scale）</summary>
     /// <remarks>
@@ -4038,7 +4038,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/scroll-behavior"/>
-    public CssValue? ScrollBehavior { init => Set("scroll-behavior", value, NumberUnit.Pixels); }
+    public CssKeyword? ScrollBehavior { init => Set("scroll-behavior", value); }
 
     /// <summary>设置元素滚动目标区域的四边外扩距离，不改变普通布局外边距。（scroll-margin）</summary>
     /// <remarks>
@@ -4250,7 +4250,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/scroll-snap-align"/>
-    public CssValue? ScrollSnapAlign { init => Set("scroll-snap-align", value, NumberUnit.Pixels); }
+    public CssKeyword? ScrollSnapAlign { init => Set("scroll-snap-align", value); }
 
     /// <summary>设置滚动时是否允许越过该元素的吸附位置。（scroll-snap-stop）</summary>
     /// <remarks>
@@ -4262,7 +4262,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/scroll-snap-stop"/>
-    public CssValue? ScrollSnapStop { init => Set("scroll-snap-stop", value, NumberUnit.Pixels); }
+    public CssKeyword? ScrollSnapStop { init => Set("scroll-snap-stop", value); }
 
     /// <summary>设置滚动容器的吸附轴和吸附强度。（scroll-snap-type）</summary>
     /// <remarks>
@@ -4271,14 +4271,14 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/scroll-snap-type"/>
-    public CssValue? ScrollSnapType { init => Set("scroll-snap-type", value, NumberUnit.Pixels); }
+    public CssKeyword? ScrollSnapType { init => Set("scroll-snap-type", value); }
 
     /// <summary>同时声明滚动进度时间线的名称和轴。（scroll-timeline）</summary>
     /// <remarks>
     /// <para>简写属性，初始值见各分项；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/scroll-timeline"/>
-    public CssValue? ScrollTimeline { init => Set("scroll-timeline", value, NumberUnit.Pixels); }
+    public CssKeyword? ScrollTimeline { init => Set("scroll-timeline", value); }
 
     /// <summary>设置滚动进度时间线所观察的滚动轴。（scroll-timeline-axis）</summary>
     /// <remarks>
@@ -4292,7 +4292,7 @@ public sealed partial class Style
     /// <para>初始值 <c>block</c>；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/scroll-timeline-axis"/>
-    public CssValue? ScrollTimelineAxis { init => Set("scroll-timeline-axis", value, NumberUnit.Pixels); }
+    public CssKeyword? ScrollTimelineAxis { init => Set("scroll-timeline-axis", value); }
 
     /// <summary>声明基于当前容器滚动进度的时间线名称。（scroll-timeline-name）</summary>
     /// <remarks>
@@ -4303,7 +4303,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/scroll-timeline-name"/>
-    public CssValue? ScrollTimelineName { init => Set("scroll-timeline-name", value, NumberUnit.Pixels); }
+    public CssKeyword? ScrollTimelineName { init => Set("scroll-timeline-name", value); }
 
     /// <summary>设置滚动条滑块和轨道的颜色。（scrollbar-color）</summary>
     /// <remarks>
@@ -4327,7 +4327,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2024 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/scrollbar-gutter"/>
-    public CssValue? ScrollbarGutter { init => Set("scrollbar-gutter", value, NumberUnit.Pixels); }
+    public CssKeyword? ScrollbarGutter { init => Set("scrollbar-gutter", value); }
 
     /// <summary>设置滚动条采用正常、较细或隐藏的外观。（scrollbar-width）</summary>
     /// <remarks>
@@ -4340,7 +4340,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2024 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/scrollbar-width"/>
-    public CssValue? ScrollbarWidth { init => Set("scrollbar-width", value, NumberUnit.Pixels); }
+    public CssKeyword? ScrollbarWidth { init => Set("scrollbar-width", value); }
 
     /// <summary>设置从图像 alpha 信息提取环绕形状时的阈值。（shape-image-threshold）</summary>
     /// <remarks>
@@ -4365,7 +4365,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/shape-outside"/>
-    public CssValue? ShapeOutside { init => Set("shape-outside", value, NumberUnit.Pixels); }
+    public CssKeyword? ShapeOutside { init => Set("shape-outside", value); }
 
     /// <summary>向 SVG 渲染器提供图形绘制精度与速度的偏好。（shape-rendering）</summary>
     /// <remarks>
@@ -4379,7 +4379,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/shape-rendering"/>
-    public CssValue? ShapeRendering { init => Set("shape-rendering", value, NumberUnit.Pixels); }
+    public CssKeyword? ShapeRendering { init => Set("shape-rendering", value); }
 
     /// <summary>语音合成是否朗读元素内容（speak），属于 CSS Speech 模块，浏览器基本不支持。</summary>
     /// <remarks>
@@ -4391,7 +4391,7 @@ public sealed partial class Style
     /// </list>
     /// <para>Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
-    public CssValue? Speak { init => Set("speak", value, NumberUnit.Pixels); }
+    public CssKeyword? Speak { init => Set("speak", value); }
 
     /// <summary>设置语音呈现时文字、数字和标点的朗读方式；使用前核对语音媒体支持。（speak-as）</summary>
     /// <remarks>
@@ -4405,7 +4405,7 @@ public sealed partial class Style
     /// </list>
     /// <para>初始值 <c>auto</c>；继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
-    public CssValue? SpeakAs { init => Set("speak-as", value, NumberUnit.Pixels); }
+    public CssKeyword? SpeakAs { init => Set("speak-as", value); }
 
     /// <summary>设置 SVG 图形轮廓的描边绘制方式。（stroke）</summary>
     /// <remarks>
@@ -4443,7 +4443,7 @@ public sealed partial class Style
     /// <para>初始值 <c>butt</c>；继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/stroke-linecap"/>
-    public CssValue? StrokeLinecap { init => Set("stroke-linecap", value, NumberUnit.Pixels); }
+    public CssKeyword? StrokeLinecap { init => Set("stroke-linecap", value); }
 
     /// <summary>设置 SVG 路径转角处描边的连接形状。（stroke-linejoin）</summary>
     /// <remarks>
@@ -4456,7 +4456,7 @@ public sealed partial class Style
     /// <para>初始值 <c>miter</c>；继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/stroke-linejoin"/>
-    public CssValue? StrokeLinejoin { init => Set("stroke-linejoin", value, NumberUnit.Pixels); }
+    public CssKeyword? StrokeLinejoin { init => Set("stroke-linejoin", value); }
 
     /// <summary>限制尖角连接的延伸比例，超过阈值时改变连接形状。（stroke-miterlimit）</summary>
     /// <remarks>
@@ -4496,7 +4496,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/table-layout"/>
-    public CssValue? TableLayout { init => Set("table-layout", value, NumberUnit.Pixels); }
+    public CssKeyword? TableLayout { init => Set("table-layout", value); }
 
     /// <summary>设置块容器中行内内容的水平或逻辑方向对齐。（text-align）</summary>
     /// <remarks>
@@ -4512,7 +4512,7 @@ public sealed partial class Style
     /// <para>初始值 <c>startOrNamelessValueIfLTRRightIfRTL</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-align"/>
-    public CssValue? TextAlign { init => Set("text-align", value, NumberUnit.Pixels); }
+    public CssKeyword? TextAlign { init => Set("text-align", value); }
 
     /// <summary>设置段落最后一行或强制换行前一行的对齐方式。（text-align-last）</summary>
     /// <remarks>
@@ -4529,7 +4529,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2025 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-align-last"/>
-    public CssValue? TextAlignLast { init => Set("text-align-last", value, NumberUnit.Pixels); }
+    public CssKeyword? TextAlignLast { init => Set("text-align-last", value); }
 
     /// <summary>设置 SVG 文本片段相对于定位点的锚定方式。（text-anchor）</summary>
     /// <remarks>
@@ -4542,7 +4542,7 @@ public sealed partial class Style
     /// <para>初始值 <c>start</c>；继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-anchor"/>
-    public CssValue? TextAnchor { init => Set("text-anchor", value, NumberUnit.Pixels); }
+    public CssKeyword? TextAnchor { init => Set("text-anchor", value); }
 
     /// <summary>设置竖排文字中多个字符是否合成为一个横排字形单元。（text-combine-upright）</summary>
     /// <remarks>
@@ -4555,7 +4555,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-combine-upright"/>
-    public CssValue? TextCombineUpright { init => Set("text-combine-upright", value, NumberUnit.Pixels); }
+    public CssKeyword? TextCombineUpright { init => Set("text-combine-upright", value); }
 
     /// <summary>集中设置文本装饰线的位置、线型、颜色及粗细。（text-decoration）</summary>
     /// <remarks>
@@ -4586,7 +4586,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-decoration-line"/>
-    public CssValue? TextDecorationLine { init => Set("text-decoration-line", value, NumberUnit.Pixels); }
+    public CssKeyword? TextDecorationLine { init => Set("text-decoration-line", value); }
 
     /// <summary>设置文本装饰线跳过哪些内容；具体语法需核对支持情况。（text-decoration-skip）</summary>
     /// <remarks>
@@ -4603,7 +4603,7 @@ public sealed partial class Style
     /// <para>初始值 <c>objects</c>；继承；实验性。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-decoration-skip"/>
-    public CssValue? TextDecorationSkip { init => Set("text-decoration-skip", value, NumberUnit.Pixels); }
+    public CssKeyword? TextDecorationSkip { init => Set("text-decoration-skip", value); }
 
     /// <summary>设置装饰线是否避让字形的笔画。（text-decoration-skip-ink）</summary>
     /// <remarks>
@@ -4616,7 +4616,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-decoration-skip-ink"/>
-    public CssValue? TextDecorationSkipInk { init => Set("text-decoration-skip-ink", value, NumberUnit.Pixels); }
+    public CssKeyword? TextDecorationSkipInk { init => Set("text-decoration-skip-ink", value); }
 
     /// <summary>设置文本装饰线的实线、波浪线等线型。（text-decoration-style）</summary>
     /// <remarks>
@@ -4631,7 +4631,7 @@ public sealed partial class Style
     /// <para>初始值 <c>solid</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-decoration-style"/>
-    public CssValue? TextDecorationStyle { init => Set("text-decoration-style", value, NumberUnit.Pixels); }
+    public CssKeyword? TextDecorationStyle { init => Set("text-decoration-style", value); }
 
     /// <summary>设置文本装饰线粗细。（text-decoration-thickness）</summary>
     /// <remarks>
@@ -4672,7 +4672,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-emphasis-position"/>
-    public CssValue? TextEmphasisPosition { init => Set("text-emphasis-position", value, NumberUnit.Pixels); }
+    public CssKeyword? TextEmphasisPosition { init => Set("text-emphasis-position", value); }
 
     /// <summary>设置文字着重号的形状和填充方式。（text-emphasis-style）</summary>
     /// <remarks>
@@ -4690,7 +4690,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；继承；Baseline：2024 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-emphasis-style"/>
-    public CssValue? TextEmphasisStyle { init => Set("text-emphasis-style", value, NumberUnit.Pixels); }
+    public CssKeyword? TextEmphasisStyle { init => Set("text-emphasis-style", value); }
 
     /// <summary>设置文本行的缩进距离。（text-indent）</summary>
     /// <remarks>
@@ -4717,7 +4717,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-justify"/>
-    public CssValue? TextJustify { init => Set("text-justify", value, NumberUnit.Pixels); }
+    public CssKeyword? TextJustify { init => Set("text-justify", value); }
 
     /// <summary>设置竖排模式下字符的方向。（text-orientation）</summary>
     /// <remarks>
@@ -4730,7 +4730,7 @@ public sealed partial class Style
     /// <para>初始值 <c>mixed</c>；继承；Baseline：2023 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-orientation"/>
-    public CssValue? TextOrientation { init => Set("text-orientation", value, NumberUnit.Pixels); }
+    public CssKeyword? TextOrientation { init => Set("text-orientation", value); }
 
     /// <summary>设置被裁剪的行内溢出文本如何提示，例如显示省略号。（text-overflow）</summary>
     /// <remarks>
@@ -4744,7 +4744,7 @@ public sealed partial class Style
     /// <para>初始值 <c>clip</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-overflow"/>
-    public CssValue? TextOverflow { init => Set("text-overflow", value, NumberUnit.Pixels); }
+    public CssKeyword? TextOverflow { init => Set("text-overflow", value); }
 
     /// <summary>向渲染器提供文本速度、可读性或几何精度的偏好。（text-rendering）</summary>
     /// <remarks>
@@ -4758,7 +4758,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-rendering"/>
-    public CssValue? TextRendering { init => Set("text-rendering", value, NumberUnit.Pixels); }
+    public CssKeyword? TextRendering { init => Set("text-rendering", value); }
 
     /// <summary>设置文字及其装饰的阴影，可叠加多层。（text-shadow）</summary>
     /// <remarks>
@@ -4781,7 +4781,7 @@ public sealed partial class Style
     /// <para>初始值 <c>autoForSmartphoneBrowsersSupportingInflation</c>；继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-size-adjust"/>
-    public CssValue? TextSizeAdjust { init => Set("text-size-adjust", value, NumberUnit.Pixels); }
+    public CssKeyword? TextSizeAdjust { init => Set("text-size-adjust", value); }
 
     /// <summary>设置文字显示时的大小写、全角或其他字形转换。（text-transform）</summary>
     /// <remarks>
@@ -4796,7 +4796,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-transform"/>
-    public CssValue? TextTransform { init => Set("text-transform", value, NumberUnit.Pixels); }
+    public CssKeyword? TextTransform { init => Set("text-transform", value); }
 
     /// <summary>设置下划线相对于默认位置的偏移。（text-underline-offset）</summary>
     /// <remarks>
@@ -4822,7 +4822,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；继承；Baseline：2023 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-underline-position"/>
-    public CssValue? TextUnderlinePosition { init => Set("text-underline-position", value, NumberUnit.Pixels); }
+    public CssKeyword? TextUnderlinePosition { init => Set("text-underline-position", value); }
 
     /// <summary>同时设置文本是否换行及换行策略。（text-wrap）</summary>
     /// <remarks>
@@ -4837,7 +4837,7 @@ public sealed partial class Style
     /// <para>初始值 <c>wrap</c>；继承；Baseline：2026 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/text-wrap"/>
-    public CssValue? TextWrap { init => Set("text-wrap", value, NumberUnit.Pixels); }
+    public CssKeyword? TextWrap { init => Set("text-wrap", value); }
 
     /// <summary>扩大命名动画时间线的可引用作用域。（timeline-scope）</summary>
     /// <remarks>
@@ -4848,7 +4848,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/timeline-scope"/>
-    public CssValue? TimelineScope { init => Set("timeline-scope", value, NumberUnit.Pixels); }
+    public CssKeyword? TimelineScope { init => Set("timeline-scope", value); }
 
     /// <summary>设置定位元素相对于其定位参照的上侧偏移。（top）</summary>
     /// <remarks>
@@ -4875,7 +4875,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/touch-action"/>
-    public CssValue? TouchAction { init => Set("touch-action", value, NumberUnit.Pixels); }
+    public CssKeyword? TouchAction { init => Set("touch-action", value); }
 
     /// <summary>按顺序组合平移、旋转、缩放等二维或三维变换。（transform）</summary>
     /// <remarks>
@@ -4888,7 +4888,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/transform"/>
-    public CssValue? Transform { init => Set("transform", value, NumberUnit.Pixels); }
+    public CssKeyword? Transform { init => Set("transform", value); }
 
     /// <summary>设置变换及其原点所依据的参照盒。（transform-box）</summary>
     /// <remarks>
@@ -4901,7 +4901,7 @@ public sealed partial class Style
     /// <para>初始值 <c>view-box</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/transform-box"/>
-    public CssValue? TransformBox { init => Set("transform-box", value, NumberUnit.Pixels); }
+    public CssKeyword? TransformBox { init => Set("transform-box", value); }
 
     /// <summary>设置元素变换的原点。（transform-origin）</summary>
     /// <remarks>
@@ -4928,7 +4928,7 @@ public sealed partial class Style
     /// <para>初始值 <c>flat</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/transform-style"/>
-    public CssValue? TransformStyle { init => Set("transform-style", value, NumberUnit.Pixels); }
+    public CssKeyword? TransformStyle { init => Set("transform-style", value); }
 
     /// <summary>集中设置属性变化过渡的目标、时长、缓动、延迟和行为。（transition）</summary>
     /// <remarks>
@@ -4962,14 +4962,14 @@ public sealed partial class Style
     /// <para>初始值 <c>all</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/transition-property"/>
-    public CssValue? TransitionProperty { init => Set("transition-property", value, NumberUnit.Pixels); }
+    public CssKeyword? TransitionProperty { init => Set("transition-property", value); }
 
     /// <summary>设置过渡进度变化的缓动函数。（transition-timing-function）</summary>
     /// <remarks>
     /// <para>初始值 <c>ease</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/transition-timing-function"/>
-    public CssValue? TransitionTimingFunction { init => Set("transition-timing-function", value, NumberUnit.Pixels); }
+    public CssKeyword? TransitionTimingFunction { init => Set("transition-timing-function", value); }
 
     /// <summary>独立设置元素在二维或三维空间中的平移。（translate）</summary>
     /// <remarks>
@@ -4996,7 +4996,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；不继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/unicode-bidi"/>
-    public CssValue? UnicodeBidi { init => Set("unicode-bidi", value, NumberUnit.Pixels); }
+    public CssKeyword? UnicodeBidi { init => Set("unicode-bidi", value); }
 
     /// <summary>设置用户是否可以选取元素中的文本。（user-select）</summary>
     /// <remarks>
@@ -5011,7 +5011,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/user-select"/>
-    public CssValue? UserSelect { init => Set("user-select", value, NumberUnit.Pixels); }
+    public CssKeyword? UserSelect { init => Set("user-select", value); }
 
     /// <summary>设置行内级盒子或表格单元格的垂直对齐，不用于普通块盒居中。（vertical-align）</summary>
     /// <remarks>
@@ -5036,7 +5036,7 @@ public sealed partial class Style
     /// <para>简写属性，初始值见各分项；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/view-timeline"/>
-    public CssLength? ViewTimeline { init => Set("view-timeline", value); }
+    public CssKeyword? ViewTimeline { init => Set("view-timeline", value); }
 
     /// <summary>设置可见进度时间线所观察的滚动轴。（view-timeline-axis）</summary>
     /// <remarks>
@@ -5050,7 +5050,7 @@ public sealed partial class Style
     /// <para>初始值 <c>block</c>；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/view-timeline-axis"/>
-    public CssValue? ViewTimelineAxis { init => Set("view-timeline-axis", value, NumberUnit.Pixels); }
+    public CssKeyword? ViewTimelineAxis { init => Set("view-timeline-axis", value); }
 
     /// <summary>设置可见进度时间线使用的滚动视口内缩范围。（view-timeline-inset）</summary>
     /// <remarks>
@@ -5072,7 +5072,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；实验性；Baseline：尚未在所有主流浏览器可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/view-timeline-name"/>
-    public CssValue? ViewTimelineName { init => Set("view-timeline-name", value, NumberUnit.Pixels); }
+    public CssKeyword? ViewTimelineName { init => Set("view-timeline-name", value); }
 
     /// <summary>为视图过渡中的元素命名，以匹配前后状态的快照。（view-transition-name）</summary>
     /// <remarks>
@@ -5084,7 +5084,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；Baseline：2025 年起新近可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/view-transition-name"/>
-    public CssValue? ViewTransitionName { init => Set("view-transition-name", value, NumberUnit.Pixels); }
+    public CssKeyword? ViewTransitionName { init => Set("view-transition-name", value); }
 
     /// <summary>设置元素是否可见；隐藏通常保留布局空间。（visibility）</summary>
     /// <remarks>
@@ -5098,7 +5098,7 @@ public sealed partial class Style
     /// <para>初始值 <c>visible</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/visibility"/>
-    public CssValue? Visibility { init => Set("visibility", value, NumberUnit.Pixels); }
+    public CssKeyword? Visibility { init => Set("visibility", value); }
 
     /// <summary>语音合成的左右声道平衡（voice-balance），属于 CSS Speech 模块，浏览器基本不支持。</summary>
     /// <remarks>
@@ -5118,7 +5118,7 @@ public sealed partial class Style
     public CssValue? VoiceDuration { init => Set("voice-duration", value, NumberUnit.Milliseconds); }
 
     /// <summary>语音合成使用的声音（voice-family），属于 CSS Speech 模块，浏览器基本不支持。</summary>
-    public CssValue? VoiceFamily { init => Set("voice-family", value, NumberUnit.Pixels); }
+    public CssKeyword? VoiceFamily { init => Set("voice-family", value); }
 
     /// <summary>语音合成的音高（voice-pitch），属于 CSS Speech 模块，浏览器基本不支持。</summary>
     /// <remarks>
@@ -5133,7 +5133,7 @@ public sealed partial class Style
     public CssValue? VoiceRange { init => Set("voice-range", value, NumberUnit.Pixels); }
 
     /// <summary>语音合成的语速（voice-rate），属于 CSS Speech 模块，浏览器基本不支持。</summary>
-    public CssValue? VoiceRate { init => Set("voice-rate", value, NumberUnit.Pixels); }
+    public CssKeyword? VoiceRate { init => Set("voice-rate", value); }
 
     /// <summary>语音合成的重音强度（voice-stress），属于 CSS Speech 模块，浏览器基本不支持。</summary>
     /// <remarks>
@@ -5146,10 +5146,10 @@ public sealed partial class Style
     /// <item><description><c>strong</c>：加强重音强调，朗读时更突出重读的词。</description></item>
     /// </list>
     /// </remarks>
-    public CssValue? VoiceStress { init => Set("voice-stress", value, NumberUnit.Pixels); }
+    public CssKeyword? VoiceStress { init => Set("voice-stress", value); }
 
     /// <summary>语音合成的音量（voice-volume），属于 CSS Speech 模块，浏览器基本不支持。</summary>
-    public CssValue? VoiceVolume { init => Set("voice-volume", value, NumberUnit.Pixels); }
+    public CssKeyword? VoiceVolume { init => Set("voice-volume", value); }
 
     /// <summary>控制表单控件是否使用系统原生外观（-webkit-appearance）；标准写法是 appearance，常用 none 去掉原生样式后自绘。</summary>
     /// <remarks>
@@ -5157,7 +5157,7 @@ public sealed partial class Style
     /// <para>初始值 <c>noneButOverriddenInUserAgentCSS</c>；不继承；非标准。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/appearance"/>
-    public CssValue? WebkitAppearance { init => Set("-webkit-appearance", value, NumberUnit.Pixels); }
+    public CssKeyword? WebkitAppearance { init => Set("-webkit-appearance", value); }
 
     /// <summary>带 WebKit 前缀的背景裁剪区域（-webkit-background-clip）；取值 text 时背景只画在文字里，用于渐变文字。</summary>
     /// <remarks>
@@ -5169,7 +5169,7 @@ public sealed partial class Style
     /// <item><description><c>text</c>：把背景裁剪成文字形状，只在字形内可见，配合透明文字颜色可做渐变文字。</description></item>
     /// </list>
     /// </remarks>
-    public CssValue? WebkitBackgroundClip { init => Set("-webkit-background-clip", value, NumberUnit.Pixels); }
+    public CssKeyword? WebkitBackgroundClip { init => Set("-webkit-background-clip", value); }
 
     /// <summary>指定旧版弹性盒的排列方向；仅为多行截断兼容保留，常规布局请使用 Flex/Grid。（-webkit-box-orient）</summary>
     /// <remarks>
@@ -5181,7 +5181,7 @@ public sealed partial class Style
     /// <item><description><c>vertical</c>：旧版弹性盒的子元素垂直排列，与 <c>WebkitLineClamp</c> 配合实现多行截断。</description></item>
     /// </list>
     /// </remarks>
-    public CssValue? WebkitBoxOrient { init => Set("-webkit-box-orient", value, NumberUnit.Pixels); }
+    public CssKeyword? WebkitBoxOrient { init => Set("-webkit-box-orient", value); }
 
     /// <summary>WebKit 在 macOS 上的字体抗锯齿方式（-webkit-font-smoothing），非标准；antialiased 让文字显得更细。</summary>
     /// <remarks>
@@ -5190,7 +5190,7 @@ public sealed partial class Style
     /// <item><description><c>antialiased</c>：在 macOS 上改用灰度抗锯齿，文字比默认的子像素渲染更细；非标准，仅 macOS 的 WebKit/Blink 生效。</description></item>
     /// </list>
     /// </remarks>
-    public CssValue? WebkitFontSmoothing { init => Set("-webkit-font-smoothing", value, NumberUnit.Pixels); }
+    public CssKeyword? WebkitFontSmoothing { init => Set("-webkit-font-smoothing", value); }
 
     /// <summary>限制多行文本显示的行数；需要同时写 display: '-webkit-box'、WebkitBoxOrient: 'vertical' 和 overflow: 'hidden'，不删除文本内容。（-webkit-line-clamp）</summary>
     /// <remarks>
@@ -5208,7 +5208,7 @@ public sealed partial class Style
     /// <para>初始值 <c>none</c>；不继承；非标准。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/mask-image"/>
-    public CssValue? WebkitMaskImage { init => Set("-webkit-mask-image", value, NumberUnit.Pixels); }
+    public CssKeyword? WebkitMaskImage { init => Set("-webkit-mask-image", value); }
 
     /// <summary>移动端点击元素时出现的高亮颜色（-webkit-tap-highlight-color），非标准；设为 transparent 可去掉高亮。</summary>
     /// <remarks>
@@ -5253,7 +5253,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/white-space"/>
-    public CssValue? WhiteSpace { init => Set("white-space", value, NumberUnit.Pixels); }
+    public CssKeyword? WhiteSpace { init => Set("white-space", value); }
 
     /// <summary>设置分页或分栏断点后需保留的最少行数。（widows）</summary>
     /// <remarks>
@@ -5288,7 +5288,7 @@ public sealed partial class Style
     /// <para>初始值 <c>auto</c>；不继承；Baseline：2022 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/will-change"/>
-    public CssValue? WillChange { init => Set("will-change", value, NumberUnit.Pixels); }
+    public CssKeyword? WillChange { init => Set("will-change", value); }
 
     /// <summary>设置单词内部或文字之间的断行规则。（word-break）</summary>
     /// <remarks>
@@ -5302,7 +5302,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承；Baseline：2018 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/word-break"/>
-    public CssValue? WordBreak { init => Set("word-break", value, NumberUnit.Pixels); }
+    public CssKeyword? WordBreak { init => Set("word-break", value); }
 
     /// <summary>设置单词或词间分隔符的额外间距。（word-spacing）</summary>
     /// <remarks>
@@ -5325,7 +5325,7 @@ public sealed partial class Style
     /// <para>初始值 <c>normal</c>；继承。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/overflow-wrap"/>
-    public CssValue? WordWrap { init => Set("word-wrap", value, NumberUnit.Pixels); }
+    public CssKeyword? WordWrap { init => Set("word-wrap", value); }
 
     /// <summary>设置水平或竖直书写模式，以及行和块的推进方向。（writing-mode）</summary>
     /// <remarks>
@@ -5346,7 +5346,7 @@ public sealed partial class Style
     /// <para>初始值 <c>horizontal-tb</c>；继承；Baseline：2019 年起广泛可用。</para>
     /// </remarks>
     /// <seealso href="https://developer.mozilla.org/docs/Web/CSS/Reference/Properties/writing-mode"/>
-    public CssValue? WritingMode { init => Set("writing-mode", value, NumberUnit.Pixels); }
+    public CssKeyword? WritingMode { init => Set("writing-mode", value); }
 
     /// <summary>设置元素在所属层叠上下文中的层叠级别。（z-index）</summary>
     /// <remarks>

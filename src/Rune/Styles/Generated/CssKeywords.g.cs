@@ -24,516 +24,583 @@ public static class CssWide
     public const string Unset = "unset";
 }
 
+/// <summary>颜色关键字：transparent、currentcolor 与系统色（强制颜色模式里配色用）；是字符串常量，可直接赋给颜色属性。命名色（red、navy）直接写字符串。</summary>
+public static class CssColors
+{
+    /// <summary><c>AccentColor</c>：系统强调色，用于选中、激活状态的控件背景（如已勾选的复选框）。</summary>
+    public const string AccentColor = "AccentColor";
+
+    /// <summary><c>AccentColorText</c>：放在 <c>AccentColor</c> 背景上的文字颜色。</summary>
+    public const string AccentColorText = "AccentColorText";
+
+    /// <summary><c>ActiveText</c>：活动状态（正被点击）链接的文字颜色。</summary>
+    public const string ActiveText = "ActiveText";
+
+    /// <summary><c>ButtonBorder</c>：按钮等控件的边框颜色。</summary>
+    public const string ButtonBorder = "ButtonBorder";
+
+    /// <summary><c>ButtonFace</c>：按钮等控件的背景颜色。</summary>
+    public const string ButtonFace = "ButtonFace";
+
+    /// <summary><c>ButtonText</c>：按钮等控件上的文字颜色。</summary>
+    public const string ButtonText = "ButtonText";
+
+    /// <summary><c>Canvas</c>：页面（文档画布）的背景颜色，随浅色或深色主题变化。</summary>
+    public const string Canvas = "Canvas";
+
+    /// <summary><c>CanvasText</c>：页面上的默认文字颜色，与 <c>Canvas</c> 搭配使用。</summary>
+    public const string CanvasText = "CanvasText";
+
+    /// <summary><c>currentcolor</c>：当前的文字颜色（color 的值）：边框、图标、伪元素跟随文字颜色。</summary>
+    public const string CurrentColor = "currentcolor";
+
+    /// <summary><c>Field</c>：输入框等表单字段的背景颜色。</summary>
+    public const string Field = "Field";
+
+    /// <summary><c>FieldText</c>：输入框等表单字段中的文字颜色。</summary>
+    public const string FieldText = "FieldText";
+
+    /// <summary><c>GrayText</c>：禁用或次要文字使用的灰色。</summary>
+    public const string GrayText = "GrayText";
+
+    /// <summary><c>Highlight</c>：被选中内容（如选中的文本）的背景颜色。</summary>
+    public const string Highlight = "Highlight";
+
+    /// <summary><c>HighlightText</c>：被选中内容中的文字颜色，与 <c>Highlight</c> 搭配使用。</summary>
+    public const string HighlightText = "HighlightText";
+
+    /// <summary><c>LinkText</c>：未访问链接的文字颜色。</summary>
+    public const string LinkText = "LinkText";
+
+    /// <summary><c>Mark</c>：高亮标记文本（如 <c>&lt;mark&gt;</c>）的背景颜色。</summary>
+    public const string Mark = "Mark";
+
+    /// <summary><c>MarkText</c>：高亮标记文本中的文字颜色，与 <c>Mark</c> 搭配使用。</summary>
+    public const string MarkText = "MarkText";
+
+    /// <summary><c>SelectedItem</c>：列表、菜单等控件中选中项的背景颜色。</summary>
+    public const string SelectedItem = "SelectedItem";
+
+    /// <summary><c>SelectedItemText</c>：列表、菜单等控件中选中项的文字颜色，与 <c>SelectedItem</c> 搭配使用。</summary>
+    public const string SelectedItemText = "SelectedItemText";
+
+    /// <summary><c>transparent</c>：完全透明的颜色，等同于 <c>rgb(0 0 0 / 0)</c>。</summary>
+    public const string Transparent = "transparent";
+
+    /// <summary><c>VisitedText</c>：已访问链接的文字颜色。</summary>
+    public const string VisitedText = "VisitedText";
+}
+
 /// <summary><c>align-content</c> 的关键字取值；类型与 <see cref="Style.AlignContent"/> 一致，可直接赋值。</summary>
 public static class AlignContent
 {
     /// <summary><c>baseline</c>：按首行文字的基线与同组其他项对齐；单独使用等同 <c>first baseline</c>。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>center</c>：各项作为一个整体，在对齐方向上居中。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：各项贴向容器在该方向上的终止边，终止边由书写模式和方向决定。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>first baseline</c>：按首条基线对齐：让容器第一行（或第一条轨道）的首基线与同一基线共享组中的其他元素对齐；无法对齐时回退为 <c>start</c>。</summary>
-    public static readonly CssValue FirstBaseline = "first baseline";
+    public static readonly CssKeyword FirstBaseline = "first baseline";
 
     /// <summary><c>flex-end</c>：贴向 flex 轴的终点；在非 flex 容器中等同 <c>end</c>。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：贴向 flex 轴的起点；在非 flex 容器中等同 <c>start</c>。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>last baseline</c>：按末条基线对齐：让容器最后一行（或最后一条轨道）的末基线与同一基线共享组中的其他元素对齐；无法对齐时回退为 <c>end</c>。</summary>
-    public static readonly CssValue LastBaseline = "last baseline";
+    public static readonly CssKeyword LastBaseline = "last baseline";
 
     /// <summary><c>normal</c>：按布局模式取默认行为：Flex 和 Grid 容器中表现为 <c>stretch</c>，块布局中表现为 <c>start</c>。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>safe center</c>：内容整体居中；若居中会使内容溢出容器，就改为 <c>start</c> 对齐，避免内容超出起始侧而无法滚动到。</summary>
-    public static readonly CssValue SafeCenter = "safe center";
+    public static readonly CssKeyword SafeCenter = "safe center";
 
     /// <summary><c>space-around</c>：每项两侧分得相等的空白，因此项之间的间距是两端与容器边缘间距的两倍。</summary>
-    public static readonly CssValue SpaceAround = "space-around";
+    public static readonly CssKeyword SpaceAround = "space-around";
 
     /// <summary><c>space-between</c>：首尾两项贴紧容器两端，剩余空间平均分配到各项之间。</summary>
-    public static readonly CssValue SpaceBetween = "space-between";
+    public static readonly CssKeyword SpaceBetween = "space-between";
 
     /// <summary><c>space-evenly</c>：所有间距完全相等，包括首尾两项与容器边缘之间的间距。</summary>
-    public static readonly CssValue SpaceEvenly = "space-evenly";
+    public static readonly CssKeyword SpaceEvenly = "space-evenly";
 
     /// <summary><c>start</c>：各项贴向容器在该方向上的起始边，起始边由书写模式和方向决定。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：把剩余空间平均分给尺寸为 <c>auto</c> 的项，使它们被拉伸以占满容器。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe center</c>：无论是否溢出都严格居中；内容比容器大时会向两端溢出，起始侧的部分可能无法滚动到。</summary>
-    public static readonly CssValue UnsafeCenter = "unsafe center";
+    public static readonly CssKeyword UnsafeCenter = "unsafe center";
 }
 
 /// <summary><c>align-items</c> 的关键字取值；类型与 <see cref="Style.AlignItems"/> 一致，可直接赋值。</summary>
 public static class AlignItems
 {
     /// <summary><c>baseline</c>：按项目的对齐基线对齐，不等同于底边对齐。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>center</c>：将各项目在交叉轴或块轴的对齐区域中居中。justify-content 控制 Flex 主轴上的内容分布；align-items 控制交叉轴。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：按对齐轴的逻辑结束侧对齐。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>first baseline</c>：按首条基线对齐，与 <c>baseline</c> 等效；无法对齐时回退为 <c>start</c>。</summary>
-    public static readonly CssValue FirstBaseline = "first baseline";
+    public static readonly CssKeyword FirstBaseline = "first baseline";
 
     /// <summary><c>flex-end</c>：在 Flex 中按交叉轴结束侧对齐。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：在 Flex 中按交叉轴起始侧对齐；交叉轴方向受换行方式影响。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>last baseline</c>：按末条基线对齐，同组项目的末基线对齐；无法对齐时回退为 <c>end</c>。</summary>
-    public static readonly CssValue LastBaseline = "last baseline";
+    public static readonly CssKeyword LastBaseline = "last baseline";
 
     /// <summary><c>normal</c>：由布局模式决定行为，许多场景类似 stretch，但存在内部尺寸等例外。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>safe center</c>：项目居中；若居中会使项目溢出容器，就改为 <c>start</c> 对齐，避免内容超出起始侧而无法滚动到。</summary>
-    public static readonly CssValue SafeCenter = "safe center";
+    public static readonly CssKeyword SafeCenter = "safe center";
 
     /// <summary><c>self-end</c>：对齐到项目自身书写模式的结束侧；项目与容器书写方向不同时，结果与 <c>end</c> 不同。</summary>
-    public static readonly CssValue SelfEnd = "self-end";
+    public static readonly CssKeyword SelfEnd = "self-end";
 
     /// <summary><c>self-start</c>：对齐到项目自身书写模式的起始侧；项目与容器书写方向不同时，结果与 <c>start</c> 不同。</summary>
-    public static readonly CssValue SelfStart = "self-start";
+    public static readonly CssKeyword SelfStart = "self-start";
 
     /// <summary><c>start</c>：按对齐轴的逻辑起始侧对齐。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：在自动尺寸及最小/最大约束允许时拉伸项目，不强制覆盖显式尺寸。项目在对齐轴有显式尺寸或受最小/最大尺寸约束时，不一定填满可用区域。center 保持项目尺寸并居中；stretch 尝试扩大自动尺寸。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe center</c>：无论是否溢出都严格居中；项目比容器大时会向两端溢出，起始侧的部分可能无法滚动到。</summary>
-    public static readonly CssValue UnsafeCenter = "unsafe center";
+    public static readonly CssKeyword UnsafeCenter = "unsafe center";
 }
 
 /// <summary><c>align-self</c> 的关键字取值；类型与 <see cref="Style.AlignSelf"/> 一致，可直接赋值。</summary>
 public static class AlignSelf
 {
     /// <summary><c>auto</c>：使用父容器的 align-items 对齐方式。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>baseline</c>：让当前项目参与基线对齐，不等同于底边对齐。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>center</c>：将项目在对齐容器内居中。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：对齐到对齐容器的结束侧，方向取自容器的书写模式。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>first baseline</c>：按首条基线与同一对齐上下文中的其他项目对齐；无法参与基线对齐时退回起始侧对齐。</summary>
-    public static readonly CssValue FirstBaseline = "first baseline";
+    public static readonly CssKeyword FirstBaseline = "first baseline";
 
     /// <summary><c>flex-end</c>：在 Flex 布局中对齐到对应轴的结束侧，随 Flex 方向变化；在其他布局中等同于 <c>end</c>。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：在 Flex 布局中对齐到对应轴的起始侧，随 Flex 方向变化；在其他布局中等同于 <c>start</c>。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>last baseline</c>：按末条基线与同一对齐上下文中的其他项目对齐；无法参与基线对齐时退回结束侧对齐。</summary>
-    public static readonly CssValue LastBaseline = "last baseline";
+    public static readonly CssKeyword LastBaseline = "last baseline";
 
     /// <summary><c>normal</c>：采用当前布局模式的默认对齐行为，在 Flex 和 Grid 中通常等同于 <c>stretch</c>。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>safe center</c>：居中对齐；若项目比容器大会溢出，则改为起始侧对齐，避免内容被推到无法滚动到的位置。</summary>
-    public static readonly CssValue SafeCenter = "safe center";
+    public static readonly CssKeyword SafeCenter = "safe center";
 
     /// <summary><c>self-end</c>：对齐到项目自身书写模式的结束侧；项目与容器书写方向不同时，结果与 <c>end</c> 不同。</summary>
-    public static readonly CssValue SelfEnd = "self-end";
+    public static readonly CssKeyword SelfEnd = "self-end";
 
     /// <summary><c>self-start</c>：对齐到项目自身书写模式的起始侧；项目与容器书写方向不同时，结果与 <c>start</c> 不同。</summary>
-    public static readonly CssValue SelfStart = "self-start";
+    public static readonly CssKeyword SelfStart = "self-start";
 
     /// <summary><c>start</c>：对齐到对齐容器的起始侧，方向取自容器的书写模式。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：在自动尺寸和最小/最大约束允许时拉伸当前项目。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe center</c>：无论是否溢出都严格居中；项目较大时两侧都会超出，超出起始侧的部分可能无法滚动到。</summary>
-    public static readonly CssValue UnsafeCenter = "unsafe center";
+    public static readonly CssKeyword UnsafeCenter = "unsafe center";
 }
 
 /// <summary><c>align-tracks</c> 的关键字取值；类型与 <see cref="Style.AlignTracks"/> 一致，可直接赋值。</summary>
 public static class AlignTracks
 {
     /// <summary><c>baseline</c>：按首行文字的基线与同组其他项对齐；单独使用等同 <c>first baseline</c>。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>center</c>：各项作为一个整体，在对齐方向上居中。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：各项贴向容器在该方向上的终止边，终止边由书写模式和方向决定。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>first</c>：与 <c>baseline</c> 搭配（<c>first baseline</c>）：以第一行文字的基线对齐，单写 <c>baseline</c> 与其等效。</summary>
-    public static readonly CssValue First = "first";
+    public static readonly CssKeyword First = "first";
 
     /// <summary><c>flex-end</c>：贴向 flex 轴的终点；在非 flex 容器中等同 <c>end</c>。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：贴向 flex 轴的起点；在非 flex 容器中等同 <c>start</c>。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>last</c>：与 <c>baseline</c> 搭配（<c>last baseline</c>）：以最后一行文字的基线对齐；无法基线对齐时回退为末端对齐。</summary>
-    public static readonly CssValue Last = "last";
+    public static readonly CssKeyword Last = "last";
 
     /// <summary><c>normal</c>：采用该布局模式的默认轨道对齐行为，不额外指定对齐方式；该属性来自旧版瀑布流提案，仅实验性支持。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>safe</c>：若按指定方式对齐会使内容溢出对齐容器，就改用 <c>start</c> 对齐，避免内容跑到不可达的区域；需写在对齐关键字前面。</summary>
-    public static readonly CssValue Safe = "safe";
+    public static readonly CssKeyword Safe = "safe";
 
     /// <summary><c>space-around</c>：每项两侧分得相等的空白，因此项之间的间距是两端与容器边缘间距的两倍。</summary>
-    public static readonly CssValue SpaceAround = "space-around";
+    public static readonly CssKeyword SpaceAround = "space-around";
 
     /// <summary><c>space-between</c>：首尾两项贴紧容器两端，剩余空间平均分配到各项之间。</summary>
-    public static readonly CssValue SpaceBetween = "space-between";
+    public static readonly CssKeyword SpaceBetween = "space-between";
 
     /// <summary><c>space-evenly</c>：所有间距完全相等，包括首尾两项与容器边缘之间的间距。</summary>
-    public static readonly CssValue SpaceEvenly = "space-evenly";
+    public static readonly CssKeyword SpaceEvenly = "space-evenly";
 
     /// <summary><c>start</c>：各项贴向容器在该方向上的起始边，起始边由书写模式和方向决定。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：把剩余空间平均分给尺寸为 <c>auto</c> 的项，使它们被拉伸以占满容器。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe</c>：无论是否溢出，都严格按指定方式对齐；内容溢出时可能超出容器起始侧，导致无法滚动到。</summary>
-    public static readonly CssValue Unsafe = "unsafe";
+    public static readonly CssKeyword Unsafe = "unsafe";
 }
 
 /// <summary><c>alignment-baseline</c> 的关键字取值；类型与 <see cref="Style.AlignmentBaseline"/> 一致，可直接赋值。</summary>
 public static class AlignmentBaseline
 {
     /// <summary><c>after-edge</c>：SVG 1.1 遗留值：按下缘（书写模式中的“后”边）对齐，效果接近 <c>text-after-edge</c>。</summary>
-    public static readonly CssValue AfterEdge = "after-edge";
+    public static readonly CssKeyword AfterEdge = "after-edge";
 
     /// <summary><c>alphabetic</c>：把盒子的字母基线（拉丁文字所坐落的基线）对齐到父元素的字母基线。</summary>
-    public static readonly CssValue Alphabetic = "alphabetic";
+    public static readonly CssKeyword Alphabetic = "alphabetic";
 
     /// <summary><c>auto</c>：SVG 1.1 遗留值，效果等同 <c>baseline</c>。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>baseline</c>：使用父元素主基线所对应的那条基线对齐，是初始值。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>before-edge</c>：SVG 1.1 遗留值：按上缘（书写模式中的“前”边）对齐，效果接近 <c>text-before-edge</c>。</summary>
-    public static readonly CssValue BeforeEdge = "before-edge";
+    public static readonly CssKeyword BeforeEdge = "before-edge";
 
     /// <summary><c>central</c>：对齐中心基线，位于表意字符上下边缘的正中间。</summary>
-    public static readonly CssValue Central = "central";
+    public static readonly CssKeyword Central = "central";
 
     /// <summary><c>hanging</c>：对齐悬挂基线，即天城文等文字字形顶部悬挂的那条线；SVG 1.1 遗留值，浏览器支持不一致。</summary>
-    public static readonly CssValue Hanging = "hanging";
+    public static readonly CssKeyword Hanging = "hanging";
 
     /// <summary><c>ideographic</c>：对齐表意基线，即中日韩等表意文字字形的底部。</summary>
-    public static readonly CssValue Ideographic = "ideographic";
+    public static readonly CssKeyword Ideographic = "ideographic";
 
     /// <summary><c>mathematical</c>：对齐数学基线，即数学公式里运算符所居的垂直中间位置。</summary>
-    public static readonly CssValue Mathematical = "mathematical";
+    public static readonly CssKeyword Mathematical = "mathematical";
 
     /// <summary><c>middle</c>：对齐中间基线，约在 x 字高的一半处，常用来让行内元素与小写字母垂直居中。</summary>
-    public static readonly CssValue Middle = "middle";
+    public static readonly CssKeyword Middle = "middle";
 
     /// <summary><c>text-after-edge</c>：把盒子的下缘对齐到父元素文本区域的下缘，相当于 <c>text-bottom</c>。</summary>
-    public static readonly CssValue TextAfterEdge = "text-after-edge";
+    public static readonly CssKeyword TextAfterEdge = "text-after-edge";
 
     /// <summary><c>text-before-edge</c>：把盒子的上缘对齐到父元素文本区域的上缘，相当于 <c>text-top</c>。</summary>
-    public static readonly CssValue TextBeforeEdge = "text-before-edge";
+    public static readonly CssKeyword TextBeforeEdge = "text-before-edge";
 }
 
 /// <summary><c>animation</c> 的关键字取值；类型与 <see cref="Style.Animation"/> 一致，可直接赋值。</summary>
 public static class Animation
 {
     /// <summary><c>alternate</c>：奇数次循环正向播放，偶数次反向播放，来回往复。</summary>
-    public static readonly CssValue Alternate = "alternate";
+    public static readonly CssKeyword Alternate = "alternate";
 
     /// <summary><c>alternate-reverse</c>：奇数次循环反向播放，偶数次正向播放，与 <c>alternate</c> 起点相反。</summary>
-    public static readonly CssValue AlternateReverse = "alternate-reverse";
+    public static readonly CssKeyword AlternateReverse = "alternate-reverse";
 
     /// <summary><c>auto</c>：不指定固定时长：基于时间的动画视为 <c>0s</c>，滚动驱动动画则按时间线范围自动决定。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>backwards</c>：延迟期间就先应用第一个关键帧的值，而不是等动画开始。</summary>
-    public static readonly CssValue Backwards = "backwards";
+    public static readonly CssKeyword Backwards = "backwards";
 
     /// <summary><c>both</c>：同时具备 <c>forwards</c> 与 <c>backwards</c>：延迟期间应用起始值，结束后保持末尾值。</summary>
-    public static readonly CssValue Both = "both";
+    public static readonly CssKeyword Both = "both";
 
     /// <summary><c>ease</c>：等同 <c>cubic-bezier(0.25, 0.1, 0.25, 1)</c>：开始较快、逐渐变慢，是动画和过渡的默认曲线。</summary>
-    public static readonly CssValue Ease = "ease";
+    public static readonly CssKeyword Ease = "ease";
 
     /// <summary><c>ease-in</c>：等同 <c>cubic-bezier(0.42, 0, 1, 1)</c>：起步缓慢，之后逐渐加速。</summary>
-    public static readonly CssValue EaseIn = "ease-in";
+    public static readonly CssKeyword EaseIn = "ease-in";
 
     /// <summary><c>ease-in-out</c>：等同 <c>cubic-bezier(0.42, 0, 0.58, 1)</c>：起止都缓慢，中间较快。</summary>
-    public static readonly CssValue EaseInOut = "ease-in-out";
+    public static readonly CssKeyword EaseInOut = "ease-in-out";
 
     /// <summary><c>ease-out</c>：等同 <c>cubic-bezier(0, 0, 0.58, 1)</c>：起步较快，临近结束时减速。</summary>
-    public static readonly CssValue EaseOut = "ease-out";
+    public static readonly CssKeyword EaseOut = "ease-out";
 
     /// <summary><c>forwards</c>：动画结束后保持最后一个关键帧的值，不回退到原样式。</summary>
-    public static readonly CssValue Forwards = "forwards";
+    public static readonly CssKeyword Forwards = "forwards";
 
     /// <summary><c>infinite</c>：无限次重复播放，直到动画被移除。</summary>
-    public static readonly CssValue Infinite = "infinite";
+    public static readonly CssKeyword Infinite = "infinite";
 
     /// <summary><c>linear</c>：匀速：进度与时间成正比，全程没有加速或减速。</summary>
-    public static readonly CssValue Linear = "linear";
+    public static readonly CssKeyword Linear = "linear";
 
     /// <summary><c>none</c>：不引用任何 <c>@keyframes</c>，该动画不产生效果；在简写里相当于动画名为 <c>none</c>。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：每次循环都从 0% 播放到 100%。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>paused</c>：暂停在当前进度；改回 <c>running</c> 后从暂停处继续，不会重头开始。</summary>
-    public static readonly CssValue Paused = "paused";
+    public static readonly CssKeyword Paused = "paused";
 
     /// <summary><c>reverse</c>：每次循环都从 100% 倒放到 0%。</summary>
-    public static readonly CssValue Reverse = "reverse";
+    public static readonly CssKeyword Reverse = "reverse";
 
     /// <summary><c>running</c>：动画正常播放。</summary>
-    public static readonly CssValue Running = "running";
+    public static readonly CssKeyword Running = "running";
 
     /// <summary><c>step-end</c>：等同于 <c>steps(1, jump-end)</c>：保持起始状态直到结束时刻，再一次性跳到结束状态。</summary>
-    public static readonly CssValue StepEnd = "step-end";
+    public static readonly CssKeyword StepEnd = "step-end";
 
     /// <summary><c>step-start</c>：等同于 <c>steps(1, jump-start)</c>：一开始就立刻跳到结束状态，之后保持不变。</summary>
-    public static readonly CssValue StepStart = "step-start";
+    public static readonly CssKeyword StepStart = "step-start";
 }
 
 /// <summary><c>animation-composition</c> 的关键字取值；类型与 <see cref="Style.AnimationComposition"/> 一致，可直接赋值。</summary>
 public static class AnimationComposition
 {
     /// <summary><c>accumulate</c>：动画值累积到底层值上；数值相加，列表型的值（如 <c>transform</c>）则按对应项逐项累积，与 <c>add</c> 的追加方式不同。</summary>
-    public static readonly CssValue Accumulate = "accumulate";
+    public static readonly CssKeyword Accumulate = "accumulate";
 
     /// <summary><c>add</c>：动画值与底层值相加；列表型的值（如 <c>transform</c>）是把动画值追加到底层值之后。</summary>
-    public static readonly CssValue Add = "add";
+    public static readonly CssKeyword Add = "add";
 
     /// <summary><c>replace</c>：动画值直接覆盖底层值，不做叠加；这是初始值。</summary>
-    public static readonly CssValue Replace = "replace";
+    public static readonly CssKeyword Replace = "replace";
 }
 
 /// <summary><c>animation-direction</c> 的关键字取值；类型与 <see cref="Style.AnimationDirection"/> 一致，可直接赋值。</summary>
 public static class AnimationDirection
 {
     /// <summary><c>alternate</c>：奇数次循环正向播放，偶数次反向播放，来回往复。</summary>
-    public static readonly CssValue Alternate = "alternate";
+    public static readonly CssKeyword Alternate = "alternate";
 
     /// <summary><c>alternate-reverse</c>：奇数次循环反向播放，偶数次正向播放，与 <c>alternate</c> 起点相反。</summary>
-    public static readonly CssValue AlternateReverse = "alternate-reverse";
+    public static readonly CssKeyword AlternateReverse = "alternate-reverse";
 
     /// <summary><c>normal</c>：每次循环都从 0% 播放到 100%。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>reverse</c>：每次循环都从 100% 倒放到 0%。</summary>
-    public static readonly CssValue Reverse = "reverse";
+    public static readonly CssKeyword Reverse = "reverse";
 }
 
 /// <summary><c>animation-fill-mode</c> 的关键字取值；类型与 <see cref="Style.AnimationFillMode"/> 一致，可直接赋值。</summary>
 public static class AnimationFillMode
 {
     /// <summary><c>backwards</c>：延迟阶段应用最先生效关键帧的效果，具体帧取决于播放方向。</summary>
-    public static readonly CssValue Backwards = "backwards";
+    public static readonly CssKeyword Backwards = "backwards";
 
     /// <summary><c>both</c>：同时应用 backwards 和 forwards 的区间外效果。</summary>
-    public static readonly CssValue Both = "both";
+    public static readonly CssKeyword Both = "both";
 
     /// <summary><c>forwards</c>：播放结束后保留最后生效关键帧的效果；最后帧取决于方向和循环次数。</summary>
-    public static readonly CssValue Forwards = "forwards";
+    public static readonly CssKeyword Forwards = "forwards";
 
     /// <summary><c>none</c>：动画有效区间之外不应用动画关键帧值。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>animation-play-state</c> 的关键字取值；类型与 <see cref="Style.AnimationPlayState"/> 一致，可直接赋值。</summary>
 public static class AnimationPlayState
 {
     /// <summary><c>paused</c>：暂停在当前进度；改回 <c>running</c> 后从暂停处继续，不会重头开始。</summary>
-    public static readonly CssValue Paused = "paused";
+    public static readonly CssKeyword Paused = "paused";
 
     /// <summary><c>running</c>：动画正常播放。</summary>
-    public static readonly CssValue Running = "running";
+    public static readonly CssKeyword Running = "running";
 }
 
 /// <summary><c>animation-range</c> 的关键字取值；类型与 <see cref="Style.AnimationRange"/> 一致，可直接赋值。</summary>
 public static class AnimationRange
 {
     /// <summary><c>contain</c>：主体完整位于可视区域内的区间；主体比可视区域大时，则为它完全盖住可视区域的区间。</summary>
-    public static readonly CssLength Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>cover</c>：覆盖整个可见过程：从主体刚开始进入滚动容器可视区域，到完全离开为止。</summary>
-    public static readonly CssLength Cover = "cover";
+    public static readonly CssKeyword Cover = "cover";
 
     /// <summary><c>entry</c>：主体进入可视区域的区间：从刚开始露头，到完全进入（或完全盖住可视区域）为止。</summary>
-    public static readonly CssLength Entry = "entry";
+    public static readonly CssKeyword Entry = "entry";
 
     /// <summary><c>entry-crossing</c>：主体越过滚动容器结束侧边缘的区间：从前沿到达该边缘，到后沿越过该边缘；按主体自身尺寸计算，与 <c>entry</c> 在主体较大时不同。</summary>
-    public static readonly CssLength EntryCrossing = "entry-crossing";
+    public static readonly CssKeyword EntryCrossing = "entry-crossing";
 
     /// <summary><c>exit</c>：主体离开可视区域的区间：从开始离开，到完全离开为止。</summary>
-    public static readonly CssLength Exit = "exit";
+    public static readonly CssKeyword Exit = "exit";
 
     /// <summary><c>exit-crossing</c>：主体越过滚动容器起始侧边缘的区间：从前沿到达该边缘，到后沿越过该边缘；按主体自身尺寸计算，与 <c>exit</c> 在主体较大时不同。</summary>
-    public static readonly CssLength ExitCrossing = "exit-crossing";
+    public static readonly CssKeyword ExitCrossing = "exit-crossing";
 
     /// <summary><c>normal</c>：不收窄附着范围：起点取时间线起点，终点取时间线终点，动画覆盖整条时间线。</summary>
-    public static readonly CssLength Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>animation-range-end</c> 的关键字取值；类型与 <see cref="Style.AnimationRangeEnd"/> 一致，可直接赋值。</summary>
 public static class AnimationRangeEnd
 {
     /// <summary><c>contain</c>：主体完整位于可视区域内的区间；主体比可视区域大时，则为它完全盖住可视区域的区间。</summary>
-    public static readonly CssLength Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>cover</c>：覆盖整个可见过程：从主体刚开始进入滚动容器可视区域，到完全离开为止。</summary>
-    public static readonly CssLength Cover = "cover";
+    public static readonly CssKeyword Cover = "cover";
 
     /// <summary><c>entry</c>：主体进入可视区域的区间：从刚开始露头，到完全进入（或完全盖住可视区域）为止。</summary>
-    public static readonly CssLength Entry = "entry";
+    public static readonly CssKeyword Entry = "entry";
 
     /// <summary><c>entry-crossing</c>：主体越过滚动容器结束侧边缘的区间：从前沿到达该边缘，到后沿越过该边缘；按主体自身尺寸计算，与 <c>entry</c> 在主体较大时不同。</summary>
-    public static readonly CssLength EntryCrossing = "entry-crossing";
+    public static readonly CssKeyword EntryCrossing = "entry-crossing";
 
     /// <summary><c>exit</c>：主体离开可视区域的区间：从开始离开，到完全离开为止。</summary>
-    public static readonly CssLength Exit = "exit";
+    public static readonly CssKeyword Exit = "exit";
 
     /// <summary><c>exit-crossing</c>：主体越过滚动容器起始侧边缘的区间：从前沿到达该边缘，到后沿越过该边缘；按主体自身尺寸计算，与 <c>exit</c> 在主体较大时不同。</summary>
-    public static readonly CssLength ExitCrossing = "exit-crossing";
+    public static readonly CssKeyword ExitCrossing = "exit-crossing";
 
     /// <summary><c>normal</c>：不收窄附着范围：起点取时间线起点，终点取时间线终点，动画覆盖整条时间线。</summary>
-    public static readonly CssLength Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>animation-range-start</c> 的关键字取值；类型与 <see cref="Style.AnimationRangeStart"/> 一致，可直接赋值。</summary>
 public static class AnimationRangeStart
 {
     /// <summary><c>contain</c>：主体完整位于可视区域内的区间；主体比可视区域大时，则为它完全盖住可视区域的区间。</summary>
-    public static readonly CssLength Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>cover</c>：覆盖整个可见过程：从主体刚开始进入滚动容器可视区域，到完全离开为止。</summary>
-    public static readonly CssLength Cover = "cover";
+    public static readonly CssKeyword Cover = "cover";
 
     /// <summary><c>entry</c>：主体进入可视区域的区间：从刚开始露头，到完全进入（或完全盖住可视区域）为止。</summary>
-    public static readonly CssLength Entry = "entry";
+    public static readonly CssKeyword Entry = "entry";
 
     /// <summary><c>entry-crossing</c>：主体越过滚动容器结束侧边缘的区间：从前沿到达该边缘，到后沿越过该边缘；按主体自身尺寸计算，与 <c>entry</c> 在主体较大时不同。</summary>
-    public static readonly CssLength EntryCrossing = "entry-crossing";
+    public static readonly CssKeyword EntryCrossing = "entry-crossing";
 
     /// <summary><c>exit</c>：主体离开可视区域的区间：从开始离开，到完全离开为止。</summary>
-    public static readonly CssLength Exit = "exit";
+    public static readonly CssKeyword Exit = "exit";
 
     /// <summary><c>exit-crossing</c>：主体越过滚动容器起始侧边缘的区间：从前沿到达该边缘，到后沿越过该边缘；按主体自身尺寸计算，与 <c>exit</c> 在主体较大时不同。</summary>
-    public static readonly CssLength ExitCrossing = "exit-crossing";
+    public static readonly CssKeyword ExitCrossing = "exit-crossing";
 
     /// <summary><c>normal</c>：不收窄附着范围：起点取时间线起点，终点取时间线终点，动画覆盖整条时间线。</summary>
-    public static readonly CssLength Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>animation-timeline</c> 的关键字取值；类型与 <see cref="Style.AnimationTimeline"/> 一致，可直接赋值。</summary>
 public static class AnimationTimeline
 {
     /// <summary><c>auto</c>：使用默认的文档时间轴，动画随时间推进；这是初始值。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：不关联任何时间轴，动画不会推进。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>animation-timing-function</c> 的关键字取值；类型与 <see cref="Style.AnimationTimingFunction"/> 一致，可直接赋值。</summary>
 public static class AnimationTimingFunction
 {
     /// <summary><c>ease</c>：等同 <c>cubic-bezier(0.25, 0.1, 0.25, 1)</c>：开始较快、逐渐变慢，是动画和过渡的默认曲线。</summary>
-    public static readonly CssValue Ease = "ease";
+    public static readonly CssKeyword Ease = "ease";
 
     /// <summary><c>ease-in</c>：等同 <c>cubic-bezier(0.42, 0, 1, 1)</c>：起步缓慢，之后逐渐加速。</summary>
-    public static readonly CssValue EaseIn = "ease-in";
+    public static readonly CssKeyword EaseIn = "ease-in";
 
     /// <summary><c>ease-in-out</c>：等同 <c>cubic-bezier(0.42, 0, 0.58, 1)</c>：起止都缓慢，中间较快。</summary>
-    public static readonly CssValue EaseInOut = "ease-in-out";
+    public static readonly CssKeyword EaseInOut = "ease-in-out";
 
     /// <summary><c>ease-out</c>：等同 <c>cubic-bezier(0, 0, 0.58, 1)</c>：起步较快，临近结束时减速。</summary>
-    public static readonly CssValue EaseOut = "ease-out";
+    public static readonly CssKeyword EaseOut = "ease-out";
 
     /// <summary><c>linear</c>：匀速：进度与时间成正比，全程没有加速或减速。</summary>
-    public static readonly CssValue Linear = "linear";
+    public static readonly CssKeyword Linear = "linear";
 
     /// <summary><c>step-end</c>：等同于 <c>steps(1, jump-end)</c>：保持起始状态直到结束时刻，再一次性跳到结束状态。</summary>
-    public static readonly CssValue StepEnd = "step-end";
+    public static readonly CssKeyword StepEnd = "step-end";
 
     /// <summary><c>step-start</c>：等同于 <c>steps(1, jump-start)</c>：一开始就立刻跳到结束状态，之后保持不变。</summary>
-    public static readonly CssValue StepStart = "step-start";
+    public static readonly CssKeyword StepStart = "step-start";
 }
 
 /// <summary><c>appearance</c> 的关键字取值；类型与 <see cref="Style.Appearance"/> 一致，可直接赋值。</summary>
 public static class Appearance
 {
     /// <summary><c>auto</c>：采用元素类型默认的平台原生外观；元素没有原生外观时表现得像 <c>none</c>。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>button</c>：兼容取值：历史上表示按按钮外观渲染，现在行为等同 <c>auto</c>。</summary>
-    public static readonly CssValue Button = "button";
+    public static readonly CssKeyword Button = "button";
 
     /// <summary><c>checkbox</c>：兼容取值：历史上表示按复选框外观渲染，现在行为等同 <c>auto</c>。</summary>
-    public static readonly CssValue Checkbox = "checkbox";
+    public static readonly CssKeyword Checkbox = "checkbox";
 
     /// <summary><c>listbox</c>：兼容取值：历史上表示按列表框外观渲染，现在行为等同 <c>auto</c>。</summary>
-    public static readonly CssValue Listbox = "listbox";
+    public static readonly CssKeyword Listbox = "listbox";
 
     /// <summary><c>menulist</c>：兼容取值：历史上表示按下拉菜单外观渲染，现在行为等同 <c>auto</c>。</summary>
-    public static readonly CssValue Menulist = "menulist";
+    public static readonly CssKeyword Menulist = "menulist";
 
     /// <summary><c>menulist-button</c>：兼容取值：按下拉菜单的按钮部分渲染，各浏览器表现不一，一般不需要使用。</summary>
-    public static readonly CssValue MenulistButton = "menulist-button";
+    public static readonly CssKeyword MenulistButton = "menulist-button";
 
     /// <summary><c>meter</c>：兼容取值：历史上表示按度量条外观渲染，现在行为等同 <c>auto</c>。</summary>
-    public static readonly CssValue Meter = "meter";
+    public static readonly CssKeyword Meter = "meter";
 
     /// <summary><c>none</c>：关闭平台原生控件外观，只使用 CSS 指定的样式，便于自绘表单控件。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>progress-bar</c>：兼容取值：历史上表示按进度条外观渲染，现在行为等同 <c>auto</c>。</summary>
-    public static readonly CssValue ProgressBar = "progress-bar";
+    public static readonly CssKeyword ProgressBar = "progress-bar";
 
     /// <summary><c>radio</c>：兼容取值：历史上表示按单选框外观渲染，现在行为等同 <c>auto</c>。</summary>
-    public static readonly CssValue Radio = "radio";
+    public static readonly CssKeyword Radio = "radio";
 
     /// <summary><c>searchfield</c>：兼容取值：历史上表示按搜索框外观渲染，现在行为等同 <c>auto</c>。</summary>
-    public static readonly CssValue Searchfield = "searchfield";
+    public static readonly CssKeyword Searchfield = "searchfield";
 
     /// <summary><c>textarea</c>：兼容取值：历史上表示按多行文本框外观渲染，现在行为等同 <c>auto</c>。</summary>
-    public static readonly CssValue Textarea = "textarea";
+    public static readonly CssKeyword Textarea = "textarea";
 
     /// <summary><c>textfield</c>：按文本输入框外观渲染；常用于去掉 <c>input[type=number]</c> 默认的微调按钮。</summary>
-    public static readonly CssValue Textfield = "textfield";
+    public static readonly CssKeyword Textfield = "textfield";
 }
 
 /// <summary><c>backface-visibility</c> 的关键字取值；类型与 <see cref="Style.BackfaceVisibility"/> 一致，可直接赋值。</summary>
 public static class BackfaceVisibility
 {
     /// <summary><c>hidden</c>：元素背面朝向观察者时不渲染，常用于翻转卡片时隐藏背面。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>visible</c>：背面朝向观察者时照常渲染，内容呈镜像，是默认值。</summary>
-    public static readonly CssValue Visible = "visible";
+    public static readonly CssKeyword Visible = "visible";
 }
 
 /// <summary><c>background</c> 的关键字取值；类型与 <see cref="Style.Background"/> 一致，可直接赋值。</summary>
@@ -607,186 +674,186 @@ public static class Background
 public static class BackgroundAttachment
 {
     /// <summary><c>fixed</c>：背景相对视口固定，页面滚动时背景保持不动，只有元素范围内的部分可见。</summary>
-    public static readonly CssValue Fixed = "fixed";
+    public static readonly CssKeyword Fixed = "fixed";
 
     /// <summary><c>local</c>：背景相对元素的内容固定，会随元素内部内容一起滚动。</summary>
-    public static readonly CssValue Local = "local";
+    public static readonly CssKeyword Local = "local";
 
     /// <summary><c>scroll</c>：背景相对元素自身固定，随页面滚动，但不随元素内部内容的滚动而移动。</summary>
-    public static readonly CssValue Scroll = "scroll";
+    public static readonly CssKeyword Scroll = "scroll";
 }
 
 /// <summary><c>background-blend-mode</c> 的关键字取值；类型与 <see cref="Style.BackgroundBlendMode"/> 一致，可直接赋值。</summary>
 public static class BackgroundBlendMode
 {
     /// <summary><c>color</c>：取上层的色相和饱和度，保留下层的明度；常用于给黑白图像着色。</summary>
-    public static readonly CssValue Color = "color";
+    public static readonly CssKeyword Color = "color";
 
     /// <summary><c>color-burn</c>：加深：让下层变暗以反映上层颜色，上层越深，下层变暗越明显。</summary>
-    public static readonly CssValue ColorBurn = "color-burn";
+    public static readonly CssKeyword ColorBurn = "color-burn";
 
     /// <summary><c>color-dodge</c>：减淡：让下层变亮以反映上层颜色，上层越亮，下层越接近白色。</summary>
-    public static readonly CssValue ColorDodge = "color-dodge";
+    public static readonly CssKeyword ColorDodge = "color-dodge";
 
     /// <summary><c>darken</c>：逐通道取上下两层中较暗的值，结果不会比任何一层更亮。</summary>
-    public static readonly CssValue Darken = "darken";
+    public static readonly CssKeyword Darken = "darken";
 
     /// <summary><c>difference</c>：取上下两层颜色差的绝对值；与白色混合会反相，与黑色混合则不变。</summary>
-    public static readonly CssValue Difference = "difference";
+    public static readonly CssKeyword Difference = "difference";
 
     /// <summary><c>exclusion</c>：类似 <c>difference</c>，但对比度更低；与白色混合会反相，与黑色混合不变。</summary>
-    public static readonly CssValue Exclusion = "exclusion";
+    public static readonly CssKeyword Exclusion = "exclusion";
 
     /// <summary><c>hard-light</c>：按上层颜色决定做 <c>multiply</c> 还是 <c>screen</c>，效果像强光直射，上层亮则提亮、暗则压暗。</summary>
-    public static readonly CssValue HardLight = "hard-light";
+    public static readonly CssKeyword HardLight = "hard-light";
 
     /// <summary><c>hue</c>：取上层的色相，保留下层的饱和度和明度。</summary>
-    public static readonly CssValue Hue = "hue";
+    public static readonly CssKeyword Hue = "hue";
 
     /// <summary><c>lighten</c>：逐通道取上下两层中较亮的值，结果不会比任何一层更暗。</summary>
-    public static readonly CssValue Lighten = "lighten";
+    public static readonly CssKeyword Lighten = "lighten";
 
     /// <summary><c>luminosity</c>：取上层的明度，保留下层的色相和饱和度，与 <c>color</c> 相反。</summary>
-    public static readonly CssValue Luminosity = "luminosity";
+    public static readonly CssKeyword Luminosity = "luminosity";
 
     /// <summary><c>multiply</c>：正片叠底：上下两层颜色相乘，结果更暗；与白色混合不变，与黑色混合变黑。</summary>
-    public static readonly CssValue Multiply = "multiply";
+    public static readonly CssKeyword Multiply = "multiply";
 
     /// <summary><c>normal</c>：不做混合，上层直接覆盖下层；上层半透明时按透明度叠加。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>overlay</c>：按下层颜色决定做 <c>multiply</c> 还是 <c>screen</c>，暗部更暗、亮部更亮，同时保留下层的明暗层次。</summary>
-    public static readonly CssValue Overlay = "overlay";
+    public static readonly CssKeyword Overlay = "overlay";
 
     /// <summary><c>saturation</c>：取上层的饱和度，保留下层的色相和明度。</summary>
-    public static readonly CssValue Saturation = "saturation";
+    public static readonly CssKeyword Saturation = "saturation";
 
     /// <summary><c>screen</c>：滤色：反相后相乘再反相，结果更亮；与黑色混合不变，与白色混合变白。</summary>
-    public static readonly CssValue Screen = "screen";
+    public static readonly CssKeyword Screen = "screen";
 
     /// <summary><c>soft-light</c>：<c>hard-light</c> 的柔和版本，像漫射光照射，对下层的提亮或压暗幅度较小。</summary>
-    public static readonly CssValue SoftLight = "soft-light";
+    public static readonly CssKeyword SoftLight = "soft-light";
 }
 
 /// <summary><c>background-clip</c> 的关键字取值；类型与 <see cref="Style.BackgroundClip"/> 一致，可直接赋值。</summary>
 public static class BackgroundClip
 {
     /// <summary><c>border-box</c>：以边框外缘为参考框，含内边距和边框。</summary>
-    public static readonly CssValue BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>content-box</c>：以内容区边缘为参考框，不含内边距和边框。</summary>
-    public static readonly CssValue ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>padding-box</c>：以内边距边缘为参考框，含内边距，不含边框。</summary>
-    public static readonly CssValue PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 
     /// <summary><c>text</c>：把背景裁剪到文字字形；显示背景文字效果通常还需要透明的文字颜色。</summary>
-    public static readonly CssValue Text = "text";
+    public static readonly CssKeyword Text = "text";
 }
 
 /// <summary><c>background-origin</c> 的关键字取值；类型与 <see cref="Style.BackgroundOrigin"/> 一致，可直接赋值。</summary>
 public static class BackgroundOrigin
 {
     /// <summary><c>border-box</c>：以边框外缘为参考框，含内边距和边框。</summary>
-    public static readonly CssValue BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>content-box</c>：以内容区边缘为参考框，不含内边距和边框。</summary>
-    public static readonly CssValue ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>padding-box</c>：以内边距边缘为参考框，含内边距，不含边框。</summary>
-    public static readonly CssValue PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 }
 
 /// <summary><c>background-position</c> 的关键字取值；类型与 <see cref="Style.BackgroundPosition"/> 一致，可直接赋值。</summary>
 public static class BackgroundPosition
 {
     /// <summary><c>bottom</c>：垂直方向贴靠下边缘，等同 <c>100%</c>；后面可跟长度作为距下边缘的偏移。</summary>
-    public static readonly CssLength Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：在对应方向上居中，等同 <c>50%</c>。</summary>
-    public static readonly CssLength Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>left</c>：水平方向贴靠左边缘，等同 <c>0%</c>；后面可跟长度作为距左边缘的偏移，如 <c>left 10px</c>。</summary>
-    public static readonly CssLength Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：水平方向贴靠右边缘，等同 <c>100%</c>；后面可跟长度作为距右边缘的偏移，如 <c>right 10px</c>。</summary>
-    public static readonly CssLength Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>top</c>：垂直方向贴靠上边缘，等同 <c>0%</c>；后面可跟长度作为距上边缘的偏移。</summary>
-    public static readonly CssLength Top = "top";
+    public static readonly CssKeyword Top = "top";
 }
 
 /// <summary><c>background-position-x</c> 的关键字取值；类型与 <see cref="Style.BackgroundPositionX"/> 一致，可直接赋值。</summary>
 public static class BackgroundPositionX
 {
     /// <summary><c>center</c>：背景图像在水平方向居中，等同于 <c>50%</c>。</summary>
-    public static readonly CssLength Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>left</c>：对齐到容器左边缘，等同于 <c>0%</c>；可后接偏移量，如 <c>left 10px</c>，表示从左边缘向内偏移。</summary>
-    public static readonly CssLength Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：对齐到容器右边缘，等同于 <c>100%</c>；后接偏移量时表示距右边缘向内的距离。</summary>
-    public static readonly CssLength Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>x-end</c>：对齐到水平方向的结束侧，由书写模式和方向决定（普通从左到右的横排中为右边）；较新的逻辑写法，浏览器支持有限。</summary>
-    public static readonly CssLength XEnd = "x-end";
+    public static readonly CssKeyword XEnd = "x-end";
 
     /// <summary><c>x-start</c>：对齐到水平方向的起始侧，由书写模式和方向决定（普通从左到右的横排中为左边）；较新的逻辑写法，浏览器支持有限。</summary>
-    public static readonly CssLength XStart = "x-start";
+    public static readonly CssKeyword XStart = "x-start";
 }
 
 /// <summary><c>background-position-y</c> 的关键字取值；类型与 <see cref="Style.BackgroundPositionY"/> 一致，可直接赋值。</summary>
 public static class BackgroundPositionY
 {
     /// <summary><c>bottom</c>：对齐到容器下边缘，等同于 <c>100%</c>；后接偏移量时表示距下边缘向内的距离。</summary>
-    public static readonly CssLength Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：背景图像在垂直方向居中，等同于 <c>50%</c>。</summary>
-    public static readonly CssLength Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>top</c>：对齐到容器上边缘，等同于 <c>0%</c>；可后接偏移量，如 <c>top 10px</c>，表示从上边缘向内偏移。</summary>
-    public static readonly CssLength Top = "top";
+    public static readonly CssKeyword Top = "top";
 
     /// <summary><c>y-end</c>：对齐到垂直方向的结束侧，由书写模式决定（普通横排中为下边）；较新的逻辑写法，浏览器支持有限。</summary>
-    public static readonly CssLength YEnd = "y-end";
+    public static readonly CssKeyword YEnd = "y-end";
 
     /// <summary><c>y-start</c>：对齐到垂直方向的起始侧，由书写模式决定（普通横排中为上边）；较新的逻辑写法，浏览器支持有限。</summary>
-    public static readonly CssLength YStart = "y-start";
+    public static readonly CssKeyword YStart = "y-start";
 }
 
 /// <summary><c>background-repeat</c> 的关键字取值；类型与 <see cref="Style.BackgroundRepeat"/> 一致，可直接赋值。</summary>
 public static class BackgroundRepeat
 {
     /// <summary><c>no-repeat</c>：不平铺，该方向只绘制一张图。</summary>
-    public static readonly CssValue NoRepeat = "no-repeat";
+    public static readonly CssKeyword NoRepeat = "no-repeat";
 
     /// <summary><c>repeat</c>：沿对应方向不断平铺，末尾的图片可能被裁掉一部分；这是背景图的初始值。</summary>
-    public static readonly CssValue Repeat = "repeat";
+    public static readonly CssKeyword Repeat = "repeat";
 
     /// <summary><c>repeat-x</c>：只在水平方向平铺，垂直方向不重复，等同于 <c>repeat no-repeat</c>。</summary>
-    public static readonly CssValue RepeatX = "repeat-x";
+    public static readonly CssKeyword RepeatX = "repeat-x";
 
     /// <summary><c>repeat-y</c>：只在垂直方向平铺，水平方向不重复，等同于 <c>no-repeat repeat</c>。</summary>
-    public static readonly CssValue RepeatY = "repeat-y";
+    public static readonly CssKeyword RepeatY = "repeat-y";
 
     /// <summary><c>round</c>：按需缩放图片，使整数张图正好铺满该方向，不裁剪也不留空隙。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>space</c>：尽量多放整张图而不裁剪，把剩余空间均匀分到图片之间。</summary>
-    public static readonly CssValue Space = "space";
+    public static readonly CssKeyword Space = "space";
 }
 
 /// <summary><c>background-size</c> 的关键字取值；类型与 <see cref="Style.BackgroundSize"/> 一致，可直接赋值。</summary>
 public static class BackgroundSize
 {
     /// <summary><c>auto</c>：依据图像内部尺寸、比例及另一维的设置确定尺寸。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>contain</c>：保持图像比例并使整张图像容纳于定位区域，可能留下空白。</summary>
-    public static readonly CssLength Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>cover</c>：保持图像比例并覆盖整个定位区域，超出部分可能被裁剪。</summary>
-    public static readonly CssLength Cover = "cover";
+    public static readonly CssKeyword Cover = "cover";
 }
 
 /// <summary><c>baseline-shift</c> 的关键字取值；类型与 <see cref="Style.BaselineShift"/> 一致，可直接赋值。</summary>
@@ -951,34 +1018,34 @@ public static class BorderBlockEnd
 public static class BorderBlockEndStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-block-end-width</c> 的关键字取值；类型与 <see cref="Style.BorderBlockEndWidth"/> 一致，可直接赋值。</summary>
@@ -1041,34 +1108,34 @@ public static class BorderBlockStart
 public static class BorderBlockStartStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-block-start-width</c> 的关键字取值；类型与 <see cref="Style.BorderBlockStartWidth"/> 一致，可直接赋值。</summary>
@@ -1088,34 +1155,34 @@ public static class BorderBlockStartWidth
 public static class BorderBlockStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-block-width</c> 的关键字取值；类型与 <see cref="Style.BorderBlockWidth"/> 一致，可直接赋值。</summary>
@@ -1178,34 +1245,34 @@ public static class BorderBottom
 public static class BorderBottomStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-bottom-width</c> 的关键字取值；类型与 <see cref="Style.BorderBottomWidth"/> 一致，可直接赋值。</summary>
@@ -1225,10 +1292,10 @@ public static class BorderBottomWidth
 public static class BorderCollapse
 {
     /// <summary><c>collapse</c>：相邻单元格共用一条边框，冲突时按优先级规则取舍；<c>borderSpacing</c> 不再生效。</summary>
-    public static readonly CssValue Collapse = "collapse";
+    public static readonly CssKeyword Collapse = "collapse";
 
     /// <summary><c>separate</c>：每个单元格保留各自独立的边框，相邻边框之间留出 <c>borderSpacing</c> 指定的间距，是默认值。</summary>
-    public static readonly CssValue Separate = "separate";
+    public static readonly CssKeyword Separate = "separate";
 }
 
 /// <summary><c>border-image</c> 的关键字取值；类型与 <see cref="Style.BorderImage"/> 一致，可直接赋值。</summary>
@@ -1260,16 +1327,16 @@ public static class BorderImage
 public static class BorderImageRepeat
 {
     /// <summary><c>repeat</c>：平铺切片以填满边框区域，两端可能被截断。</summary>
-    public static readonly CssValue Repeat = "repeat";
+    public static readonly CssKeyword Repeat = "repeat";
 
     /// <summary><c>round</c>：平铺切片，并微调切片大小使整数个刚好铺满，不会被截断。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>space</c>：平铺切片并保持原尺寸，把多余空间平均分成切片之间的间隙，不会被截断。</summary>
-    public static readonly CssValue Space = "space";
+    public static readonly CssKeyword Space = "space";
 
     /// <summary><c>stretch</c>：拉伸边框图像的边与中间切片，填满对应的边框区域。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 }
 
 /// <summary><c>border-inline</c> 的关键字取值；类型与 <see cref="Style.BorderInline"/> 一致，可直接赋值。</summary>
@@ -1362,34 +1429,34 @@ public static class BorderInlineEnd
 public static class BorderInlineEndStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-inline-end-width</c> 的关键字取值；类型与 <see cref="Style.BorderInlineEndWidth"/> 一致，可直接赋值。</summary>
@@ -1452,34 +1519,34 @@ public static class BorderInlineStart
 public static class BorderInlineStartStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-inline-start-width</c> 的关键字取值；类型与 <see cref="Style.BorderInlineStartWidth"/> 一致，可直接赋值。</summary>
@@ -1499,34 +1566,34 @@ public static class BorderInlineStartWidth
 public static class BorderInlineStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-inline-width</c> 的关键字取值；类型与 <see cref="Style.BorderInlineWidth"/> 一致，可直接赋值。</summary>
@@ -1589,34 +1656,34 @@ public static class BorderLeft
 public static class BorderLeftStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-left-width</c> 的关键字取值；类型与 <see cref="Style.BorderLeftWidth"/> 一致，可直接赋值。</summary>
@@ -1679,34 +1746,34 @@ public static class BorderRight
 public static class BorderRightStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-right-width</c> 的关键字取值；类型与 <see cref="Style.BorderRightWidth"/> 一致，可直接赋值。</summary>
@@ -1726,34 +1793,34 @@ public static class BorderRightWidth
 public static class BorderStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：通常与 none 类似；在表格边框合并冲突中优先隐藏边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制边框，并使对应边框计算宽度为零。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制连续实线边框。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-top</c> 的关键字取值；类型与 <see cref="Style.BorderTop"/> 一致，可直接赋值。</summary>
@@ -1803,34 +1870,34 @@ public static class BorderTop
 public static class BorderTopStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>border-top-width</c> 的关键字取值；类型与 <see cref="Style.BorderTopWidth"/> 一致，可直接赋值。</summary>
@@ -1863,65 +1930,65 @@ public static class BorderWidth
 public static class BoxAlign
 {
     /// <summary><c>baseline</c>：子元素按文字基线对齐，对应 <c>alignItems: 'baseline'</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>center</c>：子元素在交叉轴上居中，对应 <c>alignItems: 'center'</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：子元素靠交叉轴结束侧对齐，对应 <c>alignItems: 'flex-end'</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>start</c>：子元素靠交叉轴起始侧对齐，对应 <c>alignItems: 'flex-start'</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：子元素拉伸以填满交叉轴方向，是默认值，对应 <c>alignItems: 'stretch'</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 }
 
 /// <summary><c>box-decoration-break</c> 的关键字取值；类型与 <see cref="Style.BoxDecorationBreak"/> 一致，可直接赋值。</summary>
 public static class BoxDecorationBreak
 {
     /// <summary><c>clone</c>：每个片段都独立绘制完整的边框、内边距、背景和圆角，如同各自是单独的盒子。</summary>
-    public static readonly CssValue Clone = "clone";
+    public static readonly CssKeyword Clone = "clone";
 
     /// <summary><c>slice</c>：先按未断开的整体绘制，再在断口处切开：断口处不绘制边框和内边距，背景在片段间连续，是默认值。</summary>
-    public static readonly CssValue Slice = "slice";
+    public static readonly CssKeyword Slice = "slice";
 }
 
 /// <summary><c>box-direction</c> 的关键字取值；类型与 <see cref="Style.BoxDirection"/> 一致，可直接赋值。</summary>
 public static class BoxDirection
 {
     /// <summary><c>normal</c>：子元素沿排列轴按正常顺序排列，对应 <c>flexDirection</c> 的 <c>row</c> 或 <c>column</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>reverse</c>：子元素沿排列轴反向排列，对应 <c>flexDirection</c> 的 <c>row-reverse</c> 或 <c>column-reverse</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue Reverse = "reverse";
+    public static readonly CssKeyword Reverse = "reverse";
 }
 
 /// <summary><c>box-lines</c> 的关键字取值；类型与 <see cref="Style.BoxLines"/> 一致，可直接赋值。</summary>
 public static class BoxLines
 {
     /// <summary><c>multiple</c>：子元素放不下时可换到新的一行（列），对应 <c>flexWrap: 'wrap'</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue Multiple = "multiple";
+    public static readonly CssKeyword Multiple = "multiple";
 
     /// <summary><c>single</c>：所有子元素排在同一行（列）内，不换行，对应 <c>flexWrap: 'nowrap'</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue Single = "single";
+    public static readonly CssKeyword Single = "single";
 }
 
 /// <summary><c>box-orient</c> 的关键字取值；类型与 <see cref="Style.BoxOrient"/> 一致，可直接赋值。</summary>
 public static class BoxOrient
 {
     /// <summary><c>block-axis</c>：子元素沿块轴排列，横排文字下等同于 <c>vertical</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue BlockAxis = "block-axis";
+    public static readonly CssKeyword BlockAxis = "block-axis";
 
     /// <summary><c>horizontal</c>：子元素沿水平方向排列，对应 <c>flexDirection: 'row'</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue Horizontal = "horizontal";
+    public static readonly CssKeyword Horizontal = "horizontal";
 
     /// <summary><c>inline-axis</c>：子元素沿行内轴排列，横排文字下等同于 <c>horizontal</c>；旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue InlineAxis = "inline-axis";
+    public static readonly CssKeyword InlineAxis = "inline-axis";
 
     /// <summary><c>vertical</c>：子元素沿垂直方向排列，对应 <c>flexDirection: 'column'</c>；多行文本截断需配合 <c>WebkitBoxOrient: 'vertical'</c>。旧版弹性盒写法，已废弃。</summary>
-    public static readonly CssValue Vertical = "vertical";
+    public static readonly CssKeyword Vertical = "vertical";
 }
 
 /// <summary><c>box-shadow</c> 的关键字取值；类型与 <see cref="Style.BoxShadow"/> 一致，可直接赋值。</summary>
@@ -1938,144 +2005,144 @@ public static class BoxShadow
 public static class BoxSizing
 {
     /// <summary><c>border-box</c>：指定尺寸包含内容、内边距和边框，但不包含外边距。仍不包含 margin；最小/最大尺寸和布局约束仍参与计算。content-box 在声明宽高之外再加内边距和边框。</summary>
-    public static readonly CssValue BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>content-box</c>：指定尺寸仅计算内容盒，内边距和边框额外增加外部尺寸。</summary>
-    public static readonly CssValue ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 }
 
 /// <summary><c>box-suppress</c> 的关键字取值；类型与 <see cref="Style.BoxSuppress"/> 一致，可直接赋值。</summary>
 public static class BoxSuppress
 {
     /// <summary><c>discard</c>：元素及其后代不生成盒子，效果近似 <c>display: none</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue Discard = "discard";
+    public static readonly CssKeyword Discard = "discard";
 
     /// <summary><c>hide</c>：用于隐藏元素，与 <c>discard</c> 的具体区别以 CSS Display 草案为准。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue Hide = "hide";
+    public static readonly CssKeyword Hide = "hide";
 
     /// <summary><c>show</c>：元素按 <c>display</c> 正常生成盒子，即不做任何抑制，是默认值。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue Show = "show";
+    public static readonly CssKeyword Show = "show";
 }
 
 /// <summary><c>break-after</c> 的关键字取值；类型与 <see cref="Style.BreakAfter"/> 一致，可直接赋值。</summary>
 public static class BreakAfter
 {
     /// <summary><c>auto</c>：既不强制也不禁止在该侧断开（<c>breakBefore</c> 指元素之前，<c>breakAfter</c> 指元素之后），由浏览器按内容自然决定。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>avoid</c>：尽量避免在该侧断开，不论是分页、分栏还是分区。</summary>
-    public static readonly CssValue Avoid = "avoid";
+    public static readonly CssKeyword Avoid = "avoid";
 
     /// <summary><c>avoid-column</c>：尽量避免在该侧分栏断开。</summary>
-    public static readonly CssValue AvoidColumn = "avoid-column";
+    public static readonly CssKeyword AvoidColumn = "avoid-column";
 
     /// <summary><c>avoid-page</c>：尽量避免在该侧分页断开。</summary>
-    public static readonly CssValue AvoidPage = "avoid-page";
+    public static readonly CssKeyword AvoidPage = "avoid-page";
 
     /// <summary><c>avoid-region</c>：尽量避免在该侧分区断开；属于 CSS Regions，浏览器基本不支持。</summary>
-    public static readonly CssValue AvoidRegion = "avoid-region";
+    public static readonly CssKeyword AvoidRegion = "avoid-region";
 
     /// <summary><c>column</c>：在该侧强制分栏，后续内容从下一栏开始。</summary>
-    public static readonly CssValue Column = "column";
+    public static readonly CssKeyword Column = "column";
 
     /// <summary><c>left</c>：在该侧强制分页，并使新起的一页是左页，必要时插入空白页；主要用于分页媒体（如打印）。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>page</c>：在该侧强制分页，后续内容从新的一页开始；主要用于分页媒体（如打印）。</summary>
-    public static readonly CssValue Page = "page";
+    public static readonly CssKeyword Page = "page";
 
     /// <summary><c>recto</c>：在该侧强制分页，并使新起的一页是正面页（从左到右书写时为右页，从右到左时为左页）；主要用于分页媒体（如打印）。</summary>
-    public static readonly CssValue Recto = "recto";
+    public static readonly CssKeyword Recto = "recto";
 
     /// <summary><c>region</c>：在该侧强制切到下一个区域；属于 CSS Regions，浏览器基本不支持。</summary>
-    public static readonly CssValue Region = "region";
+    public static readonly CssKeyword Region = "region";
 
     /// <summary><c>right</c>：在该侧强制分页，并使新起的一页是右页，必要时插入空白页；主要用于分页媒体（如打印）。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>verso</c>：在该侧强制分页，并使新起的一页是反面页（从左到右书写时为左页，从右到左时为右页）；主要用于分页媒体（如打印）。</summary>
-    public static readonly CssValue Verso = "verso";
+    public static readonly CssKeyword Verso = "verso";
 }
 
 /// <summary><c>break-before</c> 的关键字取值；类型与 <see cref="Style.BreakBefore"/> 一致，可直接赋值。</summary>
 public static class BreakBefore
 {
     /// <summary><c>auto</c>：既不强制也不禁止在该侧断开（<c>breakBefore</c> 指元素之前，<c>breakAfter</c> 指元素之后），由浏览器按内容自然决定。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>avoid</c>：尽量避免在该侧断开，不论是分页、分栏还是分区。</summary>
-    public static readonly CssValue Avoid = "avoid";
+    public static readonly CssKeyword Avoid = "avoid";
 
     /// <summary><c>avoid-column</c>：尽量避免在该侧分栏断开。</summary>
-    public static readonly CssValue AvoidColumn = "avoid-column";
+    public static readonly CssKeyword AvoidColumn = "avoid-column";
 
     /// <summary><c>avoid-page</c>：尽量避免在该侧分页断开。</summary>
-    public static readonly CssValue AvoidPage = "avoid-page";
+    public static readonly CssKeyword AvoidPage = "avoid-page";
 
     /// <summary><c>avoid-region</c>：尽量避免在该侧分区断开；属于 CSS Regions，浏览器基本不支持。</summary>
-    public static readonly CssValue AvoidRegion = "avoid-region";
+    public static readonly CssKeyword AvoidRegion = "avoid-region";
 
     /// <summary><c>column</c>：在该侧强制分栏，后续内容从下一栏开始。</summary>
-    public static readonly CssValue Column = "column";
+    public static readonly CssKeyword Column = "column";
 
     /// <summary><c>left</c>：在该侧强制分页，并使新起的一页是左页，必要时插入空白页；主要用于分页媒体（如打印）。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>page</c>：在该侧强制分页，后续内容从新的一页开始；主要用于分页媒体（如打印）。</summary>
-    public static readonly CssValue Page = "page";
+    public static readonly CssKeyword Page = "page";
 
     /// <summary><c>recto</c>：在该侧强制分页，并使新起的一页是正面页（从左到右书写时为右页，从右到左时为左页）；主要用于分页媒体（如打印）。</summary>
-    public static readonly CssValue Recto = "recto";
+    public static readonly CssKeyword Recto = "recto";
 
     /// <summary><c>region</c>：在该侧强制切到下一个区域；属于 CSS Regions，浏览器基本不支持。</summary>
-    public static readonly CssValue Region = "region";
+    public static readonly CssKeyword Region = "region";
 
     /// <summary><c>right</c>：在该侧强制分页，并使新起的一页是右页，必要时插入空白页；主要用于分页媒体（如打印）。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>verso</c>：在该侧强制分页，并使新起的一页是反面页（从左到右书写时为左页，从右到左时为右页）；主要用于分页媒体（如打印）。</summary>
-    public static readonly CssValue Verso = "verso";
+    public static readonly CssKeyword Verso = "verso";
 }
 
 /// <summary><c>break-inside</c> 的关键字取值；类型与 <see cref="Style.BreakInside"/> 一致，可直接赋值。</summary>
 public static class BreakInside
 {
     /// <summary><c>auto</c>：不限制元素内部断开，需要时可在内部分页、分栏或分区。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>avoid</c>：尽量避免在元素内部断开，不论是分页、分栏还是分区。</summary>
-    public static readonly CssValue Avoid = "avoid";
+    public static readonly CssKeyword Avoid = "avoid";
 
     /// <summary><c>avoid-column</c>：尽量避免在元素内部分栏断开，常用于防止卡片被拆到两栏。</summary>
-    public static readonly CssValue AvoidColumn = "avoid-column";
+    public static readonly CssKeyword AvoidColumn = "avoid-column";
 
     /// <summary><c>avoid-page</c>：尽量避免在元素内部分页断开，常用于打印时保持表格行、图片完整。</summary>
-    public static readonly CssValue AvoidPage = "avoid-page";
+    public static readonly CssKeyword AvoidPage = "avoid-page";
 
     /// <summary><c>avoid-region</c>：尽量避免在元素内部分区断开；属于 CSS Regions，浏览器基本不支持。</summary>
-    public static readonly CssValue AvoidRegion = "avoid-region";
+    public static readonly CssKeyword AvoidRegion = "avoid-region";
 }
 
 /// <summary><c>caption-side</c> 的关键字取值；类型与 <see cref="Style.CaptionSide"/> 一致，可直接赋值。</summary>
 public static class CaptionSide
 {
     /// <summary><c>block-end</c>：标题放在表格块轴的结束侧，横排文字中即下方；较新的逻辑写法，浏览器支持有限。</summary>
-    public static readonly CssValue BlockEnd = "block-end";
+    public static readonly CssKeyword BlockEnd = "block-end";
 
     /// <summary><c>block-start</c>：标题放在表格块轴的起始侧，横排文字中即上方；较新的逻辑写法，浏览器支持有限。</summary>
-    public static readonly CssValue BlockStart = "block-start";
+    public static readonly CssKeyword BlockStart = "block-start";
 
     /// <summary><c>bottom</c>：标题放在表格下方。</summary>
-    public static readonly CssValue Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>inline-end</c>：标题放在表格行内轴的结束侧，从左到右的横排中即右侧；较新的逻辑写法，浏览器支持有限。</summary>
-    public static readonly CssValue InlineEnd = "inline-end";
+    public static readonly CssKeyword InlineEnd = "inline-end";
 
     /// <summary><c>inline-start</c>：标题放在表格行内轴的起始侧，从左到右的横排中即左侧；较新的逻辑写法，浏览器支持有限。</summary>
-    public static readonly CssValue InlineStart = "inline-start";
+    public static readonly CssKeyword InlineStart = "inline-start";
 
     /// <summary><c>top</c>：标题放在表格上方，是默认值。</summary>
-    public static readonly CssValue Top = "top";
+    public static readonly CssKeyword Top = "top";
 }
 
 /// <summary><c>caret</c> 的关键字取值；类型与 <see cref="Style.Caret"/> 一致，可直接赋值。</summary>
@@ -2101,108 +2168,108 @@ public static class Caret
 public static class CaretShape
 {
     /// <summary><c>auto</c>：由浏览器选择光标形状，通常是竖条。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>bar</c>：竖条光标，画在字符之间。</summary>
-    public static readonly CssValue Bar = "bar";
+    public static readonly CssKeyword Bar = "bar";
 
     /// <summary><c>block</c>：方块光标，覆盖光标所在的字符。</summary>
-    public static readonly CssValue Block = "block";
+    public static readonly CssKeyword Block = "block";
 
     /// <summary><c>underscore</c>：下划线光标，画在光标所在字符的下方。</summary>
-    public static readonly CssValue Underscore = "underscore";
+    public static readonly CssKeyword Underscore = "underscore";
 }
 
 /// <summary><c>clear</c> 的关键字取值；类型与 <see cref="Style.Clear"/> 一致，可直接赋值。</summary>
 public static class Clear
 {
     /// <summary><c>both</c>：避让左右两侧的前置浮动元素：元素下移到两侧浮动都结束之后。</summary>
-    public static readonly CssValue Both = "both";
+    public static readonly CssKeyword Both = "both";
 
     /// <summary><c>inline-end</c>：避让行内结束侧的前置浮动，从左到右的文本中即右浮动，从右到左的文本中即左浮动。</summary>
-    public static readonly CssValue InlineEnd = "inline-end";
+    public static readonly CssKeyword InlineEnd = "inline-end";
 
     /// <summary><c>inline-start</c>：避让行内起始侧的前置浮动，从左到右的文本中即左浮动，从右到左的文本中即右浮动。</summary>
-    public static readonly CssValue InlineStart = "inline-start";
+    public static readonly CssKeyword InlineStart = "inline-start";
 
     /// <summary><c>left</c>：避让左浮动元素：元素下移到左侧浮动结束之后。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>none</c>：不避让浮动，允许元素与前置浮动元素并排，是默认值。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>right</c>：避让右浮动元素：元素下移到右侧浮动结束之后。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 }
 
 /// <summary><c>clip-path</c> 的关键字取值；类型与 <see cref="Style.ClipPath"/> 一致，可直接赋值。</summary>
 public static class ClipPath
 {
     /// <summary><c>border-box</c>：以边框外缘为参考框，含内边距和边框。</summary>
-    public static readonly CssValue BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>content-box</c>：以内容区边缘为参考框，不含内边距和边框。</summary>
-    public static readonly CssValue ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>fill-box</c>：以对象的边界框（只含填充区域，不含描边）为参照盒；对普通 HTML 元素按 <c>content-box</c> 处理。</summary>
-    public static readonly CssValue FillBox = "fill-box";
+    public static readonly CssKeyword FillBox = "fill-box";
 
     /// <summary><c>margin-box</c>：以外边距边缘围成的框为参考框，范围包含外边距、边框和内边距。</summary>
-    public static readonly CssValue MarginBox = "margin-box";
+    public static readonly CssKeyword MarginBox = "margin-box";
 
     /// <summary><c>none</c>：不裁剪，元素完整可见。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>padding-box</c>：以内边距边缘为参考框，含内边距，不含边框。</summary>
-    public static readonly CssValue PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 
     /// <summary><c>stroke-box</c>：以包含描边的边界框为参照盒；对普通 HTML 元素按 <c>border-box</c> 处理。</summary>
-    public static readonly CssValue StrokeBox = "stroke-box";
+    public static readonly CssKeyword StrokeBox = "stroke-box";
 
     /// <summary><c>view-box</c>：以最近的 SVG 视口（<c>viewBox</c>）为参照盒；对没有 SVG 视口的普通元素，按 <c>border-box</c> 处理。</summary>
-    public static readonly CssValue ViewBox = "view-box";
+    public static readonly CssKeyword ViewBox = "view-box";
 }
 
 /// <summary><c>clip-rule</c> 的关键字取值；类型与 <see cref="Style.ClipRule"/> 一致，可直接赋值。</summary>
 public static class ClipRule
 {
     /// <summary><c>evenodd</c>：按射线穿过路径次数的奇偶性判断内部，适合交叠或有孔路径。</summary>
-    public static readonly CssValue Evenodd = "evenodd";
+    public static readonly CssKeyword Evenodd = "evenodd";
 
     /// <summary><c>nonzero</c>：按有方向的绕数判断路径内部，子路径方向会影响结果。</summary>
-    public static readonly CssValue Nonzero = "nonzero";
+    public static readonly CssKeyword Nonzero = "nonzero";
 }
 
 /// <summary><c>color-scheme</c> 的关键字取值；类型与 <see cref="Style.ColorScheme"/> 一致，可直接赋值。</summary>
 public static class ColorSchemeKeywords
 {
     /// <summary><c>dark</c>：声明元素使用深色方案，原生控件、滚动条和默认背景等按深色绘制。</summary>
-    public static readonly CssValue Dark = "dark";
+    public static readonly CssKeyword Dark = "dark";
 
     /// <summary><c>light</c>：声明元素使用浅色方案，原生控件、滚动条和默认背景等按浅色绘制。</summary>
-    public static readonly CssValue Light = "light";
+    public static readonly CssKeyword Light = "light";
 
     /// <summary><c>light dark</c>：同时支持浅色和深色，浏览器按用户的系统或浏览器偏好选择，常配合 <c>light-dark()</c> 使用。</summary>
-    public static readonly CssValue LightDark = "light dark";
+    public static readonly CssKeyword LightDark = "light dark";
 
     /// <summary><c>normal</c>：不声明配色方案，按浏览器默认的浅色外观绘制，原生控件也不会自动适配深色。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>only dark</c>：只使用深色方案，并禁止浏览器用强制深色等自动变暗功能再改动该元素。</summary>
-    public static readonly CssValue OnlyDark = "only dark";
+    public static readonly CssKeyword OnlyDark = "only dark";
 
     /// <summary><c>only light</c>：只使用浅色方案，并禁止浏览器用强制深色等自动变暗功能改动该元素。</summary>
-    public static readonly CssValue OnlyLight = "only light";
+    public static readonly CssKeyword OnlyLight = "only light";
 }
 
 /// <summary><c>column-fill</c> 的关键字取值；类型与 <see cref="Style.ColumnFill"/> 一致，可直接赋值。</summary>
 public static class ColumnFill
 {
     /// <summary><c>auto</c>：按顺序填充：先填满一栏再填下一栏，栏高由容器高度决定，最后一栏可能留白。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>balance</c>：尽量让各栏内容高度均衡，是默认值。</summary>
-    public static readonly CssValue Balance = "balance";
+    public static readonly CssKeyword Balance = "balance";
 }
 
 /// <summary><c>column-rule</c> 的关键字取值；类型与 <see cref="Style.ColumnRule"/> 一致，可直接赋值。</summary>
@@ -2252,34 +2319,34 @@ public static class ColumnRule
 public static class ColumnRuleStyle
 {
     /// <summary><c>dashed</c>：绘制一串短线段组成的虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：绘制一串圆点组成的点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，两线加中间的间隙合起来等于线宽。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果，看起来像刻进页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：与 <c>none</c> 一样不绘制线条，但在边框折叠冲突时优先级最高，可压过相邻单元格的边框。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整条线看起来向内凹陷，仿佛元素嵌入页面；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制线条，并使对应线宽的计算值为 0。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整条线看起来向外凸起，仿佛元素浮出页面，与 <c>inset</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果，看起来像从页面凸起，与 <c>groove</c> 相反；明暗两色由线条颜色自动推算。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>column-rule-width</c> 的关键字取值；类型与 <see cref="Style.ColumnRuleWidth"/> 一致，可直接赋值。</summary>
@@ -2299,38 +2366,38 @@ public static class ColumnRuleWidth
 public static class ColumnSpan
 {
     /// <summary><c>all</c>：元素横跨多栏容器的所有栏，其前后的内容各自重新分栏。</summary>
-    public static readonly CssValue All = "all";
+    public static readonly CssKeyword All = "all";
 
     /// <summary><c>none</c>：元素只在当前栏内，不跨栏，是默认值。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>contain</c> 的关键字取值；类型与 <see cref="Style.Contain"/> 一致，可直接赋值。</summary>
 public static class Contain
 {
     /// <summary><c>content</c>：组合 layout、style 和 paint 隔离，不包含 size 隔离。</summary>
-    public static readonly CssValue Content = "content";
+    public static readonly CssKeyword Content = "content";
 
     /// <summary><c>inline-size</c>：行内轴尺寸隔离：计算行内轴尺寸时不依赖后代内容，块轴尺寸不受影响。</summary>
-    public static readonly CssValue InlineSize = "inline-size";
+    public static readonly CssKeyword InlineSize = "inline-size";
 
     /// <summary><c>layout</c>：布局隔离：内部布局与外部互不影响，元素还会成为独立的格式化上下文、绝对和固定定位后代的包含块，并创建层叠上下文。</summary>
-    public static readonly CssValue Layout = "layout";
+    public static readonly CssKeyword Layout = "layout";
 
     /// <summary><c>none</c>：不启用任何隔离，元素与外部按普通方式互相影响。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>paint</c>：将后代绘制限制在隔离边界内。</summary>
-    public static readonly CssValue Paint = "paint";
+    public static readonly CssKeyword Paint = "paint";
 
     /// <summary><c>size</c>：计算盒子尺寸时不依赖后代内容，通常需要显式或替代内部尺寸。</summary>
-    public static readonly CssValue Size = "size";
+    public static readonly CssKeyword Size = "size";
 
     /// <summary><c>strict</c>：组合 size、layout、style 和 paint 隔离；尺寸隔离可能影响自动尺寸。</summary>
-    public static readonly CssValue Strict = "strict";
+    public static readonly CssKeyword Strict = "strict";
 
     /// <summary><c>style</c>：隔离计数器等特定样式副作用，不会阻止普通 CSS 继承或选择器匹配。</summary>
-    public static readonly CssValue Style = "style";
+    public static readonly CssKeyword Style = "style";
 }
 
 /// <summary><c>contain-intrinsic-block-size</c> 的关键字取值；类型与 <see cref="Style.ContainIntrinsicBlockSize"/> 一致，可直接赋值。</summary>
@@ -2387,618 +2454,618 @@ public static class ContainIntrinsicWidth
 public static class ContainerKeywords
 {
     /// <summary><c>inline-size</c>：建立行内轴尺寸查询容器，不同时隔离块轴尺寸。</summary>
-    public static readonly CssValue InlineSize = "inline-size";
+    public static readonly CssKeyword InlineSize = "inline-size";
 
     /// <summary><c>none</c>：不为容器命名，<c>@container</c> 无法按名称引用它，只能由不带名称的查询匹配。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：不建立尺寸查询容器；仍可用于支持的样式查询。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>scroll-state</c>：建立滚动状态查询容器，可用 <c>@container scroll-state(...)</c> 查询粘性、吸附、可滚动等状态；可与 <c>size</c> 或 <c>inline-size</c> 组合。</summary>
-    public static readonly CssValue ScrollState = "scroll-state";
+    public static readonly CssKeyword ScrollState = "scroll-state";
 
     /// <summary><c>size</c>：建立两个轴的尺寸查询容器，内容不再直接决定其隔离尺寸。</summary>
-    public static readonly CssValue Size = "size";
+    public static readonly CssKeyword Size = "size";
 }
 
 /// <summary><c>container-type</c> 的关键字取值；类型与 <see cref="Style.ContainerType"/> 一致，可直接赋值。</summary>
 public static class ContainerType
 {
     /// <summary><c>inline-size</c>：建立行内轴尺寸查询容器，不同时隔离块轴尺寸。</summary>
-    public static readonly CssValue InlineSize = "inline-size";
+    public static readonly CssKeyword InlineSize = "inline-size";
 
     /// <summary><c>normal</c>：不建立尺寸查询容器；仍可用于支持的样式查询。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>size</c>：建立两个轴的尺寸查询容器，内容不再直接决定其隔离尺寸。</summary>
-    public static readonly CssValue Size = "size";
+    public static readonly CssKeyword Size = "size";
 }
 
 /// <summary><c>content</c> 的关键字取值；类型与 <see cref="Style.Content"/> 一致，可直接赋值。</summary>
 public static class Content
 {
     /// <summary><c>close-quote</c>：插入闭引号，具体符号由 <c>quotes</c> 按当前嵌套层级决定，并使嵌套层级减一。</summary>
-    public static readonly CssValue CloseQuote = "close-quote";
+    public static readonly CssKeyword CloseQuote = "close-quote";
 
     /// <summary><c>no-close-quote</c>：不插入任何符号，但嵌套层级照样减一，用于跨元素保持引号层级一致。</summary>
-    public static readonly CssValue NoCloseQuote = "no-close-quote";
+    public static readonly CssKeyword NoCloseQuote = "no-close-quote";
 
     /// <summary><c>no-open-quote</c>：不插入任何符号，但嵌套层级照样加一，用于跨元素保持引号层级一致。</summary>
-    public static readonly CssValue NoOpenQuote = "no-open-quote";
+    public static readonly CssKeyword NoOpenQuote = "no-open-quote";
 
     /// <summary><c>none</c>：不生成内容，伪元素不会被创建，也不会显示。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：元素本身按正常内容显示；在 <c>::before</c>、<c>::after</c> 上等同于 <c>none</c>，不生成伪元素。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>open-quote</c>：插入开引号，具体符号由 <c>quotes</c> 按当前嵌套层级决定，并使嵌套层级加一。</summary>
-    public static readonly CssValue OpenQuote = "open-quote";
+    public static readonly CssKeyword OpenQuote = "open-quote";
 }
 
 /// <summary><c>content-visibility</c> 的关键字取值；类型与 <see cref="Style.ContentVisibility"/> 一致，可直接赋值。</summary>
 public static class ContentVisibility
 {
     /// <summary><c>auto</c>：允许浏览器跳过与用户暂不相关的内容渲染，仍需维护布局和可访问性语义。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>hidden</c>：跳过内容渲染，行为不同于只隐藏绘制的 visibility:hidden。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>visible</c>：正常渲染内容，不由此属性跳过子树。</summary>
-    public static readonly CssValue Visible = "visible";
+    public static readonly CssKeyword Visible = "visible";
 }
 
 /// <summary><c>corner-bottom-left-shape</c> 的关键字取值；类型与 <see cref="Style.CornerBottomLeftShape"/> 一致，可直接赋值。</summary>
 public static class CornerBottomLeftShape
 {
     /// <summary><c>bevel</c>：用一条直线斜切掉角，形成倒角。</summary>
-    public static readonly CssValue Bevel = "bevel";
+    public static readonly CssKeyword Bevel = "bevel";
 
     /// <summary><c>notch</c>：向内凹进的直角缺口，像切掉一个方形的角。</summary>
-    public static readonly CssValue Notch = "notch";
+    public static readonly CssKeyword Notch = "notch";
 
     /// <summary><c>round</c>：默认的圆角，向外凸出的圆弧，与普通 <c>border-radius</c> 的效果一致。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>scoop</c>：向内凹进的圆弧，像在角上挖掉一块圆。</summary>
-    public static readonly CssValue Scoop = "scoop";
+    public static readonly CssKeyword Scoop = "scoop";
 
     /// <summary><c>square</c>：保持直角，不呈现圆弧，即使设置了 <c>border-radius</c>。</summary>
-    public static readonly CssValue Square = "square";
+    public static readonly CssKeyword Square = "square";
 
     /// <summary><c>squircle</c>：介于圆角与直角之间的超椭圆角，过渡更平滑，类似 iOS 图标的轮廓。</summary>
-    public static readonly CssValue Squircle = "squircle";
+    public static readonly CssKeyword Squircle = "squircle";
 }
 
 /// <summary><c>corner-bottom-right-shape</c> 的关键字取值；类型与 <see cref="Style.CornerBottomRightShape"/> 一致，可直接赋值。</summary>
 public static class CornerBottomRightShape
 {
     /// <summary><c>bevel</c>：用一条直线斜切掉角，形成倒角。</summary>
-    public static readonly CssValue Bevel = "bevel";
+    public static readonly CssKeyword Bevel = "bevel";
 
     /// <summary><c>notch</c>：向内凹进的直角缺口，像切掉一个方形的角。</summary>
-    public static readonly CssValue Notch = "notch";
+    public static readonly CssKeyword Notch = "notch";
 
     /// <summary><c>round</c>：默认的圆角，向外凸出的圆弧，与普通 <c>border-radius</c> 的效果一致。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>scoop</c>：向内凹进的圆弧，像在角上挖掉一块圆。</summary>
-    public static readonly CssValue Scoop = "scoop";
+    public static readonly CssKeyword Scoop = "scoop";
 
     /// <summary><c>square</c>：保持直角，不呈现圆弧，即使设置了 <c>border-radius</c>。</summary>
-    public static readonly CssValue Square = "square";
+    public static readonly CssKeyword Square = "square";
 
     /// <summary><c>squircle</c>：介于圆角与直角之间的超椭圆角，过渡更平滑，类似 iOS 图标的轮廓。</summary>
-    public static readonly CssValue Squircle = "squircle";
+    public static readonly CssKeyword Squircle = "squircle";
 }
 
 /// <summary><c>corner-end-end-shape</c> 的关键字取值；类型与 <see cref="Style.CornerEndEndShape"/> 一致，可直接赋值。</summary>
 public static class CornerEndEndShape
 {
     /// <summary><c>bevel</c>：用一条直线斜切掉角，形成倒角。</summary>
-    public static readonly CssValue Bevel = "bevel";
+    public static readonly CssKeyword Bevel = "bevel";
 
     /// <summary><c>notch</c>：向内凹进的直角缺口，像切掉一个方形的角。</summary>
-    public static readonly CssValue Notch = "notch";
+    public static readonly CssKeyword Notch = "notch";
 
     /// <summary><c>round</c>：默认的圆角，向外凸出的圆弧，与普通 <c>border-radius</c> 的效果一致。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>scoop</c>：向内凹进的圆弧，像在角上挖掉一块圆。</summary>
-    public static readonly CssValue Scoop = "scoop";
+    public static readonly CssKeyword Scoop = "scoop";
 
     /// <summary><c>square</c>：保持直角，不呈现圆弧，即使设置了 <c>border-radius</c>。</summary>
-    public static readonly CssValue Square = "square";
+    public static readonly CssKeyword Square = "square";
 
     /// <summary><c>squircle</c>：介于圆角与直角之间的超椭圆角，过渡更平滑，类似 iOS 图标的轮廓。</summary>
-    public static readonly CssValue Squircle = "squircle";
+    public static readonly CssKeyword Squircle = "squircle";
 }
 
 /// <summary><c>corner-end-start-shape</c> 的关键字取值；类型与 <see cref="Style.CornerEndStartShape"/> 一致，可直接赋值。</summary>
 public static class CornerEndStartShape
 {
     /// <summary><c>bevel</c>：用一条直线斜切掉角，形成倒角。</summary>
-    public static readonly CssValue Bevel = "bevel";
+    public static readonly CssKeyword Bevel = "bevel";
 
     /// <summary><c>notch</c>：向内凹进的直角缺口，像切掉一个方形的角。</summary>
-    public static readonly CssValue Notch = "notch";
+    public static readonly CssKeyword Notch = "notch";
 
     /// <summary><c>round</c>：默认的圆角，向外凸出的圆弧，与普通 <c>border-radius</c> 的效果一致。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>scoop</c>：向内凹进的圆弧，像在角上挖掉一块圆。</summary>
-    public static readonly CssValue Scoop = "scoop";
+    public static readonly CssKeyword Scoop = "scoop";
 
     /// <summary><c>square</c>：保持直角，不呈现圆弧，即使设置了 <c>border-radius</c>。</summary>
-    public static readonly CssValue Square = "square";
+    public static readonly CssKeyword Square = "square";
 
     /// <summary><c>squircle</c>：介于圆角与直角之间的超椭圆角，过渡更平滑，类似 iOS 图标的轮廓。</summary>
-    public static readonly CssValue Squircle = "squircle";
+    public static readonly CssKeyword Squircle = "squircle";
 }
 
 /// <summary><c>corner-shape</c> 的关键字取值；类型与 <see cref="Style.CornerShape"/> 一致，可直接赋值。</summary>
 public static class CornerShape
 {
     /// <summary><c>bevel</c>：用一条直线斜切掉角，形成倒角。</summary>
-    public static readonly CssValue Bevel = "bevel";
+    public static readonly CssKeyword Bevel = "bevel";
 
     /// <summary><c>notch</c>：向内凹进的直角缺口，像切掉一个方形的角。</summary>
-    public static readonly CssValue Notch = "notch";
+    public static readonly CssKeyword Notch = "notch";
 
     /// <summary><c>round</c>：默认的圆角，向外凸出的圆弧，与普通 <c>border-radius</c> 的效果一致。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>scoop</c>：向内凹进的圆弧，像在角上挖掉一块圆。</summary>
-    public static readonly CssValue Scoop = "scoop";
+    public static readonly CssKeyword Scoop = "scoop";
 
     /// <summary><c>square</c>：保持直角，不呈现圆弧，即使设置了 <c>border-radius</c>。</summary>
-    public static readonly CssValue Square = "square";
+    public static readonly CssKeyword Square = "square";
 
     /// <summary><c>squircle</c>：介于圆角与直角之间的超椭圆角，过渡更平滑，类似 iOS 图标的轮廓。</summary>
-    public static readonly CssValue Squircle = "squircle";
+    public static readonly CssKeyword Squircle = "squircle";
 }
 
 /// <summary><c>corner-start-end-shape</c> 的关键字取值；类型与 <see cref="Style.CornerStartEndShape"/> 一致，可直接赋值。</summary>
 public static class CornerStartEndShape
 {
     /// <summary><c>bevel</c>：用一条直线斜切掉角，形成倒角。</summary>
-    public static readonly CssValue Bevel = "bevel";
+    public static readonly CssKeyword Bevel = "bevel";
 
     /// <summary><c>notch</c>：向内凹进的直角缺口，像切掉一个方形的角。</summary>
-    public static readonly CssValue Notch = "notch";
+    public static readonly CssKeyword Notch = "notch";
 
     /// <summary><c>round</c>：默认的圆角，向外凸出的圆弧，与普通 <c>border-radius</c> 的效果一致。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>scoop</c>：向内凹进的圆弧，像在角上挖掉一块圆。</summary>
-    public static readonly CssValue Scoop = "scoop";
+    public static readonly CssKeyword Scoop = "scoop";
 
     /// <summary><c>square</c>：保持直角，不呈现圆弧，即使设置了 <c>border-radius</c>。</summary>
-    public static readonly CssValue Square = "square";
+    public static readonly CssKeyword Square = "square";
 
     /// <summary><c>squircle</c>：介于圆角与直角之间的超椭圆角，过渡更平滑，类似 iOS 图标的轮廓。</summary>
-    public static readonly CssValue Squircle = "squircle";
+    public static readonly CssKeyword Squircle = "squircle";
 }
 
 /// <summary><c>corner-start-start-shape</c> 的关键字取值；类型与 <see cref="Style.CornerStartStartShape"/> 一致，可直接赋值。</summary>
 public static class CornerStartStartShape
 {
     /// <summary><c>bevel</c>：用一条直线斜切掉角，形成倒角。</summary>
-    public static readonly CssValue Bevel = "bevel";
+    public static readonly CssKeyword Bevel = "bevel";
 
     /// <summary><c>notch</c>：向内凹进的直角缺口，像切掉一个方形的角。</summary>
-    public static readonly CssValue Notch = "notch";
+    public static readonly CssKeyword Notch = "notch";
 
     /// <summary><c>round</c>：默认的圆角，向外凸出的圆弧，与普通 <c>border-radius</c> 的效果一致。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>scoop</c>：向内凹进的圆弧，像在角上挖掉一块圆。</summary>
-    public static readonly CssValue Scoop = "scoop";
+    public static readonly CssKeyword Scoop = "scoop";
 
     /// <summary><c>square</c>：保持直角，不呈现圆弧，即使设置了 <c>border-radius</c>。</summary>
-    public static readonly CssValue Square = "square";
+    public static readonly CssKeyword Square = "square";
 
     /// <summary><c>squircle</c>：介于圆角与直角之间的超椭圆角，过渡更平滑，类似 iOS 图标的轮廓。</summary>
-    public static readonly CssValue Squircle = "squircle";
+    public static readonly CssKeyword Squircle = "squircle";
 }
 
 /// <summary><c>corner-top-left-shape</c> 的关键字取值；类型与 <see cref="Style.CornerTopLeftShape"/> 一致，可直接赋值。</summary>
 public static class CornerTopLeftShape
 {
     /// <summary><c>bevel</c>：用一条直线斜切掉角，形成倒角。</summary>
-    public static readonly CssValue Bevel = "bevel";
+    public static readonly CssKeyword Bevel = "bevel";
 
     /// <summary><c>notch</c>：向内凹进的直角缺口，像切掉一个方形的角。</summary>
-    public static readonly CssValue Notch = "notch";
+    public static readonly CssKeyword Notch = "notch";
 
     /// <summary><c>round</c>：默认的圆角，向外凸出的圆弧，与普通 <c>border-radius</c> 的效果一致。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>scoop</c>：向内凹进的圆弧，像在角上挖掉一块圆。</summary>
-    public static readonly CssValue Scoop = "scoop";
+    public static readonly CssKeyword Scoop = "scoop";
 
     /// <summary><c>square</c>：保持直角，不呈现圆弧，即使设置了 <c>border-radius</c>。</summary>
-    public static readonly CssValue Square = "square";
+    public static readonly CssKeyword Square = "square";
 
     /// <summary><c>squircle</c>：介于圆角与直角之间的超椭圆角，过渡更平滑，类似 iOS 图标的轮廓。</summary>
-    public static readonly CssValue Squircle = "squircle";
+    public static readonly CssKeyword Squircle = "squircle";
 }
 
 /// <summary><c>corner-top-right-shape</c> 的关键字取值；类型与 <see cref="Style.CornerTopRightShape"/> 一致，可直接赋值。</summary>
 public static class CornerTopRightShape
 {
     /// <summary><c>bevel</c>：用一条直线斜切掉角，形成倒角。</summary>
-    public static readonly CssValue Bevel = "bevel";
+    public static readonly CssKeyword Bevel = "bevel";
 
     /// <summary><c>notch</c>：向内凹进的直角缺口，像切掉一个方形的角。</summary>
-    public static readonly CssValue Notch = "notch";
+    public static readonly CssKeyword Notch = "notch";
 
     /// <summary><c>round</c>：默认的圆角，向外凸出的圆弧，与普通 <c>border-radius</c> 的效果一致。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>scoop</c>：向内凹进的圆弧，像在角上挖掉一块圆。</summary>
-    public static readonly CssValue Scoop = "scoop";
+    public static readonly CssKeyword Scoop = "scoop";
 
     /// <summary><c>square</c>：保持直角，不呈现圆弧，即使设置了 <c>border-radius</c>。</summary>
-    public static readonly CssValue Square = "square";
+    public static readonly CssKeyword Square = "square";
 
     /// <summary><c>squircle</c>：介于圆角与直角之间的超椭圆角，过渡更平滑，类似 iOS 图标的轮廓。</summary>
-    public static readonly CssValue Squircle = "squircle";
+    public static readonly CssKeyword Squircle = "squircle";
 }
 
 /// <summary><c>cursor</c> 的关键字取值；类型与 <see cref="Style.Cursor"/> 一致，可直接赋值。</summary>
 public static class Cursor
 {
     /// <summary><c>alias</c>：表示将为被拖动的对象创建别名或快捷方式。</summary>
-    public static readonly CssValue Alias = "alias";
+    public static readonly CssKeyword Alias = "alias";
 
     /// <summary><c>all-scroll</c>：表示可向任意方向滚动或平移，通常显示为四向箭头。</summary>
-    public static readonly CssValue AllScroll = "all-scroll";
+    public static readonly CssKeyword AllScroll = "all-scroll";
 
     /// <summary><c>auto</c>：由浏览器根据上下文自动选择光标，例如在文本上显示 I 形光标。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>cell</c>：表示可选中表格单元格，通常显示为粗十字。</summary>
-    public static readonly CssValue Cell = "cell";
+    public static readonly CssKeyword Cell = "cell";
 
     /// <summary><c>col-resize</c>：表示可左右拖动以调整列宽，通常显示为中间带竖线的左右双向箭头。</summary>
-    public static readonly CssValue ColResize = "col-resize";
+    public static readonly CssKeyword ColResize = "col-resize";
 
     /// <summary><c>context-menu</c>：表示点击后将弹出上下文菜单。</summary>
-    public static readonly CssValue ContextMenu = "context-menu";
+    public static readonly CssKeyword ContextMenu = "context-menu";
 
     /// <summary><c>copy</c>：表示将复制被拖动的对象。</summary>
-    public static readonly CssValue Copy = "copy";
+    public static readonly CssKeyword Copy = "copy";
 
     /// <summary><c>crosshair</c>：十字准星，用于需要精确定位的场景，如绘图或截图选区。</summary>
-    public static readonly CssValue Crosshair = "crosshair";
+    public static readonly CssKeyword Crosshair = "crosshair";
 
     /// <summary><c>default</c>：默认的箭头光标。</summary>
-    public static readonly CssValue Default = "default";
+    public static readonly CssKeyword Default = "default";
 
     /// <summary><c>e-resize</c>：表示可向东（右）调整边缘位置，显示为指向右的箭头。</summary>
-    public static readonly CssValue EResize = "e-resize";
+    public static readonly CssKeyword EResize = "e-resize";
 
     /// <summary><c>ew-resize</c>：表示可水平调整，显示为左右双向箭头。</summary>
-    public static readonly CssValue EwResize = "ew-resize";
+    public static readonly CssKeyword EwResize = "ew-resize";
 
     /// <summary><c>grab</c>：张开的手，表示对象可以被抓取并拖动。</summary>
-    public static readonly CssValue Grab = "grab";
+    public static readonly CssKeyword Grab = "grab";
 
     /// <summary><c>grabbing</c>：握紧的手，表示对象正在被拖动。</summary>
-    public static readonly CssValue Grabbing = "grabbing";
+    public static readonly CssKeyword Grabbing = "grabbing";
 
     /// <summary><c>help</c>：通常显示为带问号的光标，表示此处有帮助信息。</summary>
-    public static readonly CssValue Help = "help";
+    public static readonly CssKeyword Help = "help";
 
     /// <summary><c>move</c>：表示对象可以被移动，通常显示为四向箭头。</summary>
-    public static readonly CssValue Move = "move";
+    public static readonly CssKeyword Move = "move";
 
     /// <summary><c>n-resize</c>：表示可向北（上）调整边缘位置，显示为指向上的箭头。</summary>
-    public static readonly CssValue NResize = "n-resize";
+    public static readonly CssKeyword NResize = "n-resize";
 
     /// <summary><c>ne-resize</c>：表示可向东北（右上）调整边缘位置，显示为指向右上的箭头。</summary>
-    public static readonly CssValue NeResize = "ne-resize";
+    public static readonly CssKeyword NeResize = "ne-resize";
 
     /// <summary><c>nesw-resize</c>：表示可沿东北—西南方向的对角线双向调整。</summary>
-    public static readonly CssValue NeswResize = "nesw-resize";
+    public static readonly CssKeyword NeswResize = "nesw-resize";
 
     /// <summary><c>no-drop</c>：表示当前位置不能放下被拖动的对象。</summary>
-    public static readonly CssValue NoDrop = "no-drop";
+    public static readonly CssKeyword NoDrop = "no-drop";
 
     /// <summary><c>none</c>：不显示光标。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>not-allowed</c>：表示该操作不被允许，通常显示为禁止符号。</summary>
-    public static readonly CssValue NotAllowed = "not-allowed";
+    public static readonly CssKeyword NotAllowed = "not-allowed";
 
     /// <summary><c>ns-resize</c>：表示可垂直调整，显示为上下双向箭头。</summary>
-    public static readonly CssValue NsResize = "ns-resize";
+    public static readonly CssKeyword NsResize = "ns-resize";
 
     /// <summary><c>nw-resize</c>：表示可向西北（左上）调整边缘位置，显示为指向左上的箭头。</summary>
-    public static readonly CssValue NwResize = "nw-resize";
+    public static readonly CssKeyword NwResize = "nw-resize";
 
     /// <summary><c>nwse-resize</c>：表示可沿西北—东南方向的对角线双向调整。</summary>
-    public static readonly CssValue NwseResize = "nwse-resize";
+    public static readonly CssKeyword NwseResize = "nwse-resize";
 
     /// <summary><c>pointer</c>：手形光标，表示链接或其他可点击的元素。</summary>
-    public static readonly CssValue Pointer = "pointer";
+    public static readonly CssKeyword Pointer = "pointer";
 
     /// <summary><c>progress</c>：表示程序正在后台处理，但用户仍可继续操作，通常是箭头加转圈。</summary>
-    public static readonly CssValue Progress = "progress";
+    public static readonly CssKeyword Progress = "progress";
 
     /// <summary><c>row-resize</c>：表示可上下拖动以调整行高，通常显示为中间带横线的上下双向箭头。</summary>
-    public static readonly CssValue RowResize = "row-resize";
+    public static readonly CssKeyword RowResize = "row-resize";
 
     /// <summary><c>s-resize</c>：表示可向南（下）调整边缘位置，显示为指向下的箭头。</summary>
-    public static readonly CssValue SResize = "s-resize";
+    public static readonly CssKeyword SResize = "s-resize";
 
     /// <summary><c>se-resize</c>：表示可向东南（右下）调整边缘位置，显示为指向右下的箭头。</summary>
-    public static readonly CssValue SeResize = "se-resize";
+    public static readonly CssKeyword SeResize = "se-resize";
 
     /// <summary><c>sw-resize</c>：表示可向西南（左下）调整边缘位置，显示为指向左下的箭头。</summary>
-    public static readonly CssValue SwResize = "sw-resize";
+    public static readonly CssKeyword SwResize = "sw-resize";
 
     /// <summary><c>text</c>：I 形光标，表示此处文本可以选择或编辑。</summary>
-    public static readonly CssValue Text = "text";
+    public static readonly CssKeyword Text = "text";
 
     /// <summary><c>vertical-text</c>：横置的 I 形光标，表示此处是竖排文本。</summary>
-    public static readonly CssValue VerticalText = "vertical-text";
+    public static readonly CssKeyword VerticalText = "vertical-text";
 
     /// <summary><c>w-resize</c>：表示可向西（左）调整边缘位置，显示为指向左的箭头。</summary>
-    public static readonly CssValue WResize = "w-resize";
+    public static readonly CssKeyword WResize = "w-resize";
 
     /// <summary><c>wait</c>：表示程序正忙、暂时无法交互，通常显示为沙漏或转圈。</summary>
-    public static readonly CssValue Wait = "wait";
+    public static readonly CssKeyword Wait = "wait";
 
     /// <summary><c>-webkit-grab</c>：张开的抓手光标，早期 WebKit 的前缀写法，已被标准的 <c>grab</c> 取代。</summary>
-    public static readonly CssValue WebkitGrab = "-webkit-grab";
+    public static readonly CssKeyword WebkitGrab = "-webkit-grab";
 
     /// <summary><c>-webkit-grabbing</c>：握紧的抓手光标，表示正在拖拽，早期 WebKit 的前缀写法，已被标准的 <c>grabbing</c> 取代。</summary>
-    public static readonly CssValue WebkitGrabbing = "-webkit-grabbing";
+    public static readonly CssKeyword WebkitGrabbing = "-webkit-grabbing";
 
     /// <summary><c>zoom-in</c>：表示点击后将放大内容。</summary>
-    public static readonly CssValue ZoomIn = "zoom-in";
+    public static readonly CssKeyword ZoomIn = "zoom-in";
 
     /// <summary><c>zoom-out</c>：表示点击后将缩小内容。</summary>
-    public static readonly CssValue ZoomOut = "zoom-out";
+    public static readonly CssKeyword ZoomOut = "zoom-out";
 }
 
 /// <summary><c>direction</c> 的关键字取值；类型与 <see cref="Style.Direction"/> 一致，可直接赋值。</summary>
 public static class Direction
 {
     /// <summary><c>ltr</c>：文本和行内内容的基本方向为从左到右，是默认值。</summary>
-    public static readonly CssValue Ltr = "ltr";
+    public static readonly CssKeyword Ltr = "ltr";
 
     /// <summary><c>rtl</c>：基本方向为从右到左，用于阿拉伯语、希伯来语等；Flex、Grid、表格的行内方向会随之翻转。</summary>
-    public static readonly CssValue Rtl = "rtl";
+    public static readonly CssKeyword Rtl = "rtl";
 }
 
 /// <summary><c>display</c> 的关键字取值；类型与 <see cref="Style.Display"/> 一致，可直接赋值。</summary>
 public static class Display
 {
     /// <summary><c>block</c>：生成块级盒子，内部默认采用普通流布局。</summary>
-    public static readonly CssValue Block = "block";
+    public static readonly CssKeyword Block = "block";
 
     /// <summary><c>contents</c>：通常不生成元素自身的主盒子，让子盒子参与外层布局；背景、边框等失去承载盒，应核对可访问性行为。替换元素等存在特殊规则；应检查语义和可访问性，不要把它当作无条件删除包装盒的替代。</summary>
-    public static readonly CssValue Contents = "contents";
+    public static readonly CssKeyword Contents = "contents";
 
     /// <summary><c>flex</c>：生成块级弹性容器，直接子元素参与 Flex 布局。默认主轴为 row，默认不换行；主轴方向还受书写方向影响。inline-flex 使用相同的内部布局，但容器对外按行内级盒子排列。</summary>
-    public static readonly CssValue Flex = "flex";
+    public static readonly CssKeyword Flex = "flex";
 
     /// <summary><c>flow-root</c>：建立独立块格式化上下文，可包住内部浮动并隔离部分外边距折叠。与普通 block 相比，显式建立独立块格式化上下文；无需借助 overflow:hidden，也不会因此裁剪溢出。</summary>
-    public static readonly CssValue FlowRoot = "flow-root";
+    public static readonly CssKeyword FlowRoot = "flow-root";
 
     /// <summary><c>grid</c>：生成块级网格容器，直接子元素参与 Grid 布局。Flex 更侧重单个主轴；Grid 可以同时控制行和列。inline-grid 则改变容器对外的显示类型。</summary>
-    public static readonly CssValue Grid = "grid";
+    public static readonly CssKeyword Grid = "grid";
 
     /// <summary><c>inline</c>：生成行内盒子，参与行内排版；普通非替换行内盒子的宽高不按块盒规则应用。</summary>
-    public static readonly CssValue Inline = "inline";
+    public static readonly CssKeyword Inline = "inline";
 
     /// <summary><c>inline-block</c>：外部参与行内排版，内部建立独立格式化上下文，可设置宽高。相邻行内级盒子之间的文本空白仍可能形成间距，vertical-align 会影响它在行内的位置。与 inline 相比可设置宽高，内部建立独立格式化上下文；与 inline-flex 相比，内部使用普通流而非 Flex。</summary>
-    public static readonly CssValue InlineBlock = "inline-block";
+    public static readonly CssKeyword InlineBlock = "inline-block";
 
     /// <summary><c>inline-flex</c>：创建行内级的 Flex 容器。子项换行由 flex-wrap 控制。当容器自身是 Flex/Grid 项目时，其外部排版还受父布局控制。与 flex 的区别是容器自身的外部排版方式，内部弹性布局机制相同；inline-flex 对应双关键字写法 inline flex。</summary>
-    public static readonly CssValue InlineFlex = "inline-flex";
+    public static readonly CssKeyword InlineFlex = "inline-flex";
 
     /// <summary><c>inline-grid</c>：生成行内级网格容器，内部仍使用 Grid 布局。与 grid 的内部网格布局相同，但容器在普通流中按行内级盒子排列。</summary>
-    public static readonly CssValue InlineGrid = "inline-grid";
+    public static readonly CssKeyword InlineGrid = "inline-grid";
 
     /// <summary><c>inline-list-item</c>：等同 <c>inline list-item</c>：行内级的列表项，会生成列表标记；浏览器支持有限。</summary>
-    public static readonly CssValue InlineListItem = "inline-list-item";
+    public static readonly CssKeyword InlineListItem = "inline-list-item";
 
     /// <summary><c>inline-table</c>：等同 <c>inline table</c>：像行内元素一样参与行排版，内部使用表格布局。</summary>
-    public static readonly CssValue InlineTable = "inline-table";
+    public static readonly CssKeyword InlineTable = "inline-table";
 
     /// <summary><c>list-item</c>：生成带列表标记的主盒子，标记由 list-style 等属性控制。</summary>
-    public static readonly CssValue ListItem = "list-item";
+    public static readonly CssKeyword ListItem = "list-item";
 
     /// <summary><c>none</c>：不生成元素及其后代的布局盒子，通常也从可访问性树中移除。不能靠它保留可聚焦交互；重新显示时需按组件需求管理焦点。visibility:hidden 通常保留布局空间；opacity:0 只改变透明度，通常仍能交互。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>ruby</c>：生成一个 ruby 容器，用于排版注音（如拼音、假名），其子元素需配合 <c>ruby-base</c>、<c>ruby-text</c> 等内部值。</summary>
-    public static readonly CssValue Ruby = "ruby";
+    public static readonly CssKeyword Ruby = "ruby";
 
     /// <summary><c>ruby-base</c>：表现为 <c>&lt;rb&gt;</c>，是 ruby 注音结构中的被注文字部分；只在 ruby 容器内有意义。</summary>
-    public static readonly CssValue RubyBase = "ruby-base";
+    public static readonly CssKeyword RubyBase = "ruby-base";
 
     /// <summary><c>ruby-base-container</c>：表现为 <c>&lt;rbc&gt;</c>，包裹 ruby 注音结构中的各个被注文字；只在 ruby 容器内有意义。</summary>
-    public static readonly CssValue RubyBaseContainer = "ruby-base-container";
+    public static readonly CssKeyword RubyBaseContainer = "ruby-base-container";
 
     /// <summary><c>ruby-text</c>：表现为 <c>&lt;rt&gt;</c>，是 ruby 注音结构中的注音文字；只在 ruby 容器内有意义。</summary>
-    public static readonly CssValue RubyText = "ruby-text";
+    public static readonly CssKeyword RubyText = "ruby-text";
 
     /// <summary><c>ruby-text-container</c>：表现为 <c>&lt;rtc&gt;</c>，包裹 ruby 注音结构中的各段注音文字；只在 ruby 容器内有意义。</summary>
-    public static readonly CssValue RubyTextContainer = "ruby-text-container";
+    public static readonly CssKeyword RubyTextContainer = "ruby-text-container";
 
     /// <summary><c>run-in</c>：让元素并入其后块级兄弟的第一行，成为行内内容（嵌入式标题）；现代浏览器基本不支持。</summary>
-    public static readonly CssValue RunIn = "run-in";
+    public static readonly CssKeyword RunIn = "run-in";
 
     /// <summary><c>table</c>：让元素表现为块级表格，等同 <c>&lt;table&gt;</c>；子元素可用 <c>table-row</c>、<c>table-cell</c> 等组成表格布局。</summary>
-    public static readonly CssValue Table = "table";
+    public static readonly CssKeyword Table = "table";
 
     /// <summary><c>table-cell</c>：表现为表格单元格，等同 <c>&lt;td&gt;</c>。</summary>
-    public static readonly CssValue TableCell = "table-cell";
+    public static readonly CssKeyword TableCell = "table-cell";
 
     /// <summary><c>table-column</c>：表现为表格的一列，等同 <c>&lt;col&gt;</c>；本身不渲染内容，只用来为整列设置样式。</summary>
-    public static readonly CssValue TableColumn = "table-column";
+    public static readonly CssKeyword TableColumn = "table-column";
 
     /// <summary><c>table-column-group</c>：表现为一组表格列，等同 <c>&lt;colgroup&gt;</c>。</summary>
-    public static readonly CssValue TableColumnGroup = "table-column-group";
+    public static readonly CssKeyword TableColumnGroup = "table-column-group";
 
     /// <summary><c>table-footer-group</c>：表现为表格的页脚行组，等同 <c>&lt;tfoot&gt;</c>，总是显示在表格行的最后。</summary>
-    public static readonly CssValue TableFooterGroup = "table-footer-group";
+    public static readonly CssKeyword TableFooterGroup = "table-footer-group";
 
     /// <summary><c>table-header-group</c>：表现为表格的表头行组，等同 <c>&lt;thead&gt;</c>，总是显示在表格行的最前。</summary>
-    public static readonly CssValue TableHeaderGroup = "table-header-group";
+    public static readonly CssKeyword TableHeaderGroup = "table-header-group";
 
     /// <summary><c>table-row</c>：表现为表格的一行，等同 <c>&lt;tr&gt;</c>。</summary>
-    public static readonly CssValue TableRow = "table-row";
+    public static readonly CssKeyword TableRow = "table-row";
 
     /// <summary><c>table-row-group</c>：表现为表格的主体行组，等同 <c>&lt;tbody&gt;</c>。</summary>
-    public static readonly CssValue TableRowGroup = "table-row-group";
+    public static readonly CssKeyword TableRowGroup = "table-row-group";
 
     /// <summary><c>-webkit-box</c>：旧版弹性盒容器，非标准的前缀写法；常配合 <c>WebkitLineClamp</c> 与 <c>WebkitBoxOrient: 'vertical'</c> 做多行文本截断，新布局请用 <c>flex</c>。</summary>
-    public static readonly CssValue WebkitBox = "-webkit-box";
+    public static readonly CssKeyword WebkitBox = "-webkit-box";
 }
 
 /// <summary><c>display-inside</c> 的关键字取值；类型与 <see cref="Style.DisplayInside"/> 一致，可直接赋值。</summary>
 public static class DisplayInside
 {
     /// <summary><c>auto</c>：由浏览器按元素类型决定内部布局方式。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>block</c>：元素内部使用块布局（普通流）。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue Block = "block";
+    public static readonly CssKeyword Block = "block";
 
     /// <summary><c>flex</c>：元素内部使用弹性盒布局。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue Flex = "flex";
+    public static readonly CssKeyword Flex = "flex";
 
     /// <summary><c>grid</c>：元素内部使用网格布局。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue Grid = "grid";
+    public static readonly CssKeyword Grid = "grid";
 
     /// <summary><c>ruby</c>：元素内部使用 ruby 注音布局。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue Ruby = "ruby";
+    public static readonly CssKeyword Ruby = "ruby";
 
     /// <summary><c>table</c>：元素内部使用表格布局。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue Table = "table";
+    public static readonly CssKeyword Table = "table";
 }
 
 /// <summary><c>display-list</c> 的关键字取值；类型与 <see cref="Style.DisplayList"/> 一致，可直接赋值。</summary>
 public static class DisplayList
 {
     /// <summary><c>list-item</c>：元素生成列表项标记（如圆点、序号），相当于 <c>display: list-item</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue ListItem = "list-item";
+    public static readonly CssKeyword ListItem = "list-item";
 
     /// <summary><c>none</c>：元素不生成列表项标记，按普通盒子显示。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>display-outside</c> 的关键字取值；类型与 <see cref="Style.DisplayOutside"/> 一致，可直接赋值。</summary>
 public static class DisplayOutside
 {
     /// <summary><c>block-level</c>：元素对外表现为块级盒子，独占一行并沿块方向堆叠。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue BlockLevel = "block-level";
+    public static readonly CssKeyword BlockLevel = "block-level";
 
     /// <summary><c>contents</c>：元素自身不生成盒子，子元素和文本直接参与外层布局，相当于 <c>display: contents</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue Contents = "contents";
+    public static readonly CssKeyword Contents = "contents";
 
     /// <summary><c>inline-level</c>：元素对外表现为行内级盒子，与相邻行内内容排在同一行。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue InlineLevel = "inline-level";
+    public static readonly CssKeyword InlineLevel = "inline-level";
 
     /// <summary><c>none</c>：元素及其后代都不生成盒子，相当于 <c>display: none</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>ruby-base</c>：元素对外作为注音的基文字盒，对应 <c>display: ruby-base</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue RubyBase = "ruby-base";
+    public static readonly CssKeyword RubyBase = "ruby-base";
 
     /// <summary><c>ruby-base-container</c>：元素对外作为注音基文字的容器，对应 <c>display: ruby-base-container</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue RubyBaseContainer = "ruby-base-container";
+    public static readonly CssKeyword RubyBaseContainer = "ruby-base-container";
 
     /// <summary><c>ruby-text</c>：元素对外作为注音的注释文字盒，对应 <c>display: ruby-text</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue RubyText = "ruby-text";
+    public static readonly CssKeyword RubyText = "ruby-text";
 
     /// <summary><c>ruby-text-container</c>：元素对外作为注音注释文字的容器，对应 <c>display: ruby-text-container</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue RubyTextContainer = "ruby-text-container";
+    public static readonly CssKeyword RubyTextContainer = "ruby-text-container";
 
     /// <summary><c>run-in</c>：元素对外表现为插入型盒子：随后是块盒时，并入该块的开头作为行内内容；该值已从规范中移除。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue RunIn = "run-in";
+    public static readonly CssKeyword RunIn = "run-in";
 
     /// <summary><c>table-caption</c>：元素对外作为表格标题，对应 <c>display: table-caption</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue TableCaption = "table-caption";
+    public static readonly CssKeyword TableCaption = "table-caption";
 
     /// <summary><c>table-cell</c>：元素对外作为表格单元格，对应 <c>display: table-cell</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue TableCell = "table-cell";
+    public static readonly CssKeyword TableCell = "table-cell";
 
     /// <summary><c>table-column</c>：元素对外作为表格列，对应 <c>display: table-column</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue TableColumn = "table-column";
+    public static readonly CssKeyword TableColumn = "table-column";
 
     /// <summary><c>table-column-group</c>：元素对外作为表格列组，对应 <c>display: table-column-group</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue TableColumnGroup = "table-column-group";
+    public static readonly CssKeyword TableColumnGroup = "table-column-group";
 
     /// <summary><c>table-footer-group</c>：元素对外作为表格页脚行组，对应 <c>display: table-footer-group</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue TableFooterGroup = "table-footer-group";
+    public static readonly CssKeyword TableFooterGroup = "table-footer-group";
 
     /// <summary><c>table-header-group</c>：元素对外作为表格表头行组，对应 <c>display: table-header-group</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue TableHeaderGroup = "table-header-group";
+    public static readonly CssKeyword TableHeaderGroup = "table-header-group";
 
     /// <summary><c>table-row</c>：元素对外作为表格行，对应 <c>display: table-row</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue TableRow = "table-row";
+    public static readonly CssKeyword TableRow = "table-row";
 
     /// <summary><c>table-row-group</c>：元素对外作为表格行组，对应 <c>display: table-row-group</c>。早期草案属性，浏览器不支持。</summary>
-    public static readonly CssValue TableRowGroup = "table-row-group";
+    public static readonly CssKeyword TableRowGroup = "table-row-group";
 }
 
 /// <summary><c>dominant-baseline</c> 的关键字取值；类型与 <see cref="Style.DominantBaseline"/> 一致，可直接赋值。</summary>
 public static class DominantBaseline
 {
     /// <summary><c>alphabetic</c>：以字母基线（拉丁字母底部）为主导基线，西文横排的常用对齐方式。</summary>
-    public static readonly CssValue Alphabetic = "alphabetic";
+    public static readonly CssKeyword Alphabetic = "alphabetic";
 
     /// <summary><c>auto</c>：由浏览器按书写模式选择：横排用字母基线，竖排且字形直立时用 <c>central</c>。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>central</c>：以字符 em 盒垂直方向的中心为主导基线，竖排文字常用。</summary>
-    public static readonly CssValue Central = "central";
+    public static readonly CssKeyword Central = "central";
 
     /// <summary><c>hanging</c>：以悬挂基线为主导基线，梵文、藏文等字形悬挂在这条线之下的文字使用。</summary>
-    public static readonly CssValue Hanging = "hanging";
+    public static readonly CssKeyword Hanging = "hanging";
 
     /// <summary><c>ideographic</c>：以表意基线为主导基线，位于 CJK 等表意文字字形的底部。</summary>
-    public static readonly CssValue Ideographic = "ideographic";
+    public static readonly CssKeyword Ideographic = "ideographic";
 
     /// <summary><c>mathematical</c>：以数学基线为主导基线，用于数学公式排版。</summary>
-    public static readonly CssValue Mathematical = "mathematical";
+    public static readonly CssKeyword Mathematical = "mathematical";
 
     /// <summary><c>middle</c>：以字母基线上方约半个 x 高度处为主导基线，常用来让文字在垂直方向居中。</summary>
-    public static readonly CssValue Middle = "middle";
+    public static readonly CssKeyword Middle = "middle";
 
     /// <summary><c>no-change</c>：沿用父元素的主导基线，不重新计算；SVG 1.1 旧值，已废弃。</summary>
-    public static readonly CssValue NoChange = "no-change";
+    public static readonly CssKeyword NoChange = "no-change";
 
     /// <summary><c>reset-size</c>：沿用父元素的主导基线，并按当前字号重新计算基线表；SVG 1.1 旧值，已废弃。</summary>
-    public static readonly CssValue ResetSize = "reset-size";
+    public static readonly CssKeyword ResetSize = "reset-size";
 
     /// <summary><c>text-after-edge</c>：以文本区域的下边缘为主导基线；SVG 1.1 旧值，已废弃，改用 <c>text-bottom</c>。</summary>
-    public static readonly CssValue TextAfterEdge = "text-after-edge";
+    public static readonly CssKeyword TextAfterEdge = "text-after-edge";
 
     /// <summary><c>text-before-edge</c>：以文本区域的上边缘为主导基线；SVG 1.1 旧值，已废弃，改用 <c>text-top</c>。</summary>
-    public static readonly CssValue TextBeforeEdge = "text-before-edge";
+    public static readonly CssKeyword TextBeforeEdge = "text-before-edge";
 
     /// <summary><c>use-script</c>：按文字所属书写系统选择默认基线；SVG 1.1 旧值，已废弃。</summary>
-    public static readonly CssValue UseScript = "use-script";
+    public static readonly CssKeyword UseScript = "use-script";
 }
 
 /// <summary><c>empty-cells</c> 的关键字取值；类型与 <see cref="Style.EmptyCells"/> 一致，可直接赋值。</summary>
 public static class EmptyCells
 {
     /// <summary><c>hide</c>：分离边框表格中，不绘制空单元格的边框和背景。</summary>
-    public static readonly CssValue Hide = "hide";
+    public static readonly CssKeyword Hide = "hide";
 
     /// <summary><c>show</c>：分离边框表格中，仍绘制空单元格的边框和背景，是默认值。</summary>
-    public static readonly CssValue Show = "show";
+    public static readonly CssKeyword Show = "show";
 }
 
 /// <summary><c>fill</c> 的关键字取值；类型与 <see cref="Style.Fill"/> 一致，可直接赋值。</summary>
@@ -3018,10 +3085,10 @@ public static class Fill
 public static class FillRule
 {
     /// <summary><c>evenodd</c>：按射线穿过路径次数的奇偶性判断内部，适合交叠或有孔路径。</summary>
-    public static readonly CssValue Evenodd = "evenodd";
+    public static readonly CssKeyword Evenodd = "evenodd";
 
     /// <summary><c>nonzero</c>：按有方向的绕数判断路径内部，子路径方向会影响结果。</summary>
-    public static readonly CssValue Nonzero = "nonzero";
+    public static readonly CssKeyword Nonzero = "nonzero";
 }
 
 /// <summary><c>flex-basis</c> 的关键字取值；类型与 <see cref="Style.FlexBasis"/> 一致，可直接赋值。</summary>
@@ -3047,41 +3114,41 @@ public static class FlexBasis
 public static class FlexDirection
 {
     /// <summary><c>column</c>：主轴沿块方向排列；水平书写时通常从上到下。</summary>
-    public static readonly CssValue Column = "column";
+    public static readonly CssKeyword Column = "column";
 
     /// <summary><c>column-reverse</c>：反转块方向的视觉排列，不改变 DOM 顺序。</summary>
-    public static readonly CssValue ColumnReverse = "column-reverse";
+    public static readonly CssKeyword ColumnReverse = "column-reverse";
 
     /// <summary><c>row</c>：主轴沿行内方向排列；不一定是从左到右，取决于书写方向。</summary>
-    public static readonly CssValue Row = "row";
+    public static readonly CssKeyword Row = "row";
 
     /// <summary><c>row-reverse</c>：反转行内方向的视觉排列，不改变 DOM 顺序。</summary>
-    public static readonly CssValue RowReverse = "row-reverse";
+    public static readonly CssKeyword RowReverse = "row-reverse";
 }
 
 /// <summary><c>flex-flow</c> 的关键字取值；类型与 <see cref="Style.FlexFlow"/> 一致，可直接赋值。</summary>
 public static class FlexFlow
 {
     /// <summary><c>column</c>：主轴沿块方向排列；水平书写时通常从上到下。</summary>
-    public static readonly CssValue Column = "column";
+    public static readonly CssKeyword Column = "column";
 
     /// <summary><c>column-reverse</c>：反转块方向的视觉排列，不改变 DOM 顺序。</summary>
-    public static readonly CssValue ColumnReverse = "column-reverse";
+    public static readonly CssKeyword ColumnReverse = "column-reverse";
 
     /// <summary><c>nowrap</c>：保持单行；项目仍可能收缩或溢出。</summary>
-    public static readonly CssValue Nowrap = "nowrap";
+    public static readonly CssKeyword Nowrap = "nowrap";
 
     /// <summary><c>row</c>：主轴沿行内方向排列；不一定是从左到右，取决于书写方向。</summary>
-    public static readonly CssValue Row = "row";
+    public static readonly CssKeyword Row = "row";
 
     /// <summary><c>row-reverse</c>：反转行内方向的视觉排列，不改变 DOM 顺序。</summary>
-    public static readonly CssValue RowReverse = "row-reverse";
+    public static readonly CssKeyword RowReverse = "row-reverse";
 
     /// <summary><c>wrap</c>：空间不足时形成多行，沿交叉轴正常方向排列。换行不会自动均分每行项目宽度，尺寸仍由各项目的 flex 配置决定。nowrap 保持单行；wrap-reverse 反转交叉轴上各行的排列方向。</summary>
-    public static readonly CssValue Wrap = "wrap";
+    public static readonly CssKeyword Wrap = "wrap";
 
     /// <summary><c>wrap-reverse</c>：允许换行并反转交叉轴上各行的排列方向。</summary>
-    public static readonly CssValue WrapReverse = "wrap-reverse";
+    public static readonly CssKeyword WrapReverse = "wrap-reverse";
 }
 
 /// <summary><c>flex</c> 的关键字取值；类型与 <see cref="Style.Flex"/> 一致，可直接赋值。</summary>
@@ -3110,266 +3177,266 @@ public static class FlexKeywords
 public static class FlexWrap
 {
     /// <summary><c>nowrap</c>：保持单行；项目仍可能收缩或溢出。</summary>
-    public static readonly CssValue Nowrap = "nowrap";
+    public static readonly CssKeyword Nowrap = "nowrap";
 
     /// <summary><c>wrap</c>：空间不足时形成多行，沿交叉轴正常方向排列。换行不会自动均分每行项目宽度，尺寸仍由各项目的 flex 配置决定。nowrap 保持单行；wrap-reverse 反转交叉轴上各行的排列方向。</summary>
-    public static readonly CssValue Wrap = "wrap";
+    public static readonly CssKeyword Wrap = "wrap";
 
     /// <summary><c>wrap-reverse</c>：允许换行并反转交叉轴上各行的排列方向。</summary>
-    public static readonly CssValue WrapReverse = "wrap-reverse";
+    public static readonly CssKeyword WrapReverse = "wrap-reverse";
 }
 
 /// <summary><c>float</c> 的关键字取值；类型与 <see cref="Style.Float"/> 一致，可直接赋值。</summary>
 public static class Float
 {
     /// <summary><c>end</c>：StyleX 类型里保留的写法，浏览器不认；按书写方向靠结束边浮动请用 <c>inline-end</c>。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>inline-end</c>：元素浮动到行内结束侧，从左到右的文本中即右侧，其余内容在另一侧环绕。</summary>
-    public static readonly CssValue InlineEnd = "inline-end";
+    public static readonly CssKeyword InlineEnd = "inline-end";
 
     /// <summary><c>inline-start</c>：元素浮动到行内起始侧，从左到右的文本中即左侧，其余内容在另一侧环绕。</summary>
-    public static readonly CssValue InlineStart = "inline-start";
+    public static readonly CssKeyword InlineStart = "inline-start";
 
     /// <summary><c>left</c>：元素浮动到容器左侧，后续行内内容在其右侧环绕。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>none</c>：元素不浮动，保持在正常文档流中，是默认值。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>right</c>：元素浮动到容器右侧，后续行内内容在其左侧环绕。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>start</c>：StyleX 类型里保留的写法，浏览器不认；按书写方向靠起始边浮动请用 <c>inline-start</c>。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 }
 
 /// <summary><c>font</c> 的关键字取值；类型与 <see cref="Style.Font"/> 一致，可直接赋值。</summary>
 public static class Font
 {
     /// <summary><c>bold</c>：粗体字重，等价于数值 700。</summary>
-    public static readonly CssLength Bold = "bold";
+    public static readonly CssKeyword Bold = "bold";
 
     /// <summary><c>bolder</c>：相对于继承字重选择更粗的字重，不是简单加一个固定数值。</summary>
-    public static readonly CssLength Bolder = "bolder";
+    public static readonly CssKeyword Bolder = "bolder";
 
     /// <summary><c>caption</c>：取按钮等控件所用的系统字体；<c>font</c> 简写会整体采用其字号、字重等设置，而不只是字体族。</summary>
-    public static readonly CssLength Caption = "caption";
+    public static readonly CssKeyword Caption = "caption";
 
     /// <summary><c>condensed</c>：较窄的宽度档位，等同 <c>75%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssLength Condensed = "condensed";
+    public static readonly CssKeyword Condensed = "condensed";
 
     /// <summary><c>cursive</c>：手写体或草书风格的字体族，具体字体由系统决定。</summary>
-    public static readonly CssLength Cursive = "cursive";
+    public static readonly CssKeyword Cursive = "cursive";
 
     /// <summary><c>emoji</c>：适合渲染表情符号（emoji）的字体族。</summary>
-    public static readonly CssLength Emoji = "emoji";
+    public static readonly CssKeyword Emoji = "emoji";
 
     /// <summary><c>expanded</c>：较宽的宽度档位，等同 <c>125%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssLength Expanded = "expanded";
+    public static readonly CssKeyword Expanded = "expanded";
 
     /// <summary><c>extra-condensed</c>：很窄的宽度档位，等同 <c>62.5%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssLength ExtraCondensed = "extra-condensed";
+    public static readonly CssKeyword ExtraCondensed = "extra-condensed";
 
     /// <summary><c>extra-expanded</c>：很宽的宽度档位，等同 <c>150%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssLength ExtraExpanded = "extra-expanded";
+    public static readonly CssKeyword ExtraExpanded = "extra-expanded";
 
     /// <summary><c>fangsong</c>：仿宋风格的中文字体族，字形介于宋体与楷体之间。</summary>
-    public static readonly CssLength Fangsong = "fangsong";
+    public static readonly CssKeyword Fangsong = "fangsong";
 
     /// <summary><c>fantasy</c>：装饰性、艺术化的字体族，具体字体由系统决定，不保证存在。</summary>
-    public static readonly CssLength Fantasy = "fantasy";
+    public static readonly CssKeyword Fantasy = "fantasy";
 
     /// <summary><c>icon</c>：取图标标签所用的系统字体；<c>font</c> 简写会整体采用其字号、字重等设置，而不只是字体族。</summary>
-    public static readonly CssLength Icon = "icon";
+    public static readonly CssKeyword Icon = "icon";
 
     /// <summary><c>italic</c>：使用字体的斜体字形；字体没有时退回倾斜字形，再没有则由浏览器合成。</summary>
-    public static readonly CssLength Italic = "italic";
+    public static readonly CssKeyword Italic = "italic";
 
     /// <summary><c>large</c>：绝对字号档位，默认设置下约 18px。</summary>
-    public static readonly CssLength Large = "large";
+    public static readonly CssKeyword Large = "large";
 
     /// <summary><c>larger</c>：比父元素的字号大一档，具体倍数由浏览器决定。</summary>
-    public static readonly CssLength Larger = "larger";
+    public static readonly CssKeyword Larger = "larger";
 
     /// <summary><c>lighter</c>：相对于继承字重选择更细的字重，不是简单减一个固定数值。</summary>
-    public static readonly CssLength Lighter = "lighter";
+    public static readonly CssKeyword Lighter = "lighter";
 
     /// <summary><c>math</c>：按 <c>math-depth</c> 对继承的字号做缩放，主要用于 MathML 上下标、分式等嵌套内容；较新的值，浏览器支持有限。</summary>
-    public static readonly CssLength Math = "math";
+    public static readonly CssKeyword Math = "math";
 
     /// <summary><c>medium</c>：绝对字号的基准档位，等于浏览器默认字号（通常 16px），也是字号的初始值。</summary>
-    public static readonly CssLength Medium = "medium";
+    public static readonly CssKeyword Medium = "medium";
 
     /// <summary><c>menu</c>：取菜单所用的系统字体；<c>font</c> 简写会整体采用其字号、字重等设置，而不只是字体族。</summary>
-    public static readonly CssLength Menu = "menu";
+    public static readonly CssKeyword Menu = "menu";
 
     /// <summary><c>message-box</c>：取对话框所用的系统字体；<c>font</c> 简写会整体采用其字号、字重等设置，而不只是字体族。</summary>
-    public static readonly CssLength MessageBox = "message-box";
+    public static readonly CssKeyword MessageBox = "message-box";
 
     /// <summary><c>monospace</c>：等宽字体族，每个字符宽度相同，常用于代码。</summary>
-    public static readonly CssLength Monospace = "monospace";
+    public static readonly CssKeyword Monospace = "monospace";
 
     /// <summary><c>normal</c>：使用字体的直立正体。</summary>
-    public static readonly CssLength Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>oblique</c>：使用倾斜字形，可后接角度，如 <c>oblique 10deg</c>；不写角度时默认为 <c>14deg</c>。</summary>
-    public static readonly CssLength Oblique = "oblique";
+    public static readonly CssKeyword Oblique = "oblique";
 
     /// <summary><c>sans-serif</c>：无衬线字体族，笔画末端没有衬线，如黑体、Arial 一类的风格。</summary>
-    public static readonly CssLength SansSerif = "sans-serif";
+    public static readonly CssKeyword SansSerif = "sans-serif";
 
     /// <summary><c>semi-condensed</c>：略窄的宽度档位，等同 <c>87.5%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssLength SemiCondensed = "semi-condensed";
+    public static readonly CssKeyword SemiCondensed = "semi-condensed";
 
     /// <summary><c>semi-expanded</c>：略宽的宽度档位，等同 <c>112.5%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssLength SemiExpanded = "semi-expanded";
+    public static readonly CssKeyword SemiExpanded = "semi-expanded";
 
     /// <summary><c>serif</c>：衬线字体族，笔画末端带有装饰性的衬线，如宋体、Times 一类的风格。</summary>
-    public static readonly CssLength Serif = "serif";
+    public static readonly CssKeyword Serif = "serif";
 
     /// <summary><c>small</c>：绝对字号档位，默认设置下约 13px。</summary>
-    public static readonly CssLength Small = "small";
+    public static readonly CssKeyword Small = "small";
 
     /// <summary><c>small-caps</c>：小写字母改用小型大写字母字形；字体没有这类字形时由浏览器按比例缩小大写字母合成。</summary>
-    public static readonly CssLength SmallCaps = "small-caps";
+    public static readonly CssKeyword SmallCaps = "small-caps";
 
     /// <summary><c>small-caption</c>：取小控件标签所用的系统字体；<c>font</c> 简写会整体采用其字号、字重等设置，而不只是字体族。</summary>
-    public static readonly CssLength SmallCaption = "small-caption";
+    public static readonly CssKeyword SmallCaption = "small-caption";
 
     /// <summary><c>smaller</c>：比父元素的字号小一档，具体倍数由浏览器决定。</summary>
-    public static readonly CssLength Smaller = "smaller";
+    public static readonly CssKeyword Smaller = "smaller";
 
     /// <summary><c>status-bar</c>：取窗口状态栏所用的系统字体；<c>font</c> 简写会整体采用其字号、字重等设置，而不只是字体族。</summary>
-    public static readonly CssLength StatusBar = "status-bar";
+    public static readonly CssKeyword StatusBar = "status-bar";
 
     /// <summary><c>system-ui</c>：操作系统界面所用的默认字体，在不同系统上外观不同。</summary>
-    public static readonly CssLength SystemUi = "system-ui";
+    public static readonly CssKeyword SystemUi = "system-ui";
 
     /// <summary><c>ui-monospace</c>：系统界面所用的默认等宽字体；浏览器支持有限，建议后面写上回退字体。</summary>
-    public static readonly CssLength UiMonospace = "ui-monospace";
+    public static readonly CssKeyword UiMonospace = "ui-monospace";
 
     /// <summary><c>ui-rounded</c>：系统界面所用的圆角无衬线字体；浏览器支持有限，建议后面写上回退字体。</summary>
-    public static readonly CssLength UiRounded = "ui-rounded";
+    public static readonly CssKeyword UiRounded = "ui-rounded";
 
     /// <summary><c>ui-sans-serif</c>：系统界面所用的默认无衬线字体；浏览器支持有限，建议后面写上回退字体。</summary>
-    public static readonly CssLength UiSansSerif = "ui-sans-serif";
+    public static readonly CssKeyword UiSansSerif = "ui-sans-serif";
 
     /// <summary><c>ui-serif</c>：系统界面所用的默认衬线字体；浏览器支持有限，建议后面写上回退字体。</summary>
-    public static readonly CssLength UiSerif = "ui-serif";
+    public static readonly CssKeyword UiSerif = "ui-serif";
 
     /// <summary><c>ultra-condensed</c>：最窄的宽度档位，等同 <c>50%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssLength UltraCondensed = "ultra-condensed";
+    public static readonly CssKeyword UltraCondensed = "ultra-condensed";
 
     /// <summary><c>ultra-expanded</c>：最宽的宽度档位，等同 <c>200%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssLength UltraExpanded = "ultra-expanded";
+    public static readonly CssKeyword UltraExpanded = "ultra-expanded";
 
     /// <summary><c>x-large</c>：绝对字号档位，默认设置下约 24px。</summary>
-    public static readonly CssLength XLarge = "x-large";
+    public static readonly CssKeyword XLarge = "x-large";
 
     /// <summary><c>x-small</c>：绝对字号档位，默认设置下约 10px，比 <c>xx-small</c> 大一档。</summary>
-    public static readonly CssLength XSmall = "x-small";
+    public static readonly CssKeyword XSmall = "x-small";
 
     /// <summary><c>xx-large</c>：绝对字号档位，默认设置下约 32px。</summary>
-    public static readonly CssLength XxLarge = "xx-large";
+    public static readonly CssKeyword XxLarge = "xx-large";
 
     /// <summary><c>xx-small</c>：最小的绝对字号档位，默认设置下约 9px；以浏览器默认字号为基准，不随父元素字号变化。</summary>
-    public static readonly CssLength XxSmall = "xx-small";
+    public static readonly CssKeyword XxSmall = "xx-small";
 
     /// <summary><c>xxx-large</c>：最大的绝对字号档位，默认设置下约 48px。</summary>
-    public static readonly CssLength XxxLarge = "xxx-large";
+    public static readonly CssKeyword XxxLarge = "xxx-large";
 }
 
 /// <summary><c>font-family</c> 的关键字取值；类型与 <see cref="Style.FontFamily"/> 一致，可直接赋值。</summary>
 public static class FontFamily
 {
     /// <summary><c>cursive</c>：手写体或草书风格的字体族，具体字体由系统决定。</summary>
-    public static readonly CssValue Cursive = "cursive";
+    public static readonly CssKeyword Cursive = "cursive";
 
     /// <summary><c>emoji</c>：适合渲染表情符号（emoji）的字体族。</summary>
-    public static readonly CssValue Emoji = "emoji";
+    public static readonly CssKeyword Emoji = "emoji";
 
     /// <summary><c>fangsong</c>：仿宋风格的中文字体族，字形介于宋体与楷体之间。</summary>
-    public static readonly CssValue Fangsong = "fangsong";
+    public static readonly CssKeyword Fangsong = "fangsong";
 
     /// <summary><c>fantasy</c>：装饰性、艺术化的字体族，具体字体由系统决定，不保证存在。</summary>
-    public static readonly CssValue Fantasy = "fantasy";
+    public static readonly CssKeyword Fantasy = "fantasy";
 
     /// <summary><c>math</c>：适合排印数学公式的字体族。</summary>
-    public static readonly CssValue Math = "math";
+    public static readonly CssKeyword Math = "math";
 
     /// <summary><c>monospace</c>：等宽字体族，每个字符宽度相同，常用于代码。</summary>
-    public static readonly CssValue Monospace = "monospace";
+    public static readonly CssKeyword Monospace = "monospace";
 
     /// <summary><c>sans-serif</c>：无衬线字体族，笔画末端没有衬线，如黑体、Arial 一类的风格。</summary>
-    public static readonly CssValue SansSerif = "sans-serif";
+    public static readonly CssKeyword SansSerif = "sans-serif";
 
     /// <summary><c>serif</c>：衬线字体族，笔画末端带有装饰性的衬线，如宋体、Times 一类的风格。</summary>
-    public static readonly CssValue Serif = "serif";
+    public static readonly CssKeyword Serif = "serif";
 
     /// <summary><c>system-ui</c>：操作系统界面所用的默认字体，在不同系统上外观不同。</summary>
-    public static readonly CssValue SystemUi = "system-ui";
+    public static readonly CssKeyword SystemUi = "system-ui";
 
     /// <summary><c>ui-monospace</c>：系统界面所用的默认等宽字体；浏览器支持有限，建议后面写上回退字体。</summary>
-    public static readonly CssValue UiMonospace = "ui-monospace";
+    public static readonly CssKeyword UiMonospace = "ui-monospace";
 
     /// <summary><c>ui-rounded</c>：系统界面所用的圆角无衬线字体；浏览器支持有限，建议后面写上回退字体。</summary>
-    public static readonly CssValue UiRounded = "ui-rounded";
+    public static readonly CssKeyword UiRounded = "ui-rounded";
 
     /// <summary><c>ui-sans-serif</c>：系统界面所用的默认无衬线字体；浏览器支持有限，建议后面写上回退字体。</summary>
-    public static readonly CssValue UiSansSerif = "ui-sans-serif";
+    public static readonly CssKeyword UiSansSerif = "ui-sans-serif";
 
     /// <summary><c>ui-serif</c>：系统界面所用的默认衬线字体；浏览器支持有限，建议后面写上回退字体。</summary>
-    public static readonly CssValue UiSerif = "ui-serif";
+    public static readonly CssKeyword UiSerif = "ui-serif";
 }
 
 /// <summary><c>font-feature-settings</c> 的关键字取值；类型与 <see cref="Style.FontFeatureSettings"/> 一致，可直接赋值。</summary>
 public static class FontFeatureSettings
 {
     /// <summary><c>normal</c>：不额外开关 OpenType 特性，按字体和其他 <c>font-*</c> 属性的默认排版。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>off</c>：写在特性标签之后，禁用该 OpenType 特性，等同于 <c>0</c>。</summary>
-    public static readonly CssValue Off = "off";
+    public static readonly CssKeyword Off = "off";
 
     /// <summary><c>on</c>：写在特性标签之后，启用该 OpenType 特性，等同于 <c>1</c>。</summary>
-    public static readonly CssValue On = "on";
+    public static readonly CssKeyword On = "on";
 }
 
 /// <summary><c>font-kerning</c> 的关键字取值；类型与 <see cref="Style.FontKerning"/> 一致，可直接赋值。</summary>
 public static class FontKerning
 {
     /// <summary><c>auto</c>：由浏览器决定是否应用字偶间距调整，通常默认启用。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：关闭字偶间距调整，字符按各自的默认字宽排列。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：强制启用字体提供的字偶间距调整。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>font-optical-sizing</c> 的关键字取值；类型与 <see cref="Style.FontOpticalSizing"/> 一致，可直接赋值。</summary>
 public static class FontOpticalSizing
 {
     /// <summary><c>auto</c>：浏览器按当前字号自动设置字体的光学尺寸轴（<c>opsz</c>），是默认值。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：不自动调整光学尺寸，字形保持字体的默认光学尺寸。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>font-palette</c> 的关键字取值；类型与 <see cref="Style.FontPalette"/> 一致，可直接赋值。</summary>
 public static class FontPalette
 {
     /// <summary><c>dark</c>：使用字体中标明适合深色背景的调色板，没有则退回默认调色板。</summary>
-    public static readonly CssValue Dark = "dark";
+    public static readonly CssKeyword Dark = "dark";
 
     /// <summary><c>light</c>：使用字体中标明适合浅色背景的调色板，没有则退回默认调色板。</summary>
-    public static readonly CssValue Light = "light";
+    public static readonly CssKeyword Light = "light";
 
     /// <summary><c>normal</c>：使用字体的默认调色板。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>font-size</c> 的关键字取值；类型与 <see cref="Style.FontSize"/> 一致，可直接赋值。</summary>
@@ -3413,356 +3480,356 @@ public static class FontSize
 public static class FontStretch
 {
     /// <summary><c>condensed</c>：较窄的宽度档位，等同 <c>75%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssValue Condensed = "condensed";
+    public static readonly CssKeyword Condensed = "condensed";
 
     /// <summary><c>expanded</c>：较宽的宽度档位，等同 <c>125%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssValue Expanded = "expanded";
+    public static readonly CssKeyword Expanded = "expanded";
 
     /// <summary><c>extra-condensed</c>：很窄的宽度档位，等同 <c>62.5%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssValue ExtraCondensed = "extra-condensed";
+    public static readonly CssKeyword ExtraCondensed = "extra-condensed";
 
     /// <summary><c>extra-expanded</c>：很宽的宽度档位，等同 <c>150%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssValue ExtraExpanded = "extra-expanded";
+    public static readonly CssKeyword ExtraExpanded = "extra-expanded";
 
     /// <summary><c>normal</c>：正常宽度，等同 <c>100%</c>。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>semi-condensed</c>：略窄的宽度档位，等同 <c>87.5%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssValue SemiCondensed = "semi-condensed";
+    public static readonly CssKeyword SemiCondensed = "semi-condensed";
 
     /// <summary><c>semi-expanded</c>：略宽的宽度档位，等同 <c>112.5%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssValue SemiExpanded = "semi-expanded";
+    public static readonly CssKeyword SemiExpanded = "semi-expanded";
 
     /// <summary><c>ultra-condensed</c>：最窄的宽度档位，等同 <c>50%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssValue UltraCondensed = "ultra-condensed";
+    public static readonly CssKeyword UltraCondensed = "ultra-condensed";
 
     /// <summary><c>ultra-expanded</c>：最宽的宽度档位，等同 <c>200%</c>；字体需提供对应宽度，否则无效果。</summary>
-    public static readonly CssValue UltraExpanded = "ultra-expanded";
+    public static readonly CssKeyword UltraExpanded = "ultra-expanded";
 }
 
 /// <summary><c>font-style</c> 的关键字取值；类型与 <see cref="Style.FontStyle"/> 一致，可直接赋值。</summary>
 public static class FontStyle
 {
     /// <summary><c>italic</c>：使用字体的斜体字形；字体没有时退回倾斜字形，再没有则由浏览器合成。</summary>
-    public static readonly CssValue Italic = "italic";
+    public static readonly CssKeyword Italic = "italic";
 
     /// <summary><c>normal</c>：使用字体的直立正体。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>oblique</c>：使用倾斜字形，可后接角度，如 <c>oblique 10deg</c>；不写角度时默认为 <c>14deg</c>。</summary>
-    public static readonly CssValue Oblique = "oblique";
+    public static readonly CssKeyword Oblique = "oblique";
 }
 
 /// <summary><c>font-synthesis</c> 的关键字取值；类型与 <see cref="Style.FontSynthesis"/> 一致，可直接赋值。</summary>
 public static class FontSynthesis
 {
     /// <summary><c>none</c>：禁止浏览器合成任何缺失的粗体、斜体、小型大写和上下标字形，缺少时直接用字体已有的字形。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>position</c>：字体没有上标、下标字形时，允许浏览器缩小并平移普通字形来合成。</summary>
-    public static readonly CssValue Position = "position";
+    public static readonly CssKeyword Position = "position";
 
     /// <summary><c>small-caps</c>：字体没有小型大写字形时，允许浏览器合成小型大写字母。</summary>
-    public static readonly CssValue SmallCaps = "small-caps";
+    public static readonly CssKeyword SmallCaps = "small-caps";
 
     /// <summary><c>style</c>：字体没有斜体字形时，允许浏览器合成斜体。</summary>
-    public static readonly CssValue Style = "style";
+    public static readonly CssKeyword Style = "style";
 
     /// <summary><c>weight</c>：字体没有粗体字形时，允许浏览器合成粗体；写在哪个值上，就允许合成哪一类。</summary>
-    public static readonly CssValue Weight = "weight";
+    public static readonly CssKeyword Weight = "weight";
 }
 
 /// <summary><c>font-synthesis-position</c> 的关键字取值；类型与 <see cref="Style.FontSynthesisPosition"/> 一致，可直接赋值。</summary>
 public static class FontSynthesisPosition
 {
     /// <summary><c>auto</c>：字体没有上标、下标字形时，允许浏览器缩小并平移普通字形来合成。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：禁止合成上标、下标字形，缺少时直接用字体已有的字形。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>font-synthesis-small-caps</c> 的关键字取值；类型与 <see cref="Style.FontSynthesisSmallCaps"/> 一致，可直接赋值。</summary>
 public static class FontSynthesisSmallCaps
 {
     /// <summary><c>auto</c>：字体没有原生小型大写字形时，允许浏览器缩小大写字母来合成小型大写。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：禁止合成小型大写；字体没有原生字形时，按普通字形显示。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>font-synthesis-style</c> 的关键字取值；类型与 <see cref="Style.FontSynthesisStyle"/> 一致，可直接赋值。</summary>
 public static class FontSynthesisStyle
 {
     /// <summary><c>auto</c>：字体没有斜体或倾斜字形时，允许浏览器把直立字形倾斜，合成伪斜体。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：禁止合成斜体，只使用字体自带的斜体字形；字体没有时保持直立。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>font-synthesis-weight</c> 的关键字取值；类型与 <see cref="Style.FontSynthesisWeight"/> 一致，可直接赋值。</summary>
 public static class FontSynthesisWeight
 {
     /// <summary><c>auto</c>：字体没有对应粗体字形时，允许浏览器加粗已有字形，合成伪粗体。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：禁止合成粗体，只使用字体自带的字重；字体没有时保持原字重。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>font-variant</c> 的关键字取值；类型与 <see cref="Style.FontVariant"/> 一致，可直接赋值。</summary>
 public static class FontVariant
 {
     /// <summary><c>all-petite-caps</c>：大写和小写字母都改用 petite 小型大写字形，需要字体提供 <c>c2pc</c> 特性。</summary>
-    public static readonly CssValue AllPetiteCaps = "all-petite-caps";
+    public static readonly CssKeyword AllPetiteCaps = "all-petite-caps";
 
     /// <summary><c>all-small-caps</c>：大写和小写字母都改用小型大写字形。</summary>
-    public static readonly CssValue AllSmallCaps = "all-small-caps";
+    public static readonly CssKeyword AllSmallCaps = "all-small-caps";
 
     /// <summary><c>common-ligatures</c>：启用常见连字（如 <c>fi</c>、<c>fl</c>），多数字体默认已开启。</summary>
-    public static readonly CssValue CommonLigatures = "common-ligatures";
+    public static readonly CssKeyword CommonLigatures = "common-ligatures";
 
     /// <summary><c>contextual</c>：启用上下文替代字形（OpenType <c>calt</c>），字形会随前后字符变化，多数字体默认已开启。</summary>
-    public static readonly CssValue Contextual = "contextual";
+    public static readonly CssKeyword Contextual = "contextual";
 
     /// <summary><c>diagonal-fractions</c>：把 <c>1/2</c> 这类写法渲染成斜分数：分子分母缩小并以斜线分隔；需要字体提供该特性。</summary>
-    public static readonly CssValue DiagonalFractions = "diagonal-fractions";
+    public static readonly CssKeyword DiagonalFractions = "diagonal-fractions";
 
     /// <summary><c>discretionary-ligatures</c>：启用字体设计者提供的可选连字（OpenType <c>dlig</c>），多用于装饰，默认不开启。</summary>
-    public static readonly CssValue DiscretionaryLigatures = "discretionary-ligatures";
+    public static readonly CssKeyword DiscretionaryLigatures = "discretionary-ligatures";
 
     /// <summary><c>full-width</c>：使用全角字形（OpenType <c>fwid</c>），让字符占满一个全角宽度。</summary>
-    public static readonly CssValue FullWidth = "full-width";
+    public static readonly CssKeyword FullWidth = "full-width";
 
     /// <summary><c>historical-forms</c>：使用字体提供的历史字形（OpenType <c>hist</c>），属于 <c>font-variant-alternates</c> 的一部分。</summary>
-    public static readonly CssValue HistoricalForms = "historical-forms";
+    public static readonly CssKeyword HistoricalForms = "historical-forms";
 
     /// <summary><c>historical-ligatures</c>：启用历史连字（OpenType <c>hlig</c>），用于还原旧式排印中的连字，默认不开启。</summary>
-    public static readonly CssValue HistoricalLigatures = "historical-ligatures";
+    public static readonly CssKeyword HistoricalLigatures = "historical-ligatures";
 
     /// <summary><c>jis04</c>：使用 JIS X 0213:2004 标准的字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Jis04 = "jis04";
+    public static readonly CssKeyword Jis04 = "jis04";
 
     /// <summary><c>jis78</c>：使用 JIS X 0208:1978 标准的字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Jis78 = "jis78";
+    public static readonly CssKeyword Jis78 = "jis78";
 
     /// <summary><c>jis83</c>：使用 JIS X 0208:1983 标准的字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Jis83 = "jis83";
+    public static readonly CssKeyword Jis83 = "jis83";
 
     /// <summary><c>jis90</c>：使用 JIS X 0208:1990 标准的字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Jis90 = "jis90";
+    public static readonly CssKeyword Jis90 = "jis90";
 
     /// <summary><c>lining-nums</c>：使用等高数字（齐线数字），数字高度统一，与大写字母齐平；需要字体提供该特性。</summary>
-    public static readonly CssValue LiningNums = "lining-nums";
+    public static readonly CssKeyword LiningNums = "lining-nums";
 
     /// <summary><c>no-common-ligatures</c>：禁用常见连字，让相邻字母各自独立显示。</summary>
-    public static readonly CssValue NoCommonLigatures = "no-common-ligatures";
+    public static readonly CssKeyword NoCommonLigatures = "no-common-ligatures";
 
     /// <summary><c>no-contextual</c>：禁用上下文替代字形，每个字符都使用其默认字形。</summary>
-    public static readonly CssValue NoContextual = "no-contextual";
+    public static readonly CssKeyword NoContextual = "no-contextual";
 
     /// <summary><c>no-discretionary-ligatures</c>：禁用可选连字，这是多数字体的默认状态。</summary>
-    public static readonly CssValue NoDiscretionaryLigatures = "no-discretionary-ligatures";
+    public static readonly CssKeyword NoDiscretionaryLigatures = "no-discretionary-ligatures";
 
     /// <summary><c>no-historical-ligatures</c>：禁用历史连字，这是多数情况下的默认状态。</summary>
-    public static readonly CssValue NoHistoricalLigatures = "no-historical-ligatures";
+    public static readonly CssKeyword NoHistoricalLigatures = "no-historical-ligatures";
 
     /// <summary><c>none</c>：关闭所有连字（等同 <c>font-variant-ligatures: none</c>），其余子属性取 <c>normal</c>。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：所有 <c>font-variant-*</c> 子属性都取 <c>normal</c>，不启用任何变体字形。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>oldstyle-nums</c>：使用旧式数字（非等高数字），各数字高度不一并带有上下伸出部分，适合正文里与小写字母混排；需要字体提供该特性。</summary>
-    public static readonly CssValue OldstyleNums = "oldstyle-nums";
+    public static readonly CssKeyword OldstyleNums = "oldstyle-nums";
 
     /// <summary><c>ordinal</c>：使用序数标记专用字形，如 1st、2nd 中上标的字母（OpenType <c>ordn</c>）。</summary>
-    public static readonly CssValue Ordinal = "ordinal";
+    public static readonly CssKeyword Ordinal = "ordinal";
 
     /// <summary><c>petite-caps</c>：小写字母改用比小型大写更小的 petite 小型大写字形，需要字体提供 <c>pcap</c> 特性。</summary>
-    public static readonly CssValue PetiteCaps = "petite-caps";
+    public static readonly CssKeyword PetiteCaps = "petite-caps";
 
     /// <summary><c>proportional-nums</c>：使用比例宽度数字，各数字按自身字形占宽，排版更紧凑，适合正文。</summary>
-    public static readonly CssValue ProportionalNums = "proportional-nums";
+    public static readonly CssKeyword ProportionalNums = "proportional-nums";
 
     /// <summary><c>proportional-width</c>：使用比例宽度字形（OpenType <c>pwid</c>），字符按各自字形的宽度排布，而不是统一占满等宽。</summary>
-    public static readonly CssValue ProportionalWidth = "proportional-width";
+    public static readonly CssKeyword ProportionalWidth = "proportional-width";
 
     /// <summary><c>ruby</c>：使用适合注音（ruby）小字的东亚字形，主要影响日文假名（OpenType <c>ruby</c>）。</summary>
-    public static readonly CssValue Ruby = "ruby";
+    public static readonly CssKeyword Ruby = "ruby";
 
     /// <summary><c>simplified</c>：使用简体中文字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Simplified = "simplified";
+    public static readonly CssKeyword Simplified = "simplified";
 
     /// <summary><c>slashed-zero</c>：数字零带斜线，避免与大写字母 O 混淆（OpenType <c>zero</c>）。</summary>
-    public static readonly CssValue SlashedZero = "slashed-zero";
+    public static readonly CssKeyword SlashedZero = "slashed-zero";
 
     /// <summary><c>small-caps</c>：小写字母改用小型大写字形，大写字母保持不变。</summary>
-    public static readonly CssValue SmallCaps = "small-caps";
+    public static readonly CssKeyword SmallCaps = "small-caps";
 
     /// <summary><c>stacked-fractions</c>：把 <c>1/2</c> 这类写法渲染成竖分数：分子在上、分母在下，中间一条横线；需要字体提供该特性。</summary>
-    public static readonly CssValue StackedFractions = "stacked-fractions";
+    public static readonly CssKeyword StackedFractions = "stacked-fractions";
 
     /// <summary><c>tabular-nums</c>：使用等宽数字，所有数字占用相同宽度，适合表格、计时器等需要纵向对齐的数字。</summary>
-    public static readonly CssValue TabularNums = "tabular-nums";
+    public static readonly CssKeyword TabularNums = "tabular-nums";
 
     /// <summary><c>titling-caps</c>：使用标题专用大写字形，笔画通常更纤细，避免全大写标题显得过重；需要字体提供 <c>titl</c> 特性。</summary>
-    public static readonly CssValue TitlingCaps = "titling-caps";
+    public static readonly CssKeyword TitlingCaps = "titling-caps";
 
     /// <summary><c>traditional</c>：使用繁体中文字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Traditional = "traditional";
+    public static readonly CssKeyword Traditional = "traditional";
 
     /// <summary><c>unicase</c>：大写字母改用小型大写字形，小写字母保持普通字形，得到大小写混合的统一视觉高度。</summary>
-    public static readonly CssValue Unicase = "unicase";
+    public static readonly CssKeyword Unicase = "unicase";
 }
 
 /// <summary><c>font-variant-alternates</c> 的关键字取值；类型与 <see cref="Style.FontVariantAlternates"/> 一致，可直接赋值。</summary>
 public static class FontVariantAlternates
 {
     /// <summary><c>historical-forms</c>：使用字体提供的历史字形（OpenType <c>hist</c>），如旧式书写形态。</summary>
-    public static readonly CssValue HistoricalForms = "historical-forms";
+    public static readonly CssKeyword HistoricalForms = "historical-forms";
 
     /// <summary><c>normal</c>：不启用任何替代字形，使用字体的默认字形。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>font-variant-caps</c> 的关键字取值；类型与 <see cref="Style.FontVariantCaps"/> 一致，可直接赋值。</summary>
 public static class FontVariantCaps
 {
     /// <summary><c>all-petite-caps</c>：大写和小写字母都改用 petite 小型大写字形，需要字体提供 <c>c2pc</c> 特性。</summary>
-    public static readonly CssValue AllPetiteCaps = "all-petite-caps";
+    public static readonly CssKeyword AllPetiteCaps = "all-petite-caps";
 
     /// <summary><c>all-small-caps</c>：大写和小写字母都改用小型大写字形，需要字体提供 <c>c2sc</c> 特性。</summary>
-    public static readonly CssValue AllSmallCaps = "all-small-caps";
+    public static readonly CssKeyword AllSmallCaps = "all-small-caps";
 
     /// <summary><c>normal</c>：不使用小型大写等特殊字形，字母按自身大小写显示。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>petite-caps</c>：小写字母改用比小型大写更小的 petite 小型大写字形，需要字体提供 <c>pcap</c> 特性。</summary>
-    public static readonly CssValue PetiteCaps = "petite-caps";
+    public static readonly CssKeyword PetiteCaps = "petite-caps";
 
     /// <summary><c>small-caps</c>：小写字母改用小型大写字形，大写字母保持不变；字体缺少该特性时可能由浏览器合成。</summary>
-    public static readonly CssValue SmallCaps = "small-caps";
+    public static readonly CssKeyword SmallCaps = "small-caps";
 
     /// <summary><c>titling-caps</c>：使用标题专用大写字形，笔画通常更纤细，适合全大写的标题；需要字体提供 <c>titl</c> 特性。</summary>
-    public static readonly CssValue TitlingCaps = "titling-caps";
+    public static readonly CssKeyword TitlingCaps = "titling-caps";
 
     /// <summary><c>unicase</c>：大写字母改用小型大写字形，小写字母保持普通字形，得到大小写混合的统一视觉高度。</summary>
-    public static readonly CssValue Unicase = "unicase";
+    public static readonly CssKeyword Unicase = "unicase";
 }
 
 /// <summary><c>font-variant-east-asian</c> 的关键字取值；类型与 <see cref="Style.FontVariantEastAsian"/> 一致，可直接赋值。</summary>
 public static class FontVariantEastAsian
 {
     /// <summary><c>full-width</c>：使用全角字形（OpenType <c>fwid</c>），让字符占满一个全角宽度。</summary>
-    public static readonly CssValue FullWidth = "full-width";
+    public static readonly CssKeyword FullWidth = "full-width";
 
     /// <summary><c>jis04</c>：使用 JIS X 0213:2004 标准的字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Jis04 = "jis04";
+    public static readonly CssKeyword Jis04 = "jis04";
 
     /// <summary><c>jis78</c>：使用 JIS X 0208:1978 标准的字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Jis78 = "jis78";
+    public static readonly CssKeyword Jis78 = "jis78";
 
     /// <summary><c>jis83</c>：使用 JIS X 0208:1983 标准的字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Jis83 = "jis83";
+    public static readonly CssKeyword Jis83 = "jis83";
 
     /// <summary><c>jis90</c>：使用 JIS X 0208:1990 标准的字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Jis90 = "jis90";
+    public static readonly CssKeyword Jis90 = "jis90";
 
     /// <summary><c>normal</c>：不启用东亚字形变体，使用字体的默认字形和宽度。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>proportional-width</c>：使用比例宽度字形（OpenType <c>pwid</c>），字符按各自字形的宽度排布，而不是统一占满等宽。</summary>
-    public static readonly CssValue ProportionalWidth = "proportional-width";
+    public static readonly CssKeyword ProportionalWidth = "proportional-width";
 
     /// <summary><c>ruby</c>：使用适合注音（ruby）小字的东亚字形，主要影响日文假名（OpenType <c>ruby</c>）。</summary>
-    public static readonly CssValue Ruby = "ruby";
+    public static readonly CssKeyword Ruby = "ruby";
 
     /// <summary><c>simplified</c>：使用简体中文字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Simplified = "simplified";
+    public static readonly CssKeyword Simplified = "simplified";
 
     /// <summary><c>traditional</c>：使用繁体中文字形；需要字体提供对应字形。</summary>
-    public static readonly CssValue Traditional = "traditional";
+    public static readonly CssKeyword Traditional = "traditional";
 }
 
 /// <summary><c>font-variant-ligatures</c> 的关键字取值；类型与 <see cref="Style.FontVariantLigatures"/> 一致，可直接赋值。</summary>
 public static class FontVariantLigatures
 {
     /// <summary><c>common-ligatures</c>：启用常见连字（如 <c>fi</c>、<c>fl</c>），多数字体默认已开启。</summary>
-    public static readonly CssValue CommonLigatures = "common-ligatures";
+    public static readonly CssKeyword CommonLigatures = "common-ligatures";
 
     /// <summary><c>contextual</c>：启用上下文替代字形（OpenType <c>calt</c>），字形会随前后字符变化，多数字体默认已开启。</summary>
-    public static readonly CssValue Contextual = "contextual";
+    public static readonly CssKeyword Contextual = "contextual";
 
     /// <summary><c>discretionary-ligatures</c>：启用字体设计者提供的可选连字（OpenType <c>dlig</c>），多用于装饰，默认不开启。</summary>
-    public static readonly CssValue DiscretionaryLigatures = "discretionary-ligatures";
+    public static readonly CssKeyword DiscretionaryLigatures = "discretionary-ligatures";
 
     /// <summary><c>historical-ligatures</c>：启用历史连字（OpenType <c>hlig</c>），用于还原旧式排印中的连字，默认不开启。</summary>
-    public static readonly CssValue HistoricalLigatures = "historical-ligatures";
+    public static readonly CssKeyword HistoricalLigatures = "historical-ligatures";
 
     /// <summary><c>no-common-ligatures</c>：禁用常见连字，让相邻字母各自独立显示。</summary>
-    public static readonly CssValue NoCommonLigatures = "no-common-ligatures";
+    public static readonly CssKeyword NoCommonLigatures = "no-common-ligatures";
 
     /// <summary><c>no-contextual</c>：禁用上下文替代字形，每个字符都使用其默认字形。</summary>
-    public static readonly CssValue NoContextual = "no-contextual";
+    public static readonly CssKeyword NoContextual = "no-contextual";
 
     /// <summary><c>no-discretionary-ligatures</c>：禁用可选连字，这是多数字体的默认状态。</summary>
-    public static readonly CssValue NoDiscretionaryLigatures = "no-discretionary-ligatures";
+    public static readonly CssKeyword NoDiscretionaryLigatures = "no-discretionary-ligatures";
 
     /// <summary><c>no-historical-ligatures</c>：禁用历史连字，这是多数情况下的默认状态。</summary>
-    public static readonly CssValue NoHistoricalLigatures = "no-historical-ligatures";
+    public static readonly CssKeyword NoHistoricalLigatures = "no-historical-ligatures";
 
     /// <summary><c>none</c>：关闭所有连字和上下文替代，包括默认启用的常规连字。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：按字体默认启用常规连字和上下文替代，不启用可选连字和历史连字。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>font-variant-numeric</c> 的关键字取值；类型与 <see cref="Style.FontVariantNumeric"/> 一致，可直接赋值。</summary>
 public static class FontVariantNumeric
 {
     /// <summary><c>diagonal-fractions</c>：把 <c>1/2</c> 这类写法渲染成斜分数：分子分母缩小并以斜线分隔；需要字体提供该特性。</summary>
-    public static readonly CssValue DiagonalFractions = "diagonal-fractions";
+    public static readonly CssKeyword DiagonalFractions = "diagonal-fractions";
 
     /// <summary><c>lining-nums</c>：使用等高数字（齐线数字），数字高度统一，与大写字母齐平；需要字体提供该特性。</summary>
-    public static readonly CssValue LiningNums = "lining-nums";
+    public static readonly CssKeyword LiningNums = "lining-nums";
 
     /// <summary><c>normal</c>：不启用数字变体，使用字体的默认数字字形。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>oldstyle-nums</c>：使用旧式数字（非等高数字），各数字高度不一并带有上下伸出部分，适合正文里与小写字母混排；需要字体提供该特性。</summary>
-    public static readonly CssValue OldstyleNums = "oldstyle-nums";
+    public static readonly CssKeyword OldstyleNums = "oldstyle-nums";
 
     /// <summary><c>ordinal</c>：使用序数标记专用字形，如 1st、2nd 中上标的字母（OpenType <c>ordn</c>）。</summary>
-    public static readonly CssValue Ordinal = "ordinal";
+    public static readonly CssKeyword Ordinal = "ordinal";
 
     /// <summary><c>proportional-nums</c>：使用比例宽度数字，各数字按自身字形占宽，排版更紧凑，适合正文。</summary>
-    public static readonly CssValue ProportionalNums = "proportional-nums";
+    public static readonly CssKeyword ProportionalNums = "proportional-nums";
 
     /// <summary><c>slashed-zero</c>：数字零带斜线，避免与大写字母 O 混淆（OpenType <c>zero</c>）。</summary>
-    public static readonly CssValue SlashedZero = "slashed-zero";
+    public static readonly CssKeyword SlashedZero = "slashed-zero";
 
     /// <summary><c>stacked-fractions</c>：把 <c>1/2</c> 这类写法渲染成竖分数：分子在上、分母在下，中间一条横线；需要字体提供该特性。</summary>
-    public static readonly CssValue StackedFractions = "stacked-fractions";
+    public static readonly CssKeyword StackedFractions = "stacked-fractions";
 
     /// <summary><c>tabular-nums</c>：使用等宽数字，所有数字占用相同宽度，适合表格、计时器等需要纵向对齐的数字。</summary>
-    public static readonly CssValue TabularNums = "tabular-nums";
+    public static readonly CssKeyword TabularNums = "tabular-nums";
 }
 
 /// <summary><c>font-variant-position</c> 的关键字取值；类型与 <see cref="Style.FontVariantPosition"/> 一致，可直接赋值。</summary>
 public static class FontVariantPosition
 {
     /// <summary><c>normal</c>：不使用上标或下标专用字形。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>sub</c>：使用字体提供的下标字形（OpenType <c>subs</c>），字形的大小和位置由字体设计，不同于 <c>vertical-align: sub</c>。</summary>
-    public static readonly CssValue Sub = "sub";
+    public static readonly CssKeyword Sub = "sub";
 
     /// <summary><c>super</c>：使用字体提供的上标字形（OpenType <c>sups</c>），字形的大小和位置由字体设计，不同于 <c>vertical-align: super</c>。</summary>
-    public static readonly CssValue Super = "super";
+    public static readonly CssKeyword Super = "super";
 }
 
 /// <summary><c>font-weight</c> 的关键字取值；类型与 <see cref="Style.FontWeight"/> 一致，可直接赋值。</summary>
@@ -3785,10 +3852,10 @@ public static class FontWeight
 public static class ForcedColorAdjust
 {
     /// <summary><c>auto</c>：在强制颜色模式下，浏览器按系统配色替换该元素的颜色相关属性。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：强制颜色模式下不替换该元素的颜色，沿用作者指定的值；需要自行保证文字对比度。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>grid-area</c> 的关键字取值；类型与 <see cref="Style.GridArea"/> 一致，可直接赋值。</summary>
@@ -3818,13 +3885,13 @@ public static class GridAutoColumns
 public static class GridAutoFlow
 {
     /// <summary><c>column</c>：优先沿列放置项目，必要时创建新的隐式列。</summary>
-    public static readonly CssValue Column = "column";
+    public static readonly CssKeyword Column = "column";
 
     /// <summary><c>dense</c>：尝试回填前面留下的空洞，可能让视觉顺序与 DOM 顺序不同。</summary>
-    public static readonly CssValue Dense = "dense";
+    public static readonly CssKeyword Dense = "dense";
 
     /// <summary><c>row</c>：优先沿行放置项目，必要时创建新的隐式行。</summary>
-    public static readonly CssValue Row = "row";
+    public static readonly CssKeyword Row = "row";
 }
 
 /// <summary><c>grid-auto-rows</c> 的关键字取值；类型与 <see cref="Style.GridAutoRows"/> 一致，可直接赋值。</summary>
@@ -3874,31 +3941,31 @@ public static class GridColumnStart
 public static class GridKeywords
 {
     /// <summary><c>auto</c>：由内容决定：作为最大值时等同 <c>max-content</c>，作为最小值时取项目的最小贡献；有剩余空间时还会被拉伸分担。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>auto-fill</c>：在 <c>repeat()</c> 中按容器可用空间尽可能多地重复轨道；放不下内容的空轨道仍保留占位。</summary>
-    public static readonly CssLength AutoFill = "auto-fill";
+    public static readonly CssKeyword AutoFill = "auto-fill";
 
     /// <summary><c>auto-fit</c>：在 <c>repeat()</c> 中同样尽可能多地重复轨道，但没有内容的空轨道会折叠为 0，剩余空间让给有内容的轨道。</summary>
-    public static readonly CssLength AutoFit = "auto-fit";
+    public static readonly CssKeyword AutoFit = "auto-fit";
 
     /// <summary><c>auto-flow</c>：声明该方向的轨道由自动放置生成：写在 <c>/</c> 前表示按行填充（<c>grid-auto-flow: row</c>），写在 <c>/</c> 后表示按列填充（<c>grid-auto-flow: column</c>）。</summary>
-    public static readonly CssLength AutoFlow = "auto-flow";
+    public static readonly CssKeyword AutoFlow = "auto-flow";
 
     /// <summary><c>dense</c>：与 <c>auto-flow</c> 搭配，启用 dense 紧凑装箱：回头填补前面的空洞，项目可能偏离源码顺序。</summary>
-    public static readonly CssLength Dense = "dense";
+    public static readonly CssKeyword Dense = "dense";
 
     /// <summary><c>max-content</c>：轨道取其中项目的最大内容尺寸，即内容不换行、不折叠时的自然尺寸。</summary>
-    public static readonly CssLength MaxContent = "max-content";
+    public static readonly CssKeyword MaxContent = "max-content";
 
     /// <summary><c>min-content</c>：轨道取其中项目的最小内容尺寸，即内容不溢出时能缩到的最小尺寸。</summary>
-    public static readonly CssLength MinContent = "min-content";
+    public static readonly CssKeyword MinContent = "min-content";
 
     /// <summary><c>none</c>：不定义显式轨道和命名区域，网格由隐式轨道（<c>grid-auto-*</c>）自动生成。</summary>
-    public static readonly CssLength None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>subgrid</c>：该元素在行方向不自建轨道，直接沿用父网格对应的行轨道，使子项目与父网格对齐；后面可追加网格线名称。</summary>
-    public static readonly CssLength Subgrid = "subgrid";
+    public static readonly CssKeyword Subgrid = "subgrid";
 }
 
 /// <summary><c>grid-row</c> 的关键字取值；类型与 <see cref="Style.GridRow"/> 一致，可直接赋值。</summary>
@@ -3935,94 +4002,94 @@ public static class GridRowStart
 public static class GridTemplate
 {
     /// <summary><c>auto</c>：由内容决定：作为最大值时等同 <c>max-content</c>，作为最小值时取项目的最小贡献；有剩余空间时还会被拉伸分担。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>auto-fill</c>：在 <c>repeat()</c> 中按容器可用空间尽可能多地重复轨道；放不下内容的空轨道仍保留占位。</summary>
-    public static readonly CssLength AutoFill = "auto-fill";
+    public static readonly CssKeyword AutoFill = "auto-fill";
 
     /// <summary><c>auto-fit</c>：在 <c>repeat()</c> 中同样尽可能多地重复轨道，但没有内容的空轨道会折叠为 0，剩余空间让给有内容的轨道。</summary>
-    public static readonly CssLength AutoFit = "auto-fit";
+    public static readonly CssKeyword AutoFit = "auto-fit";
 
     /// <summary><c>max-content</c>：轨道取其中项目的最大内容尺寸，即内容不换行、不折叠时的自然尺寸。</summary>
-    public static readonly CssLength MaxContent = "max-content";
+    public static readonly CssKeyword MaxContent = "max-content";
 
     /// <summary><c>min-content</c>：轨道取其中项目的最小内容尺寸，即内容不溢出时能缩到的最小尺寸。</summary>
-    public static readonly CssLength MinContent = "min-content";
+    public static readonly CssKeyword MinContent = "min-content";
 
     /// <summary><c>none</c>：不定义显式轨道和命名区域，网格由隐式轨道（<c>grid-auto-*</c>）自动生成。</summary>
-    public static readonly CssLength None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>subgrid</c>：该元素在行方向不自建轨道，直接沿用父网格对应的行轨道，使子项目与父网格对齐；后面可追加网格线名称。</summary>
-    public static readonly CssLength Subgrid = "subgrid";
+    public static readonly CssKeyword Subgrid = "subgrid";
 }
 
 /// <summary><c>grid-template-columns</c> 的关键字取值；类型与 <see cref="Style.GridTemplateColumns"/> 一致，可直接赋值。</summary>
 public static class GridTemplateColumns
 {
     /// <summary><c>auto</c>：由内容决定：作为最大值时等同 <c>max-content</c>，作为最小值时取项目的最小贡献；有剩余空间时还会被拉伸分担。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>auto-fill</c>：在 <c>repeat()</c> 中按容器可用空间尽可能多地重复轨道；放不下内容的空轨道仍保留占位。</summary>
-    public static readonly CssLength AutoFill = "auto-fill";
+    public static readonly CssKeyword AutoFill = "auto-fill";
 
     /// <summary><c>auto-fit</c>：在 <c>repeat()</c> 中同样尽可能多地重复轨道，但没有内容的空轨道会折叠为 0，剩余空间让给有内容的轨道。</summary>
-    public static readonly CssLength AutoFit = "auto-fit";
+    public static readonly CssKeyword AutoFit = "auto-fit";
 
     /// <summary><c>max-content</c>：轨道取其中项目的最大内容尺寸，即内容不换行、不折叠时的自然尺寸。</summary>
-    public static readonly CssLength MaxContent = "max-content";
+    public static readonly CssKeyword MaxContent = "max-content";
 
     /// <summary><c>min-content</c>：轨道取其中项目的最小内容尺寸，即内容不溢出时能缩到的最小尺寸。</summary>
-    public static readonly CssLength MinContent = "min-content";
+    public static readonly CssKeyword MinContent = "min-content";
 
     /// <summary><c>none</c>：不定义显式列轨道，列由隐式轨道（<c>grid-auto-columns</c>）自动生成。</summary>
-    public static readonly CssLength None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>subgrid</c>：该元素在列方向不自建轨道，直接沿用父网格对应的列轨道，使子项目与父网格对齐；后面可追加网格线名称。</summary>
-    public static readonly CssLength Subgrid = "subgrid";
+    public static readonly CssKeyword Subgrid = "subgrid";
 }
 
 /// <summary><c>grid-template-rows</c> 的关键字取值；类型与 <see cref="Style.GridTemplateRows"/> 一致，可直接赋值。</summary>
 public static class GridTemplateRows
 {
     /// <summary><c>auto</c>：由内容决定：作为最大值时等同 <c>max-content</c>，作为最小值时取项目的最小贡献；有剩余空间时还会被拉伸分担。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>auto-fill</c>：在 <c>repeat()</c> 中按容器可用空间尽可能多地重复轨道；放不下内容的空轨道仍保留占位。</summary>
-    public static readonly CssLength AutoFill = "auto-fill";
+    public static readonly CssKeyword AutoFill = "auto-fill";
 
     /// <summary><c>auto-fit</c>：在 <c>repeat()</c> 中同样尽可能多地重复轨道，但没有内容的空轨道会折叠为 0，剩余空间让给有内容的轨道。</summary>
-    public static readonly CssLength AutoFit = "auto-fit";
+    public static readonly CssKeyword AutoFit = "auto-fit";
 
     /// <summary><c>max-content</c>：轨道取其中项目的最大内容尺寸，即内容不换行、不折叠时的自然尺寸。</summary>
-    public static readonly CssLength MaxContent = "max-content";
+    public static readonly CssKeyword MaxContent = "max-content";
 
     /// <summary><c>min-content</c>：轨道取其中项目的最小内容尺寸，即内容不溢出时能缩到的最小尺寸。</summary>
-    public static readonly CssLength MinContent = "min-content";
+    public static readonly CssKeyword MinContent = "min-content";
 
     /// <summary><c>none</c>：不定义显式行轨道，行由隐式轨道（<c>grid-auto-rows</c>）自动生成。</summary>
-    public static readonly CssLength None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>subgrid</c>：该元素在行方向不自建轨道，直接沿用父网格对应的行轨道，使子项目与父网格对齐；后面可追加网格线名称。</summary>
-    public static readonly CssLength Subgrid = "subgrid";
+    public static readonly CssKeyword Subgrid = "subgrid";
 }
 
 /// <summary><c>hanging-punctuation</c> 的关键字取值；类型与 <see cref="Style.HangingPunctuation"/> 一致，可直接赋值。</summary>
 public static class HangingPunctuation
 {
     /// <summary><c>allow-end</c>：行尾的句号、逗号只在行内放不下时才悬挂到行盒之外；目前仅 Safari 支持。</summary>
-    public static readonly CssValue AllowEnd = "allow-end";
+    public static readonly CssKeyword AllowEnd = "allow-end";
 
     /// <summary><c>first</c>：首行行首的开括号或引号悬挂到行盒之外，让文字边缘对齐；目前仅 Safari 支持。</summary>
-    public static readonly CssValue First = "first";
+    public static readonly CssKeyword First = "first";
 
     /// <summary><c>force-end</c>：行尾的句号、逗号总是悬挂到行盒之外，不占用行内空间；目前仅 Safari 支持。</summary>
-    public static readonly CssValue ForceEnd = "force-end";
+    public static readonly CssKeyword ForceEnd = "force-end";
 
     /// <summary><c>last</c>：末行行尾的闭括号或引号悬挂到行盒之外；目前仅 Safari 支持。</summary>
-    public static readonly CssValue Last = "last";
+    public static readonly CssKeyword Last = "last";
 
     /// <summary><c>none</c>：标点不悬挂，始终留在行盒内。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>height</c> 的关键字取值；类型与 <see cref="Style.Height"/> 一致，可直接赋值。</summary>
@@ -4045,13 +4112,13 @@ public static class Height
 public static class Hyphens
 {
     /// <summary><c>auto</c>：允许浏览器按语言词典自动在合适位置断词并插入连字符；需要在元素或祖先上设置正确的 <c>lang</c>。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>manual</c>：只在文本里手写的软连字符（<c>&amp;shy;</c> 或 U+00AD）处断词，不做自动断词。</summary>
-    public static readonly CssValue Manual = "manual";
+    public static readonly CssKeyword Manual = "manual";
 
     /// <summary><c>none</c>：不断词，即使文本里有软连字符也不会在该处断开；已有的普通连字符 <c>-</c> 处仍可换行。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>image-orientation</c> 的关键字取值；类型与 <see cref="Style.ImageOrientation"/> 一致，可直接赋值。</summary>
@@ -4068,61 +4135,61 @@ public static class ImageOrientation
 public static class ImageRendering
 {
     /// <summary><c>auto</c>：由浏览器决定缩放算法，通常对放大的图像做平滑插值。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>crisp-edges</c>：缩放时保留颜色对比和边缘，不做平滑，适合线稿、像素图；具体算法由浏览器决定。</summary>
-    public static readonly CssValue CrispEdges = "crisp-edges";
+    public static readonly CssKeyword CrispEdges = "crisp-edges";
 
     /// <summary><c>pixelated</c>：放大时按最近邻取样，让每个像素呈清晰的方块，适合像素画。</summary>
-    public static readonly CssValue Pixelated = "pixelated";
+    public static readonly CssKeyword Pixelated = "pixelated";
 
     /// <summary><c>smooth</c>：要求使用平滑缩放，偏重画质而非速度。</summary>
-    public static readonly CssValue Smooth = "smooth";
+    public static readonly CssKeyword Smooth = "smooth";
 }
 
 /// <summary><c>image-resolution</c> 的关键字取值；类型与 <see cref="Style.ImageResolution"/> 一致，可直接赋值。</summary>
 public static class ImageResolution
 {
     /// <summary><c>from-image</c>：采用图像文件自带的分辨率信息；可与具体分辨率值组合，作为文件没有该信息时的回退值。</summary>
-    public static readonly CssValue FromImage = "from-image";
+    public static readonly CssKeyword FromImage = "from-image";
 
     /// <summary><c>snap</c>：把使用的分辨率取整，使图像像素对应整数个设备像素，避免缩放造成的模糊；需与其他分辨率取值搭配，浏览器基本不支持。</summary>
-    public static readonly CssValue Snap = "snap";
+    public static readonly CssKeyword Snap = "snap";
 }
 
 /// <summary><c>ime-mode</c> 的关键字取值；类型与 <see cref="Style.ImeMode"/> 一致，可直接赋值。</summary>
 public static class ImeMode
 {
     /// <summary><c>active</c>：输入法默认处于开启状态，用户仍可手动关闭；已废弃，浏览器基本不支持。</summary>
-    public static readonly CssValue Active = "active";
+    public static readonly CssKeyword Active = "active";
 
     /// <summary><c>auto</c>：不指定输入法状态，由浏览器决定；已废弃，浏览器基本不支持。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>disabled</c>：禁用输入法，用户无法启用，常用于密码框；已废弃，浏览器基本不支持。</summary>
-    public static readonly CssValue Disabled = "disabled";
+    public static readonly CssKeyword Disabled = "disabled";
 
     /// <summary><c>inactive</c>：输入法默认处于关闭状态，用户仍可手动开启；已废弃，浏览器基本不支持。</summary>
-    public static readonly CssValue Inactive = "inactive";
+    public static readonly CssKeyword Inactive = "inactive";
 
     /// <summary><c>normal</c>：按普通方式处理输入法，忽略页面对该字段的设置，多用于用户样式覆盖；已废弃，浏览器基本不支持。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>initial-letter-align</c> 的关键字取值；类型与 <see cref="Style.InitialLetterAlign"/> 一致，可直接赋值。</summary>
 public static class InitialLetterAlign
 {
     /// <summary><c>alphabetic</c>：以字母基线（alphabetic）对齐首字下沉的字形与正文，适合拉丁文等字母文字。</summary>
-    public static readonly CssValue Alphabetic = "alphabetic";
+    public static readonly CssKeyword Alphabetic = "alphabetic";
 
     /// <summary><c>auto</c>：由浏览器根据文字的书写系统选择对齐基线，拉丁文通常取字母基线。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>hanging</c>：以悬挂基线（hanging）对齐，适合天城文、藏文等基线悬挂在字形顶端的文字。</summary>
-    public static readonly CssValue Hanging = "hanging";
+    public static readonly CssKeyword Hanging = "hanging";
 
     /// <summary><c>ideographic</c>：以表意文字基线（ideographic）对齐，适合中日韩等方块字。</summary>
-    public static readonly CssValue Ideographic = "ideographic";
+    public static readonly CssKeyword Ideographic = "ideographic";
 }
 
 /// <summary><c>inline-size</c> 的关键字取值；类型与 <see cref="Style.InlineSize"/> 一致，可直接赋值。</summary>
@@ -4145,267 +4212,267 @@ public static class InlineSize
 public static class InterpolateSize
 {
     /// <summary><c>allow-keywords</c>：允许受支持的内部尺寸关键字与长度/百分比之间插值，不保证两个关键字之间可以插值。</summary>
-    public static readonly CssValue AllowKeywords = "allow-keywords";
+    public static readonly CssKeyword AllowKeywords = "allow-keywords";
 
     /// <summary><c>numeric-only</c>：保持仅数值尺寸之间的插值行为。</summary>
-    public static readonly CssValue NumericOnly = "numeric-only";
+    public static readonly CssKeyword NumericOnly = "numeric-only";
 }
 
 /// <summary><c>isolation</c> 的关键字取值；类型与 <see cref="Style.Isolation"/> 一致，可直接赋值。</summary>
 public static class Isolation
 {
     /// <summary><c>auto</c>：由其他属性是否需要层叠上下文决定，不强制隔离。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>isolate</c>：建立独立层叠上下文，使混合效果在该分组内处理。</summary>
-    public static readonly CssValue Isolate = "isolate";
+    public static readonly CssKeyword Isolate = "isolate";
 }
 
 /// <summary><c>justify-content</c> 的关键字取值；类型与 <see cref="Style.JustifyContent"/> 一致，可直接赋值。</summary>
 public static class JustifyContent
 {
     /// <summary><c>center</c>：将整体内容放在主轴或行内轴的中间，不改变项目内部文字对齐。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：各项贴向容器在该方向上的终止边，终止边由书写模式和方向决定。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>flex-end</c>：Flex 内容靠主轴终点排列。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：Flex 内容靠主轴起点排列；起点受 flex-direction 影响。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>left</c>：内容靠容器的物理左侧，不受书写方向影响；轴向不是水平方向时退化为 <c>start</c>。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>normal</c>：采用布局模式的默认分布：Flex 中等同于 <c>flex-start</c>，Grid 中等同于 <c>stretch</c>。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>right</c>：内容靠容器的物理右侧，不受书写方向影响；轴向不是水平方向时退化为 <c>end</c>。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>safe center</c>：整体居中；当内容比容器大会溢出时，改为靠起点对齐，保证溢出的内容仍然可以访问。</summary>
-    public static readonly CssValue SafeCenter = "safe center";
+    public static readonly CssKeyword SafeCenter = "safe center";
 
     /// <summary><c>space-around</c>：每个项目两侧分配相等空间，容器边缘的空间是相邻项目间的一半。</summary>
-    public static readonly CssValue SpaceAround = "space-around";
+    public static readonly CssKeyword SpaceAround = "space-around";
 
     /// <summary><c>space-between</c>：首尾项目贴两端，剩余空间等分到相邻项目之间。只有一个项目时靠起始侧，不会自动居中。space-evenly 在两端也保留等量空间；space-around 的边缘空间只有项目之间的一半。</summary>
-    public static readonly CssValue SpaceBetween = "space-between";
+    public static readonly CssKeyword SpaceBetween = "space-between";
 
     /// <summary><c>space-evenly</c>：容器两端和相邻项目之间分配相等空间。</summary>
-    public static readonly CssValue SpaceEvenly = "space-evenly";
+    public static readonly CssKeyword SpaceEvenly = "space-evenly";
 
     /// <summary><c>start</c>：各项贴向容器在该方向上的起始边，起始边由书写模式和方向决定。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：在支持的布局中拉伸自动尺寸的内容；Flex 主轴增长通常由 flex-grow 控制。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe center</c>：整体严格居中，即使内容溢出也不回退；溢出的一侧可能超出可滚动范围而无法访问。</summary>
-    public static readonly CssValue UnsafeCenter = "unsafe center";
+    public static readonly CssKeyword UnsafeCenter = "unsafe center";
 }
 
 /// <summary><c>justify-items</c> 的关键字取值；类型与 <see cref="Style.JustifyItems"/> 一致，可直接赋值。</summary>
 public static class JustifyItems
 {
     /// <summary><c>baseline</c>：按首行文字的基线与同组其他项对齐；单独使用等同 <c>first baseline</c>。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>center</c>：项目在所在区域内沿行内轴居中；项目比区域大时两侧均等溢出。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：对齐到对齐容器的结束侧，方向取自容器的书写模式。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>first baseline</c>：按首行基线对齐：同组项目的第一条文字基线排在一起；无法参与基线对齐时回退为 <c>start</c>。</summary>
-    public static readonly CssValue FirstBaseline = "first baseline";
+    public static readonly CssKeyword FirstBaseline = "first baseline";
 
     /// <summary><c>flex-end</c>：在 Flex 布局中对齐到对应轴的结束侧，随 Flex 方向变化；在其他布局中等同于 <c>end</c>。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：在 Flex 布局中对齐到对应轴的起始侧，随 Flex 方向变化；在其他布局中等同于 <c>start</c>。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>last baseline</c>：按末行基线对齐：同组项目的最后一条文字基线排在一起；无法参与基线对齐时回退为 <c>end</c>。</summary>
-    public static readonly CssValue LastBaseline = "last baseline";
+    public static readonly CssKeyword LastBaseline = "last baseline";
 
     /// <summary><c>left</c>：项目靠所在区域的物理左侧，不受书写方向影响。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>legacy center</c>：<c>legacy</c> 与 <c>center</c> 的组合：项目居中，并让这一对齐可被后代元素继承，对应 HTML 旧版 <c>align=center</c>。</summary>
-    public static readonly CssValue LegacyCenter = "legacy center";
+    public static readonly CssKeyword LegacyCenter = "legacy center";
 
     /// <summary><c>legacy left</c>：<c>legacy</c> 与 <c>left</c> 的组合：项目靠物理左侧，并让这一对齐可被后代元素继承，对应 HTML 旧版 <c>align=left</c>。</summary>
-    public static readonly CssValue LegacyLeft = "legacy left";
+    public static readonly CssKeyword LegacyLeft = "legacy left";
 
     /// <summary><c>legacy right</c>：<c>legacy</c> 与 <c>right</c> 的组合：项目靠物理右侧，并让这一对齐可被后代元素继承，对应 HTML 旧版 <c>align=right</c>。</summary>
-    public static readonly CssValue LegacyRight = "legacy right";
+    public static readonly CssKeyword LegacyRight = "legacy right";
 
     /// <summary><c>normal</c>：采用布局模式的默认对齐：Grid 中通常表现为 <c>stretch</c>，有固有尺寸的元素（如图片）表现为 <c>start</c>。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>right</c>：项目靠所在区域的物理右侧，不受书写方向影响。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>safe center</c>：项目居中；当项目比所在区域大会溢出时，改为靠起点对齐，保证内容不被推到不可见的一侧。</summary>
-    public static readonly CssValue SafeCenter = "safe center";
+    public static readonly CssKeyword SafeCenter = "safe center";
 
     /// <summary><c>self-end</c>：对齐到项目自身书写模式的结束侧；项目与容器书写方向不同时，结果与 <c>end</c> 不同。</summary>
-    public static readonly CssValue SelfEnd = "self-end";
+    public static readonly CssKeyword SelfEnd = "self-end";
 
     /// <summary><c>self-start</c>：对齐到项目自身书写模式的起始侧；项目与容器书写方向不同时，结果与 <c>start</c> 不同。</summary>
-    public static readonly CssValue SelfStart = "self-start";
+    public static readonly CssKeyword SelfStart = "self-start";
 
     /// <summary><c>start</c>：对齐到对齐容器的起始侧，方向取自容器的书写模式。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：项目沿行内轴拉伸以填满所在区域；仅在宽度为 <c>auto</c> 时生效，且受最大尺寸约束。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe center</c>：项目严格居中，即使溢出也不回退；溢出的一侧可能超出可滚动范围而无法访问。</summary>
-    public static readonly CssValue UnsafeCenter = "unsafe center";
+    public static readonly CssKeyword UnsafeCenter = "unsafe center";
 }
 
 /// <summary><c>justify-self</c> 的关键字取值；类型与 <see cref="Style.JustifySelf"/> 一致，可直接赋值。</summary>
 public static class JustifySelf
 {
     /// <summary><c>auto</c>：采用父容器 justify-items 等上下文决定的对齐方式；不用于 Flex 项目的主轴分配。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>baseline</c>：按首行文字的基线与同组其他项对齐；单独使用等同 <c>first baseline</c>。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>center</c>：将项目在对齐容器内居中。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：对齐到对齐容器的结束侧，方向取自容器的书写模式。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>first baseline</c>：按首行基线与同组项目对齐；无法参与基线对齐时回退为 <c>start</c>。</summary>
-    public static readonly CssValue FirstBaseline = "first baseline";
+    public static readonly CssKeyword FirstBaseline = "first baseline";
 
     /// <summary><c>flex-end</c>：在 Flex 布局中对齐到对应轴的结束侧，随 Flex 方向变化；在其他布局中等同于 <c>end</c>。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：在 Flex 布局中对齐到对应轴的起始侧，随 Flex 方向变化；在其他布局中等同于 <c>start</c>。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>last baseline</c>：按末行基线与同组项目对齐；无法参与基线对齐时回退为 <c>end</c>。</summary>
-    public static readonly CssValue LastBaseline = "last baseline";
+    public static readonly CssKeyword LastBaseline = "last baseline";
 
     /// <summary><c>left</c>：项目靠所在区域的物理左侧，不受书写方向影响。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>normal</c>：采用布局模式的默认对齐：Grid 中通常表现为 <c>stretch</c>，有固有尺寸的元素（如图片）表现为 <c>start</c>。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>right</c>：项目靠所在区域的物理右侧，不受书写方向影响。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>safe center</c>：项目居中；当项目比所在区域大会溢出时，改为靠起点对齐，保证内容不被推到不可见的一侧。</summary>
-    public static readonly CssValue SafeCenter = "safe center";
+    public static readonly CssKeyword SafeCenter = "safe center";
 
     /// <summary><c>self-end</c>：对齐到项目自身书写模式的结束侧；项目与容器书写方向不同时，结果与 <c>end</c> 不同。</summary>
-    public static readonly CssValue SelfEnd = "self-end";
+    public static readonly CssKeyword SelfEnd = "self-end";
 
     /// <summary><c>self-start</c>：对齐到项目自身书写模式的起始侧；项目与容器书写方向不同时，结果与 <c>start</c> 不同。</summary>
-    public static readonly CssValue SelfStart = "self-start";
+    public static readonly CssKeyword SelfStart = "self-start";
 
     /// <summary><c>start</c>：对齐到对齐容器的起始侧，方向取自容器的书写模式。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：在自动尺寸和最小/最大约束允许时沿行内轴拉伸。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe center</c>：项目严格居中，即使溢出也不回退；溢出的一侧可能超出可滚动范围而无法访问。</summary>
-    public static readonly CssValue UnsafeCenter = "unsafe center";
+    public static readonly CssKeyword UnsafeCenter = "unsafe center";
 }
 
 /// <summary><c>justify-tracks</c> 的关键字取值；类型与 <see cref="Style.JustifyTracks"/> 一致，可直接赋值。</summary>
 public static class JustifyTracks
 {
     /// <summary><c>center</c>：各项作为一个整体，在对齐方向上居中。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：各项贴向容器在该方向上的终止边，终止边由书写模式和方向决定。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>flex-end</c>：贴向 flex 轴的终点；在非 flex 容器中等同 <c>end</c>。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：贴向 flex 轴的起点；在非 flex 容器中等同 <c>start</c>。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>left</c>：对应轨道整体靠容器的物理左侧；属于旧版瀑布流提案，浏览器暂无稳定支持。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>normal</c>：采用默认分布方式放置对应轨道；属于旧版瀑布流提案，浏览器暂无稳定支持。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>right</c>：对应轨道整体靠容器的物理右侧；属于旧版瀑布流提案，浏览器暂无稳定支持。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>safe</c>：若按指定方式对齐会使内容溢出对齐容器，就改用 <c>start</c> 对齐，避免内容跑到不可达的区域；需写在对齐关键字前面。</summary>
-    public static readonly CssValue Safe = "safe";
+    public static readonly CssKeyword Safe = "safe";
 
     /// <summary><c>space-around</c>：每项两侧分得相等的空白，因此项之间的间距是两端与容器边缘间距的两倍。</summary>
-    public static readonly CssValue SpaceAround = "space-around";
+    public static readonly CssKeyword SpaceAround = "space-around";
 
     /// <summary><c>space-between</c>：首尾两项贴紧容器两端，剩余空间平均分配到各项之间。</summary>
-    public static readonly CssValue SpaceBetween = "space-between";
+    public static readonly CssKeyword SpaceBetween = "space-between";
 
     /// <summary><c>space-evenly</c>：所有间距完全相等，包括首尾两项与容器边缘之间的间距。</summary>
-    public static readonly CssValue SpaceEvenly = "space-evenly";
+    public static readonly CssKeyword SpaceEvenly = "space-evenly";
 
     /// <summary><c>start</c>：各项贴向容器在该方向上的起始边，起始边由书写模式和方向决定。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：把剩余空间平均分给尺寸为 <c>auto</c> 的项，使它们被拉伸以占满容器。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe</c>：无论是否溢出，都严格按指定方式对齐；内容溢出时可能超出容器起始侧，导致无法滚动到。</summary>
-    public static readonly CssValue Unsafe = "unsafe";
+    public static readonly CssKeyword Unsafe = "unsafe";
 }
 
 /// <summary><c>line-break</c> 的关键字取值；类型与 <see cref="Style.LineBreak"/> 一致，可直接赋值。</summary>
 public static class LineBreak
 {
     /// <summary><c>auto</c>：由浏览器自行决定换行严格程度，可能随文本长度调整（短文本偏严格，长文本偏宽松）。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>loose</c>：采用最宽松的换行规则，允许在更多位置换行，适合行很短的场景，如报纸排版。</summary>
-    public static readonly CssValue Loose = "loose";
+    public static readonly CssKeyword Loose = "loose";
 
     /// <summary><c>normal</c>：采用常规的换行规则，严格程度介于 <c>loose</c> 与 <c>strict</c> 之间。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>strict</c>：采用最严格的换行规则，如不在小写假名、长音符前换行，适合要求规范排版的正文。</summary>
-    public static readonly CssValue Strict = "strict";
+    public static readonly CssKeyword Strict = "strict";
 }
 
 /// <summary><c>list-style</c> 的关键字取值；类型与 <see cref="Style.ListStyle"/> 一致，可直接赋值。</summary>
 public static class ListStyle
 {
     /// <summary><c>inside</c>：标记放在内容盒内部，作为首行行内内容的一部分，文字折行时会绕到标记下方。</summary>
-    public static readonly CssValue Inside = "inside";
+    public static readonly CssKeyword Inside = "inside";
 
     /// <summary><c>none</c>：不显示标记，列表项仍保持 <c>list-item</c> 显示类型，计数器照常递增。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outside</c>：标记放在内容盒之外，文字折行后与首行文字左对齐，这是默认行为。</summary>
-    public static readonly CssValue Outside = "outside";
+    public static readonly CssKeyword Outside = "outside";
 }
 
 /// <summary><c>list-style-position</c> 的关键字取值；类型与 <see cref="Style.ListStylePosition"/> 一致，可直接赋值。</summary>
 public static class ListStylePosition
 {
     /// <summary><c>inside</c>：标记放在内容盒内部，作为首行行内内容的一部分，文字折行时会绕到标记下方。</summary>
-    public static readonly CssValue Inside = "inside";
+    public static readonly CssKeyword Inside = "inside";
 
     /// <summary><c>outside</c>：标记放在内容盒之外，文字折行后与首行文字左对齐，这是默认行为。</summary>
-    public static readonly CssValue Outside = "outside";
+    public static readonly CssKeyword Outside = "outside";
 }
 
 /// <summary><c>margin-trim</c> 的关键字取值；类型与 <see cref="Style.MarginTrim"/> 一致，可直接赋值。</summary>
@@ -4437,330 +4504,330 @@ public static class MarginTrim
 public static class Mask
 {
     /// <summary><c>add</c>：把当前遮罩层叠加到其下方的遮罩层上，取两者的并集。</summary>
-    public static readonly CssLength Add = "add";
+    public static readonly CssKeyword Add = "add";
 
     /// <summary><c>alpha</c>：取遮罩图像的透明度（alpha 通道）作为遮罩值：不透明处显示，透明处隐藏。</summary>
-    public static readonly CssLength Alpha = "alpha";
+    public static readonly CssKeyword Alpha = "alpha";
 
     /// <summary><c>auto</c>：该方向的尺寸按图像固有尺寸计算；只有一个方向为 <c>auto</c> 时，按图像固有宽高比由另一方向推算。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>border-box</c>：以边框外缘为参考框，含内边距和边框。</summary>
-    public static readonly CssLength BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>bottom</c>：垂直方向取下边缘（相当于 100%）；可后接偏移量表示距下边缘的距离。</summary>
-    public static readonly CssLength Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：取中间位置（相当于 50%）；单独出现时水平和垂直都居中。</summary>
-    public static readonly CssLength Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>contain</c>：等比缩放图像，使整张图恰好放进区域内，区域可能因此留出空白。</summary>
-    public static readonly CssLength Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>content-box</c>：以内容区边缘为参考框，不含内边距和边框。</summary>
-    public static readonly CssLength ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>cover</c>：等比缩放图像，直到完全覆盖整个区域，图像超出的部分会被裁掉。</summary>
-    public static readonly CssLength Cover = "cover";
+    public static readonly CssKeyword Cover = "cover";
 
     /// <summary><c>exclude</c>：保留两层互不重叠的区域，重叠的部分被排除（异或）。</summary>
-    public static readonly CssLength Exclude = "exclude";
+    public static readonly CssKeyword Exclude = "exclude";
 
     /// <summary><c>fill-box</c>：以对象的边界框（只含填充区域，不含描边）为参照盒；对普通 HTML 元素按 <c>content-box</c> 处理。</summary>
-    public static readonly CssLength FillBox = "fill-box";
+    public static readonly CssKeyword FillBox = "fill-box";
 
     /// <summary><c>intersect</c>：只保留当前遮罩层与下方遮罩层重叠的部分。</summary>
-    public static readonly CssLength Intersect = "intersect";
+    public static readonly CssKeyword Intersect = "intersect";
 
     /// <summary><c>left</c>：水平方向取左边缘（相当于 0%）；可后接偏移量表示距左边缘的距离。</summary>
-    public static readonly CssLength Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>luminance</c>：取遮罩图像的亮度（结合透明度）作为遮罩值：越亮显示得越多，黑色处隐藏。</summary>
-    public static readonly CssLength Luminance = "luminance";
+    public static readonly CssKeyword Luminance = "luminance";
 
     /// <summary><c>margin-box</c>：以外边距边缘围成的框为参考框，范围包含外边距、边框和内边距。</summary>
-    public static readonly CssLength MarginBox = "margin-box";
+    public static readonly CssKeyword MarginBox = "margin-box";
 
     /// <summary><c>match-source</c>：按遮罩来源自动选择：普通图像用 <c>alpha</c>，引用 SVG <c>&lt;mask&gt;</c> 元素时用 <c>luminance</c>；这是初始值。</summary>
-    public static readonly CssLength MatchSource = "match-source";
+    public static readonly CssKeyword MatchSource = "match-source";
 
     /// <summary><c>no-clip</c>：不限制遮罩的绘制区域，遮罩图像按自身位置和尺寸完整作用，不被裁剪到任何框内；对应 <c>mask-clip: no-clip</c>。</summary>
-    public static readonly CssLength NoClip = "no-clip";
+    public static readonly CssKeyword NoClip = "no-clip";
 
     /// <summary><c>no-repeat</c>：不平铺，该方向只绘制一张图。</summary>
-    public static readonly CssLength NoRepeat = "no-repeat";
+    public static readonly CssKeyword NoRepeat = "no-repeat";
 
     /// <summary><c>none</c>：不使用遮罩图像，该层不产生遮罩效果，元素按原样显示。</summary>
-    public static readonly CssLength None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>padding-box</c>：以内边距边缘为参考框，含内边距，不含边框。</summary>
-    public static readonly CssLength PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 
     /// <summary><c>repeat</c>：沿对应方向不断平铺，末尾的图片可能被裁掉一部分；这是背景图的初始值。</summary>
-    public static readonly CssLength Repeat = "repeat";
+    public static readonly CssKeyword Repeat = "repeat";
 
     /// <summary><c>repeat-x</c>：只在水平方向平铺，垂直方向不重复，等同于 <c>repeat no-repeat</c>。</summary>
-    public static readonly CssLength RepeatX = "repeat-x";
+    public static readonly CssKeyword RepeatX = "repeat-x";
 
     /// <summary><c>repeat-y</c>：只在垂直方向平铺，水平方向不重复，等同于 <c>no-repeat repeat</c>。</summary>
-    public static readonly CssLength RepeatY = "repeat-y";
+    public static readonly CssKeyword RepeatY = "repeat-y";
 
     /// <summary><c>right</c>：水平方向取右边缘（相当于 100%）；可后接偏移量表示距右边缘的距离。</summary>
-    public static readonly CssLength Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>round</c>：按需缩放图片，使整数张图正好铺满该方向，不裁剪也不留空隙。</summary>
-    public static readonly CssLength Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>space</c>：尽量多放整张图而不裁剪，把剩余空间均匀分到图片之间。</summary>
-    public static readonly CssLength Space = "space";
+    public static readonly CssKeyword Space = "space";
 
     /// <summary><c>stroke-box</c>：以包含描边的边界框为参照盒；对普通 HTML 元素按 <c>border-box</c> 处理。</summary>
-    public static readonly CssLength StrokeBox = "stroke-box";
+    public static readonly CssKeyword StrokeBox = "stroke-box";
 
     /// <summary><c>subtract</c>：从当前遮罩层中减去与下方遮罩层重叠的部分，只保留未重叠的区域。</summary>
-    public static readonly CssLength Subtract = "subtract";
+    public static readonly CssKeyword Subtract = "subtract";
 
     /// <summary><c>top</c>：垂直方向取上边缘（相当于 0%）；可后接偏移量表示距上边缘的距离。</summary>
-    public static readonly CssLength Top = "top";
+    public static readonly CssKeyword Top = "top";
 
     /// <summary><c>view-box</c>：以最近的 SVG 视口（<c>viewBox</c>）为参照盒；对没有 SVG 视口的普通元素，按 <c>border-box</c> 处理。</summary>
-    public static readonly CssLength ViewBox = "view-box";
+    public static readonly CssKeyword ViewBox = "view-box";
 }
 
 /// <summary><c>mask-border</c> 的关键字取值；类型与 <see cref="Style.MaskBorder"/> 一致，可直接赋值。</summary>
 public static class MaskBorder
 {
     /// <summary><c>alpha</c>：按遮罩图像的 alpha 通道决定显示程度：越不透明的区域内容越可见。</summary>
-    public static readonly CssLength Alpha = "alpha";
+    public static readonly CssKeyword Alpha = "alpha";
 
     /// <summary><c>auto</c>：取对应的 <c>mask-border-slice</c> 切片的固有尺寸作为该边宽度。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>fill</c>：保留切片后的中间区域并铺在元素中间；缺省时该区域会被丢弃。</summary>
-    public static readonly CssLength Fill = "fill";
+    public static readonly CssKeyword Fill = "fill";
 
     /// <summary><c>luminance</c>：按遮罩图像的亮度决定显示程度：越亮越不透明，越暗越透明。</summary>
-    public static readonly CssLength Luminance = "luminance";
+    public static readonly CssKeyword Luminance = "luminance";
 
     /// <summary><c>none</c>：不使用边框遮罩图像，<c>mask-border</c> 不产生遮罩效果。</summary>
-    public static readonly CssLength None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>repeat</c>：切片按原尺寸平铺，到边缘时可能被裁掉一部分。</summary>
-    public static readonly CssLength Repeat = "repeat";
+    public static readonly CssKeyword Repeat = "repeat";
 
     /// <summary><c>round</c>：切片平铺，并整体缩放到恰好放下整数个，不裁剪。</summary>
-    public static readonly CssLength Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>space</c>：切片按原尺寸平铺，调整间距使恰好放下整数个，不缩放也不裁剪。</summary>
-    public static readonly CssLength Space = "space";
+    public static readonly CssKeyword Space = "space";
 
     /// <summary><c>stretch</c>：切片拉伸以填满对应的边框区域。</summary>
-    public static readonly CssLength Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 }
 
 /// <summary><c>mask-border-mode</c> 的关键字取值；类型与 <see cref="Style.MaskBorderMode"/> 一致，可直接赋值。</summary>
 public static class MaskBorderMode
 {
     /// <summary><c>alpha</c>：按遮罩图像的 alpha 通道决定显示程度：越不透明的区域内容越可见。</summary>
-    public static readonly CssValue Alpha = "alpha";
+    public static readonly CssKeyword Alpha = "alpha";
 
     /// <summary><c>luminance</c>：按遮罩图像的亮度决定显示程度：越亮越不透明，越暗越透明。</summary>
-    public static readonly CssValue Luminance = "luminance";
+    public static readonly CssKeyword Luminance = "luminance";
 }
 
 /// <summary><c>mask-border-repeat</c> 的关键字取值；类型与 <see cref="Style.MaskBorderRepeat"/> 一致，可直接赋值。</summary>
 public static class MaskBorderRepeat
 {
     /// <summary><c>repeat</c>：切片按原尺寸平铺，到边缘时可能被裁掉一部分。</summary>
-    public static readonly CssValue Repeat = "repeat";
+    public static readonly CssKeyword Repeat = "repeat";
 
     /// <summary><c>round</c>：切片平铺，并整体缩放到恰好放下整数个，不裁剪。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>space</c>：切片按原尺寸平铺，调整间距使恰好放下整数个，不缩放也不裁剪。</summary>
-    public static readonly CssValue Space = "space";
+    public static readonly CssKeyword Space = "space";
 
     /// <summary><c>stretch</c>：切片拉伸以填满对应的边框区域。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 }
 
 /// <summary><c>mask-clip</c> 的关键字取值；类型与 <see cref="Style.MaskClip"/> 一致，可直接赋值。</summary>
 public static class MaskClip
 {
     /// <summary><c>border-box</c>：以边框外缘为参考框，含内边距和边框。</summary>
-    public static readonly CssValue BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>content-box</c>：以内容区边缘为参考框，不含内边距和边框。</summary>
-    public static readonly CssValue ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>fill-box</c>：以对象边界框（填充区域）为参考框；对 CSS 盒模型元素等同于 <c>content-box</c>。</summary>
-    public static readonly CssValue FillBox = "fill-box";
+    public static readonly CssKeyword FillBox = "fill-box";
 
     /// <summary><c>no-clip</c>：不裁剪遮罩的作用范围，遮罩可作用于整个绘制区域，包括超出盒子的部分。</summary>
-    public static readonly CssValue NoClip = "no-clip";
+    public static readonly CssKeyword NoClip = "no-clip";
 
     /// <summary><c>padding-box</c>：以内边距边缘为参考框，含内边距，不含边框。</summary>
-    public static readonly CssValue PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 
     /// <summary><c>stroke-box</c>：以描边边界框（含描边宽度）为参考框；对 CSS 盒模型元素等同于 <c>border-box</c>。</summary>
-    public static readonly CssValue StrokeBox = "stroke-box";
+    public static readonly CssKeyword StrokeBox = "stroke-box";
 
     /// <summary><c>view-box</c>：以最近的 SVG 视口（<c>viewBox</c>）为参照盒；对没有 SVG 视口的普通元素，按 <c>border-box</c> 处理。</summary>
-    public static readonly CssValue ViewBox = "view-box";
+    public static readonly CssKeyword ViewBox = "view-box";
 }
 
 /// <summary><c>mask-composite</c> 的关键字取值；类型与 <see cref="Style.MaskComposite"/> 一致，可直接赋值。</summary>
 public static class MaskComposite
 {
     /// <summary><c>add</c>：把当前遮罩层叠加到其下方的遮罩层上，取两者的并集。</summary>
-    public static readonly CssValue Add = "add";
+    public static readonly CssKeyword Add = "add";
 
     /// <summary><c>exclude</c>：保留两层互不重叠的区域，重叠的部分被排除（异或）。</summary>
-    public static readonly CssValue Exclude = "exclude";
+    public static readonly CssKeyword Exclude = "exclude";
 
     /// <summary><c>intersect</c>：只保留当前遮罩层与下方遮罩层重叠的部分。</summary>
-    public static readonly CssValue Intersect = "intersect";
+    public static readonly CssKeyword Intersect = "intersect";
 
     /// <summary><c>subtract</c>：从当前遮罩层中减去与下方遮罩层重叠的部分，只保留未重叠的区域。</summary>
-    public static readonly CssValue Subtract = "subtract";
+    public static readonly CssKeyword Subtract = "subtract";
 }
 
 /// <summary><c>mask-mode</c> 的关键字取值；类型与 <see cref="Style.MaskMode"/> 一致，可直接赋值。</summary>
 public static class MaskMode
 {
     /// <summary><c>alpha</c>：取遮罩图像的透明度（alpha 通道）作为遮罩值：不透明处显示，透明处隐藏。</summary>
-    public static readonly CssValue Alpha = "alpha";
+    public static readonly CssKeyword Alpha = "alpha";
 
     /// <summary><c>luminance</c>：取遮罩图像的亮度（结合透明度）作为遮罩值：越亮显示得越多，黑色处隐藏。</summary>
-    public static readonly CssValue Luminance = "luminance";
+    public static readonly CssKeyword Luminance = "luminance";
 
     /// <summary><c>match-source</c>：按遮罩来源自动选择：普通图像用 <c>alpha</c>，引用 SVG <c>&lt;mask&gt;</c> 元素时用 <c>luminance</c>；这是初始值。</summary>
-    public static readonly CssValue MatchSource = "match-source";
+    public static readonly CssKeyword MatchSource = "match-source";
 }
 
 /// <summary><c>mask-origin</c> 的关键字取值；类型与 <see cref="Style.MaskOrigin"/> 一致，可直接赋值。</summary>
 public static class MaskOrigin
 {
     /// <summary><c>border-box</c>：以边框外缘为参考框，含内边距和边框。</summary>
-    public static readonly CssValue BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>content-box</c>：以内容区边缘为参考框，不含内边距和边框。</summary>
-    public static readonly CssValue ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>fill-box</c>：以对象边界框（填充区域）为参考框；对 CSS 盒模型元素等同于 <c>content-box</c>。</summary>
-    public static readonly CssValue FillBox = "fill-box";
+    public static readonly CssKeyword FillBox = "fill-box";
 
     /// <summary><c>margin-box</c>：以外边距盒（margin box）作为遮罩图像的定位区域。</summary>
-    public static readonly CssValue MarginBox = "margin-box";
+    public static readonly CssKeyword MarginBox = "margin-box";
 
     /// <summary><c>padding-box</c>：以内边距边缘为参考框，含内边距，不含边框。</summary>
-    public static readonly CssValue PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 
     /// <summary><c>stroke-box</c>：以描边边界框（含描边宽度）为参考框；对 CSS 盒模型元素等同于 <c>border-box</c>。</summary>
-    public static readonly CssValue StrokeBox = "stroke-box";
+    public static readonly CssKeyword StrokeBox = "stroke-box";
 
     /// <summary><c>view-box</c>：以最近的 SVG 视口（<c>viewBox</c>）为参照盒；对没有 SVG 视口的普通元素，按 <c>border-box</c> 处理。</summary>
-    public static readonly CssValue ViewBox = "view-box";
+    public static readonly CssKeyword ViewBox = "view-box";
 }
 
 /// <summary><c>mask-position</c> 的关键字取值；类型与 <see cref="Style.MaskPosition"/> 一致，可直接赋值。</summary>
 public static class MaskPosition
 {
     /// <summary><c>bottom</c>：垂直方向取下边缘（相当于 100%）；可后接偏移量表示距下边缘的距离。</summary>
-    public static readonly CssLength Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：取中间位置（相当于 50%）；单独出现时水平和垂直都居中。</summary>
-    public static readonly CssLength Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>left</c>：水平方向取左边缘（相当于 0%）；可后接偏移量表示距左边缘的距离。</summary>
-    public static readonly CssLength Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：水平方向取右边缘（相当于 100%）；可后接偏移量表示距右边缘的距离。</summary>
-    public static readonly CssLength Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>top</c>：垂直方向取上边缘（相当于 0%）；可后接偏移量表示距上边缘的距离。</summary>
-    public static readonly CssLength Top = "top";
+    public static readonly CssKeyword Top = "top";
 }
 
 /// <summary><c>mask-repeat</c> 的关键字取值；类型与 <see cref="Style.MaskRepeat"/> 一致，可直接赋值。</summary>
 public static class MaskRepeat
 {
     /// <summary><c>no-repeat</c>：不平铺，该方向只绘制一张图。</summary>
-    public static readonly CssValue NoRepeat = "no-repeat";
+    public static readonly CssKeyword NoRepeat = "no-repeat";
 
     /// <summary><c>repeat</c>：沿对应方向不断平铺，末尾的图片可能被裁掉一部分；这是背景图的初始值。</summary>
-    public static readonly CssValue Repeat = "repeat";
+    public static readonly CssKeyword Repeat = "repeat";
 
     /// <summary><c>repeat-x</c>：只在水平方向平铺，垂直方向不重复，等同于 <c>repeat no-repeat</c>。</summary>
-    public static readonly CssValue RepeatX = "repeat-x";
+    public static readonly CssKeyword RepeatX = "repeat-x";
 
     /// <summary><c>repeat-y</c>：只在垂直方向平铺，水平方向不重复，等同于 <c>no-repeat repeat</c>。</summary>
-    public static readonly CssValue RepeatY = "repeat-y";
+    public static readonly CssKeyword RepeatY = "repeat-y";
 
     /// <summary><c>round</c>：按需缩放图片，使整数张图正好铺满该方向，不裁剪也不留空隙。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>space</c>：尽量多放整张图而不裁剪，把剩余空间均匀分到图片之间。</summary>
-    public static readonly CssValue Space = "space";
+    public static readonly CssKeyword Space = "space";
 }
 
 /// <summary><c>mask-size</c> 的关键字取值；类型与 <see cref="Style.MaskSize"/> 一致，可直接赋值。</summary>
 public static class MaskSize
 {
     /// <summary><c>auto</c>：依据图像内部尺寸、比例及另一维的设置确定尺寸。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>contain</c>：保持图像比例并使整张图像容纳于定位区域，可能留下空白。</summary>
-    public static readonly CssLength Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>cover</c>：保持图像比例并覆盖整个定位区域，超出部分可能被裁剪。</summary>
-    public static readonly CssLength Cover = "cover";
+    public static readonly CssKeyword Cover = "cover";
 }
 
 /// <summary><c>mask-type</c> 的关键字取值；类型与 <see cref="Style.MaskType"/> 一致，可直接赋值。</summary>
 public static class MaskType
 {
     /// <summary><c>alpha</c>：按遮罩内容的 alpha 值（不透明度）决定显示程度，颜色不参与计算。</summary>
-    public static readonly CssValue Alpha = "alpha";
+    public static readonly CssKeyword Alpha = "alpha";
 
     /// <summary><c>luminance</c>：按遮罩内容的亮度决定显示程度：白色完全显示，黑色完全隐藏，这是默认行为。</summary>
-    public static readonly CssValue Luminance = "luminance";
+    public static readonly CssKeyword Luminance = "luminance";
 }
 
 /// <summary><c>masonry-auto-flow</c> 的关键字取值；类型与 <see cref="Style.MasonryAutoFlow"/> 一致，可直接赋值。</summary>
 public static class MasonryAutoFlow
 {
     /// <summary><c>definite-first</c>：先放置有明确位置的项目，再放置其余自动放置的项目；属于旧版瀑布流提案，浏览器暂无稳定支持。</summary>
-    public static readonly CssValue DefiniteFirst = "definite-first";
+    public static readonly CssKeyword DefiniteFirst = "definite-first";
 
     /// <summary><c>next</c>：项目按顺序依次放入下一个轨道，到末尾后回到第一个，不寻找最短轨道；属于旧版瀑布流提案，浏览器暂无稳定支持。</summary>
-    public static readonly CssValue Next = "next";
+    public static readonly CssKeyword Next = "next";
 
     /// <summary><c>ordered</c>：所有项目按文档顺序放置，包括有明确位置的项目；属于旧版瀑布流提案，浏览器暂无稳定支持。</summary>
-    public static readonly CssValue Ordered = "ordered";
+    public static readonly CssKeyword Ordered = "ordered";
 
     /// <summary><c>pack</c>：每个项目放入当前最靠前（最短）的轨道，使各轨道尽量紧凑；属于旧版瀑布流提案，浏览器暂无稳定支持。</summary>
-    public static readonly CssValue Pack = "pack";
+    public static readonly CssKeyword Pack = "pack";
 }
 
 /// <summary><c>math-shift</c> 的关键字取值；类型与 <see cref="Style.MathShift"/> 一致，可直接赋值。</summary>
 public static class MathShift
 {
     /// <summary><c>compact</c>：上标使用较小的上移量，用于紧凑样式下节省垂直空间。</summary>
-    public static readonly CssValue Compact = "compact";
+    public static readonly CssKeyword Compact = "compact";
 
     /// <summary><c>normal</c>：上标使用正常的上移量。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>math-style</c> 的关键字取值；类型与 <see cref="Style.MathStyle"/> 一致，可直接赋值。</summary>
 public static class MathStyle
 {
     /// <summary><c>compact</c>：采用紧凑（行内）样式，公式更靠拢，适合嵌入正文行。</summary>
-    public static readonly CssValue Compact = "compact";
+    public static readonly CssKeyword Compact = "compact";
 
     /// <summary><c>normal</c>：采用展示（display）样式，公式空间更宽松，如大型运算符的上下限分居上下方。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>max-block-size</c> 的关键字取值；类型与 <see cref="Style.MaxBlockSize"/> 一致，可直接赋值。</summary>
@@ -4895,237 +4962,237 @@ public static class MinWidth
 public static class MixBlendMode
 {
     /// <summary><c>color</c>：取上层的色相和饱和度，保留下层的明度；常用于给黑白图像着色。</summary>
-    public static readonly CssValue Color = "color";
+    public static readonly CssKeyword Color = "color";
 
     /// <summary><c>color-burn</c>：加深：让下层变暗以反映上层颜色，上层越深，下层变暗越明显。</summary>
-    public static readonly CssValue ColorBurn = "color-burn";
+    public static readonly CssKeyword ColorBurn = "color-burn";
 
     /// <summary><c>color-dodge</c>：减淡：让下层变亮以反映上层颜色，上层越亮，下层越接近白色。</summary>
-    public static readonly CssValue ColorDodge = "color-dodge";
+    public static readonly CssKeyword ColorDodge = "color-dodge";
 
     /// <summary><c>darken</c>：逐通道取上下两层中较暗的值，结果不会比任何一层更亮。</summary>
-    public static readonly CssValue Darken = "darken";
+    public static readonly CssKeyword Darken = "darken";
 
     /// <summary><c>difference</c>：取上下两层颜色差的绝对值；与白色混合会反相，与黑色混合则不变。</summary>
-    public static readonly CssValue Difference = "difference";
+    public static readonly CssKeyword Difference = "difference";
 
     /// <summary><c>exclusion</c>：类似 <c>difference</c>，但对比度更低；与白色混合会反相，与黑色混合不变。</summary>
-    public static readonly CssValue Exclusion = "exclusion";
+    public static readonly CssKeyword Exclusion = "exclusion";
 
     /// <summary><c>hard-light</c>：按上层颜色决定做 <c>multiply</c> 还是 <c>screen</c>，效果像强光直射，上层亮则提亮、暗则压暗。</summary>
-    public static readonly CssValue HardLight = "hard-light";
+    public static readonly CssKeyword HardLight = "hard-light";
 
     /// <summary><c>hue</c>：取上层的色相，保留下层的饱和度和明度。</summary>
-    public static readonly CssValue Hue = "hue";
+    public static readonly CssKeyword Hue = "hue";
 
     /// <summary><c>lighten</c>：逐通道取上下两层中较亮的值，结果不会比任何一层更暗。</summary>
-    public static readonly CssValue Lighten = "lighten";
+    public static readonly CssKeyword Lighten = "lighten";
 
     /// <summary><c>luminosity</c>：取上层的明度，保留下层的色相和饱和度，与 <c>color</c> 相反。</summary>
-    public static readonly CssValue Luminosity = "luminosity";
+    public static readonly CssKeyword Luminosity = "luminosity";
 
     /// <summary><c>multiply</c>：正片叠底：上下两层颜色相乘，结果更暗；与白色混合不变，与黑色混合变黑。</summary>
-    public static readonly CssValue Multiply = "multiply";
+    public static readonly CssKeyword Multiply = "multiply";
 
     /// <summary><c>normal</c>：不做混合，上层直接覆盖下层；上层半透明时按透明度叠加。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>overlay</c>：按下层颜色决定做 <c>multiply</c> 还是 <c>screen</c>，暗部更暗、亮部更亮，同时保留下层的明暗层次。</summary>
-    public static readonly CssValue Overlay = "overlay";
+    public static readonly CssKeyword Overlay = "overlay";
 
     /// <summary><c>saturation</c>：取上层的饱和度，保留下层的色相和明度。</summary>
-    public static readonly CssValue Saturation = "saturation";
+    public static readonly CssKeyword Saturation = "saturation";
 
     /// <summary><c>screen</c>：滤色：反相后相乘再反相，结果更亮；与黑色混合不变，与白色混合变白。</summary>
-    public static readonly CssValue Screen = "screen";
+    public static readonly CssKeyword Screen = "screen";
 
     /// <summary><c>soft-light</c>：<c>hard-light</c> 的柔和版本，像漫射光照射，对下层的提亮或压暗幅度较小。</summary>
-    public static readonly CssValue SoftLight = "soft-light";
+    public static readonly CssKeyword SoftLight = "soft-light";
 }
 
 /// <summary><c>-ms-overflow-style</c> 的关键字取值；类型与 <see cref="Style.MsOverflowStyle"/> 一致，可直接赋值。</summary>
 public static class MsOverflowStyle
 {
     /// <summary><c>auto</c>：使用默认的滚动条表现。非标准，仅 IE 与旧版 Edge 支持。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>-ms-autohiding-scrollbar</c>：滚动条平时隐藏，滚动或指针移近时才出现。非标准，仅 IE 与旧版 Edge 支持。</summary>
-    public static readonly CssValue MsAutohidingScrollbar = "-ms-autohiding-scrollbar";
+    public static readonly CssKeyword MsAutohidingScrollbar = "-ms-autohiding-scrollbar";
 
     /// <summary><c>none</c>：隐藏滚动条，内容仍可滚动。非标准，仅 IE 与旧版 Edge 支持。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>scrollbar</c>：显示传统的常驻滚动条，即使系统默认是自动隐藏样式。非标准，仅 IE 与旧版 Edge 支持。</summary>
-    public static readonly CssValue Scrollbar = "scrollbar";
+    public static readonly CssKeyword Scrollbar = "scrollbar";
 }
 
 /// <summary><c>object-fit</c> 的关键字取值；类型与 <see cref="Style.ObjectFit"/> 一致，可直接赋值。</summary>
 public static class ObjectFit
 {
     /// <summary><c>contain</c>：保留宽高比并完整放入内容盒，可能留下空白。cover 优先填满盒子并可能裁剪；contain 优先保留完整内容。</summary>
-    public static readonly CssValue Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>cover</c>：保留宽高比并填满内容盒，可能裁掉部分图像。裁剪位置由 object-position 控制，盒子尺寸仍需另外设置。contain 保证完整图像可见但可能留白；fill 可能改变图像比例。</summary>
-    public static readonly CssValue Cover = "cover";
+    public static readonly CssKeyword Cover = "cover";
 
     /// <summary><c>fill</c>：把内容拉伸到内容盒，可能改变原有宽高比。</summary>
-    public static readonly CssValue Fill = "fill";
+    public static readonly CssKeyword Fill = "fill";
 
     /// <summary><c>none</c>：不按内容盒缩放替换内容。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>scale-down</c>：在 none 和 contain 中选择得到较小内容尺寸的方案。</summary>
-    public static readonly CssValue ScaleDown = "scale-down";
+    public static readonly CssKeyword ScaleDown = "scale-down";
 }
 
 /// <summary><c>object-position</c> 的关键字取值；类型与 <see cref="Style.ObjectPosition"/> 一致，可直接赋值。</summary>
 public static class ObjectPosition
 {
     /// <summary><c>bottom</c>：垂直方向取下边缘（相当于 100%）；可后接偏移量表示距下边缘的距离。</summary>
-    public static readonly CssLength Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：取中间位置（相当于 50%）；单独出现时水平和垂直都居中。</summary>
-    public static readonly CssLength Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>left</c>：水平方向取左边缘（相当于 0%）；可后接偏移量表示距左边缘的距离。</summary>
-    public static readonly CssLength Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：水平方向取右边缘（相当于 100%）；可后接偏移量表示距右边缘的距离。</summary>
-    public static readonly CssLength Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>top</c>：垂直方向取上边缘（相当于 0%）；可后接偏移量表示距上边缘的距离。</summary>
-    public static readonly CssLength Top = "top";
+    public static readonly CssKeyword Top = "top";
 }
 
 /// <summary><c>offset</c> 的关键字取值；类型与 <see cref="Style.Offset"/> 一致，可直接赋值。</summary>
 public static class Offset
 {
     /// <summary><c>auto</c>：以元素自身盒子所在的位置作为路径的起始位置。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>border-box</c>：以边框外缘为参考框，含内边距和边框。</summary>
-    public static readonly CssLength BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>bottom</c>：垂直方向取下边缘（相当于 100%）；可后接偏移量表示距下边缘的距离。</summary>
-    public static readonly CssLength Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：取中间位置（相当于 50%）；单独出现时水平和垂直都居中。</summary>
-    public static readonly CssLength Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>content-box</c>：以内容区边缘为参考框，不含内边距和边框。</summary>
-    public static readonly CssLength ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>fill-box</c>：以对象边界框（填充区域）为参考框；对 CSS 盒模型元素等同于 <c>content-box</c>。</summary>
-    public static readonly CssLength FillBox = "fill-box";
+    public static readonly CssKeyword FillBox = "fill-box";
 
     /// <summary><c>left</c>：水平方向取左边缘（相当于 0%）；可后接偏移量表示距左边缘的距离。</summary>
-    public static readonly CssLength Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>none</c>：不定义运动路径，元素不沿路径移动。</summary>
-    public static readonly CssLength None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：不指定路径的起始位置，元素没有 offset 起点。</summary>
-    public static readonly CssLength Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>padding-box</c>：以内边距边缘为参考框，含内边距，不含边框。</summary>
-    public static readonly CssLength PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 
     /// <summary><c>reverse</c>：在 <c>auto</c> 基础上再旋转 180 度，使元素朝向与路径前进方向相反。</summary>
-    public static readonly CssLength Reverse = "reverse";
+    public static readonly CssKeyword Reverse = "reverse";
 
     /// <summary><c>right</c>：水平方向取右边缘（相当于 100%）；可后接偏移量表示距右边缘的距离。</summary>
-    public static readonly CssLength Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>stroke-box</c>：以描边边界框（含描边宽度）为参考框；对 CSS 盒模型元素等同于 <c>border-box</c>。</summary>
-    public static readonly CssLength StrokeBox = "stroke-box";
+    public static readonly CssKeyword StrokeBox = "stroke-box";
 
     /// <summary><c>top</c>：垂直方向取上边缘（相当于 0%）；可后接偏移量表示距上边缘的距离。</summary>
-    public static readonly CssLength Top = "top";
+    public static readonly CssKeyword Top = "top";
 
     /// <summary><c>view-box</c>：以最近的 SVG 视口（<c>viewBox</c>）为参照盒；对没有 SVG 视口的普通元素，按 <c>border-box</c> 处理。</summary>
-    public static readonly CssLength ViewBox = "view-box";
+    public static readonly CssKeyword ViewBox = "view-box";
 }
 
 /// <summary><c>offset-anchor</c> 的关键字取值；类型与 <see cref="Style.OffsetAnchor"/> 一致，可直接赋值。</summary>
 public static class OffsetAnchor
 {
     /// <summary><c>auto</c>：取 <c>transform-origin</c> 的值作为锚点。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>bottom</c>：垂直方向取下边缘（相当于 100%）；可后接偏移量表示距下边缘的距离。</summary>
-    public static readonly CssLength Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：取中间位置（相当于 50%）；单独出现时水平和垂直都居中。</summary>
-    public static readonly CssLength Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>left</c>：水平方向取左边缘（相当于 0%）；可后接偏移量表示距左边缘的距离。</summary>
-    public static readonly CssLength Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：水平方向取右边缘（相当于 100%）；可后接偏移量表示距右边缘的距离。</summary>
-    public static readonly CssLength Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>top</c>：垂直方向取上边缘（相当于 0%）；可后接偏移量表示距上边缘的距离。</summary>
-    public static readonly CssLength Top = "top";
+    public static readonly CssKeyword Top = "top";
 }
 
 /// <summary><c>offset-path</c> 的关键字取值；类型与 <see cref="Style.OffsetPath"/> 一致，可直接赋值。</summary>
 public static class OffsetPath
 {
     /// <summary><c>border-box</c>：以边框外缘为参考框，含内边距和边框。</summary>
-    public static readonly CssValue BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>content-box</c>：以内容区边缘为参考框，不含内边距和边框。</summary>
-    public static readonly CssValue ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>fill-box</c>：以对象边界框（填充区域）为参考框；对 CSS 盒模型元素等同于 <c>content-box</c>。</summary>
-    public static readonly CssValue FillBox = "fill-box";
+    public static readonly CssKeyword FillBox = "fill-box";
 
     /// <summary><c>none</c>：不定义运动路径，元素不沿路径移动。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>padding-box</c>：以内边距边缘为参考框，含内边距，不含边框。</summary>
-    public static readonly CssValue PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 
     /// <summary><c>stroke-box</c>：以描边边界框（含描边宽度）为参考框；对 CSS 盒模型元素等同于 <c>border-box</c>。</summary>
-    public static readonly CssValue StrokeBox = "stroke-box";
+    public static readonly CssKeyword StrokeBox = "stroke-box";
 
     /// <summary><c>view-box</c>：以最近的 SVG 视口（<c>viewBox</c>）为参照盒；对没有 SVG 视口的普通元素，按 <c>border-box</c> 处理。</summary>
-    public static readonly CssValue ViewBox = "view-box";
+    public static readonly CssKeyword ViewBox = "view-box";
 }
 
 /// <summary><c>offset-position</c> 的关键字取值；类型与 <see cref="Style.OffsetPosition"/> 一致，可直接赋值。</summary>
 public static class OffsetPosition
 {
     /// <summary><c>auto</c>：以元素自身盒子所在的位置作为路径的起始位置。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>bottom</c>：垂直方向取下边缘（相当于 100%）；可后接偏移量表示距下边缘的距离。</summary>
-    public static readonly CssLength Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：取中间位置（相当于 50%）；单独出现时水平和垂直都居中。</summary>
-    public static readonly CssLength Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>left</c>：水平方向取左边缘（相当于 0%）；可后接偏移量表示距左边缘的距离。</summary>
-    public static readonly CssLength Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>normal</c>：不指定路径的起始位置，元素没有 offset 起点。</summary>
-    public static readonly CssLength Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>right</c>：水平方向取右边缘（相当于 100%）；可后接偏移量表示距右边缘的距离。</summary>
-    public static readonly CssLength Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>top</c>：垂直方向取上边缘（相当于 0%）；可后接偏移量表示距上边缘的距离。</summary>
-    public static readonly CssLength Top = "top";
+    public static readonly CssKeyword Top = "top";
 }
 
 /// <summary><c>offset-rotate</c> 的关键字取值；类型与 <see cref="Style.OffsetRotate"/> 一致，可直接赋值。</summary>
 public static class OffsetRotate
 {
     /// <summary><c>auto</c>：元素朝向跟随路径的切线方向旋转，可再叠加一个角度。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>reverse</c>：在 <c>auto</c> 基础上再旋转 180 度，使元素朝向与路径前进方向相反。</summary>
-    public static readonly CssValue Reverse = "reverse";
+    public static readonly CssKeyword Reverse = "reverse";
 }
 
 /// <summary><c>outline</c> 的关键字取值；类型与 <see cref="Style.Outline"/> 一致，可直接赋值。</summary>
@@ -5175,37 +5242,37 @@ public static class Outline
 public static class OutlineStyle
 {
     /// <summary><c>auto</c>：由浏览器绘制默认样式的轮廓，常用于焦点环，形状可能贴合元素圆角。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>dashed</c>：用短划线绘制轮廓。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：用圆点绘制轮廓。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：绘制两条平行的实线，中间留空隙，整体宽度等于轮廓宽度。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>groove</c>：绘制凹槽效果的立体线条，看起来像刻在页面里，明暗由轮廓颜色推算；与 <c>ridge</c> 相反。</summary>
-    public static readonly CssValue Groove = "groove";
+    public static readonly CssKeyword Groove = "groove";
 
     /// <summary><c>hidden</c>：<c>outline-style</c> 不接受该值（规范排除了 <c>hidden</c>），写了会被当作无效声明；要隐藏轮廓请用 <c>none</c>。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>inset</c>：使整个轮廓呈现为凹陷，元素看起来嵌入页面；与 <c>outset</c> 相反。</summary>
-    public static readonly CssValue Inset = "inset";
+    public static readonly CssKeyword Inset = "inset";
 
     /// <summary><c>none</c>：不绘制轮廓，轮廓宽度计算值为零。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>outset</c>：使整个轮廓呈现为凸起，元素看起来浮出页面；与 <c>inset</c> 相反。</summary>
-    public static readonly CssValue Outset = "outset";
+    public static readonly CssKeyword Outset = "outset";
 
     /// <summary><c>ridge</c>：绘制凸脊效果的立体线条，看起来像从页面凸起，明暗由轮廓颜色推算；与 <c>groove</c> 相反。</summary>
-    public static readonly CssValue Ridge = "ridge";
+    public static readonly CssKeyword Ridge = "ridge";
 
     /// <summary><c>solid</c>：绘制一条连续的实线轮廓。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 }
 
 /// <summary><c>outline-width</c> 的关键字取值；类型与 <see cref="Style.OutlineWidth"/> 一致，可直接赋值。</summary>
@@ -5225,225 +5292,225 @@ public static class OutlineWidth
 public static class Overflow
 {
     /// <summary><c>auto</c>：按溢出情况提供滚动机制；滚动条外观和是否占空间由环境决定。scroll 通常始终预留或显示滚动机制；auto 根据溢出情况显示滚动条，外观由平台决定。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>clip</c>：在裁剪边界截断内容，不建立滚动容器，也不支持程序化滚动。两轴设置会影响计算结果；与另一轴 auto/scroll 等组合时，要检查最终溢出行为。与 hidden 不同，不支持程序化滚动，也不单独建立块格式化上下文。</summary>
-    public static readonly CssValue Clip = "clip";
+    public static readonly CssKeyword Clip = "clip";
 
     /// <summary><c>hidden</c>：裁剪溢出且不显示滚动条，但仍是可通过脚本等方式滚动的滚动容器。可能成为 sticky 后代的滚动参照，不能把它仅理解成视觉裁剪。clip 不建立滚动容器；hidden 仍可通过脚本或焦点移动滚动。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>scroll</c>：建立滚动容器，通常即使未溢出也显示滚动条；具体外观由平台决定。</summary>
-    public static readonly CssValue Scroll = "scroll";
+    public static readonly CssKeyword Scroll = "scroll";
 
     /// <summary><c>visible</c>：允许内容绘制到盒子外；与另一轴的设置组合时计算值可能变化。</summary>
-    public static readonly CssValue Visible = "visible";
+    public static readonly CssKeyword Visible = "visible";
 }
 
 /// <summary><c>overflow-anchor</c> 的关键字取值；类型与 <see cref="Style.OverflowAnchor"/> 一致，可直接赋值。</summary>
 public static class OverflowAnchor
 {
     /// <summary><c>auto</c>：允许该元素参与滚动锚定：上方内容尺寸变化时，浏览器自动调整滚动位置，避免可见内容跳动。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：该元素及其后代不会被选作滚动锚点，不参与自动保持滚动位置。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>overflow-block</c> 的关键字取值；类型与 <see cref="Style.OverflowBlock"/> 一致，可直接赋值。</summary>
 public static class OverflowBlock
 {
     /// <summary><c>auto</c>：按溢出情况提供滚动机制；滚动条外观和是否占空间由环境决定。scroll 通常始终预留或显示滚动机制；auto 根据溢出情况显示滚动条，外观由平台决定。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>clip</c>：在裁剪边界截断内容，不建立滚动容器，也不支持程序化滚动。两轴设置会影响计算结果；与另一轴 auto/scroll 等组合时，要检查最终溢出行为。与 hidden 不同，不支持程序化滚动，也不单独建立块格式化上下文。</summary>
-    public static readonly CssValue Clip = "clip";
+    public static readonly CssKeyword Clip = "clip";
 
     /// <summary><c>hidden</c>：裁剪溢出且不显示滚动条，但仍是可通过脚本等方式滚动的滚动容器。可能成为 sticky 后代的滚动参照，不能把它仅理解成视觉裁剪。clip 不建立滚动容器；hidden 仍可通过脚本或焦点移动滚动。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>scroll</c>：建立滚动容器，通常即使未溢出也显示滚动条；具体外观由平台决定。</summary>
-    public static readonly CssValue Scroll = "scroll";
+    public static readonly CssKeyword Scroll = "scroll";
 
     /// <summary><c>visible</c>：允许内容绘制到盒子外；与另一轴的设置组合时计算值可能变化。</summary>
-    public static readonly CssValue Visible = "visible";
+    public static readonly CssKeyword Visible = "visible";
 }
 
 /// <summary><c>overflow-clip-margin</c> 的关键字取值；类型与 <see cref="Style.OverflowClipMargin"/> 一致，可直接赋值。</summary>
 public static class OverflowClipMargin
 {
     /// <summary><c>border-box</c>：以边框外缘为参考框，含内边距和边框。</summary>
-    public static readonly CssLength BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>content-box</c>：以内容区边缘为参考框，不含内边距和边框。</summary>
-    public static readonly CssLength ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>padding-box</c>：以内边距边缘为参考框，含内边距，不含边框。</summary>
-    public static readonly CssLength PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 }
 
 /// <summary><c>overflow-wrap</c> 的关键字取值；类型与 <see cref="Style.OverflowWrap"/> 一致，可直接赋值。</summary>
 public static class OverflowWrap
 {
     /// <summary><c>anywhere</c>：必要时允许在长文本任意位置断行，这些机会参与 min-content 尺寸计算。break-word 的额外断点不按 anywhere 的方式参与最小内容宽度计算；word-break:break-all 更积极地拆分普通单词。</summary>
-    public static readonly CssValue Anywhere = "anywhere";
+    public static readonly CssKeyword Anywhere = "anywhere";
 
     /// <summary><c>break-word</c>：必要时允许长文本断行，但新增断点不按 anywhere 的方式参与 min-content 计算。</summary>
-    public static readonly CssValue BreakWord = "break-word";
+    public static readonly CssKeyword BreakWord = "break-word";
 
     /// <summary><c>normal</c>：只使用正常换行机会，不为长单词额外断行。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>overflow-x</c> 的关键字取值；类型与 <see cref="Style.OverflowX"/> 一致，可直接赋值。</summary>
 public static class OverflowX
 {
     /// <summary><c>auto</c>：按溢出情况提供滚动机制；滚动条外观和是否占空间由环境决定。scroll 通常始终预留或显示滚动机制；auto 根据溢出情况显示滚动条，外观由平台决定。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>clip</c>：在裁剪边界截断内容，不建立滚动容器，也不支持程序化滚动。两轴设置会影响计算结果；与另一轴 auto/scroll 等组合时，要检查最终溢出行为。与 hidden 不同，不支持程序化滚动，也不单独建立块格式化上下文。</summary>
-    public static readonly CssValue Clip = "clip";
+    public static readonly CssKeyword Clip = "clip";
 
     /// <summary><c>hidden</c>：裁剪溢出且不显示滚动条，但仍是可通过脚本等方式滚动的滚动容器。可能成为 sticky 后代的滚动参照，不能把它仅理解成视觉裁剪。clip 不建立滚动容器；hidden 仍可通过脚本或焦点移动滚动。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>scroll</c>：建立滚动容器，通常即使未溢出也显示滚动条；具体外观由平台决定。</summary>
-    public static readonly CssValue Scroll = "scroll";
+    public static readonly CssKeyword Scroll = "scroll";
 
     /// <summary><c>visible</c>：允许内容绘制到盒子外；与另一轴的设置组合时计算值可能变化。</summary>
-    public static readonly CssValue Visible = "visible";
+    public static readonly CssKeyword Visible = "visible";
 }
 
 /// <summary><c>overflow-y</c> 的关键字取值；类型与 <see cref="Style.OverflowY"/> 一致，可直接赋值。</summary>
 public static class OverflowY
 {
     /// <summary><c>auto</c>：按溢出情况提供滚动机制；滚动条外观和是否占空间由环境决定。scroll 通常始终预留或显示滚动机制；auto 根据溢出情况显示滚动条，外观由平台决定。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>clip</c>：在裁剪边界截断内容，不建立滚动容器，也不支持程序化滚动。两轴设置会影响计算结果；与另一轴 auto/scroll 等组合时，要检查最终溢出行为。与 hidden 不同，不支持程序化滚动，也不单独建立块格式化上下文。</summary>
-    public static readonly CssValue Clip = "clip";
+    public static readonly CssKeyword Clip = "clip";
 
     /// <summary><c>hidden</c>：裁剪溢出且不显示滚动条，但仍是可通过脚本等方式滚动的滚动容器。可能成为 sticky 后代的滚动参照，不能把它仅理解成视觉裁剪。clip 不建立滚动容器；hidden 仍可通过脚本或焦点移动滚动。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>scroll</c>：建立滚动容器，通常即使未溢出也显示滚动条；具体外观由平台决定。</summary>
-    public static readonly CssValue Scroll = "scroll";
+    public static readonly CssKeyword Scroll = "scroll";
 
     /// <summary><c>visible</c>：允许内容绘制到盒子外；与另一轴的设置组合时计算值可能变化。</summary>
-    public static readonly CssValue Visible = "visible";
+    public static readonly CssKeyword Visible = "visible";
 }
 
 /// <summary><c>overscroll-behavior</c> 的关键字取值；类型与 <see cref="Style.OverscrollBehavior"/> 一致，可直接赋值。</summary>
 public static class OverscrollBehavior
 {
     /// <summary><c>auto</c>：采用默认滚动链和边界反馈。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>contain</c>：阻止滚动链传播到祖先，同时可保留当前容器的边界反馈。</summary>
-    public static readonly CssValue Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>none</c>：阻止滚动链，并抑制当前容器的默认越界反馈。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>overscroll-behavior-block</c> 的关键字取值；类型与 <see cref="Style.OverscrollBehaviorBlock"/> 一致，可直接赋值。</summary>
 public static class OverscrollBehaviorBlock
 {
     /// <summary><c>auto</c>：采用默认滚动链和边界反馈。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>contain</c>：阻止滚动链传播到祖先，同时可保留当前容器的边界反馈。</summary>
-    public static readonly CssValue Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>none</c>：阻止滚动链，并抑制当前容器的默认越界反馈。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>overscroll-behavior-inline</c> 的关键字取值；类型与 <see cref="Style.OverscrollBehaviorInline"/> 一致，可直接赋值。</summary>
 public static class OverscrollBehaviorInline
 {
     /// <summary><c>auto</c>：采用默认滚动链和边界反馈。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>contain</c>：阻止滚动链传播到祖先，同时可保留当前容器的边界反馈。</summary>
-    public static readonly CssValue Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>none</c>：阻止滚动链，并抑制当前容器的默认越界反馈。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>overscroll-behavior-x</c> 的关键字取值；类型与 <see cref="Style.OverscrollBehaviorX"/> 一致，可直接赋值。</summary>
 public static class OverscrollBehaviorX
 {
     /// <summary><c>auto</c>：采用默认滚动链和边界反馈。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>contain</c>：阻止滚动链传播到祖先，同时可保留当前容器的边界反馈。</summary>
-    public static readonly CssValue Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>none</c>：阻止滚动链，并抑制当前容器的默认越界反馈。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>overscroll-behavior-y</c> 的关键字取值；类型与 <see cref="Style.OverscrollBehaviorY"/> 一致，可直接赋值。</summary>
 public static class OverscrollBehaviorY
 {
     /// <summary><c>auto</c>：采用默认滚动链和边界反馈。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>contain</c>：阻止滚动链传播到祖先，同时可保留当前容器的边界反馈。</summary>
-    public static readonly CssValue Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>none</c>：阻止滚动链，并抑制当前容器的默认越界反馈。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>page-break-after</c> 的关键字取值；类型与 <see cref="Style.PageBreakAfter"/> 一致，可直接赋值。</summary>
 public static class PageBreakAfter
 {
     /// <summary><c>always</c>：在此处强制分页：<c>page-break-before</c> 作用于元素之前，<c>page-break-after</c> 作用于元素之后。旧写法，改用 <c>break-before</c> 与 <c>break-after</c>。</summary>
-    public static readonly CssValue Always = "always";
+    public static readonly CssKeyword Always = "always";
 
     /// <summary><c>auto</c>：既不强制也不禁止在此处分页，由浏览器按需决定。旧写法，改用 <c>break-before</c> 与 <c>break-after</c>。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>avoid</c>：尽量避免在此处分页：<c>page-break-before</c> 针对元素之前，<c>page-break-after</c> 针对元素之后。旧写法，改用 <c>break-before</c> 与 <c>break-after</c>。</summary>
-    public static readonly CssValue Avoid = "avoid";
+    public static readonly CssKeyword Avoid = "avoid";
 
     /// <summary><c>left</c>：在此处强制分页，并让下一页成为左页，必要时插入空白页。旧写法，改用 <c>break-before</c> 与 <c>break-after</c>。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：在此处强制分页，并让下一页成为右页，必要时插入空白页。旧写法，改用 <c>break-before</c> 与 <c>break-after</c>。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 }
 
 /// <summary><c>page-break-before</c> 的关键字取值；类型与 <see cref="Style.PageBreakBefore"/> 一致，可直接赋值。</summary>
 public static class PageBreakBefore
 {
     /// <summary><c>always</c>：在此处强制分页：<c>page-break-before</c> 作用于元素之前，<c>page-break-after</c> 作用于元素之后。旧写法，改用 <c>break-before</c> 与 <c>break-after</c>。</summary>
-    public static readonly CssValue Always = "always";
+    public static readonly CssKeyword Always = "always";
 
     /// <summary><c>auto</c>：既不强制也不禁止在此处分页，由浏览器按需决定。旧写法，改用 <c>break-before</c> 与 <c>break-after</c>。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>avoid</c>：尽量避免在此处分页：<c>page-break-before</c> 针对元素之前，<c>page-break-after</c> 针对元素之后。旧写法，改用 <c>break-before</c> 与 <c>break-after</c>。</summary>
-    public static readonly CssValue Avoid = "avoid";
+    public static readonly CssKeyword Avoid = "avoid";
 
     /// <summary><c>left</c>：在此处强制分页，并让下一页成为左页，必要时插入空白页。旧写法，改用 <c>break-before</c> 与 <c>break-after</c>。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：在此处强制分页，并让下一页成为右页，必要时插入空白页。旧写法，改用 <c>break-before</c> 与 <c>break-after</c>。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 }
 
 /// <summary><c>page-break-inside</c> 的关键字取值；类型与 <see cref="Style.PageBreakInside"/> 一致，可直接赋值。</summary>
 public static class PageBreakInside
 {
     /// <summary><c>auto</c>：既不强制也不禁止在元素内部分页，由浏览器按需决定。旧写法，改用 <c>break-inside</c>。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>avoid</c>：尽量避免在元素内部分页，内容一页放不下时才会拆开。旧写法，改用 <c>break-inside</c>。</summary>
-    public static readonly CssValue Avoid = "avoid";
+    public static readonly CssKeyword Avoid = "avoid";
 }
 
 /// <summary><c>paint-order</c> 的关键字取值；类型与 <see cref="Style.PaintOrder"/> 一致，可直接赋值。</summary>
@@ -5544,698 +5611,698 @@ public static class PauseBefore
 public static class PerspectiveOrigin
 {
     /// <summary><c>bottom</c>：垂直方向取下边缘（相当于 100%）；可后接偏移量表示距下边缘的距离。</summary>
-    public static readonly CssLength Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：取中间位置（相当于 50%）；单独出现时水平和垂直都居中。</summary>
-    public static readonly CssLength Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>left</c>：水平方向取左边缘（相当于 0%）；可后接偏移量表示距左边缘的距离。</summary>
-    public static readonly CssLength Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：水平方向取右边缘（相当于 100%）；可后接偏移量表示距右边缘的距离。</summary>
-    public static readonly CssLength Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>top</c>：垂直方向取上边缘（相当于 0%）；可后接偏移量表示距上边缘的距离。</summary>
-    public static readonly CssLength Top = "top";
+    public static readonly CssKeyword Top = "top";
 }
 
 /// <summary><c>place-content</c> 的关键字取值；类型与 <see cref="Style.PlaceContent"/> 一致，可直接赋值。</summary>
 public static class PlaceContent
 {
     /// <summary><c>baseline</c>：按首行文字的基线与同组其他项对齐；单独使用等同 <c>first baseline</c>。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>center</c>：各项作为一个整体，在对齐方向上居中。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：各项贴向容器在该方向上的终止边，终止边由书写模式和方向决定。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>first</c>：与 <c>baseline</c> 搭配（<c>first baseline</c>）：以第一行文字的基线对齐，单写 <c>baseline</c> 与其等效。</summary>
-    public static readonly CssValue First = "first";
+    public static readonly CssKeyword First = "first";
 
     /// <summary><c>flex-end</c>：贴向 flex 轴的终点；在非 flex 容器中等同 <c>end</c>。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：贴向 flex 轴的起点；在非 flex 容器中等同 <c>start</c>。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>last</c>：与 <c>baseline</c> 搭配（<c>last baseline</c>）：以最后一行文字的基线对齐；无法基线对齐时回退为末端对齐。</summary>
-    public static readonly CssValue Last = "last";
+    public static readonly CssKeyword Last = "last";
 
     /// <summary><c>left</c>：内容靠容器的物理左侧，不受书写方向影响；轴向不是水平方向时退化为 <c>start</c>。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>normal</c>：按布局模式取默认行为：Flex 和 Grid 容器中表现为 <c>stretch</c>，块布局中表现为 <c>start</c>。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>right</c>：内容靠容器的物理右侧，不受书写方向影响；轴向不是水平方向时退化为 <c>end</c>。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>safe</c>：若按指定方式对齐会使内容溢出对齐容器，就改用 <c>start</c> 对齐，避免内容跑到不可达的区域；需写在对齐关键字前面。</summary>
-    public static readonly CssValue Safe = "safe";
+    public static readonly CssKeyword Safe = "safe";
 
     /// <summary><c>space-around</c>：每项两侧分得相等的空白，因此项之间的间距是两端与容器边缘间距的两倍。</summary>
-    public static readonly CssValue SpaceAround = "space-around";
+    public static readonly CssKeyword SpaceAround = "space-around";
 
     /// <summary><c>space-between</c>：首尾两项贴紧容器两端，剩余空间平均分配到各项之间。</summary>
-    public static readonly CssValue SpaceBetween = "space-between";
+    public static readonly CssKeyword SpaceBetween = "space-between";
 
     /// <summary><c>space-evenly</c>：所有间距完全相等，包括首尾两项与容器边缘之间的间距。</summary>
-    public static readonly CssValue SpaceEvenly = "space-evenly";
+    public static readonly CssKeyword SpaceEvenly = "space-evenly";
 
     /// <summary><c>start</c>：各项贴向容器在该方向上的起始边，起始边由书写模式和方向决定。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：把剩余空间平均分给尺寸为 <c>auto</c> 的项，使它们被拉伸以占满容器。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe</c>：无论是否溢出，都严格按指定方式对齐；内容溢出时可能超出容器起始侧，导致无法滚动到。</summary>
-    public static readonly CssValue Unsafe = "unsafe";
+    public static readonly CssKeyword Unsafe = "unsafe";
 }
 
 /// <summary><c>place-items</c> 的关键字取值；类型与 <see cref="Style.PlaceItems"/> 一致，可直接赋值。</summary>
 public static class PlaceItems
 {
     /// <summary><c>anchor-center</c>：把项目在对齐轴上与其默认锚点元素的中心对齐；仅用于锚点定位的绝对定位元素。</summary>
-    public static readonly CssValue AnchorCenter = "anchor-center";
+    public static readonly CssKeyword AnchorCenter = "anchor-center";
 
     /// <summary><c>baseline</c>：按首行文字的基线与同组其他项对齐；单独使用等同 <c>first baseline</c>。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>center</c>：将项目在对齐容器内居中。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：对齐到对齐容器的结束侧，方向取自容器的书写模式。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>first</c>：与 <c>baseline</c> 搭配（<c>first baseline</c>）：以第一行文字的基线对齐，单写 <c>baseline</c> 与其等效。</summary>
-    public static readonly CssValue First = "first";
+    public static readonly CssKeyword First = "first";
 
     /// <summary><c>flex-end</c>：在 Flex 布局中对齐到对应轴的结束侧，随 Flex 方向变化；在其他布局中等同于 <c>end</c>。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：在 Flex 布局中对齐到对应轴的起始侧，随 Flex 方向变化；在其他布局中等同于 <c>start</c>。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>last</c>：与 <c>baseline</c> 搭配（<c>last baseline</c>）：以最后一行文字的基线对齐；无法基线对齐时回退为末端对齐。</summary>
-    public static readonly CssValue Last = "last";
+    public static readonly CssKeyword Last = "last";
 
     /// <summary><c>left</c>：项目靠所在区域的物理左侧，不受书写方向影响。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>legacy</c>：兼容 HTML 旧版 <c>align</c> 属性的值：单独使用时表现同 <c>normal</c>；与 <c>left</c>、<c>right</c>、<c>center</c> 组合时，该对齐可被后代元素继承。</summary>
-    public static readonly CssValue Legacy = "legacy";
+    public static readonly CssKeyword Legacy = "legacy";
 
     /// <summary><c>normal</c>：由布局模式决定行为，许多场景类似 stretch，但存在内部尺寸等例外。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>right</c>：项目靠所在区域的物理右侧，不受书写方向影响。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>safe</c>：若按指定方式对齐会使内容溢出对齐容器，就改用 <c>start</c> 对齐，避免内容跑到不可达的区域；需写在对齐关键字前面。</summary>
-    public static readonly CssValue Safe = "safe";
+    public static readonly CssKeyword Safe = "safe";
 
     /// <summary><c>self-end</c>：对齐到项目自身书写模式的结束侧；项目与容器书写方向不同时，结果与 <c>end</c> 不同。</summary>
-    public static readonly CssValue SelfEnd = "self-end";
+    public static readonly CssKeyword SelfEnd = "self-end";
 
     /// <summary><c>self-start</c>：对齐到项目自身书写模式的起始侧；项目与容器书写方向不同时，结果与 <c>start</c> 不同。</summary>
-    public static readonly CssValue SelfStart = "self-start";
+    public static readonly CssKeyword SelfStart = "self-start";
 
     /// <summary><c>start</c>：对齐到对齐容器的起始侧，方向取自容器的书写模式。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：在自动尺寸及最小/最大约束允许时拉伸项目，不强制覆盖显式尺寸。项目在对齐轴有显式尺寸或受最小/最大尺寸约束时，不一定填满可用区域。center 保持项目尺寸并居中；stretch 尝试扩大自动尺寸。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe</c>：无论是否溢出，都严格按指定方式对齐；内容溢出时可能超出容器起始侧，导致无法滚动到。</summary>
-    public static readonly CssValue Unsafe = "unsafe";
+    public static readonly CssKeyword Unsafe = "unsafe";
 }
 
 /// <summary><c>place-self</c> 的关键字取值；类型与 <see cref="Style.PlaceSelf"/> 一致，可直接赋值。</summary>
 public static class PlaceSelf
 {
     /// <summary><c>anchor-center</c>：让锚点定位的元素在该轴上与其锚点元素居中对齐，需配合 <c>positionAnchor</c> 等锚点定位属性使用。</summary>
-    public static readonly CssValue AnchorCenter = "anchor-center";
+    public static readonly CssKeyword AnchorCenter = "anchor-center";
 
     /// <summary><c>auto</c>：使用父容器的 align-items 对齐方式。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>baseline</c>：按首行文字的基线与同组其他项对齐；单独使用等同 <c>first baseline</c>。</summary>
-    public static readonly CssValue Baseline = "baseline";
+    public static readonly CssKeyword Baseline = "baseline";
 
     /// <summary><c>center</c>：将项目在对齐容器内居中。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：对齐到对齐容器的结束侧，方向取自容器的书写模式。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>first</c>：与 <c>baseline</c> 搭配（<c>first baseline</c>）：以第一行文字的基线对齐，单写 <c>baseline</c> 与其等效。</summary>
-    public static readonly CssValue First = "first";
+    public static readonly CssKeyword First = "first";
 
     /// <summary><c>flex-end</c>：在 Flex 布局中对齐到对应轴的结束侧，随 Flex 方向变化；在其他布局中等同于 <c>end</c>。</summary>
-    public static readonly CssValue FlexEnd = "flex-end";
+    public static readonly CssKeyword FlexEnd = "flex-end";
 
     /// <summary><c>flex-start</c>：在 Flex 布局中对齐到对应轴的起始侧，随 Flex 方向变化；在其他布局中等同于 <c>start</c>。</summary>
-    public static readonly CssValue FlexStart = "flex-start";
+    public static readonly CssKeyword FlexStart = "flex-start";
 
     /// <summary><c>last</c>：与 <c>baseline</c> 搭配（<c>last baseline</c>）：以最后一行文字的基线对齐；无法基线对齐时回退为末端对齐。</summary>
-    public static readonly CssValue Last = "last";
+    public static readonly CssKeyword Last = "last";
 
     /// <summary><c>left</c>：项目靠所在区域的物理左侧，不受书写方向影响。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>normal</c>：采用当前布局模式的默认对齐行为，在 Flex 和 Grid 中通常等同于 <c>stretch</c>。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>right</c>：项目靠所在区域的物理右侧，不受书写方向影响。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>safe</c>：若按指定方式对齐会使内容溢出对齐容器，就改用 <c>start</c> 对齐，避免内容跑到不可达的区域；需写在对齐关键字前面。</summary>
-    public static readonly CssValue Safe = "safe";
+    public static readonly CssKeyword Safe = "safe";
 
     /// <summary><c>self-end</c>：对齐到项目自身书写模式的结束侧；项目与容器书写方向不同时，结果与 <c>end</c> 不同。</summary>
-    public static readonly CssValue SelfEnd = "self-end";
+    public static readonly CssKeyword SelfEnd = "self-end";
 
     /// <summary><c>self-start</c>：对齐到项目自身书写模式的起始侧；项目与容器书写方向不同时，结果与 <c>start</c> 不同。</summary>
-    public static readonly CssValue SelfStart = "self-start";
+    public static readonly CssKeyword SelfStart = "self-start";
 
     /// <summary><c>start</c>：对齐到对齐容器的起始侧，方向取自容器的书写模式。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>stretch</c>：在自动尺寸和最小/最大约束允许时拉伸当前项目。</summary>
-    public static readonly CssValue Stretch = "stretch";
+    public static readonly CssKeyword Stretch = "stretch";
 
     /// <summary><c>unsafe</c>：无论是否溢出，都严格按指定方式对齐；内容溢出时可能超出容器起始侧，导致无法滚动到。</summary>
-    public static readonly CssValue Unsafe = "unsafe";
+    public static readonly CssKeyword Unsafe = "unsafe";
 }
 
 /// <summary><c>pointer-events</c> 的关键字取值；类型与 <see cref="Style.PointerEvents"/> 一致，可直接赋值。</summary>
 public static class PointerEvents
 {
     /// <summary><c>all</c>：填充区和描边区都可成为命中目标，不看 <c>fill</c>、<c>stroke</c> 是否为 <c>none</c>，也不看 <c>visibility</c>。仅对 SVG 有意义。</summary>
-    public static readonly CssValue All = "all";
+    public static readonly CssKeyword All = "all";
 
     /// <summary><c>auto</c>：采用当前元素类型的默认命中规则。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>fill</c>：填充区可成为命中目标，不看 <c>fill</c> 的取值和 <c>visibility</c>；描边区不命中。仅对 SVG 有意义。</summary>
-    public static readonly CssValue Fill = "fill";
+    public static readonly CssKeyword Fill = "fill";
 
     /// <summary><c>none</c>：元素本身不成为指针命中目标；不等于禁用，仍可能通过 Tab 获焦，后代也可恢复命中。后代可以恢复命中；来自后代的事件仍可能经过祖先监听器。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>painted</c>：仅当 <c>fill</c> 非 <c>none</c> 时填充区命中、<c>stroke</c> 非 <c>none</c> 时描边区命中，不看 <c>visibility</c>。仅对 SVG 有意义。</summary>
-    public static readonly CssValue Painted = "painted";
+    public static readonly CssKeyword Painted = "painted";
 
     /// <summary><c>stroke</c>：描边区可成为命中目标，不看 <c>stroke</c> 的取值和 <c>visibility</c>；填充区不命中。仅对 SVG 有意义。</summary>
-    public static readonly CssValue Stroke = "stroke";
+    public static readonly CssKeyword Stroke = "stroke";
 
     /// <summary><c>visible</c>：仅当 <c>visibility</c> 为 <c>visible</c> 时，填充区和描边区都可命中，不看 <c>fill</c>、<c>stroke</c> 的取值。仅对 SVG 有意义。</summary>
-    public static readonly CssValue Visible = "visible";
+    public static readonly CssKeyword Visible = "visible";
 
     /// <summary><c>visibleFill</c>：仅当 <c>visibility</c> 为 <c>visible</c> 时填充区可命中，不看 <c>fill</c> 的取值；描边区不命中。仅对 SVG 有意义。</summary>
-    public static readonly CssValue VisibleFill = "visibleFill";
+    public static readonly CssKeyword VisibleFill = "visibleFill";
 
     /// <summary><c>visiblePainted</c>：仅当 <c>visibility</c> 为 <c>visible</c> 时，<c>fill</c> 非 <c>none</c> 的填充区、<c>stroke</c> 非 <c>none</c> 的描边区可命中；等同 SVG 元素的 <c>auto</c>。</summary>
-    public static readonly CssValue VisiblePainted = "visiblePainted";
+    public static readonly CssKeyword VisiblePainted = "visiblePainted";
 
     /// <summary><c>visibleStroke</c>：仅当 <c>visibility</c> 为 <c>visible</c> 时描边区可命中，不看 <c>stroke</c> 的取值；填充区不命中。仅对 SVG 有意义。</summary>
-    public static readonly CssValue VisibleStroke = "visibleStroke";
+    public static readonly CssKeyword VisibleStroke = "visibleStroke";
 }
 
 /// <summary><c>position</c> 的关键字取值；类型与 <see cref="Style.Position"/> 一致，可直接赋值。</summary>
 public static class Position
 {
     /// <summary><c>absolute</c>：脱离普通文档流，按包含块定位；包含块通常由定位祖先或 transform 等属性建立。通常在预期的容器上设置 position:relative；元素不为自己保留普通流占位。</summary>
-    public static readonly CssValue Absolute = "absolute";
+    public static readonly CssKeyword Absolute = "absolute";
 
     /// <summary><c>fixed</c>：脱离普通流，通常相对视口固定；某些祖先属性会建立不同的包含块。祖先的 transform 等属性可能改变固定定位的包含块；z-index 仍受层叠上下文约束。absolute 通常跟随其包含块滚动；fixed 在以视口为包含块时保持视口位置。</summary>
-    public static readonly CssValue Fixed = "fixed";
+    public static readonly CssKeyword Fixed = "fixed";
 
     /// <summary><c>relative</c>：保留普通流中的原位置，再按偏移移动绘制位置；不会为偏移后的区域重新排版。absolute 会脱离普通流；relative 仍保留原占位。</summary>
-    public static readonly CssValue Relative = "relative";
+    public static readonly CssKeyword Relative = "relative";
 
     /// <summary><c>static</c>：参与普通文档流，top/right/bottom/left 等定位偏移不生效。</summary>
-    public static readonly CssValue Static = "static";
+    public static readonly CssKeyword Static = "static";
 
     /// <summary><c>sticky</c>：保留流内位置，在滚动范围内按 inset 约束吸附。对应轴至少一个 inset 须非 auto，并受滚动祖先和包含块限制。对应轴至少一个 inset 必须非 auto；祖先 overflow 可能改变滚动参照。与 fixed 不同，它保留流内占位，并受自身所在包含块的范围约束。</summary>
-    public static readonly CssValue Sticky = "sticky";
+    public static readonly CssKeyword Sticky = "sticky";
 }
 
 /// <summary><c>position-anchor</c> 的关键字取值；类型与 <see cref="Style.PositionAnchor"/> 一致，可直接赋值。</summary>
 public static class PositionAnchor
 {
     /// <summary><c>auto</c>：使用元素的隐式锚点作为默认锚点，例如 popover 的触发元素。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>match-parent</c>：默认锚点沿用父元素 <c>position-anchor</c> 的计算结果，较新，使用前核对浏览器支持。</summary>
-    public static readonly CssValue MatchParent = "match-parent";
+    public static readonly CssKeyword MatchParent = "match-parent";
 
     /// <summary><c>none</c>：元素没有默认锚点，也不使用隐式锚点。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：初始值，不指定显式锚点；默认锚点由规范的隐式锚点规则决定，不同上下文下行为有差异。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>position-area</c> 的关键字取值；类型与 <see cref="Style.PositionArea"/> 一致，可直接赋值。</summary>
 public static class PositionArea
 {
     /// <summary><c>block-end</c>：取块方向的结束侧（行或列），按包含块的书写模式；横排文字下是下方一行。</summary>
-    public static readonly CssValue BlockEnd = "block-end";
+    public static readonly CssKeyword BlockEnd = "block-end";
 
     /// <summary><c>block-start</c>：取块方向的起始侧（行或列），按包含块的书写模式；横排文字下是上方一行。</summary>
-    public static readonly CssValue BlockStart = "block-start";
+    public static readonly CssKeyword BlockStart = "block-start";
 
     /// <summary><c>bottom</c>：取网格最下面一行，即锚点下方的区域。</summary>
-    public static readonly CssValue Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：取中间一行或一列，与锚点在该方向上的范围对齐；单独使用时水平和垂直都取中间格。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>inline-end</c>：取行内方向的结束侧（行或列），按包含块的书写模式；从左到右时是右侧一列。</summary>
-    public static readonly CssValue InlineEnd = "inline-end";
+    public static readonly CssKeyword InlineEnd = "inline-end";
 
     /// <summary><c>inline-start</c>：取行内方向的起始侧（行或列），按包含块的书写模式；从左到右时是左侧一列。</summary>
-    public static readonly CssValue InlineStart = "inline-start";
+    public static readonly CssKeyword InlineStart = "inline-start";
 
     /// <summary><c>left</c>：取网格最左一列，即锚点左侧的区域。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：取网格最右一列，即锚点右侧的区域。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>span-block-end</c>：跨越中间和块方向结束侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanBlockEnd = "span-block-end";
+    public static readonly CssKeyword SpanBlockEnd = "span-block-end";
 
     /// <summary><c>span-block-start</c>：跨越中间和块方向起始侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanBlockStart = "span-block-start";
+    public static readonly CssKeyword SpanBlockStart = "span-block-start";
 
     /// <summary><c>span-inline-end</c>：跨越中间和行内方向结束侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanInlineEnd = "span-inline-end";
+    public static readonly CssKeyword SpanInlineEnd = "span-inline-end";
 
     /// <summary><c>span-inline-start</c>：跨越中间和行内方向起始侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanInlineStart = "span-inline-start";
+    public static readonly CssKeyword SpanInlineStart = "span-inline-start";
 
     /// <summary><c>top</c>：取网格最上面一行，即锚点上方的区域。</summary>
-    public static readonly CssValue Top = "top";
+    public static readonly CssKeyword Top = "top";
 }
 
 /// <summary><c>position-try</c> 的关键字取值；类型与 <see cref="Style.PositionTry"/> 一致，可直接赋值。</summary>
 public static class PositionTry
 {
     /// <summary><c>block-end</c>：取块方向的结束侧（行或列），按包含块的书写模式；横排文字下是下方一行。</summary>
-    public static readonly CssValue BlockEnd = "block-end";
+    public static readonly CssKeyword BlockEnd = "block-end";
 
     /// <summary><c>block-start</c>：取块方向的起始侧（行或列），按包含块的书写模式；横排文字下是上方一行。</summary>
-    public static readonly CssValue BlockStart = "block-start";
+    public static readonly CssKeyword BlockStart = "block-start";
 
     /// <summary><c>bottom</c>：取网格最下面一行，即锚点下方的区域。</summary>
-    public static readonly CssValue Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：取中间一行或一列，与锚点在该方向上的范围对齐；单独使用时水平和垂直都取中间格。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：取结束侧的格子，按包含块的书写模式；所属方向由搭配的另一个关键字决定，单独使用时两个方向都取结束侧。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>flip-block</c>：沿块方向翻转位置，例如把元素从锚点上方换到下方。</summary>
-    public static readonly CssValue FlipBlock = "flip-block";
+    public static readonly CssKeyword FlipBlock = "flip-block";
 
     /// <summary><c>flip-inline</c>：沿行内方向翻转位置，例如把元素从锚点左侧换到右侧。</summary>
-    public static readonly CssValue FlipInline = "flip-inline";
+    public static readonly CssKeyword FlipInline = "flip-inline";
 
     /// <summary><c>flip-start</c>：沿对角线翻转：交换块方向和行内方向的起始侧，例如 <c>top</c> 与 <c>left</c> 对调。</summary>
-    public static readonly CssValue FlipStart = "flip-start";
+    public static readonly CssKeyword FlipStart = "flip-start";
 
     /// <summary><c>inline-end</c>：取行内方向的结束侧（行或列），按包含块的书写模式；从左到右时是右侧一列。</summary>
-    public static readonly CssValue InlineEnd = "inline-end";
+    public static readonly CssKeyword InlineEnd = "inline-end";
 
     /// <summary><c>inline-start</c>：取行内方向的起始侧（行或列），按包含块的书写模式；从左到右时是左侧一列。</summary>
-    public static readonly CssValue InlineStart = "inline-start";
+    public static readonly CssKeyword InlineStart = "inline-start";
 
     /// <summary><c>left</c>：取网格最左一列，即锚点左侧的区域。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>most-block-size</c>：在候选回退位置中选块方向可用尺寸最大的那个，横排文字下即高度；用于 <c>position-try-order</c>。</summary>
-    public static readonly CssValue MostBlockSize = "most-block-size";
+    public static readonly CssKeyword MostBlockSize = "most-block-size";
 
     /// <summary><c>most-height</c>：在候选回退位置中选能给元素提供最大高度的那个；用于 <c>position-try-order</c>。</summary>
-    public static readonly CssValue MostHeight = "most-height";
+    public static readonly CssKeyword MostHeight = "most-height";
 
     /// <summary><c>most-inline-size</c>：在候选回退位置中选行内方向可用尺寸最大的那个，横排文字下即宽度；用于 <c>position-try-order</c>。</summary>
-    public static readonly CssValue MostInlineSize = "most-inline-size";
+    public static readonly CssKeyword MostInlineSize = "most-inline-size";
 
     /// <summary><c>most-width</c>：在候选回退位置中选能给元素提供最大宽度的那个；用于 <c>position-try-order</c>。</summary>
-    public static readonly CssValue MostWidth = "most-width";
+    public static readonly CssKeyword MostWidth = "most-width";
 
     /// <summary><c>none</c>：不提供备用位置方案，元素溢出时也不会自动换位。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：不调整尝试顺序，按 <c>position-try-fallbacks</c> 列出的顺序依次尝试，采用第一个不溢出的方案。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>right</c>：取网格最右一列，即锚点右侧的区域。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>self-block-end</c>：取块方向的结束侧，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue SelfBlockEnd = "self-block-end";
+    public static readonly CssKeyword SelfBlockEnd = "self-block-end";
 
     /// <summary><c>self-block-start</c>：取块方向的起始侧，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue SelfBlockStart = "self-block-start";
+    public static readonly CssKeyword SelfBlockStart = "self-block-start";
 
     /// <summary><c>self-end</c>：取结束侧的格子，按元素自身的书写模式；所属方向由搭配的另一个关键字决定，单独使用时两个方向都取结束侧。</summary>
-    public static readonly CssValue SelfEnd = "self-end";
+    public static readonly CssKeyword SelfEnd = "self-end";
 
     /// <summary><c>self-inline-end</c>：取行内方向的结束侧，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue SelfInlineEnd = "self-inline-end";
+    public static readonly CssKeyword SelfInlineEnd = "self-inline-end";
 
     /// <summary><c>self-inline-start</c>：取行内方向的起始侧，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue SelfInlineStart = "self-inline-start";
+    public static readonly CssKeyword SelfInlineStart = "self-inline-start";
 
     /// <summary><c>self-start</c>：取起始侧的格子，按元素自身的书写模式；所属方向由搭配的另一个关键字决定，单独使用时两个方向都取起始侧。</summary>
-    public static readonly CssValue SelfStart = "self-start";
+    public static readonly CssKeyword SelfStart = "self-start";
 
     /// <summary><c>span-all</c>：跨越该方向上的全部三格，即包含块在该方向的整个范围；单独使用时两个方向都铺满。</summary>
-    public static readonly CssValue SpanAll = "span-all";
+    public static readonly CssKeyword SpanAll = "span-all";
 
     /// <summary><c>span-block-end</c>：跨越中间和块方向结束侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanBlockEnd = "span-block-end";
+    public static readonly CssKeyword SpanBlockEnd = "span-block-end";
 
     /// <summary><c>span-block-start</c>：跨越中间和块方向起始侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanBlockStart = "span-block-start";
+    public static readonly CssKeyword SpanBlockStart = "span-block-start";
 
     /// <summary><c>span-bottom</c>：跨越中间行和下行两格，从锚点上边缘延伸到包含块下边缘。</summary>
-    public static readonly CssValue SpanBottom = "span-bottom";
+    public static readonly CssKeyword SpanBottom = "span-bottom";
 
     /// <summary><c>span-end</c>：跨越中间和结束侧两格，按包含块的书写模式；所属方向由搭配的另一个关键字决定。</summary>
-    public static readonly CssValue SpanEnd = "span-end";
+    public static readonly CssKeyword SpanEnd = "span-end";
 
     /// <summary><c>span-inline-end</c>：跨越中间和行内方向结束侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanInlineEnd = "span-inline-end";
+    public static readonly CssKeyword SpanInlineEnd = "span-inline-end";
 
     /// <summary><c>span-inline-start</c>：跨越中间和行内方向起始侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanInlineStart = "span-inline-start";
+    public static readonly CssKeyword SpanInlineStart = "span-inline-start";
 
     /// <summary><c>span-left</c>：跨越左列和中间列两格，从包含块左边缘延伸到锚点右边缘。</summary>
-    public static readonly CssValue SpanLeft = "span-left";
+    public static readonly CssKeyword SpanLeft = "span-left";
 
     /// <summary><c>span-right</c>：跨越中间列和右列两格，从锚点左边缘延伸到包含块右边缘。</summary>
-    public static readonly CssValue SpanRight = "span-right";
+    public static readonly CssKeyword SpanRight = "span-right";
 
     /// <summary><c>span-self-block-end</c>：跨越中间和块方向结束侧两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanSelfBlockEnd = "span-self-block-end";
+    public static readonly CssKeyword SpanSelfBlockEnd = "span-self-block-end";
 
     /// <summary><c>span-self-block-start</c>：跨越中间和块方向起始侧两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanSelfBlockStart = "span-self-block-start";
+    public static readonly CssKeyword SpanSelfBlockStart = "span-self-block-start";
 
     /// <summary><c>span-self-end</c>：跨越中间和结束侧两格，按元素自身的书写模式；所属方向由搭配的另一个关键字决定。</summary>
-    public static readonly CssValue SpanSelfEnd = "span-self-end";
+    public static readonly CssKeyword SpanSelfEnd = "span-self-end";
 
     /// <summary><c>span-self-inline-end</c>：跨越中间和行内方向结束侧两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanSelfInlineEnd = "span-self-inline-end";
+    public static readonly CssKeyword SpanSelfInlineEnd = "span-self-inline-end";
 
     /// <summary><c>span-self-inline-start</c>：跨越中间和行内方向起始侧两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanSelfInlineStart = "span-self-inline-start";
+    public static readonly CssKeyword SpanSelfInlineStart = "span-self-inline-start";
 
     /// <summary><c>span-self-start</c>：跨越中间和起始侧两格，按元素自身的书写模式；所属方向由搭配的另一个关键字决定。</summary>
-    public static readonly CssValue SpanSelfStart = "span-self-start";
+    public static readonly CssKeyword SpanSelfStart = "span-self-start";
 
     /// <summary><c>span-start</c>：跨越中间和起始侧两格，按包含块的书写模式；所属方向由搭配的另一个关键字决定。</summary>
-    public static readonly CssValue SpanStart = "span-start";
+    public static readonly CssKeyword SpanStart = "span-start";
 
     /// <summary><c>span-top</c>：跨越上行和中间行两格，从包含块上边缘延伸到锚点下边缘。</summary>
-    public static readonly CssValue SpanTop = "span-top";
+    public static readonly CssKeyword SpanTop = "span-top";
 
     /// <summary><c>span-x-end</c>：跨越中间列和水平结束列两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanXEnd = "span-x-end";
+    public static readonly CssKeyword SpanXEnd = "span-x-end";
 
     /// <summary><c>span-x-self-end</c>：跨越中间列和水平结束列两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanXSelfEnd = "span-x-self-end";
+    public static readonly CssKeyword SpanXSelfEnd = "span-x-self-end";
 
     /// <summary><c>span-x-self-start</c>：跨越中间列和水平起始列两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanXSelfStart = "span-x-self-start";
+    public static readonly CssKeyword SpanXSelfStart = "span-x-self-start";
 
     /// <summary><c>span-x-start</c>：跨越中间列和水平起始列两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanXStart = "span-x-start";
+    public static readonly CssKeyword SpanXStart = "span-x-start";
 
     /// <summary><c>span-y-end</c>：跨越中间行和垂直结束行两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanYEnd = "span-y-end";
+    public static readonly CssKeyword SpanYEnd = "span-y-end";
 
     /// <summary><c>span-y-self-end</c>：跨越中间行和垂直结束行两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanYSelfEnd = "span-y-self-end";
+    public static readonly CssKeyword SpanYSelfEnd = "span-y-self-end";
 
     /// <summary><c>span-y-self-start</c>：跨越中间行和垂直起始行两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanYSelfStart = "span-y-self-start";
+    public static readonly CssKeyword SpanYSelfStart = "span-y-self-start";
 
     /// <summary><c>span-y-start</c>：跨越中间行和垂直起始行两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanYStart = "span-y-start";
+    public static readonly CssKeyword SpanYStart = "span-y-start";
 
     /// <summary><c>start</c>：取起始侧的格子，按包含块的书写模式；所属方向由搭配的另一个关键字决定，单独使用时两个方向都取起始侧。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>top</c>：取网格最上面一行，即锚点上方的区域。</summary>
-    public static readonly CssValue Top = "top";
+    public static readonly CssKeyword Top = "top";
 
     /// <summary><c>x-end</c>：取水平方向的结束列，按包含块的书写模式；从左到右时是右列，从右到左时是左列。</summary>
-    public static readonly CssValue XEnd = "x-end";
+    public static readonly CssKeyword XEnd = "x-end";
 
     /// <summary><c>x-self-end</c>：取水平方向的结束列，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue XSelfEnd = "x-self-end";
+    public static readonly CssKeyword XSelfEnd = "x-self-end";
 
     /// <summary><c>x-self-start</c>：取水平方向的起始列，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue XSelfStart = "x-self-start";
+    public static readonly CssKeyword XSelfStart = "x-self-start";
 
     /// <summary><c>x-start</c>：取水平方向的起始列，按包含块的书写模式；从左到右时是左列，从右到左时是右列。</summary>
-    public static readonly CssValue XStart = "x-start";
+    public static readonly CssKeyword XStart = "x-start";
 
     /// <summary><c>y-end</c>：取垂直方向的结束行，按包含块的书写模式；横排文字下是下方一行。</summary>
-    public static readonly CssValue YEnd = "y-end";
+    public static readonly CssKeyword YEnd = "y-end";
 
     /// <summary><c>y-self-end</c>：取垂直方向的结束行，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue YSelfEnd = "y-self-end";
+    public static readonly CssKeyword YSelfEnd = "y-self-end";
 
     /// <summary><c>y-self-start</c>：取垂直方向的起始行，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue YSelfStart = "y-self-start";
+    public static readonly CssKeyword YSelfStart = "y-self-start";
 
     /// <summary><c>y-start</c>：取垂直方向的起始行，按包含块的书写模式；横排文字下是上方一行。</summary>
-    public static readonly CssValue YStart = "y-start";
+    public static readonly CssKeyword YStart = "y-start";
 }
 
 /// <summary><c>position-try-fallbacks</c> 的关键字取值；类型与 <see cref="Style.PositionTryFallbacks"/> 一致，可直接赋值。</summary>
 public static class PositionTryFallbacks
 {
     /// <summary><c>block-end</c>：取块方向的结束侧（行或列），按包含块的书写模式；横排文字下是下方一行。</summary>
-    public static readonly CssValue BlockEnd = "block-end";
+    public static readonly CssKeyword BlockEnd = "block-end";
 
     /// <summary><c>block-start</c>：取块方向的起始侧（行或列），按包含块的书写模式；横排文字下是上方一行。</summary>
-    public static readonly CssValue BlockStart = "block-start";
+    public static readonly CssKeyword BlockStart = "block-start";
 
     /// <summary><c>bottom</c>：取网格最下面一行，即锚点下方的区域。</summary>
-    public static readonly CssValue Bottom = "bottom";
+    public static readonly CssKeyword Bottom = "bottom";
 
     /// <summary><c>center</c>：取中间一行或一列，与锚点在该方向上的范围对齐；单独使用时水平和垂直都取中间格。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：取结束侧的格子，按包含块的书写模式；所属方向由搭配的另一个关键字决定，单独使用时两个方向都取结束侧。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>flip-block</c>：沿块方向翻转位置，例如把元素从锚点上方换到下方。</summary>
-    public static readonly CssValue FlipBlock = "flip-block";
+    public static readonly CssKeyword FlipBlock = "flip-block";
 
     /// <summary><c>flip-inline</c>：沿行内方向翻转位置，例如把元素从锚点左侧换到右侧。</summary>
-    public static readonly CssValue FlipInline = "flip-inline";
+    public static readonly CssKeyword FlipInline = "flip-inline";
 
     /// <summary><c>flip-start</c>：沿对角线翻转：交换块方向和行内方向的起始侧，例如 <c>top</c> 与 <c>left</c> 对调。</summary>
-    public static readonly CssValue FlipStart = "flip-start";
+    public static readonly CssKeyword FlipStart = "flip-start";
 
     /// <summary><c>inline-end</c>：取行内方向的结束侧（行或列），按包含块的书写模式；从左到右时是右侧一列。</summary>
-    public static readonly CssValue InlineEnd = "inline-end";
+    public static readonly CssKeyword InlineEnd = "inline-end";
 
     /// <summary><c>inline-start</c>：取行内方向的起始侧（行或列），按包含块的书写模式；从左到右时是左侧一列。</summary>
-    public static readonly CssValue InlineStart = "inline-start";
+    public static readonly CssKeyword InlineStart = "inline-start";
 
     /// <summary><c>left</c>：取网格最左一列，即锚点左侧的区域。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>none</c>：不提供备用位置方案，元素溢出时也不会自动换位。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>right</c>：取网格最右一列，即锚点右侧的区域。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>self-block-end</c>：取块方向的结束侧，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue SelfBlockEnd = "self-block-end";
+    public static readonly CssKeyword SelfBlockEnd = "self-block-end";
 
     /// <summary><c>self-block-start</c>：取块方向的起始侧，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue SelfBlockStart = "self-block-start";
+    public static readonly CssKeyword SelfBlockStart = "self-block-start";
 
     /// <summary><c>self-end</c>：取结束侧的格子，按元素自身的书写模式；所属方向由搭配的另一个关键字决定，单独使用时两个方向都取结束侧。</summary>
-    public static readonly CssValue SelfEnd = "self-end";
+    public static readonly CssKeyword SelfEnd = "self-end";
 
     /// <summary><c>self-inline-end</c>：取行内方向的结束侧，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue SelfInlineEnd = "self-inline-end";
+    public static readonly CssKeyword SelfInlineEnd = "self-inline-end";
 
     /// <summary><c>self-inline-start</c>：取行内方向的起始侧，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue SelfInlineStart = "self-inline-start";
+    public static readonly CssKeyword SelfInlineStart = "self-inline-start";
 
     /// <summary><c>self-start</c>：取起始侧的格子，按元素自身的书写模式；所属方向由搭配的另一个关键字决定，单独使用时两个方向都取起始侧。</summary>
-    public static readonly CssValue SelfStart = "self-start";
+    public static readonly CssKeyword SelfStart = "self-start";
 
     /// <summary><c>span-all</c>：跨越该方向上的全部三格，即包含块在该方向的整个范围；单独使用时两个方向都铺满。</summary>
-    public static readonly CssValue SpanAll = "span-all";
+    public static readonly CssKeyword SpanAll = "span-all";
 
     /// <summary><c>span-block-end</c>：跨越中间和块方向结束侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanBlockEnd = "span-block-end";
+    public static readonly CssKeyword SpanBlockEnd = "span-block-end";
 
     /// <summary><c>span-block-start</c>：跨越中间和块方向起始侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanBlockStart = "span-block-start";
+    public static readonly CssKeyword SpanBlockStart = "span-block-start";
 
     /// <summary><c>span-bottom</c>：跨越中间行和下行两格，从锚点上边缘延伸到包含块下边缘。</summary>
-    public static readonly CssValue SpanBottom = "span-bottom";
+    public static readonly CssKeyword SpanBottom = "span-bottom";
 
     /// <summary><c>span-end</c>：跨越中间和结束侧两格，按包含块的书写模式；所属方向由搭配的另一个关键字决定。</summary>
-    public static readonly CssValue SpanEnd = "span-end";
+    public static readonly CssKeyword SpanEnd = "span-end";
 
     /// <summary><c>span-inline-end</c>：跨越中间和行内方向结束侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanInlineEnd = "span-inline-end";
+    public static readonly CssKeyword SpanInlineEnd = "span-inline-end";
 
     /// <summary><c>span-inline-start</c>：跨越中间和行内方向起始侧两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanInlineStart = "span-inline-start";
+    public static readonly CssKeyword SpanInlineStart = "span-inline-start";
 
     /// <summary><c>span-left</c>：跨越左列和中间列两格，从包含块左边缘延伸到锚点右边缘。</summary>
-    public static readonly CssValue SpanLeft = "span-left";
+    public static readonly CssKeyword SpanLeft = "span-left";
 
     /// <summary><c>span-right</c>：跨越中间列和右列两格，从锚点左边缘延伸到包含块右边缘。</summary>
-    public static readonly CssValue SpanRight = "span-right";
+    public static readonly CssKeyword SpanRight = "span-right";
 
     /// <summary><c>span-self-block-end</c>：跨越中间和块方向结束侧两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanSelfBlockEnd = "span-self-block-end";
+    public static readonly CssKeyword SpanSelfBlockEnd = "span-self-block-end";
 
     /// <summary><c>span-self-block-start</c>：跨越中间和块方向起始侧两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanSelfBlockStart = "span-self-block-start";
+    public static readonly CssKeyword SpanSelfBlockStart = "span-self-block-start";
 
     /// <summary><c>span-self-end</c>：跨越中间和结束侧两格，按元素自身的书写模式；所属方向由搭配的另一个关键字决定。</summary>
-    public static readonly CssValue SpanSelfEnd = "span-self-end";
+    public static readonly CssKeyword SpanSelfEnd = "span-self-end";
 
     /// <summary><c>span-self-inline-end</c>：跨越中间和行内方向结束侧两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanSelfInlineEnd = "span-self-inline-end";
+    public static readonly CssKeyword SpanSelfInlineEnd = "span-self-inline-end";
 
     /// <summary><c>span-self-inline-start</c>：跨越中间和行内方向起始侧两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanSelfInlineStart = "span-self-inline-start";
+    public static readonly CssKeyword SpanSelfInlineStart = "span-self-inline-start";
 
     /// <summary><c>span-self-start</c>：跨越中间和起始侧两格，按元素自身的书写模式；所属方向由搭配的另一个关键字决定。</summary>
-    public static readonly CssValue SpanSelfStart = "span-self-start";
+    public static readonly CssKeyword SpanSelfStart = "span-self-start";
 
     /// <summary><c>span-start</c>：跨越中间和起始侧两格，按包含块的书写模式；所属方向由搭配的另一个关键字决定。</summary>
-    public static readonly CssValue SpanStart = "span-start";
+    public static readonly CssKeyword SpanStart = "span-start";
 
     /// <summary><c>span-top</c>：跨越上行和中间行两格，从包含块上边缘延伸到锚点下边缘。</summary>
-    public static readonly CssValue SpanTop = "span-top";
+    public static readonly CssKeyword SpanTop = "span-top";
 
     /// <summary><c>span-x-end</c>：跨越中间列和水平结束列两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanXEnd = "span-x-end";
+    public static readonly CssKeyword SpanXEnd = "span-x-end";
 
     /// <summary><c>span-x-self-end</c>：跨越中间列和水平结束列两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanXSelfEnd = "span-x-self-end";
+    public static readonly CssKeyword SpanXSelfEnd = "span-x-self-end";
 
     /// <summary><c>span-x-self-start</c>：跨越中间列和水平起始列两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanXSelfStart = "span-x-self-start";
+    public static readonly CssKeyword SpanXSelfStart = "span-x-self-start";
 
     /// <summary><c>span-x-start</c>：跨越中间列和水平起始列两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanXStart = "span-x-start";
+    public static readonly CssKeyword SpanXStart = "span-x-start";
 
     /// <summary><c>span-y-end</c>：跨越中间行和垂直结束行两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanYEnd = "span-y-end";
+    public static readonly CssKeyword SpanYEnd = "span-y-end";
 
     /// <summary><c>span-y-self-end</c>：跨越中间行和垂直结束行两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanYSelfEnd = "span-y-self-end";
+    public static readonly CssKeyword SpanYSelfEnd = "span-y-self-end";
 
     /// <summary><c>span-y-self-start</c>：跨越中间行和垂直起始行两格，按元素自身的书写模式。</summary>
-    public static readonly CssValue SpanYSelfStart = "span-y-self-start";
+    public static readonly CssKeyword SpanYSelfStart = "span-y-self-start";
 
     /// <summary><c>span-y-start</c>：跨越中间行和垂直起始行两格，按包含块的书写模式。</summary>
-    public static readonly CssValue SpanYStart = "span-y-start";
+    public static readonly CssKeyword SpanYStart = "span-y-start";
 
     /// <summary><c>start</c>：取起始侧的格子，按包含块的书写模式；所属方向由搭配的另一个关键字决定，单独使用时两个方向都取起始侧。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 
     /// <summary><c>top</c>：取网格最上面一行，即锚点上方的区域。</summary>
-    public static readonly CssValue Top = "top";
+    public static readonly CssKeyword Top = "top";
 
     /// <summary><c>x-end</c>：取水平方向的结束列，按包含块的书写模式；从左到右时是右列，从右到左时是左列。</summary>
-    public static readonly CssValue XEnd = "x-end";
+    public static readonly CssKeyword XEnd = "x-end";
 
     /// <summary><c>x-self-end</c>：取水平方向的结束列，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue XSelfEnd = "x-self-end";
+    public static readonly CssKeyword XSelfEnd = "x-self-end";
 
     /// <summary><c>x-self-start</c>：取水平方向的起始列，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue XSelfStart = "x-self-start";
+    public static readonly CssKeyword XSelfStart = "x-self-start";
 
     /// <summary><c>x-start</c>：取水平方向的起始列，按包含块的书写模式；从左到右时是左列，从右到左时是右列。</summary>
-    public static readonly CssValue XStart = "x-start";
+    public static readonly CssKeyword XStart = "x-start";
 
     /// <summary><c>y-end</c>：取垂直方向的结束行，按包含块的书写模式；横排文字下是下方一行。</summary>
-    public static readonly CssValue YEnd = "y-end";
+    public static readonly CssKeyword YEnd = "y-end";
 
     /// <summary><c>y-self-end</c>：取垂直方向的结束行，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue YSelfEnd = "y-self-end";
+    public static readonly CssKeyword YSelfEnd = "y-self-end";
 
     /// <summary><c>y-self-start</c>：取垂直方向的起始行，按元素自身的书写模式，而不是包含块的。</summary>
-    public static readonly CssValue YSelfStart = "y-self-start";
+    public static readonly CssKeyword YSelfStart = "y-self-start";
 
     /// <summary><c>y-start</c>：取垂直方向的起始行，按包含块的书写模式；横排文字下是上方一行。</summary>
-    public static readonly CssValue YStart = "y-start";
+    public static readonly CssKeyword YStart = "y-start";
 }
 
 /// <summary><c>position-visibility</c> 的关键字取值；类型与 <see cref="Style.PositionVisibility"/> 一致，可直接赋值。</summary>
 public static class PositionVisibility
 {
     /// <summary><c>always</c>：始终显示元素，不因锚点状态或溢出而隐藏。</summary>
-    public static readonly CssValue Always = "always";
+    public static readonly CssKeyword Always = "always";
 
     /// <summary><c>anchors-visible</c>：默认锚点被包含块或滚动容器完全裁掉时隐藏元素，避免锚点看不见了浮层还留在原地。</summary>
-    public static readonly CssValue AnchorsVisible = "anchors-visible";
+    public static readonly CssKeyword AnchorsVisible = "anchors-visible";
 
     /// <summary><c>no-overflow</c>：尝试完 <c>position-try-fallbacks</c> 后元素仍溢出其包含块时，隐藏元素。</summary>
-    public static readonly CssValue NoOverflow = "no-overflow";
+    public static readonly CssKeyword NoOverflow = "no-overflow";
 }
 
 /// <summary><c>print-color-adjust</c> 的关键字取值；类型与 <see cref="Style.PrintColorAdjust"/> 一致，可直接赋值。</summary>
 public static class PrintColorAdjust
 {
     /// <summary><c>economy</c>：允许浏览器为节省墨水或提高可读性调整颜色，例如弱化背景色和背景图。</summary>
-    public static readonly CssValue Economy = "economy";
+    public static readonly CssKeyword Economy = "economy";
 
     /// <summary><c>exact</c>：要求按样式原样输出颜色和图像，不做节墨调整；适合颜色本身有含义的图表等内容。</summary>
-    public static readonly CssValue Exact = "exact";
+    public static readonly CssKeyword Exact = "exact";
 }
 
 /// <summary><c>quotes</c> 的关键字取值；类型与 <see cref="Style.Quotes"/> 一致，可直接赋值。</summary>
 public static class Quotes
 {
     /// <summary><c>auto</c>：按元素语言（<c>lang</c>）自动选用该语言的默认引号。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：<c>open-quote</c>、<c>close-quote</c> 不生成任何字符。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>resize</c> 的关键字取值；类型与 <see cref="Style.Resize"/> 一致，可直接赋值。</summary>
 public static class Resize
 {
     /// <summary><c>both</c>：用户可沿水平和垂直两个方向拖动调整尺寸。</summary>
-    public static readonly CssValue Both = "both";
+    public static readonly CssKeyword Both = "both";
 
     /// <summary><c>horizontal</c>：用户只能沿水平方向拖动，调整宽度。</summary>
-    public static readonly CssValue Horizontal = "horizontal";
+    public static readonly CssKeyword Horizontal = "horizontal";
 
     /// <summary><c>none</c>：不显示拖拽手柄，用户不能调整元素尺寸。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>vertical</c>：用户只能沿垂直方向拖动，调整高度。</summary>
-    public static readonly CssValue Vertical = "vertical";
+    public static readonly CssKeyword Vertical = "vertical";
 }
 
 /// <summary><c>rest</c> 的关键字取值；类型与 <see cref="Style.Rest"/> 一致，可直接赋值。</summary>
@@ -6324,258 +6391,258 @@ public static class Rotate
 public static class RubyAlign
 {
     /// <summary><c>center</c>：注音与基底中较短的一方在另一方范围内居中，两侧留出剩余空间。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>space-around</c>：较短一方的内容均匀分布，首尾各留半份间距，字符之间的间距是首尾的两倍。</summary>
-    public static readonly CssValue SpaceAround = "space-around";
+    public static readonly CssKeyword SpaceAround = "space-around";
 
     /// <summary><c>space-between</c>：较短一方的内容均匀分布，首尾贴边，剩余空间平分到字符之间。</summary>
-    public static readonly CssValue SpaceBetween = "space-between";
+    public static readonly CssKeyword SpaceBetween = "space-between";
 
     /// <summary><c>start</c>：较短一方靠起始侧对齐，剩余空间留在末端。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 }
 
 /// <summary><c>ruby-merge</c> 的关键字取值；类型与 <see cref="Style.RubyMerge"/> 一致，可直接赋值。</summary>
 public static class RubyMerge
 {
     /// <summary><c>auto</c>：是否合并由浏览器决定；目前浏览器基本未实现该属性。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>collapse</c>：把同一注音段内的多个注音容器合并为一个，跨越对应的全部基底。</summary>
-    public static readonly CssValue Collapse = "collapse";
+    public static readonly CssKeyword Collapse = "collapse";
 
     /// <summary><c>separate</c>：各注音容器保持独立，分别与对应的基底配对，不合并。</summary>
-    public static readonly CssValue Separate = "separate";
+    public static readonly CssKeyword Separate = "separate";
 }
 
 /// <summary><c>ruby-position</c> 的关键字取值；类型与 <see cref="Style.RubyPosition"/> 一致，可直接赋值。</summary>
 public static class RubyPosition
 {
     /// <summary><c>inter-character</c>：注音放在基底字符的旁侧而不是上下，主要用于台湾注音符号（Bopomofo）。</summary>
-    public static readonly CssValue InterCharacter = "inter-character";
+    public static readonly CssKeyword InterCharacter = "inter-character";
 
     /// <summary><c>over</c>：注音放在基底上方；竖排时在右侧。</summary>
-    public static readonly CssValue Over = "over";
+    public static readonly CssKeyword Over = "over";
 
     /// <summary><c>under</c>：注音放在基底下方；竖排时在左侧。</summary>
-    public static readonly CssValue Under = "under";
+    public static readonly CssKeyword Under = "under";
 }
 
 /// <summary><c>scroll-behavior</c> 的关键字取值；类型与 <see cref="Style.ScrollBehavior"/> 一致，可直接赋值。</summary>
 public static class ScrollBehavior
 {
     /// <summary><c>auto</c>：滚动立即跳到目标位置，没有动画。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>smooth</c>：锚点跳转、<c>scrollTo</c> 等触发的滚动使用平滑动画；用户手动滚动不受影响。</summary>
-    public static readonly CssValue Smooth = "smooth";
+    public static readonly CssKeyword Smooth = "smooth";
 }
 
 /// <summary><c>scroll-snap-align</c> 的关键字取值；类型与 <see cref="Style.ScrollSnapAlign"/> 一致，可直接赋值。</summary>
 public static class ScrollSnapAlign
 {
     /// <summary><c>center</c>：元素中心与滚动容器吸附区域的中心对齐。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：元素末端边缘与吸附区域的末端边缘对齐。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>none</c>：该轴上元素不产生吸附位置。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>start</c>：元素起始边缘与吸附区域的起始边缘对齐。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 }
 
 /// <summary><c>scroll-snap-stop</c> 的关键字取值；类型与 <see cref="Style.ScrollSnapStop"/> 一致，可直接赋值。</summary>
 public static class ScrollSnapStop
 {
     /// <summary><c>always</c>：滚动必须在该元素的吸附位置停下，不允许一次快速滚动越过它。</summary>
-    public static readonly CssValue Always = "always";
+    public static readonly CssKeyword Always = "always";
 
     /// <summary><c>normal</c>：快速滚动时可以越过该元素的吸附位置，不强制停下。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>scroll-snap-type</c> 的关键字取值；类型与 <see cref="Style.ScrollSnapType"/> 一致，可直接赋值。</summary>
 public static class ScrollSnapType
 {
     /// <summary><c>block</c>：沿块轴吸附（横排文字时即垂直方向）；省略强度时按 <c>proximity</c> 处理。</summary>
-    public static readonly CssValue Block = "block";
+    public static readonly CssKeyword Block = "block";
 
     /// <summary><c>block mandatory</c>：沿块轴吸附，滚动结束时必须停在最近的吸附位置。</summary>
-    public static readonly CssValue BlockMandatory = "block mandatory";
+    public static readonly CssKeyword BlockMandatory = "block mandatory";
 
     /// <summary><c>block proximity</c>：沿块轴吸附，仅当滚动停止点靠近吸附位置时才吸附，是否吸附由浏览器判断。</summary>
-    public static readonly CssValue BlockProximity = "block proximity";
+    public static readonly CssKeyword BlockProximity = "block proximity";
 
     /// <summary><c>both</c>：水平和垂直两个轴都吸附；省略强度时按 <c>proximity</c> 处理。</summary>
-    public static readonly CssValue Both = "both";
+    public static readonly CssKeyword Both = "both";
 
     /// <summary><c>both mandatory</c>：水平和垂直两个轴都吸附，滚动结束时必须停在最近的吸附位置。</summary>
-    public static readonly CssValue BothMandatory = "both mandatory";
+    public static readonly CssKeyword BothMandatory = "both mandatory";
 
     /// <summary><c>both proximity</c>：水平和垂直两个轴都吸附，仅当滚动停止点靠近吸附位置时才吸附。</summary>
-    public static readonly CssValue BothProximity = "both proximity";
+    public static readonly CssKeyword BothProximity = "both proximity";
 
     /// <summary><c>inline</c>：沿行内轴吸附（横排文字时即水平方向）；省略强度时按 <c>proximity</c> 处理。</summary>
-    public static readonly CssValue Inline = "inline";
+    public static readonly CssKeyword Inline = "inline";
 
     /// <summary><c>inline mandatory</c>：沿行内轴吸附，滚动结束时必须停在最近的吸附位置。</summary>
-    public static readonly CssValue InlineMandatory = "inline mandatory";
+    public static readonly CssKeyword InlineMandatory = "inline mandatory";
 
     /// <summary><c>inline proximity</c>：沿行内轴吸附，仅当滚动停止点靠近吸附位置时才吸附，是否吸附由浏览器判断。</summary>
-    public static readonly CssValue InlineProximity = "inline proximity";
+    public static readonly CssKeyword InlineProximity = "inline proximity";
 
     /// <summary><c>none</c>：不启用滚动吸附，滚动停在哪里就是哪里。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>x</c>：沿水平轴吸附；省略强度时按 <c>proximity</c> 处理。</summary>
-    public static readonly CssValue X = "x";
+    public static readonly CssKeyword X = "x";
 
     /// <summary><c>x mandatory</c>：沿水平轴吸附，滚动结束时必须停在最近的吸附位置。</summary>
-    public static readonly CssValue XMandatory = "x mandatory";
+    public static readonly CssKeyword XMandatory = "x mandatory";
 
     /// <summary><c>x proximity</c>：沿水平轴吸附，仅当滚动停止点靠近吸附位置时才吸附，是否吸附由浏览器判断。</summary>
-    public static readonly CssValue XProximity = "x proximity";
+    public static readonly CssKeyword XProximity = "x proximity";
 
     /// <summary><c>y</c>：沿垂直轴吸附；省略强度时按 <c>proximity</c> 处理。</summary>
-    public static readonly CssValue Y = "y";
+    public static readonly CssKeyword Y = "y";
 
     /// <summary><c>y mandatory</c>：沿垂直轴吸附，滚动结束时必须停在最近的吸附位置。</summary>
-    public static readonly CssValue YMandatory = "y mandatory";
+    public static readonly CssKeyword YMandatory = "y mandatory";
 
     /// <summary><c>y proximity</c>：沿垂直轴吸附，仅当滚动停止点靠近吸附位置时才吸附，是否吸附由浏览器判断。</summary>
-    public static readonly CssValue YProximity = "y proximity";
+    public static readonly CssKeyword YProximity = "y proximity";
 }
 
 /// <summary><c>scroll-timeline</c> 的关键字取值；类型与 <see cref="Style.ScrollTimeline"/> 一致，可直接赋值。</summary>
 public static class ScrollTimeline
 {
     /// <summary><c>block</c>：以块轴方向的滚动位置作为时间线进度（横排文字时即垂直方向）。</summary>
-    public static readonly CssValue Block = "block";
+    public static readonly CssKeyword Block = "block";
 
     /// <summary><c>inline</c>：以行内轴方向的滚动位置作为时间线进度（横排文字时即水平方向）。</summary>
-    public static readonly CssValue Inline = "inline";
+    public static readonly CssKeyword Inline = "inline";
 
     /// <summary><c>none</c>：不为该元素声明命名滚动时间线。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>x</c>：以水平方向的滚动位置作为时间线进度，不随书写模式变化。</summary>
-    public static readonly CssValue X = "x";
+    public static readonly CssKeyword X = "x";
 
     /// <summary><c>y</c>：以垂直方向的滚动位置作为时间线进度，不随书写模式变化。</summary>
-    public static readonly CssValue Y = "y";
+    public static readonly CssKeyword Y = "y";
 }
 
 /// <summary><c>scroll-timeline-axis</c> 的关键字取值；类型与 <see cref="Style.ScrollTimelineAxis"/> 一致，可直接赋值。</summary>
 public static class ScrollTimelineAxis
 {
     /// <summary><c>block</c>：以块轴方向的滚动位置作为时间线进度（横排文字时即垂直方向）。</summary>
-    public static readonly CssValue Block = "block";
+    public static readonly CssKeyword Block = "block";
 
     /// <summary><c>inline</c>：以行内轴方向的滚动位置作为时间线进度（横排文字时即水平方向）。</summary>
-    public static readonly CssValue Inline = "inline";
+    public static readonly CssKeyword Inline = "inline";
 
     /// <summary><c>x</c>：以水平方向的滚动位置作为时间线进度，不随书写模式变化。</summary>
-    public static readonly CssValue X = "x";
+    public static readonly CssKeyword X = "x";
 
     /// <summary><c>y</c>：以垂直方向的滚动位置作为时间线进度，不随书写模式变化。</summary>
-    public static readonly CssValue Y = "y";
+    public static readonly CssKeyword Y = "y";
 }
 
 /// <summary><c>scrollbar-gutter</c> 的关键字取值；类型与 <see cref="Style.ScrollbarGutter"/> 一致，可直接赋值。</summary>
 public static class ScrollbarGutter
 {
     /// <summary><c>auto</c>：不预留滚动条槽位，仅在滚动条实际出现时才占用空间；覆盖式滚动条不占位。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>stable</c>：只要元素可滚动，就始终在滚动条一侧预留槽位，避免滚动条出现或消失时内容宽度跳动。</summary>
-    public static readonly CssValue Stable = "stable";
+    public static readonly CssKeyword Stable = "stable";
 
     /// <summary><c>stable both-edges</c>：在 <c>stable</c> 的基础上，另一侧也预留同样宽度的槽位，使内容左右对称。</summary>
-    public static readonly CssValue StableBothEdges = "stable both-edges";
+    public static readonly CssKeyword StableBothEdges = "stable both-edges";
 }
 
 /// <summary><c>scrollbar-width</c> 的关键字取值；类型与 <see cref="Style.ScrollbarWidth"/> 一致，可直接赋值。</summary>
 public static class ScrollbarWidth
 {
     /// <summary><c>auto</c>：使用平台默认的滚动条宽度。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：隐藏滚动条，但内容仍可通过滚轮、触摸等方式滚动。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>thin</c>：使用更细的滚动条，具体宽度由平台决定。</summary>
-    public static readonly CssValue Thin = "thin";
+    public static readonly CssKeyword Thin = "thin";
 }
 
 /// <summary><c>shape-outside</c> 的关键字取值；类型与 <see cref="Style.ShapeOutside"/> 一致，可直接赋值。</summary>
 public static class ShapeOutside
 {
     /// <summary><c>border-box</c>：以边框外缘为参考框，含内边距和边框。</summary>
-    public static readonly CssValue BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>content-box</c>：以内容区边缘为参考框，不含内边距和边框。</summary>
-    public static readonly CssValue ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>margin-box</c>：以外边距边缘围成的框为参考框，范围包含外边距、边框和内边距。</summary>
-    public static readonly CssValue MarginBox = "margin-box";
+    public static readonly CssKeyword MarginBox = "margin-box";
 
     /// <summary><c>none</c>：不使用自定义形状，行内内容按浮动元素的外边距盒环绕。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>padding-box</c>：以内边距边缘为参考框，含内边距，不含边框。</summary>
-    public static readonly CssValue PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 }
 
 /// <summary><c>shape-rendering</c> 的关键字取值；类型与 <see cref="Style.ShapeRendering"/> 一致，可直接赋值。</summary>
 public static class ShapeRendering
 {
     /// <summary><c>auto</c>：由浏览器权衡速度与精度，通常开启抗锯齿。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>crispEdges</c>：优先边缘清晰，通常关闭抗锯齿，适合横平竖直的线条和像素风图形。</summary>
-    public static readonly CssValue CrispEdges = "crispEdges";
+    public static readonly CssKeyword CrispEdges = "crispEdges";
 
     /// <summary><c>geometricPrecision</c>：优先几何精度，缩放时形状保持准确，不为速度牺牲平滑度。</summary>
-    public static readonly CssValue GeometricPrecision = "geometricPrecision";
+    public static readonly CssKeyword GeometricPrecision = "geometricPrecision";
 
     /// <summary><c>optimizeSpeed</c>：优先渲染速度，可能关闭抗锯齿，换取更快的绘制。</summary>
-    public static readonly CssValue OptimizeSpeed = "optimizeSpeed";
+    public static readonly CssKeyword OptimizeSpeed = "optimizeSpeed";
 }
 
 /// <summary><c>speak</c> 的关键字取值；类型与 <see cref="Style.Speak"/> 一致，可直接赋值。</summary>
 public static class Speak
 {
     /// <summary><c>auto</c>：旧版 CSS Speech 值：由元素是否被渲染（<c>display</c>、<c>visibility</c>）推导是否朗读。已废弃，浏览器基本不支持。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：语音合成不朗读该元素内容。已废弃，浏览器基本不支持。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：语音合成以正常方式朗读该元素内容。已废弃，浏览器基本不支持。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>speak-as</c> 的关键字取值；类型与 <see cref="Style.SpeakAs"/> 一致，可直接赋值。</summary>
 public static class SpeakAs
 {
     /// <summary><c>digits</c>：数字逐位朗读，如 “123” 读成“一二三”而非“一百二十三”。</summary>
-    public static readonly CssValue Digits = "digits";
+    public static readonly CssKeyword Digits = "digits";
 
     /// <summary><c>literal-punctuation</c>：把标点符号的名称读出来，如读出“逗号”。</summary>
-    public static readonly CssValue LiteralPunctuation = "literal-punctuation";
+    public static readonly CssKeyword LiteralPunctuation = "literal-punctuation";
 
     /// <summary><c>no-punctuation</c>：不朗读标点，也不因标点产生停顿。</summary>
-    public static readonly CssValue NoPunctuation = "no-punctuation";
+    public static readonly CssKeyword NoPunctuation = "no-punctuation";
 
     /// <summary><c>normal</c>：按所在语言的常规规则朗读文字、数字和标点。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>spell-out</c>：逐字母拼读，适合缩写词、代码等。</summary>
-    public static readonly CssValue SpellOut = "spell-out";
+    public static readonly CssKeyword SpellOut = "spell-out";
 }
 
 /// <summary><c>stroke</c> 的关键字取值；类型与 <see cref="Style.Stroke"/> 一致，可直接赋值。</summary>
@@ -6595,112 +6662,112 @@ public static class Stroke
 public static class StrokeLinecap
 {
     /// <summary><c>butt</c>：在端点处平直截断描边，不向外延伸。</summary>
-    public static readonly CssValue Butt = "butt";
+    public static readonly CssKeyword Butt = "butt";
 
     /// <summary><c>round</c>：使用半圆端帽，向端点外延伸半个描边宽度。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 
     /// <summary><c>square</c>：使用方形端帽，向端点外延伸半个描边宽度。</summary>
-    public static readonly CssValue Square = "square";
+    public static readonly CssKeyword Square = "square";
 }
 
 /// <summary><c>stroke-linejoin</c> 的关键字取值；类型与 <see cref="Style.StrokeLinejoin"/> 一致，可直接赋值。</summary>
 public static class StrokeLinejoin
 {
     /// <summary><c>bevel</c>：转角处削平成斜切面，形成平直的连接。</summary>
-    public static readonly CssValue Bevel = "bevel";
+    public static readonly CssKeyword Bevel = "bevel";
 
     /// <summary><c>miter</c>：延长两条边的外缘形成尖角；尖角过长（超过 <c>stroke-miterlimit</c>）时回退为斜切。</summary>
-    public static readonly CssValue Miter = "miter";
+    public static readonly CssKeyword Miter = "miter";
 
     /// <summary><c>round</c>：转角处用圆弧连接，圆弧半径为描边宽度的一半。</summary>
-    public static readonly CssValue Round = "round";
+    public static readonly CssKeyword Round = "round";
 }
 
 /// <summary><c>table-layout</c> 的关键字取值；类型与 <see cref="Style.TableLayout"/> 一致，可直接赋值。</summary>
 public static class TableLayout
 {
     /// <summary><c>auto</c>：按所有单元格的内容计算列宽，需要读完整个表格才能布局，较慢但更贴合内容。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>fixed</c>：列宽由表格宽度和第一行（或 <c>col</c>）决定，不看后续行内容；布局更快、更可预测，要求表格宽度不是 <c>auto</c>。</summary>
-    public static readonly CssValue Fixed = "fixed";
+    public static readonly CssKeyword Fixed = "fixed";
 }
 
 /// <summary><c>text-align</c> 的关键字取值；类型与 <see cref="Style.TextAlign"/> 一致，可直接赋值。</summary>
 public static class TextAlign
 {
     /// <summary><c>center</c>：将行内内容在行盒中居中，不会让块盒自身居中。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：按当前书写方向的行内结束侧对齐。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>justify</c>：调整行内间距使文字两端对齐；最后一行通常由 text-align-last 控制。</summary>
-    public static readonly CssValue Justify = "justify";
+    public static readonly CssKeyword Justify = "justify";
 
     /// <summary><c>left</c>：行内内容靠物理左侧对齐，不随书写方向改变。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>match-parent</c>：类似继承父元素的对齐，但把父元素的 <c>start</c>、<c>end</c> 按本元素的书写方向换算成 <c>left</c>、<c>right</c>。</summary>
-    public static readonly CssValue MatchParent = "match-parent";
+    public static readonly CssKeyword MatchParent = "match-parent";
 
     /// <summary><c>right</c>：行内内容靠物理右侧对齐，不随书写方向改变。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>start</c>：按当前书写方向的行内起始侧对齐。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 }
 
 /// <summary><c>text-align-last</c> 的关键字取值；类型与 <see cref="Style.TextAlignLast"/> 一致，可直接赋值。</summary>
 public static class TextAlignLast
 {
     /// <summary><c>auto</c>：最后一行跟随 <c>text-align</c>；<c>text-align</c> 为 <c>justify</c> 时，最后一行按 <c>start</c> 对齐。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>center</c>：最后一行在行盒中居中。</summary>
-    public static readonly CssValue Center = "center";
+    public static readonly CssKeyword Center = "center";
 
     /// <summary><c>end</c>：最后一行按书写方向的行内结束侧对齐。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>justify</c>：最后一行也两端对齐，拉伸到占满整行。</summary>
-    public static readonly CssValue Justify = "justify";
+    public static readonly CssKeyword Justify = "justify";
 
     /// <summary><c>left</c>：最后一行靠物理左侧对齐。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：最后一行靠物理右侧对齐。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>start</c>：最后一行按书写方向的行内起始侧对齐。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 }
 
 /// <summary><c>text-anchor</c> 的关键字取值；类型与 <see cref="Style.TextAnchor"/> 一致，可直接赋值。</summary>
 public static class TextAnchor
 {
     /// <summary><c>end</c>：文本片段的终点位于锚点处，文字向锚点之前延伸。</summary>
-    public static readonly CssValue End = "end";
+    public static readonly CssKeyword End = "end";
 
     /// <summary><c>middle</c>：文本片段的中点位于锚点处，文字向两侧均分延伸。</summary>
-    public static readonly CssValue Middle = "middle";
+    public static readonly CssKeyword Middle = "middle";
 
     /// <summary><c>start</c>：文本片段的起点位于锚点处，文字沿书写方向向后延伸。</summary>
-    public static readonly CssValue Start = "start";
+    public static readonly CssKeyword Start = "start";
 }
 
 /// <summary><c>text-combine-upright</c> 的关键字取值；类型与 <see cref="Style.TextCombineUpright"/> 一致，可直接赋值。</summary>
 public static class TextCombineUpright
 {
     /// <summary><c>all</c>：把元素内的全部字符压缩成一个字符宽度的横排单元，常用于竖排中的短数字或缩写。</summary>
-    public static readonly CssValue All = "all";
+    public static readonly CssKeyword All = "all";
 
     /// <summary><c>digits</c>：把连续数字（默认最多 2 位，可写 <c>digits 4</c>）组合成横排单元。</summary>
-    public static readonly CssValue Digits = "digits";
+    public static readonly CssKeyword Digits = "digits";
 
     /// <summary><c>none</c>：不组合，竖排中的字符按常规方向排布。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>text-decoration</c> 的关键字取值；类型与 <see cref="Style.TextDecoration"/> 一致，可直接赋值。</summary>
@@ -6753,82 +6820,82 @@ public static class TextDecoration
 public static class TextDecorationLine
 {
     /// <summary><c>blink</c>：让文字闪烁。规范允许不实现，现代浏览器基本不支持，不要使用。</summary>
-    public static readonly CssValue Blink = "blink";
+    public static readonly CssKeyword Blink = "blink";
 
     /// <summary><c>grammar-error</c>：以浏览器对语法错误的标记样式（通常是绿色波浪线）绘制装饰线，不能与其他线型组合；较新，支持有限。</summary>
-    public static readonly CssValue GrammarError = "grammar-error";
+    public static readonly CssKeyword GrammarError = "grammar-error";
 
     /// <summary><c>line-through</c>：在文字中部绘制删除线。</summary>
-    public static readonly CssValue LineThrough = "line-through";
+    public static readonly CssKeyword LineThrough = "line-through";
 
     /// <summary><c>none</c>：不绘制任何装饰线，常用于去掉链接默认的下划线。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>overline</c>：在文字上方绘制上划线。</summary>
-    public static readonly CssValue Overline = "overline";
+    public static readonly CssKeyword Overline = "overline";
 
     /// <summary><c>spelling-error</c>：以浏览器对拼写错误的标记样式（通常是红色波浪线）绘制装饰线，不能与其他线型组合；较新，支持有限。</summary>
-    public static readonly CssValue SpellingError = "spelling-error";
+    public static readonly CssKeyword SpellingError = "spelling-error";
 
     /// <summary><c>underline</c>：在文字下方绘制下划线。</summary>
-    public static readonly CssValue Underline = "underline";
+    public static readonly CssKeyword Underline = "underline";
 }
 
 /// <summary><c>text-decoration-skip</c> 的关键字取值；类型与 <see cref="Style.TextDecorationSkip"/> 一致，可直接赋值。</summary>
 public static class TextDecorationSkip
 {
     /// <summary><c>box-decoration</c>：跳过行内盒的内边距、边框和外边距所在的位置。</summary>
-    public static readonly CssValue BoxDecoration = "box-decoration";
+    public static readonly CssKeyword BoxDecoration = "box-decoration";
 
     /// <summary><c>edges</c>：装饰线两端略向内缩，避免相邻元素的装饰线连成一条。</summary>
-    public static readonly CssValue Edges = "edges";
+    public static readonly CssKeyword Edges = "edges";
 
     /// <summary><c>leading-spaces</c>：只跳过行首的空白。</summary>
-    public static readonly CssValue LeadingSpaces = "leading-spaces";
+    public static readonly CssKeyword LeadingSpaces = "leading-spaces";
 
     /// <summary><c>none</c>：装饰线不跳过任何内容，从头到尾连续绘制。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>objects</c>：跳过图片、行内块等原子行内元素。</summary>
-    public static readonly CssValue Objects = "objects";
+    public static readonly CssKeyword Objects = "objects";
 
     /// <summary><c>spaces</c>：跳过空白（单词间距、字间距）。</summary>
-    public static readonly CssValue Spaces = "spaces";
+    public static readonly CssKeyword Spaces = "spaces";
 
     /// <summary><c>trailing-spaces</c>：只跳过行尾的空白。</summary>
-    public static readonly CssValue TrailingSpaces = "trailing-spaces";
+    public static readonly CssKeyword TrailingSpaces = "trailing-spaces";
 }
 
 /// <summary><c>text-decoration-skip-ink</c> 的关键字取值；类型与 <see cref="Style.TextDecorationSkipInk"/> 一致，可直接赋值。</summary>
 public static class TextDecorationSkipInk
 {
     /// <summary><c>all</c>：装饰线遇到字形笔画（如 g、p 的下伸部分）时总是断开，不论文字语言。</summary>
-    public static readonly CssValue All = "all";
+    public static readonly CssKeyword All = "all";
 
     /// <summary><c>auto</c>：由浏览器决定：通常在笔画穿过装饰线处断开，对中日韩等文字可能不断开。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：装饰线连续绘制，直接穿过字形。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>text-decoration-style</c> 的关键字取值；类型与 <see cref="Style.TextDecorationStyle"/> 一致，可直接赋值。</summary>
 public static class TextDecorationStyle
 {
     /// <summary><c>dashed</c>：虚线。</summary>
-    public static readonly CssValue Dashed = "dashed";
+    public static readonly CssKeyword Dashed = "dashed";
 
     /// <summary><c>dotted</c>：点线。</summary>
-    public static readonly CssValue Dotted = "dotted";
+    public static readonly CssKeyword Dotted = "dotted";
 
     /// <summary><c>double</c>：双线，两条平行的线。</summary>
-    public static readonly CssValue Double = "double";
+    public static readonly CssKeyword Double = "double";
 
     /// <summary><c>solid</c>：实线。</summary>
-    public static readonly CssValue Solid = "solid";
+    public static readonly CssKeyword Solid = "solid";
 
     /// <summary><c>wavy</c>：波浪线，常用来表示拼写错误。</summary>
-    public static readonly CssValue Wavy = "wavy";
+    public static readonly CssKeyword Wavy = "wavy";
 }
 
 /// <summary><c>text-decoration-thickness</c> 的关键字取值；类型与 <see cref="Style.TextDecorationThickness"/> 一致，可直接赋值。</summary>
@@ -6873,47 +6940,47 @@ public static class TextEmphasis
 public static class TextEmphasisPosition
 {
     /// <summary><c>auto</c>：由浏览器按书写模式和语言选择着重号位置。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>left</c>：竖排时着重号在文字左侧，与 <c>over</c>、<c>under</c> 组合使用。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>over</c>：横排时着重号在文字上方；竖排时与 <c>right</c>、<c>left</c> 组合确定侧边。</summary>
-    public static readonly CssValue Over = "over";
+    public static readonly CssKeyword Over = "over";
 
     /// <summary><c>right</c>：竖排时着重号在文字右侧，与 <c>over</c>、<c>under</c> 组合使用。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>under</c>：横排时着重号在文字下方；竖排时与 <c>right</c>、<c>left</c> 组合确定侧边。</summary>
-    public static readonly CssValue Under = "under";
+    public static readonly CssKeyword Under = "under";
 }
 
 /// <summary><c>text-emphasis-style</c> 的关键字取值；类型与 <see cref="Style.TextEmphasisStyle"/> 一致，可直接赋值。</summary>
 public static class TextEmphasisStyle
 {
     /// <summary><c>circle</c>：大圆形状的着重号，实心为 ●，空心为 ○。</summary>
-    public static readonly CssValue Circle = "circle";
+    public static readonly CssKeyword Circle = "circle";
 
     /// <summary><c>dot</c>：小圆点形状的着重号，实心为 •，空心为 ◦。</summary>
-    public static readonly CssValue Dot = "dot";
+    public static readonly CssKeyword Dot = "dot";
 
     /// <summary><c>double-circle</c>：双圈形状的着重号，实心为 ◉，空心为 ◎。</summary>
-    public static readonly CssValue DoubleCircle = "double-circle";
+    public static readonly CssKeyword DoubleCircle = "double-circle";
 
     /// <summary><c>filled</c>：实心着重号；只写 <c>filled</c> 不写形状时，横排默认 <c>dot</c>，竖排默认 <c>sesame</c>。</summary>
-    public static readonly CssValue Filled = "filled";
+    public static readonly CssKeyword Filled = "filled";
 
     /// <summary><c>none</c>：不显示着重号。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>open</c>：空心着重号；只写 <c>open</c> 不写形状时，横排默认 <c>dot</c>，竖排默认 <c>sesame</c>。</summary>
-    public static readonly CssValue Open = "open";
+    public static readonly CssKeyword Open = "open";
 
     /// <summary><c>sesame</c>：芝麻点形状的着重号，形似逗号，常用于日文竖排。</summary>
-    public static readonly CssValue Sesame = "sesame";
+    public static readonly CssKeyword Sesame = "sesame";
 
     /// <summary><c>triangle</c>：三角形形状的着重号，实心为 ▲，空心为 △。</summary>
-    public static readonly CssValue Triangle = "triangle";
+    public static readonly CssKeyword Triangle = "triangle";
 }
 
 /// <summary><c>text-indent</c> 的关键字取值；类型与 <see cref="Style.TextIndent"/> 一致，可直接赋值。</summary>
@@ -6930,172 +6997,172 @@ public static class TextIndent
 public static class TextJustify
 {
     /// <summary><c>auto</c>：由浏览器选择两端对齐算法，在速度与效果之间取舍。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>distribute</c>：已废弃，等同 <c>inter-character</c>，改用 <c>inter-character</c>。</summary>
-    public static readonly CssValue Distribute = "distribute";
+    public static readonly CssKeyword Distribute = "distribute";
 
     /// <summary><c>inter-character</c>：把多余空间分配到字符之间，适合不靠空格分词的中日文。</summary>
-    public static readonly CssValue InterCharacter = "inter-character";
+    public static readonly CssKeyword InterCharacter = "inter-character";
 
     /// <summary><c>inter-word</c>：只在单词（空格）之间分配多余空间，适合英文等以空格分词的文字。</summary>
-    public static readonly CssValue InterWord = "inter-word";
+    public static readonly CssKeyword InterWord = "inter-word";
 
     /// <summary><c>none</c>：禁用两端对齐，即使 <c>text-align: justify</c> 也不拉伸间距。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>text-orientation</c> 的关键字取值；类型与 <see cref="Style.TextOrientation"/> 一致，可直接赋值。</summary>
 public static class TextOrientation
 {
     /// <summary><c>mixed</c>：竖排中拉丁字母等横排文字顺时针旋转 90° 躺倒，全角字符保持直立。</summary>
-    public static readonly CssValue Mixed = "mixed";
+    public static readonly CssKeyword Mixed = "mixed";
 
     /// <summary><c>sideways</c>：所有字符都顺时针旋转 90° 躺倒，如同把横排文字整体旋转。</summary>
-    public static readonly CssValue Sideways = "sideways";
+    public static readonly CssKeyword Sideways = "sideways";
 
     /// <summary><c>upright</c>：所有字符都保持直立，包括拉丁字母，逐字自上而下排列。</summary>
-    public static readonly CssValue Upright = "upright";
+    public static readonly CssKeyword Upright = "upright";
 }
 
 /// <summary><c>text-overflow</c> 的关键字取值；类型与 <see cref="Style.TextOverflow"/> 一致，可直接赋值。</summary>
 public static class TextOverflow
 {
     /// <summary><c>clip</c>：直接裁剪溢出文本，不添加省略标记。</summary>
-    public static readonly CssValue Clip = "clip";
+    public static readonly CssKeyword Clip = "clip";
 
     /// <summary><c>ellipsis</c>：用省略号提示被裁剪的行内溢出；还需要限制尺寸并配置溢出规则。不会自动限制宽度、禁用换行或实现多行省略。Flex/Grid 子项还可能需要 min-width:0。</summary>
-    public static readonly CssValue Ellipsis = "ellipsis";
+    public static readonly CssKeyword Ellipsis = "ellipsis";
 }
 
 /// <summary><c>text-rendering</c> 的关键字取值；类型与 <see cref="Style.TextRendering"/> 一致，可直接赋值。</summary>
 public static class TextRendering
 {
     /// <summary><c>auto</c>：由浏览器自行权衡速度、可读性和精度，各引擎的策略不同。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>geometricPrecision</c>：优先几何精度，缩放时字形与间距更准确，可能增加渲染开销。</summary>
-    public static readonly CssValue GeometricPrecision = "geometricPrecision";
+    public static readonly CssKeyword GeometricPrecision = "geometricPrecision";
 
     /// <summary><c>optimizeLegibility</c>：优先可读性，启用字距调整、连字等排版特性，可能牺牲速度。</summary>
-    public static readonly CssValue OptimizeLegibility = "optimizeLegibility";
+    public static readonly CssKeyword OptimizeLegibility = "optimizeLegibility";
 
     /// <summary><c>optimizeSpeed</c>：优先渲染速度，可能关闭字距调整和连字。</summary>
-    public static readonly CssValue OptimizeSpeed = "optimizeSpeed";
+    public static readonly CssKeyword OptimizeSpeed = "optimizeSpeed";
 }
 
 /// <summary><c>text-size-adjust</c> 的关键字取值；类型与 <see cref="Style.TextSizeAdjust"/> 一致，可直接赋值。</summary>
 public static class TextSizeAdjust
 {
     /// <summary><c>auto</c>：允许浏览器按其算法自动放大文字，常见于移动端未适配视口的页面。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>none</c>：禁止浏览器自动调整文字大小。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>text-transform</c> 的关键字取值；类型与 <see cref="Style.TextTransform"/> 一致，可直接赋值。</summary>
 public static class TextTransform
 {
     /// <summary><c>capitalize</c>：把每个单词的首字母转为大写，其余字母不变；具体规则随语言而定。</summary>
-    public static readonly CssValue Capitalize = "capitalize";
+    public static readonly CssKeyword Capitalize = "capitalize";
 
     /// <summary><c>full-width</c>：把字符转为全角形式，使半角字符与东亚字符等宽排列。</summary>
-    public static readonly CssValue FullWidth = "full-width";
+    public static readonly CssKeyword FullWidth = "full-width";
 
     /// <summary><c>lowercase</c>：把所有字母转为小写。</summary>
-    public static readonly CssValue Lowercase = "lowercase";
+    public static readonly CssKeyword Lowercase = "lowercase";
 
     /// <summary><c>none</c>：不转换大小写，按原文显示。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>uppercase</c>：把所有字母转为大写。</summary>
-    public static readonly CssValue Uppercase = "uppercase";
+    public static readonly CssKeyword Uppercase = "uppercase";
 }
 
 /// <summary><c>text-underline-position</c> 的关键字取值；类型与 <see cref="Style.TextUnderlinePosition"/> 一致，可直接赋值。</summary>
 public static class TextUnderlinePosition
 {
     /// <summary><c>auto</c>：由浏览器选择下划线位置，通常靠近基线。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>from-font</c>：使用字体提供的下划线位置；字体没有提供时回退为 <c>auto</c>。</summary>
-    public static readonly CssValue FromFont = "from-font";
+    public static readonly CssKeyword FromFont = "from-font";
 
     /// <summary><c>left</c>：竖排时下划线位于文字左侧，横排时无效。</summary>
-    public static readonly CssValue Left = "left";
+    public static readonly CssKeyword Left = "left";
 
     /// <summary><c>right</c>：竖排时下划线位于文字右侧，横排时无效。</summary>
-    public static readonly CssValue Right = "right";
+    public static readonly CssKeyword Right = "right";
 
     /// <summary><c>under</c>：下划线放在文字下缘之下，避免穿过下伸部分。</summary>
-    public static readonly CssValue Under = "under";
+    public static readonly CssKeyword Under = "under";
 }
 
 /// <summary><c>text-wrap</c> 的关键字取值；类型与 <see cref="Style.TextWrap"/> 一致，可直接赋值。</summary>
 public static class TextWrap
 {
     /// <summary><c>balance</c>：尝试让各行长度更均衡，常用于标题；可处理行数由浏览器决定。</summary>
-    public static readonly CssValue Balance = "balance";
+    public static readonly CssKeyword Balance = "balance";
 
     /// <summary><c>nowrap</c>：禁止软换行，但不取消显式强制换行。</summary>
-    public static readonly CssValue Nowrap = "nowrap";
+    public static readonly CssKeyword Nowrap = "nowrap";
 
     /// <summary><c>pretty</c>：使用偏向排版质量的换行策略，例如减少末行孤立短词。</summary>
-    public static readonly CssValue Pretty = "pretty";
+    public static readonly CssKeyword Pretty = "pretty";
 
     /// <summary><c>stable</c>：编辑时尽量不改变较早行的换行位置。</summary>
-    public static readonly CssValue Stable = "stable";
+    public static readonly CssKeyword Stable = "stable";
 
     /// <summary><c>wrap</c>：允许软换行。</summary>
-    public static readonly CssValue Wrap = "wrap";
+    public static readonly CssKeyword Wrap = "wrap";
 }
 
 /// <summary><c>touch-action</c> 的关键字取值；类型与 <see cref="Style.TouchAction"/> 一致，可直接赋值。</summary>
 public static class TouchAction
 {
     /// <summary><c>auto</c>：浏览器自行处理所有触摸手势。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>manipulation</c>：允许平移和连续缩放，通常禁用双击缩放等额外手势。</summary>
-    public static readonly CssValue Manipulation = "manipulation";
+    public static readonly CssKeyword Manipulation = "manipulation";
 
     /// <summary><c>none</c>：禁用浏览器在该区域处理的平移和缩放手势，可能影响用户缩放可访问性。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>pan-down</c>：允许浏览器处理单指向下的垂直平移。</summary>
-    public static readonly CssValue PanDown = "pan-down";
+    public static readonly CssKeyword PanDown = "pan-down";
 
     /// <summary><c>pan-left</c>：允许浏览器处理单指向左的水平平移。</summary>
-    public static readonly CssValue PanLeft = "pan-left";
+    public static readonly CssKeyword PanLeft = "pan-left";
 
     /// <summary><c>pan-right</c>：允许浏览器处理单指向右的水平平移。</summary>
-    public static readonly CssValue PanRight = "pan-right";
+    public static readonly CssKeyword PanRight = "pan-right";
 
     /// <summary><c>pan-up</c>：允许浏览器处理单指向上的垂直平移。</summary>
-    public static readonly CssValue PanUp = "pan-up";
+    public static readonly CssKeyword PanUp = "pan-up";
 
     /// <summary><c>pan-x</c>：允许浏览器处理水平单指平移。</summary>
-    public static readonly CssValue PanX = "pan-x";
+    public static readonly CssKeyword PanX = "pan-x";
 
     /// <summary><c>pan-y</c>：允许浏览器处理垂直单指平移。</summary>
-    public static readonly CssValue PanY = "pan-y";
+    public static readonly CssKeyword PanY = "pan-y";
 
     /// <summary><c>pinch-zoom</c>：允许浏览器处理双指捏合缩放。</summary>
-    public static readonly CssValue PinchZoom = "pinch-zoom";
+    public static readonly CssKeyword PinchZoom = "pinch-zoom";
 }
 
 /// <summary><c>transform-box</c> 的关键字取值；类型与 <see cref="Style.TransformBox"/> 一致，可直接赋值。</summary>
 public static class TransformBox
 {
     /// <summary><c>border-box</c>：以边框盒为参照盒；没有 CSS 盒的 SVG 元素按 <c>stroke-box</c> 处理。</summary>
-    public static readonly CssValue BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>fill-box</c>：以 SVG 元素对象的包围盒为参照盒，不含描边。</summary>
-    public static readonly CssValue FillBox = "fill-box";
+    public static readonly CssKeyword FillBox = "fill-box";
 
     /// <summary><c>view-box</c>：以最近的 SVG 视口的 <c>viewBox</c> 为参照盒。</summary>
-    public static readonly CssValue ViewBox = "view-box";
+    public static readonly CssKeyword ViewBox = "view-box";
 }
 
 /// <summary><c>transform-origin</c> 的关键字取值；类型与 <see cref="Style.TransformOrigin"/> 一致，可直接赋值。</summary>
@@ -7121,10 +7188,10 @@ public static class TransformOrigin
 public static class TransformStyle
 {
     /// <summary><c>flat</c>：子元素被压平到该元素所在的平面，不保留各自的三维位置，是初始值。</summary>
-    public static readonly CssValue Flat = "flat";
+    public static readonly CssKeyword Flat = "flat";
 
     /// <summary><c>preserve-3d</c>：子元素保留自身的三维位置，与该元素共处同一个三维空间，可以前后穿插和遮挡。</summary>
-    public static readonly CssValue Preserve3d = "preserve-3d";
+    public static readonly CssKeyword Preserve3d = "preserve-3d";
 }
 
 /// <summary><c>transition</c> 的关键字取值；类型与 <see cref="Style.Transition"/> 一致，可直接赋值。</summary>
@@ -7168,76 +7235,76 @@ public static class Transition
 public static class TransitionProperty
 {
     /// <summary><c>all</c>：对所有可过渡的属性生效，任何一个变化都会产生过渡；这是初始值。</summary>
-    public static readonly CssValue All = "all";
+    public static readonly CssKeyword All = "all";
 
     /// <summary><c>none</c>：不对任何属性做过渡，属性变化立即生效。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>transition-timing-function</c> 的关键字取值；类型与 <see cref="Style.TransitionTimingFunction"/> 一致，可直接赋值。</summary>
 public static class TransitionTimingFunction
 {
     /// <summary><c>ease</c>：等同 <c>cubic-bezier(0.25, 0.1, 0.25, 1)</c>：开始较快、逐渐变慢，是动画和过渡的默认曲线。</summary>
-    public static readonly CssValue Ease = "ease";
+    public static readonly CssKeyword Ease = "ease";
 
     /// <summary><c>ease-in</c>：等同 <c>cubic-bezier(0.42, 0, 1, 1)</c>：起步缓慢，之后逐渐加速。</summary>
-    public static readonly CssValue EaseIn = "ease-in";
+    public static readonly CssKeyword EaseIn = "ease-in";
 
     /// <summary><c>ease-in-out</c>：等同 <c>cubic-bezier(0.42, 0, 0.58, 1)</c>：起止都缓慢，中间较快。</summary>
-    public static readonly CssValue EaseInOut = "ease-in-out";
+    public static readonly CssKeyword EaseInOut = "ease-in-out";
 
     /// <summary><c>ease-out</c>：等同 <c>cubic-bezier(0, 0, 0.58, 1)</c>：起步较快，临近结束时减速。</summary>
-    public static readonly CssValue EaseOut = "ease-out";
+    public static readonly CssKeyword EaseOut = "ease-out";
 
     /// <summary><c>linear</c>：匀速：进度与时间成正比，全程没有加速或减速。</summary>
-    public static readonly CssValue Linear = "linear";
+    public static readonly CssKeyword Linear = "linear";
 
     /// <summary><c>step-end</c>：等同于 <c>steps(1, jump-end)</c>：保持起始状态直到结束时刻，再一次性跳到结束状态。</summary>
-    public static readonly CssValue StepEnd = "step-end";
+    public static readonly CssKeyword StepEnd = "step-end";
 
     /// <summary><c>step-start</c>：等同于 <c>steps(1, jump-start)</c>：一开始就立刻跳到结束状态，之后保持不变。</summary>
-    public static readonly CssValue StepStart = "step-start";
+    public static readonly CssKeyword StepStart = "step-start";
 }
 
 /// <summary><c>unicode-bidi</c> 的关键字取值；类型与 <see cref="Style.UnicodeBidi"/> 一致，可直接赋值。</summary>
 public static class UnicodeBidi
 {
     /// <summary><c>bidi-override</c>：覆盖双向算法，行内内容严格按 <c>direction</c> 的方向逐字排列，不再按字符本身的方向重排。</summary>
-    public static readonly CssValue BidiOverride = "bidi-override";
+    public static readonly CssKeyword BidiOverride = "bidi-override";
 
     /// <summary><c>embed</c>：开启一层新的嵌入，嵌入方向由 <c>direction</c> 决定，内部文本仍与外部文本一起参与重排。</summary>
-    public static readonly CssValue Embed = "embed";
+    public static readonly CssKeyword Embed = "embed";
 
     /// <summary><c>isolate</c>：将元素作为隔离单元，内部的双向重排与外部互不影响，常用于包裹用户生成的内容。</summary>
-    public static readonly CssValue Isolate = "isolate";
+    public static readonly CssKeyword Isolate = "isolate";
 
     /// <summary><c>isolate-override</c>：同时具备 <c>isolate</c> 的隔离与 <c>bidi-override</c> 的强制方向效果。</summary>
-    public static readonly CssValue IsolateOverride = "isolate-override";
+    public static readonly CssKeyword IsolateOverride = "isolate-override";
 
     /// <summary><c>normal</c>：不引入额外的嵌入层级，按双向算法的默认隐式规则处理。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>plaintext</c>：忽略 <c>direction</c>，按元素内第一个具有强方向的字符自动判定方向，并作隔离处理。</summary>
-    public static readonly CssValue Plaintext = "plaintext";
+    public static readonly CssKeyword Plaintext = "plaintext";
 }
 
 /// <summary><c>user-select</c> 的关键字取值；类型与 <see cref="Style.UserSelect"/> 一致，可直接赋值。</summary>
 public static class UserSelect
 {
     /// <summary><c>all</c>：将元素内容作为整体选取单元。</summary>
-    public static readonly CssValue All = "all";
+    public static readonly CssKeyword All = "all";
 
     /// <summary><c>auto</c>：由父级与元素上下文决定使用的选取行为。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>contain</c>：选取只能在该元素内部开始和延伸，不会选到元素外的内容；非标准，浏览器基本不支持。</summary>
-    public static readonly CssValue Contain = "contain";
+    public static readonly CssKeyword Contain = "contain";
 
     /// <summary><c>none</c>：阻止常规文本选取，不是内容保护或访问控制。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>text</c>：允许文本选取。</summary>
-    public static readonly CssValue Text = "text";
+    public static readonly CssKeyword Text = "text";
 }
 
 /// <summary><c>vertical-align</c> 的关键字取值；类型与 <see cref="Style.VerticalAlign"/> 一致，可直接赋值。</summary>
@@ -7272,61 +7339,61 @@ public static class VerticalAlign
 public static class ViewTimeline
 {
     /// <summary><c>auto</c>：不额外内缩，使用滚动容器对应方向的 <c>scroll-padding</c> 作为可见范围的边界。</summary>
-    public static readonly CssLength Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>block</c>：沿块轴方向滚动，即书写模式中块堆叠的方向，横排文字下是纵向。</summary>
-    public static readonly CssLength Block = "block";
+    public static readonly CssKeyword Block = "block";
 
     /// <summary><c>inline</c>：沿行内轴方向滚动，即文字流动的方向，横排文字下是横向。</summary>
-    public static readonly CssLength Inline = "inline";
+    public static readonly CssKeyword Inline = "inline";
 
     /// <summary><c>none</c>：不创建具名的可见进度时间线，其他元素也无法通过名字引用它。</summary>
-    public static readonly CssLength None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>x</c>：沿水平方向的滚动轴，与书写模式无关。</summary>
-    public static readonly CssLength X = "x";
+    public static readonly CssKeyword X = "x";
 
     /// <summary><c>y</c>：沿垂直方向的滚动轴，与书写模式无关。</summary>
-    public static readonly CssLength Y = "y";
+    public static readonly CssKeyword Y = "y";
 }
 
 /// <summary><c>view-timeline-axis</c> 的关键字取值；类型与 <see cref="Style.ViewTimelineAxis"/> 一致，可直接赋值。</summary>
 public static class ViewTimelineAxis
 {
     /// <summary><c>block</c>：沿块轴方向滚动，即书写模式中块堆叠的方向，横排文字下是纵向。</summary>
-    public static readonly CssValue Block = "block";
+    public static readonly CssKeyword Block = "block";
 
     /// <summary><c>inline</c>：沿行内轴方向滚动，即文字流动的方向，横排文字下是横向。</summary>
-    public static readonly CssValue Inline = "inline";
+    public static readonly CssKeyword Inline = "inline";
 
     /// <summary><c>x</c>：沿水平方向的滚动轴，与书写模式无关。</summary>
-    public static readonly CssValue X = "x";
+    public static readonly CssKeyword X = "x";
 
     /// <summary><c>y</c>：沿垂直方向的滚动轴，与书写模式无关。</summary>
-    public static readonly CssValue Y = "y";
+    public static readonly CssKeyword Y = "y";
 }
 
 /// <summary><c>view-transition-name</c> 的关键字取值；类型与 <see cref="Style.ViewTransitionName"/> 一致，可直接赋值。</summary>
 public static class ViewTransitionName
 {
     /// <summary><c>match-element</c>：由浏览器按元素自身标识自动生成唯一名称，无需手写名称即可让该元素单独参与视图过渡。</summary>
-    public static readonly CssValue MatchElement = "match-element";
+    public static readonly CssKeyword MatchElement = "match-element";
 
     /// <summary><c>none</c>：元素不单独参与视图过渡，随所在内容一起被截取到根快照里。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 }
 
 /// <summary><c>visibility</c> 的关键字取值；类型与 <see cref="Style.Visibility"/> 一致，可直接赋值。</summary>
 public static class Visibility
 {
     /// <summary><c>collapse</c>：对表格行列等特定布局有折叠语义，其他场景通常类似 hidden；应核对具体布局行为。</summary>
-    public static readonly CssValue Collapse = "collapse";
+    public static readonly CssKeyword Collapse = "collapse";
 
     /// <summary><c>hidden</c>：隐藏绘制但通常保留布局空间；后代可显式恢复 visible。display:none 不保留布局盒；opacity:0 不会以相同方式移除交互和可访问性。</summary>
-    public static readonly CssValue Hidden = "hidden";
+    public static readonly CssKeyword Hidden = "hidden";
 
     /// <summary><c>visible</c>：正常显示元素。</summary>
-    public static readonly CssValue Visible = "visible";
+    public static readonly CssKeyword Visible = "visible";
 }
 
 /// <summary><c>voice-balance</c> 的关键字取值；类型与 <see cref="Style.VoiceBalance"/> 一致，可直接赋值。</summary>
@@ -7352,221 +7419,221 @@ public static class VoiceBalance
 public static class VoiceStress
 {
     /// <summary><c>moderate</c>：使用比默认更强、但弱于 <c>strong</c> 的重音强调。</summary>
-    public static readonly CssValue Moderate = "moderate";
+    public static readonly CssKeyword Moderate = "moderate";
 
     /// <summary><c>none</c>：不做任何重音强调，语音合成器按平铺方式朗读。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>normal</c>：使用默认的重音强度。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>reduced</c>：重音强度比默认更弱，朗读起伏更平缓。</summary>
-    public static readonly CssValue Reduced = "reduced";
+    public static readonly CssKeyword Reduced = "reduced";
 
     /// <summary><c>strong</c>：加强重音强调，朗读时更突出重读的词。</summary>
-    public static readonly CssValue Strong = "strong";
+    public static readonly CssKeyword Strong = "strong";
 }
 
 /// <summary><c>-webkit-appearance</c> 的关键字取值；类型与 <see cref="Style.WebkitAppearance"/> 一致，可直接赋值。</summary>
 public static class WebkitAppearance
 {
     /// <summary><c>apple-pay-button</c>：渲染成 Apple Pay 按钮；非标准，仅 Safari/WebKit 支持。</summary>
-    public static readonly CssValue ApplePayButton = "apple-pay-button";
+    public static readonly CssKeyword ApplePayButton = "apple-pay-button";
 
     /// <summary><c>button</c>：渲染成原生按钮外观，与 <c>push-button</c> 效果相近。</summary>
-    public static readonly CssValue Button = "button";
+    public static readonly CssKeyword Button = "button";
 
     /// <summary><c>button-bevel</c>：带斜面凸起效果的旧式按钮外观；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue ButtonBevel = "button-bevel";
+    public static readonly CssKeyword ButtonBevel = "button-bevel";
 
     /// <summary><c>caret</c>：文本插入光标的外观；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue Caret = "caret";
+    public static readonly CssKeyword Caret = "caret";
 
     /// <summary><c>checkbox</c>：渲染成原生复选框外观。</summary>
-    public static readonly CssValue Checkbox = "checkbox";
+    public static readonly CssKeyword Checkbox = "checkbox";
 
     /// <summary><c>default-button</c>：表单默认按钮（带强调）的外观；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue DefaultButton = "default-button";
+    public static readonly CssKeyword DefaultButton = "default-button";
 
     /// <summary><c>inner-spin-button</c>：数字输入框内部的上下微调按钮外观；非标准，仅 WebKit/Blink 支持。</summary>
-    public static readonly CssValue InnerSpinButton = "inner-spin-button";
+    public static readonly CssKeyword InnerSpinButton = "inner-spin-button";
 
     /// <summary><c>listbox</c>：渲染成原生列表框外观，如多行显示的 <c>select</c>。</summary>
-    public static readonly CssValue Listbox = "listbox";
+    public static readonly CssKeyword Listbox = "listbox";
 
     /// <summary><c>listitem</c>：列表项的外观；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue Listitem = "listitem";
+    public static readonly CssKeyword Listitem = "listitem";
 
     /// <summary><c>media-controls-background</c>：媒体控件栏的背景；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaControlsBackground = "media-controls-background";
+    public static readonly CssKeyword MediaControlsBackground = "media-controls-background";
 
     /// <summary><c>media-controls-fullscreen-background</c>：全屏模式下媒体控件栏的背景；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaControlsFullscreenBackground = "media-controls-fullscreen-background";
+    public static readonly CssKeyword MediaControlsFullscreenBackground = "media-controls-fullscreen-background";
 
     /// <summary><c>media-current-time-display</c>：媒体控件中的当前播放时间显示；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaCurrentTimeDisplay = "media-current-time-display";
+    public static readonly CssKeyword MediaCurrentTimeDisplay = "media-current-time-display";
 
     /// <summary><c>media-enter-fullscreen-button</c>：媒体控件中的进入全屏按钮；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaEnterFullscreenButton = "media-enter-fullscreen-button";
+    public static readonly CssKeyword MediaEnterFullscreenButton = "media-enter-fullscreen-button";
 
     /// <summary><c>media-exit-fullscreen-button</c>：媒体控件中的退出全屏按钮；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaExitFullscreenButton = "media-exit-fullscreen-button";
+    public static readonly CssKeyword MediaExitFullscreenButton = "media-exit-fullscreen-button";
 
     /// <summary><c>media-fullscreen-button</c>：媒体控件中的全屏切换按钮；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaFullscreenButton = "media-fullscreen-button";
+    public static readonly CssKeyword MediaFullscreenButton = "media-fullscreen-button";
 
     /// <summary><c>media-mute-button</c>：媒体控件中的静音按钮；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaMuteButton = "media-mute-button";
+    public static readonly CssKeyword MediaMuteButton = "media-mute-button";
 
     /// <summary><c>media-overlay-play-button</c>：覆盖在视频画面上的大播放按钮；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaOverlayPlayButton = "media-overlay-play-button";
+    public static readonly CssKeyword MediaOverlayPlayButton = "media-overlay-play-button";
 
     /// <summary><c>media-play-button</c>：媒体控件中的播放/暂停按钮；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaPlayButton = "media-play-button";
+    public static readonly CssKeyword MediaPlayButton = "media-play-button";
 
     /// <summary><c>media-seek-back-button</c>：媒体控件中的快退按钮；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaSeekBackButton = "media-seek-back-button";
+    public static readonly CssKeyword MediaSeekBackButton = "media-seek-back-button";
 
     /// <summary><c>media-seek-forward-button</c>：媒体控件中的快进按钮；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaSeekForwardButton = "media-seek-forward-button";
+    public static readonly CssKeyword MediaSeekForwardButton = "media-seek-forward-button";
 
     /// <summary><c>media-slider</c>：媒体控件中的播放进度条；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaSlider = "media-slider";
+    public static readonly CssKeyword MediaSlider = "media-slider";
 
     /// <summary><c>media-sliderthumb</c>：媒体播放进度条上的滑块；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaSliderthumb = "media-sliderthumb";
+    public static readonly CssKeyword MediaSliderthumb = "media-sliderthumb";
 
     /// <summary><c>media-time-remaining-display</c>：媒体控件中的剩余时间显示；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaTimeRemainingDisplay = "media-time-remaining-display";
+    public static readonly CssKeyword MediaTimeRemainingDisplay = "media-time-remaining-display";
 
     /// <summary><c>media-toggle-closed-captions-button</c>：媒体控件中的字幕开关按钮；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaToggleClosedCaptionsButton = "media-toggle-closed-captions-button";
+    public static readonly CssKeyword MediaToggleClosedCaptionsButton = "media-toggle-closed-captions-button";
 
     /// <summary><c>media-volume-slider</c>：媒体控件中的音量滑条；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaVolumeSlider = "media-volume-slider";
+    public static readonly CssKeyword MediaVolumeSlider = "media-volume-slider";
 
     /// <summary><c>media-volume-slider-container</c>：媒体控件中音量滑条的容器；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaVolumeSliderContainer = "media-volume-slider-container";
+    public static readonly CssKeyword MediaVolumeSliderContainer = "media-volume-slider-container";
 
     /// <summary><c>media-volume-sliderthumb</c>：媒体音量滑条上的滑块；非标准，仅用于 WebKit/Blink 的媒体控件内部。</summary>
-    public static readonly CssValue MediaVolumeSliderthumb = "media-volume-sliderthumb";
+    public static readonly CssKeyword MediaVolumeSliderthumb = "media-volume-sliderthumb";
 
     /// <summary><c>menulist</c>：渲染成原生下拉选择框外观，如单选的 <c>select</c>。</summary>
-    public static readonly CssValue Menulist = "menulist";
+    public static readonly CssKeyword Menulist = "menulist";
 
     /// <summary><c>menulist-button</c>：渲染成下拉选择框中的按钮部分外观。</summary>
-    public static readonly CssValue MenulistButton = "menulist-button";
+    public static readonly CssKeyword MenulistButton = "menulist-button";
 
     /// <summary><c>menulist-text</c>：下拉选择框中显示已选文字的区域；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue MenulistText = "menulist-text";
+    public static readonly CssKeyword MenulistText = "menulist-text";
 
     /// <summary><c>menulist-textfield</c>：带文本输入区域的下拉框外观；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue MenulistTextfield = "menulist-textfield";
+    public static readonly CssKeyword MenulistTextfield = "menulist-textfield";
 
     /// <summary><c>meter</c>：渲染成原生计量条外观，对应 <c>meter</c> 元素。</summary>
-    public static readonly CssValue Meter = "meter";
+    public static readonly CssKeyword Meter = "meter";
 
     /// <summary><c>none</c>：去掉系统原生外观，控件按普通元素处理，可用 CSS 完全自绘，常用于重置 <c>button</c>、<c>input</c>、<c>select</c>。</summary>
-    public static readonly CssValue None = "none";
+    public static readonly CssKeyword None = "none";
 
     /// <summary><c>progress-bar</c>：渲染成原生进度条外观，对应 <c>progress</c> 元素。</summary>
-    public static readonly CssValue ProgressBar = "progress-bar";
+    public static readonly CssKeyword ProgressBar = "progress-bar";
 
     /// <summary><c>progress-bar-value</c>：进度条中已完成的部分；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue ProgressBarValue = "progress-bar-value";
+    public static readonly CssKeyword ProgressBarValue = "progress-bar-value";
 
     /// <summary><c>push-button</c>：渲染成普通的原生按钮外观，与 <c>button</c> 效果相近。</summary>
-    public static readonly CssValue PushButton = "push-button";
+    public static readonly CssKeyword PushButton = "push-button";
 
     /// <summary><c>radio</c>：渲染成原生单选框外观。</summary>
-    public static readonly CssValue Radio = "radio";
+    public static readonly CssKeyword Radio = "radio";
 
     /// <summary><c>searchfield</c>：渲染成原生搜索输入框外观，如 <c>type=search</c> 的输入框。</summary>
-    public static readonly CssValue Searchfield = "searchfield";
+    public static readonly CssKeyword Searchfield = "searchfield";
 
     /// <summary><c>searchfield-cancel-button</c>：搜索框内的清除（取消）按钮；非标准，仅 WebKit/Blink 支持。</summary>
-    public static readonly CssValue SearchfieldCancelButton = "searchfield-cancel-button";
+    public static readonly CssKeyword SearchfieldCancelButton = "searchfield-cancel-button";
 
     /// <summary><c>searchfield-decoration</c>：搜索框内的装饰部分；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue SearchfieldDecoration = "searchfield-decoration";
+    public static readonly CssKeyword SearchfieldDecoration = "searchfield-decoration";
 
     /// <summary><c>searchfield-results-button</c>：搜索框内带放大镜、可展开历史结果的按钮；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue SearchfieldResultsButton = "searchfield-results-button";
+    public static readonly CssKeyword SearchfieldResultsButton = "searchfield-results-button";
 
     /// <summary><c>searchfield-results-decoration</c>：搜索框内的结果装饰图标（放大镜）；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue SearchfieldResultsDecoration = "searchfield-results-decoration";
+    public static readonly CssKeyword SearchfieldResultsDecoration = "searchfield-results-decoration";
 
     /// <summary><c>slider-horizontal</c>：渲染成原生水平滑条的轨道外观。</summary>
-    public static readonly CssValue SliderHorizontal = "slider-horizontal";
+    public static readonly CssKeyword SliderHorizontal = "slider-horizontal";
 
     /// <summary><c>slider-vertical</c>：渲染成原生垂直滑条的轨道外观；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue SliderVertical = "slider-vertical";
+    public static readonly CssKeyword SliderVertical = "slider-vertical";
 
     /// <summary><c>sliderthumb-horizontal</c>：水平滑条上的滑块外观；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue SliderthumbHorizontal = "sliderthumb-horizontal";
+    public static readonly CssKeyword SliderthumbHorizontal = "sliderthumb-horizontal";
 
     /// <summary><c>sliderthumb-vertical</c>：垂直滑条上的滑块外观；非标准旧值，各浏览器行为不一。</summary>
-    public static readonly CssValue SliderthumbVertical = "sliderthumb-vertical";
+    public static readonly CssKeyword SliderthumbVertical = "sliderthumb-vertical";
 
     /// <summary><c>square-button</c>：渲染成方形的原生按钮外观。</summary>
-    public static readonly CssValue SquareButton = "square-button";
+    public static readonly CssKeyword SquareButton = "square-button";
 
     /// <summary><c>textarea</c>：渲染成原生多行文本框外观。</summary>
-    public static readonly CssValue Textarea = "textarea";
+    public static readonly CssKeyword Textarea = "textarea";
 
     /// <summary><c>textfield</c>：渲染成原生单行文本框外观。</summary>
-    public static readonly CssValue Textfield = "textfield";
+    public static readonly CssKeyword Textfield = "textfield";
 }
 
 /// <summary><c>-webkit-background-clip</c> 的关键字取值；类型与 <see cref="Style.WebkitBackgroundClip"/> 一致，可直接赋值。</summary>
 public static class WebkitBackgroundClip
 {
     /// <summary><c>border-box</c>：背景延伸到边框外沿，会画在边框下方，是默认行为。</summary>
-    public static readonly CssValue BorderBox = "border-box";
+    public static readonly CssKeyword BorderBox = "border-box";
 
     /// <summary><c>content-box</c>：背景只绘制在内容区内，内边距和边框区域不显示背景。</summary>
-    public static readonly CssValue ContentBox = "content-box";
+    public static readonly CssKeyword ContentBox = "content-box";
 
     /// <summary><c>padding-box</c>：背景只绘制到内边距外沿，边框区域不显示背景。</summary>
-    public static readonly CssValue PaddingBox = "padding-box";
+    public static readonly CssKeyword PaddingBox = "padding-box";
 
     /// <summary><c>text</c>：把背景裁剪成文字形状，只在字形内可见，配合透明文字颜色可做渐变文字。</summary>
-    public static readonly CssValue Text = "text";
+    public static readonly CssKeyword Text = "text";
 }
 
 /// <summary><c>-webkit-box-orient</c> 的关键字取值；类型与 <see cref="Style.WebkitBoxOrient"/> 一致，可直接赋值。</summary>
 public static class WebkitBoxOrient
 {
     /// <summary><c>block-axis</c>：旧版弹性盒的子元素沿块轴排列，横排文字下等同 <c>vertical</c>。</summary>
-    public static readonly CssValue BlockAxis = "block-axis";
+    public static readonly CssKeyword BlockAxis = "block-axis";
 
     /// <summary><c>horizontal</c>：旧版弹性盒的子元素水平排列。</summary>
-    public static readonly CssValue Horizontal = "horizontal";
+    public static readonly CssKeyword Horizontal = "horizontal";
 
     /// <summary><c>inline-axis</c>：旧版弹性盒的子元素沿行内轴排列，横排文字下等同 <c>horizontal</c>。</summary>
-    public static readonly CssValue InlineAxis = "inline-axis";
+    public static readonly CssKeyword InlineAxis = "inline-axis";
 
     /// <summary><c>vertical</c>：旧版弹性盒的子元素垂直排列，与 <c>WebkitLineClamp</c> 配合实现多行截断。</summary>
-    public static readonly CssValue Vertical = "vertical";
+    public static readonly CssKeyword Vertical = "vertical";
 }
 
 /// <summary><c>white-space</c> 的关键字取值；类型与 <see cref="Style.WhiteSpace"/> 一致，可直接赋值。</summary>
 public static class WhiteSpace
 {
     /// <summary><c>normal</c>：折叠连续空白和源换行，允许软换行。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 
     /// <summary><c>nowrap</c>：折叠空白并禁止软换行；不会自行生成省略号。pre 也不进行普通软换行，但会保留连续空白。</summary>
-    public static readonly CssValue Nowrap = "nowrap";
+    public static readonly CssKeyword Nowrap = "nowrap";
 
     /// <summary><c>pre</c>：保留空白和源换行，不进行普通软换行。</summary>
-    public static readonly CssValue Pre = "pre";
+    public static readonly CssKeyword Pre = "pre";
 
     /// <summary><c>pre-line</c>：折叠空格等空白但保留源换行，同时允许软换行。</summary>
-    public static readonly CssValue PreLine = "pre-line";
+    public static readonly CssKeyword PreLine = "pre-line";
 
     /// <summary><c>pre-wrap</c>：保留空白和源换行，同时允许软换行。pre 不进行普通软换行；pre-line 会折叠连续空格。</summary>
-    public static readonly CssValue PreWrap = "pre-wrap";
+    public static readonly CssKeyword PreWrap = "pre-wrap";
 }
 
 /// <summary><c>width</c> 的关键字取值；类型与 <see cref="Style.Width"/> 一致，可直接赋值。</summary>
@@ -7589,76 +7656,76 @@ public static class Width
 public static class WillChange
 {
     /// <summary><c>auto</c>：不提前告知任何即将变化的属性，由浏览器按常规方式处理，是默认值。</summary>
-    public static readonly CssValue Auto = "auto";
+    public static readonly CssKeyword Auto = "auto";
 
     /// <summary><c>contents</c>：提示浏览器元素的内容即将变化，不要缓存其渲染结果，因为缓存很快会失效。</summary>
-    public static readonly CssValue Contents = "contents";
+    public static readonly CssKeyword Contents = "contents";
 
     /// <summary><c>scroll-position</c>：提示浏览器该元素的滚动位置即将变化，让它提前做好滚动优化。</summary>
-    public static readonly CssValue ScrollPosition = "scroll-position";
+    public static readonly CssKeyword ScrollPosition = "scroll-position";
 }
 
 /// <summary><c>word-break</c> 的关键字取值；类型与 <see cref="Style.WordBreak"/> 一致，可直接赋值。</summary>
 public static class WordBreak
 {
     /// <summary><c>break-all</c>：允许在更多字符间断行以防溢出，可能拆开普通单词。</summary>
-    public static readonly CssValue BreakAll = "break-all";
+    public static readonly CssKeyword BreakAll = "break-all";
 
     /// <summary><c>break-word</c>：已废弃，效果等同 <c>overflowWrap: 'anywhere'</c>，长单词溢出时可在任意字符处断行；改用 <c>overflowWrap</c>。</summary>
-    public static readonly CssValue BreakWord = "break-word";
+    public static readonly CssKeyword BreakWord = "break-word";
 
     /// <summary><c>keep-all</c>：限制中日韩文字内部断行，其他文字仍按正常规则处理。</summary>
-    public static readonly CssValue KeepAll = "keep-all";
+    public static readonly CssKeyword KeepAll = "keep-all";
 
     /// <summary><c>normal</c>：按语言的默认断行规则处理。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>word-wrap</c> 的关键字取值；类型与 <see cref="Style.WordWrap"/> 一致，可直接赋值。</summary>
 public static class WordWrap
 {
     /// <summary><c>break-word</c>：没有其他断行机会时，允许在单词内部任意位置折断，防止长单词溢出容器。</summary>
-    public static readonly CssValue BreakWord = "break-word";
+    public static readonly CssKeyword BreakWord = "break-word";
 
     /// <summary><c>normal</c>：只在正常断点处换行，过长的单词会溢出容器。</summary>
-    public static readonly CssValue Normal = "normal";
+    public static readonly CssKeyword Normal = "normal";
 }
 
 /// <summary><c>writing-mode</c> 的关键字取值；类型与 <see cref="Style.WritingMode"/> 一致，可直接赋值。</summary>
 public static class WritingMode
 {
     /// <summary><c>horizontal-tb</c>：文字水平排列，行从上到下堆叠，是大多数语言的默认模式。</summary>
-    public static readonly CssValue HorizontalTb = "horizontal-tb";
+    public static readonly CssKeyword HorizontalTb = "horizontal-tb";
 
     /// <summary><c>lr</c>：SVG 1.1 旧值，按 <c>horizontal-tb</c> 处理；已废弃，改用 <c>horizontal-tb</c>。</summary>
-    public static readonly CssValue Lr = "lr";
+    public static readonly CssKeyword Lr = "lr";
 
     /// <summary><c>lr-tb</c>：SVG 1.1 旧值，水平从左到右、行从上到下，按 <c>horizontal-tb</c> 处理；已废弃，改用 <c>horizontal-tb</c>。</summary>
-    public static readonly CssValue LrTb = "lr-tb";
+    public static readonly CssKeyword LrTb = "lr-tb";
 
     /// <summary><c>rl</c>：SVG 1.1 旧值，按 <c>horizontal-tb</c> 处理；已废弃，改用 <c>horizontal-tb</c> 搭配 <c>direction</c>。</summary>
-    public static readonly CssValue Rl = "rl";
+    public static readonly CssKeyword Rl = "rl";
 
     /// <summary><c>rl-tb</c>：SVG 1.1 旧值，水平从右到左、行从上到下，按 <c>horizontal-tb</c> 处理；已废弃，改用 <c>horizontal-tb</c> 搭配 <c>direction</c>。</summary>
-    public static readonly CssValue RlTb = "rl-tb";
+    public static readonly CssKeyword RlTb = "rl-tb";
 
     /// <summary><c>sideways-lr</c>：文字整体逆时针旋转 90° 竖排，行从左到右堆叠，适合侧向标签。</summary>
-    public static readonly CssValue SidewaysLr = "sideways-lr";
+    public static readonly CssKeyword SidewaysLr = "sideways-lr";
 
     /// <summary><c>sideways-rl</c>：文字整体顺时针旋转 90° 竖排，行从右到左堆叠。</summary>
-    public static readonly CssValue SidewaysRl = "sideways-rl";
+    public static readonly CssKeyword SidewaysRl = "sideways-rl";
 
     /// <summary><c>tb</c>：SVG 1.1 旧值，按 <c>vertical-rl</c> 处理；已废弃，改用 <c>vertical-rl</c>。</summary>
-    public static readonly CssValue Tb = "tb";
+    public static readonly CssKeyword Tb = "tb";
 
     /// <summary><c>tb-rl</c>：SVG 1.1 旧值，垂直排列、行从右到左，按 <c>vertical-rl</c> 处理；已废弃，改用 <c>vertical-rl</c>。</summary>
-    public static readonly CssValue TbRl = "tb-rl";
+    public static readonly CssKeyword TbRl = "tb-rl";
 
     /// <summary><c>vertical-lr</c>：文字竖排，行从左到右堆叠，蒙古文用这种排法；字形朝向由 <c>text-orientation</c> 决定。</summary>
-    public static readonly CssValue VerticalLr = "vertical-lr";
+    public static readonly CssKeyword VerticalLr = "vertical-lr";
 
     /// <summary><c>vertical-rl</c>：文字垂直排列，行从右到左堆叠，常用于中日韩文字竖排。</summary>
-    public static readonly CssValue VerticalRl = "vertical-rl";
+    public static readonly CssKeyword VerticalRl = "vertical-rl";
 }
 
 /// <summary><c>zoom</c> 的关键字取值；类型与 <see cref="Style.Zoom"/> 一致，可直接赋值。</summary>

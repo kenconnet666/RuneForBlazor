@@ -31,8 +31,11 @@ const GENERATED_HEADER = [
 /** 关键字类与 Rune.Styles 已有类型（或 Rune.UI 的组件）重名时加的后缀 */
 const KEYWORD_CLASS_SUFFIX = 'Keywords';
 
-/** 不生成常量的关键字接口：颜色名、系统色等量大且直接写字符串更合适；CSS 全局关键字单独放 CssWide */
+/** 不放进各属性关键字类的接口：颜色关键字统一放 CssColors（命名色量大，直接写字符串更合适，不生成），CSS 全局关键字单独放 CssWide */
 const SKIPPED_KEYWORD_GROUPS = new Set(['CssWideKeywords', 'CssColor', 'CssColorBase', 'CssNamedColor', 'CssSystemColor']);
+
+/** 进 CssColors 的颜色关键字接口：transparent 与系统色（强制颜色模式下用）；currentcolor 不在数据里，另外补上 */
+const COLOR_KEYWORD_GROUPS = ['CssColorBase', 'CssSystemColor'];
 
 /** 属性至少有这么多专属关键字才生成类：只有一个 `auto` 之类的属性，常量不比字符串更好写 */
 const MIN_KEYWORDS = 2;
@@ -62,7 +65,7 @@ const VENDOR_PREFIXES = { Webkit: '-webkit-', Moz: '-moz-', Ms: '-ms-' };
  * 每次从源码扫描，新增类型后重新生成即可发现冲突（CI 的 --check 会报出生成文件过期）。
  */
 function existingTypeNames() {
-  const names = new Set(['CssWide']);
+  const names = new Set(['CssWide', 'CssColors']);
   const declaration =
     /^\s*(?:(?:public|internal|private|protected|sealed|static|readonly|abstract|partial|file)\s+)*(?:class|struct|enum|interface|record(?:\s+(?:struct|class))?)\s+(\w+)/;
   for (const dir of [runeStylesDir, runeUiDir]) {
@@ -272,17 +275,46 @@ function docComment(lines, indent) {
 
 // ---------- 分类与生成 ----------
 
+/** StyleX 的属性值类型（css-properties.ts）：属性 → 类型表达式、类型别名 → 定义。用来判断属性的值里有没有数字。 */
+function parseStylexTypes(text) {
+  const aliases = new Map();
+  for (const m of text.matchAll(/^type (\w+)(?:<[^>\n]*>)? =([\s\S]*?);$/gm)) aliases.set(m[1], m[2]);
+  const props = new Map();
+  for (const m of text.matchAll(/^ {2}(\w+)\?: ([\s\S]*?);$/gm)) props.set(m[1], m[2]);
+  return { aliases, props };
+}
+
+/** 属性的值接不接受数字：类型表达式（展开别名）里出现 number；StyleX 里没有的属性按接受处理（不收紧） */
+function acceptsNumber(name, { aliases, props }) {
+  const expression = props.get(name);
+  if (expression === undefined) return true;
+  const seen = new Set();
+  const visit = (text) => {
+    for (const word of text.replace(/'[^']*'/g, '').match(/\b[A-Za-z_]\w*\b/g) ?? []) {
+      if (word === 'number') return true;
+      if (aliases.has(word) && !seen.has(word)) {
+        seen.add(word);
+        if (visit(aliases.get(word))) return true;
+      }
+    }
+    return false;
+  };
+  return visit(expression);
+}
+
 /**
  * 决定 C# 类型与调用。
  * 颜色 token → CssColor；长度 token → CssLength；其余 → CssValue 并带单位规则。
  * 长度属性若按单位规则数字不补 px（如 strokeWidth），改用 CssValue，否则数字会被错补 px。
  */
-function classify(name, groups, units) {
+function classify(name, groups, units, numeric) {
   const unit = units.unitless.has(name) ? 'None' : units.milliseconds.has(name) ? 'Milliseconds' : 'Pixels';
   const hasColor = groups.has('Colors');
   const hasLength = [...groups].some((g) => LENGTH_TOKEN_GROUPS.has(g));
   if (hasColor && hasLength) return { kind: 'value', unit, note: '同时接受颜色与长度 token' };
   if (hasColor) return { kind: 'color' };
+  // 值里没有数字（display、cursor、font……）：只收字符串与关键字，写数字编译不过（不然 Display = 5 会输出 5px）
+  if (!numeric) return { kind: 'keyword', note: hasLength ? '有长度 token 但值里没有数字，按关键字' : undefined };
   if (hasLength && unit !== 'Pixels') return { kind: 'value', unit, note: `长度 token 但数字不补 px（${unit}）` };
   if (hasLength) return { kind: 'length' };
   return { kind: 'value', unit };
@@ -376,6 +408,22 @@ function generateKeywords(properties, interfaces, warnings) {
     '}',
   ].join('\n');
 
+  const colorKeywords = [
+    { keyword: 'currentcolor', name: 'CurrentColor', doc: '当前的文字颜色（color 的值）：边框、图标、伪元素跟随文字颜色。' },
+    ...COLOR_KEYWORD_GROUPS.flatMap((group) => interfaces.get(group) ?? []),
+  ];
+  const colorsClass = [
+    '/// <summary>颜色关键字：transparent、currentcolor 与系统色（强制颜色模式里配色用）；是字符串常量，可直接赋给颜色属性。命名色（red、navy）直接写字符串。</summary>',
+    'public static class CssColors',
+    '{',
+    colorKeywords
+      .map((k) => ({ ...k, name: k.name ?? keywordMemberName(k.keyword) }))
+      .sort((a, b) => compareOrdinal(a.name, b.name))
+      .map((m) => `    /// ${keywordSummary(m)}\n    public const string ${m.name} = "${m.keyword}";`)
+      .join('\n\n'),
+    '}',
+  ].join('\n');
+
   const classTexts = classes.map(({ className, members, property }) =>
     [
       `/// <summary><c>${escapeXml(property.css)}</c> 的关键字取值；类型与 <see cref="Style.${property.csName}"/> 一致，可直接赋值。</summary>`,
@@ -387,7 +435,7 @@ function generateKeywords(properties, interfaces, warnings) {
       '}',
     ].join('\n'),
   );
-  const content = [...GENERATED_HEADER, 'namespace Rune.Styles;', '', [wideClass, ...classTexts].join('\n\n'), ''].join('\n');
+  const content = [...GENERATED_HEADER, 'namespace Rune.Styles;', '', [wideClass, colorsClass, ...classTexts].join('\n\n'), ''].join('\n');
   return {
     content,
     classCount: classes.length,
@@ -401,10 +449,11 @@ function generate() {
   const documentedText = readSource('documented.ts');
   const entries = parseDocumented(documentedText);
   const interfaces = parseKeywordInterfaces(documentedText);
+  const stylexTypes = parseStylexTypes(readSource('css-properties.ts'));
   const warnings = [];
   const skipped = [];
   const notes = [];
-  const counts = { color: 0, length: 0, value: 0 };
+  const counts = { color: 0, length: 0, value: 0, keyword: 0 };
   const seen = new Map();
   const properties = [];
 
@@ -423,13 +472,16 @@ function generate() {
     const documented = entry.doc[0].match(/[（(](-?[a-z][a-z-]*)[）)]/)?.[1];
     if (documented && documented !== css) warnings.push(`${entry.name}：说明里写 ${documented}，推出 ${css}`);
 
-    const cls = classify(entry.name, tokenGroups(entry.declaration), units);
+    // 有单位规则的属性（毫秒、无单位）照规则收数字，不看类型表（StyleX 把时长标成字符串，但引擎给数字补 ms）
+    const numeric = units.unitless.has(entry.name) || units.milliseconds.has(entry.name) || acceptsNumber(entry.name, stylexTypes);
+    const cls = classify(entry.name, tokenGroups(entry.declaration), units, numeric);
     if (cls.note) notes.push(`${entry.name}：${cls.note}`);
     counts[cls.kind]++;
     const [type, call] = {
       color: ['CssColor', `Set("${css}", value)`],
       length: ['CssLength', `Set("${css}", value)`],
       value: ['CssValue', `Set("${css}", value, NumberUnit.${cls.unit})`],
+      keyword: ['CssKeyword', `Set("${css}", value)`],
     }[cls.kind];
     properties.push({
       name: entry.name,
@@ -469,7 +521,7 @@ if (values.check) {
 } else {
   for (const { path, content } of result.files) writeFileSync(path, content);
   const { total, counts, skipped, notes, keywords } = result;
-  console.log(`已生成 ${total} 个属性：CssColor ${counts.color}、CssLength ${counts.length}、CssValue ${counts.value}`);
+  console.log(`已生成 ${total} 个属性：CssColor ${counts.color}、CssLength ${counts.length}、CssValue ${counts.value}、CssKeyword ${counts.keyword}`);
   console.log(`已生成 ${keywords.classCount} 个关键字类、${keywords.memberCount} 个关键字常量`);
   console.log(`专属关键字不足 ${MIN_KEYWORDS} 个而跳过的属性 ${keywords.fewKeywords.length} 个：${keywords.fewKeywords.join('、')}`);
   console.log(`跳过 ${skipped.length} 个非 CSS 属性：\n  ${skipped.join('\n  ')}`);

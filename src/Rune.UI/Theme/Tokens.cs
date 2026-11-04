@@ -143,16 +143,16 @@ public static class ChartColors
 public static class Fonts
 {
     /// <summary>正文（无衬线）。</summary>
-    public static readonly CssValue Sans = "var(--rune-fonts-sans)";
+    public static readonly CssKeyword Sans = "var(--rune-fonts-sans)";
 
     /// <summary>等宽：代码、编号、按键。</summary>
-    public static readonly CssValue Mono = "var(--rune-fonts-mono)";
+    public static readonly CssKeyword Mono = "var(--rune-fonts-mono)";
 
     /// <summary>衬线：长文、纸张风格的主题。</summary>
-    public static readonly CssValue Serif = "var(--rune-fonts-serif)";
+    public static readonly CssKeyword Serif = "var(--rune-fonts-serif)";
 
     /// <summary>标题（默认与正文相同，有的主题换成衬线或等宽）。</summary>
-    public static readonly CssValue Heading = "var(--rune-fonts-heading)";
+    public static readonly CssKeyword Heading = "var(--rune-fonts-heading)";
 }
 
 /// <summary>字号。组件根元素设字号，内部尺寸用 em 跟着缩放。</summary>
@@ -408,13 +408,13 @@ public static class Durations
 public static class Easings
 {
     /// <summary>常规：位置、大小在屏幕内变化。</summary>
-    public static readonly CssValue Standard = "var(--rune-easings-standard)";
+    public static readonly CssKeyword Standard = "var(--rune-easings-standard)";
 
     /// <summary>进场（减速）。</summary>
-    public static readonly CssValue Enter = "var(--rune-easings-enter)";
+    public static readonly CssKeyword Enter = "var(--rune-easings-enter)";
 
     /// <summary>离场（加速）。</summary>
-    public static readonly CssValue Exit = "var(--rune-easings-exit)";
+    public static readonly CssKeyword Exit = "var(--rune-easings-exit)";
 }
 
 /// <summary>

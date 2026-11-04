@@ -44,6 +44,37 @@ public class StyleCompilerTests
     }
 
     [Fact]
+    public void 带单位的写法_颜色关键字_只收文字的属性()
+    {
+        var css = Compile(new Style
+        {
+            Width = CssLength.Percent(100),
+            MinHeight = CssLength.Em(1.5),
+            MaxWidth = CssLength.Rem(20),
+            Margin = CssLength.Em(0),
+            Inset = CssLength.Auto,
+            Rotate = CssValue.Deg(180),
+            BackgroundColor = CssColors.Transparent,
+            BorderColor = CssColors.CurrentColor,
+            Display = Display.Flex,
+            Cursor = CssWide.Inherit,
+        }).Css;
+
+        Assert.Contains("width:100%;", css);
+        Assert.Contains("min-height:1.5em;", css);
+        Assert.Contains("max-width:20rem;", css);
+        Assert.Contains("margin:0;", css);
+        Assert.Contains("inset:auto;", css);
+        Assert.Contains("rotate:180deg;", css);
+        Assert.Contains("background-color:transparent;", css);
+        Assert.Contains("border-color:currentcolor;", css);
+        Assert.Contains("display:flex;", css);
+        Assert.Contains("cursor:inherit;", css);
+        // 值里没有数字的属性不接受数字（Display = 5 编译不过）
+        Assert.Equal(typeof(CssKeyword?), typeof(Style).GetProperty(nameof(Style.Display))!.PropertyType);
+    }
+
+    [Fact]
     public void 后写的覆盖先写的同名属性_其他条件块保留()
     {
         var first = new Style { Color = "red", [When.Hover] = new() { Color = "blue" } };
