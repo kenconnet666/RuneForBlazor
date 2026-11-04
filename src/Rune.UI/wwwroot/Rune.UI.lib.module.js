@@ -1,12 +1,17 @@
 // Rune.UI 的 JS 初始化器：Blazor 启动时按文件名约定（{程序集名}.lib.module.js）自动加载，静态 SSR、Server、WebAssembly 都会运行。
 //
 // 浮层尽量交给浏览器原生：popover 属性（顶层、点外面与 Esc 关闭、popovertarget 打开）、<dialog>（模态、焦点圈在里面、关闭后焦点还给触发元素）、
-// CSS 锚点定位与 @starting-style 进出场。组件不直接调用 JS，只在元素上写属性，这里用全局的事件委托补原生没有的几样：
+// @starting-style 进出场。组件不直接调用 JS，只在元素上写属性，这里用全局的事件委托补原生没有的几样：
 //
 //   data-rune-overlay        浮层（popover 元素或 dialog）：开关时发出冒泡的 rune-toggle（Blazor 里是 @onrunetoggle）
 //   data-open="true|false"   受控的浮层：属性变了就打开或关闭（组件的 Open 参数）
 //   data-rune-open="id"      点击时打开这个 id 的浮层（对话框的触发按钮；popover 用原生的 popovertarget）
 //   data-rune-close          点击时关闭所在的浮层（对话框的取消按钮、关闭按钮）
+//   data-rune-floating="bottom-start"
+//                            锚定浮层（popover 元素）：打开时用 Floating UI 贴着触发元素（popovertarget 或 data-rune-tooltip 指向它的元素）
+//                            定位并持续跟随，空间不够时翻转、贴着视口平移；data-offset 是距离，data-fit-height 时最大高度限制在视口剩下的空间里；
+//                            最终方向写到 data-side / data-align；里面的 data-rune-arrow 是箭头。定位好之后才可见，菜单聚焦第一项，
+//                            对话框类的浮层聚焦 autofocus 或第一个可聚焦元素
 //   data-rune-light-dismiss  对话框：点遮罩关闭（原生的 closedby="any" 还没普及）
 //   role="menu"              菜单：方向键、Home / End、类型搜索移动焦点；打开时聚焦第一项；选了菜单项就关闭
 //   data-rune-list="space typeahead"
@@ -15,7 +20,8 @@
 //                            Enter（space 时还有空格）点击高亮项（C# 处理选中），typeahead 时按字母跳到以它开头的项；
 //                            列表自己获得焦点时高亮第一个已选项（没有就第一个可用项）；指针移过选项时高亮它。
 //                            虚拟滚动的列表带 data-rune-options（全部选项的文字与不可用）与 data-rune-selected（第一个已选项的序号）
-//   data-rune-tooltip-root   提示：Esc 隐藏；触发元素获得焦点时 aria-describedby 指向提示
+//   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
+//                            （可以移到提示上），键盘聚焦时立即显示；失焦、按下、Esc 隐藏；同一时间只显示一个
 //   data-indeterminate       勾选框的半选：原生的 indeterminate 只能用 JS 设置，按这个属性同步
 //   data-rune-focus="id"     点击时聚焦这个 id 的控件并滚到它（表单错误汇总里的链接）
 //   data-rune-spin           数字输入框：↑↓ 加减步长、Page Up / Down 加减大步长、Home / End 到最小 / 最大，改完发 change（C# 再校正）
@@ -38,7 +44,7 @@
 //                            结束后发出冒泡的 rune-dismiss（Blazor 里是 @onrunedismiss）；被移除时焦点交给同组的下一个
 //                            （没有就上一个）可聚焦元素，没被移除就重新显示
 //
-// 模态对话框打开时锁定页面滚动；不支持锚点定位的浏览器在浮层打开时按触发元素摆放一次。
+// 模态对话框打开时锁定页面滚动。
 
 let installed = false;
 
@@ -87,6 +93,7 @@ function install(blazor) {
   document.addEventListener('pointerdown', startRipple);
   document.addEventListener('pointerdown', focusOnShell);
   document.addEventListener('pointerdown', keepFocusOnListHost);
+  document.addEventListener('pointerdown', (event) => hideTooltipOf(event.target));
   document.addEventListener('pointermove', highlightUnderPointer);
   document.addEventListener('change', (event) => {
     const target = event.target;
@@ -101,8 +108,9 @@ function install(blazor) {
     if (target instanceof Element && target.hasAttribute('data-rune-count')) updateCount(target);
   });
   document.addEventListener('focusin', onFocusIn);
-  document.addEventListener('focusout', clearTooltipDismissal);
-  document.addEventListener('pointerout', clearTooltipDismissal);
+  document.addEventListener('focusout', onFocusOut);
+  document.addEventListener('pointerover', onPointerOver);
+  document.addEventListener('pointerout', onPointerOut);
 
   // 组件改属性（data-open、data-indeterminate），这里同步原生状态；新插入的元素（第一次渲染就带着状态）一并处理
   new MutationObserver(onMutations).observe(document.documentElement, {
@@ -194,13 +202,24 @@ function onMutations(mutations) {
 
 function onPopoverToggle(event) {
   const overlay = event.target;
-  if (!(overlay instanceof HTMLElement) || !overlay.matches('[popover][data-rune-overlay]')) return;
+  if (!(overlay instanceof HTMLElement)) return;
   const opened = event.newState === 'open';
-  if (opened) {
-    placeWithoutAnchorSupport(overlay);
-    if (overlay.matches('[role="menu"]')) menuItems(overlay)[0]?.focus();
+  if (overlay.matches('[data-rune-floating]')) {
+    if (!opened) releaseFloating(overlay);
+    else if (overlay.matches('[data-rune-overlay]')) anchorFloating(overlay).then(() => focusInto(overlay));
+    else anchorFloating(overlay);
   }
-  announce(overlay, opened);
+  if (overlay.matches('[popover][data-rune-overlay]')) announce(overlay, opened);
+}
+
+// 打开、定位好之后（之前不可见、聚焦不了）焦点移进去：菜单到第一项，对话框类的到 autofocus 或第一个可聚焦元素
+function focusInto(overlay) {
+  if (!overlay.matches(':popover-open') || overlay.contains(document.activeElement)) return;
+  if (overlay.matches('[role="menu"]')) {
+    menuItems(overlay)[0]?.focus();
+    return;
+  }
+  (overlay.querySelector('[autofocus]') ?? overlay.querySelector(TABBABLE))?.focus();
 }
 
 // 模态对话框打开时锁定页面滚动（关掉最后一个时恢复）；滚动条的位置留着，页面不会左右跳
@@ -277,7 +296,7 @@ function onClick(event) {
 // ---- 键盘 ----
 
 function onKeyDown(event) {
-  if (event.key === 'Escape') dismissTooltips();
+  if (event.key === 'Escape' && shownTooltip) hideTooltip(shownTooltip);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
@@ -532,30 +551,89 @@ function highlightUnderPointer(event) {
 }
 
 // ---- 提示 ----
+//
+// 同 vue-tsx-pro 的 hover-intent：指针停留 delay 后显示，离开 100ms 后隐藏（可以移到提示上，WCAG 1.4.13）；
+// 键盘聚焦（:focus-visible）立即显示，按下触发元素、失焦、Esc 时隐藏；触屏不显示。所有提示一组：同一时间只显示一个，
+// 刚关掉一个（300ms 内）时下一个直接显示，在一排按钮上移动不用每次等。
 
-// WCAG 1.4.13：不移开鼠标、焦点也能把提示关掉
-function dismissTooltips() {
-  document.querySelectorAll('[data-rune-tooltip-root]:is(:hover, :focus-within)').forEach((root) => root.setAttribute('data-dismissed', ''));
+const TOOLTIP_CLOSE_DELAY = 100;
+const TOOLTIP_SKIP_DELAY = 300;
+const tooltipTimers = new WeakMap();
+let shownTooltip = null;
+let tooltipClosedAt = 0;
+
+function tooltipOf(trigger) {
+  const id = trigger.getAttribute('data-rune-tooltip');
+  return id ? document.getElementById(id) : null;
 }
 
-// 鼠标与焦点都离开后恢复，下次悬停照常显示
-function clearTooltipDismissal(event) {
-  const root = event.target instanceof Element ? event.target.closest('[data-rune-tooltip-root][data-dismissed]') : null;
-  if (!root) return;
-  requestAnimationFrame(() => {
-    if (!root.matches(':hover, :focus-within')) root.removeAttribute('data-dismissed');
-  });
+function scheduleTooltip(tooltip, show, wait) {
+  clearTimeout(tooltipTimers.get(tooltip));
+  const run = () => (show ? showTooltip(tooltip) : hideTooltip(tooltip));
+  if (wait <= 0) run();
+  else tooltipTimers.set(tooltip, setTimeout(run, wait));
 }
 
-// 触发元素是使用方写的（按钮、链接），组件没法给它加属性：获得焦点时补上 aria-describedby，读屏读完名称接着读提示
+function showTooltip(tooltip) {
+  if (!tooltip.isConnected || tooltip.matches(':popover-open')) return;
+  if (shownTooltip && shownTooltip !== tooltip) hideTooltip(shownTooltip);
+  shownTooltip = tooltip;
+  tooltip.showPopover();
+}
+
+function hideTooltip(tooltip) {
+  clearTimeout(tooltipTimers.get(tooltip));
+  if (tooltip.matches(':popover-open')) {
+    tooltip.hidePopover();
+    tooltipClosedAt = Date.now();
+  }
+  if (shownTooltip === tooltip) shownTooltip = null;
+}
+
+// 指针进出：pointerover / pointerout 冒泡，按 relatedTarget 判断是不是真的进出了触发元素（或提示）
+function onPointerOver(event) {
+  if (event.pointerType === 'touch' || !(event.target instanceof Element)) return;
+  const trigger = event.target.closest('[data-rune-tooltip]');
+  if (trigger && !trigger.contains(event.relatedTarget)) {
+    const tooltip = tooltipOf(trigger);
+    if (!tooltip) return;
+    const warm = shownTooltip !== null || Date.now() - tooltipClosedAt < TOOLTIP_SKIP_DELAY;
+    scheduleTooltip(tooltip, true, warm ? 0 : Number(tooltip.dataset.delay ?? 500));
+    return;
+  }
+  // 移到提示上：取消正要做的隐藏
+  const tooltip = event.target.closest('[role="tooltip"][popover]');
+  if (tooltip) clearTimeout(tooltipTimers.get(tooltip));
+}
+
+function onPointerOut(event) {
+  if (!(event.target instanceof Element)) return;
+  const owner = event.target.closest('[data-rune-tooltip], [role="tooltip"][popover]');
+  if (!owner || owner.contains(event.relatedTarget)) return;
+  const tooltip = owner.matches('[data-rune-tooltip]') ? tooltipOf(owner) : owner;
+  if (tooltip) scheduleTooltip(tooltip, false, TOOLTIP_CLOSE_DELAY);
+}
+
+function hideTooltipOf(element) {
+  const trigger = element instanceof Element ? element.closest('[data-rune-tooltip]') : null;
+  const tooltip = trigger && tooltipOf(trigger);
+  if (tooltip) hideTooltip(tooltip);
+}
+
 function onFocusIn(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
-  const root = target.closest('[data-rune-tooltip-root]');
-  const tooltipId = root?.getAttribute('data-rune-tooltip-root');
-  if (tooltipId && !target.hasAttribute('aria-describedby')) target.setAttribute('aria-describedby', tooltipId);
+  // 只在键盘聚焦时显示；点击聚焦（按钮被按下）时不显示
+  if (target.matches('[data-rune-tooltip]:focus-visible')) {
+    const tooltip = tooltipOf(target);
+    if (tooltip) scheduleTooltip(tooltip, true, 0);
+  }
   // 列表自己获得焦点：还没有高亮项时高亮默认项（触发按钮、输入框做宿主时由打开下拉的一方决定）
   if (target.matches('[role="listbox"][data-rune-list]') && activeIndex(target, target) < 0) highlightDefault(target, target);
+}
+
+function onFocusOut(event) {
+  if (event.target instanceof Element && event.target.matches('[data-rune-tooltip]')) hideTooltipOf(event.target);
 }
 
 // ---- 数字输入框 ----
@@ -852,44 +930,115 @@ function startRipple(event) {
   for (const [type, target] of releaseEvents) target.addEventListener(type, release);
 }
 
-// ---- 不支持锚点定位时的兜底 ----
+// ---- 锚定浮层的定位 ----
+//
+// 同 vue-tsx-pro 的 utils/dom/floating：Floating UI 计算位置（offset、flip、shift，可选 arrow 与 size），autoUpdate 在滚动、缩放、
+// 锚点变化时重新定位。库第一次打开浮层时才加载（wwwroot/vendor，随 Rune.UI 分发）。第一次算好位置之前浮层不可见，不会在默认位置闪一下。
 
-const anchorSupported = typeof CSS !== 'undefined' && CSS.supports('anchor-name: --rune');
+let floatingUi = null;
+const loadFloatingUi = () => (floatingUi ??= import('./vendor/floating-ui.dom.mjs'));
 
-function placeWithoutAnchorSupport(overlay) {
-  if (anchorSupported) return;
-  const anchor = document.querySelector(`[popovertarget="${CSS.escape(overlay.id)}"]`);
+// 正在跟随触发元素的浮层 → 停止跟随
+const floatingCleanups = new WeakMap();
+
+// 与视口边缘至少留出的距离（px）
+const VIEWPORT_PADDING = 8;
+// 缩放原点朝向锚点：弹出在下方时从上边缘展开
+const TRANSFORM_ORIGIN = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' };
+// 箭头贴着浮层的哪条边（与弹出方向相反），转多少度才朝向锚点（画了右、下两条边的方块）
+const ARROW_EDGE = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' };
+const ARROW_ROTATION = { top: 45, right: 135, bottom: 225, left: -45 };
+
+/** 浮层的触发元素：popovertarget 指向它（Popover、Menu），或 data-rune-tooltip 指向它（Tooltip）。 */
+function floatingAnchorOf(overlay) {
+  const id = CSS.escape(overlay.id);
+  return document.querySelector(`[popovertarget="${id}"], [data-rune-tooltip="${id}"]`);
+}
+
+/** 贴着触发元素定位并持续跟随；第一次定位完成（可见）时完成。 */
+async function anchorFloating(overlay) {
+  const anchor = floatingAnchorOf(overlay);
   if (!anchor) return;
-  const gap = 4;
-  const a = anchor.getBoundingClientRect();
-  const o = overlay.getBoundingClientRect();
-  const rtl = getComputedStyle(anchor).direction === 'rtl';
-  let top;
-  let left;
-  switch (overlay.dataset.placement) {
-    case 'top':
-    case 'bottom': {
-      const below = a.bottom + gap;
-      const above = a.top - gap - o.height;
-      const preferBelow = overlay.dataset.placement === 'bottom';
-      const fitsBelow = below + o.height <= innerHeight;
-      const fitsAbove = above >= 0;
-      top = (preferBelow ? fitsBelow || !fitsAbove : !fitsAbove && fitsBelow) ? below : above;
-      left = rtl ? a.right - o.width : a.left;
-      break;
-    }
-    default: {
-      const after = rtl ? a.left - gap - o.width : a.right + gap;
-      const before = rtl ? a.right + gap : a.left - gap - o.width;
-      const preferAfter = overlay.dataset.placement === 'end';
-      const fits = (x) => x >= 0 && x + o.width <= innerWidth;
-      left = preferAfter ? (fits(after) ? after : before) : (fits(before) ? before : after);
-      top = a.top;
-    }
+  overlay.style.visibility = 'hidden';
+  const [{ computePosition, autoUpdate, offset, flip, shift, arrow: arrowMiddleware, size }] = await Promise.all([loadFloatingUi(), contentRendered(overlay)]);
+  // 加载期间又关上了
+  if (!overlay.matches(':popover-open')) {
+    overlay.style.visibility = '';
+    return;
   }
-  overlay.style.position = 'fixed';
-  overlay.style.inset = 'auto';
-  overlay.style.margin = '0';
-  overlay.style.top = `${Math.max(0, Math.min(top, innerHeight - o.height))}px`;
-  overlay.style.left = `${Math.max(0, Math.min(left, innerWidth - o.width))}px`;
+  releaseFloating(overlay);
+  const arrow = overlay.querySelector(':scope > [data-rune-arrow]');
+  // 箭头伸出浮层一半（旋转后对角线的一半约等于边长的 0.7）：距离加上这一段，尖角才不压在锚点上
+  const arrowSize = arrow?.offsetWidth ?? 0;
+  const middleware = [
+    offset(Number(overlay.dataset.offset ?? 6) + arrowSize * 0.7),
+    flip({ padding: VIEWPORT_PADDING }),
+    shift({ padding: VIEWPORT_PADDING }),
+  ];
+  // 箭头离浮层的圆角留出距离，不会画到圆角外面
+  if (arrow) middleware.push(arrowMiddleware({ element: arrow, padding: arrowSize }));
+  const matchWidth = overlay.hasAttribute('data-match-width');
+  const fitHeight = overlay.hasAttribute('data-fit-height');
+  if (matchWidth || fitHeight) {
+    middleware.push(size({
+      padding: VIEWPORT_PADDING,
+      apply({ rects, availableHeight, elements }) {
+        if (matchWidth) elements.floating.style.minWidth = `${rects.reference.width}px`;
+        if (fitHeight) elements.floating.style.maxHeight = `${Math.max(0, availableHeight)}px`;
+      },
+    }));
+  }
+  const placement = overlay.dataset.runeFloating;
+  let stopped = false;
+  return new Promise((resolve) => {
+    const update = () => computePosition(anchor, overlay, { placement, strategy: 'fixed', middleware }).then(({ x, y, placement: final, middlewareData }) => {
+      if (stopped) return;
+      const [side, align = 'center'] = final.split('-');
+      if (arrow && middlewareData.arrow) {
+        const { x: arrowX, y: arrowY } = middlewareData.arrow;
+        Object.assign(arrow.style, {
+          left: arrowX != null ? `${arrowX}px` : '',
+          top: arrowY != null ? `${arrowY}px` : '',
+          right: '',
+          bottom: '',
+          [ARROW_EDGE[side]]: `${-arrowSize / 2}px`,
+          transform: `rotate(${ARROW_ROTATION[side]}deg)`,
+        });
+      }
+      Object.assign(overlay.style, { left: `${x}px`, top: `${y}px`, visibility: '', transformOrigin: TRANSFORM_ORIGIN[side] });
+      overlay.dataset.side = side;
+      overlay.dataset.align = align;
+      resolve();
+    });
+    const cleanup = autoUpdate(anchor, overlay, update);
+    floatingCleanups.set(overlay, () => {
+      stopped = true;
+      cleanup();
+      resolve();
+    });
+  });
+}
+
+// 第一次打开才渲染内容的浮层（Popover 的 Lazy）：打开时还是空的，C# 收到 rune-toggle 才渲染。
+// 等内容到了再定位、再显示，不先按空盒子定位闪一下（最多等 1 秒，静态渲染、内容本来就空时不卡住）
+function contentRendered(overlay) {
+  const hasContent = () => [...overlay.childNodes].some((node) =>
+    node instanceof Element ? !node.hasAttribute('data-rune-arrow') : node.textContent.trim() !== '');
+  if (hasContent()) return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => {
+      observer.disconnect();
+      clearTimeout(timer);
+      resolve();
+    };
+    const observer = new MutationObserver(() => hasContent() && done());
+    const timer = setTimeout(done, 1000);
+    observer.observe(overlay, { childList: true });
+  });
+}
+
+/** 停止跟随（关闭时）；重复调用无副作用。 */
+function releaseFloating(overlay) {
+  floatingCleanups.get(overlay)?.();
+  floatingCleanups.delete(overlay);
 }

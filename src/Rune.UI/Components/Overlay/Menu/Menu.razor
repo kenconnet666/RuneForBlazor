@@ -8,16 +8,15 @@
             <MenuItem Icon="Lucide.Trash" Tone="Tone.Danger" @onclick="Delete">删除</MenuItem>
         </ChildContent>
     </Menu>
-    打开时焦点在第一项，方向键、Home / End、首字母移动，Enter 选择，Esc 或 Tab 关闭；选了一项菜单自动关闭。
-    菜单项很轻，一开始就渲染（打开时 JS 要立即聚焦第一项）。
+    打开、定位好之后焦点在第一项，方向键、Home / End、类型搜索移动，Enter 选择，Esc 或 Tab 关闭；选了一项菜单自动关闭。
+    最大高度限制在视口剩下的空间里，菜单项多时在菜单里滚动。菜单项很轻，一开始就渲染。
 *@
 @namespace Rune.UI
 @inherits PopoverBase
-
-@{ var overlay = OverlayAttrs(role: "menu"); }
+@{ var overlay = OverlayAttrs("menu", TriggerId, fitHeight: true); }
 
 @Trigger?.Invoke(TriggerAttrs)
-<div @attributes="Attrs.Merge(MenuStyles.Of(Placement, Config.Styles)[MenuPart.Root], Rest, overlay)" @onrunetoggle="HandleToggle">
+<div @attributes="Attrs.Merge(MenuStyles.Of(Config.Styles)[MenuPart.Root], Rest, overlay)" @onrunetoggle="HandleToggle">
     @ChildContent
 </div>
 

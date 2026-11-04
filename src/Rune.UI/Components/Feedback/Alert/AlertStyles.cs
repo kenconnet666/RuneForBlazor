@@ -115,15 +115,6 @@ public static class AlertStyles
             _ => Sx.Of(Close, SharedStyles.RelativeSmall),
         });
 
-    /// <summary>不写图标时按色调选的图标。</summary>
-    public static IconData DefaultIcon(Tone tone) => tone switch
-    {
-        UI.Tone.Success => BuiltInIcons.CircleCheck,
-        UI.Tone.Warning => BuiltInIcons.TriangleExclamationPoint,
-        UI.Tone.Danger => BuiltInIcons.CircleExclamationPoint,
-        _ => BuiltInIcons.Info,
-    };
-
     static StatusVariant StatusVariantOf(AlertVariant variant) => variant switch
     {
         AlertVariant.Surface => StatusVariant.Surface,

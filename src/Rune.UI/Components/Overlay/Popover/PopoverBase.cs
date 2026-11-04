@@ -11,18 +11,22 @@ namespace Rune.UI;
 ///     &lt;ChildContent&gt;…&lt;/ChildContent&gt;
 /// &lt;/Popover&gt;
 /// </code>
-/// 打开靠原生的 <c>popovertarget</c>，静态 SSR 也能用；位置用 CSS 锚点定位（<see cref="Anchor"/>）。
+/// 打开靠原生的 <c>popovertarget</c>，静态 SSR 也能用；位置由 JS 初始化器用 Floating UI 计算（见 <see cref="Floating"/>），
+/// 打开、定位好之后焦点移进去，关闭后回到触发元素。
 /// </summary>
 public abstract class PopoverBase : UIComponent
 {
     Attrs? triggerAttrs;
-    Memo<(bool? Open, Placement Placement, string? Role, string? LabelledBy), Attrs> overlayAttrs;
+    Memo<(bool? Open, Placement Placement, int? Offset, string? Role, string? LabelledBy, bool FitHeight), Attrs> overlayAttrs;
 
-    /// <summary>触发元素：参数是要加在触发元素上的属性（<c>popovertarget</c>、锚点名等）。</summary>
+    /// <summary>触发元素：参数是要加在触发元素上的属性（<c>popovertarget</c>、id、aria-haspopup 等）。</summary>
     [Parameter] public RenderFragment<Attrs>? Trigger { get; set; }
 
-    /// <summary>相对触发元素的位置，默认下方；放不下时翻到对面。</summary>
-    [Parameter] public Placement Placement { get; set; }
+    /// <summary>相对触发元素的位置，默认下方、与起始边对齐；空间不够时自动翻到另一侧。</summary>
+    [Parameter] public Placement Placement { get; set; } = Placement.BottomStart;
+
+    /// <summary>与触发元素的距离（px），默认 6。</summary>
+    [Parameter] public int? Offset { get; set; }
 
     /// <summary>受控的打开状态（<c>@bind-Open</c>）。不写时由浏览器管理：点触发元素打开，点外面或按 Esc 关闭。</summary>
     [Parameter] public bool? Open { get; set; }
@@ -33,6 +37,9 @@ public abstract class PopoverBase : UIComponent
     /// <summary>浮层元素的 id。</summary>
     protected string OverlayId { get; } = UniqueId.Next("popover");
 
+    /// <summary>触发元素的 id：浮层默认以触发元素的文字作为名称（aria-labelledby）。</summary>
+    protected string TriggerId => $"{OverlayId}-trigger";
+
     /// <summary>浮层是否打开过。</summary>
     protected bool HasOpened { get; private set; }
 
@@ -40,16 +47,21 @@ public abstract class PopoverBase : UIComponent
     protected abstract string HasPopup { get; }
 
     /// <summary>交给触发元素的属性；创建一次。</summary>
-    protected Attrs TriggerAttrs => triggerAttrs ??= Attrs.Merge(
-        Anchor.Trigger(OverlayId),
-        new Attrs { ["popovertarget"] = OverlayId, ["aria-haspopup"] = HasPopup });
+    protected Attrs TriggerAttrs => triggerAttrs ??= new Attrs
+    {
+        Id = TriggerId,
+        ["popovertarget"] = OverlayId,
+        ["aria-haspopup"] = HasPopup,
+        ["aria-controls"] = OverlayId,
+    };
 
-    /// <summary>浮层元素上由组件管理的属性：popover、id、角色、受控状态、位置、锚点；输入不变时是同一个对象。</summary>
-    /// <param name="role">浮层的角色（dialog、menu）。</param>
-    /// <param name="labelledBy">标题元素的 id。</param>
-    protected Attrs OverlayAttrs(string? role, string? labelledBy = null) =>
-        overlayAttrs.Get((Open, Placement, role, labelledBy), OverlayId, static (k, id) => Attrs.Merge(
-            Anchor.Overlay(id),
+    /// <summary>浮层元素上由组件管理的属性：popover、id、角色、受控状态、定位约定；输入不变时是同一个对象。</summary>
+    /// <param name="role">浮层的角色（dialog、alertdialog、menu）。</param>
+    /// <param name="labelledBy">名称来源元素的 id。</param>
+    /// <param name="fitHeight">最大高度限制在视口剩下的空间里（菜单、选项列表；浮层自己滚动）。</param>
+    protected Attrs OverlayAttrs(string? role, string? labelledBy = null, bool fitHeight = false) =>
+        overlayAttrs.Get((Open, Placement, Offset, role, labelledBy, fitHeight), OverlayId, static (k, id) => Attrs.Merge(
+            Floating.Placed(k.Placement, k.Offset),
             new Attrs
             {
                 Id = id,
@@ -57,8 +69,8 @@ public abstract class PopoverBase : UIComponent
                 AriaLabelledBy = k.LabelledBy,
                 ["popover"] = "auto",
                 ["data-rune-overlay"] = true,
-                ["data-placement"] = Anchor.NameOf(k.Placement),
                 ["data-open"] = k.Open is { } open ? (open ? "true" : "false") : null,
+                ["data-fit-height"] = k.FitHeight ? true : null,
             }));
 
     /// <summary>浏览器报告打开或关闭（<c>@onrunetoggle</c>）。</summary>

@@ -1,6 +1,6 @@
 @*
     骨架屏：示例与 vue-tsx-pro 文档站的 /components/skeleton 对应。
-    头像用演示页自己的圆形缩写代替（Avatar 在阶段 6 做）；看板里的 Stat、表格示例（DataTable）等组件做好后补上。
+    头像用演示页自己的圆形缩写代替（DemoStyles.Initials；Avatar 在阶段 7 做）；看板里的 Stat、表格示例（DataTable）等组件做好后补上。
 *@
 @attribute [ComponentDemo("skeleton", "骨架屏", Group = "反馈", Order = 2)]
 @inherits RuneComponent
@@ -36,7 +36,7 @@
             <Card style="max-width: 24rem">
                 <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center">
                     <Skeleton Loading="wrappingLoading" Variant="SkeletonVariant.Circle">
-                        <span @attributes="Attrs.Merge(Initials)">AL</span>
+                        <span @attributes="Attrs.Merge(DemoStyles.Initials)">AL</span>
                     </Skeleton>
                     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
                         <Skeleton Loading="wrappingLoading">
@@ -107,7 +107,7 @@
                             @foreach (var (name, text) in messages)
                             {
                                 <Flex @key="name" Gap="SpaceScale.Md" Align="ItemAlign.Center">
-                                    <span @attributes="Attrs.Merge(Initials)">@name[..1]</span>
+                                    <span @attributes="Attrs.Merge(DemoStyles.Initials)">@name[..1]</span>
                                     <Flex Direction="LayoutDirection.Column" style="min-width: 0">
                                         <TextSpan Weight="Weight.Semibold">@name</TextSpan>
                                         <Small Tone="TextTone.Muted" Truncate="true">@text</Small>
@@ -199,20 +199,6 @@
         BackgroundImage = $"linear-gradient(135deg, {Tones.Accent.Soft}, {Tones.Info.Soft})",
     });
 
-    // 头像的替身（Avatar 在阶段 6 做）：与 Avatar 同大的圆形缩写
-    static Style Initials => Css.Define(static () => new Style
-    {
-        Display = Display.InlineFlex,
-        AlignItems = AlignItems.Center,
-        JustifyContent = JustifyContent.Center,
-        Width = "2.5em",
-        Height = "2.5em",
-        FlexShrink = 0,
-        BorderRadius = Radii.Full,
-        BackgroundColor = Tones.Accent.Soft,
-        Color = Tones.Accent.Text,
-        FontWeight = FontWeights.Semibold,
-    });
 
     static Style FieldLabel => Css.Define(static () => new Style { Width = "4em", Height = "0.875em" });
 

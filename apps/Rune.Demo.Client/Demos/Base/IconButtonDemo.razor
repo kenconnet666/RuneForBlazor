@@ -46,8 +46,9 @@
                 <Small Tone="TextTone.Muted">@(updated is { } time ? $"更新于 {time:HH:mm:ss}" : "还没刷新过")</Small>
             </Flex>
             <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
-                <Tooltip Content="只有项目所有者可以删除">
-                    <IconButton Icon="Lucide.Trash" Tone="Tone.Danger" Disabled="true" FocusableWhenDisabled="true" Label="删除项目" />
+                <Tooltip>
+                    <Trigger Context="t"><IconButton @attributes="t" Icon="Lucide.Trash" Tone="Tone.Danger" Disabled="true" FocusableWhenDisabled="true" Label="删除项目" /></Trigger>
+                    <ChildContent>只有项目所有者可以删除</ChildContent>
                 </Tooltip>
                 <Small Tone="TextTone.Muted">不可用，但能聚焦、悬停看原因</Small>
             </Flex>

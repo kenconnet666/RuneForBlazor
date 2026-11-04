@@ -1,76 +1,206 @@
-@* 弹出层：Popover、Menu、Tooltip、Popconfirm（原生 popover + CSS 锚点定位） *@
-@attribute [ComponentDemo("popover", "弹出层与提示", Group = "浮层", Order = 0)]
+@*
+    弹出框与提示：示例与 vue-tsx-pro 文档站的 /components/popover 对应。
+    hover-card 示例与 timing 里的 HoverCard 等阶段 8 做 HoverCard 时补上；订单状态的筛选在阶段 5 换成 CheckboxGroup。
+*@
+@attribute [ComponentDemo("popover", "弹出框与提示", Group = "浮层", Order = 0)]
 @inherits RuneComponent
 
-<DemoSection Title="弹出框">
-    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
-        <Popover Title="筛选" data-testid="filter-popover">
-            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Surface" Icon="Lucide.Funnel">筛选</Button></Trigger>
-            <ChildContent>
-                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
-                    <TextSpan Tone="TextTone.Muted" Size="Size.Sm">内容第一次打开才渲染；点外面或按 Esc 关闭。</TextSpan>
-                    <Flex Gap="SpaceScale.Xs" Wrap="true">
-                        @foreach (var status in statuses)
-                        {
-                            <Button Size="Size.Sm" Variant="@(status == filter ? ButtonVariant.Solid : ButtonVariant.Surface)" @onclick="() => filter = status">@status</Button>
-                        }
-                    </Flex>
-                    <Flex Justify="ContentJustify.End">
-                        <Button Size="Size.Sm" data-rune-close>完成</Button>
-                    </Flex>
+<DemoSection Id="popover" Title="Popover">
+    <Description><Code>Trigger</Code> 拿到要加在触发元素上的属性（<Code>@@attributes="t"</Code>），组件接管打开、定位与 aria-expanded。打开时焦点移进去，点外面、Esc 关闭，焦点回到触发元素。弹出层是 role="dialog"，名称默认取触发元素的文字。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+            <Flex Gap="SpaceScale.Sm" Wrap="true">
+                <Popover @bind-Open="sharing" Placement="Placement.BottomStart" Arrow="true">
+                    <Trigger Context="t"><Button @attributes="t" Icon="Lucide.Share2">分享</Button></Trigger>
+                    <ChildContent>
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" style="width: 20rem">
+                            <Strong>分享“第三季度报告”</Strong>
+                            <Flex Gap="SpaceScale.Xs">
+                                <TextField Value="@link" ReadOnly="true" aria-label="分享链接" />
+                                <CopyButton Value="@link" />
+                            </Flex>
+                            <Switch @bind-Value="comments">允许查看者评论</Switch>
+                        </Flex>
+                    </ChildContent>
+                </Popover>
+                <Popover @bind-Open="filtering" Placement="Placement.BottomStart" data-testid="filter-popover">
+                    <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Funnel">订单状态@(applied.Count > 0 ? $"（{applied.Count}）" : "")</Button></Trigger>
+                    <ChildContent>
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" role="group" aria-label="订单状态">
+                                @foreach (var status in statuses)
+                                {
+                                    <Checkbox @key="status" Value="picked.Contains(status)" ValueChanged="on => Pick(status, on)">@status</Checkbox>
+                                }
+                            </Flex>
+                            <Flex Gap="SpaceScale.Sm" Justify="ContentJustify.End">
+                                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => picked.Clear()">清空</Button>
+                                <Button Size="Size.Sm" @onclick="Apply">应用</Button>
+                            </Flex>
+                        </Flex>
+                    </ChildContent>
+                </Popover>
+            </Flex>
+            <Small Tone="TextTone.Muted">筛选：@(applied.Count > 0 ? string.Join("、", applied) : "全部状态")</Small>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="tooltip" Title="Tooltip">
+    <Description>给图标按钮补一句用途和快捷键。指针停一会儿显示，在一排按钮上移动时不用每次都等；键盘聚焦立即显示，Esc 隐藏。提示经 aria-describedby 补充说明，触发元素自己要有名称，提示里不放可交互的内容。同一个按钮既有提示又打开菜单时，用 <Code>Attrs.Merge(tip, menu)</Code> 合并两个触发元素的属性。</Description>
+    <ChildContent>
+        <Card Padding="SpaceScale.Xs">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs" Wrap="true">
+                @for (var index = 0; index < toolGroups.Length; index++)
+                {
+                    if (index > 0)
+                    {
+                        <Separator Orientation="Orientation.Vertical" />
+                    }
+                    foreach (var (icon, label, shortcut) in toolGroups[index])
+                    {
+                        <Tooltip @key="label">
+                            <Trigger Context="t"><IconButton @attributes="t" Icon="icon" Label="@label" /></Trigger>
+                            <ChildContent>@label@if (shortcut is not null)
+                                {
+                                    @(" ")@ShortcutKeys(shortcut)
+                                }</ChildContent>
+                        </Tooltip>
+                    }
+                }
+                <Separator Orientation="Orientation.Vertical" />
+                @* 同一个按钮既有提示又打开菜单：合并两边交给触发元素的属性 *@
+                <Tooltip>
+                    <Trigger Context="tip">
+                        <Menu>
+                            <Trigger Context="menu"><IconButton @attributes="Attrs.Merge(tip, menu)" Icon="Lucide.Ellipsis" Label="更多格式" /></Trigger>
+                            <ChildContent>
+                                <MenuItem>上标</MenuItem>
+                                <MenuItem>下标</MenuItem>
+                                <MenuItem>清除格式</MenuItem>
+                            </ChildContent>
+                        </Menu>
+                    </Trigger>
+                    <ChildContent>更多格式</ChildContent>
+                </Tooltip>
+            </Flex>
+        </Card>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="placement" Title="位置与箭头">
+    <Description><Code>Placement</Code> 是边加对齐，共 12 种；空间不够时自动翻到另一边、贴着视口平移。<Code>Arrow</Code> 显示指向触发元素的小箭头。</Description>
+    <ChildContent>
+        <div @attributes="Attrs.Merge(PlacementGrid)">
+            @foreach (var placement in placementCells)
+            {
+                if (placement is { } value)
+                {
+                    <Tooltip @key="value" Placement="value" Arrow="true">
+                        <Trigger Context="t"><Button @attributes="t" Size="Size.Sm" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">@Floating.NameOf(value)</Button></Trigger>
+                        <ChildContent>placement="@Floating.NameOf(value)"</ChildContent>
+                    </Tooltip>
+                }
+                else
+                {
+                    <span></span>
+                }
+            }
+        </div>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="timing" Title="显示的时机">
+    <Description>Tooltip 的 <Code>Delay</Code> 是指针停多久才显示（默认 500 毫秒），工具栏这类连续的按钮可以设成 0；<Code>Disabled</Code> 时只渲染触发元素。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg" Align="ItemAlign.Start">
+            <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Wrap="true">
+                <Flex Gap="SpaceScale.Xs">
+                    @foreach (var (icon, label, shortcut) in marks)
+                    {
+                        <Tooltip @key="label" Delay="0" Disabled="!hints">
+                            <Trigger Context="t"><IconButton @attributes="t" Icon="icon" Label="@label" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" /></Trigger>
+                            <ChildContent>@label <Kbd>@shortcut</Kbd></ChildContent>
+                        </Tooltip>
+                    }
                 </Flex>
-            </ChildContent>
-        </Popover>
-        <TextSpan Tone="TextTone.Muted">当前筛选：@filter</TextSpan>
-    </Flex>
-    <Flex Gap="SpaceScale.Sm" Wrap="true">
-        @foreach (var placement in Enum.GetValues<Placement>())
-        {
-            <Popover Placement="placement" Role="@null">
-                <Trigger Context="t"><Button @attributes="t" Size="Size.Sm" Variant="ButtonVariant.Outline">@placement</Button></Trigger>
-                <ChildContent>在@(placement)；放不下时翻到对面。</ChildContent>
-            </Popover>
-        }
-    </Flex>
-</DemoSection>
-
-<DemoSection Title="菜单">
-    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-        <Menu data-testid="row-menu">
-            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Surface" IconEnd="Lucide.ChevronDown">操作</Button></Trigger>
-            <ChildContent>
-                <MenuItem Icon="Lucide.Pencil" Shortcut="Ctrl E" @onclick="@(() => last = "编辑")">编辑</MenuItem>
-                <MenuItem Icon="Lucide.Copy" @onclick="@(() => last = "复制")">复制</MenuItem>
-                <MenuItem Icon="Lucide.Archive" Disabled="true">归档（不可用）</MenuItem>
-                <MenuSeparator />
-                <MenuItem Icon="Lucide.Trash" Tone="Tone.Danger" @onclick="@(() => last = "删除")">删除</MenuItem>
-            </ChildContent>
-        </Menu>
-        <TextSpan Tone="TextTone.Muted" data-testid="menu-last">上次选择：@(last ?? "无")</TextSpan>
-    </Flex>
-</DemoSection>
-
-<DemoSection Title="提示">
-    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-        <Tooltip Content="编辑"><IconButton Icon="Lucide.Pencil" Label="编辑" /></Tooltip>
-        <Tooltip Content="复制到剪贴板" Placement="Placement.Bottom"><IconButton Icon="Lucide.Copy" Label="复制" /></Tooltip>
-        <Tooltip Content="删除后可以在回收站里找回 30 天" Placement="Placement.End"><IconButton Icon="Lucide.Trash" Label="删除" Tone="Tone.Danger" /></Tooltip>
-        <TextSpan Tone="TextTone.Muted" Size="Size.Sm">悬停或 Tab 聚焦一会儿后出现，Esc 隐藏（纯 CSS，没有往返）</TextSpan>
-    </Flex>
-</DemoSection>
-
-<DemoSection Title="气泡确认">
-    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-        <Popconfirm Title="删除这条记录？" Description="删除后无法恢复。" ConfirmText="删除" Tone="Tone.Danger" OnConfirm="() => { deleted++; }">
-            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Trash">删除</Button></Trigger>
-        </Popconfirm>
-        <TextSpan Tone="TextTone.Muted" data-testid="deleted">已删除 @deleted 次</TextSpan>
-    </Flex>
+                <Switch @bind-Value="hints">显示按钮提示</Switch>
+            </Flex>
+            <Tooltip Delay="1000">
+                <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">停一秒才提示</Button></Trigger>
+                <ChildContent>不常用的说明可以等久一点，免得指针划过时到处弹出</ChildContent>
+            </Tooltip>
+        </Flex>
+    </ChildContent>
 </DemoSection>
 
 @code {
-    static readonly string[] statuses = ["全部", "待处理", "进行中", "已完成"];
-    string filter = "全部";
-    string? last;
-    int deleted;
+    const string link = "https://example.com/s/q3-report";
+    static readonly string[] statuses = ["待付款", "备货中", "已发货", "已完成", "已退款"];
+
+    static readonly (IconData Icon, string Label, string? Shortcut)[][] toolGroups =
+    [
+        [(Lucide.LetterB, "加粗", "Ctrl B"), (Lucide.Italic, "斜体", "Ctrl I"), (Lucide.Underline, "下划线", "Ctrl U"), (Lucide.Strikethrough, "删除线", null)],
+        [(Lucide.List, "无序列表", null), (Lucide.ListOrdered, "有序列表", null), (Lucide.Quote, "引用", null)],
+        [(Lucide.Link2, "插入链接", "Ctrl K")],
+    ];
+
+    static readonly (IconData Icon, string Label, string Shortcut)[] marks =
+    [
+        (Lucide.LetterB, "加粗", "Ctrl+B"),
+        (Lucide.Italic, "斜体", "Ctrl+I"),
+        (Lucide.Underline, "下划线", "Ctrl+U"),
+    ];
+
+    // 五行五列围着中间：每条边三个对齐方式
+    static readonly Placement?[] placementCells =
+    [
+        null, Placement.TopStart, Placement.Top, Placement.TopEnd, null,
+        Placement.LeftStart, null, null, null, Placement.RightStart,
+        Placement.Left, null, null, null, Placement.Right,
+        Placement.LeftEnd, null, null, null, Placement.RightEnd,
+        null, Placement.BottomStart, Placement.Bottom, Placement.BottomEnd, null,
+    ];
+
+    bool sharing;
+    bool filtering;
+    bool comments = true;
+    bool hints = true;
+    readonly List<string> picked = ["待付款", "备货中"];
+    List<string> applied = ["待付款", "备货中"];
+
+    static Style PlacementGrid => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "repeat(5, max-content)",
+        Gap = Space.Sm,
+        JustifyContent = JustifyContent.Center,
+    });
+
+    void Pick(string status, bool on)
+    {
+        if (on && !picked.Contains(status)) picked.Add(status);
+        else if (!on) picked.Remove(status);
+    }
+
+    void Apply()
+    {
+        applied = [.. picked];
+        filtering = false;
+    }
+
+    // “Ctrl B” → <Kbd>Ctrl</Kbd> + <Kbd>B</Kbd>
+    static RenderFragment ShortcutKeys(string shortcut) => builder =>
+    {
+        var keys = shortcut.Split(' ');
+        for (var index = 0; index < keys.Length; index++)
+        {
+            // 子内容是延后执行的委托：取出当前的键，不捕获循环变量
+            var key = keys[index];
+            if (index > 0) builder.AddContent(0, " + ");
+            builder.OpenComponent<Kbd>(1);
+            builder.AddAttribute(2, "ChildContent", (RenderFragment)(b => b.AddContent(0, key)));
+            builder.CloseComponent();
+        }
+    };
 }

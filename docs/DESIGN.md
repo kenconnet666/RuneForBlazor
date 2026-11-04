@@ -110,18 +110,26 @@
 ## 8. 浮层（`src/Rune.UI/Components/Overlay`、`wwwroot/Rune.UI.lib.module.js`）
 
 - **尽量用浏览器原生**：弹出层是 `popover="auto"`（顶层、点外面与 Esc 关闭、同时只开一个、`popovertarget` 打开），对话框与抽屉是模态 `<dialog>`
-  （焦点圈在里面、Esc 关闭、关闭后焦点还给触发元素），位置用 CSS 锚点定位（`Anchor`：`anchor-name` / `position-anchor` / `position-area`，放不下自动翻面），
-  进出场用 `@starting-style` 加 display / overlay 的离散过渡（`When.Starting`），关闭动画不需要 JS 等待。
+  （焦点圈在里面、Esc 关闭、关闭后焦点还给触发元素），进出场用 `@starting-style` 加 display / overlay 的离散过渡（`When.Starting`），关闭动画不需要 JS 等待。
 - **组件不调用 JS**：只在元素上写属性，JS 初始化器（Blazor 按 `{程序集名}.lib.module.js` 自动加载）用全局事件委托处理：
   `data-rune-overlay`（开关时发出冒泡的 `rune-toggle`，C# 里是 `@onrunetoggle`）、`data-open`（受控时 JS 同步原生状态）、
   `data-rune-open` / `data-rune-close`（点击打开、关闭）、`data-rune-light-dismiss`、菜单键盘、提示的 Esc 与 aria-describedby、模态时锁定滚动、
-  不支持锚点定位时的兜底摆放。好处：Server / WebAssembly / 静态 SSR 行为一致，没有 `IJSRuntime` 的异步与往返；
+  锚定浮层的定位。好处：Server / WebAssembly / 静态 SSR 行为一致，没有 `IJSRuntime` 的异步与往返；
   静态 SSR 里弹出框、菜单、用 Trigger 打开的对话框都能用。
 - **原生 toggle / close 事件不冒泡**，Blazor 内置的 `@ontoggle` 也不带新状态，所以转发成 `rune-toggle`（`OverlayToggleEventArgs.Open`）。
   Chromium 在渲染更新时才派发这两个事件：页面不渲染（被隐藏的预览窗格）时收不到，测试时注意。
-- **触发元素由使用方写**：`Trigger` 是 `RenderFragment<Attrs>`，组件把 `popovertarget`、锚点名等交给它（`<Button @attributes="t">`），按钮仍是使用方的组件。
-- **内容第一次打开才渲染**（交互模式）；渲染前浮层是空壳，用 `When.Empty` 隐藏。菜单项、气泡确认一开始就渲染：
-  打开时要立即聚焦里面的元素（JS 聚焦第一个菜单项、`autofocus` 的取消按钮）。静态渲染没有交互，一开始就渲染。
+- **锚定浮层用 Floating UI 定位**（与 vue-tsx-pro 同一个库、同一个版本，`tools/vendor-gen` 放进 `wwwroot/vendor`，第一次打开浮层时才 `import()`）：
+  浮层带 `data-rune-floating="bottom-start"`（`Placement` 12 种），打开时 offset、flip、shift，可选 arrow 与 size（`data-fit-height`、之后下拉框的 `data-match-width`），
+  `autoUpdate` 跟随；最终方向写到 `data-side` / `data-align`，缩放原点朝向触发元素。最初用的是 CSS 锚点定位（`position-area` 加翻面），
+  做不到贴着视口平移（shift），也不知道最终翻到了哪边（箭头、缩放原点没法跟着），Firefox 还要 JS 兜底，与 vue-tsx-pro 对齐时换掉。
+  定位好之前浮层 `visibility: hidden`，所以焦点在定位之后才移进去（菜单的第一项、对话框类浮层的 autofocus 或第一个可聚焦元素）；
+  第一次打开才渲染内容的浮层打开时还是空的，JS 等内容渲染出来（最多 1 秒）再定位，不先按空盒子定位闪一下。
+- **触发元素由使用方写**：`Trigger` 是 `RenderFragment<Attrs>`，组件把 `popovertarget`、id、aria-controls 等交给它（`<Button @attributes="t">`），按钮仍是使用方的组件。
+- **内容第一次打开才渲染**（交互模式，Popover 的 Lazy）。菜单项、气泡确认一开始就渲染。静态渲染没有交互，一开始就渲染。
+  浮层的名称默认取触发元素的文字（aria-labelledby 指向触发元素的 id，同 vue-tsx-pro）。
+- **气泡确认的异步确认**：`OnConfirm` 执行期间确认按钮加载中、取消不可用，完成后组件把受控的 Open 设为 false 关上；
+  vue-tsx-pro 里返回 false 保持打开，Blazor 的 EventCallback 没有返回值，改成参数 `ConfirmEventArgs.KeepOpen`（同 .NET 的 CancelEventArgs）。
+  取消就是关闭（取消按钮只带 `data-rune-close`），关闭时没确认过就调用 OnCancel，所以 Esc、点外面与取消按钮一样。
 - **进出场统一**：`OverlayTransitions`（同 vue-tsx-pro 的 transitions）：打开状态 `:is(:popover-open, :modal)` 里用 `@starting-style`，
   进场 Normal 时长 + enter 缓动，离场 Fast + exit 缓动；Scale（弹出框、菜单、对话框）、Slide（抽屉）、Backdrop（遮罩）。
 - **按钮的不可用与加载中**（同 vue-tsx-pro 的 useButtonBehavior）：`Disabled` 是原生 disabled；`FocusableWhenDisabled` 改用 aria-disabled，仍能聚焦，
@@ -140,7 +148,10 @@
 - **图标描线**：Icon 的 Draw 写成 `data-rune-draw`，JS 初始化器在它变成 true（含第一次渲染）时用 Web Animations 把每一笔从 0 画到 1。
 - **波纹**（同 vue-tsx-pro）：按钮、菜单项带 `data-rune-ripple`，JS 初始化器在按下时从指针位置（键盘 Enter / 空格时从中心）扩散一圈 currentColor 的半透明圆，
   松开后淡出；纯客户端，Server 模式没有往返。配置 `UIConfig.Ripple`（默认开）、Provider、组件的 `Ripple` 参数逐层覆盖；像链接的按钮没有波纹。
-- **提示纯 CSS**：外层悬停或里面有键盘焦点时显示（`When.Parent`，延迟 400ms），Server 模式也没有往返；位置同样用锚点定位。
+- **提示**（同 vue-tsx-pro 的 Tooltip 与 hover-intent）：`popover="manual"`（不会关掉正打开的菜单、弹出框），触发元素带 `data-rune-tooltip`，
+  JS 初始化器按悬停意图开关：停留 `data-delay`（默认 500ms）后显示，刚关掉一个（300ms 内）时直接显示，离开 100ms 后隐藏（可以移到提示上），
+  键盘聚焦立即显示，按下、失焦、Esc 隐藏，同一时间只显示一个；Server 模式没有往返。最初是纯 CSS（外层悬停时显示），
+  做不到组内跳过延迟、移到提示上不消失、同时只显示一个，内容也只能是文字，对齐时换掉。
 - **消息提示**：`ToastService`（scoped）把列表放在 `State` 里，`Toaster` 读到它就随变化重新渲染，后台线程调用也安全；每条是一个 Alert。
   Toaster 要放在交互区域里（同一个电路 / WebAssembly 实例才拿得到同一个服务）。
 
@@ -205,5 +216,4 @@
 ## 12. 已知限制与下一步
 
 - 组件库样式预生成静态 CSS（减少内联 `<style>`）是优化，不改 API。
-- 浮层的 JS 兜底只处理弹出层（按 popovertarget 找触发元素）；不支持锚点定位的浏览器里提示显示在触发元素后面的正常位置。
 - 主题对象由 `Css.Define` 定义，热重载改主题值后，应用级配置（DI 单例）仍拿着旧主题，要重启；Provider 上直接传的主题会更新。

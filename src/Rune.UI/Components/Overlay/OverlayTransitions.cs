@@ -29,6 +29,19 @@ public static class OverlayTransitions
         },
     });
 
+    /// <summary>淡入淡出（同 vue-tsx-pro 的 transitions.fade）：提示。</summary>
+    public static Style Fade => Css.Define(static () => new Style
+    {
+        Opacity = 0,
+        Transition = Exit("opacity"),
+        [opened] = new()
+        {
+            Opacity = 1,
+            Transition = Enter("opacity"),
+            [When.Starting] = new() { Opacity = 0 },
+        },
+    });
+
     /// <summary>从某个方向滑入：抽屉。<paramref name="hidden"/> 是隐藏时的位移（<c>100% 0</c> 是从右边进来）。</summary>
     public static Style Slide(string hidden) => Css.Define(hidden, static hidden => new Style
     {

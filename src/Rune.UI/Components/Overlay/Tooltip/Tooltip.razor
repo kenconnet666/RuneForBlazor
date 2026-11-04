@@ -1,37 +1,71 @@
 @*
-    提示：悬停或键盘聚焦在触发元素上一会儿后显示的简短说明。
-    <Tooltip Content="复制链接"><IconButton Icon="Lucide.Copy" Label="复制" /></Tooltip>
-    只放文字，不放可操作的内容（那是 Popover）；触发元素必须能聚焦，键盘用户才看得到。
-    显示与隐藏全在 CSS 里，静态 SSR 也能用；Esc 隐藏，聚焦时触发元素的 aria-describedby 指向提示（JS 初始化器）。
+    文字提示（role="tooltip"，同 vue-tsx-pro 的 Tooltip）：指针停在触发元素上、或用键盘聚焦它时，显示一句简短说明（图标按钮的用途、快捷键）。
+    <Tooltip>
+        <Trigger Context="t"><IconButton @attributes="t" Icon="Lucide.Copy" Label="复制" /></Trigger>
+        <ChildContent>复制 <Kbd>Ctrl</Kbd> + <Kbd>C</Kbd></ChildContent>
+    </Tooltip>
+    - 指针停留 Delay 毫秒后显示；刚有提示关掉（300ms 内）时直接显示，在一排按钮上移动不用每次等；
+    - 键盘聚焦（:focus-visible）立即显示，失焦、Esc、按下触发元素时隐藏；触屏不显示（没有悬停）；
+    - 指针可以移到提示上而不消失（WCAG 1.4.13）；同一时间只显示一个；
+    - 提示是对触发元素的补充说明（aria-describedby）：触发元素自己要有名称，提示里不放可交互的内容。
+    用 popover="manual" 渲染在顶层，不会关掉正打开的菜单或弹出框；开关、定位都在 JS 初始化器里，没有往返。
 *@
 @namespace Rune.UI
 @inherits UIComponent
-@{ var parts = TooltipStyles.Of(Placement, Config.Styles); }
+@{ var parts = TooltipStyles.Of(Arrow, Config.Styles); }
 
-<span @attributes="Attrs.Merge(parts[TooltipPart.Root], Rest, RootAttrs)">
-    @ChildContent
-    <span @attributes="Attrs.Merge(parts[TooltipPart.Content], PropsContent, ContentAttrs)">@Content</span>
-</span>
+@Trigger?.Invoke(Disabled ? NoTooltip : TriggerAttrs)
+@if (!Disabled)
+{
+    <div @attributes="Attrs.Merge(parts[TooltipPart.Root], Rest, Managed)">
+        @ChildContent
+        @if (Arrow)
+        {
+            <span @attributes="Attrs.Merge(FloatingStyles.ArrowLayer, PropsArrow, Floating.ArrowAttrs)"></span>
+        }
+    </div>
+}
 
 @code {
-    readonly string tooltipId = UniqueId.Next("tooltip");
-    Attrs? rootAttrs;
-    Attrs? contentAttrs;
+    static readonly Attrs NoTooltip = new();
 
-    /// <summary>提示文字。</summary>
-    [Parameter, EditorRequired] public string Content { get; set; } = "";
+    readonly string id = UniqueId.Next("tooltip");
+    Attrs? triggerAttrs;
+    Memo<(Placement Placement, int? Offset, int Delay), Attrs> managed;
 
-    /// <summary>相对触发元素的位置，默认上方；放不下时翻到对面。</summary>
-    [Parameter] public Placement Placement { get; set; } = Placement.Top;
+    /// <summary>触发元素：参数是要加在它上面的属性（aria-describedby、交给 JS 的标记）。</summary>
+    [Parameter] public RenderFragment<Attrs>? Trigger { get; set; }
 
-    /// <summary>触发元素（按钮、链接等能聚焦的元素）。</summary>
+    /// <summary>提示的内容（文字、快捷键）。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>提示本身的部件属性。</summary>
-    [Parameter] public Attrs? PropsContent { get; set; }
+    /// <summary>显示位置，默认上方居中；空间不够时自动翻转。</summary>
+    [Parameter] public Placement Placement { get; set; } = Placement.Top;
 
-    // 外层：锚点名，以及告诉 JS 提示的 id；只建一次
-    Attrs RootAttrs => rootAttrs ??= Attrs.Merge(Anchor.Trigger(tooltipId), new Attrs { ["data-rune-tooltip-root"] = tooltipId });
+    /// <summary>与触发元素的距离（px），默认 6。</summary>
+    [Parameter] public int? Offset { get; set; }
 
-    Attrs ContentAttrs => contentAttrs ??= Attrs.Merge(Anchor.Overlay(tooltipId), new Attrs { Id = tooltipId, Role = "tooltip" });
+    /// <summary>指针停留多久后显示（毫秒），默认 500；工具栏这类连续的按钮可以设成 0。</summary>
+    [Parameter] public int Delay { get; set; } = 500;
+
+    /// <summary>不显示（触发元素照常渲染）。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>显示指向触发元素的箭头。</summary>
+    [Parameter] public bool Arrow { get; set; }
+
+    /// <summary>箭头的部件属性。</summary>
+    [Parameter] public Attrs? PropsArrow { get; set; }
+
+    Attrs TriggerAttrs => triggerAttrs ??= new Attrs { AriaDescribedBy = id, ["data-rune-tooltip"] = id };
+
+    Attrs Managed => managed.Get((Placement, Offset, Delay), id, static (k, id) => Attrs.Merge(
+        Floating.Placed(k.Placement, k.Offset),
+        new Attrs
+        {
+            Id = id,
+            Role = "tooltip",
+            ["popover"] = "manual",
+            ["data-delay"] = k.Delay,
+        }));
 }

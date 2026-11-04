@@ -38,10 +38,10 @@
 
 <DemoSection Title="抽屉">
     <Flex Gap="SpaceScale.Sm" Wrap="true">
-        @foreach (var placement in Enum.GetValues<Placement>())
+        @foreach (var side in Enum.GetValues<DrawerSide>())
         {
-            <Drawer Placement="placement" Title="@($"从 {placement} 滑出")">
-                <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline">@placement</Button></Trigger>
+            <Drawer Side="side" Title="@($"从 {side} 滑出")">
+                <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline">@side</Button></Trigger>
                 <ChildContent><Paragraph>抽屉适合详情、筛选与较长的表单。</Paragraph></ChildContent>
                 <Footer><Button data-rune-close>关闭</Button></Footer>
             </Drawer>

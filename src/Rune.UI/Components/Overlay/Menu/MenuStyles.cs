@@ -29,10 +29,10 @@ public enum MenuItemPart
 public static class MenuStyles
 {
     /// <summary>菜单（某个位置、某套定制）的部件默认层。</summary>
-    public static PartLayers<MenuPart> Of(Placement placement, ComponentStyles styles) =>
-        Recipe.Of("menu", placement, styles, static (Placement placement, MenuPart part) => part switch
+    public static PartLayers<MenuPart> Of(ComponentStyles styles) =>
+        Recipe.Of("menu", styles, static (MenuPart part) => part switch
         {
-            MenuPart.Root => Sx.Of(PopoverStyles.Surface, OverlayTransitions.Scale, Anchor.Position(placement, alignStart: true), Root),
+            MenuPart.Root => Sx.Of(FloatingStyles.Anchored, FloatingStyles.Surface, OverlayTransitions.Scale, Root),
             _ => Separator,
         });
 
@@ -45,10 +45,14 @@ public static class MenuStyles
             _ => Shortcut,
         });
 
+    // 菜单项多时在菜单里滚动（最大高度由 JS 按视口剩下的空间写）
     static Style Root => Css.Define(static () => new Style
     {
-        MinWidth = "10em",
+        MinWidth = "12em",
+        MaxWidth = "calc(100vw - 2em)",
         Padding = Space.Xs,
+        LineHeight = LineHeights.Normal,
+        OverflowY = Overflow.Auto,
     });
 
     // 键盘焦点与悬停用同一种高亮：菜单里焦点就是“当前项”

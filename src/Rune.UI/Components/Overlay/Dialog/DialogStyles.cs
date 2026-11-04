@@ -55,15 +55,15 @@ public static class DialogStyles
         });
 
     /// <summary>抽屉（贴着页面一边滑出）的部件默认层。</summary>
-    public static PartLayers<DialogPart> Drawer(Placement placement, DialogWidth width, ComponentStyles styles) =>
-        Recipe.Of("drawer", (placement, width), styles, static ((Placement Placement, DialogWidth Width) a, DialogPart part) => part switch
+    public static PartLayers<DialogPart> Drawer(DrawerSide side, DialogWidth width, ComponentStyles styles) =>
+        Recipe.Of("drawer", (side, width), styles, static ((DrawerSide Side, DialogWidth Width) a, DialogPart part) => part switch
         {
             DialogPart.Root => Sx.Of(
                 Surface,
-                OverlayTransitions.Slide(HiddenOffset(a.Placement)),
+                OverlayTransitions.Slide(HiddenOffset(a.Side)),
                 OverlayTransitions.Backdrop,
-                Side(a.Placement),
-                a.Placement is Placement.Start or Placement.End ? WidthOf(a.Width) : null),
+                SideOf(a.Side),
+                a.Side is DrawerSide.Start or DrawerSide.End ? WidthOf(a.Width) : null),
             _ => Inner(part),
         });
 
@@ -113,22 +113,22 @@ public static class DialogStyles
     });
 
     // 抽屉隐藏时的位移：移到它那一边的外面
-    static string HiddenOffset(Placement placement) => placement switch
+    static string HiddenOffset(DrawerSide side) => side switch
     {
-        Placement.Start => "-100% 0",
-        Placement.Top => "0 -100%",
-        Placement.Bottom => "0 100%",
+        DrawerSide.Start => "-100% 0",
+        DrawerSide.Top => "0 -100%",
+        DrawerSide.Bottom => "0 100%",
         _ => "100% 0",
     };
 
     // 抽屉：贴边、占满那一边（另一个方向按内容或宽度档位）
-    static Style Side(Placement placement) => Css.Define(placement, static placement =>
-        placement switch
+    static Style SideOf(DrawerSide side) => Css.Define(side, static side =>
+        side switch
         {
-            Placement.Start or Placement.End => new Style
+            DrawerSide.Start or DrawerSide.End => new Style
             {
                 MarginBlock = 0,
-                MarginInline = placement == Placement.End ? "auto 0" : "0 auto",
+                MarginInline = side == DrawerSide.End ? "auto 0" : "0 auto",
                 Height = "100dvh",
                 MaxHeight = "100dvh",
                 BorderRadius = 0,
@@ -136,7 +136,7 @@ public static class DialogStyles
             _ => new Style
             {
                 MarginInline = 0,
-                MarginBlock = placement == Placement.Bottom ? "auto 0" : "0 auto",
+                MarginBlock = side == DrawerSide.Bottom ? "auto 0" : "0 auto",
                 Width = "100vw",
                 MaxWidth = "100vw",
                 MaxHeight = "85dvh",

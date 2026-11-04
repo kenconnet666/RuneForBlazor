@@ -1,39 +1,69 @@
 @*
-    气泡确认：在触发元素旁边问一句再执行（删除一行、撤销发布），比对话框轻。
-    <Popconfirm Title="删除这条记录？" Description="删除后无法恢复。" ConfirmText="删除" Tone="Tone.Danger" OnConfirm="Delete">
-        <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Ghost" Tone="Tone.Danger">删除</Button></Trigger>
+    气泡确认（role="alertdialog"，同 vue-tsx-pro 的 Popconfirm）：在触发按钮旁边问一句再执行，比确认对话框轻（删除一行、撤回、移出成员）。
+    <Popconfirm Title="删除这条记录？" Description="删除后无法恢复。" ConfirmText="删除" Tone="Tone.Danger" OnConfirm="DeleteAsync">
+        <Trigger Context="t"><IconButton @attributes="t" Icon="Lucide.Trash" Label="删除" /></Trigger>
     </Popconfirm>
-    打开时焦点在“取消”上（不小心按回车也不会执行）；确认或取消后关闭，焦点回到触发元素。
+    建在 Popover 上：点外面、Esc 等于取消，关闭后焦点回到触发元素；打开时焦点落在“取消”上，误按 Enter 不会执行。
+    OnConfirm 执行期间确认按钮加载中，完成后关闭；把参数的 KeepOpen 设为 true 时保持打开（由调用方提示原因）。
+    后果严重、要多写几句说明或填理由的操作用对话框。
 *@
 @namespace Rune.UI
 @inherits UIComponent
-@{ var parts = PopconfirmStyles.Of(Config.Styles); }
+@{
+    var parts = PopconfirmStyles.Of(Config.Styles);
+    var icon = HideIcon ? null : Icon ?? Tones.StatusIcon(Tone);
+}
 
-<Popover Role="alertdialog" Placement="Placement" Trigger="Trigger" Lazy="false" aria-labelledby="@titleId" @attributes="Rest">
+<Popover Role="alertdialog" Placement="Placement" Offset="Offset" Arrow="Arrow" Trigger="Trigger" Lazy="false"
+         Open="open" OpenChanged="OnOpenChanged" @attributes="Attrs.MergeProps(null, Rest, RootManaged)">
     <div @attributes="Attrs.Merge(parts[PopconfirmPart.Body])">
-        <Icon Data="@(Icon ?? BuiltInIcons.TriangleExclamationPoint)" Tone="Tone.AsText()" @attributes="Attrs.MergeProps(parts[PopconfirmPart.Icon], PropsIcon)" />
-        <div>
-            <div id="@titleId" @attributes="Attrs.Merge(parts[PopconfirmPart.Title], PropsTitle)">@Title</div>
-            @if (Description is not null)
-            {
-                <div @attributes="Attrs.Merge(parts[PopconfirmPart.Description], PropsDescription)">@Description</div>
-            }
+        @if (icon is not null)
+        {
+            <Icon Data="icon" Tone="Tone.AsText()" @attributes="Attrs.MergeProps(parts[PopconfirmPart.Icon], PropsIcon)" />
+        }
+        <div id="@TitleId" @attributes="Attrs.Merge(parts[PopconfirmPart.Title], PropsTitle)">@Title</div>
+        @if (Description is not null)
+        {
+            <div id="@DescriptionId" @attributes="Attrs.Merge(parts[PopconfirmPart.Description], PropsDescription)">@Description</div>
+        }
+        <div @attributes="Attrs.Merge(parts[PopconfirmPart.Footer], PropsFooter)">
+            @* 取消就是关闭（点外面、Esc 也一样）：静态 SSR 也能用；打开时焦点落在这里 *@
+            <Button Size="UI.Size.Sm" Variant="ButtonVariant.Soft" Tone="UI.Tone.Neutral" Disabled="pending" data-rune-close autofocus
+                    @attributes="Attrs.MergeProps(null, PropsCancel)">@(CancelText ?? Config.Lang.Cancel)</Button>
+            <Button Size="UI.Size.Sm" Tone="Tone" Loading="pending" @onclick="ConfirmAsync"
+                    @attributes="Attrs.MergeProps(null, PropsConfirm)">@(ConfirmText ?? Config.Lang.Confirm)</Button>
         </div>
-    </div>
-    <div @attributes="Attrs.Merge(parts[PopconfirmPart.Actions], PropsActions)">
-        <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="UI.Tone.Neutral" data-rune-close autofocus @onclick="OnCancel">@(CancelText ?? Config.Lang.Cancel)</Button>
-        <Button Size="UI.Size.Sm" Tone="Tone" data-rune-close @onclick="OnConfirm">@(ConfirmText ?? Config.Lang.Confirm)</Button>
     </div>
 </Popover>
 
 @code {
-    readonly string titleId = UniqueId.Next("popconfirm-title");
+    readonly string id = UniqueId.Next("popconfirm");
+    Memo<bool, Attrs> rootManaged;
+    bool open;
+    bool pending;
+    // 确认后关闭的不算取消；Esc、点外面、取消按钮关闭的都是取消
+    bool confirmed;
 
-    /// <summary>要确认的问题（也是浮层的名称）。</summary>
+    /// <summary>要确认的问题，同时是弹出层的名称。</summary>
     [Parameter, EditorRequired] public string Title { get; set; } = "";
 
-    /// <summary>补充说明（后果）。</summary>
+    /// <summary>补充说明（aria-describedby）。</summary>
     [Parameter] public string? Description { get; set; }
+
+    /// <summary>确认按钮与图标的色调，默认警告色；删除这类破坏性操作用 Danger。</summary>
+    [Parameter] public Tone Tone { get; set; } = Tone.Warning;
+
+    /// <summary>图标；不写时按色调选（<see cref="Tones.StatusIcon"/>）。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>不显示图标。</summary>
+    [Parameter] public bool HideIcon { get; set; }
+
+    /// <summary>确认：执行期间确认按钮加载中，完成后关闭；参数的 KeepOpen 设为 true 时保持打开。</summary>
+    [Parameter] public EventCallback<ConfirmEventArgs> OnConfirm { get; set; }
+
+    /// <summary>取消（取消按钮、Esc、点外面）。</summary>
+    [Parameter] public EventCallback OnCancel { get; set; }
 
     /// <summary>确认按钮的文字；不写时取语言包的“确定”。</summary>
     [Parameter] public string? ConfirmText { get; set; }
@@ -41,23 +71,23 @@
     /// <summary>取消按钮的文字；不写时取语言包的“取消”。</summary>
     [Parameter] public string? CancelText { get; set; }
 
-    /// <summary>色调：确认按钮与图标的颜色，默认警告色；删除这类不可撤销的操作写 Danger。</summary>
-    [Parameter] public Tone Tone { get; set; } = Tone.Warning;
-
-    /// <summary>标题前的图标；不写时是警示三角。</summary>
-    [Parameter] public IconData? Icon { get; set; }
-
-    /// <summary>确认后。</summary>
-    [Parameter] public EventCallback OnConfirm { get; set; }
-
-    /// <summary>取消后（点取消按钮；点外面、按 Esc 关闭不算）。</summary>
-    [Parameter] public EventCallback OnCancel { get; set; }
-
     /// <summary>触发元素：参数是要加在它上面的属性。</summary>
     [Parameter] public RenderFragment<Attrs>? Trigger { get; set; }
 
-    /// <summary>相对触发元素的位置，默认下方。</summary>
-    [Parameter] public Placement Placement { get; set; }
+    /// <summary>相对触发元素的位置，默认上方居中。</summary>
+    [Parameter] public Placement Placement { get; set; } = Placement.Top;
+
+    /// <summary>与触发元素的距离（px），默认 6。</summary>
+    [Parameter] public int? Offset { get; set; }
+
+    /// <summary>显示指向触发元素的箭头。</summary>
+    [Parameter] public bool Arrow { get; set; }
+
+    /// <summary>受控的打开状态（<c>@bind-Open</c>）；一般不需要。</summary>
+    [Parameter] public bool? Open { get; set; }
+
+    /// <summary>打开或关闭后。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
 
     /// <summary>图标的部件属性（交给 Icon）。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }
@@ -68,6 +98,56 @@
     /// <summary>说明的部件属性。</summary>
     [Parameter] public Attrs? PropsDescription { get; set; }
 
-    /// <summary>按钮区的部件属性。</summary>
-    [Parameter] public Attrs? PropsActions { get; set; }
+    /// <summary>按钮行的部件属性。</summary>
+    [Parameter] public Attrs? PropsFooter { get; set; }
+
+    /// <summary>确认按钮的部件属性（交给 Button）。</summary>
+    [Parameter] public Attrs? PropsConfirm { get; set; }
+
+    /// <summary>取消按钮的部件属性（交给 Button）。</summary>
+    [Parameter] public Attrs? PropsCancel { get; set; }
+
+    string TitleId => $"{id}-title";
+
+    string DescriptionId => $"{id}-description";
+
+    // 名称是问题，说明经 aria-describedby 念出
+    Attrs RootManaged => rootManaged.Get(Description is not null, id, static (described, id) => new Attrs
+    {
+        AriaLabelledBy = $"{id}-title",
+        AriaDescribedBy = described ? $"{id}-description" : null,
+    });
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (Open is { } value) open = value;
+    }
+
+    async Task OnOpenChanged(bool now)
+    {
+        open = now;
+        if (now) confirmed = false;
+        else if (!confirmed) await OnCancel.InvokeAsync();
+        await OpenChanged.InvokeAsync(now);
+    }
+
+    async Task ConfirmAsync()
+    {
+        if (pending) return;
+        pending = true;
+        var args = new ConfirmEventArgs();
+        try
+        {
+            await OnConfirm.InvokeAsync(args);
+        }
+        finally
+        {
+            pending = false;
+        }
+        if (args.KeepOpen) return;
+        confirmed = true;
+        // 受控的 Open 变成 false，JS 初始化器把浮层关上（随后的 rune-toggle 不再算取消）
+        open = false;
+    }
 }

@@ -114,6 +114,15 @@ public sealed record ToneColors
 /// <summary>各色调的颜色 token。</summary>
 public static class Tones
 {
+    /// <summary>色调的默认状态图标（同 vue-tsx-pro 的 statusIcons）：Alert、Popconfirm 不写图标时用它。</summary>
+    public static IconData StatusIcon(Tone tone) => tone switch
+    {
+        Tone.Success => BuiltInIcons.CircleCheck,
+        Tone.Warning => BuiltInIcons.TriangleExclamationPoint,
+        Tone.Danger => BuiltInIcons.CircleExclamationPoint,
+        _ => BuiltInIcons.Info,
+    };
+
     /// <summary>中性（用 <see cref="Colors"/> 的反色表面、填充、文字、边框）。</summary>
     public static readonly ToneColors Neutral = ToneColors.FromColors();
 

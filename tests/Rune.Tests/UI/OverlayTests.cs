@@ -26,16 +26,18 @@ public class OverlayTests : BunitContext
     };
 
     [Fact]
-    public void 弹出框_触发元素拿到popovertarget与锚点名()
+    public void 弹出框_触发元素拿到popovertarget_名称取触发元素_定位约定交给JS()
     {
-        var cut = Render<Popover>(p => p.Add(x => x.Trigger, TriggerButton("筛选")).AddChildContent("内容"));
+        var cut = Render<Popover>(p => p.Add(x => x.Trigger, TriggerButton("筛选")).Add(x => x.Arrow, true).AddChildContent("内容"));
 
         var trigger = cut.Find("button");
         var overlay = cut.Find("[popover]");
         Assert.Equal(overlay.Id, trigger.GetAttribute("popovertarget"));
+        Assert.Equal(overlay.Id, trigger.GetAttribute("aria-controls"));
         Assert.Equal("dialog", trigger.GetAttribute("aria-haspopup"));
-        Assert.Equal($"anchor-name:--{overlay.Id}", trigger.GetAttribute("style"));
-        Assert.Equal($"position-anchor:--{overlay.Id}", overlay.GetAttribute("style"));
+        Assert.Equal(trigger.Id, overlay.GetAttribute("aria-labelledby"));
+        Assert.Equal("bottom-start", overlay.GetAttribute("data-rune-floating"));
+        Assert.NotNull(overlay.QuerySelector("[data-rune-arrow]"));
         Assert.Equal("auto", overlay.GetAttribute("popover"));
         Assert.Equal("dialog", overlay.GetAttribute("role"));
         // 不受控：不写 data-open，交给浏览器
@@ -88,15 +90,62 @@ public class OverlayTests : BunitContext
     }
 
     [Fact]
-    public void 提示_外层告诉JS提示的id_提示悬停时显示()
+    public void 提示_触发元素指向提示_手动的popover_不可用时只渲染触发元素()
     {
-        var cut = Render<Tooltip>(p => p.Add(x => x.Content, "复制链接").AddChildContent("<button>复制</button>"));
+        var cut = Render<Tooltip>(p => p
+            .Add(x => x.Trigger, TriggerButton("复制"))
+            .Add(x => x.Delay, 0)
+            .AddChildContent("复制链接"));
 
         var tooltip = cut.Find("[role=tooltip]");
+        var trigger = cut.Find("button");
         Assert.Equal("复制链接", tooltip.TextContent);
-        Assert.Equal(tooltip.Id, cut.Find("[data-rune-tooltip-root]").GetAttribute("data-rune-tooltip-root"));
-        var rule = Assert.Single(Registry.Rules, r => r.Contains($".{tooltip.ClassName}{{"));
-        Assert.Contains($".{tooltip.ClassName}:is(:not([data-dismissed]):is(:hover, :has(:focus-visible)) > *){{", rule);
+        Assert.Equal("manual", tooltip.GetAttribute("popover"));
+        Assert.Equal("top", tooltip.GetAttribute("data-rune-floating"));
+        Assert.Equal("0", tooltip.GetAttribute("data-delay"));
+        Assert.Equal(tooltip.Id, trigger.GetAttribute("data-rune-tooltip"));
+        Assert.Equal(tooltip.Id, trigger.GetAttribute("aria-describedby"));
+
+        cut.Render(p => p.Add(x => x.Disabled, true));
+        Assert.Empty(cut.FindAll("[role=tooltip]"));
+        Assert.Null(cut.Find("button").GetAttribute("data-rune-tooltip"));
+    }
+
+    [Fact]
+    public async Task 气泡确认_确认期间加载中_保持打开时不关闭_取消时通知()
+    {
+        var cancelled = 0;
+        var keepOpen = true;
+        var cut = Render<Popconfirm>(p => p
+            .Add(x => x.Title, "删除？")
+            .Add(x => x.Description, "不可恢复")
+            .Add(x => x.Trigger, TriggerButton("删除"))
+            .Add(x => x.OnConfirm, EventCallback.Factory.Create<ConfirmEventArgs>(this, e => { e.KeepOpen = keepOpen; }))
+            .Add(x => x.OnCancel, EventCallback.Factory.Create(this, () => cancelled++)));
+
+        var overlay = cut.Find("[popover]");
+        Assert.Equal("alertdialog", overlay.GetAttribute("role"));
+        Assert.Equal("top", overlay.GetAttribute("data-rune-floating"));
+        Assert.Equal("删除？", cut.Find($"#{overlay.GetAttribute("aria-labelledby")}").TextContent);
+        Assert.Equal("不可恢复", cut.Find($"#{overlay.GetAttribute("aria-describedby")}").TextContent);
+        await cut.InvokeAsync(() => overlay.TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = true }));
+        Assert.Equal("true", cut.Find("[popover]").GetAttribute("data-open"));
+
+        // KeepOpen：仍然打开
+        cut.FindAll("[popover] button")[1].Click();
+        Assert.Equal("true", cut.Find("[popover]").GetAttribute("data-open"));
+
+        // 确认：受控地关上，随后的 toggle 不算取消
+        keepOpen = false;
+        cut.FindAll("[popover] button")[1].Click();
+        Assert.Equal("false", cut.Find("[popover]").GetAttribute("data-open"));
+        cut.Find("[popover]").TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = false });
+        Assert.Equal(0, cancelled);
+
+        // 再打开后按 Esc（toggle 关闭）算取消
+        cut.Find("[popover]").TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = true });
+        cut.Find("[popover]").TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = false });
+        Assert.Equal(1, cancelled);
     }
 
     [Fact]
@@ -133,39 +182,37 @@ public class OverlayTests : BunitContext
     [Fact]
     public void 对话框_触发元素由JS打开()
     {
-        var cut = Render<Drawer>(p => p.Add(x => x.Trigger, TriggerButton("筛选")).Add(x => x.Placement, Placement.Start));
+        var cut = Render<Drawer>(p => p.Add(x => x.Trigger, TriggerButton("筛选")).Add(x => x.Side, DrawerSide.Start));
 
         Assert.Equal(cut.Find("dialog").Id, cut.Find("button[data-rune-open]").GetAttribute("data-rune-open"));
         Assert.Equal("drawer", cut.Find("dialog").GetAttribute("data-scope"));
     }
 
     [Fact]
-    public void 气泡确认_取消自动聚焦_确认触发回调()
+    public void 气泡确认_取消自动聚焦并只负责关闭_确认触发回调()
     {
         var confirmed = 0;
         var cut = Render<Popconfirm>(p => p
             .Add(x => x.Title, "删除这条记录？")
-            .Add(x => x.OnConfirm, EventCallback.Factory.Create(this, () => confirmed++)));
+            .Add(x => x.OnConfirm, EventCallback.Factory.Create<ConfirmEventArgs>(this, () => confirmed++)));
 
         var buttons = cut.FindAll("[popover] button");
         Assert.True(buttons[0].HasAttribute("autofocus"));
-        Assert.Equal("alertdialog", cut.Find("[popover]").GetAttribute("role"));
+        Assert.True(buttons[0].HasAttribute("data-rune-close"));
         buttons[1].Click();
         Assert.Equal(1, confirmed);
     }
 
-    [Fact]
-    public void 气泡确认_色调决定图标与确认按钮_取消触发回调()
+    [Theory]
+    [InlineData(Tone.Danger, "circle-exclamation-point")]
+    [InlineData(Tone.Warning, "triangle-exclamation-point")]
+    [InlineData(Tone.Success, "circle-check")]
+    public void 气泡确认_色调决定图标_HideIcon不显示(Tone tone, string icon)
     {
-        var cancelled = 0;
-        var cut = Render<Popconfirm>(p => p
-            .Add(x => x.Title, "撤销发布？")
-            .Add(x => x.Tone, Tone.Danger)
-            .Add(x => x.OnCancel, EventCallback.Factory.Create(this, () => cancelled++)));
+        var cut = Render<Popconfirm>(p => p.Add(x => x.Title, "撤销发布？").Add(x => x.Tone, tone));
+        Assert.Equal(icon, cut.Find("[data-part=icon]").GetAttribute("data-icon"));
 
-        Assert.Equal("triangle-exclamation-point", cut.Find("[data-part=icon]").GetAttribute("data-icon"));
-        Assert.Equal(cut.Find("[data-part=title]").Id, cut.Find("[popover]").GetAttribute("aria-labelledby"));
-        cut.FindAll("[popover] button")[0].Click();
-        Assert.Equal(1, cancelled);
+        cut.Render(p => p.Add(x => x.HideIcon, true));
+        Assert.Empty(cut.FindAll("[data-part=icon]"));
     }
 }

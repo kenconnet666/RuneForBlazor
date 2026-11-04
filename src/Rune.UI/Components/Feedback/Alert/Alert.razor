@@ -21,7 +21,7 @@
     }
     else if (!HideIcon)
     {
-        <Icon Data="@(Icon ?? AlertStyles.DefaultIcon(appearance.Tone))" @attributes="Attrs.MergeProps(parts[AlertPart.Icon], PropsIcon)" />
+        <Icon Data="@(Icon ?? Tones.StatusIcon(appearance.Tone))" @attributes="Attrs.MergeProps(parts[AlertPart.Icon], PropsIcon)" />
     }
     <div @attributes="Attrs.Merge(parts[AlertPart.Body], PropsBody)">
         @if (Title is not null)

@@ -200,11 +200,13 @@
                 }
             </Flex>
             <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
-                <Tooltip Content="填完必填项后才能提交">
-                    <Button Disabled="true" FocusableWhenDisabled="true" data-testid="focusable-disabled">提交</Button>
+                <Tooltip>
+                    <Trigger Context="t"><Button @attributes="t" Disabled="true" FocusableWhenDisabled="true" data-testid="focusable-disabled">提交</Button></Trigger>
+                    <ChildContent>填完必填项后才能提交</ChildContent>
                 </Tooltip>
-                <Tooltip Content="还有未结清的订单">
-                    <Button Variant="ButtonVariant.Soft" Tone="Tone.Danger" Disabled="true" FocusableWhenDisabled="true">注销账号</Button>
+                <Tooltip>
+                    <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Disabled="true" FocusableWhenDisabled="true">注销账号</Button></Trigger>
+                    <ChildContent>还有未结清的订单</ChildContent>
                 </Tooltip>
             </Flex>
         </Flex>
