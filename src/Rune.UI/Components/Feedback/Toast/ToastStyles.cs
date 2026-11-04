@@ -33,7 +33,8 @@ public static class ToastStyles
         Display = Display.Flex,
         FlexDirection = FlexDirection.Column,
         Gap = Space.Sm,
-        Width = "min(24em, calc(100vw - 32px))",
+        // 两侧留出与视口边缘的间距（同 InsetInlineEnd）
+        Width = $"min(26em, calc(100vw - 2 * {Space.Lg}))",
         PointerEvents = "none",
     });
 
@@ -44,6 +45,6 @@ public static class ToastStyles
         BoxShadow = Shadows.Md,
         PointerEvents = "auto",
         Transition = $"opacity {Durations.Md}, translate {Durations.Md} {Easings.Enter}",
-        [When.Starting] = new() { Opacity = 0, Translate = "0 8px" },
+        [When.Starting] = new() { Opacity = 0, Translate = "0 0.75em" },
     });
 }

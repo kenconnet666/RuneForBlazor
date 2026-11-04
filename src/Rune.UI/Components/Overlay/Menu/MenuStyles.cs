@@ -89,7 +89,7 @@ public static class MenuStyles
 
     static Style Separator => Css.Define(static () => new Style
     {
-        Height = 1,
+        Height = BorderWidths.Xs,
         MarginBlock = Space.Xs,
         MarginInline = $"calc(-1 * {Space.Xs})",
         BackgroundColor = Colors.Border,

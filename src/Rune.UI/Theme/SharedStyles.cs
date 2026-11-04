@@ -70,7 +70,7 @@ public static class SharedStyles
         [When.FocusVisible] = new()
         {
             Outline = $"{BorderWidths.Sm} solid {Colors.FocusRing}",
-            OutlineOffset = 2,
+            OutlineOffset = BorderWidths.Sm,
         },
     });
 
@@ -80,7 +80,7 @@ public static class SharedStyles
         [When.FocusVisible] = new()
         {
             Outline = $"{BorderWidths.Sm} solid {Colors.FocusRing}",
-            OutlineOffset = -2,
+            OutlineOffset = $"calc(-1 * {BorderWidths.Sm})",
         },
     });
 

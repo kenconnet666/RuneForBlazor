@@ -29,7 +29,7 @@ public static class DemoStyles
     public static Style RenderInfo => Css.Define(static () => new Style
     {
         Margin = 0,
-        FontSize = 12,
+        FontSize = FontSizes.Xs,
         Color = Colors.TextMuted,
     });
 
@@ -68,8 +68,8 @@ public static class DemoStyles
     /// <summary>一排演示前面的说明文字（固定宽度，几排对齐）。</summary>
     public static Style RowLabel => Css.Define(static () => new Style
     {
-        Width = 72,
-        FontSize = 12,
+        Width = "6em",
+        FontSize = FontSizes.Xs,
         Color = Colors.TextMuted,
     });
 
