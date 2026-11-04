@@ -62,6 +62,15 @@ public abstract partial class ButtonBase : UIComponent
             shape);
     }
 
+    /// <summary>所在的 Form（提交中时它的提交按钮显示加载中）。</summary>
+    [CascadingParameter] FormState? Form { get; set; }
+
+    /// <summary>这个按钮是不是表单的提交按钮（Button 的 Type 为 submit）。</summary>
+    protected virtual bool SubmitsForm => false;
+
+    /// <summary>当前是否加载中：写了 <see cref="Loading"/>，或是所在 Form 正在提交时的提交按钮。</summary>
+    protected bool IsLoading => Loading || (SubmitsForm && Form?.Submitting == true);
+
     /// <summary>是否出波纹：组件上写的 &gt; 配置；像链接的按钮（Link 样式）没有波纹。</summary>
     protected bool RippleEnabled => (Ripple ?? Config.Ripple) && (Variant ?? Config.Defaults.Get<ButtonDefaults>()?.Variant ?? DefaultVariant) != ButtonVariant.Link;
 

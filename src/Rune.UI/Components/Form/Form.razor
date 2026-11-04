@@ -1,0 +1,157 @@
+@*
+    表单：包一层 Blazor 的 EditForm，补上组件库要的几样。
+    <Form Model="model" OnValidSubmit="SaveAsync">
+        <Field Label="姓名" Required="true"><TextField @bind-Value="model.Name" /></Field>
+        <Button Type="submit">保存</Button>
+    </Form>
+    - 默认带 DataAnnotationsValidator（用 FluentValidation 等时写 DataAnnotations="false"，把自己的校验器放在内容里）；
+    - 提交的回调执行期间，里面的提交按钮（Type="submit"）显示加载中、不能重复提交；
+    - 提交未通过时在顶部列出错误（“姓名：请填写姓名”），点一项跳到那个控件；也可以关掉（ErrorSummary="false"）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using Microsoft.AspNetCore.Components.Forms
+@{ var parts = FormStyles.Of(Config.Styles); }
+
+<EditForm EditContext="context" OnSubmit="HandleSubmitAsync" FormName="@FormName" @attributes="Attrs.Merge(parts[FormPart.Root], Rest)">
+    @if (DataAnnotations)
+    {
+        <DataAnnotationsValidator />
+    }
+    <CascadingValue Value="state">
+        @if (ErrorSummary && showErrors && Errors is { Count: > 0 } errors)
+        {
+            <Alert Tone="Tone.Danger" Title="@string.Format(SummaryTitle, errors.Count)" Live="AlertLive.Assertive"
+                   @attributes="Attrs.MergeProps(parts[FormPart.Summary], PropsSummary)">
+                <ul @attributes="Attrs.Merge(parts[FormPart.SummaryList])">
+                    @foreach (var (text, controlId) in errors)
+                    {
+                        <li>
+                            @if (controlId is not null)
+                            {
+                                <TextLink Href="@($"#{controlId}")" data-rune-focus="@controlId">@text</TextLink>
+                            }
+                            else
+                            {
+                                @text
+                            }
+                        </li>
+                    }
+                </ul>
+            </Alert>
+        }
+        @ChildContent
+    </CascadingValue>
+</EditForm>
+
+@code {
+    readonly FormState state = new();
+    EditContext context = default!;
+    object? contextModel;
+    bool showErrors;
+
+    /// <summary>表单绑定的对象（与 <see cref="EditContext"/> 二选一）。</summary>
+    [Parameter] public object? Model { get; set; }
+
+    /// <summary>自己创建的 EditContext（需要在外面调用 Validate、监听变化时）。</summary>
+    [Parameter] public EditContext? EditContext { get; set; }
+
+    /// <summary>校验通过后提交：回调执行期间提交按钮显示加载中。</summary>
+    [Parameter] public EventCallback<EditContext> OnValidSubmit { get; set; }
+
+    /// <summary>校验未通过时。</summary>
+    [Parameter] public EventCallback<EditContext> OnInvalidSubmit { get; set; }
+
+    /// <summary>自动加上 DataAnnotationsValidator，默认是。</summary>
+    [Parameter] public bool DataAnnotations { get; set; } = true;
+
+    /// <summary>提交未通过时在顶部列出错误，默认是。</summary>
+    [Parameter] public bool ErrorSummary { get; set; } = true;
+
+    /// <summary>错误汇总的标题，{0} 是错误数。</summary>
+    [Parameter] public string SummaryTitle { get; set; } = "提交前请修正以下 {0} 项";
+
+    /// <summary>静态 SSR 下提交表单时的名字（Blazor 的 FormName）；交互模式不需要。</summary>
+    [Parameter] public string? FormName { get; set; }
+
+    /// <summary>表单内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>错误汇总的部件属性（交给 Alert）。</summary>
+    [Parameter] public Attrs? PropsSummary { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (EditContext is not null)
+        {
+            if (!ReferenceEquals(context, EditContext)) Subscribe(EditContext);
+            return;
+        }
+        if (Model is null) throw new InvalidOperationException("Form 需要 Model 或 EditContext");
+        if (!ReferenceEquals(contextModel, Model))
+        {
+            contextModel = Model;
+            Subscribe(new EditContext(Model));
+        }
+    }
+
+    void Subscribe(EditContext next)
+    {
+        if (context is not null) context.OnValidationStateChanged -= OnValidationStateChanged;
+        context = next;
+        context.OnValidationStateChanged += OnValidationStateChanged;
+        showErrors = false;
+    }
+
+    // 错误改掉后汇总跟着更新（全改完就消失）
+    void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        if (showErrors) StateHasChanged();
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => context.OnValidationStateChanged -= OnValidationStateChanged;
+
+    // 每条错误：有登记的 Field 时写成“标签：错误”并能跳到控件（按 Field 在页面上的顺序）；
+    // 没有 Field 的字段、整个对象的错误排在后面，只有文字
+    IReadOnlyList<(string Text, string? ControlId)> Errors
+    {
+        get
+        {
+            var errors = new List<(string, string?)>();
+            var rest = context.GetValidationMessages().ToList();
+            foreach (var (identifier, label, controlId) in state.Fields)
+            {
+                foreach (var message in context.GetValidationMessages(identifier))
+                {
+                    errors.Add((label is null ? message : $"{label}：{message}", controlId));
+                    rest.Remove(message);
+                }
+            }
+            errors.AddRange(rest.Select(message => (message, (string?)null)));
+            return errors;
+        }
+    }
+
+    async Task HandleSubmitAsync(EditContext editContext)
+    {
+        if (!editContext.Validate())
+        {
+            showErrors = true;
+            await OnInvalidSubmit.InvokeAsync(editContext);
+            return;
+        }
+        showErrors = false;
+        state.Submitting = true;
+        StateHasChanged();
+        try
+        {
+            await OnValidSubmit.InvokeAsync(editContext);
+        }
+        finally
+        {
+            state.Submitting = false;
+        }
+    }
+}

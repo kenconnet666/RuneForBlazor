@@ -11,6 +11,8 @@
 //   role="menu"              菜单：方向键、Home / End、首字母移动焦点；打开时聚焦第一项；选了菜单项就关闭
 //   data-rune-tooltip-root   提示：Esc 隐藏；触发元素获得焦点时 aria-describedby 指向提示
 //   data-indeterminate       勾选框的半选：原生的 indeterminate 只能用 JS 设置，按这个属性同步
+//   data-rune-focus="id"     点击时聚焦这个 id 的控件并滚到它（表单错误汇总里的链接）
+//   data-rune-spin           数字输入框：↑↓ 加减步长、Page Up / Down 加减大步长、Home / End 到最小 / 最大，改完发 change（C# 再校正）
 //   data-rune-ripple         按钮、菜单项：按下时从指针位置（键盘 Enter / 空格时从中心）扩散一圈波纹，松开后淡出
 //
 // 模态对话框打开时锁定页面滚动；不支持锚点定位的浏览器在浮层打开时按触发元素摆放一次。
@@ -45,6 +47,8 @@ function install(blazor) {
     }
   }, true);
 
+  // 捕获阶段：要赶在 Blazor 的链接拦截之前（它会把 #id 按 <base href> 解析成别的页面并跳过去）
+  document.addEventListener('click', onFocusLink, true);
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKeyDown);
   document.addEventListener('pointerdown', startRipple);
@@ -142,6 +146,15 @@ function updateScrollLock() {
 
 // ---- 点击 ----
 
+function onFocusLink(event) {
+  const link = event.target instanceof Element ? event.target.closest('[data-rune-focus]') : null;
+  const control = link && document.getElementById(link.getAttribute('data-rune-focus'));
+  if (!control) return;
+  event.preventDefault();
+  control.focus();
+  control.scrollIntoView({ block: 'center', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+}
+
 function onClick(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
@@ -174,6 +187,7 @@ function onClick(event) {
 function onKeyDown(event) {
   if (event.key === 'Escape') dismissTooltips();
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
+  if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
   if (menu) moveInMenu(menu, event);
 }
@@ -241,6 +255,57 @@ function onFocusIn(event) {
   const root = target.closest('[data-rune-tooltip-root]');
   const tooltipId = root?.getAttribute('data-rune-tooltip-root');
   if (tooltipId && !target.hasAttribute('aria-describedby')) target.setAttribute('aria-describedby', tooltipId);
+}
+
+// ---- 数字输入框 ----
+
+const spinKeys = { ArrowUp: 1, ArrowDown: -1, PageUp: 10, PageDown: -10 };
+
+/**
+ * 按键加减：从输入框里现在的文字算（还没提交的输入也算），写回后发 change 交给 C#（它再解析、夹到范围、对齐步长）。
+ * 文字按 data-decimal 的小数点解析，忽略千分位与单位；只读、不可用时不处理。
+ */
+function spin(input, event) {
+  if (input.readOnly || input.disabled) return;
+  const min = parseNumber(input.getAttribute('aria-valuemin'));
+  const max = parseNumber(input.getAttribute('aria-valuemax'));
+  let next;
+  if (event.key === 'Home' && min !== null) next = min;
+  else if (event.key === 'End' && max !== null) next = max;
+  else if (event.key in spinKeys) {
+    const step = parseNumber(input.dataset.step) ?? 1;
+    const big = parseNumber(input.dataset.bigStep);
+    const delta = Math.abs(spinKeys[event.key]) === 10 ? (big ?? step * 10) * Math.sign(spinKeys[event.key]) : step * spinKeys[event.key];
+    const current = parseLocal(input.value, input.dataset.decimal ?? '.') ?? min ?? 0;
+    next = current + delta;
+    if (min !== null) next = Math.max(min, next);
+    if (max !== null) next = Math.min(max, next);
+    // 浮点误差：按步长的小数位数取整（0.1 + 0.2 → 0.3）
+    const digits = Math.max(decimals(step), decimals(current));
+    next = Number(next.toFixed(Math.min(digits, 20)));
+  } else return;
+  event.preventDefault();
+  input.value = String(next).replace('.', input.dataset.decimal ?? '.');
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function parseNumber(text) {
+  if (text === null || text === undefined || text === '') return null;
+  const value = Number(text);
+  return Number.isFinite(value) ? value : null;
+}
+
+// 按文化的小数点解析显示的文字：全角转半角，去掉千分位、货币符号、单位
+function parseLocal(text, decimalSeparator) {
+  const halfWidth = text.replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0)).replace(/[．。]/g, '.').replace(/[－−]/g, '-');
+  const kept = [...halfWidth].filter((c) => /[0-9-]/.test(c) || c === decimalSeparator).join('');
+  return parseNumber(decimalSeparator === '.' ? kept : kept.replace(decimalSeparator, '.'));
+}
+
+function decimals(value) {
+  const text = String(value);
+  const dot = text.indexOf('.');
+  return dot < 0 ? 0 : text.length - dot - 1;
 }
 
 // ---- 波纹 ----

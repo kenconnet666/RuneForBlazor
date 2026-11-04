@@ -6,7 +6,7 @@
 @inherits ButtonBase
 @{ var parts = Parts(FullWidth ? ButtonShape.FullWidth : ButtonShape.Normal); }
 
-<a @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !Loading), Managed)">
+<a @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !IsLoading), Managed)">
     @RenderInner(parts, ChildContent)
 </a>
 
@@ -32,7 +32,7 @@
     Memo<(string Href, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
 
     /// <summary>a 上由组件管理的属性：地址（不可用时去掉）与状态；不变时复用同一个对象。</summary>
-    Attrs Managed => managed.Get((Href, Disabled, Loading, RippleEnabled), static k => new Attrs
+    Attrs Managed => managed.Get((Href, Disabled, IsLoading, RippleEnabled), static k => new Attrs
     {
         ["href"] = k.Disabled || k.Loading ? null : k.Href,
         AriaDisabled = k.Disabled || k.Loading ? true : null,

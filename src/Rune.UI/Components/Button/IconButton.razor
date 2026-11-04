@@ -6,7 +6,7 @@
 @inherits ButtonBase
 @{ var parts = Parts(ButtonShape.Square); }
 
-<button type="button" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Loading && !Disabled), Managed)">
+<button type="button" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!IsLoading && !Disabled), Managed)">
     @RenderInner(parts, null)
 </button>
 
@@ -26,7 +26,7 @@
     Memo<(string Label, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
 
     /// <summary>button 上由组件管理的属性：名称、不可用、加载中、波纹；不变时复用同一个对象。</summary>
-    Attrs Managed => managed.Get((Label, Disabled, Loading, RippleEnabled), static k => new Attrs
+    Attrs Managed => managed.Get((Label, Disabled, IsLoading, RippleEnabled), static k => new Attrs
     {
         AriaLabel = k.Label,
         Title = k.Label,

@@ -12,7 +12,7 @@
     /// <summary>按钮内部：内容层（前置图标、文字、后置图标）与加载中的指示层。</summary>
     protected RenderFragment RenderInner(PartLayers<ButtonPart> parts, RenderFragment? text) =>
         @<text>
-            <span @attributes="Attrs.Merge(parts[ButtonPart.Content], PropsContent, Loading ? hiddenContent : null)">
+            <span @attributes="Attrs.Merge(parts[ButtonPart.Content], PropsContent, IsLoading ? hiddenContent : null)">
                 @if (Icon is not null)
                 {
                     <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon)" />
@@ -23,7 +23,7 @@
                     <Icon Data="IconEnd" @attributes="Attrs.MergeProps(parts[ButtonPart.IconEnd], PropsIconEnd)" />
                 }
             </span>
-            @if (Loading)
+            @if (IsLoading)
             {
                 <span @attributes="Attrs.Merge(parts[ButtonPart.Spinner])">
                     <Spinner @attributes="Attrs.MergeProps(null, PropsSpinner)" />

@@ -17,7 +17,7 @@
 <div @attributes="Attrs.Merge(parts[FieldPart.Root], Rest)">
     @if (Label is not null)
     {
-        <label for="@controlId" @attributes="Attrs.Merge(parts[FieldPart.Label], PropsLabel)">
+        <label id="@labelId" for="@controlId" @attributes="Attrs.Merge(parts[FieldPart.Label], PropsLabel)">
             @Label
             @if (Required)
             {
@@ -41,10 +41,11 @@
 
 @code {
     readonly string controlId = UniqueId.Next("field-control");
+    readonly string labelId = UniqueId.Next("field-label");
     readonly string descriptionId = UniqueId.Next("field-description");
     readonly string errorId = UniqueId.Next("field-error");
     readonly FieldRegistration registration = new();
-    Memo<(string? DescribedBy, bool Invalid, bool Required, bool Disabled, bool ReadOnly), FieldContext> context;
+    Memo<(bool HasLabel, string? DescribedBy, bool Invalid, bool Required, bool Disabled, bool ReadOnly), FieldContext> context;
     EditContext? subscribedContext;
 
     /// <summary>标签。</summary>
@@ -80,6 +81,11 @@
     /// <summary>所在的 Blazor 表单。</summary>
     [CascadingParameter] EditContext? EditContext { get; set; }
 
+    /// <summary>所在的 Form：登记标签与控件 id，错误汇总据此写出“标签：错误”并跳到控件。</summary>
+    [CascadingParameter] FormState? Form { get; set; }
+
+    FieldIdentifier? registered;
+
     // 显式的 Error 优先；否则是表单里控件绑定的字段的错误（registration.Field 是信号，控件报上来后这里自动重新渲染）
     IReadOnlyList<string> Errors =>
         Error is not null ? [Error]
@@ -95,8 +101,8 @@
             (null, true) => errorId,
             _ => null,
         };
-        return context.Get((describedBy, invalid, Required, Disabled, ReadOnly), this,
-            static (k, owner) => new FieldContext(owner.controlId, k.DescribedBy, k.Invalid, k.Required, k.Disabled, k.ReadOnly, owner.registration));
+        return context.Get((Label is not null, describedBy, invalid, Required, Disabled, ReadOnly), this,
+            static (k, owner) => new FieldContext(owner.controlId, k.HasLabel ? owner.labelId : null, k.DescribedBy, k.Invalid, k.Required, k.Disabled, k.ReadOnly, owner.registration));
     }
 
     /// <inheritdoc/>
@@ -112,8 +118,19 @@
     void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) => StateHasChanged();
 
     /// <inheritdoc/>
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // 控件渲染后才报上它绑定的字段，所以在渲染之后登记
+        if (Form is null || registration.Field is not { } field) return;
+        if (registered is { } old && !old.Equals(field)) Form.Unregister(old);
+        Form.Register(field, Label, controlId);
+        registered = field;
+    }
+
+    /// <inheritdoc/>
     protected override void OnDispose()
     {
+        if (registered is { } field) Form?.Unregister(field);
         if (subscribedContext is not null) subscribedContext.OnValidationStateChanged -= OnValidationStateChanged;
     }
 }

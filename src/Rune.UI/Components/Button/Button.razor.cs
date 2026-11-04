@@ -18,13 +18,16 @@ public partial class Button : ButtonBase
     [Parameter] public string Type { get; set; } = "button";
 
     /// <inheritdoc/>
+    protected override bool SubmitsForm => Type == "submit";
+
+    /// <inheritdoc/>
     protected override ButtonVariant DefaultVariant => ButtonVariant.Solid;
 
     /// <inheritdoc/>
     protected override Tone DefaultTone => UI.Tone.Accent;
 
     /// <summary>button 上由组件管理的属性：不可用、加载中（可聚焦但不可操作）、波纹。只有八种组合，预先建好，渲染时不分配。</summary>
-    Attrs Managed => managedByState[(Disabled ? 4 : 0) + (Loading ? 2 : 0) + (RippleEnabled ? 1 : 0)];
+    Attrs Managed => managedByState[(Disabled ? 4 : 0) + (IsLoading ? 2 : 0) + (RippleEnabled ? 1 : 0)];
 
     static readonly Attrs[] managedByState = [.. Enumerable.Range(0, 8).Select(i => StateAttrs(disabled: (i & 4) != 0, loading: (i & 2) != 0, ripple: (i & 1) != 0))];
 
