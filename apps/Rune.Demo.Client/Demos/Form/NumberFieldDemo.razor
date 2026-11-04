@@ -125,6 +125,4 @@
 
     // 同原生表单提交的内容：十进制文本，不带千分位与货币符号
     void Submit() => submitted = FormattableString.Invariant($"price={unitPrice}&quantity={count}");
-
-    static string Lower<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
 }

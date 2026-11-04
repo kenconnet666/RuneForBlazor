@@ -1,6 +1,6 @@
 @*
     列表框：示例与 vue-tsx-pro 文档站的 /components/listbox 对应。
-    vue-tsx-pro 的 Listbox 始终虚拟滚动、loading 时显示骨架行；这两样在阶段 4 的虚拟滚动、骨架屏条目里补上，现在一千个选项全部渲染。
+    vue-tsx-pro 的 Listbox 始终虚拟滚动；这在阶段 4 的虚拟滚动条目里补上，现在一千个选项全部渲染。
 *@
 @attribute [ComponentDemo("listbox", "列表框", Group = "表单", Order = 4)]
 @inherits RuneComponent
@@ -31,13 +31,13 @@
 </DemoSection>
 
 <DemoSection Id="remote" Title="远程搜索：加载、空结果与点选">
-    <Description><Code>Empty</Code> 换掉默认的空状态。<Code>OnPick</Code> 在每次点选（点击或 Enter）时调用，再点已选的那项也算，适合“选中即执行”。</Description>
+    <Description><Code>Loading</Code> 时选项换成骨架行（很快返回时不显示，见防闪烁），不另加进度条；<Code>Empty</Code> 换掉默认的空状态。<Code>OnPick</Code> 在每次点选（点击或 Enter）时调用，再点已选的那项也算，适合“选中即执行”。</Description>
     <ChildContent>
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
             <Card Padding="SpaceScale.Sm">
                 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
                     <TextField Value="@query" ValueChanged="Search" Immediate="true" Icon="Lucide.Search" Variant="InputVariant.Soft" placeholder="搜索成员" aria-label="搜索成员" />
-                    <Listbox aria-label="成员" Items="results" @bind-Value="picked" OnPick="Pick">
+                    <Listbox aria-label="成员" Items="results" @bind-Value="picked" Loading="loading" OnPick="Pick">
                         <Empty>
                             <Empty Title="@(b => b.AddContent(0, "没有找到"))" Description="@(b => b.AddContent(0, $"没有名字含“{query}”的成员"))" Size="Size.Sm">
                                 <Button Size="Size.Sm" Variant="ButtonVariant.Soft" OnClick="() => Search(string.Empty)">清空搜索</Button>
@@ -75,6 +75,7 @@
 
     string query = string.Empty;
     IReadOnlyList<ListboxOption> results = people;
+    bool loading;
     string? picked;
     string? lastPick;
     CancellationTokenSource? searching;
@@ -87,6 +88,7 @@
         query = text ?? string.Empty;
         searching?.Cancel();
         var current = searching = new CancellationTokenSource();
+        loading = true;
         try
         {
             await Task.Delay(600, current.Token);
@@ -95,6 +97,7 @@
         {
             return;
         }
+        loading = false;
         results = [.. people.Where(person => person.Label.Contains(query.Trim(), StringComparison.Ordinal))];
     }
 

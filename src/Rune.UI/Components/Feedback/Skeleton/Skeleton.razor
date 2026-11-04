@@ -1,0 +1,54 @@
+@*
+    骨架屏（span）：内容加载时的占位，一道光带从起始边扫过（ShimmerStyles）。包着真实内容时，内容照常排版但不可见、不可交互，
+    占位正好是内容的大小，加载完换成内容时布局不跳（同 vue-tsx-pro、Radix Themes 的 Skeleton）；
+    不包内容时用 Variant 选常用形状，或者由 Sx 给大小。多行文字用 SkeletonText。
+    <Skeleton Loading="loading"><TextSpan>@user.Name</TextSpan></Skeleton>
+    <Skeleton Variant="SkeletonVariant.Circle" />
+    <Skeleton Variant="SkeletonVariant.Heading" Delay="ShimmerStyles.Stagger" />   几块骨架依次扫过
+    占位对读屏隐藏；整块区域在加载时在外层加 aria-busy。减少动态效果时不扫光。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@if (!Loading)
+{
+    @ChildContent
+}
+else
+{
+    var wrapping = ChildContent is not null;
+    var parts = SkeletonStyles.Of(Variant, wrapping, Config.Styles);
+    <span @attributes="Attrs.Merge(parts[SkeletonPart.Root], Rest, Managed(wrapping))">
+        @if (wrapping)
+        {
+            <span @attributes="Attrs.Merge(parts[SkeletonPart.Content], PropsContent)">@ChildContent</span>
+        }
+    </span>
+}
+
+@code {
+    Memo<(bool Wrapping, int Delay), Attrs> managed;
+
+    /// <summary>是否在加载，默认 true；false 时直接渲染内容。</summary>
+    [Parameter] public bool Loading { get; set; } = true;
+
+    /// <summary>形状；不写时大小由包着的内容或 Sx 决定。</summary>
+    [Parameter] public SkeletonVariant? Variant { get; set; }
+
+    /// <summary>扫光的延迟（毫秒）：几块骨架依次扫过、连成一道波时用（SkeletonText 的各行就是这样错开的）。</summary>
+    [Parameter] public int Delay { get; set; }
+
+    /// <summary>包着的内容：加载时撑出大小（看不见），加载完显示。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>包着内容的那一层（不可见、只用来撑出大小）的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    // 占位对读屏隐藏；包着的内容（链接、按钮）不能被 Tab 聚焦
+    Attrs Managed(bool wrapping) => managed.Get((wrapping, Delay), static k => new Attrs
+    {
+        AriaHidden = true,
+        ["inert"] = k.Wrapping ? true : null,
+        InlineStyle = k.Delay == 0 ? null : ShimmerStyles.DelayOf(k.Delay),
+    });
+}

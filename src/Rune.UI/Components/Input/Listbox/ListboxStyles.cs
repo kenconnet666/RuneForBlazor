@@ -22,6 +22,9 @@ public enum ListboxPart
 
     /// <summary>已选标记（对勾）。</summary>
     Check,
+
+    /// <summary>加载中的占位行（交给 Skeleton）。</summary>
+    Skeleton,
 }
 
 /// <summary>列表框的样式（同 vue-tsx-pro 的 listboxStyles 与 itemStyles）。</summary>
@@ -36,7 +39,8 @@ public static class ListboxStyles
             ListboxPart.Option => Sx.Of(ItemStyles.Row, ItemStyles.Highlighted, ItemStyles.Selected, ItemStyles.Disabled),
             ListboxPart.Content => Content,
             ListboxPart.Description => Description,
-            _ => Check,
+            ListboxPart.Check => Check,
+            _ => Skeleton,
         });
 
     static Style Root => Css.Define(static () => new Style
@@ -74,6 +78,14 @@ public static class ListboxStyles
     });
 
     static Style Description => Css.Define(static () => new Style { FontSize = FontSizes.Sm, Color = Colors.TextMuted });
+
+    static Style Skeleton => Css.Define(static () => new Style
+    {
+        Display = Display.Block,
+        Height = "1em",
+        MarginBlock = "0.625em",
+        MarginInline = Space.Sm,
+    });
 
     // 对勾只在已选的选项里显示，位置照样占着（文字不跳）
     static Style Check => Css.Define(static () => new Style

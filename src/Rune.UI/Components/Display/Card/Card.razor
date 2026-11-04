@@ -7,17 +7,31 @@
         <Footer><Button>查看</Button></Footer>
     </Card>
     标题需要标题语义时在 Header 里放 H2/H3；需要语义容器（article、section）时在外面包。
+    Loading：正文换成几行扫光的骨架（页头、页脚照常显示），卡片带 aria-busy；很快完成时不闪，内容回来时淡入。
 *@
 @namespace Rune.UI
 @inherits UIComponent
-@{ var parts = CardStyles.Of(CardAppearance.Resolve(Variant, Padding, Radius, Extra is not null, Config), Config.Styles); }
+@{
+    var parts = CardStyles.Of(CardAppearance.Resolve(Variant, Padding, Radius, Extra is not null, Config), Config.Styles);
+    // 显示过骨架之后，内容回来时淡入
+    if (indicator.Shown) revealing = true;
+}
 
-<div @attributes="Attrs.Merge(parts[CardPart.Root], Rest)">
+<div aria-busy="@(Loading ? "true" : null)" @attributes="Attrs.Merge(parts[CardPart.Root], Rest)">
     @if (Header is not null || Extra is not null)
     {
         <div @attributes="Attrs.Merge(parts[CardPart.Header], PropsHeader)">@Header@Extra</div>
     }
-    <div @attributes="Attrs.Merge(parts[CardPart.Body], PropsBody)">@ChildContent</div>
+    <div @attributes="Attrs.Merge(parts[CardPart.Body], revealing && !indicator.Shown ? RevealLayer : null, PropsBody)">
+        @if (indicator.Shown)
+        {
+            <SkeletonText @attributes="Attrs.MergeProps(RevealLayer, PropsSkeleton)" />
+        }
+        else
+        {
+            @ChildContent
+        }
+    </div>
     @if (Footer is not null)
     {
         <div @attributes="Attrs.Merge(parts[CardPart.Footer], PropsFooter)">@Footer</div>
@@ -25,6 +39,12 @@
 </div>
 
 @code {
+    static readonly Attrs RevealLayer = new() { Sx = ShimmerStyles.Reveal };
+
+    bool revealing;
+    DelayedLoading? delayedLoading;
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+
     /// <summary>样式，默认表面色加细边框。</summary>
     [Parameter] public CardVariant? Variant { get; set; }
 
@@ -46,6 +66,9 @@
     /// <summary>正文。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>正文加载中：正文换成几行扫光的骨架（页头、页脚照常显示），卡片带 aria-busy；很快完成时不闪。</summary>
+    [Parameter] public bool Loading { get; set; }
+
     /// <summary>页头的部件属性。</summary>
     [Parameter] public Attrs? PropsHeader { get; set; }
 
@@ -54,4 +77,13 @@
 
     /// <summary>页脚的部件属性。</summary>
     [Parameter] public Attrs? PropsFooter { get; set; }
+
+    /// <summary>加载中的骨架（交给 SkeletonText）的部件属性，如行数 <c>new() { ["Lines"] = 5 }</c>。</summary>
+    [Parameter] public Attrs? PropsSkeleton { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => indicator.Update(Loading);
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => delayedLoading?.Dispose();
 }

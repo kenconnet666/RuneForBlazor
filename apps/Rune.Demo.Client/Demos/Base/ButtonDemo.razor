@@ -262,8 +262,6 @@
     string nickname = InitialNickname;
     string saved = "";
 
-    static string Lower<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
-
     static async Task RunAsync(Action<bool> set, int milliseconds)
     {
         set(true);

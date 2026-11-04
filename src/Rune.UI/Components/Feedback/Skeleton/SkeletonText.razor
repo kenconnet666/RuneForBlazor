@@ -1,0 +1,33 @@
+@*
+    多行文字的骨架（div）：每行一块文字形状的 Skeleton，最后一行短一些，各行的扫光依次错开（同 vue-tsx-pro 的 SkeletonText）。
+    <SkeletonText Lines="5" />
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div aria-hidden="true" @attributes="Attrs.Merge(RootLayer, Rest)">
+    @for (var index = 0; index < Lines; index++)
+    {
+        <Skeleton @key="index" Variant="SkeletonVariant.Text" Delay="@(Delay + index * ShimmerStyles.Stagger)"
+                  @attributes="Attrs.MergeProps(Lines > 1 && index == Lines - 1 ? LastLine : null, PropsLine)" />
+    }
+</div>
+
+@code {
+    static readonly Attrs RootLayer = new() { Sx = Root };
+    static readonly Attrs LastLine = new() { Sx = Last };
+
+    /// <summary>行数，默认 3。</summary>
+    [Parameter] public int Lines { get; set; } = 3;
+
+    /// <summary>第一行扫光的延迟（毫秒），之后每行再晚 <see cref="ShimmerStyles.Stagger"/>。</summary>
+    [Parameter] public int Delay { get; set; }
+
+    /// <summary>每一行（交给 Skeleton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLine { get; set; }
+
+    // 1em 高的行加 0.5em 间隔，接近正文 1.5 的行高
+    static Style Root => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Sm });
+
+    static Style Last => Css.Define(static () => new Style { Width = "60%" });
+}

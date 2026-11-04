@@ -1,0 +1,225 @@
+@*
+    骨架屏：示例与 vue-tsx-pro 文档站的 /components/skeleton 对应。
+    头像用演示页自己的圆形缩写代替（Avatar 在阶段 6 做）；看板里的 Stat、表格示例（DataTable）等组件做好后补上。
+*@
+@attribute [ComponentDemo("skeleton", "骨架屏", Group = "反馈", Order = 2)]
+@inherits RuneComponent
+
+<DemoSection Id="shapes" Title="形状">
+    <Description><Code>Variant</Code> 给出常用形状：文字行、标题、头像、按钮、图片；多行段落用 SkeletonText，最后一行短一些，各行的光带依次错开。其他大小用 <Code>Sx</Code> 给。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("10em")" Gap="SpaceScale.Lg">
+            @foreach (var (variant, label) in shapes)
+            {
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                    <div @attributes="Attrs.Merge(Stage)">
+                        <Skeleton Variant="variant" />
+                    </div>
+                    <Small Tone="TextTone.Muted">@label variant="@Lower(variant)"</Small>
+                </Flex>
+            }
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <div @attributes="Attrs.Merge(Stage)">
+                    <SkeletonText Lines="3" />
+                </div>
+                <Small Tone="TextTone.Muted">段落 SkeletonText</Small>
+            </Flex>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="wrapping" Title="包着内容">
+    <Description>包着真实内容时，内容照常排版但看不见，占位正好是内容的大小，加载完换成内容时布局不跳。<Code>Delay</Code> 让几块骨架依次扫过，连成一道波；间隔用 <Code>ShimmerStyles.Stagger</Code> 的倍数，与列表、表格的骨架行节奏一致。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Switch @bind-Value="wrappingLoading">加载中</Switch>
+            <Card style="max-width: 24rem">
+                <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center">
+                    <Skeleton Loading="wrappingLoading" Variant="SkeletonVariant.Circle">
+                        <span @attributes="Attrs.Merge(Initials)">AL</span>
+                    </Skeleton>
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                        <Skeleton Loading="wrappingLoading">
+                            <TextSpan Weight="Weight.Semibold">Ada Lovelace</TextSpan>
+                        </Skeleton>
+                        <Skeleton Loading="wrappingLoading" Delay="ShimmerStyles.Stagger">
+                            <TextSpan Size="Size.Sm" Tone="TextTone.Muted">分析机程序员 · 伦敦</TextSpan>
+                        </Skeleton>
+                    </Flex>
+                </Flex>
+                <div style="margin-block-start: 1em">
+                    <Skeleton Loading="wrappingLoading" Delay="2 * ShimmerStyles.Stagger">
+                        <Paragraph>为巴贝奇的分析机写下了计算伯努利数的算法，被认为是世界上第一段程序。</Paragraph>
+                    </Skeleton>
+                </div>
+            </Card>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="layouts" Title="常见布局">
+    <Description>按真实布局拼骨架：文章（配图、标题、段落）、消息列表（头像加两行文字）、看板、表单。Card 自带 <Code>Loading</Code>；自己拼的骨架换成内容时给内容加 <Code>ShimmerStyles.Reveal</Code> 淡入，不要硬切，并在整块区域上加 <Code>aria-busy</Code>。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Switch @bind-Value="layoutsLoading">加载中</Switch>
+            @* 整块区域加载时带 aria-busy（骨架本身对读屏隐藏）；内容出现时淡入，不硬切 *@
+            <Grid MinItemWidth="@("16em")" Gap="SpaceScale.Md" Align="ItemAlign.Start" aria-busy="@(layoutsLoading ? "true" : null)">
+                @* 文章：配图、标题、段落，自上而下依次扫过 *@
+                <Card>
+                    @if (layoutsLoading)
+                    {
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                            <Skeleton Variant="SkeletonVariant.Image" />
+                            <Skeleton Variant="SkeletonVariant.Heading" Delay="ShimmerStyles.Stagger" style="width: 70%" />
+                            <SkeletonText Lines="3" Delay="2 * ShimmerStyles.Stagger" />
+                        </Flex>
+                    }
+                    else
+                    {
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Sx="ShimmerStyles.Reveal">
+                            <span @attributes="Attrs.Merge(Cover)"></span>
+                            <H4>设计系统的第一年</H4>
+                            <Paragraph Tone="TextTone.Muted">从十几个按钮样式收敛到一套 tokens，我们踩过的坑和留下的约定：命名、档位、主题与文档。</Paragraph>
+                        </Flex>
+                    }
+                </Card>
+
+                @* 消息列表：头像加两行文字，一条消息一档 *@
+                <Card>
+                    @if (layoutsLoading)
+                    {
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+                            @for (var index = 0; index < messages.Length; index++)
+                            {
+                                <Flex @key="index" Gap="SpaceScale.Md" Align="ItemAlign.Center">
+                                    <Skeleton Variant="SkeletonVariant.Circle" Delay="index * ShimmerStyles.Stagger" />
+                                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" style="flex: 1">
+                                        <Skeleton Variant="SkeletonVariant.Text" Delay="index * ShimmerStyles.Stagger" style="width: 35%" />
+                                        <Skeleton Variant="SkeletonVariant.Text" Delay="index * ShimmerStyles.Stagger + ShimmerStyles.Stagger / 2" />
+                                    </Flex>
+                                </Flex>
+                            }
+                        </Flex>
+                    }
+                    else
+                    {
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg" Sx="ShimmerStyles.Reveal">
+                            @foreach (var (name, text) in messages)
+                            {
+                                <Flex @key="name" Gap="SpaceScale.Md" Align="ItemAlign.Center">
+                                    <span @attributes="Attrs.Merge(Initials)">@name[..1]</span>
+                                    <Flex Direction="LayoutDirection.Column" style="min-width: 0">
+                                        <TextSpan Weight="Weight.Semibold">@name</TextSpan>
+                                        <Small Tone="TextTone.Muted" Truncate="true">@text</Small>
+                                    </Flex>
+                                </Flex>
+                            }
+                        </Flex>
+                    }
+                </Card>
+
+                @* 看板：Card 自带 loading（骨架、aria-busy、淡入都由组件管） *@
+                <Card Loading="layoutsLoading">
+                    <Header><TextSpan Weight="Weight.Semibold">本周摘要</TextSpan></Header>
+                    <ChildContent>
+                        <Paragraph Tone="TextTone.Muted">新签客户 12 家，续约率 94%，两笔大单进入法务审核。</Paragraph>
+                    </ChildContent>
+                </Card>
+
+                @* 表单：标签加输入框，一个字段一档 *@
+                <Card>
+                    @if (layoutsLoading)
+                    {
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+                            @for (var index = 0; index < formFields.Length; index++)
+                            {
+                                <Flex @key="index" Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                                    <Skeleton Sx="FieldLabel" Delay="index * ShimmerStyles.Stagger" />
+                                    <Skeleton Sx="FieldBox" Delay="index * ShimmerStyles.Stagger + ShimmerStyles.Stagger / 2" />
+                                </Flex>
+                            }
+                            <Skeleton Variant="SkeletonVariant.Button" Delay="3 * ShimmerStyles.Stagger" />
+                        </Flex>
+                    }
+                    else
+                    {
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg" Sx="ShimmerStyles.Reveal">
+                            @foreach (var label in formFields)
+                            {
+                                <Flex @key="label" Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                                    <Small>@label</Small>
+                                    <TextField aria-label="@label" />
+                                </Flex>
+                            }
+                            <Button style="align-self: start">保存</Button>
+                        </Flex>
+                    }
+                </Card>
+            </Grid>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly (SkeletonVariant Variant, string Label)[] shapes =
+    [
+        (SkeletonVariant.Text, "文字行"),
+        (SkeletonVariant.Heading, "标题"),
+        (SkeletonVariant.Circle, "头像"),
+        (SkeletonVariant.Button, "按钮"),
+        (SkeletonVariant.Image, "图片"),
+    ];
+
+    static readonly (string Name, string Text)[] messages =
+    [
+        ("林小满", "周五的评审材料我放到共享盘了，你看下第三页的数据。"),
+        ("陈一舟", "收到，下午三点前给你反馈。"),
+        ("王若曦", "接口文档更新了分页参数，前端记得同步。"),
+    ];
+
+    static readonly string[] formFields = ["姓名", "邮箱", "部门"];
+
+    bool wrappingLoading = true;
+    bool layoutsLoading = true;
+
+    // 同一行的格子一样高：形状在剩下的空间里居中，说明文字都落在格子底部
+    static Style Stage => Css.Define(static () => new Style
+    {
+        FlexGrow = 1,
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        JustifyContent = JustifyContent.Center,
+    });
+
+    static Style Cover => Css.Define(static () => new Style
+    {
+        Display = Display.Block,
+        AspectRatio = "16 / 9",
+        BorderRadius = Radii.Md,
+        BackgroundImage = $"linear-gradient(135deg, {Tones.Accent.Soft}, {Tones.Info.Soft})",
+    });
+
+    // 头像的替身（Avatar 在阶段 6 做）：与 Avatar 同大的圆形缩写
+    static Style Initials => Css.Define(static () => new Style
+    {
+        Display = Display.InlineFlex,
+        AlignItems = AlignItems.Center,
+        JustifyContent = JustifyContent.Center,
+        Width = "2.5em",
+        Height = "2.5em",
+        FlexShrink = 0,
+        BorderRadius = Radii.Full,
+        BackgroundColor = Tones.Accent.Soft,
+        Color = Tones.Accent.Text,
+        FontWeight = FontWeights.Semibold,
+    });
+
+    static Style FieldLabel => Css.Define(static () => new Style { Width = "4em", Height = "0.875em" });
+
+    static Style FieldBox => Css.Define(static () => new Style
+    {
+        Width = "100%",
+        Height = $"max({Sizes.Control}, {Sizes.MinTarget})",
+        BorderRadius = Radii.Md,
+    });
+}

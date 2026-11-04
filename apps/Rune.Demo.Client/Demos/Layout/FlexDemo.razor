@@ -247,8 +247,6 @@
 
     static readonly string[] documents = ["合同", "报价单", "发票", "验收单", "对账单", "回款记录"];
 
-    static string Lower<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
-
     static string BoxSize(double height) =>
         FormattableString.Invariant($"height:{height}rem;padding-inline:{height / 4}rem");
 
