@@ -26,15 +26,17 @@
 
 - [x] 演示项目：按组件 × 渲染模式打开（`/{模式}/{演示}`），目录自动发现，切换演示时保持模式
 - [x] 渲染路径的分配：`Rest` 参数没变时复用，`Attrs.From` 不复制属性字典
-- [ ] 配置层：应用级 `AddRune(o => …)` 与局部的 `<RuneProvider>`：组件默认值（variant、size）、配方的样式定制、主题。
-      普通 `CascadingValue` 不能跨渲染模式边界：全局配置走 DI，局部覆盖走级联值
-- [ ] 主题：C# 定义主题对象、生成变量类；运行时切换亮暗与多套主题；补齐 token 组（阴影、字号、行高、缓动、层级、尺寸）
-- [ ] 强类型 CSS：css-gen 生成关键字常量（`Display.Flex`）；`CssVar<T>` 承载连续变化的值（宽度、进度）
-- [ ] 共享样式片段：焦点环、减少动效、强制配色、视觉隐藏
-- [ ] JS 互操作底座：焦点管理、点击外部、锁定滚动、进出场（Presence）；JS 模块按需导入
-- [ ] 分析器：样式类里的 `static readonly Style`、渲染里 `new Style` 给出提示（RUNE004、RUNE005）
-- [ ] NuGet 打包：生成器放进 Rune 包的分析器目录、SourceLink、包的 README（CD 的前提）
-- [ ] 配方 API：Collapsible、Button、Badge 三个组件做完后再抽通用的配方类型（第三次出现才抽象）
+- [x] 主题：主题是 C# 对象（`Themes.Light` / `Dark`，基于另一个主题只写不同的 token），生成只设变量的类；亮暗跟随系统或固定；
+      token 补齐字号、行高、阴影、缓动、层级、尺寸；测试检查内置主题给每个 token 都定义了值（取代原来手写的 rune-ui.css）
+- [x] 配置层：应用级 `AddRuneUI(o => …)` 与局部的 `<RuneProvider>`（主题、亮暗、组件默认值、按部件的样式定制，嵌套时按项叠加）；
+      组件继承 `UIComponent` 读取。全局配置走 DI（服务端与 WebAssembly 各注册一次），局部覆盖走级联值；参数没变时给出同一个配置对象
+- [x] 强类型 CSS：css-gen 生成 318 个属性的关键字常量（`Display.Flex`、`Position.Sticky`）；`CssVar<T>` 与 `Attrs.Vars` 承载连续变化的值
+- [x] 共享样式片段：焦点环（外侧、内侧）、视觉隐藏、减少动效
+- [x] 分析器：`Style` 类型的静态只读字段 / 静态属性初始化器（RUNE004）、组件渲染路径上的 `new Style`（RUNE005）
+- [x] NuGet 打包：生成器放进 Rune 包的 `analyzers/dotnet/cs`、SourceLink、README、MIT；CI 打包并检查包的内容、留存产物
+- [x] 样式登记表按渲染器查找：非 Rune 组件执行的内容片段（CascadingValue、Virtualize、EditForm 的 ChildContent）里也能用样式
+- [x] 顺带修正：库专属的构建设置挪到 `Directory.Build.targets`（原来写在 props 里，条件永远不成立：文档注释检查、打包都没生效）
+- [ ] 配方 API：Collapsible、Button、Badge 三个组件做完后再抽通用的配方类型（第三次出现才抽象）→ 阶段 1 里做
 
 ## 阶段 1：基础组件
 
@@ -46,6 +48,7 @@
 
 ## 阶段 2：浮层与反馈
 
+- [ ] JS 互操作底座（从阶段 0 挪来：用到时再做，不凭空设计）：焦点管理、点击外部、锁定滚动、进出场（Presence）；JS 模块按需导入
 - [ ] Popover、Tooltip、Menu / Dropdown（浮层第一次打开才渲染内容）
 - [ ] Dialog（原生 `<dialog>`）、Drawer
 - [ ] Toast、Popconfirm

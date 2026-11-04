@@ -43,7 +43,9 @@
 
 ## 5. 样式（`src/Rune/Styles`）
 
-- **写法**：`new Style { Padding = Space.Md, [When.Hover] = new() { … }, [Media.Up(768)] = new() { … } }`。515 个 CSS 属性由 `tools/css-gen` 从 vue-tsx-pro 的数据生成，带中文说明；颜色属性是 `CssColor`、长度属性是 `CssLength`，token 写错类型编译不过。数字按属性补单位（px / 不补 / ms，同 StyleX）。
+- **写法**：`new Style { Display = Display.Flex, Padding = Space.Md, [When.Hover] = new() { … }, [Media.Up(768)] = new() { … } }`。515 个 CSS 属性与 318 个属性的关键字常量由 `tools/css-gen` 从 vue-tsx-pro 的数据生成，带中文说明；颜色属性是 `CssColor`、长度属性是 `CssLength`，token 写错类型编译不过。数字按属性补单位（px / 不补 / ms，同 StyleX）。
+  关键字类与属性同名（`Display`、`Width`）：组件里如果有同名的参数，`Width.Auto` 会解析成参数，样式类（静态类）里不受影响。
+- **一直在变的值**（进度、宽度）用 `CssVar<T>`：样式引用变量、类不变，值经 `Attrs.Vars` 写在元素的 style 上；写进样式会让每个值多一条规则。
 - **条件**：`When.*` 的状态别名同时认原生、ARIA、data 属性（同 vue-tsx-pro 的 CONDITIONS），状态变化只改属性、类名不变。
 - **合成**：一个元素一个类，类名按内容哈希（服务端、浏览器、所有请求同名）。块的顺序与块内声明顺序沿用 StyleX 的优先级表：无条件块先写，简写先于长属性（探测时没排序，基础块写在 @media 后面把它盖掉了）。
 - **缓存**：结果挂在第一个样式实例上，按后面跟着的实例区分；实例被回收时缓存跟着回收。所以样式要用 `Css.Define(static () => …)` 定义成静态属性，渲染时用同一批实例。
@@ -52,17 +54,37 @@
   1. App.razor 的 head：服务端渲染与增强导航（换页时 head 被同步成新页面的那组）；
   2. 每个交互根里：交互模式下新用到的规则；
   3. 流式渲染的页面末尾：流式更新只发送标了 `[StreamRendering]` 的组件，head 里的那份收不到（探测时样式丢失，源码确认）。
+- **找登记表**：合并样式是静态方法，要靠“当前作用域”找到登记表。最初只在 RuneComponent 渲染时设置，结果非 Rune 组件执行的内容片段
+  （CascadingValue、Virtualize、EditForm 的 ChildContent）里一用样式就报错。现在按渲染器找：Server 与服务端渲染的每个电路、每次请求
+  都在自己的同步上下文上渲染，登记表绑定到这个上下文（创建时、RuneComponent / RuneStyles 第一次渲染时绑定）；WebAssembly 单线程、只有一个作用域。
 
-## 6. 生成器（`src/Rune.Generators`）
+## 6. 主题与配置（`src/Rune/Styles/Theme.cs`、`src/Rune.UI/Configuration`）
+
+- **主题是 C# 对象**：token 是样式里写的 `var(--rune-…)`，主题给它们赋值（`new Theme("dark", basedOn: Light) { [Colors.Text] = "…" }`），
+  `ThemeStyles.ClassFor` 生成只设变量的类。换主题只换容器上的类，组件不用重新计算样式。主题与 token 只有一份定义（取代手写的 CSS），测试检查每个 token 在内置主题里都有值。
+- **作用范围**：`RuneProvider` 用 `display: contents` 的包裹元素挂主题类，不影响布局；变量沿 DOM 继承，所以静态外壳里的主题对里面的交互区域同样生效。
+- **配置**：`UIConfig`（主题、亮暗、组件默认值、按部件的样式定制）。应用级的来自 `AddRuneUI`（DI，服务端与 WebAssembly 各注册一次），
+  `RuneProvider` 在一片区域里叠加修改。级联值不能跨渲染模式边界，交互区域里需要局部修改时在里面再放一个 Provider。
+- **默认值**：每个组件一个 record（`CollapsibleDefaults`），属性可空，`Over` 定义叠加规则；组件上写的参数 > 最近的 Provider > 应用级 > 组件自己的默认值。
+- **按部件定制样式**：用组件的部件枚举（`CollapsiblePart.Trigger`）指定，写错编译不过；追加在组件样式之后、使用方的 Sx 之前，`Part.Of` 统一处理，组件不用为此写代码。
+- **不让下面的组件白白重新渲染**：Provider 的参数没变时给出同一个配置对象；配置是 record，级联参数与普通参数一样比较，没变就跳过。
+
+## 7. 生成器与分析器（`src/Rune.Generators`）
 
 - 后备字段懒创建：热重载新增的实例字段在已有对象上是 null（字段初始化器不会再跑）。普通字段写法在 Server 上会让整个电路崩溃；.NET 10 的 WebAssembly 也接受新增实例字段（官方文档说不支持，已过时）。
 - `XxxState` 的访问级别取 get 与 set 里更严格的那个，`private set` 不会被它绕过。
 - `.razor` 的 `@code` 里写 `[State]`：生成器看不到 Razor 生成的代码，编译器只报 CS9248。生成器扫描 Razor SDK 交来的 `.razor` 附加文件，报 RUNE003 并指向 `.razor` 里的行（分析器在编译出错时不运行，走不通）。
+- 分析器：`Style` 类型的静态只读字段、带初始化器的静态属性（RUNE004，热重载不生效）；组件渲染路径上的 `new Style`（RUNE005，每次都要重新算类名）。
+  `Css.Define` 的 lambda 里、静态成员、构造函数不报。
 - 新增诊断要登记在 `AnalyzerReleases.Unshipped.md`。
+- 生成器随 Rune 包发布（`analyzers/dotnet/cs`），仓库里的项目各自以分析器方式引用它。
 
-## 7. 已知限制与下一步
+## 8. 构建与发布
 
-- 关键字取值还是字符串（`Display = "flex"`）：css-gen 的数据里有每个属性的关键字表，可以生成 `Display.Flex` 这类常量。
-- Provider（应用级默认值、组件样式定制）还没做：配方（`Css.Define(档位, …)`）已经按名字组织，后续按 vue-tsx-pro 的 `createUi({ styles })` 设计接入；注意普通 `CascadingValue` 不能跨渲染模式边界。
+- 库专属的设置（文档注释检查、打包信息）在 `Directory.Build.targets`：props 在项目文件之前导入，那时项目里的 `IsLibrary` 还没有值。版本号例外，写在 props（SDK 更早算版本）。
+- CI 在 Linux 上打包两个库、检查生成器在 Rune 包里，并把包作为产物留存；发布到哪里（CD）待定。
+
+## 9. 已知限制与下一步
+
 - 组件库样式预生成静态 CSS（减少内联 `<style>`）是优化，不改 API。
-- 打 NuGet 包时要把生成器放进 `analyzers/dotnet/cs`。
+- 主题对象由 `Css.Define` 定义，热重载改主题值后，应用级配置（DI 单例）仍拿着旧主题，要重启；Provider 上直接传的主题会更新。

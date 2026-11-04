@@ -27,7 +27,7 @@ public sealed partial class CartStore
 | --- | --- |
 | `src/Rune` | 运行时：信号（`Reactivity/`）、组件基类与双向绑定（`Components/`）、属性合并（`Attrs/`）、样式引擎（`Styles/`） |
 | `src/Rune.Generators` | 源代码生成器：`[State]` 属性的实现与 RUNE 诊断（netstandard2.0） |
-| `src/Rune.UI` | 组件库：主题 tokens（`Theme/`）、部件约定（`Parts/`）、组件（`Components/`），默认主题在 `wwwroot/rune-ui.css` |
+| `src/Rune.UI` | 组件库：tokens 与内置主题（`Theme/`）、配置层与 `RuneProvider`（`Configuration/`）、部件约定（`Parts/`）、组件（`Components/`） |
 | `apps/Rune.Demo`、`apps/Rune.Demo.Client` | 演示项目：开发组件时实际运行、观察。每个演示都能以静态 SSR、Server、WebAssembly、Auto 打开（`/server/collapsible`），新增演示只要在 `Demos/` 放一个带 `[ComponentDemo]` 的组件。文档站等组件库成熟后用自己的组件来做 |
 | `tests/Rune.Tests` | 运行时、组件（bUnit）、生成器、并发的测试 |
 | `tools/css-gen` | 从 vue-tsx-pro 的 CSS 数据生成 `Style` 的属性表（带中文说明） |
@@ -37,19 +37,21 @@ public sealed partial class CartStore
 ## 使用
 
 ```csharp
-// Program.cs（服务端与 WebAssembly 项目各一次）
-builder.Services.AddRune();
+// Program.cs（服务端与 WebAssembly 项目各一次，配置要一致）
+builder.Services.AddRuneUI(o => o.Defaults = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } });
 ```
 
 ```razor
-@* App.razor 的 head：默认主题与服务端渲染的样式 *@
-<link rel="stylesheet" href="@Assets["_content/Rune.UI/rune-ui.css"]" />
+@* App.razor 的 head：服务端渲染时用到的样式规则（含主题） *@
 <RuneStyles />
+
+@* 布局：套上应用级主题；局部可以再嵌套 RuneProvider 修改主题、默认值、样式定制 *@
+<RuneProvider>@Body</RuneProvider>
 ```
 
-- 组件继承 `RuneComponent`（`@inherits RuneComponent`）；`[State]` 写在 `.razor.cs` 里。
+- 组件继承 `RuneComponent`（组件库里继承 `UIComponent`，能读配置）；`[State]` 写在 `.razor.cs` 里。
 - 每个交互根（带 `@rendermode` 的页面或组件）里放一个 `<RuneStyles />`；流式渲染的页面在末尾也放一个。
-- 样式写成静态属性 `Css.Define(static () => new Style { … })`，不要在渲染里新建 `Style`。
+- 样式写成静态属性 `Css.Define(static () => new Style { … })`，不要在渲染里新建 `Style`（分析器 RUNE004、RUNE005 会提示）；关键字用常量（`Display.Flex`），一直在变的值用 `CssVar<T>`。
 
 ## 命令
 
