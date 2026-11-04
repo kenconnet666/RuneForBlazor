@@ -1,0 +1,102 @@
+@* 表单：Field + TextField / Textarea / Checkbox / Switch 接入 Blazor 的 EditForm 与 DataAnnotations 校验 *@
+@attribute [ComponentDemo("form", "表单与输入", Group = "表单", Order = 0)]
+@using System.ComponentModel.DataAnnotations
+@inherits RuneComponent
+
+<DemoSection Title="EditForm + DataAnnotations">
+    <EditForm Model="model" OnValidSubmit="Submit" data-testid="signup">
+        <DataAnnotationsValidator />
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Sx="FormWidth">
+            <Field Label="姓名" Required="true">
+                <TextField @bind-Value="model.Name" placeholder="张三" autocomplete="name" data-testid="name" />
+            </Field>
+            <Field Label="邮箱" Description="用于找回密码" Required="true">
+                <TextField @bind-Value="model.Email" Type="email" Icon="Lucide.Mail" placeholder="name@example.com" data-testid="email" />
+            </Field>
+            <Field Label="个人简介" Description="最多 60 个字">
+                <Textarea @bind-Value="model.Bio" placeholder="一句话介绍自己" data-testid="bio" />
+            </Field>
+            <Field>
+                <Checkbox @bind-Value="model.Agreed" data-testid="agree">我已阅读并同意服务条款</Checkbox>
+            </Field>
+            <Switch @bind-Value="model.Notify">有新消息时通知我</Switch>
+            <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+                <Button Type="submit" data-testid="submit">注册</Button>
+                <TextSpan Muted="true" Size="Size.Sm" data-testid="result">@result</TextSpan>
+            </Flex>
+        </Flex>
+    </EditForm>
+</DemoSection>
+
+<DemoSection Title="单独使用">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Sx="FormWidth">
+        <TextField @bind-Value="keyword" Immediate="true" Icon="Lucide.Search" placeholder="边输边搜（Immediate）" data-testid="search" />
+        <TextSpan Muted="true" Size="Size.Sm">关键词：@(string.IsNullOrEmpty(keyword) ? "（空）" : keyword)</TextSpan>
+        <TextField Value="@("只读的值")" ReadOnly="true" />
+        <TextField placeholder="不可用" Disabled="true" />
+        <TextField placeholder="金额" Size="Size.Lg">
+            <Suffix>元</Suffix>
+        </TextField>
+        <Field Label="直接给错误信息" Error="这个用户名已被占用">
+            <TextField Value="@("admin")" />
+        </Field>
+    </Flex>
+</DemoSection>
+
+<DemoSection Title="勾选框：全选与半选">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Checkbox Value="AllSelected" Indeterminate="SomeSelected" ValueChanged="SelectAll" data-testid="select-all">全选</Checkbox>
+        @foreach (var fruit in fruits)
+        {
+            <Checkbox @key="fruit" Value="selected.Contains(fruit)" ValueChanged="@(on => Toggle(fruit, on))" Sx="Indent">@fruit</Checkbox>
+        }
+        <Checkbox Disabled="true">不可用</Checkbox>
+    </Flex>
+</DemoSection>
+
+@code {
+    static readonly string[] fruits = ["苹果", "香蕉", "橙子"];
+    readonly HashSet<string> selected = ["苹果"];
+    readonly SignupModel model = new();
+    string? keyword;
+    string result = "";
+
+    bool AllSelected => selected.Count == fruits.Length;
+    bool SomeSelected => selected.Count > 0 && !AllSelected;
+
+    void SelectAll(bool on)
+    {
+        selected.Clear();
+        if (on) selected.UnionWith(fruits);
+    }
+
+    void Toggle(string fruit, bool on)
+    {
+        if (on) selected.Add(fruit);
+        else selected.Remove(fruit);
+    }
+
+    void Submit() => result = $"已提交：{model.Name} <{model.Email}>，{(model.Notify ? "接收通知" : "不接收通知")}";
+
+    static Style FormWidth => Css.Define(static () => new Style { MaxWidth = 420 });
+
+    static Style Indent => Css.Define(static () => new Style { MarginInlineStart = Space.Lg });
+
+    sealed class SignupModel
+    {
+        [Required(ErrorMessage = "请填写姓名")]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "请填写邮箱")]
+        [EmailAddress(ErrorMessage = "邮箱格式不对")]
+        public string? Email { get; set; }
+
+        [MaxLength(60, ErrorMessage = "最多 60 个字")]
+        public string? Bio { get; set; }
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "请先同意服务条款")]
+        public bool Agreed { get; set; }
+
+        public bool Notify { get; set; } = true;
+    }
+}

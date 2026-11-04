@@ -96,11 +96,26 @@
 - **触发元素由使用方写**：`Trigger` 是 `RenderFragment<Attrs>`，组件把 `popovertarget`、锚点名等交给它（`<Button @attributes="t">`），按钮仍是使用方的组件。
 - **内容第一次打开才渲染**（交互模式）；渲染前浮层是空壳，用 `When.Empty` 隐藏。菜单项、气泡确认一开始就渲染：
   打开时要立即聚焦里面的元素（JS 聚焦第一个菜单项、`autofocus` 的取消按钮）。静态渲染没有交互，一开始就渲染。
+- **进出场统一**：`OverlayTransitions`（同 vue-tsx-pro 的 transitions）：打开状态 `:is(:popover-open, :modal)` 里用 `@starting-style`，
+  进场 Normal 时长 + enter 缓动，离场 Fast + exit 缓动；Scale（弹出框、菜单、对话框）、Slide（抽屉）、Backdrop（遮罩）。
+- **波纹**（同 vue-tsx-pro）：按钮、菜单项带 `data-rune-ripple`，JS 初始化器在按下时从指针位置（键盘 Enter / 空格时从中心）扩散一圈 currentColor 的半透明圆，
+  松开后淡出；纯客户端，Server 模式没有往返。配置 `UIConfig.Ripple`（默认开）、Provider、组件的 `Ripple` 参数逐层覆盖；像链接的按钮没有波纹。
 - **提示纯 CSS**：外层悬停或里面有键盘焦点时显示（`When.Parent`，延迟 400ms），Server 模式也没有往返；位置同样用锚点定位。
 - **消息提示**：`ToastService`（scoped）把列表放在 `State` 里，`Toaster` 读到它就随变化重新渲染，后台线程调用也安全；每条是一个 Alert。
   Toaster 要放在交互区域里（同一个电路 / WebAssembly 实例才拿得到同一个服务）。
 
-## 9. 生成器与分析器（`src/Rune.Generators`）
+## 9. 表单（`src/Rune.UI/Forms`）
+
+- **接入 Blazor 自己的表单**：不另做一套。控件继承 `FormControl<TValue>`：`@bind-Value` 给出的 `ValueExpression` 换成 `FieldIdentifier`，
+  改值后 `NotifyFieldChanged`（DataAnnotations、FluentValidation 等照常工作），这个字段有错误时控件标 `aria-invalid`。单独使用时就是普通的受控 / 非受控控件。
+- **Field**：标签、说明、错误信息，经级联的 `FieldContext` 把控件 id、aria-describedby、必填 / 不可用 / 只读交给控件（控件上显式写的优先）。
+  控件把绑定的字段报给 Field（`FieldRegistration` 是信号，报上来后 Field 自动重新渲染），Field 显示表单里这个字段的错误。
+- **必填用 aria-required**：原生 `required` 会在提交前拦下表单、弹浏览器自己的气泡，EditForm 根本收不到提交（实测发现）。校验统一交给表单。
+- **使用方的属性落在 input 上**（placeholder、name、autocomplete……），Sx 落在外框上：外框是看得见的盒子，input 是语义上的控件。
+- **勾选框、开关是原生 input** 去掉默认外观重画：键盘、表单提交、读屏都是原生的；半选只能用 JS 设置，JS 初始化器按 `data-indeterminate` 同步。
+- 文本框默认 change 时更新（失去焦点、回车），`Immediate` 才每次输入都更新：Server 模式下每次按键一次往返。
+
+## 10. 生成器与分析器（`src/Rune.Generators`）
 
 - 后备字段懒创建：热重载新增的实例字段在已有对象上是 null（字段初始化器不会再跑）。普通字段写法在 Server 上会让整个电路崩溃；.NET 10 的 WebAssembly 也接受新增实例字段（官方文档说不支持，已过时）。
 - `XxxState` 的访问级别取 get 与 set 里更严格的那个，`private set` 不会被它绕过。
@@ -110,12 +125,12 @@
 - 新增诊断要登记在 `AnalyzerReleases.Unshipped.md`。
 - 生成器随 Rune 包发布（`analyzers/dotnet/cs`），仓库里的项目各自以分析器方式引用它。
 
-## 10. 构建与发布
+## 11. 构建与发布
 
 - 库专属的设置（文档注释检查、打包信息）在 `Directory.Build.targets`：props 在项目文件之前导入，那时项目里的 `IsLibrary` 还没有值。版本号例外，写在 props（SDK 更早算版本）。
 - CI 在 Linux 上打包三个库，检查生成器在 Rune 包里、Lucide 许可证在 Rune.Icons 包里，并把包作为产物留存；发布到哪里（CD）待定。
 
-## 11. 已知限制与下一步
+## 12. 已知限制与下一步
 
 - 组件库样式预生成静态 CSS（减少内联 `<style>`）是优化，不改 API。
 - 浮层的 JS 兜底只处理弹出层（按 popovertarget 找触发元素）；不支持锚点定位的浏览器里提示显示在触发元素后面的正常位置。

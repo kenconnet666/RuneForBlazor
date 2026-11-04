@@ -21,7 +21,7 @@ public static class DemoCatalog
     static readonly Lazy<IReadOnlyList<DemoEntry>> entries = new(Scan);
 
     /// <summary>分组的显示顺序（按字符串排会把“布局”排到“基础”前面）；不在表里的分组排在最后。</summary>
-    static readonly string[] groupOrder = ["基础", "基础组件", "布局", "展示", "反馈", "浮层"];
+    static readonly string[] groupOrder = ["基础", "基础组件", "布局", "表单", "展示", "反馈", "浮层"];
 
     /// <summary>全部演示，按分组、排序、名字排好。</summary>
     public static IReadOnlyList<DemoEntry> All => entries.Value;

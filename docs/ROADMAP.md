@@ -69,13 +69,20 @@
 - [x] 合并重复：色调文字色（四处）→ `SharedStyles.ToneText`；无档位的配方 `Recipe.Of(组件名, 定制, 部件 => 样式)`；Icon 的手写缓存 → `Memo`
 - [x] 文件归位：TextLink 归到 Typography，内置图标归到 Icon，Dialog / Drawer、TextSpan / Paragraph 各自一个文件
 - [x] 演示：`DemoSection` 取代每页重复的 section + h2，横排用 Flex 组件
+- [x] 对齐 vue-tsx-pro：按钮与菜单项的波纹（JS 初始化器，可按配置 / 组件关闭）；浮层进出场统一为 `OverlayTransitions`（进场慢、离场快）
 
 ## 阶段 3：输入与表单
 
-- [ ] TextField、Textarea、NumberField
-- [ ] Checkbox、Radio、Switch
-- [ ] Select、Combobox（依赖阶段 2 的浮层）
-- [ ] Field 与表单集成
+决定：扩展 Blazor 的 `EditContext`，不另做一套（兼容 `EditForm`、DataAnnotations、FluentValidation）。设计见 DESIGN 第 9 节。
+
+- [x] 底座：`FormControl<TValue>`（@bind-Value、接入 EditContext、aria-invalid）、`Field` + `FieldContext`（标签、说明、错误、id 关联）、共用的输入外框样式
+- [x] TextField（图标、后缀、Immediate）、Textarea（高度跟着内容）
+- [x] Checkbox（半选）、Switch
+- [ ] NumberField（步进、范围、格式化）
+- [ ] RadioGroup + Radio、ToggleGroup
+- [ ] Select（原生 select 重画）、Combobox（可搜索，基于阶段 2 的 Popover 与列表键盘）
+- [ ] Slider
+- [ ] 表单外壳：`Form`（包 EditForm：布局、提交中状态、错误汇总并跳到字段）、FormSection；标签在起始边的横排布局
 
 ## 阶段 4：导航与外壳
 
@@ -103,6 +110,6 @@
 ## 待决
 
 1. ~~浮层定位~~：已定为原生 `popover` + CSS 锚点定位，JS 兜底（阶段 2）
-2. 表单：扩展 Blazor 的 `EditContext`（倾向，兼容 `EditForm`、DataAnnotations、FluentValidation），还是另做一套
+2. ~~表单~~：已定为扩展 Blazor 的 `EditContext`（阶段 3）
 3. 首批组件范围：按上面的阶段顺序，还是从 vue-tsx-pro 的约 168 个组件里另挑
 4. CD：NuGet 发到 nuget.org 还是私有源；文档站（含 Server 模式）部署到哪里
