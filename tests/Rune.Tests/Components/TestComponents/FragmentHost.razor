@@ -1,0 +1,18 @@
+@inherits RuneComponent
+
+@{ Renders++; }
+<button id="plain" @onclick="() => plainClicks++">@plainClicks</button>
+<FragmentChild>固定内容</FragmentChild>
+<FragmentChild>本地状态 @Local.Value</FragmentChild>
+<ListChild Items="items" />
+
+@code {
+    int plainClicks;
+
+    /// <summary>宿主自己的渲染次数（bUnit 的 RenderCount 会把子组件的渲染也算进来）。</summary>
+    public int Renders { get; private set; }
+    readonly List<int> items = [1];
+
+    /// <summary>只在子组件的内容里读取的状态。</summary>
+    public State<int> Local { get; } = new(0);
+}

@@ -1,0 +1,9 @@
+@* 只读 store 里的一个值 *@
+@inherits RuneComponent
+@inject TestStore Store
+
+<span>@(Which == "A" ? Store.A : Store.B)</span>
+
+@code {
+    [Parameter] public string Which { get; set; } = "A";
+}

@@ -1,0 +1,25 @@
+@*
+    折叠面板：一个按钮控制一块内容的展开与收起。
+    <Collapsible @bind-Open="filtersOpen" Variant="CollapsibleVariant.Outline">
+        <Title>筛选条件</Title>
+        <ChildContent>…</ChildContent>
+    </Collapsible>
+    未声明的属性与 Sx 落到外层容器；按钮、内容区用 PropsTrigger、PropsContent 定制。
+    每个部件三层合并：部件默认层 < 使用方的 < 组件管理的（见代码隐藏文件里的 *Managed）。
+*@
+@* 组件文件按功能分文件夹，命名空间统一是 Rune.UI（与代码隐藏文件一致）；Razor 默认会把文件夹名接进命名空间 *@
+@namespace Rune.UI
+@inherits RuneComponent
+@{ var parts = CollapsibleStyles.Of(Variant); }
+
+<div @attributes="Attrs.Merge(parts.Root, Rest)" data-state="@(open.Value ? "open" : "closed")">
+    <button type="button" @attributes="Attrs.Merge(parts.Trigger, PropsTrigger, TriggerManaged)">
+        @Title
+    </button>
+    @if (open.Value)
+    {
+        <div @attributes="Attrs.Merge(parts.Content, PropsContent, ContentManaged)">
+            @ChildContent
+        </div>
+    }
+</div>

@@ -1,0 +1,11 @@
+@inherits RuneComponent
+
+<Collapsible @bind-Open="open">
+    <Title>标题</Title>
+    <ChildContent>内容</ChildContent>
+</Collapsible>
+<span id="host-open">@open</span>
+
+@code {
+    bool open;
+}

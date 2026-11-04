@@ -1,0 +1,8 @@
+@* 参数是可变的 List：引擎无法判断内容是否变了，父级重新渲染时它也要跟着渲染 *@
+@inherits RuneComponent
+
+<span>@Items.Count</span>
+
+@code {
+    [Parameter] public List<int> Items { get; set; } = [];
+}
