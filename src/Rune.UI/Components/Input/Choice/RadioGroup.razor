@@ -15,7 +15,7 @@
 @inherits FormControl<TValue>
 
 <CascadingValue Value="this">
-    <div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation), Rest, GroupAttrs)">@ChildContent</div>
+    <div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Config.Styles)[ChoicePart.Group], Rest, GroupAttrs)">@ChildContent</div>
 </CascadingValue>
 
 @code {

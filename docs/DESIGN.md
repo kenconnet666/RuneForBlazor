@@ -153,6 +153,9 @@
   显示密码切换 type 与 aria-pressed（`data-rune-reveal`）、输入时更新字数计数（`data-rune-count`）、多行文本框按 scrollHeight 增高
   （`data-rune-autosize`，值变了属性跟着变，使用方改值也会重新量；没用 field-sizing：Firefox 不支持）。
 - **勾选框、开关是原生 input** 去掉默认外观重画：键盘、表单提交、读屏都是原生的；半选只能用 JS 设置，JS 初始化器按 `data-indeterminate` 同步。
+  三者共用一个配方（scope 为 choice，同 vue-tsx-pro）：选中、不可用、校验未通过都按原生 input 的状态用 CSS 变化（:checked、:disabled、aria-invalid，
+  在校验未通过的组里也标红），选中的颜色来自外层的 `--rune-tone-fill` / `--rune-tone-on-fill`（状态色用文字色，保证与表面的对比）。
+  半选的填充只给复选框：一组单选都没选时浏览器把每个 radio 都算作 :indeterminate。用户点击勾上时 JS 初始化器把对勾一笔画出（`data-rune-check-draw`）。
 - 文本框默认 change 时更新（失去焦点、回车），`Immediate` 才每次输入都更新：Server 模式下每次按键一次往返。
 - **NumberField 的值类型不加约束**（同 Blazor 的 InputNumber）：Razor 给泛型组件生成 `@bind` 代码时处理不了 `TValue?`（可空的值类型参数），
   会生成引用 `global::TValue` 的代码编译失败。所以 TValue 本身可以是 `int?`，Min / Max / Step 写成 decimal，计算都在 decimal 里（没有浮点误差），

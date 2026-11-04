@@ -24,6 +24,7 @@
 //   data-rune-reveal="id"    显示密码按钮：切换这个 id 的输入框的 type（password / text）与按钮的 aria-pressed
 //   data-rune-count="id"     有字数计数的输入框：输入时更新这个 id 的计数（看得见的字数与超出上限的 data-over）
 //   data-rune-autosize       多行文本框：输入时、值变了（属性值随之变化）时按 scrollHeight 设高度（上下限由 CSS 的 min/max-height 夹住）
+//   data-rune-check-draw     复选框：用户点击勾上时把后面的对勾一笔画出（初次渲染、外部改值不画）
 //   data-rune-draw="true"    图标的描线动画：插入时为 true、或由 false 变为 true 时一笔画出（减少动态效果时直接画好）
 //   data-rune-dismiss        可移除元素（data-rune-dismissible，如标签）里的移除按钮：元素先离场（data-dismissing），
 //                            结束后发出冒泡的 rune-dismiss（Blazor 里是 @onrunedismiss）；被移除时焦点交给同组的下一个
@@ -77,6 +78,13 @@ function install(blazor) {
   document.addEventListener('keydown', onKeyDown);
   document.addEventListener('pointerdown', startRipple);
   document.addEventListener('pointerdown', focusOnShell);
+  document.addEventListener('change', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLInputElement && target.checked && target.hasAttribute('data-rune-check-draw')) {
+      const check = target.nextElementSibling;
+      if (check instanceof SVGSVGElement) drawIcon(check);
+    }
+  });
   document.addEventListener('input', (event) => {
     const target = event.target;
     if (target instanceof HTMLTextAreaElement && target.hasAttribute('data-rune-autosize')) autosize(target);

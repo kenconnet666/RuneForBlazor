@@ -4,12 +4,13 @@
 *@
 @namespace Rune.UI
 @inherits FormControl<bool>
-@{ var parts = ChoiceStyles.Checkbox(Size, Tone, Config.Styles); }
+@{ var parts = ChoiceStyles.Of(new ChoiceAppearance(ChoiceKind.Checkbox, Size, Tone, IsReadOnly), Config.Styles); }
 
-<label @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
-    <span @attributes="Attrs.Merge(parts[ChoicePart.Control])">
-        <input type="checkbox" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputUserAttrs, InputManaged)" />
-        <Icon Data="@(Indeterminate ? BuiltInIcons.Minus : BuiltInIcons.Check)" StrokeWidth="3" @attributes="Attrs.MergeProps(parts[ChoicePart.Indicator])" />
+<label data-state="@(Indeterminate ? "indeterminate" : CurrentValue ? "checked" : "unchecked")" data-disabled="@(IsDisabled ? "true" : null)"
+       data-readonly="@(IsReadOnly ? "true" : null)" @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
+    <span @attributes="Attrs.Merge(parts[ChoicePart.Control], PropsControl)">
+        <input type="checkbox" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputUserAttrs, InputManaged)" @onclick:preventDefault="IsReadOnly" />
+        <Icon Data="@(Indeterminate ? BuiltInIcons.Minus : BuiltInIcons.Check)" StrokeWidth="3" @attributes="Attrs.MergeProps(parts[ChoicePart.Indicator], PropsIndicator)" />
     </span>
     @if (ChildContent is not null)
     {
@@ -45,6 +46,12 @@
     /// <summary>文字的部件属性。</summary>
     [Parameter] public Attrs? PropsLabel { get; set; }
 
+    /// <summary>控件格子的部件属性。</summary>
+    [Parameter] public Attrs? PropsControl { get; set; }
+
+    /// <summary>对勾的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsIndicator { get; set; }
+
     // input 上由组件管理的属性：表单状态、勾选、半选（原生的 indeterminate 只能用 JS 设置，JS 初始化器按 data-indeterminate 同步）
     Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Indeterminate, DescribedBy), this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
@@ -52,6 +59,8 @@
             AriaDescribedBy = k.DescribedBy,
             ["checked"] = k.Checked,
             ["data-indeterminate"] = k.Indeterminate ? "true" : "false",
+            // 用户点击勾上时 JS 初始化器把对勾一笔画出（初次渲染、外部改值不画）
+            ["data-rune-check-draw"] = true,
             ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync(e.Value is true)),
         }));
 

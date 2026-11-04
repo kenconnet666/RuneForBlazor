@@ -4,11 +4,14 @@
 *@
 @namespace Rune.UI
 @inherits FormControl<bool>
-@{ var parts = ChoiceStyles.Switch(Size, Tone, Config.Styles); }
+@{ var parts = ChoiceStyles.Of(new ChoiceAppearance(ChoiceKind.Switch, Size, Tone, IsReadOnly), Config.Styles); }
 
-<label @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
-    <span @attributes="Attrs.Merge(parts[ChoicePart.Control])">
-        <input type="checkbox" role="switch" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputUserAttrs, InputManaged)" />
+<label data-state="@(CurrentValue ? "checked" : "unchecked")" data-disabled="@(IsDisabled ? "true" : null)"
+       data-readonly="@(IsReadOnly ? "true" : null)" @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
+    <span @attributes="Attrs.Merge(parts[ChoicePart.Control], PropsControl)">
+        <input type="checkbox" role="switch" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputUserAttrs, InputManaged)" @onclick:preventDefault="IsReadOnly" />
+        @* 滑块紧跟在 input 后面：按 input 的勾选状态（相邻兄弟选择器）移到另一端 *@
+        <span @attributes="Attrs.Merge(parts[ChoicePart.Indicator], PropsThumb)"></span>
     </span>
     @if (ChildContent is not null)
     {
@@ -30,6 +33,12 @@
 
     /// <summary>文字的部件属性。</summary>
     [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>控件格子的部件属性。</summary>
+    [Parameter] public Attrs? PropsControl { get; set; }
+
+    /// <summary>滑块的部件属性。</summary>
+    [Parameter] public Attrs? PropsThumb { get; set; }
 
     Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue), this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs

@@ -5,9 +5,14 @@
 @namespace Rune.UI
 @typeparam TValue
 @inherits UIComponent
-@{ var parts = ChoiceStyles.Radio(Size ?? Group?.Size, Group?.Tone ?? Tone.Accent, Config.Styles); }
+@{
+    var parts = ChoiceStyles.Of(new ChoiceAppearance(ChoiceKind.Radio, Size ?? Group?.Size, Group?.Tone ?? Tone.Accent, Group?.GroupReadOnly == true), Config.Styles);
+    var selected = Group?.IsSelected(Value) == true;
+    var off = Disabled || Group?.GroupDisabled == true;
+}
 
-<label @attributes="Attrs.Merge(parts[ChoicePart.Root], RootAttrs)">
+<label data-state="@(selected ? "checked" : "unchecked")" data-disabled="@(off ? "true" : null)"
+       data-readonly="@(Group?.GroupReadOnly == true ? "true" : null)" @attributes="Attrs.Merge(parts[ChoicePart.Root], RootAttrs)">
     <span @attributes="Attrs.Merge(parts[ChoicePart.Control])">
         <input type="radio" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputAttrs, Managed)"
                @onclick:preventDefault="@(Group?.GroupReadOnly == true)" />

@@ -1,0 +1,153 @@
+@*
+    复选框、开关与单选：示例与 vue-tsx-pro 文档站的 /components/checkbox 对应。
+    CheckboxGroup（一组绑一个列表）、items（选项来自数据）、开关的 loading 与轨道里的图标在阶段 5、6 做，做好后补齐这几个示例。
+*@
+@attribute [ComponentDemo("checkbox", "复选框与开关", Group = "表单", Order = 3)]
+@inherits RuneComponent
+
+<DemoSection Id="checkbox" Title="复选框">
+    <Description>单个复选框绑 Value；全选框部分勾选时写 Indeterminate，读屏念“部分选中”。放进 Field 时以标签为名称，并关联说明与错误。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Card Padding="SpaceScale.Sm">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                    @* 全选：部分勾选时 Indeterminate，读屏念“部分选中” *@
+                    <Checkbox Value="AllGranted" Indeterminate="SomeGranted" ValueChanged="ToggleAll" data-testid="all">订单管理员（全部权限）</Checkbox>
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Sx="Indented" role="group" aria-label="权限">
+                        @foreach (var (value, label) in permissions)
+                        {
+                            <Checkbox @key="value" Value="granted.Contains(value)" ValueChanged="on => Toggle(value, on)">@label</Checkbox>
+                        }
+                    </Flex>
+                </Flex>
+            </Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <Checkbox @bind-Value="agreed" Tone="Tone.Success">我已阅读并同意《服务条款》</Checkbox>
+                <Small Tone="TextTone.Muted">已授予：@(granted.Count == 0 ? "无" : string.Join("、", permissions.Where(p => granted.Contains(p.Value)).Select(p => p.Value)))</Small>
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="switch" Title="开关">
+    <Description>Switch 是立即生效的设置（需要提交才生效的用 Checkbox）。</Description>
+    <ChildContent>
+        <Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                @SettingRow("接收通知", "订单状态变化时推送", @<Switch @bind-Value="notify" aria-label="接收通知" />)
+                <Separator />
+                @SettingRow("每周摘要", "每周一早上发送上周数据", @<Switch @bind-Value="digest" Disabled="!notify" aria-label="每周摘要" />)
+                <Separator />
+                @SettingRow("暗色模式", "轨道里可以放图标或文字", @<Switch @bind-Value="dark" Size="Size.Lg" aria-label="暗色模式" />)
+                <Separator />
+                @SettingRow("云端同步", "在所有设备上保持一致", @<Switch @bind-Value="sync" Tone="Tone.Success" aria-label="云端同步" />)
+            </Flex>
+        </Card>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="radio" Title="单选">
+    <Description>同一组的原生 radio 共用 name：Tab 只停在选中项，方向键在组内移动并选中，都是浏览器的原生行为。选项里可以放任意内容（说明、价格）；Orientation="Orientation.Horizontal" 横排。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Field Label="配送方式">
+                <RadioGroup @bind-Value="shipping" Name="shipping">
+                    @foreach (var (value, title, time, price) in shippingOptions)
+                    {
+                        <Radio Value="value">
+                            <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Lg">
+                                <Flex Direction="LayoutDirection.Column">
+                                    <Strong>@title</Strong>
+                                    <Small Tone="TextTone.Muted">@time</Small>
+                                </Flex>
+                                <Small>@price</Small>
+                            </Flex>
+                        </Radio>
+                    }
+                </RadioGroup>
+            </Field>
+            <Field Label="发票" Required="true" Error="@(invoice is null ? "请选择发票类型" : null)">
+                <RadioGroup @bind-Value="invoice" Name="invoice" Orientation="Orientation.Horizontal">
+                    <Radio Value="@("none")">不开发票</Radio>
+                    <Radio Value="@("personal")">个人</Radio>
+                    <Radio Value="@("company")">企业</Radio>
+                </RadioGroup>
+            </Field>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="validation" Title="必选与出错">
+    <Description>提交时才检查：Field 的 Required 标出必填，Error 让控件标红并把错误作为说明念出；单个复选框（同意条款）同样包在 Field 里显示错误。</Description>
+    <ChildContent>
+        <form novalidate @onsubmit="Submit" @onsubmit:preventDefault>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg" Align="ItemAlign.Start">
+                <Field Error="@(submitted && !termsAccepted ? "请先同意服务条款" : null)">
+                    <Checkbox @bind-Value="termsAccepted" Required="true">我已阅读并同意服务条款</Checkbox>
+                </Field>
+                <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+                    <Button Type="submit">保存设置</Button>
+                    @if (saved)
+                    {
+                        <Small Tone="TextTone.Success">已保存</Small>
+                    }
+                </Flex>
+            </Flex>
+        </form>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly (string Value, string Label)[] permissions =
+    [
+        ("orders:read", "查看订单"),
+        ("orders:write", "修改订单"),
+        ("refunds", "处理退款"),
+        ("reports", "导出报表"),
+    ];
+
+    static readonly (string Value, string Title, string Time, string Price)[] shippingOptions =
+    [
+        ("standard", "标准快递", "3–5 天送达", "免运费"),
+        ("express", "顺丰次日达", "明天 18:00 前", "¥12"),
+        ("pickup", "门店自提", "今天 15:00 后可取", "免运费"),
+    ];
+
+    readonly HashSet<string> granted = ["orders:read", "reports"];
+    bool agreed, notify = true, digest, dark = true, sync, termsAccepted, submitted, saved;
+    string shipping = "express";
+    string? invoice;
+
+    bool AllGranted => granted.Count == permissions.Length;
+
+    bool SomeGranted => granted.Count > 0 && !AllGranted;
+
+    void ToggleAll(bool _)
+    {
+        if (AllGranted) granted.Clear();
+        else granted.UnionWith(permissions.Select(p => p.Value));
+    }
+
+    void Toggle(string value, bool on)
+    {
+        if (on) granted.Add(value);
+        else granted.Remove(value);
+    }
+
+    void Submit()
+    {
+        submitted = true;
+        saved = termsAccepted;
+    }
+
+    // 一行设置：标题与说明在起始边，开关在结束边
+    static RenderFragment SettingRow(string title, string description, RenderFragment control) => @<Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Lg">
+        <Flex Direction="LayoutDirection.Column" Grow="true">
+            <TextSpan Weight="Weight.Medium">@title</TextSpan>
+            <Small Tone="TextTone.Muted">@description</Small>
+        </Flex>
+        @control
+    </Flex>;
+
+    static Style Indented => Css.Define(static () => new Style { PaddingInlineStart = "1.75em" });
+}
