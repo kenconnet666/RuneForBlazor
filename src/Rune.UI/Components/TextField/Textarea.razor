@@ -1,0 +1,32 @@
+@*
+    多行文本框：<Textarea @bind-Value="note" placeholder="备注" />
+    高度跟着内容长（支持 field-sizing 的浏览器），也可以竖向拖大；限制最高时用 Sx 写 MaxHeight。用法同 TextField。
+*@
+@namespace Rune.UI
+@inherits FormControl<string?>
+@{ var parts = TextFieldStyles.Of(Size, Radius ?? Config.Defaults.Get<TextFieldDefaults>()?.Radius ?? UI.Radius.Md, multiline: true, Config.Styles); }
+
+<div @attributes="Attrs.Merge(parts[TextFieldPart.Root], RootUserAttrs)">
+    <textarea rows="@Rows" @attributes="Attrs.Merge(parts[TextFieldPart.Input], InputUserAttrs, InputManaged)"></textarea>
+</div>
+
+@code {
+    Memo<(Attrs Control, string? Value), Attrs> inputManaged;
+
+    /// <summary>初始行数（不支持 field-sizing 的浏览器里的高度），默认 3。</summary>
+    [Parameter] public int Rows { get; set; } = 3;
+
+    /// <summary>字号档位；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认中圆角。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    // 多行文本在失去焦点时更新（输入中换行、修改都不触发往返）
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue), this,
+        static (k, owner) => Attrs.Merge(k.Control, new Attrs
+        {
+            ["value"] = k.Value,
+            ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync((string?)e.Value)),
+        }));
+}

@@ -73,6 +73,20 @@ public static class When
         : new($":is({state.Key} > *)");
 
     /// <summary>
+    /// 紧挨着的前一个兄弟元素处于某个状态时：<c>[When.After(When.Checked)]</c> 生成 <c>.x:is(:checked + *)</c>。
+    /// 勾选框里跟在 input 后面的对勾图标用它。
+    /// </summary>
+    public static Condition After(Condition state) => state.IsAtRule
+        ? throw new ArgumentException($"兄弟元素的状态要是选择器片段，收到 @ 规则 {state.Key}", nameof(state))
+        : new($":is({state.Key} + *)");
+
+    /// <summary>
+    /// 里面有符合选择器的元素时：<c>[When.Has("[aria-invalid=true]")]</c> 生成 <c>.x:has([aria-invalid=true])</c>。
+    /// 输入框的外框按里面 input 的状态（校验未通过、不可用）变化时用它。
+    /// </summary>
+    public static Condition Has(string selector) => new($":has({selector})");
+
+    /// <summary>
     /// 进场的起始样式（<c>@starting-style</c>）：元素刚显示（插入、display 从 none 变成可见、弹出）时从这里过渡到正常样式。
     /// 退场配合 <c>transition-behavior: allow-discrete</c> 过渡 display / overlay，不需要 JS。
     /// </summary>

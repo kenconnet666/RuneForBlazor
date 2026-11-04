@@ -1,0 +1,25 @@
+@* 表单测试用：EditForm + DataAnnotations，Field 里的 TextField 与 Checkbox *@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+<EditForm Model="model" OnValidSubmit="() => Submitted = true">
+    <DataAnnotationsValidator />
+    <Field Label="姓名"><TextField @bind-Value="model.Name" /></Field>
+    <Field><Checkbox @bind-Value="model.Agreed">同意</Checkbox></Field>
+    <button type="submit">提交</button>
+</EditForm>
+
+@code {
+    readonly HostModel model = new();
+
+    public bool Submitted { get; private set; }
+
+    sealed class HostModel
+    {
+        [Required(ErrorMessage = "请填写姓名")]
+        public string? Name { get; set; }
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "请先同意")]
+        public bool Agreed { get; set; }
+    }
+}

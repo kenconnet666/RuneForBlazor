@@ -1,0 +1,58 @@
+@*
+    文本框：<TextField @bind-Value="name" placeholder="姓名" />、<TextField @bind-Value="email" Type="email" Icon="Lucide.Mail" />
+    默认失去焦点或回车时更新值；搜索框这类要边输边用的写 Immediate="true"（Server 模式下每次按键一次往返）。
+    placeholder、name、autocomplete、maxlength 等落在 input 上；Sx 落在外框上。放在 Field 里得到标签与错误信息。
+*@
+@namespace Rune.UI
+@inherits FormControl<string?>
+@{ var parts = TextFieldStyles.Of(Size, Radius ?? Defaults?.Radius ?? UI.Radius.Md, multiline: false, Config.Styles); }
+
+<div @attributes="Attrs.Merge(parts[TextFieldPart.Root], RootUserAttrs)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[TextFieldPart.Icon], PropsIcon)" />
+    }
+    <input type="@Type" @attributes="Attrs.Merge(parts[TextFieldPart.Input], InputUserAttrs, InputManaged)" />
+    @if (Suffix is not null)
+    {
+        <span @attributes="Attrs.Merge(parts[TextFieldPart.Suffix], PropsSuffix)">@Suffix</span>
+    }
+</div>
+
+@code {
+    Memo<(Attrs Control, string? Value, bool Immediate), Attrs> inputManaged;
+
+    /// <summary>input 的 type：text（默认）、email、password、search、url、tel。</summary>
+    [Parameter] public string Type { get; set; } = "text";
+
+    /// <summary>字号档位，高度与内边距随之缩放；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认中圆角。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    /// <summary>每次输入都更新值；默认失去焦点或回车时更新。</summary>
+    [Parameter] public bool? Immediate { get; set; }
+
+    /// <summary>前面的图标。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>后面的内容：单位、按钮。</summary>
+    [Parameter] public RenderFragment? Suffix { get; set; }
+
+    /// <summary>图标的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>后面内容的部件属性。</summary>
+    [Parameter] public Attrs? PropsSuffix { get; set; }
+
+    TextFieldDefaults? Defaults => Config.Defaults.Get<TextFieldDefaults>();
+
+    // input 上由组件管理的属性：表单状态（ControlAttrs）、值与更新值的事件；输入不变时是同一个对象
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Immediate ?? Defaults?.Immediate ?? false), this,
+        static (k, owner) => Attrs.Merge(k.Control, new Attrs
+        {
+            ["value"] = k.Value,
+            [k.Immediate ? "oninput" : "onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync((string?)e.Value)),
+        }));
+}

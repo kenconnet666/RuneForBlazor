@@ -1,0 +1,43 @@
+@*
+    勾选框：<Checkbox @bind-Value="agreed">我已阅读并同意</Checkbox>
+    半选（表格的“全选”在部分选中时）：Indeterminate="true"，由使用方根据子项计算。原生 input，键盘、表单、读屏都是原生的。
+*@
+@namespace Rune.UI
+@inherits FormControl<bool>
+@{ var parts = ChoiceStyles.Checkbox(Size, Config.Styles); }
+
+<label @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
+    <span @attributes="Attrs.Merge(parts[ChoicePart.Control])">
+        <input type="checkbox" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputUserAttrs, InputManaged)" />
+        <Icon Data="@(Indeterminate ? BuiltInIcons.Minus : BuiltInIcons.Check)" StrokeWidth="3" @attributes="Attrs.MergeProps(parts[ChoicePart.Indicator])" />
+    </span>
+    @if (ChildContent is not null)
+    {
+        <span @attributes="Attrs.Merge(parts[ChoicePart.Label], PropsLabel)">@ChildContent</span>
+    }
+</label>
+
+@code {
+    Memo<(Attrs Control, bool Checked, bool Indeterminate), Attrs> inputManaged;
+
+    /// <summary>半选：显示横线，读屏读作“部分选中”。点击后浏览器清除半选，由使用方重新计算。</summary>
+    [Parameter] public bool Indeterminate { get; set; }
+
+    /// <summary>字号档位；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    // input 上由组件管理的属性：表单状态、勾选、半选（原生的 indeterminate 只能用 JS 设置，JS 初始化器按 data-indeterminate 同步）
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Indeterminate), this,
+        static (k, owner) => Attrs.Merge(k.Control, new Attrs
+        {
+            ["checked"] = k.Checked,
+            ["data-indeterminate"] = k.Indeterminate ? "true" : "false",
+            ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync(e.Value is true)),
+        }));
+}

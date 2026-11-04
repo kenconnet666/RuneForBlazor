@@ -1,0 +1,119 @@
+@*
+    表单字段：标签 + 控件 + 说明 + 错误信息，并把它们关联起来（标签的 for、控件的 aria-describedby）。
+    <Field Label="邮箱" Description="用于找回密码" Required="true">
+        <TextField @bind-Value="model.Email" Type="email" />
+    </Field>
+    在 EditForm 里时，错误信息取自表单的校验结果（控件用 @bind-Value 绑定的字段）；也可以直接给 Error。
+    控件上显式写的状态（Disabled、Required……）优先于 Field 的。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using Microsoft.AspNetCore.Components.Forms
+@{
+    var parts = FieldStyles.Of(Config.Styles);
+    var errors = Errors;
+}
+
+<div @attributes="Attrs.Merge(parts[FieldPart.Root], Rest)">
+    @if (Label is not null)
+    {
+        <label for="@controlId" @attributes="Attrs.Merge(parts[FieldPart.Label], PropsLabel)">
+            @Label
+            @if (Required)
+            {
+                <span aria-hidden="true" @attributes="Attrs.Merge(parts[FieldPart.RequiredMark])">*</span>
+            }
+        </label>
+    }
+    <CascadingValue Value="ContextFor(errors.Count > 0)">@ChildContent</CascadingValue>
+    @if (Description is not null)
+    {
+        <div id="@descriptionId" @attributes="Attrs.Merge(parts[FieldPart.Description], PropsDescription)">@Description</div>
+    }
+    @if (errors.Count > 0)
+    {
+        <div id="@errorId" @attributes="Attrs.Merge(parts[FieldPart.Error], PropsError)">
+            <Icon Data="BuiltInIcons.CircleExclamationPoint" />
+            <span>@string.Join("；", errors)</span>
+        </div>
+    }
+</div>
+
+@code {
+    readonly string controlId = UniqueId.Next("field-control");
+    readonly string descriptionId = UniqueId.Next("field-description");
+    readonly string errorId = UniqueId.Next("field-error");
+    readonly FieldRegistration registration = new();
+    Memo<(string? DescribedBy, bool Invalid, bool Required, bool Disabled, bool ReadOnly), FieldContext> context;
+    EditContext? subscribedContext;
+
+    /// <summary>标签。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>说明（标签下面、控件后面的小字）。</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>错误信息；不写时取表单里这个字段的校验结果。</summary>
+    [Parameter] public string? Error { get; set; }
+
+    /// <summary>必填：标签后加 *，控件加 aria-required（校验交给表单）。</summary>
+    [Parameter] public bool Required { get; set; }
+
+    /// <summary>里面的控件不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>里面的控件只读。</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <summary>控件。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>标签的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>错误信息的部件属性。</summary>
+    [Parameter] public Attrs? PropsError { get; set; }
+
+    /// <summary>所在的 Blazor 表单。</summary>
+    [CascadingParameter] EditContext? EditContext { get; set; }
+
+    // 显式的 Error 优先；否则是表单里控件绑定的字段的错误（registration.Field 是信号，控件报上来后这里自动重新渲染）
+    IReadOnlyList<string> Errors =>
+        Error is not null ? [Error]
+        : EditContext is not null && registration.Field is { } identifier ? [.. EditContext.GetValidationMessages(identifier)]
+        : [];
+
+    FieldContext ContextFor(bool invalid)
+    {
+        var describedBy = (Description, invalid) switch
+        {
+            (not null, true) => $"{descriptionId} {errorId}",
+            (not null, false) => descriptionId,
+            (null, true) => errorId,
+            _ => null,
+        };
+        return context.Get((describedBy, invalid, Required, Disabled, ReadOnly), this,
+            static (k, owner) => new FieldContext(owner.controlId, k.DescribedBy, k.Invalid, k.Required, k.Disabled, k.ReadOnly, owner.registration));
+    }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        // 表单的校验结果变了要重新渲染错误信息
+        if (ReferenceEquals(subscribedContext, EditContext)) return;
+        if (subscribedContext is not null) subscribedContext.OnValidationStateChanged -= OnValidationStateChanged;
+        subscribedContext = EditContext;
+        if (subscribedContext is not null) subscribedContext.OnValidationStateChanged += OnValidationStateChanged;
+    }
+
+    void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) => StateHasChanged();
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        if (subscribedContext is not null) subscribedContext.OnValidationStateChanged -= OnValidationStateChanged;
+    }
+}

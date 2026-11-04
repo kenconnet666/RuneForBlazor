@@ -1,0 +1,37 @@
+@*
+    开关：<Switch @bind-Value="notify">接收通知</Switch>
+    立即生效的设置用开关；要和其他字段一起提交的用 Checkbox。原生 input（role="switch"），读屏读作“开 / 关”。
+*@
+@namespace Rune.UI
+@inherits FormControl<bool>
+@{ var parts = ChoiceStyles.Switch(Size, Config.Styles); }
+
+<label @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
+    <span @attributes="Attrs.Merge(parts[ChoicePart.Control])">
+        <input type="checkbox" role="switch" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputUserAttrs, InputManaged)" />
+    </span>
+    @if (ChildContent is not null)
+    {
+        <span @attributes="Attrs.Merge(parts[ChoicePart.Label], PropsLabel)">@ChildContent</span>
+    }
+</label>
+
+@code {
+    Memo<(Attrs Control, bool Checked), Attrs> inputManaged;
+
+    /// <summary>字号档位；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue), this,
+        static (k, owner) => Attrs.Merge(k.Control, new Attrs
+        {
+            ["checked"] = k.Checked,
+            ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync(e.Value is true)),
+        }));
+}
