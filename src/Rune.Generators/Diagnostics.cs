@@ -23,6 +23,16 @@ internal static class Diagnostics
         "RUNE003", "[State] 不能写在 .razor 的 @code 里",
         "[State] '{0}' 写在了 .razor 的 @code 里，生成器看不到这里；请移到同名的 .razor.cs（partial class）中",
         Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor StaticStyleMember = new(
+        "RUNE004", "静态 Style 成员应该用 Css.Define 定义",
+        "'{0}' 在静态初始化时只创建一次，热重载改了样式值不会生效；改写成 static Style {0} => Css.Define(static () => new Style {{ … }});",
+        Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor StyleCreatedWhileRendering = new(
+        "RUNE005", "不要在渲染路径上新建 Style",
+        "渲染时新建的 Style 每次都是新实例，引擎要重新计算类名；改成用 Css.Define 定义的静态属性",
+        Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 }
 
 /// <summary>
