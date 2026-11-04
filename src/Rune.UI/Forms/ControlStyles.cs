@@ -31,12 +31,12 @@ public static class ControlStyles
             BorderColor = Tones.Accent.Solid,
             BoxShadow = $"0 0 0 3px {Colors.FocusRing}",
         },
-        [Invalid] = new()
+        [invalid] = new()
         {
             BorderColor = Tones.Danger.Solid,
             [When.FocusWithin] = new() { BoxShadow = $"0 0 0 3px color-mix(in srgb, {Tones.Danger.Solid} 35%, transparent)" },
         },
-        [Disabled] = new()
+        [disabled] = new()
         {
             Opacity = Opacities.Disabled,
             Cursor = Cursor.NotAllowed,
@@ -73,6 +73,6 @@ public static class ControlStyles
     });
 
     // 外框里的输入元素校验未通过 / 不可用
-    static readonly Condition Invalid = When.Has("[aria-invalid=\"true\"]");
-    static readonly Condition Disabled = When.Has(":disabled");
+    static readonly Condition invalid = When.Has("[aria-invalid=\"true\"]");
+    static readonly Condition disabled = When.Has(":disabled");
 }

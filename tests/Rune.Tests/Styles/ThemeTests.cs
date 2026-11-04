@@ -13,14 +13,14 @@ public class ThemeTests : IDisposable
 
     public void Dispose() => scope.Dispose();
 
-    static readonly CssColor Ink = "var(--test-ink)";
-    static readonly CssLength Gap = "var(--test-gap)";
+    static readonly CssColor ink = "var(--test-ink)";
+    static readonly CssLength gap = "var(--test-gap)";
 
     [Fact]
     public void 没写的token取基础主题的值()
     {
-        var light = new Theme("light") { [Ink] = "black", [Gap] = 4 };
-        var dark = new Theme("dark", basedOn: light) { [Ink] = "white" };
+        var light = new Theme("light") { [ink] = "black", [gap] = 4 };
+        var dark = new Theme("dark", basedOn: light) { [ink] = "white" };
 
         Assert.Equal("white", dark.ValueOf("var(--test-ink)"));
         Assert.Equal("4px", dark.ValueOf("var(--test-gap)"));
@@ -37,8 +37,8 @@ public class ThemeTests : IDisposable
     [Fact]
     public void 跟随系统时暗色主题写进媒体查询()
     {
-        var light = new Theme("light") { [Ink] = "black" };
-        var dark = new Theme("dark", basedOn: light) { [Ink] = "white" };
+        var light = new Theme("light") { [ink] = "black" };
+        var dark = new Theme("dark", basedOn: light) { [ink] = "white" };
 
         var className = ThemeStyles.ClassFor(light, dark, ColorScheme.System);
 
@@ -50,8 +50,8 @@ public class ThemeTests : IDisposable
     [Fact]
     public void 固定暗色时只写暗色主题()
     {
-        var light = new Theme("light") { [Ink] = "black" };
-        var dark = new Theme("dark", basedOn: light) { [Ink] = "white" };
+        var light = new Theme("light") { [ink] = "black" };
+        var dark = new Theme("dark", basedOn: light) { [ink] = "white" };
 
         ThemeStyles.ClassFor(light, dark, ColorScheme.Dark);
 

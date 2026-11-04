@@ -21,7 +21,7 @@ internal sealed record StateProperty(
     string SetterAccessibility,
     string InitialValue)
 {
-    static readonly SymbolDisplayFormat TypeFormat = SymbolDisplayFormat.FullyQualifiedFormat
+    static readonly SymbolDisplayFormat typeFormat = SymbolDisplayFormat.FullyQualifiedFormat
         .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
     /// <summary>从属性声明读出生成所需的信息；写法不对时返回诊断。</summary>
@@ -41,7 +41,7 @@ internal sealed record StateProperty(
             Namespace: symbol.ContainingType.ContainingNamespace.IsGlobalNamespace ? null : symbol.ContainingType.ContainingNamespace.ToDisplayString(),
             ContainingTypes: new EquatableArray<string>(ContainingTypeDeclarations(symbol.ContainingType)),
             Modifiers: string.Join(" ", syntax.Modifiers.Select(m => m.Text)),
-            Type: symbol.Type.ToDisplayString(TypeFormat),
+            Type: symbol.Type.ToDisplayString(typeFormat),
             Name: symbol.Name,
             // 交出信号本身的属性：取 get 与 set 里更严格的那个，否则 private set 会被它绕过
             StateAccessibility: Keyword(Narrower(symbol.GetMethod.DeclaredAccessibility, symbol.SetMethod.DeclaredAccessibility)),

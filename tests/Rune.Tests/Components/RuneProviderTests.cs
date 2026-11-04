@@ -9,7 +9,7 @@ public class RuneProviderTests : BunitContext
 {
     static Style Bold => Css.Define(static () => new Style { FontWeight = 700 });
 
-    static readonly ComponentDefaults Outline = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } };
+    static readonly ComponentDefaults outline = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } };
 
     public RuneProviderTests() => Services.AddRuneUI();
 
@@ -30,7 +30,7 @@ public class RuneProviderTests : BunitContext
     public void 默认值作用于没写参数的组件_组件上写的优先()
     {
         var cut = Render<RuneProvider>(p => p
-            .Add(x => x.Defaults, Outline)
+            .Add(x => x.Defaults, outline)
             .AddChildContent<Collapsible>(c => c.Add(x => x.Title, "取默认值"))
             .AddChildContent<Collapsible>(c => c.Add(x => x.Title, "显式 Plain").Add(x => x.Variant, CollapsibleVariant.Plain)));
 
@@ -65,10 +65,10 @@ public class RuneProviderTests : BunitContext
     [Fact]
     public void 参数没变时Provider给出同一个配置()
     {
-        var cut = Render<RuneProvider>(p => p.Add(x => x.Defaults, Outline).AddChildContent<Collapsible>());
+        var cut = Render<RuneProvider>(p => p.Add(x => x.Defaults, outline).AddChildContent<Collapsible>());
         var child = cut.FindComponent<Collapsible>();
 
-        cut.Render(p => p.Add(x => x.Defaults, Outline));
+        cut.Render(p => p.Add(x => x.Defaults, outline));
 
         // 配置没变：子组件的参数（级联的配置）没变，跳过渲染
         Assert.Equal(1, child.RenderCount);

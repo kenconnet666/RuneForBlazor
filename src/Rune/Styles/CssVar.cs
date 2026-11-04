@@ -4,9 +4,9 @@ namespace Rune.Styles;
 /// 一直在变的值（进度、宽度、拖动位置）用的 CSS 变量：样式里引用它（类不变），值写在元素上，只改元素的 style。
 /// 每个新值都写进样式会让每个值多一条规则，所以不要那样做。
 /// <code>
-/// static readonly CssVar&lt;CssLength&gt; FillWidth = CssVar.Length("progress-fill");
-/// static Style Fill => Css.Define(static () => new Style { Width = FillWidth });
-/// // 渲染：&lt;div @attributes="Attrs.Merge(new() { Sx = Fill, Vars = [FillWidth.Set($"{percent}%")] })"&gt;
+/// static readonly CssVar&lt;CssLength&gt; fillWidth = CssVar.Length("progress-fill");
+/// static Style Fill => Css.Define(static () => new Style { Width = fillWidth });
+/// // 渲染：&lt;div @attributes="Attrs.Merge(new() { Sx = Fill, Vars = [fillWidth.Set($"{percent}%")] })"&gt;
 /// </code>
 /// </summary>
 /// <typeparam name="T">值的类型：<see cref="CssLength"/>、<see cref="CssColor"/> 或 <see cref="CssValue"/>。</typeparam>
@@ -30,7 +30,7 @@ public sealed class CssVar<T>
     /// <summary>给元素设置这个变量的值，交给 <see cref="Attrs.Vars"/>。</summary>
     public CssVarValue Set(T value) => new(Name, format(value));
 
-    /// <summary>直接写在样式属性上：<c>Width = FillWidth</c>。</summary>
+    /// <summary>直接写在样式属性上：<c>Width = fillWidth</c>。</summary>
     public static implicit operator T(CssVar<T> variable) => variable.Reference;
 }
 

@@ -8,13 +8,13 @@ public class CssVarTests : IDisposable
 
     public void Dispose() => scope.Dispose();
 
-    static readonly CssVar<CssLength> FillWidth = CssVar.Length("fill-width");
+    static readonly CssVar<CssLength> fillWidth = CssVar.Length("fill-width");
 
     [Fact]
     public void 样式里引用变量_值写在元素的style上()
     {
-        var compiled = StyleCompiler.Compile([new Style { Width = FillWidth }])!;
-        var attrs = new Attrs { Vars = [FillWidth.Set(40)] }.ToDictionary(p => p.Key, p => p.Value);
+        var compiled = StyleCompiler.Compile([new Style { Width = fillWidth }])!;
+        var attrs = new Attrs { Vars = [fillWidth.Set(40)] }.ToDictionary(p => p.Key, p => p.Value);
 
         Assert.Contains("width:var(--fill-width);", compiled.Css);
         Assert.Equal("--fill-width:40px", attrs["style"]);
@@ -23,7 +23,7 @@ public class CssVarTests : IDisposable
     [Fact]
     public void 行内样式与变量写在一起时都保留()
     {
-        var attrs = new Attrs { InlineStyle = "opacity:0.5", Vars = [FillWidth.Set("50%")] }.ToDictionary(p => p.Key, p => p.Value);
+        var attrs = new Attrs { InlineStyle = "opacity:0.5", Vars = [fillWidth.Set("50%")] }.ToDictionary(p => p.Key, p => p.Value);
 
         Assert.Equal("opacity:0.5;--fill-width:50%", attrs["style"]);
     }

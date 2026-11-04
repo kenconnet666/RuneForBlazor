@@ -20,7 +20,7 @@ public static class OverlayTransitions
         Opacity = 0,
         Scale = 0.96,
         Transition = Exit("opacity", "scale"),
-        [Opened] = new()
+        [opened] = new()
         {
             Opacity = 1,
             Scale = 1,
@@ -34,7 +34,7 @@ public static class OverlayTransitions
     {
         Translate = hidden,
         Transition = Exit("translate"),
-        [Opened] = new()
+        [opened] = new()
         {
             Translate = "0 0",
             Transition = Enter("translate"),
@@ -50,7 +50,7 @@ public static class OverlayTransitions
             BackgroundColor = Transparent,
             Transition = Exit("background-color"),
         },
-        [Opened] = new()
+        [opened] = new()
         {
             [Pseudo.Backdrop] = new()
             {
@@ -62,7 +62,7 @@ public static class OverlayTransitions
     });
 
     // 打开状态：弹出的 popover 或模态打开的 dialog
-    static readonly Condition Opened = new(":is(:popover-open, :modal)");
+    static readonly Condition opened = new(":is(:popover-open, :modal)");
 
     const string Transparent = "rgb(0 0 0 / 0%)";
 
