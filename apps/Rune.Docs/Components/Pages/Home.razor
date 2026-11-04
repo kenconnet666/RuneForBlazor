@@ -1,0 +1,14 @@
+@page "/"
+@inherits RuneComponent
+
+<PageTitle>Rune</PageTitle>
+
+<h1>Rune for Blazor</h1>
+<p>这一页是静态服务端渲染（没有交互）：组件、样式都在服务端算好，随 HTML 一起输出。</p>
+
+<Collapsible Open="true" Variant="CollapsibleVariant.Outline">
+    <Title>折叠面板（静态渲染）</Title>
+    <ChildContent>
+        静态页面上按钮不能点击；切到上面的交互演示看完整行为。
+    </ChildContent>
+</Collapsible>

@@ -1,0 +1,11 @@
+@* 两个读者：一个读 A，一个读 B；宿主自己什么都不读 *@
+@inherits RuneComponent
+
+@{ Renders++; }
+<StoreReader Which="A" />
+<StoreReader Which="B" />
+
+@code {
+    /// <summary>宿主自己的渲染次数（bUnit 的 RenderCount 会把子组件的渲染也算进来）。</summary>
+    public int Renders { get; private set; }
+}

@@ -1,0 +1,6 @@
+# 文本文件在仓库与工作区里一律用 LF：Windows 与 Linux（CI）上内容逐字节一致，
+# css-gen 的 --check、哈希类名这类按内容比较的东西两边结果相同
+* text=auto eol=lf
+
+*.png binary
+*.ico binary

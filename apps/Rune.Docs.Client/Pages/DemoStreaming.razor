@@ -1,0 +1,35 @@
+@*
+    流式渲染：先发出“加载中”，数据到了再把更新发给浏览器。
+    流式更新只发送页面自己的内容，head 里的 RuneStyles 收不到，所以页面末尾放一个。
+*@
+@page "/demo/streaming"
+@attribute [StreamRendering]
+@inherits RuneComponent
+
+<PageTitle>流式渲染</PageTitle>
+<h1>流式渲染</h1>
+
+@if (loaded)
+{
+    <Collapsible Open="true" Variant="CollapsibleVariant.Outline">
+        <Title>加载完成后才出现的组件</Title>
+        <ChildContent>它的样式规则随流式更新一起到达。</ChildContent>
+    </Collapsible>
+}
+else
+{
+    <p>加载中…</p>
+}
+
+<RuneStyles />
+
+@code {
+    bool loaded;
+
+    /// <inheritdoc/>
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(800);
+        loaded = true;
+    }
+}

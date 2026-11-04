@@ -1,0 +1,26 @@
+@*
+    输出当前作用域登记的样式规则：每条规则一个 style 元素，只追加，界面更新时只发新增的那条。
+    放置位置：
+      1. App.razor 的 head 里：服务端渲染（含增强导航）的样式；
+      2. 每个交互根（带 @rendermode 的页面或组件）里：交互模式下新用到的样式；
+      3. 流式渲染（[StreamRendering]）的页面末尾：流式更新只发送页面自己的内容，head 里的这一份收不到。
+*@
+@namespace Rune.Styles
+@implements IDisposable
+@inject StyleRegistry Registry
+
+@foreach (var rule in Registry.Rules)
+{
+    <style @key="rule" data-rune>@((MarkupString)rule)</style>
+}
+
+@code {
+    /// <inheritdoc/>
+    protected override void OnInitialized() => Registry.Changed += OnRulesChanged;
+
+    // 规则多半在别的组件渲染时登记，这时可能在渲染器的线程上，也可能不在
+    void OnRulesChanged() => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc/>
+    public void Dispose() => Registry.Changed -= OnRulesChanged;
+}
