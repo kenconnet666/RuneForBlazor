@@ -52,7 +52,7 @@ public static class LinkStyles
     public static PartLayers<LinkPart> Of(Tone tone, LinkUnderline underline, ComponentStyles styles) =>
         Recipe.Of("link", (tone, underline), styles, static ((Tone Tone, LinkUnderline Underline) a, LinkPart part) => part switch
         {
-            LinkPart.Root => Sx.Of(Root, ToneText(a.Tone), Underline(a.Underline), SharedStyles.FocusRing),
+            LinkPart.Root => Sx.Of(Root, SharedStyles.ToneText(a.Tone), Underline(a.Underline), SharedStyles.FocusRing),
             LinkPart.Icon => Icon,
             _ => SharedStyles.VisuallyHidden,
         });
@@ -66,7 +66,6 @@ public static class LinkStyles
         [When.Hover] = new() { TextDecorationThickness = 2 },
     });
 
-    static Style ToneText(Tone tone) => Css.Define(tone, static tone => new Style { Color = Tones.Of(tone).Text });
 
     static Style Underline(LinkUnderline underline) => Css.Define(underline, static underline => underline switch
     {

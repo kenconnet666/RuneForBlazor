@@ -17,7 +17,7 @@ public static class PopconfirmStyles
 {
     /// <summary>某套定制下各部件的默认层。</summary>
     public static PartLayers<PopconfirmPart> Of(ComponentStyles styles) =>
-        Recipe.Of("popconfirm", 0, styles, static (int _, PopconfirmPart part) => part switch
+        Recipe.Of("popconfirm", styles, static (PopconfirmPart part) => part switch
         {
             PopconfirmPart.Description => Description,
             _ => Actions,

@@ -7,6 +7,9 @@ namespace Rune.UI;
 /// </summary>
 public static class SharedStyles
 {
+    /// <summary>色调的文字色（链接、提示条的图标与标题、文字的 Tone）。</summary>
+    public static Style ToneText(Tone tone) => Css.Define(tone, static tone => new Style { Color = Tones.Of(tone).Text });
+
     /// <summary>键盘聚焦时的焦点环（画在元素外侧）。</summary>
     public static Style FocusRing => Css.Define(static () => new Style
     {

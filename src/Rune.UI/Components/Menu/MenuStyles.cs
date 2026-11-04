@@ -40,7 +40,7 @@ public static class MenuStyles
     public static PartLayers<MenuItemPart> Item(Tone tone, ComponentStyles styles) =>
         Recipe.Of("menu-item", tone, styles, static (Tone tone, MenuItemPart part) => part switch
         {
-            MenuItemPart.Root => Sx.Of(ItemRoot, ItemTone(tone), SharedStyles.FocusRingInset),
+            MenuItemPart.Root => Sx.Of(ItemRoot, SharedStyles.ToneText(tone), SharedStyles.FocusRingInset),
             MenuItemPart.Icon => ItemIcon,
             _ => Shortcut,
         });
@@ -72,10 +72,6 @@ public static class MenuStyles
         [When.Focus] = new() { BackgroundColor = Colors.SurfaceHover },
         [When.Disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
     });
-
-    static Style ItemTone(Tone tone) => Css.Define(tone, static tone => tone == UI.Tone.Neutral
-        ? new Style { Color = Colors.Text }
-        : new Style { Color = Tones.Of(tone).Text });
 
     static Style ItemIcon => Css.Define(static () => new Style { FlexShrink = 0, Opacity = 0.8 });
 

@@ -129,11 +129,11 @@ public static class TypographyStyles
 
     /// <summary>按键（Kbd）的部件默认层。</summary>
     public static PartLayers<KbdPart> Kbd(ComponentStyles styles) =>
-        Recipe.Of("kbd", 0, styles, static (int _, KbdPart _) => KbdRoot);
+        Recipe.Of("kbd", styles, static (KbdPart _) => KbdRoot);
 
     /// <summary>视觉隐藏（VisuallyHidden）的部件默认层。</summary>
     public static PartLayers<VisuallyHiddenPart> VisuallyHidden(ComponentStyles styles) =>
-        Recipe.Of("visually-hidden", 0, styles, static (int _, VisuallyHiddenPart _) => SharedStyles.VisuallyHidden);
+        Recipe.Of("visually-hidden", styles, static (VisuallyHiddenPart _) => SharedStyles.VisuallyHidden);
 
     // 后面的段盖过前面的：元素自带的换行方式排在使用方指定的 Wrap 前面
     static Sx Compose(TypographyAppearance a) => Sx.Of(
@@ -146,7 +146,7 @@ public static class TypographyStyles
         a.Size is { } size ? ScaleStyles.FontSize(size) : null,
         a.Kind == TypographyKind.Heading && a.Size is UI.Size.Xxl or UI.Size.Xxxl ? TightTracking : null,
         a.Weight is { } weight ? WeightOf(weight) : null,
-        a.Muted ? Muted : a.Tone is { } tone ? ToneText(tone) : null,
+        a.Muted ? Muted : a.Tone is { } tone ? SharedStyles.ToneText(tone) : null,
         a.Align is { } align ? AlignOf(align) : null,
         a.Wrap is { } wrap ? WrapOf(wrap) : null,
         a.Truncate ? Truncate : null,
@@ -179,7 +179,6 @@ public static class TypographyStyles
 
     static Style Muted => Css.Define(static () => new Style { Color = Colors.TextMuted });
 
-    static Style ToneText(Tone tone) => Css.Define(tone, static tone => new Style { Color = Tones.Of(tone).Text });
 
     static Style AlignOf(TextAlignment align) => Css.Define(align, static align => new Style
     {

@@ -17,7 +17,7 @@ public static class ToastStyles
 {
     /// <summary>某套定制下各部件的默认层。</summary>
     public static PartLayers<ToasterPart> Of(ComponentStyles styles) =>
-        Recipe.Of("toaster", 0, styles, static (int _, ToasterPart part) => part switch
+        Recipe.Of("toaster", styles, static (ToasterPart part) => part switch
         {
             ToasterPart.Root => Root,
             _ => Sx.Of(Toast, SharedStyles.ReducedMotion),

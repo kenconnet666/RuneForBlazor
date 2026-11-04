@@ -18,6 +18,14 @@ namespace Rune.UI;
 /// </summary>
 public static class Recipe
 {
+    /// <summary>没有档位的组件（只有一种外观）：每个部件一段样式。</summary>
+    /// <param name="scope">组件名（连字符小写）。</param>
+    /// <param name="styles">配置里的按部件定制。</param>
+    /// <param name="partStyle">某个部件的样式；写成 static lambda。</param>
+    public static PartLayers<TPart> Of<TPart>(string scope, ComponentStyles styles, Func<TPart, Sx> partStyle)
+        where TPart : struct, Enum =>
+        Of(scope, partStyle, styles, static (Func<TPart, Sx> partStyle, TPart part) => partStyle(part));
+
     /// <summary>算出（或取缓存的）各部件默认层。</summary>
     /// <param name="scope">组件名（连字符小写），写在部件标记 data-scope 上。</param>
     /// <param name="key">档位的组合，通常是元组；相等的组合共用同一份结果。</param>
