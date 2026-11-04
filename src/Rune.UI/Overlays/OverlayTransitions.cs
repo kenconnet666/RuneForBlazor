@@ -9,7 +9,7 @@ namespace Rune.UI;
 /// <item><description>离场：display 与 overlay 加 allow-discrete，关闭后先播完过渡再离开顶层，exit 缓动、更短的 Fast 时长。</description></item>
 /// </list>
 /// 原生弹层被 Esc、点外面关闭时 JS 来不及介入，所以不用 JS 动画。离场依赖 CSS 的 overlay（目前只有 Chromium 支持），
-/// 其他浏览器关闭后立即隐藏：渐进增强，状态不受影响。减少动效由组件另加 <see cref="SharedStyles.ReducedMotion"/>。
+/// 其他浏览器关闭后立即隐藏：渐进增强，状态不受影响。用户要求减少动态效果时时长 token 为 0，不用另写。
 /// 用法：放进浮层根部件的 Sx：<c>Sx.Of(Surface, OverlayTransitions.Scale)</c>；模态的再加 <see cref="Backdrop"/>。
 /// </summary>
 public static class OverlayTransitions
@@ -54,7 +54,7 @@ public static class OverlayTransitions
         {
             [Pseudo.Backdrop] = new()
             {
-                BackgroundColor = "rgb(0 0 0 / 45%)",
+                BackgroundColor = Colors.Overlay,
                 Transition = Enter("background-color"),
                 [When.Starting] = new() { BackgroundColor = Transparent },
             },
@@ -66,9 +66,9 @@ public static class OverlayTransitions
 
     const string Transparent = "rgb(0 0 0 / 0%)";
 
-    static string Enter(params string[] properties) => Transition(properties, Durations.Normal, Easings.Enter);
+    static string Enter(params string[] properties) => Transition(properties, Durations.Md, Easings.Enter);
 
-    static string Exit(params string[] properties) => Transition(properties, Durations.Fast, Easings.Exit);
+    static string Exit(params string[] properties) => Transition(properties, Durations.Sm, Easings.Exit);
 
     // 每个属性一段，再加上 display / overlay 的离散过渡（离场时等动画播完再隐藏）
     static string Transition(string[] properties, CssValue duration, CssValue easing) =>

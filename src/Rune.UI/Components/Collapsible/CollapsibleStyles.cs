@@ -43,7 +43,7 @@ public static class CollapsibleStyles
         Recipe.Of("collapsible", variant, styles, static (CollapsibleVariant variant, CollapsiblePart part) => part switch
         {
             CollapsiblePart.Root => variant == CollapsibleVariant.Outline ? [Root, OutlineRoot] : Root,
-            CollapsiblePart.Trigger => [Trigger, SharedStyles.FocusRingInset, SharedStyles.ReducedMotion],
+            CollapsiblePart.Trigger => [Trigger, SharedStyles.InteractionColors, SharedStyles.FocusRingInset],
             _ => Content,
         });
 
@@ -55,7 +55,7 @@ public static class CollapsibleStyles
 
     static Style OutlineRoot => Css.Define(static () => new Style
     {
-        BorderWidth = 1,
+        BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = Colors.Border,
         BorderRadius = Radii.Md,
@@ -76,10 +76,7 @@ public static class CollapsibleStyles
         Font = "inherit",
         TextAlign = TextAlign.Start,
         Cursor = Cursor.Pointer,
-        TransitionProperty = "background-color",
-        TransitionDuration = Durations.Fast,
-        TransitionTimingFunction = Easings.Standard,
-        [When.Hover] = new() { BackgroundColor = Colors.SurfaceHover },
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
         [When.Expanded] = new() { FontWeight = FontWeights.Semibold },
     });
 

@@ -18,14 +18,17 @@ public enum SliderPart
 /// <summary>滑块的样式（配方）：原生 range 用 accent-color 上色，高度与控件一致，方便与输入框并排。</summary>
 public static class SliderStyles
 {
-    /// <summary>某个字号档位、某套定制下各部件的默认层。</summary>
-    public static PartLayers<SliderPart> Of(Size? size, ComponentStyles styles) =>
-        Recipe.Of("slider", size, styles, static (Size? size, SliderPart part) => part switch
+    /// <summary>某个字号档位、色调、某套定制下各部件的默认层。</summary>
+    public static PartLayers<SliderPart> Of(Size? size, Tone tone, ComponentStyles styles) =>
+        Recipe.Of("slider", (size, tone), styles, static ((Size? Size, Tone Tone) a, SliderPart part) => part switch
         {
-            SliderPart.Root => Sx.Of(Root, size is { } s ? ScaleStyles.FontSize(s) : null),
-            SliderPart.Input => Sx.Of(Input, SharedStyles.FocusRing),
+            SliderPart.Root => Sx.Of(Root, a.Size is { } s ? ScaleStyles.FontSize(s) : null),
+            SliderPart.Input => Sx.Of(Input, InputTone(a.Tone), SharedStyles.FocusRing),
             _ => Value,
         });
+
+    // 已选的一段与滑块的颜色
+    static Style InputTone(Tone tone) => Css.Define(tone, static tone => new Style { AccentColor = Tones.Of(tone).Solid });
 
     static Style Root => Css.Define(static () => new Style
     {
@@ -40,7 +43,6 @@ public static class SliderStyles
         FlexGrow = 1,
         MinWidth = "6em",
         Margin = 0,
-        AccentColor = Tones.Accent.Solid,
         Cursor = Cursor.Pointer,
         [When.Disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
     });

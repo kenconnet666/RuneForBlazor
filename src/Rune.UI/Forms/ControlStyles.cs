@@ -18,13 +18,12 @@ public static class ControlStyles
         Gap = "0.5em",
         MinHeight = Sizes.Control,
         PaddingInline = "0.75em",
-        BorderWidth = 1,
+        BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = Colors.Border,
         BackgroundColor = Colors.Background,
         Color = Colors.Text,
         LineHeight = LineHeights.Normal,
-        Transition = $"border-color {Durations.Fast}, box-shadow {Durations.Fast}",
         [When.Hover] = new() { BorderColor = Colors.TextMuted },
         [When.FocusWithin] = new()
         {
@@ -59,7 +58,7 @@ public static class ControlStyles
         FontFamily = "inherit",
         FontSize = "inherit",
         LineHeight = "inherit",
-        [Pseudo.Placeholder] = new() { Color = Colors.TextMuted, Opacity = 1 },
+        [Pseudo.Placeholder] = new() { Color = Colors.TextPlaceholder, Opacity = 1 },
         [When.Disabled] = new() { Cursor = Cursor.NotAllowed },
     });
 

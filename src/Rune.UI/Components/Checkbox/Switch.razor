@@ -4,7 +4,7 @@
 *@
 @namespace Rune.UI
 @inherits FormControl<bool>
-@{ var parts = ChoiceStyles.Switch(Size, Config.Styles); }
+@{ var parts = ChoiceStyles.Switch(Size, Tone, Config.Styles); }
 
 <label @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
     <span @attributes="Attrs.Merge(parts[ChoicePart.Control])">
@@ -18,6 +18,9 @@
 
 @code {
     Memo<(Attrs Control, bool Checked), Attrs> inputManaged;
+
+    /// <summary>打开时的色调，默认品牌色。</summary>
+    [Parameter] public Tone Tone { get; set; } = Tone.Accent;
 
     /// <summary>字号档位；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }

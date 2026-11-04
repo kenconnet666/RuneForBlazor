@@ -29,6 +29,9 @@ public enum ChoicePart
 
     /// <summary>文字。</summary>
     Label,
+
+    /// <summary>文字下面的说明（Description）。</summary>
+    Description,
 }
 
 /// <summary>
@@ -37,26 +40,28 @@ public enum ChoicePart
 /// </summary>
 public static class ChoiceStyles
 {
-    /// <summary>勾选框的部件默认层。</summary>
-    public static PartLayers<ChoicePart> Checkbox(Size? size, ComponentStyles styles) =>
-        Recipe.Of("checkbox", size, styles, static (Size? size, ChoicePart part) => part switch
+    /// <summary>勾选框的部件默认层（勾上时的颜色按色调）。</summary>
+    public static PartLayers<ChoicePart> Checkbox(Size? size, Tone tone, ComponentStyles styles) =>
+        Recipe.Of("checkbox", (size, tone), styles, static ((Size? Size, Tone Tone) a, ChoicePart part) => part switch
         {
-            ChoicePart.Root => Sx.Of(Root, size is { } s ? ScaleStyles.FontSize(s) : null),
+            ChoicePart.Root => Sx.Of(Root, a.Size is { } s ? ScaleStyles.FontSize(s) : null),
             ChoicePart.Control => Control,
-            ChoicePart.Input => Sx.Of(Native, Box, SharedStyles.FocusRing, SharedStyles.ReducedMotion),
-            ChoicePart.Indicator => Indicator,
-            _ => Label,
+            ChoicePart.Input => Sx.Of(Native, Box, BoxTone(a.Tone), SharedStyles.InteractionColors, SharedStyles.FocusRing),
+            ChoicePart.Indicator => Sx.Of(Indicator, IndicatorTone(a.Tone)),
+            ChoicePart.Label => Label,
+            _ => Description,
         });
 
-    /// <summary>单选框的部件默认层。</summary>
-    public static PartLayers<ChoicePart> Radio(Size? size, ComponentStyles styles) =>
-        Recipe.Of("radio", size, styles, static (Size? size, ChoicePart part) => part switch
+    /// <summary>单选框的部件默认层（选中时的颜色按色调）。</summary>
+    public static PartLayers<ChoicePart> Radio(Size? size, Tone tone, ComponentStyles styles) =>
+        Recipe.Of("radio", (size, tone), styles, static ((Size? Size, Tone Tone) a, ChoicePart part) => part switch
         {
-            ChoicePart.Root => Sx.Of(Root, size is { } s ? ScaleStyles.FontSize(s) : null),
+            ChoicePart.Root => Sx.Of(Root, a.Size is { } s ? ScaleStyles.FontSize(s) : null),
             ChoicePart.Control => Control,
-            ChoicePart.Input => Sx.Of(Native, Circle, SharedStyles.FocusRing, SharedStyles.ReducedMotion),
-            ChoicePart.Indicator => Dot,
-            _ => Label,
+            ChoicePart.Input => Sx.Of(Native, Circle, CircleTone(a.Tone), SharedStyles.InteractionColors, SharedStyles.FocusRing),
+            ChoicePart.Indicator => Sx.Of(Dot, DotTone(a.Tone)),
+            ChoicePart.Label => Label,
+            _ => Description,
         });
 
     /// <summary>单选组的外层（role="radiogroup"）。</summary>
@@ -69,15 +74,15 @@ public static class ChoiceStyles
         RowGap = Space.Xs,
     });
 
-    /// <summary>开关的部件默认层。</summary>
-    public static PartLayers<ChoicePart> Switch(Size? size, ComponentStyles styles) =>
-        Recipe.Of("switch", size, styles, static (Size? size, ChoicePart part) => part switch
+    /// <summary>开关的部件默认层（打开时的颜色按色调）。</summary>
+    public static PartLayers<ChoicePart> Switch(Size? size, Tone tone, ComponentStyles styles) =>
+        Recipe.Of("switch", (size, tone), styles, static ((Size? Size, Tone Tone) a, ChoicePart part) => part switch
         {
-            ChoicePart.Root => Sx.Of(Root, size is { } s ? ScaleStyles.FontSize(s) : null),
+            ChoicePart.Root => Sx.Of(Root, a.Size is { } s ? ScaleStyles.FontSize(s) : null),
             ChoicePart.Control => Control,
-            ChoicePart.Input => Sx.Of(Native, Track, SharedStyles.FocusRing, SharedStyles.ReducedMotion),
-            ChoicePart.Indicator => Sx.Of(),
-            _ => Label,
+            ChoicePart.Input => Sx.Of(Native, Track, TrackTone(a.Tone), SharedStyles.InteractionColors, SharedStyles.FocusRing),
+            ChoicePart.Label => Label,
+            _ => Sx.Of(),
         });
 
     static Style Root => Css.Define(static () => new Style
@@ -105,12 +110,11 @@ public static class ChoiceStyles
         Appearance = "none",
         GridArea = "1 / 1",
         Margin = 0,
-        BorderWidth = 1,
+        BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = Colors.TextMuted,
         BackgroundColor = Colors.Background,
         Cursor = "inherit",
-        Transition = $"background-color {Durations.Fast}, border-color {Durations.Fast}",
         [When.Invalid] = new() { BorderColor = Tones.Danger.Solid },
     });
 
@@ -119,8 +123,16 @@ public static class ChoiceStyles
         Width = "1.1em",
         Height = "1.1em",
         BorderRadius = Radii.Sm,
-        [When.Checked] = new() { BorderColor = Tones.Accent.Solid, BackgroundColor = Tones.Accent.Solid },
-        [When.Indeterminate] = new() { BorderColor = Tones.Accent.Solid, BackgroundColor = Tones.Accent.Solid },
+    });
+
+    static Style BoxTone(Tone tone) => Css.Define(tone, static tone =>
+    {
+        var t = Tones.Of(tone);
+        return new Style
+        {
+            [When.Checked] = new() { BorderColor = t.Solid, BackgroundColor = t.Solid },
+            [When.Indeterminate] = new() { BorderColor = t.Solid, BackgroundColor = t.Solid },
+        };
     });
 
     static Style Circle => Css.Define(static () => new Style
@@ -128,8 +140,9 @@ public static class ChoiceStyles
         Width = "1.1em",
         Height = "1.1em",
         BorderRadius = Radii.Full,
-        [When.Checked] = new() { BorderColor = Tones.Accent.Solid },
     });
+
+    static Style CircleTone(Tone tone) => Css.Define(tone, static tone => new Style { [When.Checked] = new() { BorderColor = Tones.Of(tone).Solid } });
 
     // 圆点跟在 input 后面：选中时显示
     static Style Dot => Css.Define(static () => new Style
@@ -138,24 +151,26 @@ public static class ChoiceStyles
         Width = "0.5em",
         Height = "0.5em",
         BorderRadius = Radii.Full,
-        BackgroundColor = Tones.Accent.Solid,
         PointerEvents = "none",
         Scale = 0,
-        Transition = $"scale {Durations.Fast} {Easings.Standard}",
+        Transition = $"scale {Durations.Sm} {Easings.Standard}",
         [When.After(When.Checked)] = new() { Scale = 1 },
     });
+
+    static Style DotTone(Tone tone) => Css.Define(tone, static tone => new Style { BackgroundColor = Tones.Of(tone).Solid });
 
     // 对勾跟在 input 后面：input 勾上（或半选）时显示
     static Style Indicator => Css.Define(static () => new Style
     {
         GridArea = "1 / 1",
         FontSize = "0.8em",
-        Color = Tones.Accent.Contrast,
         PointerEvents = "none",
         Opacity = 0,
         [When.After(When.Checked)] = new() { Opacity = 1 },
         [When.After(When.Indeterminate)] = new() { Opacity = 1 },
     });
+
+    static Style IndicatorTone(Tone tone) => Css.Define(tone, static tone => new Style { Color = Tones.Of(tone).Contrast });
 
     // 开关：轨道是 input 本身，圆点是它的 ::before，勾上时滑到另一端
     static Style Track => Css.Define(static () => new Style
@@ -164,7 +179,7 @@ public static class ChoiceStyles
         Width = "2em",
         Height = "1.15em",
         BorderRadius = Radii.Full,
-        BackgroundColor = Tones.Neutral.Soft,
+        BackgroundColor = Colors.Fill,
         [Pseudo.Before] = new()
         {
             Content = "\"\"",
@@ -176,15 +191,32 @@ public static class ChoiceStyles
             BorderRadius = Radii.Full,
             BackgroundColor = Colors.TextMuted,
             Translate = "0 -50%",
-            Transition = $"translate {Durations.Fast} {Easings.Standard}, background-color {Durations.Fast}",
+            Transition = $"translate {Durations.Sm} {Easings.Standard}, background-color {Durations.Sm}",
         },
-        [When.Checked] = new()
+        [When.Checked] = new() { [Pseudo.Before] = new() { Translate = "0.85em -50%" } },
+    });
+
+    static Style TrackTone(Tone tone) => Css.Define(tone, static tone =>
+    {
+        var t = Tones.Of(tone);
+        return new Style
         {
-            BorderColor = Tones.Accent.Solid,
-            BackgroundColor = Tones.Accent.Solid,
-            [Pseudo.Before] = new() { BackgroundColor = Tones.Accent.Contrast, Translate = "0.85em -50%" },
-        },
+            [When.Checked] = new()
+            {
+                BorderColor = t.Solid,
+                BackgroundColor = t.Solid,
+                [Pseudo.Before] = new() { BackgroundColor = t.Contrast },
+            },
+        };
     });
 
     static Style Label => Css.Define(static () => new Style { MinWidth = 0 });
+
+    // 说明换到下一行，比文字小一号、次要色
+    static Style Description => Css.Define(static () => new Style
+    {
+        Display = Display.Block,
+        FontSize = "0.85em",
+        Color = Colors.TextMuted,
+    });
 }

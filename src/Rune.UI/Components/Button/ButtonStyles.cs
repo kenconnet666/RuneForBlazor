@@ -99,6 +99,7 @@ public static class ButtonStyles
             ButtonPart.Root => Sx.Of(
                 Root,
                 SharedStyles.RippleHost,
+                SharedStyles.InteractionColors,
                 Variant(a.Variant, a.Tone),
                 a.Variant == ButtonVariant.Link ? null : ScaleStyles.Radius(a.Radius),
                 a.Size is { } size ? ScaleStyles.FontSize(size) : null,
@@ -108,8 +109,7 @@ public static class ButtonStyles
                     ButtonShape.Square => Square,
                     _ => null,
                 },
-                SharedStyles.FocusRing,
-                SharedStyles.ReducedMotion),
+                SharedStyles.FocusRing),
             ButtonPart.Content => Content,
             ButtonPart.Spinner => SpinnerOverlay,
             _ => Sx.Of(),
@@ -183,7 +183,7 @@ public static class ButtonStyles
         Margin = 0,
         PaddingBlock = "0.25em",
         PaddingInline = "1em",
-        BorderWidth = 1,
+        BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = "transparent",
         BackgroundColor = "transparent",
@@ -197,9 +197,6 @@ public static class ButtonStyles
         // 触摸时不等双击缩放的判定，点击立即响应
         TouchAction = TouchAction.Manipulation,
         WebkitTapHighlightColor = "transparent",
-        TransitionProperty = "background-color, border-color, color",
-        TransitionDuration = Durations.Fast,
-        TransitionTimingFunction = Easings.Standard,
         [When.Disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
         [When.Attribute("""[aria-busy="true"]""")] = new() { Cursor = Cursor.Progress },
     });

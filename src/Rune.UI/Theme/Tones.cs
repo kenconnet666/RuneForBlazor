@@ -25,22 +25,37 @@ public enum Tone
 }
 
 /// <summary>
-/// 一个色调的一组颜色 token（<c>--rune-tones-{色调}-{用途}</c>）。按色调变化的样式写成以它为参数的函数，
-/// 每种外观只写一遍，样式里直接看得到用的是哪个 token：
+/// 一个色调的一组颜色。按色调变化的样式写成以它为参数的函数，每种外观只写一遍，样式里直接看得到用的是哪个 token：
 /// <code>static Style Solid(ToneColors tone) => new() { Color = tone.Contrast, BackgroundColor = tone.Solid };</code>
+/// 品牌色与四种状态色各有一组 token（<c>--rune-tones-{色调}-{用途}</c>，主题给值）；中性色直接用 <see cref="Colors"/> 里的 token（同 vue-tsx-pro）。
 /// </summary>
 public sealed record ToneColors
 {
-    internal ToneColors(string tone)
+    ToneColors(CssColor solid, CssColor solidHover, CssColor contrast, CssColor text, CssColor soft, CssColor softHover, CssColor border)
     {
-        Solid = Token(tone, "solid");
-        SolidHover = Token(tone, "solid-hover");
-        Contrast = Token(tone, "contrast");
-        Text = Token(tone, "text");
-        Soft = Token(tone, "soft");
-        SoftHover = Token(tone, "soft-hover");
-        Border = Token(tone, "border");
+        Solid = solid;
+        SolidHover = solidHover;
+        Contrast = contrast;
+        Text = text;
+        Soft = soft;
+        SoftHover = softHover;
+        Border = border;
     }
+
+    /// <summary>一组自己的 token（主题里给值）。</summary>
+    internal static ToneColors Tokens(string tone) => new(
+        Token(tone, "solid"), Token(tone, "solid-hover"), Token(tone, "contrast"), Token(tone, "text"),
+        Token(tone, "soft"), Token(tone, "soft-hover"), Token(tone, "border"));
+
+    /// <summary>中性：反色表面做实底，填充做浅色底（不另设 token）。</summary>
+    internal static ToneColors FromColors() => new(
+        Colors.InverseSurface,
+        $"color-mix(in oklab, {Colors.InverseSurface} 85%, {Colors.Background})",
+        Colors.InverseText,
+        Colors.Text,
+        Colors.Fill,
+        Colors.FillHover,
+        Colors.Border);
 
     /// <summary>实底的背景（主按钮、实底标记）。</summary>
     public CssColor Solid { get; }
@@ -63,7 +78,7 @@ public sealed record ToneColors
     /// <summary>描边。</summary>
     public CssColor Border { get; }
 
-    /// <summary>这组颜色的全部 token（主题检查、测试用）。</summary>
+    /// <summary>这组颜色的全部取值（主题检查、测试用）。</summary>
     public IEnumerable<CssColor> All => [Solid, SolidHover, Contrast, Text, Soft, SoftHover, Border];
 
     static CssColor Token(string tone, string use) => $"var(--rune-tones-{tone}-{use})";
@@ -72,23 +87,23 @@ public sealed record ToneColors
 /// <summary>各色调的颜色 token。</summary>
 public static class Tones
 {
-    /// <summary>中性。</summary>
-    public static readonly ToneColors Neutral = new("neutral");
+    /// <summary>中性（用 <see cref="Colors"/> 的反色表面、填充、文字、边框）。</summary>
+    public static readonly ToneColors Neutral = ToneColors.FromColors();
 
     /// <summary>品牌强调。</summary>
-    public static readonly ToneColors Accent = new("accent");
+    public static readonly ToneColors Accent = ToneColors.Tokens("accent");
 
     /// <summary>提示信息。</summary>
-    public static readonly ToneColors Info = new("info");
+    public static readonly ToneColors Info = ToneColors.Tokens("info");
 
     /// <summary>成功。</summary>
-    public static readonly ToneColors Success = new("success");
+    public static readonly ToneColors Success = ToneColors.Tokens("success");
 
     /// <summary>警告。</summary>
-    public static readonly ToneColors Warning = new("warning");
+    public static readonly ToneColors Warning = ToneColors.Tokens("warning");
 
     /// <summary>危险。</summary>
-    public static readonly ToneColors Danger = new("danger");
+    public static readonly ToneColors Danger = ToneColors.Tokens("danger");
 
     /// <summary>色调对应的颜色 token。</summary>
     public static ToneColors Of(Tone tone) => tone switch

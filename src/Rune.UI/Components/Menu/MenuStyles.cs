@@ -32,7 +32,7 @@ public static class MenuStyles
     public static PartLayers<MenuPart> Of(Placement placement, ComponentStyles styles) =>
         Recipe.Of("menu", placement, styles, static (Placement placement, MenuPart part) => part switch
         {
-            MenuPart.Root => Sx.Of(PopoverStyles.Surface, OverlayTransitions.Scale, Anchor.Position(placement, alignStart: true), Root, SharedStyles.ReducedMotion),
+            MenuPart.Root => Sx.Of(PopoverStyles.Surface, OverlayTransitions.Scale, Anchor.Position(placement, alignStart: true), Root),
             _ => Separator,
         });
 
@@ -40,7 +40,7 @@ public static class MenuStyles
     public static PartLayers<MenuItemPart> Item(Tone tone, ComponentStyles styles) =>
         Recipe.Of("menu-item", tone, styles, static (Tone tone, MenuItemPart part) => part switch
         {
-            MenuItemPart.Root => Sx.Of(ItemRoot, SharedStyles.RippleHost, SharedStyles.ToneText(tone), SharedStyles.FocusRingInset),
+            MenuItemPart.Root => Sx.Of(ItemRoot, SharedStyles.RippleHost, SharedStyles.InteractionColors, SharedStyles.ToneText(tone), SharedStyles.FocusRingInset),
             MenuItemPart.Icon => ItemIcon,
             _ => Shortcut,
         });
@@ -48,7 +48,7 @@ public static class MenuStyles
     static Style Root => Css.Define(static () => new Style
     {
         MinWidth = "10em",
-        Padding = Space.Xxs,
+        Padding = Space.Xs,
     });
 
     // 键盘焦点与悬停用同一种高亮：菜单里焦点就是“当前项”
@@ -68,8 +68,8 @@ public static class MenuStyles
         FontSize = "inherit",
         TextAlign = TextAlign.Start,
         Cursor = Cursor.Pointer,
-        [When.HoverEnabled] = new() { BackgroundColor = Colors.SurfaceHover },
-        [When.Focus] = new() { BackgroundColor = Colors.SurfaceHover },
+        [When.HoverEnabled] = new() { BackgroundColor = Colors.FillHover },
+        [When.Focus] = new() { BackgroundColor = Colors.FillHover },
         [When.Disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
     });
 
@@ -86,8 +86,8 @@ public static class MenuStyles
     static Style Separator => Css.Define(static () => new Style
     {
         Height = 1,
-        MarginBlock = Space.Xxs,
-        MarginInline = $"calc(-1 * {Space.Xxs})",
+        MarginBlock = Space.Xs,
+        MarginInline = $"calc(-1 * {Space.Xs})",
         BackgroundColor = Colors.Border,
     });
 }

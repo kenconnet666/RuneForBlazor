@@ -5,7 +5,7 @@
 @namespace Rune.UI
 @typeparam TValue
 @inherits UIComponent
-@{ var parts = ChoiceStyles.Radio(Size ?? Group?.Size, Config.Styles); }
+@{ var parts = ChoiceStyles.Radio(Size ?? Group?.Size, Group?.Tone ?? Tone.Accent, Config.Styles); }
 
 <label @attributes="Attrs.Merge(parts[ChoicePart.Root], RootAttrs)">
     <span @attributes="Attrs.Merge(parts[ChoicePart.Control])">
@@ -15,20 +15,30 @@
     </span>
     @if (ChildContent is not null)
     {
-        <span @attributes="Attrs.Merge(parts[ChoicePart.Label], PropsLabel)">@ChildContent</span>
+        <span @attributes="Attrs.Merge(parts[ChoicePart.Label], PropsLabel)">
+            @ChildContent
+            @if (Description is not null)
+            {
+                <span id="@descriptionId" @attributes="Attrs.Merge(parts[ChoicePart.Description])">@Description</span>
+            }
+        </span>
     }
 </label>
 
 @code {
     Memo<IReadOnlyDictionary<string, object>?, Attrs> inputAttrs;
     Memo<Sx?, Attrs> rootAttrs;
-    Memo<(string? Name, bool Checked, bool Disabled), Attrs> managed;
+    readonly string descriptionId = UniqueId.Next("radio-description");
+    Memo<(string? Name, bool Checked, bool Disabled, string? DescribedBy), Attrs> managed;
 
     /// <summary>所在的单选组。</summary>
     [CascadingParameter] RadioGroup<TValue>? Group { get; set; }
 
     /// <summary>这一项的值。</summary>
     [Parameter, EditorRequired] public TValue Value { get; set; } = default!;
+
+    /// <summary>文字下面的说明（次要色、小一号），读屏在名称之后读出。</summary>
+    [Parameter] public string? Description { get; set; }
 
     /// <summary>这一项不可用。</summary>
     [Parameter] public bool Disabled { get; set; }
@@ -47,9 +57,10 @@
 
     Attrs RootAttrs => rootAttrs.Get(Sx, static sx => sx is null ? Attrs.Empty : new Attrs { Sx = sx });
 
-    Attrs Managed => managed.Get((Group?.GroupName, Group?.IsSelected(Value) == true, Disabled || Group?.GroupDisabled == true), this,
+    Attrs Managed => managed.Get((Group?.GroupName, Group?.IsSelected(Value) == true, Disabled || Group?.GroupDisabled == true, Description is null ? null : descriptionId), this,
         static (k, owner) => new Attrs
         {
+            AriaDescribedBy = k.DescribedBy,
             ["name"] = k.Name,
             ["checked"] = k.Checked,
             ["disabled"] = k.Disabled ? true : null,

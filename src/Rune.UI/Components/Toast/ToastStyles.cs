@@ -20,7 +20,7 @@ public static class ToastStyles
         Recipe.Of("toaster", styles, static (ToasterPart part) => part switch
         {
             ToasterPart.Root => Root,
-            _ => Sx.Of(Toast, SharedStyles.ReducedMotion),
+            _ => Sx.Of(Toast),
         });
 
     // 区域本身不挡点击，只有提示能点
@@ -40,10 +40,10 @@ public static class ToastStyles
     // 新提示从下方滑入；表面换成页面底色，叠在内容上也看得清
     static Style Toast => Css.Define(static () => new Style
     {
-        BackgroundColor = Colors.Background,
+        BackgroundColor = Colors.SurfaceRaised,
         BoxShadow = Shadows.Md,
         PointerEvents = "auto",
-        Transition = $"opacity {Durations.Normal}, translate {Durations.Normal} {Easings.Enter}",
+        Transition = $"opacity {Durations.Md}, translate {Durations.Md} {Easings.Enter}",
         [When.Starting] = new() { Opacity = 0, Translate = "0 8px" },
     });
 }

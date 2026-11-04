@@ -15,7 +15,7 @@ public static class SharedStyles
     {
         [When.FocusVisible] = new()
         {
-            Outline = $"2px solid {Colors.FocusRing}",
+            Outline = $"{BorderWidths.Sm} solid {Colors.FocusRing}",
             OutlineOffset = 2,
         },
     });
@@ -25,7 +25,7 @@ public static class SharedStyles
     {
         [When.FocusVisible] = new()
         {
-            Outline = $"2px solid {Colors.FocusRing}",
+            Outline = $"{BorderWidths.Sm} solid {Colors.FocusRing}",
             OutlineOffset = -2,
         },
     });
@@ -54,13 +54,13 @@ public static class SharedStyles
         BorderWidth = 0,
     });
 
-    /// <summary>用户要求减少动态效果时关掉过渡与动画（放在有动效的样式后面）。</summary>
-    public static Style ReducedMotion => Css.Define(static () => new Style
+    /// <summary>
+    /// 交互状态的过渡：悬停、按下、选中、聚焦时背景色、边框色、文字色、阴影的变化（按钮、菜单项、输入框外框、勾选框共用，同 vue-tsx-pro）。
+    /// 用户要求减少动态效果时时长 token 为 0，这里不用另写。
+    /// </summary>
+    public static Style InteractionColors => Css.Define(static () => new Style
     {
-        [Media.ReducedMotion] = new()
-        {
-            TransitionDuration = "0s",
-            AnimationDuration = "0s",
-        },
+        Transition = $"background-color {Durations.Sm} {Easings.Standard}, border-color {Durations.Sm} {Easings.Standard}, " +
+                     $"color {Durations.Sm} {Easings.Standard}, box-shadow {Durations.Sm} {Easings.Standard}",
     });
 }

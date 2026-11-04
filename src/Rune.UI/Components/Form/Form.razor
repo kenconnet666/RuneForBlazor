@@ -74,6 +74,12 @@
     /// <summary>静态 SSR 下提交表单时的名字（Blazor 的 FormName）；交互模式不需要。</summary>
     [Parameter] public string? FormName { get; set; }
 
+    /// <summary>里面的 Field 的标签位置：上方（默认）或起始边（标签一列、控件一列）。</summary>
+    [Parameter] public FieldLabelPlacement? LabelPlacement { get; set; }
+
+    /// <summary>标签在起始边时标签列的宽度，默认 8em。</summary>
+    [Parameter] public CssLength? LabelWidth { get; set; }
+
     /// <summary>表单内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -83,6 +89,8 @@
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
+        state.LabelPlacement = LabelPlacement;
+        state.LabelWidth = LabelWidth;
         if (EditContext is not null)
         {
             if (!ReferenceEquals(context, EditContext)) Subscribe(EditContext);

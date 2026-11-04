@@ -5,16 +5,18 @@
     </Field>
     在 EditForm 里时，错误信息取自表单的校验结果（控件用 @bind-Value 绑定的字段）；也可以直接给 Error。
     控件上显式写的状态（Disabled、Required……）优先于 Field 的。
+    标签可以放在起始边（LabelPlacement="Start"）：标签一列、控件一列，第一行文字按基线对齐；通常在 Form 上统一设置。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 @using Microsoft.AspNetCore.Components.Forms
 @{
-    var parts = FieldStyles.Of(Config.Styles);
+    var placement = LabelPlacement ?? Form?.LabelPlacement ?? FieldLabelPlacement.Top;
+    var parts = FieldStyles.Of(placement, LabelHidden, Config.Styles);
     var errors = Errors;
 }
 
-<div @attributes="Attrs.Merge(parts[FieldPart.Root], Rest)">
+<div @attributes="Attrs.Merge(parts[FieldPart.Root], Rest, LayoutAttrs(placement))">
     @if (Label is not null)
     {
         <label id="@labelId" for="@controlId" @attributes="Attrs.Merge(parts[FieldPart.Label], PropsLabel)">
@@ -25,18 +27,20 @@
             }
         </label>
     }
-    <CascadingValue Value="ContextFor(errors.Count > 0)">@ChildContent</CascadingValue>
-    @if (Description is not null)
-    {
-        <div id="@descriptionId" @attributes="Attrs.Merge(parts[FieldPart.Description], PropsDescription)">@Description</div>
-    }
-    @if (errors.Count > 0)
-    {
-        <div id="@errorId" @attributes="Attrs.Merge(parts[FieldPart.Error], PropsError)">
-            <Icon Data="BuiltInIcons.CircleExclamationPoint" />
-            <span>@string.Join("；", errors)</span>
-        </div>
-    }
+    <div @attributes="Attrs.Merge(parts[FieldPart.Control], PropsControl)">
+        <CascadingValue Value="ContextFor(errors.Count > 0)">@ChildContent</CascadingValue>
+        @if (Description is not null)
+        {
+            <div id="@descriptionId" @attributes="Attrs.Merge(parts[FieldPart.Description], PropsDescription)">@Description</div>
+        }
+        @if (errors.Count > 0)
+        {
+            <div id="@errorId" @attributes="Attrs.Merge(parts[FieldPart.Error], PropsError)">
+                <Icon Data="BuiltInIcons.CircleExclamationPoint" />
+                <span>@string.Join("；", errors)</span>
+            </div>
+        }
+    </div>
 </div>
 
 @code {
@@ -66,6 +70,18 @@
     /// <summary>里面的控件只读。</summary>
     [Parameter] public bool ReadOnly { get; set; }
 
+    /// <summary>标签的位置：上方（默认）或起始边；不写时取所在 Form 的。</summary>
+    [Parameter] public FieldLabelPlacement? LabelPlacement { get; set; }
+
+    /// <summary>标签在起始边时标签列的宽度，默认 8em；不写时取所在 Form 的。</summary>
+    [Parameter] public CssLength? LabelWidth { get; set; }
+
+    /// <summary>视觉上隐藏标签（读屏仍读得到）：上下文已经说明了是什么（表格里的单元格、搜索框）。</summary>
+    [Parameter] public bool LabelHidden { get; set; }
+
+    /// <summary>控件、说明、错误的容器的部件属性。</summary>
+    [Parameter] public Attrs? PropsControl { get; set; }
+
     /// <summary>控件。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -85,6 +101,13 @@
     [CascadingParameter] FormState? Form { get; set; }
 
     FieldIdentifier? registered;
+    Memo<CssLength, Attrs> layoutAttrs;
+
+    // 标签在起始边时标签列的宽度：任意长度，经 CSS 变量写在元素上（类不随宽度变化）；没写时用样式里的默认值
+    Attrs? LayoutAttrs(FieldLabelPlacement placement) =>
+        placement == FieldLabelPlacement.Start && (LabelWidth ?? Form?.LabelWidth) is { } width
+            ? layoutAttrs.Get(width, static w => new Attrs { Vars = [FieldStyles.LabelWidth.Set(w)] })
+            : null;
 
     // 显式的 Error 优先；否则是表单里控件绑定的字段的错误（registration.Field 是信号，控件报上来后这里自动重新渲染）
     IReadOnlyList<string> Errors =>

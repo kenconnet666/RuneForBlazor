@@ -22,7 +22,7 @@ public static class PopoverStyles
     public static PartLayers<PopoverPart> Of(Placement placement, ComponentStyles styles) =>
         Recipe.Of("popover", placement, styles, static (Placement placement, PopoverPart part) => part switch
         {
-            PopoverPart.Root => Sx.Of(Surface, OverlayTransitions.Scale, Anchor.Position(placement, alignStart: true), Padded, SharedStyles.ReducedMotion),
+            PopoverPart.Root => Sx.Of(Surface, OverlayTransitions.Scale, Anchor.Position(placement, alignStart: true), Padded),
             PopoverPart.Title => Title,
             _ => Sx.Of(),
         });
@@ -37,11 +37,11 @@ public static class PopoverStyles
         Inset = "auto",
         Margin = 0,
         MaxWidth = "min(24em, calc(100vw - 16px))",
-        BorderWidth = 1,
+        BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = Colors.Border,
         BorderRadius = Radii.Md,
-        BackgroundColor = Colors.Background,
+        BackgroundColor = Colors.SurfaceRaised,
         Color = Colors.Text,
         BoxShadow = Shadows.Md,
         FontSize = FontSizes.Md,

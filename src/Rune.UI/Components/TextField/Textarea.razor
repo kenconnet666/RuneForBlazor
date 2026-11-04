@@ -1,10 +1,10 @@
 @*
     多行文本框：<Textarea @bind-Value="note" placeholder="备注" />
-    高度跟着内容长（支持 field-sizing 的浏览器），也可以竖向拖大；限制最高时用 Sx 写 MaxHeight。用法同 TextField。
+    高度跟着内容长（支持 field-sizing 的浏览器），也可以竖向拖大；MaxRows 限制最多长到几行高。用法同 TextField。
 *@
 @namespace Rune.UI
 @inherits FormControl<string?>
-@{ var parts = TextFieldStyles.Of(Size, Radius ?? Config.Defaults.Get<TextFieldDefaults>()?.Radius ?? UI.Radius.Md, multiline: true, Config.Styles); }
+@{ var parts = TextFieldStyles.Of(Size, Radius ?? Config.Defaults.Get<TextFieldDefaults>()?.Radius ?? UI.Radius.Md, multiline: true, Config.Styles, MaxRows); }
 
 <div @attributes="Attrs.Merge(parts[TextFieldPart.Root], RootUserAttrs)">
     <textarea rows="@Rows" @attributes="Attrs.Merge(parts[TextFieldPart.Input], InputUserAttrs, InputManaged)"></textarea>
@@ -15,6 +15,9 @@
 
     /// <summary>初始行数（不支持 field-sizing 的浏览器里的高度），默认 3。</summary>
     [Parameter] public int Rows { get; set; } = 3;
+
+    /// <summary>高度跟着内容长时最多几行，超过时滚动；不写时不限。</summary>
+    [Parameter] public int? MaxRows { get; set; }
 
     /// <summary>字号档位；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }

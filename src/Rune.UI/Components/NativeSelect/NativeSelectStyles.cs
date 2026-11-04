@@ -22,7 +22,7 @@ public static class NativeSelectStyles
     public static PartLayers<NativeSelectPart> Of(Size? size, Radius radius, ComponentStyles styles) =>
         Recipe.Of("native-select", (size, radius), styles, static ((Size? Size, Radius Radius) a, NativeSelectPart part) => part switch
         {
-            NativeSelectPart.Root => Sx.Of(ControlStyles.Surface, ScaleStyles.Radius(a.Radius), a.Size is { } size ? ScaleStyles.FontSize(size) : null),
+            NativeSelectPart.Root => Sx.Of(ControlStyles.Surface, SharedStyles.InteractionColors, ScaleStyles.Radius(a.Radius), a.Size is { } size ? ScaleStyles.FontSize(size) : null),
             NativeSelectPart.Select => Sx.Of(ControlStyles.Input, Select),
             _ => Sx.Of(ControlStyles.Adornment, Chevron),
         });

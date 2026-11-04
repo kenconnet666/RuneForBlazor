@@ -28,6 +28,9 @@
     /// <summary>排列方向，默认竖排。</summary>
     [Parameter] public Orientation Orientation { get; set; }
 
+    /// <summary>选中时的色调，默认品牌色。</summary>
+    [Parameter] public Tone Tone { get; set; } = Tone.Accent;
+
     /// <summary>字号档位；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }
 

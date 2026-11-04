@@ -38,24 +38,28 @@ public sealed record TextFieldDefaults : IComponentDefaults<TextFieldDefaults>
 /// <summary>文本框与多行文本框的样式（配方）：外框与输入元素来自 <see cref="ControlStyles"/>。</summary>
 public static class TextFieldStyles
 {
-    /// <summary>某个字号档位、圆角、是否多行、某套定制下各部件的默认层。</summary>
-    public static PartLayers<TextFieldPart> Of(Size? size, Radius radius, bool multiline, ComponentStyles styles) =>
-        Recipe.Of(multiline ? "textarea" : "text-field", (size, radius, multiline), styles,
-            static ((Size? Size, Radius Radius, bool Multiline) a, TextFieldPart part) => part switch
+    /// <summary>某个字号档位、圆角、是否多行（及最多几行高）、某套定制下各部件的默认层。</summary>
+    public static PartLayers<TextFieldPart> Of(Size? size, Radius radius, bool multiline, ComponentStyles styles, int? maxRows = null) =>
+        Recipe.Of(multiline ? "textarea" : "text-field", (size, radius, multiline, maxRows), styles,
+            static ((Size? Size, Radius Radius, bool Multiline, int? MaxRows) a, TextFieldPart part) => part switch
             {
                 TextFieldPart.Root => Sx.Of(
                     ControlStyles.Surface,
+                    SharedStyles.InteractionColors,
                     ScaleStyles.Radius(a.Radius),
                     a.Size is { } size ? ScaleStyles.FontSize(size) : null,
                     a.Multiline ? MultilineRoot : null),
-                TextFieldPart.Input => Sx.Of(ControlStyles.Input, a.Multiline ? MultilineInput : null),
+                TextFieldPart.Input => Sx.Of(ControlStyles.Input, a.Multiline ? MultilineInput : null, a.MaxRows is { } rows ? MaxRows(rows) : null),
                 _ => ControlStyles.Adornment,
             });
 
     // 多行：输入元素撑满外框的高度
     static Style MultilineRoot => Css.Define(static () => new Style { AlignItems = AlignItems.Stretch });
 
-    // 多行：可以竖向拖大；支持 field-sizing 的浏览器里高度跟着内容长（不超过 MaxRows 由使用方的 Sx 限制）
+    // 最多几行高：行高单位 lh 乘行数，再加上下内边距；超过时出现滚动条
+    static Style MaxRows(int rows) => Css.Define(rows, static rows => new Style { MaxHeight = $"calc({rows}lh + 1em)" });
+
+    // 多行：可以竖向拖大；支持 field-sizing 的浏览器里高度跟着内容长（不超过 MaxRows）
     static Style MultilineInput => Css.Define(static () => new Style
     {
         PaddingBlock = "0.5em",

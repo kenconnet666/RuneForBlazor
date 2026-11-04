@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Forms;
+using Rune.Styles;
 
 namespace Rune.UI;
 
@@ -12,6 +13,12 @@ public sealed class FormState
 
     /// <summary>正在执行提交的回调。</summary>
     public bool Submitting { get; internal set; }
+
+    /// <summary>里面的 Field 的标签位置（Field 上写的优先）。</summary>
+    public FieldLabelPlacement? LabelPlacement { get; internal set; }
+
+    /// <summary>标签在起始边时标签列的宽度（Field 上写的优先）。</summary>
+    public CssLength? LabelWidth { get; internal set; }
 
     /// <summary>Field 登记它绑定的字段、标签与控件 id（每次渲染后调用，重复登记会覆盖）。</summary>
     public void Register(FieldIdentifier field, string? label, string controlId) => fields[field] = (label, controlId);

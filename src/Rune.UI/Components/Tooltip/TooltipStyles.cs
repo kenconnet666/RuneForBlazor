@@ -23,7 +23,7 @@ public static class TooltipStyles
         Recipe.Of("tooltip", placement, styles, static (Placement placement, TooltipPart part) => part switch
         {
             TooltipPart.Root => Root,
-            _ => Sx.Of(Content, Anchor.Position(placement, alignStart: false), SharedStyles.ReducedMotion),
+            _ => Sx.Of(Content, Anchor.Position(placement, alignStart: false)),
         });
 
     // 外层不改变触发元素的排版：行内、按内容收缩
@@ -55,13 +55,13 @@ public static class TooltipStyles
         Visibility = "hidden",
         Opacity = 0,
         // 隐藏：立即淡出，淡出结束再 visibility: hidden
-        Transition = $"opacity {Durations.Fast}, visibility 0s linear {Durations.Fast}",
+        Transition = $"opacity {Durations.Sm}, visibility 0s linear {Durations.Sm}",
         [shown] = new()
         {
             Visibility = "visible",
             Opacity = 1,
             // 显示：停留 400ms 再出现
-            Transition = $"opacity {Durations.Fast} 400ms, visibility 0s 400ms",
+            Transition = $"opacity {Durations.Sm} 400ms, visibility 0s 400ms",
         },
     });
 }

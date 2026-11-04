@@ -153,4 +153,19 @@ public class OverlayTests : BunitContext
         buttons[1].Click();
         Assert.Equal(1, confirmed);
     }
+
+    [Fact]
+    public void 气泡确认_色调决定图标与确认按钮_取消触发回调()
+    {
+        var cancelled = 0;
+        var cut = Render<Popconfirm>(p => p
+            .Add(x => x.Title, "撤销发布？")
+            .Add(x => x.Tone, Tone.Danger)
+            .Add(x => x.OnCancel, EventCallback.Factory.Create(this, () => cancelled++)));
+
+        Assert.Equal("triangle-exclamation-point", cut.Find("[data-part=icon]").GetAttribute("data-icon"));
+        Assert.Equal(cut.Find("[data-part=title]").Id, cut.Find("[popover]").GetAttribute("aria-labelledby"));
+        cut.FindAll("[popover] button")[0].Click();
+        Assert.Equal(1, cancelled);
+    }
 }

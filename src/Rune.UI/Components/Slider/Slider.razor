@@ -7,7 +7,7 @@
 @namespace Rune.UI
 @typeparam TValue where TValue : struct, System.Numerics.INumber<TValue>
 @inherits FormControl<TValue>
-@{ var parts = SliderStyles.Of(Size, Config.Styles); }
+@{ var parts = SliderStyles.Of(Size, Tone, Config.Styles); }
 
 <div @attributes="Attrs.Merge(parts[SliderPart.Root], RootUserAttrs)">
     <input type="range" @attributes="Attrs.Merge(parts[SliderPart.Input], InputUserAttrs, InputManaged)" />
@@ -37,6 +37,9 @@
 
     /// <summary>值的说明文字（显示与读屏）：<c>v => $"{v} 元"</c>；默认就是数字。</summary>
     [Parameter] public Func<TValue, string>? ValueText { get; set; }
+
+    /// <summary>已选的一段与滑块的色调，默认品牌色。</summary>
+    [Parameter] public Tone Tone { get; set; } = Tone.Accent;
 
     /// <summary>字号档位；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }

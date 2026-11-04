@@ -5,4 +5,4 @@
 @namespace Rune.UI
 @inherits UIComponent
 
-<svg @attributes="Attrs.Merge(IconStyles.Of(Size, Config.Styles)[IconPart.Root], Rest, Managed)">@((MarkupString)Data.Body)</svg>
+<svg @attributes="Attrs.Merge(IconStyles.Of(Size, Tone, FlipInRtl, Config.Styles)[IconPart.Root], Rest, Managed)">@((MarkupString)Data.Body)</svg>

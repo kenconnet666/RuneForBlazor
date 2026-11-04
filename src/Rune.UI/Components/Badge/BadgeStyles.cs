@@ -107,7 +107,7 @@ public static class BadgeStyles
         Gap = "0.3em",
         PaddingBlock = "0.15em",
         PaddingInline = "0.55em",
-        BorderWidth = 1,
+        BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = "transparent",
         FontWeight = FontWeights.Semibold,

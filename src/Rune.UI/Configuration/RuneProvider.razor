@@ -13,7 +13,7 @@
 <CascadingValue Value="config">
     @if (AppliesTheme)
     {
-        <div class="@ThemeStyles.ClassFor(config.Theme, config.DarkTheme, config.ColorScheme)" style="display:contents" data-rune-theme="@ThemeLabel">
+        <div @attributes="Attrs.Merge(Themed, null, ThemeAttrs)">
             @ChildContent
         </div>
     }
@@ -25,6 +25,7 @@
 
 @code {
     UIConfig config = default!;
+    Memo<(string Class, string Label), Attrs> themeAttrs;
     Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentDefaults? Defaults, ComponentStyles? Styles, bool? Ripple), UIConfig> built;
 
     /// <summary>主题（亮色）。</summary>
@@ -50,6 +51,20 @@
 
     // 最外层（没有上一层 Provider）套上应用级主题；嵌套的只在改了主题相关的参数时才套
     bool AppliesTheme => !IsInsideProvider || Theme is not null || DarkTheme is not null || ColorScheme is not null;
+
+    // 主题的类（只设变量）与名字；主题不变时是同一个对象
+    Attrs ThemeAttrs => themeAttrs.Get((ThemeStyles.ClassFor(config.Theme, config.DarkTheme, config.ColorScheme), ThemeLabel),
+        static k => new Attrs { Class = k.Class, ["data-rune-theme"] = k.Label });
+
+    // 不产生盒子、不影响布局；文字颜色、字体、字号、行高由里面的元素继承（同 vue-tsx-pro 的 Provider）
+    static Style Themed => Css.Define(static () => new Style
+    {
+        Display = Display.Contents,
+        Color = Colors.Text,
+        FontFamily = Fonts.Sans,
+        FontSize = FontSizes.Md,
+        LineHeight = LineHeights.Normal,
+    });
 
     // 实际生效的主题（调试与端到端测试用）：跟随系统时写“亮色/暗色”
     string ThemeLabel => (config.ColorScheme, config.DarkTheme) switch

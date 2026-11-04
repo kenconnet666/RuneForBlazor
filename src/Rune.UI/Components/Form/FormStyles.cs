@@ -27,10 +27,11 @@ public static class FormStyles
             _ => SummaryList,
         });
 
+    // 表单项之间 1em（Space.Lg，同 vue-tsx-pro）
     static Style Root => Css.Define(static () => new Style
     {
         Display = Display.Grid,
-        Gap = Space.Md,
+        Gap = Space.Lg,
         MinWidth = 0,
     });
 

@@ -4,7 +4,7 @@
 *@
 @namespace Rune.UI
 @inherits FormControl<bool>
-@{ var parts = ChoiceStyles.Checkbox(Size, Config.Styles); }
+@{ var parts = ChoiceStyles.Checkbox(Size, Tone, Config.Styles); }
 
 <label @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
     <span @attributes="Attrs.Merge(parts[ChoicePart.Control])">
@@ -13,15 +13,28 @@
     </span>
     @if (ChildContent is not null)
     {
-        <span @attributes="Attrs.Merge(parts[ChoicePart.Label], PropsLabel)">@ChildContent</span>
+        <span @attributes="Attrs.Merge(parts[ChoicePart.Label], PropsLabel)">
+            @ChildContent
+            @if (Description is not null)
+            {
+                <span id="@descriptionId" @attributes="Attrs.Merge(parts[ChoicePart.Description])">@Description</span>
+            }
+        </span>
     }
 </label>
 
 @code {
-    Memo<(Attrs Control, bool Checked, bool Indeterminate), Attrs> inputManaged;
+    readonly string descriptionId = UniqueId.Next("checkbox-description");
+    Memo<(Attrs Control, bool Checked, bool Indeterminate, string? DescribedBy), Attrs> inputManaged;
 
     /// <summary>半选：显示横线，读屏读作“部分选中”。点击后浏览器清除半选，由使用方重新计算。</summary>
     [Parameter] public bool Indeterminate { get; set; }
+
+    /// <summary>勾上时的色调，默认品牌色。</summary>
+    [Parameter] public Tone Tone { get; set; } = Tone.Accent;
+
+    /// <summary>文字下面的说明（次要色、小一号），读屏在名称之后读出。</summary>
+    [Parameter] public string? Description { get; set; }
 
     /// <summary>字号档位；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }
@@ -33,11 +46,15 @@
     [Parameter] public Attrs? PropsLabel { get; set; }
 
     // input 上由组件管理的属性：表单状态、勾选、半选（原生的 indeterminate 只能用 JS 设置，JS 初始化器按 data-indeterminate 同步）
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Indeterminate), this,
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Indeterminate, DescribedBy), this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
         {
+            AriaDescribedBy = k.DescribedBy,
             ["checked"] = k.Checked,
             ["data-indeterminate"] = k.Indeterminate ? "true" : "false",
             ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync(e.Value is true)),
         }));
+
+    // 自己的说明与所在 Field 的说明、错误一起关联
+    string? DescribedBy => Description is null ? Field?.DescribedBy : Field?.DescribedBy is { } fromField ? $"{descriptionId} {fromField}" : descriptionId;
 }

@@ -144,7 +144,7 @@ public static class TypographyStyles
             _ => null,
         },
         a.Size is { } size ? ScaleStyles.FontSize(size) : null,
-        a.Kind == TypographyKind.Heading && a.Size is UI.Size.Xxl or UI.Size.Xxxl ? TightTracking : null,
+        a.Kind == TypographyKind.Heading ? Tracking(a.Size) : null,
         a.Weight is { } weight ? WeightOf(weight) : null,
         a.Muted ? Muted : a.Tone is { } tone ? SharedStyles.ToneText(tone) : null,
         a.Align is { } align ? AlignOf(align) : null,
@@ -159,12 +159,22 @@ public static class TypographyStyles
     static Style HeadingRoot => Css.Define(static () => new Style
     {
         Margin = 0,
+        FontFamily = Fonts.Heading,
         LineHeight = LineHeights.Tight,
         TextWrap = TextWrap.Balance,
     });
 
-    // 大字号的字间距略收紧，否则显得松散
-    static Style TightTracking => Css.Define(static () => new Style { LetterSpacing = "-0.015em" });
+    // 大字号的字间距略收紧，否则显得松散（同 vue-tsx-pro：xxl 收紧、xxxl 再收紧）
+    static Style? Tracking(Size? size) => size switch
+    {
+        UI.Size.Xxl => TightTracking,
+        UI.Size.Xxxl => TighterTracking,
+        _ => null,
+    };
+
+    static Style TightTracking => Css.Define(static () => new Style { LetterSpacing = LetterSpacings.Tight });
+
+    static Style TighterTracking => Css.Define(static () => new Style { LetterSpacing = LetterSpacings.Tighter });
 
     static Style WeightOf(Weight weight) => Css.Define(weight, static weight => new Style
     {
@@ -230,8 +240,8 @@ public static class TypographyStyles
         Display = Display.InlineBlock,
         MinWidth = "1.6em",
         PaddingInline = Space.Xs,
-        BorderWidth = 1,
-        BorderBottomWidth = 2,
+        BorderWidth = BorderWidths.Xs,
+        BorderBottomWidth = BorderWidths.Sm,
         BorderStyle = BorderStyle.Solid,
         BorderColor = Colors.Border,
         BorderRadius = Radii.Sm,

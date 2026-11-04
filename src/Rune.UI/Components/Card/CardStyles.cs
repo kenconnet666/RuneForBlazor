@@ -96,7 +96,7 @@ public static class CardStyles
     static Style Variant(CardVariant variant) => Css.Define(variant, static variant => variant switch
     {
         CardVariant.Outline => new Style { BorderColor = Colors.Border },
-        CardVariant.Elevated => new Style { BackgroundColor = Colors.Background, BoxShadow = Shadows.Md },
+        CardVariant.Elevated => new Style { BackgroundColor = Colors.SurfaceRaised, BoxShadow = Shadows.Md },
         CardVariant.Ghost => new Style(),
         _ => new Style { BackgroundColor = Colors.Surface, BorderColor = Colors.Border },
     });
@@ -108,7 +108,7 @@ public static class CardStyles
         Display = Display.Flex,
         FlexDirection = FlexDirection.Column,
         MinWidth = 0,
-        BorderWidth = 1,
+        BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = "transparent",
         Color = Colors.Text,
@@ -122,7 +122,7 @@ public static class CardStyles
         AlignItems = AlignItems.Center,
         JustifyContent = JustifyContent.SpaceBetween,
         Gap = Space.Sm,
-        BorderBottomWidth = 1,
+        BorderBottomWidth = BorderWidths.Xs,
         BorderBottomStyle = BorderBottomStyle.Solid,
         BorderBottomColor = Colors.Border,
     });
@@ -151,7 +151,7 @@ public static class CardStyles
         FlexWrap = FlexWrap.Wrap,
         JustifyContent = JustifyContent.FlexEnd,
         Gap = Space.Sm,
-        BorderTopWidth = 1,
+        BorderTopWidth = BorderWidths.Xs,
         BorderTopStyle = BorderTopStyle.Solid,
         BorderTopColor = Colors.Border,
     });

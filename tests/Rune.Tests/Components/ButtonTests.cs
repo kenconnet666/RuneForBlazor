@@ -71,7 +71,7 @@ public class ButtonTests : BunitContext
             .AddChildContent<Button>(b => b.AddChildContent("取消")));
 
         var className = cut.Find("button").ClassName;
-        Assert.Contains(Registry.Rules, rule => rule.Contains($".{className}{{") && rule.Contains("border-color:var(--rune-tones-neutral-border)"));
+        Assert.Contains(Registry.Rules, rule => rule.Contains($".{className}{{") && rule.Contains("border-color:var(--rune-colors-border)"));
     }
 
     [Fact]

@@ -19,7 +19,7 @@ public class BadgeTests : BunitContext
 
         var className = cut.Find("span").ClassName;
         Assert.Contains(Registry.Rules, rule => rule.Contains($".{className}{{")
-                                                && rule.Contains("background-color:var(--rune-tones-neutral-soft)")
+                                                && rule.Contains("background-color:var(--rune-colors-fill)")
                                                 && rule.Contains("font-size:0.85em"));
     }
 

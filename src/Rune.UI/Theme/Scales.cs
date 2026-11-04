@@ -20,7 +20,7 @@ public enum Size
     /// <summary>16px。</summary>
     Lg,
 
-    /// <summary>20px。</summary>
+    /// <summary>18px。</summary>
     Xl,
 
     /// <summary>24px。</summary>
@@ -30,47 +30,50 @@ public enum Size
     Xxxl,
 }
 
-/// <summary>间距档位（对应 <see cref="Space"/> 的 token）：布局的间隙、卡片的内边距。</summary>
+/// <summary>间距档位（对应 <see cref="Space"/> 的 token，em，随字号缩放）：布局的间隙、卡片的内边距。</summary>
 public enum SpaceScale
 {
     /// <summary>0。</summary>
     None,
 
-    /// <summary>2px。</summary>
-    Xxs,
-
-    /// <summary>4px。</summary>
+    /// <summary>0.25em：图标与文字之间、紧凑的元素之间。</summary>
     Xs,
 
-    /// <summary>8px。</summary>
+    /// <summary>0.5em：控件内部、相关的元素之间。</summary>
     Sm,
 
-    /// <summary>12px。</summary>
+    /// <summary>0.75em：一组内容的元素之间。</summary>
     Md,
 
-    /// <summary>16px。</summary>
+    /// <summary>1em：表单项之间、段落之间。</summary>
     Lg,
 
-    /// <summary>24px。</summary>
+    /// <summary>1.5em：区块之间、卡片与对话框的内边距。</summary>
     Xl,
 }
 
-/// <summary>圆角档位。</summary>
+/// <summary>圆角档位（对应 <see cref="Radii"/> 的 token，em，随字号缩放）。</summary>
 public enum Radius
 {
-    /// <summary>直角。</summary>
+    /// <summary>直角：表格、密集列表里与直线对齐。</summary>
     None,
 
-    /// <summary>小圆角。</summary>
+    /// <summary>0.15em。</summary>
+    Xs,
+
+    /// <summary>0.25em。</summary>
     Sm,
 
-    /// <summary>中圆角（默认）。</summary>
+    /// <summary>0.4em：控件与按钮的默认。</summary>
     Md,
 
-    /// <summary>大圆角。</summary>
+    /// <summary>0.7em：卡片、面板。</summary>
     Lg,
 
-    /// <summary>胶囊形（两端全圆）。</summary>
+    /// <summary>1em。</summary>
+    Xl,
+
+    /// <summary>胶囊形（宽高相等时是圆形）。</summary>
     Full,
 }
 
@@ -107,8 +110,7 @@ public static class ScaleStyles
     /// <summary>间距档位对应的 token。</summary>
     public static CssLength SpaceOf(SpaceScale scale) => scale switch
     {
-        SpaceScale.None => 0,
-        SpaceScale.Xxs => Space.Xxs,
+        SpaceScale.None => Space.None,
         SpaceScale.Xs => Space.Xs,
         SpaceScale.Sm => Space.Sm,
         SpaceScale.Md => Space.Md,
@@ -121,9 +123,11 @@ public static class ScaleStyles
     {
         BorderRadius = radius switch
         {
-            UI.Radius.None => 0,
+            UI.Radius.None => Radii.None,
+            UI.Radius.Xs => Radii.Xs,
             UI.Radius.Sm => Radii.Sm,
             UI.Radius.Lg => Radii.Lg,
+            UI.Radius.Xl => Radii.Xl,
             UI.Radius.Full => Radii.Full,
             _ => Radii.Md,
         },

@@ -139,7 +139,7 @@ public static class AlertStyles
         Gap = "0.6em",
         PaddingBlock = "0.75em",
         PaddingInline = "1em",
-        BorderWidth = 1,
+        BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = "transparent",
         Color = Colors.Text,
@@ -157,7 +157,7 @@ public static class AlertStyles
     static Style Body => Css.Define(static () => new Style
     {
         Display = Display.Grid,
-        Gap = Space.Xxs,
+        Gap = Space.Xs,
         FlexGrow = 1,
         MinWidth = 0,
     });

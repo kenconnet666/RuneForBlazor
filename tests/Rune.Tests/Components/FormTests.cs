@@ -153,4 +153,53 @@ public class FormTests : BunitContext
         var globallyOff = Render<IconButton>(p => p.Add(x => x.Label, "编辑").Add(x => x.Icon, BuiltInIcons.Plus));
         Assert.False(globallyOff.Find("button").HasAttribute("data-rune-ripple"));
     }
+
+    [Fact]
+    public void 图标_色调与从右到左翻转_粗细取主题token()
+    {
+        var cut = Render<Icon>(p => p.Add(x => x.Data, BuiltInIcons.ChevronRight).Add(x => x.Tone, Tone.Danger).Add(x => x.FlipInRtl, true));
+        var thick = Render<Icon>(p => p.Add(x => x.Data, BuiltInIcons.Check).Add(x => x.StrokeWidth, 3));
+
+        var registry = Services.GetRequiredService<Rune.Styles.StyleRegistry>();
+        var rule = Assert.Single(registry.Rules, r => r.Contains($".{cut.Find("svg").ClassName}{{"));
+        Assert.Contains("color:var(--rune-tones-danger-text)", rule);
+        Assert.Contains("stroke-width:var(--rune-stroke-widths-md)", rule);
+        Assert.Contains(":dir(rtl){scale:-1 1;}", rule);
+        Assert.Null(cut.Find("svg").GetAttribute("stroke-width"));
+        Assert.Equal("stroke-width:3", thick.Find("svg").GetAttribute("style"));
+    }
+
+    [Fact]
+    public void 勾选框的说明进aria_describedby()
+    {
+        var cut = Render<Checkbox>(p => p.Add(x => x.Description, "每周一封").Add(x => x.Tone, Tone.Success).AddChildContent("订阅周报"));
+
+        var description = cut.Find("[data-part=description]");
+        Assert.Equal("每周一封", description.TextContent);
+        Assert.Equal(description.Id, cut.Find("input").GetAttribute("aria-describedby"));
+    }
+
+    [Fact]
+    public void 字段_标签在起始边_标签宽度经变量写在元素上()
+    {
+        var cut = Render<Field>(p => p
+            .Add(x => x.Label, "姓名")
+            .Add(x => x.LabelPlacement, FieldLabelPlacement.Start)
+            .Add(x => x.LabelWidth, "6em")
+            .AddChildContent<TextField>());
+
+        var root = cut.Find("[data-scope=field][data-part=root]");
+        Assert.Equal("--rune-field-label-width:6em", root.GetAttribute("style"));
+        var registry = Services.GetRequiredService<Rune.Styles.StyleRegistry>();
+        Assert.Contains(registry.Rules, r => r.Contains($".{root.ClassName}{{") && r.Contains("grid-template-columns:var(--rune-field-label-width, 8em) minmax(0, 1fr)"));
+    }
+
+    [Fact]
+    public void 多行文本框最多几行高()
+    {
+        var cut = Render<Textarea>(p => p.Add(x => x.MaxRows, 6));
+
+        var registry = Services.GetRequiredService<Rune.Styles.StyleRegistry>();
+        Assert.Contains(registry.Rules, r => r.Contains($".{cut.Find("textarea").ClassName}{{") && r.Contains("max-height:calc(6lh + 1em)"));
+    }
 }

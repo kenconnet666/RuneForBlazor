@@ -50,7 +50,7 @@ public static class DialogStyles
     public static PartLayers<DialogPart> Dialog(DialogWidth width, ComponentStyles styles) =>
         Recipe.Of("dialog", width, styles, static (DialogWidth width, DialogPart part) => part switch
         {
-            DialogPart.Root => Sx.Of(Surface, OverlayTransitions.Scale, OverlayTransitions.Backdrop, Centered, WidthOf(width), SharedStyles.ReducedMotion),
+            DialogPart.Root => Sx.Of(Surface, OverlayTransitions.Scale, OverlayTransitions.Backdrop, Centered, WidthOf(width)),
             _ => Inner(part),
         });
 
@@ -63,8 +63,7 @@ public static class DialogStyles
                 OverlayTransitions.Slide(HiddenOffset(a.Placement)),
                 OverlayTransitions.Backdrop,
                 Side(a.Placement),
-                a.Placement is Placement.Start or Placement.End ? WidthOf(a.Width) : null,
-                SharedStyles.ReducedMotion),
+                a.Placement is Placement.Start or Placement.End ? WidthOf(a.Width) : null),
             _ => Inner(part),
         });
 
@@ -82,10 +81,10 @@ public static class DialogStyles
         BoxSizing = BoxSizing.BorderBox,
         FlexDirection = FlexDirection.Column,
         Padding = 0,
-        BorderWidth = 1,
+        BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = Colors.Border,
-        BackgroundColor = Colors.Background,
+        BackgroundColor = Colors.SurfaceRaised,
         Color = Colors.Text,
         BoxShadow = Shadows.Lg,
         FontSize = FontSizes.Md,
