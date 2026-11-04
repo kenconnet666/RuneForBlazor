@@ -1,0 +1,5 @@
+@* 菜单里的分隔线：把菜单项分成几组。 *@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div role="separator" @attributes="Attrs.Merge(MenuStyles.Of(Placement.Bottom, Config.Styles)[MenuPart.Separator], Rest)"></div>

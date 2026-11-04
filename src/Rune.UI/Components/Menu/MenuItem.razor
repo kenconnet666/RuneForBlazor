@@ -1,0 +1,49 @@
+@*
+    菜单项（button，role="menuitem"）：<MenuItem Icon="Lucide.Pencil" Shortcut="Ctrl E" @onclick="Edit">编辑</MenuItem>
+    点击用 @onclick；选中后菜单自动关闭。不可用时仍可聚焦（读屏能读到），点击无效。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = MenuStyles.Item(Tone, Config.Styles);
+    // 不可用时去掉使用方的点击处理
+    var user = Disabled ? Rest.Without("onclick") : Rest;
+}
+
+<button type="button" @attributes="Attrs.Merge(parts[MenuItemPart.Root], user, Managed)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[MenuItemPart.Icon], PropsIcon)" />
+    }
+    @ChildContent
+    @if (Shortcut is not null)
+    {
+        <kbd @attributes="Attrs.Merge(parts[MenuItemPart.Shortcut])">@Shortcut</kbd>
+    }
+</button>
+
+@code {
+    /// <summary>色调；危险操作写 Danger。</summary>
+    [Parameter] public Tone Tone { get; set; } = Tone.Neutral;
+
+    /// <summary>文字前的图标。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>右侧的快捷键说明（只是说明，不注册快捷键）。</summary>
+    [Parameter] public string? Shortcut { get; set; }
+
+    /// <summary>不可用：可以聚焦，点击无效，方向键跳过。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>菜单项文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>图标的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    // 菜单项不在 Tab 顺序里（菜单里用方向键移动）；只有两种状态，预先建好
+    Attrs Managed => Disabled ? disabledAttrs : enabledAttrs;
+
+    static readonly Attrs enabledAttrs = new() { Role = "menuitem", TabIndex = -1 };
+    static readonly Attrs disabledAttrs = new() { Role = "menuitem", TabIndex = -1, AriaDisabled = true };
+}

@@ -1,0 +1,37 @@
+@*
+    提示：悬停或键盘聚焦在触发元素上一会儿后显示的简短说明。
+    <Tooltip Content="复制链接"><IconButton Icon="Lucide.Copy" Label="复制" /></Tooltip>
+    只放文字，不放可操作的内容（那是 Popover）；触发元素必须能聚焦，键盘用户才看得到。
+    显示与隐藏全在 CSS 里，静态 SSR 也能用；Esc 隐藏，聚焦时触发元素的 aria-describedby 指向提示（JS 初始化器）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = TooltipStyles.Of(Placement, Config.Styles); }
+
+<span @attributes="Attrs.Merge(parts[TooltipPart.Root], Rest, RootAttrs)">
+    @ChildContent
+    <span @attributes="Attrs.Merge(parts[TooltipPart.Content], PropsContent, ContentAttrs)">@Content</span>
+</span>
+
+@code {
+    readonly string tooltipId = UniqueId.Next("tooltip");
+    Attrs? rootAttrs;
+    Attrs? contentAttrs;
+
+    /// <summary>提示文字。</summary>
+    [Parameter, EditorRequired] public string Content { get; set; } = "";
+
+    /// <summary>相对触发元素的位置，默认上方；放不下时翻到对面。</summary>
+    [Parameter] public Placement Placement { get; set; } = Placement.Top;
+
+    /// <summary>触发元素（按钮、链接等能聚焦的元素）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>提示本身的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    // 外层：锚点名，以及告诉 JS 提示的 id；只建一次
+    Attrs RootAttrs => rootAttrs ??= Attrs.Merge(Anchor.Trigger(tooltipId), new Attrs { ["data-rune-tooltip-root"] = tooltipId });
+
+    Attrs ContentAttrs => contentAttrs ??= Attrs.Merge(Anchor.Overlay(tooltipId), new Attrs { Id = tooltipId, Role = "tooltip" });
+}

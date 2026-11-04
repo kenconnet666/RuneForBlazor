@@ -1,0 +1,53 @@
+@*
+    气泡确认：在触发元素旁边问一句再执行（删除一行、撤销发布），比对话框轻。
+    <Popconfirm Title="删除这条记录？" Description="删除后无法恢复。" ConfirmText="删除" ConfirmTone="Tone.Danger" OnConfirm="Delete">
+        <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Ghost" Tone="Tone.Danger">删除</Button></Trigger>
+    </Popconfirm>
+    打开时焦点在“取消”上（不小心按回车也不会执行）；确认或取消后关闭，焦点回到触发元素。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = PopconfirmStyles.Of(Config.Styles); }
+
+<Popover Title="@Title" Role="alertdialog" Placement="Placement" Trigger="Trigger" Lazy="false" @attributes="Rest">
+    @if (Description is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[PopconfirmPart.Description], PropsDescription)">@Description</div>
+    }
+    <div @attributes="Attrs.Merge(parts[PopconfirmPart.Actions], PropsActions)">
+        <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" data-rune-close autofocus>@CancelText</Button>
+        <Button Size="UI.Size.Sm" Tone="ConfirmTone" data-rune-close @onclick="OnConfirm">@ConfirmText</Button>
+    </div>
+</Popover>
+
+@code {
+    /// <summary>要确认的问题（也是浮层的名称）。</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>补充说明（后果）。</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>确认按钮的文字。</summary>
+    [Parameter] public string ConfirmText { get; set; } = "确定";
+
+    /// <summary>取消按钮的文字。</summary>
+    [Parameter] public string CancelText { get; set; } = "取消";
+
+    /// <summary>确认按钮的色调；危险操作写 Danger。</summary>
+    [Parameter] public Tone ConfirmTone { get; set; } = Tone.Accent;
+
+    /// <summary>确认后。</summary>
+    [Parameter] public EventCallback OnConfirm { get; set; }
+
+    /// <summary>触发元素：参数是要加在它上面的属性。</summary>
+    [Parameter] public RenderFragment<Attrs>? Trigger { get; set; }
+
+    /// <summary>相对触发元素的位置，默认下方。</summary>
+    [Parameter] public Placement Placement { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>按钮区的部件属性。</summary>
+    [Parameter] public Attrs? PropsActions { get; set; }
+}

@@ -1,0 +1,53 @@
+@*
+    弹出框：点触发元素在旁边弹出一块内容（筛选条件、详情、简短的表单），点外面或按 Esc 关闭。
+    <Popover Title="筛选">
+        <Trigger Context="t"><Button @attributes="t" Icon="Lucide.Funnel">筛选</Button></Trigger>
+        <ChildContent>…</ChildContent>
+    </Popover>
+    内容在交互模式下第一次打开才渲染。里面的按钮写 data-rune-close 点击后关闭弹出框。
+*@
+@namespace Rune.UI
+@inherits PopoverBase
+@{ var parts = PopoverStyles.Of(Placement, Config.Styles); }
+
+@Trigger?.Invoke(TriggerAttrs)
+<div @attributes="Attrs.Merge(parts[PopoverPart.Root], Rest, OverlayAttrs(Role, Title is null ? null : titleId))" @onrunetoggle="HandleToggle">
+    @if (ShouldRenderContent)
+    {
+        @if (Title is not null)
+        {
+            <div id="@titleId" @attributes="Attrs.Merge(parts[PopoverPart.Title], PropsTitle)">@Title</div>
+        }
+        <div @attributes="Attrs.Merge(parts[PopoverPart.Body], PropsBody)">@ChildContent</div>
+    }
+</div>
+
+@code {
+    readonly string titleId = UniqueId.Next("popover-title");
+
+    /// <summary>标题；给了时也是浮层的名称（aria-labelledby）。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>浮层的角色，默认 dialog（内容可以操作）；只放说明文字时可以写 null 去掉。</summary>
+    [Parameter] public string? Role { get; set; } = "dialog";
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// 交互模式下第一次打开才渲染内容（默认）。内容很轻、或者打开时就要聚焦里面的元素（autofocus）时写 false。
+    /// </summary>
+    [Parameter] public bool Lazy { get; set; } = true;
+
+    /// <summary>标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>内容的部件属性。</summary>
+    [Parameter] public Attrs? PropsBody { get; set; }
+
+    /// <inheritdoc/>
+    protected override string HasPopup => "dialog";
+
+    // 打开过就保留内容，再打开不重建；静态渲染没有交互，来不及等渲染，一开始就渲染
+    bool ShouldRenderContent => !Lazy || HasOpened || Open == true || !RendererInfo.IsInteractive;
+}
