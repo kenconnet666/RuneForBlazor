@@ -1,0 +1,36 @@
+@*
+    关闭按钮：X 图标的图标按钮，名称默认“关闭”（同 vue-tsx-pro 的 CloseButton）。外观参数同 IconButton。
+    <CloseButton @onclick="Close" />
+*@
+@namespace Rune.UI
+@inherits RuneComponent
+
+<IconButton Icon="BuiltInIcons.X" Label="@Label" Variant="Variant" Tone="Tone" Size="Size" Radius="Radius"
+            Disabled="Disabled" FocusableWhenDisabled="FocusableWhenDisabled" Ripple="Ripple"
+            @attributes="Attrs.MergeProps(null, Rest)" />
+
+@code {
+    /// <summary>按钮的名称（读屏读出），默认“关闭”。</summary>
+    [Parameter] public string Label { get; set; } = "关闭";
+
+    /// <summary>样式，默认同 IconButton（无底）。</summary>
+    [Parameter] public ButtonVariant? Variant { get; set; }
+
+    /// <summary>色调，默认同 IconButton（中性）。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>字号档位；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    /// <summary>不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>不可用时仍可聚焦。</summary>
+    [Parameter] public bool FocusableWhenDisabled { get; set; }
+
+    /// <summary>按下时的波纹；不写时沿用配置。</summary>
+    [Parameter] public bool? Ripple { get; set; }
+}

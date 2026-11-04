@@ -74,6 +74,12 @@
 - **部件是本库组件时**（按钮里的图标、加载指示）用 `Attrs.MergeProps`：样式作为子组件的 `Sx` 参数交下去，子组件排在自己的样式之后只合成一个类；两个类各自的规则谁先插入谁赢，结果不可靠。
 - **组件管理的属性**按状态预先建好（按钮只有四种组合），或用 `Memo<TKey, T>` 按输入记住（字段，不是 readonly），渲染时不分配；
   创建时要用组件本身（事件处理器）时用带状态的重载，lambda 仍写成 static。
+- **包一层的组件要声明带类型的参数**（CloseButton 包 IconButton、StatusBadge 包 Badge）：没声明的参数作为普通属性收进 Rest，
+  `Radius="Radius.Full"` 会变成字符串 "Radius.Full"，转给里面的组件时类型转换失败（运行时才报错）。只有 Sx、data-*、事件这类本来就是属性的才走 Rest。
+- **Razor 的空白**：元素与元素、表达式与元素之间的换行缩进会渲染成一个空格（`@ChildContent` 换行再写 `<Icon />`）。行内元素里多出一个空格的宽度
+  （外链图标与读屏提示之间、标签文字与移除按钮之间），这些地方写在同一行；flex 容器里的纯空白文本不占位置，不用管。
+- **文字类的色调是 `TextTone`**：TextSpan / Paragraph / 标题、TextLink、Icon 的 Tone 都是它（多了 Muted、Inherit）；
+  组件自己的 `Tone`（按钮、标记、提示条）要交给图标时用 `tone.AsText()`。
 - **组件命名避开 Razor 的特殊标记**：`<text>`（代码块里的标记，不区分大小写）、HTML 空元素（`link`、`input`、`img`……写不了内容）。所以是 `TextSpan`、`TextLink`。
   与 CSS 关键字类同名的组件（`Flex`、`Grid`）登记在 css-gen 的 `COMPONENT_NAMES`，关键字类加 `Keywords` 后缀让路。
 - **文字的色调是 `TextTone`**（同 vue-tsx-pro 文字的 tone）：比组件的 `Tone` 多了 Muted（次要说明）与 Inherit，原来的 `Muted` 开关并进来了。
@@ -119,6 +125,9 @@
   外面包 Tooltip 说明原因。加载中只写 aria-busy，外观不变灰。这两种状态组件去掉使用方的点击处理，并带 `data-rune-inert`，
   JS 初始化器在捕获阶段拦下点击的默认动作（提交按钮不提交表单）。加载指示推迟 200ms 才出现（同 useDelayedLoading，CSS 过渡延迟实现，
   没有往返），很快完成的操作按钮不闪一下；vue-tsx-pro 还保证指示至少显示 500ms，CSS 做不到，这里没有。
+- **可移除的标签**（同 vue-tsx-pro 的 useDismissible）：移除按钮带 `data-rune-dismiss`，标签带 `data-rune-dismissible`。JS 初始化器先加
+  `data-dismissing` 播放离场过渡，结束后发出 `rune-dismiss`（`@onrunedismiss`），组件再调用 OnRemove；标签被移除时焦点交给同组的下一个
+  （没有就上一个）可聚焦元素，等 2 秒还在（使用方没移除）就去掉 `data-dismissing` 重新显示。没有往返也不用 C# 计时。
 - **波纹**（同 vue-tsx-pro）：按钮、菜单项带 `data-rune-ripple`，JS 初始化器在按下时从指针位置（键盘 Enter / 空格时从中心）扩散一圈 currentColor 的半透明圆，
   松开后淡出；纯客户端，Server 模式没有往返。配置 `UIConfig.Ripple`（默认开）、Provider、组件的 `Ripple` 参数逐层覆盖；像链接的按钮没有波纹。
 - **提示纯 CSS**：外层悬停或里面有键盘焦点时显示（`When.Parent`，延迟 400ms），Server 模式也没有往返；位置同样用锚点定位。

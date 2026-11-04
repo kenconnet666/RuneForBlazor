@@ -18,16 +18,32 @@ public enum BadgeVariant
     Outline,
 }
 
+/// <summary>标记还是标签（同一套外观，标签多了过渡与移除）。</summary>
+public enum BadgeKind
+{
+    /// <summary>标记（Badge、StatusBadge）。</summary>
+    Badge,
+
+    /// <summary>标签（Tag）。</summary>
+    Tag,
+
+    /// <summary>可移除的标签（Tag 给了 OnRemove）。</summary>
+    RemovableTag,
+}
+
 /// <summary>标记与标签的部件。</summary>
 public enum BadgePart
 {
-    /// <summary>外层（span）。</summary>
+    /// <summary>标记本身（span）。</summary>
     Root,
 
     /// <summary>文字前的图标。</summary>
     Icon,
 
-    /// <summary>标签的移除按钮。</summary>
+    /// <summary>文字前的圆点（Dot，没有图标时）。</summary>
+    Dot,
+
+    /// <summary>标签（Tag）的移除按钮。</summary>
     Remove,
 }
 
@@ -40,6 +56,9 @@ public sealed record BadgeDefaults : IComponentDefaults<BadgeDefaults>
     /// <summary>色调。</summary>
     public Tone? Tone { get; init; }
 
+    /// <summary>字号档位。</summary>
+    public Size? Size { get; init; }
+
     /// <summary>圆角。</summary>
     public Radius? Radius { get; init; }
 
@@ -48,6 +67,7 @@ public sealed record BadgeDefaults : IComponentDefaults<BadgeDefaults>
     {
         Variant = Variant ?? outer.Variant,
         Tone = Tone ?? outer.Tone,
+        Size = Size ?? outer.Size,
         Radius = Radius ?? outer.Radius,
     };
 }
@@ -57,17 +77,19 @@ public sealed record BadgeDefaults : IComponentDefaults<BadgeDefaults>
 /// <param name="Tone">色调。</param>
 /// <param name="Size">字号档位；null 时比上下文字号小一号（0.85em）。</param>
 /// <param name="Radius">圆角。</param>
-public readonly record struct BadgeAppearance(BadgeVariant Variant, Tone Tone, Size? Size, Radius Radius)
+/// <param name="Kind">Badge 还是 Tag（可移除的标签结束边内边距变小、离场时淡出缩小）。</param>
+public readonly record struct BadgeAppearance(BadgeVariant Variant, Tone Tone, Size Size, Radius Radius, BadgeKind Kind = BadgeKind.Badge)
 {
     /// <summary>外观：组件上写的 &gt; 配置的默认值（<see cref="BadgeDefaults"/>）&gt; 浅色底、中性、胶囊形。</summary>
-    public static BadgeAppearance Resolve(BadgeVariant? variant, Tone? tone, Size? size, Radius? radius, UIConfig config)
+    public static BadgeAppearance Resolve(BadgeVariant? variant, Tone? tone, Size? size, Radius? radius, UIConfig config, BadgeKind kind = BadgeKind.Badge)
     {
         var defaults = config.Defaults.Get<BadgeDefaults>();
         return new BadgeAppearance(
             variant ?? defaults?.Variant ?? BadgeVariant.Soft,
             tone ?? defaults?.Tone ?? UI.Tone.Neutral,
-            size,
-            radius ?? defaults?.Radius ?? UI.Radius.Full);
+            size ?? defaults?.Size ?? UI.Size.Xs,
+            radius ?? defaults?.Radius ?? UI.Radius.Sm,
+            kind);
     }
 }
 
@@ -78,12 +100,11 @@ public static class BadgeStyles
     public static PartLayers<BadgePart> Of(BadgeAppearance appearance, ComponentStyles styles) =>
         Recipe.Of("badge", appearance, styles, static (BadgeAppearance a, BadgePart part) => part switch
         {
-            BadgePart.Root => Sx.Of(
-                Root,
-                Variant(a.Variant, a.Tone),
-                ScaleStyles.Radius(a.Radius),
-                a.Size is { } size ? ScaleStyles.FontSize(size) : RelativeSize),
-            BadgePart.Remove => Sx.Of(Remove, SharedStyles.FocusRing),
+            BadgePart.Root => Sx.Of(Root, Variant(a.Variant, a.Tone), ScaleStyles.FontSize(a.Size), ScaleStyles.Radius(a.Radius),
+                a.Kind == BadgeKind.Badge ? null : TagRoot,
+                a.Kind == BadgeKind.RemovableTag ? Removable : null),
+            BadgePart.Dot => Dot,
+            BadgePart.Remove => Remove,
             _ => Sx.Of(),
         });
 
@@ -93,7 +114,7 @@ public static class BadgeStyles
         return key.variant switch
         {
             BadgeVariant.Solid => new Style { Color = t.Contrast, BackgroundColor = t.Solid },
-            BadgeVariant.Surface => new Style { Color = t.Text, BackgroundColor = t.Soft, BorderColor = t.Border },
+            BadgeVariant.Surface => new Style { Color = t.Text, BackgroundColor = t.Surface, BorderColor = t.Border },
             BadgeVariant.Outline => new Style { Color = t.Text, BorderColor = t.Border },
             _ => new Style { Color = t.Text, BackgroundColor = t.Soft },
         };
@@ -104,37 +125,53 @@ public static class BadgeStyles
         BoxSizing = BoxSizing.BorderBox,
         Display = Display.InlineFlex,
         AlignItems = AlignItems.Center,
-        Gap = "0.3em",
-        PaddingBlock = "0.15em",
-        PaddingInline = "0.55em",
+        Gap = Space.Xs,
+        PaddingInline = Space.Sm,
+        // 一行的高度：不随内容的图标、按钮撑高
+        MinHeight = "1.75em",
         BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
         BorderColor = "transparent",
-        FontWeight = FontWeights.Semibold,
+        FontWeight = FontWeights.Medium,
         LineHeight = LineHeights.Tight,
         WhiteSpace = WhiteSpace.Nowrap,
         VerticalAlign = VerticalAlign.Middle,
     });
 
-    // 没写字号档位时比旁边的文字小一号
-    static Style RelativeSize => Css.Define(static () => new Style { FontSize = "0.85em" });
+    // 跟着文字色：浅色底、描边是色调色，实底是反白
+    static Style Dot => Css.Define(static () => new Style
+    {
+        FlexShrink = 0,
+        Width = "0.5em",
+        Height = "0.5em",
+        BorderRadius = Radii.Full,
+        BackgroundColor = "currentColor",
+    });
 
-    // 移除按钮：圆形、跟着文字颜色，悬停时加一层当前颜色的浅底
+    // 标签：移除被拒绝（使用方没移除）时从离场状态过渡回来
+    static Style TagRoot => Css.Define(static () => new Style
+    {
+        Transition = $"opacity {Durations.Sm} {Easings.Enter}, scale {Durations.Sm} {Easings.Enter}",
+    });
+
+    // 可移除的标签：移除按钮紧贴结束边；离场时淡出缩小（JS 加 data-dismissing）
+    static Style Removable => Css.Define(static () => new Style
+    {
+        PaddingInlineEnd = Space.Xs,
+        [When.Attribute("[data-dismissing]")] = new()
+        {
+            Opacity = 0,
+            Scale = "0.8",
+            Transition = $"opacity {Durations.Sm} {Easings.Exit}, scale {Durations.Sm} {Easings.Exit}",
+        },
+    });
+
+    // 移除按钮（CloseButton）比独立的图标按钮紧凑；标签之间留有间距，满足目标尺寸的间距例外
     static Style Remove => Css.Define(static () => new Style
     {
-        Display = Display.InlineFlex,
-        AlignItems = AlignItems.Center,
-        JustifyContent = JustifyContent.Center,
-        Width = "1.25em",
-        Height = "1.25em",
-        MarginInlineEnd = "-0.3em",
-        Padding = 0,
-        BorderWidth = 0,
-        BorderRadius = Radii.Full,
-        BackgroundColor = "transparent",
-        Color = "inherit",
-        Opacity = 0.7,
-        Cursor = Cursor.Pointer,
-        [When.HoverEnabled] = new() { Opacity = 1, BackgroundColor = "color-mix(in srgb, currentColor 15%, transparent)" },
+        Width = "1.5em",
+        MinHeight = "1.5em",
+        MarginBlock = $"calc(-1 * {Space.Xs})",
+        Color = CssWide.Inherit,
     });
 }

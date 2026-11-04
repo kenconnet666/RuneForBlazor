@@ -19,25 +19,24 @@ public class CardAlertTests : BunitContext
     {
         var plain = Render<Card>(p => p.AddChildContent("正文"));
         var full = Render<Card>(p => p
-            .Add(x => x.Title, "订单 #1024")
+            .Add(x => x.Header, "订单 #1024")
             .Add(x => x.Extra, "<a href=\"/all\">全部</a>")
             .Add(x => x.Footer, "<button>查看</button>")
             .AddChildContent("正文"));
 
         Assert.Equal(["root", "body"], plain.FindAll("[data-part]").Select(e => e.GetAttribute("data-part")));
-        Assert.Equal(["root", "header", "title", "extra", "body", "footer"], full.FindAll("[data-part]").Select(e => e.GetAttribute("data-part")));
-        Assert.Equal("订单 #1024", full.Find("[data-part=title]").TextContent);
+        Assert.Equal(["root", "header", "body", "footer"], full.FindAll("[data-part]").Select(e => e.GetAttribute("data-part")));
+        Assert.Equal("订单 #1024全部", full.Find("[data-part=header]").TextContent);
     }
 
     [Fact]
-    public void 自定义页头替代标题()
+    public void 有Extra时页头两端对齐()
     {
-        var cut = Render<Card>(p => p
-            .Add(x => x.Title, "不显示")
-            .Add(x => x.Header, "<h3>收货地址</h3>"));
+        var withExtra = Render<Card>(p => p.Add(x => x.Header, "收货地址").Add(x => x.Extra, "<a href=\"#\">修改</a>"));
+        var plain = Render<Card>(p => p.Add(x => x.Header, "收货地址"));
 
-        Assert.Empty(cut.FindAll("[data-part=title]"));
-        Assert.Equal("收货地址", cut.Find("h3").TextContent);
+        Assert.Contains("justify-content:space-between", RuleOf(withExtra.Find("[data-part=header]").ClassName!));
+        Assert.DoesNotContain("space-between", RuleOf(plain.Find("[data-part=header]").ClassName!));
     }
 
     [Fact]

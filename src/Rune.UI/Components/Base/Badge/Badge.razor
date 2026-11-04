@@ -1,6 +1,6 @@
 @*
-    标记（span）：状态、数量、分类。<Badge Tone="Tone.Success" Icon="BuiltInIcons.CircleCheck">已完成</Badge>
-    默认浅色底、中性色、胶囊形，比旁边的文字小一号。可移除的用 Tag。
+    标记（span）：状态、数量、分类。<Badge Tone="Tone.Success" Icon="Lucide.CircleCheck">已完成</Badge>
+    默认浅色底、中性色、Xs 字号、小圆角；计数、在线状态用 Radius.Full 的胶囊形。可移除的用 Tag，按状态映射显示的用 StatusBadge。
 *@
 @namespace Rune.UI
 @inherits UIComponent
@@ -11,27 +11,39 @@
     {
         <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[BadgePart.Icon], PropsIcon)" />
     }
+    else if (Dot)
+    {
+        <span @attributes="Attrs.Merge(parts[BadgePart.Dot], PropsDot, hiddenFromReaders)"></span>
+    }
     @ChildContent
 </span>
 
 @code {
+    static readonly Attrs hiddenFromReaders = new() { AriaHidden = true };
+
     /// <summary>样式，默认浅色底。</summary>
     [Parameter] public BadgeVariant? Variant { get; set; }
 
     /// <summary>色调，默认中性。</summary>
     [Parameter] public Tone? Tone { get; set; }
 
-    /// <summary>字号档位；不写时比上下文字号小一号。</summary>
+    /// <summary>字号档位，默认 Xs。</summary>
     [Parameter] public Size? Size { get; set; }
 
-    /// <summary>圆角，默认胶囊形。</summary>
+    /// <summary>圆角，默认 Sm；计数、在线状态用 Full（胶囊形），表格、密集列表里常用 None。</summary>
     [Parameter] public Radius? Radius { get; set; }
 
     /// <summary>文字前的图标。</summary>
     [Parameter] public IconData? Icon { get; set; }
 
+    /// <summary>文字前一个同色的圆点（没有图标时）：表格、列表里的状态，比整块底色更轻。</summary>
+    [Parameter] public bool Dot { get; set; }
+
     /// <summary>图标的部件属性。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>圆点的部件属性。</summary>
+    [Parameter] public Attrs? PropsDot { get; set; }
 
     /// <summary>标记的文字。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }

@@ -24,14 +24,8 @@ public enum CardPart
     /// <summary>卡片本身（div）。</summary>
     Root,
 
-    /// <summary>页头：标题与 Extra 排成一行，与正文之间有分隔线。</summary>
+    /// <summary>页头：与正文之间有分隔线；有 Extra 时和它排成一行、两端对齐。</summary>
     Header,
-
-    /// <summary>页头里的标题（给了 Title 时）。</summary>
-    Title,
-
-    /// <summary>页头结束边的内容（链接、按钮）。</summary>
-    Extra,
 
     /// <summary>正文。</summary>
     Body,
@@ -65,16 +59,18 @@ public sealed record CardDefaults : IComponentDefaults<CardDefaults>
 /// <param name="Variant">样式。</param>
 /// <param name="Padding">页头、正文、页脚的内边距。</param>
 /// <param name="Radius">圆角。</param>
-public readonly record struct CardAppearance(CardVariant Variant, SpaceScale Padding, Radius Radius)
+/// <param name="HasExtra">有页头结束边的内容：页头排成一行、两端对齐。</param>
+public readonly record struct CardAppearance(CardVariant Variant, SpaceScale Padding, Radius Radius, bool HasExtra = false)
 {
     /// <summary>外观：组件上写的 &gt; 配置的默认值（<see cref="CardDefaults"/>）&gt; 表面色、Lg 内边距、大圆角。</summary>
-    public static CardAppearance Resolve(CardVariant? variant, SpaceScale? padding, Radius? radius, UIConfig config)
+    public static CardAppearance Resolve(CardVariant? variant, SpaceScale? padding, Radius? radius, bool hasExtra, UIConfig config)
     {
         var defaults = config.Defaults.Get<CardDefaults>();
         return new CardAppearance(
             variant ?? defaults?.Variant ?? CardVariant.Surface,
             padding ?? defaults?.Padding ?? SpaceScale.Lg,
-            radius ?? defaults?.Radius ?? UI.Radius.Lg);
+            radius ?? defaults?.Radius ?? UI.Radius.Lg,
+            hasExtra);
     }
 }
 
@@ -86,10 +82,8 @@ public static class CardStyles
         Recipe.Of("card", appearance, styles, static (CardAppearance a, CardPart part) => part switch
         {
             CardPart.Root => Sx.Of(Root, Variant(a.Variant), ScaleStyles.Radius(a.Radius)),
-            CardPart.Header => Sx.Of(Header, ScaleStyles.Padding(a.Padding)),
-            CardPart.Title => Title,
-            CardPart.Extra => Extra,
-            CardPart.Body => Sx.Of(Body, ScaleStyles.Padding(a.Padding)),
+            CardPart.Header => Sx.Of(Header, a.HasExtra ? HeaderWithExtra : null, ScaleStyles.Padding(a.Padding)),
+            CardPart.Body => ScaleStyles.Padding(a.Padding),
             _ => Sx.Of(Footer, ScaleStyles.Padding(a.Padding)),
         });
 
@@ -117,42 +111,28 @@ public static class CardStyles
 
     static Style Header => Css.Define(static () => new Style
     {
+        BorderBottomWidth = BorderWidths.Xs,
+        BorderBottomStyle = BorderBottomStyle.Solid,
+        BorderBottomColor = Colors.BorderMuted,
+    });
+
+    // 有 Extra 时：页头内容在起始边、Extra 在结束边，放不下时换行
+    static Style HeaderWithExtra => Css.Define(static () => new Style
+    {
         Display = Display.Flex,
         FlexWrap = FlexWrap.Wrap,
         AlignItems = AlignItems.Center,
         JustifyContent = JustifyContent.SpaceBetween,
         Gap = Space.Sm,
-        BorderBottomWidth = BorderWidths.Xs,
-        BorderBottomStyle = BorderBottomStyle.Solid,
-        BorderBottomColor = Colors.Border,
     });
-
-    static Style Title => Css.Define(static () => new Style
-    {
-        MinWidth = 0,
-        FontSize = FontSizes.Lg,
-        FontWeight = FontWeights.Semibold,
-        LineHeight = LineHeights.Tight,
-    });
-
-    static Style Extra => Css.Define(static () => new Style
-    {
-        Display = Display.Flex,
-        AlignItems = AlignItems.Center,
-        Gap = Space.Sm,
-        MarginInlineStart = "auto",
-    });
-
-    static Style Body => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0 });
 
     static Style Footer => Css.Define(static () => new Style
     {
         Display = Display.Flex,
-        FlexWrap = FlexWrap.Wrap,
         JustifyContent = JustifyContent.FlexEnd,
         Gap = Space.Sm,
         BorderTopWidth = BorderWidths.Xs,
         BorderTopStyle = BorderTopStyle.Solid,
-        BorderTopColor = Colors.Border,
+        BorderTopColor = Colors.BorderMuted,
     });
 }

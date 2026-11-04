@@ -10,6 +10,23 @@ public static class SharedStyles
     /// <summary>色调的文字色（链接、提示条的图标与标题、文字的 Tone）。</summary>
     public static Style ToneText(Tone tone) => Css.Define(tone, static tone => new Style { Color = Tones.Of(tone).Text });
 
+    /// <summary>文字的色调（文字组件、链接的 Tone）：Muted 是次要文字色，Inherit 跟随所在的文字颜色。</summary>
+    public static Style TextColor(TextTone tone) => tone switch
+    {
+        TextTone.Neutral => ToneText(Tone.Neutral),
+        TextTone.Muted => MutedText,
+        TextTone.Accent => ToneText(Tone.Accent),
+        TextTone.Info => ToneText(Tone.Info),
+        TextTone.Success => ToneText(Tone.Success),
+        TextTone.Warning => ToneText(Tone.Warning),
+        TextTone.Danger => ToneText(Tone.Danger),
+        _ => InheritedText,
+    };
+
+    static Style MutedText => Css.Define(static () => new Style { Color = Colors.TextMuted });
+
+    static Style InheritedText => Css.Define(static () => new Style { Color = CssWide.Inherit });
+
     /// <summary>键盘聚焦时的焦点环（画在元素外侧）。</summary>
     public static Style FocusRing => Css.Define(static () => new Style
     {

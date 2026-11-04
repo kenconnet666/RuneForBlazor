@@ -47,7 +47,7 @@ const BUILT_IN = [
   'plus',
   'search',
   'loader-circle',
-  'external-link',
+  'hash',
   'arrow-up-right',
   'copy',
 ];

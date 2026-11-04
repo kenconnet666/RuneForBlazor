@@ -157,7 +157,7 @@ public class FormTests : BunitContext
     [Fact]
     public void 图标_色调与从右到左翻转_粗细取主题token()
     {
-        var cut = Render<Icon>(p => p.Add(x => x.Data, BuiltInIcons.ChevronRight).Add(x => x.Tone, Tone.Danger).Add(x => x.FlipInRtl, true));
+        var cut = Render<Icon>(p => p.Add(x => x.Data, BuiltInIcons.ChevronRight).Add(x => x.Tone, TextTone.Danger).Add(x => x.FlipInRtl, true));
         var thick = Render<Icon>(p => p.Add(x => x.Data, BuiltInIcons.Check).Add(x => x.StrokeWidth, 3));
 
         var registry = Services.GetRequiredService<Rune.Styles.StyleRegistry>();

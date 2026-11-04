@@ -28,8 +28,8 @@ public static partial class BuiltInIcons
     public static IconData CircleExclamationPoint => field ??= new("circle-exclamation-point", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"/><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"/>");
     /// <summary>Lucide 图标 <c>copy</c>（clone、duplicate、multiple）。</summary>
     public static IconData Copy => field ??= new("copy", "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/>");
-    /// <summary>Lucide 图标 <c>external-link</c>（outbound、open、share）。</summary>
-    public static IconData ExternalLink => field ??= new("external-link", "<path d=\"M15 3h6v6\"/><path d=\"M10 14 21 3\"/><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"/>");
+    /// <summary>Lucide 图标 <c>hash</c>（hashtag、number、pound）。</summary>
+    public static IconData Hash => field ??= new("hash", "<line x1=\"4\" x2=\"20\" y1=\"9\" y2=\"9\"/><line x1=\"4\" x2=\"20\" y1=\"15\" y2=\"15\"/><line x1=\"10\" x2=\"8\" y1=\"3\" y2=\"21\"/><line x1=\"16\" x2=\"14\" y1=\"3\" y2=\"21\"/>");
     /// <summary>Lucide 图标 <c>info</c>（alphabet、character、text、font、typography、about、advice、clue）。</summary>
     public static IconData Info => field ??= new("info", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>");
     /// <summary>Lucide 图标 <c>loader-circle</c>（loading、wait、busy、progress、spinner、spinning、throbber、circle）。</summary>

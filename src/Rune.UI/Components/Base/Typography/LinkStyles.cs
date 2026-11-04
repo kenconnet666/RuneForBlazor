@@ -23,16 +23,13 @@ public enum LinkPart
 
     /// <summary>外部链接的图标。</summary>
     Icon,
-
-    /// <summary>外部链接给读屏的提示（视觉隐藏）。</summary>
-    Hint,
 }
 
 /// <summary>链接的默认值。</summary>
 public sealed record LinkDefaults : IComponentDefaults<LinkDefaults>
 {
     /// <summary>色调。</summary>
-    public Tone? Tone { get; init; }
+    public TextTone? Tone { get; init; }
 
     /// <summary>下划线。</summary>
     public LinkUnderline? Underline { get; init; }
@@ -49,21 +46,20 @@ public sealed record LinkDefaults : IComponentDefaults<LinkDefaults>
 public static class LinkStyles
 {
     /// <summary>某个色调、下划线方式下各部件的默认层。</summary>
-    public static PartLayers<LinkPart> Of(Tone tone, LinkUnderline underline, ComponentStyles styles) =>
-        Recipe.Of("link", (tone, underline), styles, static ((Tone Tone, LinkUnderline Underline) a, LinkPart part) => part switch
+    // 色调排在配方前面，按部件定制能盖过它（同 vue-tsx-pro）
+    public static PartLayers<LinkPart> Of(TextTone tone, LinkUnderline underline, ComponentStyles styles) =>
+        Recipe.Of("link", (tone, underline), styles, static ((TextTone Tone, LinkUnderline Underline) a, LinkPart part) => part switch
         {
-            LinkPart.Root => Sx.Of(Root, SharedStyles.ToneText(a.Tone), Underline(a.Underline), SharedStyles.FocusRing),
-            LinkPart.Icon => Icon,
-            _ => SharedStyles.VisuallyHidden,
+            LinkPart.Root => Sx.Of(SharedStyles.TextColor(a.Tone), Root, Underline(a.Underline), SharedStyles.FocusRing),
+            _ => Icon,
         });
 
     static Style Root => Css.Define(static () => new Style
     {
-        BorderRadius = Radii.Sm,
-        TextDecorationThickness = 1,
+        BorderRadius = Radii.Xs,
+        TextDecorationThickness = BorderWidths.Xs,
         TextUnderlineOffset = "0.2em",
         Cursor = Cursor.Pointer,
-        [When.Hover] = new() { TextDecorationThickness = 2 },
     });
 
 
@@ -78,11 +74,10 @@ public static class LinkStyles
         _ => new Style { TextDecorationLine = TextDecorationLine.Underline },
     });
 
-    // 外链图标比文字略小，贴着文字的基线
+    // 图标跟着文字，贴着基线
     static Style Icon => Css.Define(static () => new Style
     {
-        FontSize = "0.85em",
-        MarginInlineStart = "0.15em",
-        VerticalAlign = "-0.05em",
+        MarginInlineStart = "0.1em",
+        VerticalAlign = "-0.1em",
     });
 }

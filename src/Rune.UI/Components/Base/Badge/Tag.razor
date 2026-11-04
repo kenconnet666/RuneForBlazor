@@ -1,28 +1,37 @@
 @*
-    标签（span）：可以移除的标记，如筛选条件、已选的人。
-    <Tag OnRemove="() => Remove(item)" RemoveLabel="@($"移除 {item.Name}")">@item.Name</Tag>
-    给了 OnRemove 才显示移除按钮；组件不自己消失，由使用方把它从列表里拿掉。
+    标签（span）：外观同 Badge，可以带移除按钮。技能、分类、筛选条件这类成组出现的短文字用它。
+    <Tag OnRemove="() => filters.Remove(item)">@item</Tag>
+    给了 OnRemove 才显示移除按钮：点击后标签先淡出缩小，离场结束才调用 OnRemove（JS 初始化器做，没有往返）；
+    标签随后被移除时焦点交给同组的下一个（没有就上一个）可聚焦元素，没被移除就重新显示。
 *@
 @namespace Rune.UI
 @inherits UIComponent
-@{ var parts = BadgeStyles.Of(BadgeAppearance.Resolve(Variant, Tone, Size, Radius, Config), Config.Styles); }
+@{ var parts = BadgeStyles.Of(BadgeAppearance.Resolve(Variant, Tone, Size, Radius, Config, OnRemove.HasDelegate ? BadgeKind.RemovableTag : BadgeKind.Tag), Config.Styles); }
 
-<span @attributes="Attrs.Merge(parts[BadgePart.Root], Rest)">
-    @if (Icon is not null)
-    {
-        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[BadgePart.Icon], PropsIcon)" />
-    }
-    @ChildContent
-    @if (OnRemove.HasDelegate)
-    {
-        <button type="button" @attributes="Attrs.Merge(parts[BadgePart.Remove], PropsRemove, RemoveManaged)">
-            <Icon Data="BuiltInIcons.X" />
-        </button>
-    }
-</span>
+@if (OnRemove.HasDelegate)
+{
+    <span @attributes="Attrs.Merge(parts[BadgePart.Root], Rest, Dismissible)">
+        @if (Icon is not null)
+        {
+            <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[BadgePart.Icon], PropsIcon)" />
+        }
+        @* 文字与移除按钮之间不留空白 *@
+        @ChildContent<CloseButton Label="@RemoveLabel" Radius="UI.Radius.Full" @attributes="Attrs.MergeProps(parts[BadgePart.Remove], PropsRemove, dismissButton)" />
+    </span>
+}
+else
+{
+    <span @attributes="Attrs.Merge(parts[BadgePart.Root], Rest)">
+        @if (Icon is not null)
+        {
+            <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[BadgePart.Icon], PropsIcon)" />
+        }
+        @ChildContent
+    </span>
+}
 
 @code {
-    Memo<string, Attrs> removeManaged;
+    static readonly Attrs dismissButton = new() { ["data-rune-dismiss"] = true };
 
     /// <summary>样式，默认浅色底。</summary>
     [Parameter] public BadgeVariant? Variant { get; set; }
@@ -30,10 +39,10 @@
     /// <summary>色调，默认中性。</summary>
     [Parameter] public Tone? Tone { get; set; }
 
-    /// <summary>字号档位；不写时比上下文字号小一号。</summary>
+    /// <summary>字号档位，默认 Xs。</summary>
     [Parameter] public Size? Size { get; set; }
 
-    /// <summary>圆角，默认胶囊形。</summary>
+    /// <summary>圆角，默认 Sm。</summary>
     [Parameter] public Radius? Radius { get; set; }
 
     /// <summary>文字前的图标。</summary>
@@ -42,7 +51,7 @@
     /// <summary>标签的文字。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>移除：给了才显示移除按钮。</summary>
+    /// <summary>给了就显示移除按钮；离场动画结束后调用，由使用方把标签从列表里拿掉。</summary>
     [Parameter] public EventCallback OnRemove { get; set; }
 
     /// <summary>移除按钮的名称（读屏读出），默认“移除”；建议写成“移除 张三”这样能区分的说法。</summary>
@@ -51,12 +60,15 @@
     /// <summary>图标的部件属性。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }
 
-    /// <summary>移除按钮的部件属性。</summary>
+    /// <summary>移除按钮（CloseButton）的部件属性。</summary>
     [Parameter] public Attrs? PropsRemove { get; set; }
 
-    // 移除按钮上由组件管理的属性：名称与点击；名称不变时复用同一个对象
-    Attrs RemoveManaged => removeManaged.Get(RemoveLabel, this, static (label, tag) =>
-        new Attrs { AriaLabel = label, Title = label, OnClick = tag.HandleRemove });
+    Attrs? dismissible;
 
-    Task HandleRemove(MouseEventArgs _) => OnRemove.InvokeAsync();
+    // 可移除时根元素上由组件管理的属性：标记与离场结束的事件；只建一次
+    Attrs Dismissible => dismissible ??= new Attrs
+    {
+        ["data-rune-dismissible"] = true,
+        ["onrunedismiss"] = EventCallback.Factory.Create<EventArgs>(this, () => OnRemove.InvokeAsync()),
+    };
 }

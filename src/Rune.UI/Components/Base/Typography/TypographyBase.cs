@@ -58,12 +58,18 @@ public abstract class TypographyBase : UIComponent
     /// <summary>根元素的默认层（文字与标题用各自的配方，按部件定制互不影响）。</summary>
     protected abstract Attrs RootLayer { get; }
 
+    /// <summary>文字之后的内容（标题的锚点链接）；序号从 10 开始。</summary>
+    protected virtual void BuildTrailing(RenderTreeBuilder builder)
+    {
+    }
+
     /// <inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         builder.OpenElement(0, Tag);
         builder.AddMultipleAttributes(1, Attrs.Merge(RootLayer, Rest)!);
         builder.AddContent(2, ChildContent);
+        BuildTrailing(builder);
         builder.CloseElement();
     }
 }

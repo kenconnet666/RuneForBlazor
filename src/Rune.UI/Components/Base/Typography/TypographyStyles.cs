@@ -5,6 +5,9 @@ namespace Rune.UI;
 /// <summary>字重档位。</summary>
 public enum Weight
 {
+    /// <summary>300：大号的数字、标题里的弱化部分。</summary>
+    Light,
+
     /// <summary>400：正文。</summary>
     Normal,
 
@@ -78,6 +81,21 @@ public enum TextTone
     Inherit,
 }
 
+/// <summary>色调与文字色调的换算。</summary>
+public static class TextToneExtensions
+{
+    /// <summary>组件的色调对应的文字色调（提示条、气泡确认的图标用所在组件的色调）。</summary>
+    public static TextTone AsText(this Tone tone) => tone switch
+    {
+        Tone.Neutral => TextTone.Neutral,
+        Tone.Info => TextTone.Info,
+        Tone.Success => TextTone.Success,
+        Tone.Warning => TextTone.Warning,
+        Tone.Danger => TextTone.Danger,
+        _ => TextTone.Accent,
+    };
+}
+
 /// <summary>TextSpan、Paragraph、Strong、Em、Small 的部件。</summary>
 public enum TextPart
 {
@@ -90,12 +108,22 @@ public enum HeadingPart
 {
     /// <summary>标题元素本身。</summary>
     Root,
+
+    /// <summary>指向本节的锚点链接（Anchor 时有）。</summary>
+    Anchor,
 }
 
 /// <summary>按键的部件。</summary>
 public enum KbdPart
 {
     /// <summary>kbd 元素。</summary>
+    Root,
+}
+
+/// <summary>高亮（Mark）、行内代码（Code）、引用（Blockquote）的部件：都只有元素本身。</summary>
+public enum InlinePart
+{
+    /// <summary>元素本身。</summary>
     Root,
 }
 
@@ -151,11 +179,24 @@ public static class TypographyStyles
 
     /// <summary>H1–H6 的部件默认层。</summary>
     public static PartLayers<HeadingPart> Heading(TypographyAppearance appearance, ComponentStyles styles) =>
-        Recipe.Of("heading", appearance, styles, static (TypographyAppearance a, HeadingPart _) => Compose(a));
+        Recipe.Of("heading", appearance, styles, static (TypographyAppearance a, HeadingPart part) =>
+            part == HeadingPart.Anchor ? Sx.Of(HeadingAnchor, SharedStyles.FocusRing) : Compose(a));
 
     /// <summary>按键（Kbd）的部件默认层。</summary>
     public static PartLayers<KbdPart> Kbd(ComponentStyles styles) =>
         Recipe.Of("kbd", styles, static (KbdPart _) => KbdRoot);
+
+    /// <summary>高亮（Mark）的部件默认层。</summary>
+    public static PartLayers<InlinePart> Mark(ComponentStyles styles) =>
+        Recipe.Of("mark", styles, static (InlinePart _) => MarkRoot);
+
+    /// <summary>行内代码（Code）的部件默认层。</summary>
+    public static PartLayers<InlinePart> Code(ComponentStyles styles) =>
+        Recipe.Of("code", styles, static (InlinePart _) => CodeRoot);
+
+    /// <summary>引用（Blockquote）的部件默认层。</summary>
+    public static PartLayers<InlinePart> Blockquote(ComponentStyles styles) =>
+        Recipe.Of("blockquote", styles, static (InlinePart _) => BlockquoteRoot);
 
     /// <summary>视觉隐藏（VisuallyHidden）的部件默认层。</summary>
     public static PartLayers<VisuallyHiddenPart> VisuallyHidden(ComponentStyles styles) =>
@@ -172,7 +213,7 @@ public static class TypographyStyles
         a.Size is { } size ? ScaleStyles.FontSize(size) : null,
         a.Kind == TypographyKind.Heading ? Tracking(a.Size) : null,
         a.Weight is { } weight ? WeightOf(weight) : null,
-        a.Tone is { } tone ? ToneOf(tone) : null,
+        a.Tone is { } tone ? SharedStyles.TextColor(tone) : null,
         a.Align is { } align ? AlignOf(align) : null,
         a.Wrap is { } wrap ? WrapOf(wrap) : null,
         a.Truncate ? Truncate : null,
@@ -182,8 +223,27 @@ public static class TypographyStyles
 
     static Style Paragraph => Css.Define(static () => new Style { Margin = 0, TextWrap = TextWrap.Pretty });
 
+    // 平时透明，悬停标题或键盘聚焦时出现
+    static Style HeadingAnchor => Css.Define(static () => new Style
+    {
+        Display = Display.InlineFlex,
+        VerticalAlign = VerticalAlign.Middle,
+        MarginInlineStart = Space.Xs,
+        BorderRadius = Radii.Xs,
+        Color = Colors.TextMuted,
+        FontSize = "0.75em",
+        TextDecoration = "none",
+        Opacity = 0,
+        Transition = $"opacity {Durations.Sm} {Easings.Standard}",
+        [When.Hover] = new() { Color = Tones.Accent.Text },
+        [When.FocusVisible] = new() { Opacity = 1 },
+        [When.Parent(When.Hover)] = new() { Opacity = 1 },
+    });
+
+    // 锚点跳转（#install）后与视口顶端留一点空
     static Style HeadingRoot => Css.Define(static () => new Style
     {
+        ScrollMarginBlockStart = Space.Lg,
         Margin = 0,
         FontFamily = Fonts.Heading,
         LineHeight = LineHeights.Tight,
@@ -206,6 +266,7 @@ public static class TypographyStyles
     {
         FontWeight = weight switch
         {
+            UI.Weight.Light => FontWeights.Light,
             UI.Weight.Medium => FontWeights.Medium,
             UI.Weight.Semibold => FontWeights.Semibold,
             UI.Weight.Bold => FontWeights.Bold,
@@ -213,21 +274,6 @@ public static class TypographyStyles
         },
     });
 
-    static Style ToneOf(TextTone tone) => tone switch
-    {
-        TextTone.Neutral => SharedStyles.ToneText(Tone.Neutral),
-        TextTone.Muted => Muted,
-        TextTone.Accent => SharedStyles.ToneText(Tone.Accent),
-        TextTone.Info => SharedStyles.ToneText(Tone.Info),
-        TextTone.Success => SharedStyles.ToneText(Tone.Success),
-        TextTone.Warning => SharedStyles.ToneText(Tone.Warning),
-        TextTone.Danger => SharedStyles.ToneText(Tone.Danger),
-        _ => InheritColor,
-    };
-
-    static Style Muted => Css.Define(static () => new Style { Color = Colors.TextMuted });
-
-    static Style InheritColor => Css.Define(static () => new Style { Color = CssWide.Inherit });
 
 
     static Style AlignOf(TextAlignment align) => Css.Define(align, static align => new Style
@@ -274,6 +320,39 @@ public static class TypographyStyles
 
     static Style Mono => Css.Define(static () => new Style { FontFamily = Fonts.Mono });
 
+    static Style MarkRoot => Css.Define(static () => new Style
+    {
+        PaddingInline = "0.15em",
+        BorderRadius = Radii.Xs,
+        BackgroundColor = Colors.Highlight,
+        Color = CssWide.Inherit,
+    });
+
+    // 等宽字体的字面显得大，相对周围文字略小；连字（=> 显示成 ⇒）会让照着抄的人看错，关掉；
+    // 长命令、长路径可以在任意位置换行（不用 anywhere：它算进最小宽度，表格列会被压得很窄）
+    static Style CodeRoot => Css.Define(static () => new Style
+    {
+        PaddingInline = Space.Xs,
+        BorderRadius = Radii.Sm,
+        BackgroundColor = Colors.Fill,
+        Color = Colors.Text,
+        FontFamily = Fonts.Mono,
+        FontVariantLigatures = "none",
+        FontSize = "0.9em",
+        OverflowWrap = "break-word",
+    });
+
+    static Style BlockquoteRoot => Css.Define(static () => new Style
+    {
+        Margin = 0,
+        PaddingBlock = Space.Xs,
+        PaddingInlineStart = Space.Lg,
+        BorderInlineStartWidth = BorderWidths.Md,
+        BorderInlineStartStyle = BorderStyle.Solid,
+        BorderInlineStartColor = Colors.BorderStrong,
+        Color = Colors.TextMuted,
+    });
+
     // 键帽：底边加厚，像一个按下去的键
     static Style KbdRoot => Css.Define(static () => new Style
     {
@@ -289,7 +368,7 @@ public static class TypographyStyles
         Color = Colors.Text,
         FontFamily = Fonts.Mono,
         FontSize = "0.85em",
-        LineHeight = 1.4,
+        LineHeight = LineHeights.Snug,
         TextAlign = TextAlign.Center,
         WhiteSpace = WhiteSpace.Nowrap,
     });

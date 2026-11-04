@@ -1,0 +1,12 @@
+@*
+    高亮（mark）：搜索结果里匹配的字、需要读者注意的一段。<Mark>Button 按钮</Mark>
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<mark @attributes="Attrs.Merge(TypographyStyles.Mark(Config.Styles)[InlinePart.Root], Rest)">@ChildContent</mark>
+
+@code {
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

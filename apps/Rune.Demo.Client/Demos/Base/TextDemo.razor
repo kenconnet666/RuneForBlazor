@@ -1,0 +1,180 @@
+@* 文字：示例与 vue-tsx-pro 文档站的 /components/text 一一对应。 *@
+@attribute [ComponentDemo("text", "文字", Group = "基础组件", Order = 3)]
+@inherits RuneComponent
+
+<DemoSection Id="scale" Title="字号与字重">
+    <Description>Size 对应主题的字号档位，Weight 对应字重；不写时继承上下文，Small 默认 Xs，Strong 默认 Semibold。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("18em")" Gap="SpaceScale.Xl">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                @foreach (var size in sizes)
+                {
+                    <Flex Align="ItemAlign.Baseline" Gap="SpaceScale.Md">
+                        <TextSpan Size="Size.Xs" Tone="TextTone.Muted" Sx="NameColumn">size=@Lower(size)</TextSpan>
+                        <TextSpan Size="size">界面里的文字 Typography</TextSpan>
+                    </Flex>
+                }
+            </Flex>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                @foreach (var weight in Enum.GetValues<Weight>())
+                {
+                    <Flex Align="ItemAlign.Baseline" Gap="SpaceScale.Md">
+                        <TextSpan Size="Size.Xs" Tone="TextTone.Muted" Sx="NameColumn">@Lower(weight)</TextSpan>
+                        <TextSpan Weight="weight" Size="Size.Lg">季度营收 ¥1,280,000</TextSpan>
+                    </Flex>
+                }
+            </Flex>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="tones" Title="色调">
+    <Description>Tone 取主题的文字色：Neutral 是正文色，Muted 用于次要说明，其余是品牌色与提示色的文字色。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("16em")" Gap="SpaceScale.Md">
+            <Card>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Strong>部署完成</Strong>
+                    <TextSpan Size="Size.Sm" Tone="TextTone.Muted">production · 3 分钟前 · 由 @@lin 触发</TextSpan>
+                    <TextSpan Size="Size.Sm" Tone="TextTone.Success">全部 128 项检查通过</TextSpan>
+                </Flex>
+            </Card>
+            <Card>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Strong>账单即将到期</Strong>
+                    <TextSpan Size="Size.Sm" Tone="TextTone.Warning">还有 2 天自动续费 ¥299</TextSpan>
+                    <TextSpan Size="Size.Sm" Tone="TextTone.Accent">查看账单详情</TextSpan>
+                </Flex>
+            </Card>
+            <Card>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Strong>同步失败</Strong>
+                    <TextSpan Size="Size.Sm" Tone="TextTone.Danger">网络连接中断，已暂停上传</TextSpan>
+                    <Paragraph Size="Size.Sm" Tone="TextTone.Info">恢复联网后会自动重试，不用重新选择文件。</Paragraph>
+                </Flex>
+            </Card>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="numeric" Title="编号与数字">
+    <Description>Mono 用等宽字体（编号、件号），Numeric 用等宽数字（金额、计数）：上下对齐、变化时不跳动。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            @foreach (var (number, amount) in orders)
+            {
+                <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Xl">
+                    <TextSpan Mono="true" Size="Size.Sm">@number</TextSpan>
+                    <TextSpan Numeric="true">@amount 万元</TextSpan>
+                </Flex>
+            }
+            <TextSpan Numeric="true" Tone="TextTone.Danger" Weight="Weight.Semibold">超时 11 天</TextSpan>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="overflow" Title="截断与换行">
+    <Description>Truncate 单行省略，LineClamp 限制行数；Wrap 的 Pretty 避免最后一行只剩一个字（Paragraph 默认），Balance 让标题各行长度均衡。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("18em")" Gap="SpaceScale.Md">
+            <Card>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Small Tone="TextTone.Muted">truncate：单行省略</Small>
+                    <Strong Truncate="true">vue-tsx-pro / packages / ui / src / display / VirtualList.tsx</Strong>
+                    <TextSpan Truncate="true" Tone="TextTone.Muted">@LongText</TextSpan>
+                </Flex>
+            </Card>
+            <Card>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Small Tone="TextTone.Muted">lineClamp={2}：最多两行</Small>
+                    <Paragraph LineClamp="2">@LongText</Paragraph>
+                </Flex>
+            </Card>
+            <Card>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Small Tone="TextTone.Muted">wrap="balance"：各行长度均衡</Small>
+                    <Paragraph Wrap="TextWrapping.Balance" Size="Size.Lg" Weight="Weight.Semibold" Align="TextAlignment.Center">
+                        用更自然的 TSX 写 Vue 组件，符文让状态读写像普通变量
+                    </Paragraph>
+                </Flex>
+            </Card>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="inline" Title="行内语义">
+    <Description>一个元素一个组件：Strong、Em、Small、Mark（高亮）、Kbd（按键）、Code（行内代码）、Blockquote（引用）。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Paragraph>
+                在任意页面按 <Kbd>Ctrl</Kbd> + <Kbd>K</Kbd> 打开搜索，输入 <Code>button</Code> 就能找到<Mark>Button 按钮</Mark>与它的全部示例。<Strong>Strong</Strong> 表示重要，<Em>Em</Em> 表示语气上的强调，<Small>Small 用于附注与版权信息</Small>。
+            </Paragraph>
+            <Blockquote cite="https://vuejs.org/guide/introduction">
+                <Paragraph>渐进式框架：可以只在页面的一小块里用它，也可以用它搭建完整的单页应用。</Paragraph>
+                <Small Tone="TextTone.Muted">—— Vue 文档</Small>
+            </Blockquote>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="links" Title="链接">
+    <Description>TextLink 默认带下划线（WCAG 1.4.1：正文里的链接不能只靠颜色区分）；导航这类上下文明确的地方可以 Underline="Hover" 或 None。按钮样式的链接用 LinkButton。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Paragraph>
+                正文里的链接默认带下划线：<TextLink Href="server/button">按钮</TextLink>、<TextLink Href="server/provider">主题定制</TextLink>，不只靠颜色和周围的文字区分。去别的站点写 <TextLink Href="https://vuejs.org" External="true">Vue 文档</TextLink>：新窗口打开，带图标，读屏会念出“在新窗口打开”。
+            </Paragraph>
+            <Flex Gap="SpaceScale.Lg" Wrap="true">
+                <TextSpan Size="Size.Sm"><TextLink Href="server/text" Underline="LinkUnderline.Hover">悬停时才有下划线</TextLink></TextSpan>
+                <TextSpan Size="Size.Sm"><TextLink Href="server/text" Underline="LinkUnderline.None" Tone="TextTone.Muted">导航里的次要链接</TextLink></TextSpan>
+                <TextSpan Size="Size.Sm"><TextLink Href="server/text" Tone="TextTone.Danger">注销账户</TextLink></TextSpan>
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="headings" Title="标题">
+    <Description>H1–H6 是六个组件，默认字号依次减小；级别要连续，视觉层级用 Size 单独改。Anchor 加指向本节的锚点链接。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("20em")" Gap="SpaceScale.Xl">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <H1>H1 页面标题</H1>
+                <H2>H2 一节</H2>
+                <H3>H3 小节</H3>
+                <H4>H4 段落标题</H4>
+                <H5>H5 卡片标题</H5>
+                <H6>H6 最小的标题</H6>
+            </Flex>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                @* 文档结构与视觉层级分开：级别要连续，字号用 Size 改 *@
+                <H2 Size="Size.Lg">账户设置</H2>
+                <Paragraph Tone="TextTone.Muted">H2 但用 lg 字号：放在卡片里不至于太大。</Paragraph>
+                <H3 id="text-security" Anchor="true">安全与登录</H3>
+                <Paragraph Tone="TextTone.Muted">
+                    <TextSpan Weight="Weight.Medium">anchor</TextSpan> 在标题末尾加指向本节的链接，悬停或聚焦时出现，方便复制分享。
+                </Paragraph>
+                <H3 Tone="TextTone.Danger">危险操作</H3>
+                <Paragraph Tone="TextTone.Muted">注销账户后数据不可恢复。</Paragraph>
+            </Flex>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    const string LongText =
+        "组件库按源码使用时，改了组件立刻热更新；发布的包是编译好的 ESM 与类型声明，使用方不需要任何额外配置就能按需引入、摇树优化，样式在用到时由运行时引擎生成，开发服务器把组件库整个预构建。";
+
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg, Size.Xl];
+
+    static readonly (string Number, string Amount)[] orders =
+    [
+        ("PO-2026-0276", "1,117.48"),
+        ("PO-2026-0233", "9.10"),
+        ("PO-2026-02114", "211.06"),
+    ];
+
+    // 左边一列是档位名：固定宽度，右边的样例对齐
+    static Style NameColumn => Css.Define(static () => new Style { Width = "5em", FlexShrink = 0 });
+
+    static string Lower<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
+}

@@ -11,7 +11,7 @@
 
 <Popover Role="alertdialog" Placement="Placement" Trigger="Trigger" Lazy="false" aria-labelledby="@titleId" @attributes="Rest">
     <div @attributes="Attrs.Merge(parts[PopconfirmPart.Body])">
-        <Icon Data="@(Icon ?? BuiltInIcons.TriangleExclamationPoint)" Tone="Tone" @attributes="Attrs.MergeProps(parts[PopconfirmPart.Icon], PropsIcon)" />
+        <Icon Data="@(Icon ?? BuiltInIcons.TriangleExclamationPoint)" Tone="Tone.AsText()" @attributes="Attrs.MergeProps(parts[PopconfirmPart.Icon], PropsIcon)" />
         <div>
             <div id="@titleId" @attributes="Attrs.Merge(parts[PopconfirmPart.Title], PropsTitle)">@Title</div>
             @if (Description is not null)

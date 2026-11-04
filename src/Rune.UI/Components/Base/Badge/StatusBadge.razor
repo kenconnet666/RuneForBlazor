@@ -1,0 +1,31 @@
+@*
+    状态标记：按状态映射显示名字与色调，没有图标的状态前画圆点。
+    <StatusBadge Statuses="OrderStatuses" Value="@order.Status" Radius="Radius.Full" />
+*@
+@namespace Rune.UI
+@typeparam TKey where TKey : notnull
+@inherits RuneComponent
+@{ var status = Statuses[Value]; }
+
+<Badge Tone="status.Tone" Icon="status.Icon" Dot="Dot" Variant="Variant" Size="Size" Radius="Radius"
+       data-status="@Value.ToString()" @attributes="Attrs.MergeProps(null, Rest)">@status.Label</Badge>
+
+@code {
+    /// <summary>状态映射。</summary>
+    [Parameter, EditorRequired] public StatusMap<TKey> Statuses { get; set; } = null!;
+
+    /// <summary>当前状态；不认识的键显示成中性色、名字就是键。</summary>
+    [Parameter, EditorRequired] public TKey Value { get; set; } = default!;
+
+    /// <summary>没有图标的状态前画一个同色的圆点，默认画。</summary>
+    [Parameter] public bool Dot { get; set; } = true;
+
+    /// <summary>样式，默认浅色底。</summary>
+    [Parameter] public BadgeVariant? Variant { get; set; }
+
+    /// <summary>字号档位，默认 Xs。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认 Sm。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+}

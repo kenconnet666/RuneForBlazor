@@ -11,8 +11,8 @@
     @ChildContent
     @if (External)
     {
-        <Icon Data="BuiltInIcons.ExternalLink" @attributes="Attrs.MergeProps(parts[LinkPart.Icon], PropsIcon)" />
-        <span @attributes="Attrs.Merge(parts[LinkPart.Hint])">@ExternalHint</span>
+        @* 图标与提示之间不能有空白：会多出一个空格的宽度 *@
+        <Icon Data="BuiltInIcons.ArrowUpRight" @attributes="Attrs.MergeProps(parts[LinkPart.Icon], PropsIcon)" /><VisuallyHidden>@ExternalHint</VisuallyHidden>
     }
 </a>
 
@@ -22,8 +22,8 @@
     /// <summary>链接地址；必填：没有地址的“链接”应该用按钮。</summary>
     [Parameter, EditorRequired] public string Href { get; set; } = "";
 
-    /// <summary>色调，默认强调色。</summary>
-    [Parameter] public Tone? Tone { get; set; }
+    /// <summary>色调，默认强调色（品牌色文字）；导航里的次要链接用 Muted。</summary>
+    [Parameter] public TextTone? Tone { get; set; }
 
     /// <summary>下划线，默认一直显示。</summary>
     [Parameter] public LinkUnderline? Underline { get; set; }
@@ -40,7 +40,7 @@
     /// <summary>链接文字。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    Tone ShownTone => Tone ?? Config.Defaults.Get<LinkDefaults>()?.Tone ?? UI.Tone.Accent;
+    TextTone ShownTone => Tone ?? Config.Defaults.Get<LinkDefaults>()?.Tone ?? TextTone.Accent;
 
     LinkUnderline ShownUnderline => Underline ?? Config.Defaults.Get<LinkDefaults>()?.Underline ?? LinkUnderline.Always;
 

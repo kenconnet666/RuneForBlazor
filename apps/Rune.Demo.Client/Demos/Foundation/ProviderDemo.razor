@@ -55,14 +55,14 @@
                 </Flex>
                 <Alert Tone="Tone.Warning" Title="提示条">浅色底、色调文字与图标都来自主题。</Alert>
                 <Grid MinItemWidth="@("14em")" Gap="SpaceScale.Md">
-                    <Card Title="卡片">
+                    <Card Header="@CardHeader">
                         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
                             <TextField placeholder="输入框" />
                             <Checkbox Value="true">勾选框</Checkbox>
                             <Switch Value="true">开关</Switch>
                         </Flex>
                     </Card>
-                    <Card Variant="CardVariant.Elevated" Title="浮起的卡片">
+                    <Card Variant="CardVariant.Elevated" Header="@ElevatedHeader">
                         <Paragraph Tone="TextTone.Muted">阴影来自主题（赛博朋克是发光的阴影）。</Paragraph>
                         <TextLink Href="server/provider">链接</TextLink>
                     </Card>
@@ -90,6 +90,9 @@
 </DemoSection>
 
 @code {
+    static readonly RenderFragment CardHeader = builder => builder.AddContent(0, "卡片");
+    static readonly RenderFragment ElevatedHeader = builder => builder.AddContent(0, "浮起的卡片");
+
     // 配置对象在组件里只创建一次：Provider 按引用判断配置有没有变
     readonly ComponentDefaults outlineByDefault = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } };
     readonly ComponentStyles accentTriggers = new() { { CollapsiblePart.Trigger, DemoStyles.AccentText } };

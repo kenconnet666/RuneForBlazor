@@ -1,0 +1,12 @@
+@*
+    行内代码（code）：<Code>npm install</Code>。多行代码用 CodeBlock（之后做）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<code @attributes="Attrs.Merge(TypographyStyles.Code(Config.Styles)[InlinePart.Root], Rest)">@ChildContent</code>
+
+@code {
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

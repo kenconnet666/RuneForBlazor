@@ -1,58 +1,88 @@
-@* 卡片：四种样式、页头（标题 / 自定义）、Extra、页脚、内边距 *@
+@*
+    卡片：示例与 vue-tsx-pro 文档站的 /components/card 一一对应。
+    页头与页脚示例里的收货信息先用网格排，Descriptions 做好后换成它；加载中（骨架）与装饰效果之后补上。
+*@
 @attribute [ComponentDemo("card", "卡片", Group = "展示", Order = 0)]
 @inherits RuneComponent
 
-<DemoSection Title="样式">
-    <Grid MinItemWidth="@("14em")" Gap="SpaceScale.Md">
-        @foreach (var variant in Enum.GetValues<CardVariant>())
-        {
-            <Card Variant="variant" Title="@variant.ToString()" data-testid="@($"card-{variant}")">
-                <TextSpan Tone="TextTone.Muted">把一组相关内容放在一块表面上。</TextSpan>
-            </Card>
-        }
-    </Grid>
+<DemoSection Id="variants" Title="样式">
+    <Description>Variant 有 Surface（默认）、Outline、Elevated、Ghost，颜色与阴影都取主题；可以用 CardDefaults 统一改。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@("13em")" Gap="SpaceScale.Md">
+            @foreach (var (variant, description) in variants)
+            {
+                <Card Variant="variant" data-testid="@($"card-{variant}")">
+                    <Strong>@variant.ToString().ToLowerInvariant()</Strong>
+                    <Paragraph Size="Size.Sm" Tone="TextTone.Muted">@description</Paragraph>
+                </Card>
+            }
+        </Grid>
+    </ChildContent>
 </DemoSection>
 
-<DemoSection Title="页头、页脚与操作">
-    <Grid MinItemWidth="@("18em")" Gap="SpaceScale.Md">
-        <Card Title="超时最久的项目" data-testid="card-full">
-            <Extra><TextLink Href="server/card" Underline="LinkUnderline.Hover">全部</TextLink></Extra>
+<DemoSection Id="sections" Title="页头与页脚">
+    <Description>Header、Footer 与正文之间有分隔线；需要语义容器时把标题放进 Header，或在外面包 article、section。</Description>
+    <ChildContent>
+        <Card data-testid="card-full">
+            <Header>
+                <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                        <H3 Size="Size.Md">订单 #10234</H3>
+                        <Badge Tone="Tone.Success" Radius="Radius.Full">已发货</Badge>
+                    </Flex>
+                    <IconButton Icon="Lucide.Ellipsis" Label="更多操作" />
+                </Flex>
+            </Header>
             <ChildContent>
-                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
-                    @foreach (var (name, days) in overdue)
-                    {
-                        <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
-                            <TextSpan Truncate="true">@name</TextSpan>
-                            <TextSpan Numeric="true" Wrap="TextWrapping.Nowrap" Tone="TextTone.Danger">@days 天</TextSpan>
-                        </Flex>
-                    }
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                    <Grid Columns="2" Gap="SpaceScale.Sm">
+                        <TextSpan Tone="TextTone.Muted">收货人：林小满 138****0021</TextSpan>
+                        <TextSpan Tone="TextTone.Muted">配送方式：顺丰次日达</TextSpan>
+                        <GridItem Span="2"><TextSpan Tone="TextTone.Muted">收货地址：上海市徐汇区漕溪北路 88 号 12 楼</TextSpan></GridItem>
+                    </Grid>
+                    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between">
+                        <TextSpan Tone="TextTone.Muted">实付</TextSpan>
+                        <TextSpan Size="Size.Lg" Weight="Weight.Bold">¥1,280.00</TextSpan>
+                    </Flex>
                 </Flex>
             </ChildContent>
             <Footer>
-                <Button Variant="ButtonVariant.Ghost">稍后</Button>
-                <Button>处理</Button>
+                <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                    <Small Tone="TextTone.Muted">下单于 10 月 18 日 14:32</Small>
+                    <Flex Gap="SpaceScale.Sm">
+                        <Button Size="Size.Sm" Variant="ButtonVariant.Ghost">申请售后</Button>
+                        <Button Size="Size.Sm" Icon="Lucide.Truck">查看物流</Button>
+                    </Flex>
+                </Flex>
             </Footer>
         </Card>
-        <Card Padding="SpaceScale.Md">
-            <Header>
-                <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-                    <Icon Data="Lucide.Package" />
-                    <H3 Size="Size.Md">订单 #1024</H3>
-                </Flex>
-                <Badge Tone="Tone.Success">已发货</Badge>
-            </Header>
-            <ChildContent>
-                <Paragraph>自定义页头：标题用 H3 保留文档结构，右边放状态。</Paragraph>
-            </ChildContent>
-        </Card>
-    </Grid>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="extra" Title="页头的操作">
+    <Description>Extra 在页头的结束边（“全部 ↗”、标记、按钮），和 Header 排在一行、放不下时换行，不用自己在 Header 里写两端对齐。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Card Variant="CardVariant.Outline" Padding="SpaceScale.Md">
+                <Header>超时最久的项目</Header>
+                <Extra><TextLink Href="server/card">全部超时<Icon Data="Lucide.ArrowUpRight" /></TextLink></Extra>
+                <ChildContent><Small Tone="TextTone.Muted">PO-2026-0276 线缆收纳夹改版 · 超时 15 天</Small></ChildContent>
+            </Card>
+            <Card Variant="CardVariant.Outline" Padding="SpaceScale.Md">
+                <Header>结项材料</Header>
+                <Extra><Badge Tone="Tone.Warning">缺 2 项</Badge></Extra>
+                <ChildContent><Small Tone="TextTone.Muted">验收报告、财务复核意见、合同签订记录，缺一不能结项</Small></ChildContent>
+            </Card>
+        </Flex>
+    </ChildContent>
 </DemoSection>
 
 @code {
-    static readonly (string Name, int Days)[] overdue =
+    static readonly (CardVariant Variant, string Description)[] variants =
     [
-        ("华东仓 3 月盘点差异复核", 13),
-        ("供应商资质年审（很长的名称会被截断）", 9),
-        ("退货入库", 4),
+        (CardVariant.Surface, "表面色加描边（默认）：页面上最常见的卡片"),
+        (CardVariant.Outline, "只有描边、没有底色：放在有底色的区域里"),
+        (CardVariant.Elevated, "浮起的表面加阴影：可点击、可拖动的卡片"),
+        (CardVariant.Ghost, "没有边框与底色：只用来分组与留白"),
     ];
 }

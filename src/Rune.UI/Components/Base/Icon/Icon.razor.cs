@@ -18,7 +18,7 @@ public partial class Icon : UIComponent
     [Parameter] public Size? Size { get; set; }
 
     /// <summary>色调：图标用这个色调的文字色；不写时跟着文字颜色。</summary>
-    [Parameter] public Tone? Tone { get; set; }
+    [Parameter] public TextTone? Tone { get; set; }
 
     /// <summary>线条粗细；不写时取主题的 <see cref="StrokeWidths.Md"/>（2，Lucide 的设计值）。</summary>
     [Parameter] public double? StrokeWidth { get; set; }

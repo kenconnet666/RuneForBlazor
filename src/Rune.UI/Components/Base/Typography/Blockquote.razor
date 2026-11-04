@@ -1,0 +1,12 @@
+@*
+    引用（blockquote）：引文出处写在 cite 属性里，署名放在里面的 Small。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<blockquote @attributes="Attrs.Merge(TypographyStyles.Blockquote(Config.Styles)[InlinePart.Root], Rest)">@ChildContent</blockquote>
+
+@code {
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

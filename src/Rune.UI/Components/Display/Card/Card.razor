@@ -1,34 +1,21 @@
 @*
     卡片（div）：把一组相关内容放在一块表面上。页头、页脚可选，与正文之间有分隔线。
-    <Card Title="订单 #1024">…</Card>
-    <Card Title="超时最久的项目">
+    <Card>
+        <Header>超时最久的项目</Header>
         <Extra><TextLink Href="/overdue">全部</TextLink></Extra>
         <ChildContent>…</ChildContent>
         <Footer><Button>查看</Button></Footer>
     </Card>
-    标题需要标题语义时用 Header 放 H2/H3（Header 优先于 Title）；需要语义容器（article、section）时在外面包。
+    标题需要标题语义时在 Header 里放 H2/H3；需要语义容器（article、section）时在外面包。
 *@
 @namespace Rune.UI
 @inherits UIComponent
-@{ var parts = CardStyles.Of(CardAppearance.Resolve(Variant, Padding, Radius, Config), Config.Styles); }
+@{ var parts = CardStyles.Of(CardAppearance.Resolve(Variant, Padding, Radius, Extra is not null, Config), Config.Styles); }
 
 <div @attributes="Attrs.Merge(parts[CardPart.Root], Rest)">
-    @if (Header is not null || Title is not null || Extra is not null)
+    @if (Header is not null || Extra is not null)
     {
-        <div @attributes="Attrs.Merge(parts[CardPart.Header], PropsHeader)">
-            @if (Header is not null)
-            {
-                @Header
-            }
-            else if (Title is not null)
-            {
-                <div @attributes="Attrs.Merge(parts[CardPart.Title])">@Title</div>
-            }
-            @if (Extra is not null)
-            {
-                <div @attributes="Attrs.Merge(parts[CardPart.Extra])">@Extra</div>
-            }
-        </div>
+        <div @attributes="Attrs.Merge(parts[CardPart.Header], PropsHeader)">@Header@Extra</div>
     }
     <div @attributes="Attrs.Merge(parts[CardPart.Body], PropsBody)">@ChildContent</div>
     @if (Footer is not null)
@@ -47,13 +34,10 @@
     /// <summary>圆角，默认大圆角。</summary>
     [Parameter] public Radius? Radius { get; set; }
 
-    /// <summary>页头里的标题文字。</summary>
-    [Parameter] public string? Title { get; set; }
-
-    /// <summary>自定义页头内容（替代 <see cref="Title"/>）：标题语义（H3）、头像等。</summary>
+    /// <summary>页头：标题（文字或 H3）、操作；与正文之间有分隔线。</summary>
     [Parameter] public RenderFragment? Header { get; set; }
 
-    /// <summary>页头结束边的内容（“全部”链接、按钮）：和标题排在一行，放不下时换行。</summary>
+    /// <summary>页头结束边的内容（“全部 ↗”、标记、按钮）：和 Header 排在一行，放不下时换行。</summary>
     [Parameter] public RenderFragment? Extra { get; set; }
 
     /// <summary>页脚：操作按钮。</summary>

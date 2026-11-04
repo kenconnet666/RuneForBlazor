@@ -13,11 +13,11 @@ public enum IconPart
 public static class IconStyles
 {
     /// <summary>某个字号档位、色调、是否在从右到左的语言里翻转、某套定制下的部件默认层。</summary>
-    public static PartLayers<IconPart> Of(Size? size, Tone? tone, bool flipInRtl, ComponentStyles styles) =>
-        Recipe.Of("icon", (size, tone, flipInRtl), styles, static ((Size? Size, Tone? Tone, bool FlipInRtl) a, IconPart part) => Sx.Of(
+    public static PartLayers<IconPart> Of(Size? size, TextTone? tone, bool flipInRtl, ComponentStyles styles) =>
+        Recipe.Of("icon", (size, tone, flipInRtl), styles, static ((Size? Size, TextTone? Tone, bool FlipInRtl) a, IconPart part) => Sx.Of(
             Root,
             a.Size is { } size ? ScaleStyles.FontSize(size) : null,
-            a.Tone is { } tone ? SharedStyles.ToneText(tone) : null,
+            a.Tone is { } tone ? SharedStyles.TextColor(tone) : null,
             a.FlipInRtl ? FlipInRtl : null));
 
     // 线条粗细取主题的 token（CSS 的 stroke-width 优先于 svg 上的属性）

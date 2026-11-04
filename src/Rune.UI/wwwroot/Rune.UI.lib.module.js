@@ -14,6 +14,10 @@
 //   data-rune-focus="id"     点击时聚焦这个 id 的控件并滚到它（表单错误汇总里的链接）
 //   data-rune-spin           数字输入框：↑↓ 加减步长、Page Up / Down 加减大步长、Home / End 到最小 / 最大，改完发 change（C# 再校正）
 //   data-rune-ripple         按钮、菜单项：按下时从指针位置（键盘 Enter / 空格时从中心）扩散一圈波纹，松开后淡出
+//   data-rune-inert          加载中、可聚焦的不可用按钮：拦下点击的默认动作（提交表单）
+//   data-rune-dismiss        可移除元素（data-rune-dismissible，如标签）里的移除按钮：元素先离场（data-dismissing），
+//                            结束后发出冒泡的 rune-dismiss（Blazor 里是 @onrunedismiss）；被移除时焦点交给同组的下一个
+//                            （没有就上一个）可聚焦元素，没被移除就重新显示
 //
 // 模态对话框打开时锁定页面滚动；不支持锚点定位的浏览器在浮层打开时按触发元素摆放一次。
 
@@ -36,6 +40,10 @@ function install(blazor) {
   blazor.registerCustomEventType('runetoggle', {
     browserEventName: 'rune-toggle',
     createEventArgs: (event) => ({ open: event.detail.open }),
+  });
+  blazor.registerCustomEventType('runedismiss', {
+    browserEventName: 'rune-dismiss',
+    createEventArgs: () => ({}),
   });
 
   // 原生的 toggle（popover）与 close（dialog）不冒泡：在捕获阶段接住，转发成冒泡的 rune-toggle
@@ -164,6 +172,12 @@ function onFocusLink(event) {
 function onClick(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
+
+  const dismiss = target.closest('[data-rune-dismiss]');
+  if (dismiss) {
+    startDismiss(dismiss);
+    return;
+  }
 
   const opener = target.closest('[data-rune-open]');
   if (opener) {
@@ -323,6 +337,62 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
  * 实底按钮上是浅色、描边按钮上是深色；松开、移出、取消或失去焦点时淡出并移除。
  * 宿主要有 position: relative 与 overflow: hidden（SharedStyles.RippleHost）。减少动效时不扩散，只是按下时变色。
  */
+/** 可移除元素的离场：先播放离场过渡，结束后交给 Blazor 移除；等一会儿还在（使用方没移除）就重新显示 */
+function startDismiss(button) {
+  const target = button.closest('[data-rune-dismissible]');
+  if (!target || target.hasAttribute('data-dismissing')) return;
+  const candidates = focusCandidatesAfterRemoval(target);
+  target.setAttribute('data-dismissing', '');
+  afterTransition(target, () => {
+    target.dispatchEvent(new CustomEvent('rune-dismiss', { bubbles: true }));
+    // Server 模式要等一次往返：每 50ms 看一次，最多 2 秒
+    let checks = 0;
+    const timer = setInterval(() => {
+      if (!target.isConnected) {
+        clearInterval(timer);
+        const active = document.activeElement;
+        if (!active || active === document.body) candidates.find((item) => item.isConnected)?.focus();
+      } else if (++checks >= 40) {
+        clearInterval(timer);
+        target.removeAttribute('data-dismissing');
+      }
+    }, 50);
+  });
+}
+
+/** 元素被移除后接手焦点的候选：同组（父元素）里在它后面的可聚焦元素，再是前面的；焦点不在它里面时不接管 */
+function focusCandidatesAfterRemoval(element) {
+  const group = element.parentElement;
+  if (!group || !element.contains(document.activeElement)) return [];
+  const others = [...group.querySelectorAll(TABBABLE)].filter((item) => !element.contains(item));
+  const following = others.filter((item) => element.compareDocumentPosition(item) & Node.DOCUMENT_POSITION_FOLLOWING);
+  const preceding = others.filter((item) => !following.includes(item)).reverse();
+  return [...following, ...preceding];
+}
+
+const TABBABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
+
+/** 过渡结束后执行：没有过渡（减少动态效果时时长为 0）立即执行；transitionend 没来（页面在后台）时按时长兜底 */
+function afterTransition(element, done) {
+  const seconds = (value) => Math.max(0, ...value.split(',').map((part) => parseFloat(part) * (part.trim().endsWith('ms') ? 0.001 : 1)));
+  const style = getComputedStyle(element);
+  const total = seconds(style.transitionDuration) + seconds(style.transitionDelay);
+  if (total === 0) {
+    requestAnimationFrame(done);
+    return;
+  }
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    element.removeEventListener('transitionend', onEnd);
+    done();
+  };
+  const onEnd = (event) => event.target === element && finish();
+  element.addEventListener('transitionend', onEnd);
+  setTimeout(finish, total * 1000 + 50);
+}
+
 function startRipple(event) {
   const keyboard = event instanceof KeyboardEvent;
   const host = event.target instanceof Element ? event.target.closest('[data-rune-ripple]') : null;
