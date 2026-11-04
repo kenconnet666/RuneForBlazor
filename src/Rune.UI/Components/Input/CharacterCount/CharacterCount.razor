@@ -11,7 +11,7 @@
     var parts = CharacterCountStyles.Of(over, Config.Styles);
 }
 
-<span data-over="@(over ? "true" : null)" data-max="@Max" @attributes="Attrs.Merge(parts[CharacterCountPart.Root], Rest)"><span aria-hidden="true" @attributes="Attrs.Merge(parts[CharacterCountPart.Value], PropsValue)">@(Max is { } limit ? $"{Count} / {limit}" : Count.ToString())</span><VisuallyHidden @attributes="Attrs.MergeProps(parts[CharacterCountPart.Label], PropsLabel)">@(Max is { } most ? $"已输入 {Count} 个字符，最多 {most} 个" : $"已输入 {Count} 个字符")</VisuallyHidden></span>
+<span data-over="@(over ? "true" : null)" data-max="@Max" @attributes="Attrs.Merge(parts[CharacterCountPart.Root], Rest)"><span aria-hidden="true" @attributes="Attrs.Merge(parts[CharacterCountPart.Value], PropsValue)">@(Max is { } limit ? $"{Count} / {limit}" : Count.ToString())</span><VisuallyHidden @attributes="Attrs.MergeProps(parts[CharacterCountPart.Label], PropsLabel)">@Config.Lang.CharacterCount(Count, Max)</VisuallyHidden></span>
 
 @code {
     /// <summary>已输入的字符数。</summary>

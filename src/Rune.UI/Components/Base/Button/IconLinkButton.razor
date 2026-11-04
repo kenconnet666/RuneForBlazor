@@ -23,8 +23,8 @@
     /// <summary>外部链接：新窗口打开，加 rel="noopener noreferrer"；名称后面带上“（在新窗口打开）”。</summary>
     [Parameter] public bool External { get; set; }
 
-    /// <summary>外部链接给读屏的提示，接在名称后面。</summary>
-    [Parameter] public string ExternalHint { get; set; } = "（在新窗口打开）";
+    /// <summary>外部链接给读屏的提示，接在名称后面。；不写时取语言包（UIConfig.Lang）的“（在新窗口打开）”。</summary>
+    [Parameter] public string? ExternalHint { get; set; }
 
     /// <inheritdoc/>
     protected override ButtonVariant DefaultVariant => ButtonVariant.Ghost;
@@ -35,7 +35,7 @@
     Memo<(string Href, string Label, bool External, string Hint, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
 
     /// <summary>a 上由组件管理的属性：地址、名称、外链的打开方式与状态；不变时复用同一个对象。</summary>
-    Attrs Managed => managed.Get((Href, Label, External, ExternalHint, Disabled, IsLoading, RippleEnabled), static k => Attrs.Merge(
+    Attrs Managed => managed.Get((Href, Label, External, ExternalHint ?? Config.Lang.LinkNewWindow, Disabled, IsLoading, RippleEnabled), static k => Attrs.Merge(
         StateAttrs(k.Disabled, focusable: true, k.Loading, k.Ripple),
         new Attrs
         {

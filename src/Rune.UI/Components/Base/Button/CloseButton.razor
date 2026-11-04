@@ -3,15 +3,15 @@
     <CloseButton @onclick="Close" />
 *@
 @namespace Rune.UI
-@inherits RuneComponent
+@inherits UIComponent
 
-<IconButton Icon="BuiltInIcons.X" Label="@Label" Variant="Variant" Tone="Tone" Size="Size" Radius="Radius"
+<IconButton Icon="BuiltInIcons.X" Label="@(Label ?? Config.Lang.Close)" Variant="Variant" Tone="Tone" Size="Size" Radius="Radius"
             Disabled="Disabled" FocusableWhenDisabled="FocusableWhenDisabled" Ripple="Ripple"
             @attributes="Attrs.MergeProps(null, Rest)" />
 
 @code {
-    /// <summary>按钮的名称（读屏读出），默认“关闭”。</summary>
-    [Parameter] public string Label { get; set; } = "关闭";
+    /// <summary>按钮的名称（读屏读出），不写时取语言包（UIConfig.Lang）的“关闭”。</summary>
+    [Parameter] public string? Label { get; set; }
 
     /// <summary>样式，默认同 IconButton（无底）。</summary>
     [Parameter] public ButtonVariant? Variant { get; set; }

@@ -39,10 +39,10 @@
     }
     @if (ShowStepper)
     {
-        <IconButton Icon="BuiltInIcons.Minus" Label="@DecrementLabel" Radius="UI.Radius.Full" tabindex="-1" data-rune-repeat
+        <IconButton Icon="BuiltInIcons.Minus" Label="@(DecrementLabel ?? Config.Lang.NumberDecrement)" Radius="UI.Radius.Full" tabindex="-1" data-rune-repeat
                     Disabled="@(IsDisabled || AtLimit(current, Min, -1))" @onclick="() => StepAsync(-1)"
                     @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsDecrement)" />
-        <IconButton Icon="BuiltInIcons.Plus" Label="@IncrementLabel" Radius="UI.Radius.Full" tabindex="-1" data-rune-repeat
+        <IconButton Icon="BuiltInIcons.Plus" Label="@(IncrementLabel ?? Config.Lang.NumberIncrement)" Radius="UI.Radius.Full" tabindex="-1" data-rune-repeat
                     Disabled="@(IsDisabled || AtLimit(current, Max, 1))" @onclick="() => StepAsync(1)"
                     @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsIncrement)" />
     }
@@ -105,17 +105,17 @@
     /// <summary>有值时显示清空按钮（可空的值类型才有：清空后是 null）。</summary>
     [Parameter] public bool Clearable { get; set; }
 
-    /// <summary>清空按钮的名称（读屏读出）。</summary>
-    [Parameter] public string ClearLabel { get; set; } = "清空";
+    /// <summary>清空按钮的名称（读屏读出）；不写时取语言包（UIConfig.Lang）的“清空”。</summary>
+    [Parameter] public string? ClearLabel { get; set; }
 
     /// <summary>清空按钮的部件属性。</summary>
     [Parameter] public Attrs? PropsClear { get; set; }
 
-    /// <summary>减少按钮的名称（读屏读出）。</summary>
-    [Parameter] public string DecrementLabel { get; set; } = "减少";
+    /// <summary>减少按钮的名称（读屏读出）；不写时取语言包的“减少”。</summary>
+    [Parameter] public string? DecrementLabel { get; set; }
 
-    /// <summary>增加按钮的名称。</summary>
-    [Parameter] public string IncrementLabel { get; set; } = "增加";
+    /// <summary>增加按钮的名称；不写时取语言包的“增加”。</summary>
+    [Parameter] public string? IncrementLabel { get; set; }
 
     /// <summary>前缀的部件属性（指向输入框的 label）。</summary>
     [Parameter] public Attrs? PropsPrefix { get; set; }

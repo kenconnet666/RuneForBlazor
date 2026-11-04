@@ -32,7 +32,7 @@
     }
     @if (Type == "password")
     {
-        <RevealButton Label="@RevealLabel" Radius="UI.Radius.Full" Disabled="IsDisabled" @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsReveal, RevealTarget)" />
+        <RevealButton Label="@(RevealLabel ?? Config.Lang.PasswordShow)" Radius="UI.Radius.Full" Disabled="IsDisabled" @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsReveal, RevealTarget)" />
     }
     @if (ShowCount)
     {
@@ -85,11 +85,11 @@
     /// <summary>字数计数的部件属性（交给 CharacterCount）。</summary>
     [Parameter] public Attrs? PropsCount { get; set; }
 
-    /// <summary>清空按钮的名称（读屏读出）。</summary>
-    [Parameter] public string ClearLabel { get; set; } = "清空";
+    /// <summary>清空按钮的名称（读屏读出）；不写时取语言包（UIConfig.Lang）的“清空”。</summary>
+    [Parameter] public string? ClearLabel { get; set; }
 
-    /// <summary>显示 / 隐藏密码按钮的名称（读屏读出，按下状态用 aria-pressed 表示）。</summary>
-    [Parameter] public string RevealLabel { get; set; } = "显示密码";
+    /// <summary>显示 / 隐藏密码按钮的名称（读屏读出，按下状态用 aria-pressed 表示）；不写时取语言包的“显示密码”。</summary>
+    [Parameter] public string? RevealLabel { get; set; }
 
     /// <summary>前置图标的部件属性（交给 Icon）。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }

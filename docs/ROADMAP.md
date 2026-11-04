@@ -90,7 +90,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
       （按钮已对齐：亮暗主题、悬停聚焦按下一致；Badge、Kbd、Card 在各自页面对照时改）
 - [ ] 演示页改名对齐文档站的路由（typography → text、layout → flex / grid 等），示例按文档站补齐；已完成组件逐个过一遍对照报告
       （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（radio 已对齐，CheckboxGroup、items、开关的 loading 与轨道内容待做）、flex（除了还没做的 ToggleGroup、Avatar、Descriptions、输入框）；card 差 loading 与 effects 示例；缺的组件做到时补示例：Descriptions、Table、Select、ButtonGroup、Avatar、ToggleGroup；toast 的完整功能在阶段 6）
-- [ ] 语言包：`UIConfig.Lang` 与 `RuneProvider` 的 `Lang`；`tools/lang-gen` 从 vue-tsx-pro 的语言包生成 zh-CN、en-US；已有组件里的文字（关闭、确定、取消、增加、减少……）改成取语言包
+- [x] 语言包：`UIConfig.Lang` 与 `RuneProvider` 的 `Lang`；`tools/lang-gen` 从 vue-tsx-pro 的语言包生成 zh-CN、en-US；已有组件里的文字（关闭、确定、取消、增加、减少……）改成取语言包
 - [ ] 端到端测试项目 `tests/Rune.E2E`（Microsoft.Playwright，Chromium）：启动演示项目，覆盖已有的键盘与焦点逻辑（菜单、对话框、气泡确认、数字框方向键、表单错误汇总跳转）；进 CI
 - [ ] 列表状态与键盘（同 vue-tsx-pro 的 `list-state.ts`）：高亮项、`aria-activedescendant`、方向键 / Home / End / PageUp / PageDown、首字母、多选；Listbox 组件；后面的 Select、Combobox、Tree、Tabs、Menu 共用
 - [ ] 骨架与扫光：Skeleton、SkeletonText、`ShimmerStyles`（同 `utils/style/shimmer.ts`）；延迟显示加载态（同 `useDelayedLoading`）

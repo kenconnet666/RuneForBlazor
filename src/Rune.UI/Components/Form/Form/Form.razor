@@ -21,7 +21,7 @@
     <CascadingValue Value="state">
         @if (ErrorSummary && showErrors && Errors is { Count: > 0 } errors)
         {
-            <Alert Tone="Tone.Danger" Title="@string.Format(SummaryTitle, errors.Count)" Live="AlertLive.Assertive"
+            <Alert Tone="Tone.Danger" Title="@(SummaryTitle?.Invoke(errors.Count) ?? Config.Lang.FormErrorSummary(errors.Count))" Live="AlertLive.Assertive"
                    @attributes="Attrs.MergeProps(parts[FormPart.Summary], PropsSummary)">
                 <ul @attributes="Attrs.Merge(parts[FormPart.SummaryList])">
                     @foreach (var (text, controlId) in errors)
@@ -68,8 +68,8 @@
     /// <summary>提交未通过时在顶部列出错误，默认是。</summary>
     [Parameter] public bool ErrorSummary { get; set; } = true;
 
-    /// <summary>错误汇总的标题，{0} 是错误数。</summary>
-    [Parameter] public string SummaryTitle { get; set; } = "提交前请修正以下 {0} 项";
+    /// <summary>错误汇总的标题（参数是错误数）；不写时取语言包的“有 N 项需要修改”。</summary>
+    [Parameter] public Func<int, string>? SummaryTitle { get; set; }
 
     /// <summary>静态 SSR 下提交表单时的名字（Blazor 的 FormName）；交互模式不需要。</summary>
     [Parameter] public string? FormName { get; set; }
@@ -133,7 +133,7 @@
             {
                 foreach (var message in context.GetValidationMessages(identifier))
                 {
-                    errors.Add((label is null ? message : $"{label}：{message}", controlId));
+                    errors.Add((label is null ? message : Config.Lang.FormErrorItem(label, message), controlId));
                     rest.Remove(message);
                 }
             }

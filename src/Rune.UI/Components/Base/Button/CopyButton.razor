@@ -30,11 +30,11 @@
     /// <summary>点击时才取要复制的文字（内容按需生成，等待时按钮转圈）；给了它就不看 <see cref="Value"/>。</summary>
     [Parameter] public Func<Task<string>>? GetValue { get; set; }
 
-    /// <summary>按钮的名称（读屏读出），默认“复制”。</summary>
-    [Parameter] public string Label { get; set; } = "复制";
+    /// <summary>按钮的名称（读屏读出），不写时取语言包（UIConfig.Lang）的“复制”。</summary>
+    [Parameter] public string? Label { get; set; }
 
-    /// <summary>复制成功后读屏播报的话，默认“已复制”。</summary>
-    [Parameter] public string CopiedText { get; set; } = "已复制";
+    /// <summary>复制成功后读屏播报的话，不写时取语言包（UIConfig.Lang）的“已复制”。</summary>
+    [Parameter] public string? CopiedText { get; set; }
 
     /// <summary>对勾保持多久（毫秒）后复原，默认 2000。</summary>
     [Parameter] public int Timeout { get; set; } = 2000;
@@ -62,7 +62,7 @@
     /// 同步的值点击时由 JS 写入（data-rune-copy）；异步取到的值随一个递增的请求号交给 JS（data-rune-copy-request 变了就写入）。
     /// </summary>
     Attrs Managed => managed.Get(
-        (Label, GetValue is null ? Value : fetched, request, Timeout, CopiedText, Disabled, IsLoading, RippleEnabled, GetValue is not null),
+        (Label ?? Config.Lang.Copy, GetValue is null ? Value : fetched, request, Timeout, CopiedText ?? Config.Lang.Copied, Disabled, IsLoading, RippleEnabled, GetValue is not null),
         this,
         static (k, self) => Attrs.Merge(
             StateAttrs(k.Disabled, focusable: false, k.Loading, k.Ripple),

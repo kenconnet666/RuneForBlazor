@@ -99,6 +99,9 @@
   变量与这些属性沿 DOM 继承，所以静态外壳里的主题对里面的交互区域同样生效。
 - **配置**：`UIConfig`（主题、亮暗、组件默认值、按部件的样式定制、波纹开关）。应用级的来自 `AddRuneUI`（DI，服务端与 WebAssembly 各注册一次），
   `RuneProvider` 在一片区域里叠加修改。级联值不能跨渲染模式边界，交互区域里需要局部修改时在里面再放一个 Provider。
+- **语言包**：`Lang`（同 vue-tsx-pro 的 Lang，由 `tools/lang-gen` 生成）放在 `UIConfig.Lang`，`AddRuneUI` 设应用级的、`RuneProvider` 的 `Lang` 在一片区域里换；
+  组件里的文案参数（CloseLabel、ClearLabel……）不写时取语言包。Provider 的包裹元素写上 `lang` 与 `dir`。改几条用 `Lang.ZhCn with { … }`。
+  vue-tsx-pro 的 toLocaleString 翻译成 `LangFormat.Number`：取不到文化数据时（WebAssembly 按需加载）用不变文化，不抛异常。
 - **默认值**：每个组件一个 record（`CollapsibleDefaults`），属性可空，`Over` 定义叠加规则；组件上写的参数 > 最近的 Provider > 应用级 > 组件自己的默认值。
 - **按部件定制样式**：用组件的部件枚举（`CollapsiblePart.Trigger`）指定，写错编译不过；追加在组件样式之后、使用方的 Sx 之前，`Part.Of` 统一处理，组件不用为此写代码。
 - **不让下面的组件白白重新渲染**：Provider 的参数没变时给出同一个配置对象；配置是 record，级联参数与普通参数一样比较，没变就跳过。

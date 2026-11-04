@@ -20,7 +20,7 @@
                 }
                 @if (!HideClose)
                 {
-                    <IconButton Icon="BuiltInIcons.X" Label="@CloseLabel" data-rune-close @attributes="Attrs.MergeProps(parts[DialogPart.Close], PropsClose)" />
+                    <IconButton Icon="BuiltInIcons.X" Label="@(CloseLabel ?? Config.Lang.Close)" data-rune-close @attributes="Attrs.MergeProps(parts[DialogPart.Close], PropsClose)" />
                 }
             </div>
         }

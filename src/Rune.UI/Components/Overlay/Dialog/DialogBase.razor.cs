@@ -38,8 +38,8 @@ public abstract partial class DialogBase
     /// <summary>不显示右上角的关闭按钮（Esc 仍可关闭）。</summary>
     [Parameter] public bool HideClose { get; set; }
 
-    /// <summary>关闭按钮的名称（读屏读出）。</summary>
-    [Parameter] public string CloseLabel { get; set; } = "关闭";
+    /// <summary>关闭按钮的名称（读屏读出）；不写时取语言包的“关闭”。</summary>
+    [Parameter] public string? CloseLabel { get; set; }
 
     /// <summary>页头的部件属性。</summary>
     [Parameter] public Attrs? PropsHeader { get; set; }

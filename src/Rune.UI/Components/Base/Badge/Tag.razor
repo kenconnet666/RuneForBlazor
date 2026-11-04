@@ -16,7 +16,7 @@
             <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[BadgePart.Icon], PropsIcon)" />
         }
         @* 文字与移除按钮之间不留空白 *@
-        @ChildContent<CloseButton Label="@RemoveLabel" Radius="UI.Radius.Full" @attributes="Attrs.MergeProps(parts[BadgePart.Remove], PropsRemove, dismissButton)" />
+        @ChildContent<CloseButton Label="@(RemoveLabel ?? Config.Lang.Remove)" Radius="UI.Radius.Full" @attributes="Attrs.MergeProps(parts[BadgePart.Remove], PropsRemove, dismissButton)" />
     </span>
 }
 else
@@ -54,8 +54,8 @@ else
     /// <summary>给了就显示移除按钮；离场动画结束后调用，由使用方把标签从列表里拿掉。</summary>
     [Parameter] public EventCallback OnRemove { get; set; }
 
-    /// <summary>移除按钮的名称（读屏读出），默认“移除”；建议写成“移除 张三”这样能区分的说法。</summary>
-    [Parameter] public string RemoveLabel { get; set; } = "移除";
+    /// <summary>移除按钮的名称（读屏读出），不写时取语言包（UIConfig.Lang）的“移除”；建议写成“移除 张三”这样能区分的说法。</summary>
+    [Parameter] public string? RemoveLabel { get; set; }
 
     /// <summary>图标的部件属性。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }

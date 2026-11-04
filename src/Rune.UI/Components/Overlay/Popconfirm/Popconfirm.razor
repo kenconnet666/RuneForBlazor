@@ -21,8 +21,8 @@
         </div>
     </div>
     <div @attributes="Attrs.Merge(parts[PopconfirmPart.Actions], PropsActions)">
-        <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="UI.Tone.Neutral" data-rune-close autofocus @onclick="OnCancel">@CancelText</Button>
-        <Button Size="UI.Size.Sm" Tone="Tone" data-rune-close @onclick="OnConfirm">@ConfirmText</Button>
+        <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="UI.Tone.Neutral" data-rune-close autofocus @onclick="OnCancel">@(CancelText ?? Config.Lang.Cancel)</Button>
+        <Button Size="UI.Size.Sm" Tone="Tone" data-rune-close @onclick="OnConfirm">@(ConfirmText ?? Config.Lang.Confirm)</Button>
     </div>
 </Popover>
 
@@ -35,11 +35,11 @@
     /// <summary>补充说明（后果）。</summary>
     [Parameter] public string? Description { get; set; }
 
-    /// <summary>确认按钮的文字。</summary>
-    [Parameter] public string ConfirmText { get; set; } = "确定";
+    /// <summary>确认按钮的文字；不写时取语言包的“确定”。</summary>
+    [Parameter] public string? ConfirmText { get; set; }
 
-    /// <summary>取消按钮的文字。</summary>
-    [Parameter] public string CancelText { get; set; } = "取消";
+    /// <summary>取消按钮的文字；不写时取语言包的“取消”。</summary>
+    [Parameter] public string? CancelText { get; set; }
 
     /// <summary>色调：确认按钮与图标的颜色，默认警告色；删除这类不可撤销的操作写 Danger。</summary>
     [Parameter] public Tone Tone { get; set; } = Tone.Warning;

@@ -18,7 +18,7 @@ permissions:
 env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
-  # css-gen、theme-gen 的数据来源：生成 Style.Properties.g.cs、Themes.g.cs 时 vue-tsx-pro 的版本。重新生成时一起更新这里
+  # css-gen、theme-gen、lang-gen 的数据来源：生成 Style.Properties.g.cs、Themes.g.cs 时 vue-tsx-pro 的版本。重新生成时一起更新这里
   VUE_TSX_PRO_REF: 7c4e61da2874fc00bfc9c79e9e59c5123ed608a5
 
 jobs:
@@ -87,7 +87,7 @@ jobs:
         run: node tools/icon-gen/generate.mjs --check
 
   css-gen:
-    name: 样式属性表、内置主题与 vue-tsx-pro 一致
+    name: 样式属性表、内置主题、语言包与 vue-tsx-pro 一致
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -101,6 +101,7 @@ jobs:
           sparse-checkout: |
             packages/tsx/src/styles
             packages/ui/src/config/theme
+            packages/ui/src/config/lang
 
       - uses: actions/setup-node@v7
         with:
@@ -111,3 +112,6 @@ jobs:
 
       - name: 检查 Themes.g.cs
         run: node tools/theme-gen/generate.mjs --check --source .deps/vue-tsx-pro
+
+      - name: 检查 Lang.g.cs
+        run: node tools/lang-gen/generate.mjs --check --source .deps/vue-tsx-pro

@@ -13,7 +13,11 @@ namespace Rune.UI;
 /// <param name="Defaults">组件默认值。</param>
 /// <param name="Styles">按部件的样式定制。</param>
 /// <param name="Ripple">可点击的组件（按钮、菜单项）按下时的波纹，默认开启；组件的 Ripple 参数可以单独覆盖。</param>
-public sealed record UIConfig(Theme Theme, Theme? DarkTheme, ColorScheme ColorScheme, ComponentDefaults Defaults, ComponentStyles Styles, bool Ripple = true);
+public sealed record UIConfig(Theme Theme, Theme? DarkTheme, ColorScheme ColorScheme, ComponentDefaults Defaults, ComponentStyles Styles, bool Ripple = true)
+{
+    /// <summary>语言：组件里的文案（关闭、清空、共 N 条）与地区信息，默认简体中文。</summary>
+    public Lang Lang { get; init; } = Lang.ZhCn;
+}
 
 /// <summary>应用级配置（<see cref="RuneUIServiceCollectionExtensions.AddRuneUI"/> 里设置）。</summary>
 public sealed class RuneUIOptions
@@ -35,6 +39,9 @@ public sealed class RuneUIOptions
 
     /// <summary>可点击的组件按下时的波纹，默认开启。</summary>
     public bool Ripple { get; set; } = true;
+
+    /// <summary>语言，默认简体中文（<see cref="Lang.ZhCn"/>）；英文界面用 <see cref="Lang.EnUs"/>。</summary>
+    public Lang Lang { get; set; } = Lang.ZhCn;
 }
 
 /// <summary>注册组件库的服务。</summary>
@@ -51,7 +58,7 @@ public static class RuneUIServiceCollectionExtensions
         var options = new RuneUIOptions();
         configure?.Invoke(options);
         services.AddRune();
-        services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple));
+        services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple) { Lang = options.Lang });
         services.AddScoped<ToastService>();
         return services;
     }

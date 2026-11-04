@@ -1,19 +1,19 @@
 @*
-    在一片区域里修改组件库的配置：主题、亮暗模式、组件默认值、按部件的样式定制，没写的沿用外层。
+    在一片区域里修改组件库的配置：主题、亮暗模式、语言、组件默认值、按部件的样式定制，没写的沿用外层。
     放在应用根部（布局里）时套上应用级的主题；嵌套时只改写了的部分。
     <RuneProvider ColorScheme="ColorScheme.Dark"
                   Defaults="@(new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } })">
         …
     </RuneProvider>
-    主题以 CSS 变量作用在包裹元素（display: contents）里面，不影响布局。
+    主题以 CSS 变量作用在包裹元素（display: contents）里面，不影响布局；包裹元素上还写了语言的 lang 与 dir（同 vue-tsx-pro）。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 
 <CascadingValue Value="config">
-    @if (AppliesTheme)
+    @if (HasWrapper)
     {
-        <div @attributes="Attrs.Merge(Themed, null, ThemeAttrs)">
+        <div @attributes="Attrs.Merge(AppliesTheme ? Themed : Contents, null, ThemeAttrs)">
             @ChildContent
         </div>
     }
@@ -25,8 +25,8 @@
 
 @code {
     UIConfig config = default!;
-    Memo<(string Class, string Label), Attrs> themeAttrs;
-    Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentDefaults? Defaults, ComponentStyles? Styles, bool? Ripple), UIConfig> built;
+    Memo<(string? Class, string? Label, string Code, string Direction), Attrs> themeAttrs;
+    Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentDefaults? Defaults, ComponentStyles? Styles, bool? Ripple, Lang? Lang), UIConfig> built;
 
     /// <summary>主题（亮色）。</summary>
     [Parameter] public Theme? Theme { get; set; }
@@ -47,14 +47,21 @@
     [Parameter] public bool? Ripple { get; set; }
 
     /// <summary>区域里的内容。</summary>
+    /// <summary>语言（<see cref="Rune.UI.Lang.ZhCn"/>、<see cref="Rune.UI.Lang.EnUs"/> 或自己的）。</summary>
+    [Parameter] public Lang? Lang { get; set; }
+
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     // 最外层（没有上一层 Provider）套上应用级主题；嵌套的只在改了主题相关的参数时才套
     bool AppliesTheme => !IsInsideProvider || Theme is not null || DarkTheme is not null || ColorScheme is not null;
 
-    // 主题的类（只设变量）与名字；主题不变时是同一个对象
-    Attrs ThemeAttrs => themeAttrs.Get((ThemeStyles.ClassFor(config.Theme, config.DarkTheme, config.ColorScheme), ThemeLabel),
-        static k => new Attrs { Class = k.Class, ["data-rune-theme"] = k.Label });
+    // 有包裹元素：套主题，或者换了语言（lang、dir 写在包裹元素上）
+    bool HasWrapper => AppliesTheme || Lang is not null;
+
+    // 主题的类（只设变量）与名字、语言的 lang 与 dir；不变时是同一个对象
+    Attrs ThemeAttrs => themeAttrs.Get(
+        (AppliesTheme ? ThemeStyles.ClassFor(config.Theme, config.DarkTheme, config.ColorScheme) : null, AppliesTheme ? ThemeLabel : null, config.Lang.Code, config.Lang.Direction),
+        static k => new Attrs { Class = k.Class, ["data-rune-theme"] = k.Label, ["lang"] = k.Code, ["dir"] = k.Direction });
 
     // 不产生盒子、不影响布局；文字颜色、字体、字号、行高由里面的元素继承（同 vue-tsx-pro 的 Provider）
     static Style Themed => Css.Define(static () => new Style
@@ -65,6 +72,9 @@
         FontSize = FontSizes.Md,
         LineHeight = LineHeights.Normal,
     });
+
+    // 只换语言时：仍不产生盒子
+    static Style Contents => Css.Define(static () => new Style { Display = Display.Contents });
 
     // 实际生效的主题（调试与端到端测试用）：跟随系统时写“亮色/暗色”
     string ThemeLabel => (config.ColorScheme, config.DarkTheme) switch
@@ -78,8 +88,9 @@
     protected override void OnParametersSet()
     {
         // 输入没变时保留同一个配置对象：下面的组件拿到的级联值不变，不会被迫重新渲染
-        config = built.Get((Config, Theme, DarkTheme, ColorScheme, Defaults, Styles, Ripple), static k => k.Outer with
+        config = built.Get((Config, Theme, DarkTheme, ColorScheme, Defaults, Styles, Ripple, Lang), static k => k.Outer with
         {
+            Lang = k.Lang ?? k.Outer.Lang,
             Theme = k.Theme ?? k.Outer.Theme,
             DarkTheme = k.Dark ?? k.Outer.DarkTheme,
             ColorScheme = k.Scheme ?? k.Outer.ColorScheme,

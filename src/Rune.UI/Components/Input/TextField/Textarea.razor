@@ -34,8 +34,8 @@
     /// <summary>显示字数计数；上限取 maxlength，超出时用危险色。</summary>
     [Parameter] public bool ShowCount { get; set; }
 
-    /// <summary>清空按钮的名称（读屏读出）。</summary>
-    [Parameter] public string ClearLabel { get; set; } = "清空";
+    /// <summary>清空按钮的名称（读屏读出）；不写时取语言包（UIConfig.Lang）的“清空”。</summary>
+    [Parameter] public string? ClearLabel { get; set; }
 
     /// <summary>字数计数的部件属性（交给 CharacterCount）。</summary>
     [Parameter] public Attrs? PropsCount { get; set; }

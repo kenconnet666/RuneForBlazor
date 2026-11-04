@@ -27,8 +27,8 @@
     /// <summary>外部链接：新窗口打开，加 rel="noopener noreferrer"；没写 IconEnd 时文字后是外链箭头。</summary>
     [Parameter] public bool External { get; set; }
 
-    /// <summary>外部链接给读屏的提示。</summary>
-    [Parameter] public string ExternalHint { get; set; } = "（在新窗口打开）";
+    /// <summary>外部链接给读屏的提示。；不写时取语言包（UIConfig.Lang）的“（在新窗口打开）”。</summary>
+    [Parameter] public string? ExternalHint { get; set; }
 
     /// <inheritdoc/>
     protected override ButtonVariant DefaultVariant => ButtonVariant.Solid;
@@ -45,7 +45,7 @@
         builder.AddContent(1, Hint);
     };
 
-    RenderFragment Hint => @<VisuallyHidden>@ExternalHint</VisuallyHidden>;
+    RenderFragment Hint => @<VisuallyHidden>@(ExternalHint ?? Config.Lang.LinkNewWindow)</VisuallyHidden>;
 
     Memo<(string Href, bool External, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
 

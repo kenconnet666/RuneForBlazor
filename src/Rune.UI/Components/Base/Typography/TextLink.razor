@@ -12,7 +12,7 @@
     @if (External)
     {
         @* 图标与提示之间不能有空白：会多出一个空格的宽度 *@
-        <Icon Data="BuiltInIcons.ArrowUpRight" @attributes="Attrs.MergeProps(parts[LinkPart.Icon], PropsIcon)" /><VisuallyHidden>@ExternalHint</VisuallyHidden>
+        <Icon Data="BuiltInIcons.ArrowUpRight" @attributes="Attrs.MergeProps(parts[LinkPart.Icon], PropsIcon)" /><VisuallyHidden>@(ExternalHint ?? Config.Lang.LinkNewWindow)</VisuallyHidden>
     }
 </a>
 
@@ -31,8 +31,8 @@
     /// <summary>外部链接：新窗口打开，加 rel="noopener noreferrer"、外链图标与读屏提示。</summary>
     [Parameter] public bool External { get; set; }
 
-    /// <summary>外部链接给读屏的提示。</summary>
-    [Parameter] public string ExternalHint { get; set; } = "（在新窗口打开）";
+    /// <summary>外部链接给读屏的提示。；不写时取语言包（UIConfig.Lang）的“（在新窗口打开）”。</summary>
+    [Parameter] public string? ExternalHint { get; set; }
 
     /// <summary>外链图标的部件属性（交给 Icon 组件）。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }

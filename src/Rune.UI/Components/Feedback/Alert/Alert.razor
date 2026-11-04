@@ -91,8 +91,8 @@
     /// <summary>给了就显示关闭按钮；淡出结束后调用，由使用方把提示条移除。</summary>
     [Parameter] public EventCallback OnClose { get; set; }
 
-    /// <summary>关闭按钮的名称（读屏读出）。</summary>
-    [Parameter] public string CloseLabel { get; set; } = "关闭";
+    /// <summary>关闭按钮的名称（读屏读出），不写时取语言包（UIConfig.Lang）的“关闭”。</summary>
+    [Parameter] public string? CloseLabel { get; set; }
 
     /// <summary>图标的部件属性。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }

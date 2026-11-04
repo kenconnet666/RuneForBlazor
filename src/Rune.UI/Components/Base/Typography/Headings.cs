@@ -15,8 +15,8 @@ public abstract class HeadingBase : TypographyBase
     /// <summary>有 id 时在末尾放一个指向本节的锚点链接（#），悬停标题或聚焦时显示：文档里方便复制本节的链接。</summary>
     [Parameter] public bool Anchor { get; set; }
 
-    /// <summary>锚点链接的名称（读屏读出）。</summary>
-    [Parameter] public string AnchorLabel { get; set; } = "链接到本节";
+    /// <summary>锚点链接的名称（读屏读出），不写时取语言包（UIConfig.Lang）的“链接到本节”。</summary>
+    [Parameter] public string? AnchorLabel { get; set; }
 
     /// <summary>锚点链接（a）的部件属性。</summary>
     [Parameter] public Attrs? PropsAnchor { get; set; }
@@ -27,7 +27,7 @@ public abstract class HeadingBase : TypographyBase
     protected override void BuildTrailing(RenderTreeBuilder builder)
     {
         if (!Anchor || Rest["id"] is not string { Length: > 0 } id) return;
-        var managed = anchorAttrs.Get((id, AnchorLabel), static k => new Attrs { ["href"] = $"#{k.Id}", AriaLabel = k.Label });
+        var managed = anchorAttrs.Get((id, AnchorLabel ?? Config.Lang.HeadingAnchor), static k => new Attrs { ["href"] = $"#{k.Id}", AriaLabel = k.Label });
         var parts = TypographyStyles.Heading(Appearance, Config.Styles);
         builder.OpenElement(10, "a");
         builder.AddMultipleAttributes(11, Attrs.Merge(parts[HeadingPart.Anchor], PropsAnchor, managed)!);

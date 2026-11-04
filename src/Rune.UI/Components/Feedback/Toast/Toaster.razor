@@ -8,7 +8,7 @@
 @inject ToastService Toasts
 @{ var parts = ToastStyles.Of(Config.Styles); }
 
-<section aria-label="@Label" aria-live="polite" @attributes="Attrs.Merge(parts[ToasterPart.Root], Rest)">
+<section aria-label="@(Label ?? Config.Lang.ToasterLabel)" aria-live="polite" @attributes="Attrs.Merge(parts[ToasterPart.Root], Rest)">
     @foreach (var toast in Toasts.Items)
     {
         <Alert @key="toast.Id" Variant="AlertVariant.Surface" Tone="toast.Tone" Title="@toast.Title"
@@ -19,11 +19,11 @@
 </section>
 
 @code {
-    /// <summary>区域的名称（读屏读出）。</summary>
-    [Parameter] public string Label { get; set; } = "通知";
+    /// <summary>区域的名称（读屏读出），不写时取语言包（UIConfig.Lang）的“通知”。</summary>
+    [Parameter] public string? Label { get; set; }
 
-    /// <summary>关闭按钮的名称。</summary>
-    [Parameter] public string CloseLabel { get; set; } = "关闭";
+    /// <summary>关闭按钮的名称，不写时取语言包（UIConfig.Lang）的“关闭”。</summary>
+    [Parameter] public string? CloseLabel { get; set; }
 
     /// <summary>每条提示的部件属性（交给 Alert）。</summary>
     [Parameter] public Attrs? PropsToast { get; set; }
