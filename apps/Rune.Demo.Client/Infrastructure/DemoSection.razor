@@ -1,24 +1,61 @@
-@* 演示页里的一块：标题加内容，表面色底。 *@
+@*
+    演示页里的一个示例：标题、说明、效果区，结构同 vue-tsx-pro 文档站的 Example（小节标题带 id，效果区是表面色的网格）。
+    Id 与文档站示例的锚点一致时，tools/parity 按它配对两边的示例。
+*@
 @inherits RuneComponent
 
-<section @attributes="Attrs.Merge(Surface, Rest)">
-    <H2 Size="Size.Lg">@Title</H2>
-    @ChildContent
+<section @attributes="Attrs.Merge(SectionStyle, Rest)">
+    <H2 Size="Size.Lg" id="@Id">@Title</H2>
+    @if (Description is not null)
+    {
+        <Paragraph Sx="DescriptionStyle">@Description</Paragraph>
+    }
+    <div @attributes="Attrs.Merge(Frame)">
+        <div data-demo-canvas @attributes="Attrs.Merge(Canvas)">@ChildContent</div>
+    </div>
 </section>
 
 @code {
+    /// <summary>小节的锚点，同文档站示例的 id（英文，本页唯一）。</summary>
+    [Parameter] public string? Id { get; set; }
+
     /// <summary>这一块的标题。</summary>
     [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>说明文字。</summary>
+    [Parameter] public RenderFragment? Description { get; set; }
 
     /// <summary>演示内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    static Style Surface => Css.Define(static () => new Style
+    static Style SectionStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        Gap = Space.Sm,
+        MinWidth = 0,
+    });
+
+    static Style DescriptionStyle => Css.Define(static () => new Style { Color = Colors.TextMuted });
+
+    static Style Frame => Css.Define(static () => new Style
+    {
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = Colors.BorderMuted,
+        BorderRadius = Radii.Lg,
+        OverflowX = Overflow.Auto,
+    });
+
+    // 同文档站示例的画布：界面默认字号、行高，表面色衬底，内容按网格排、起始边对齐
+    static Style Canvas => Css.Define(static () => new Style
     {
         Display = Display.Grid,
-        Gap = Space.Sm,
-        Padding = Space.Md,
-        BorderRadius = Radii.Md,
-        BackgroundColor = Colors.SurfaceMuted,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Md,
+        Padding = Space.Xl,
+        FontSize = FontSizes.Md,
+        LineHeight = LineHeights.Normal,
+        BackgroundColor = Colors.Surface,
     });
 }

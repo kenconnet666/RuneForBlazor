@@ -34,6 +34,7 @@ public sealed partial class CartStore
 | `tools/css-gen` | 从 vue-tsx-pro 的 CSS 数据生成 `Style` 的属性表与关键字常量（带中文说明） |
 | `tools/theme-gen` | 从 vue-tsx-pro 的主题生成 16 套内置主题（`Themes.g.cs`）；CI 校验 |
 | `tools/icon-gen` | 下载 Lucide 官方 SVG（`lucide-static`，版本固定在脚本里）生成图标数据：全集、组件库内置的一小组与许可文件；CI 校验 |
+| `tools/parity` | 与 vue-tsx-pro 文档站逐个部件对比计算后的样式（亮、暗主题、悬停聚焦按下），本地跑，见其 README |
 
 依赖方向：`Rune.UI → Rune`，`apps → Rune.UI + Rune`；生成器以分析器方式引用。包版本统一在 `Directory.Packages.props`。
 
