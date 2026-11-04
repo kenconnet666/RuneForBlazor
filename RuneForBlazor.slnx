@@ -3,6 +3,7 @@
     <Project Path="src/Rune/Rune.csproj" />
     <Project Path="src/Rune.Generators/Rune.Generators.csproj" />
     <Project Path="src/Rune.UI/Rune.UI.csproj" />
+    <Project Path="src/Rune.Icons/Rune.Icons.csproj" />
   </Folder>
   <Folder Name="/apps/">
     <Project Path="apps/Rune.Demo/Rune.Demo.csproj" />
@@ -14,6 +15,8 @@
   <Folder Name="/tools/">
     <File Path="tools/css-gen/generate.mjs" />
     <File Path="tools/css-gen/NOTICE.md" />
+    <File Path="tools/icon-gen/generate.mjs" />
+    <File Path="tools/icon-gen/NOTICE.md" />
   </Folder>
   <Folder Name="/解决方案项/">
     <File Path="Directory.Build.props" />

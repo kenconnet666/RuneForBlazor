@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!-- Lucide 图标全集：每个图标一个按需创建的静态属性，WebAssembly 发布时裁剪未用到的 -->
+  <PropertyGroup>
+    <IsLibrary>true</IsLibrary>
+    <RootNamespace>Rune.Icons</RootNamespace>
+    <Description>Rune.UI 的 Lucide 图标全集：Lucide.Plus 等强类型静态属性，配合 Icon 组件使用；发布到 WebAssembly 时自动裁剪未用到的图标。</Description>
+    <PackageTags>$(PackageTags);icons;lucide</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rune.UI\Rune.UI.csproj" />
+  </ItemGroup>
+
+  <!-- Lucide 的 ISC 许可（图标数据来源），随包分发 -->
+  <ItemGroup>
+    <None Include="LICENSE-lucide.txt" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
