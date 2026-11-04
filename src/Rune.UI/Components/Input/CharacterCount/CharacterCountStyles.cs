@@ -32,7 +32,7 @@ public static class CharacterCountStyles
         FlexShrink = 0,
         FontSize = FontSizes.Sm,
         Color = Colors.TextMuted,
-        FontVariantNumeric = "tabular-nums",
+        FontVariantNumeric = FontVariantNumeric.TabularNums,
         WhiteSpace = WhiteSpace.Nowrap,
         [When.Attribute("[data-over]")] = new() { Color = Tones.Danger.Text },
     });

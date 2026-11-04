@@ -1,0 +1,6 @@
+# 全仓库（src、apps、tests）的分析器级别。用 global config 而不是 .editorconfig：
+# .razor 生成的代码不一定匹配 .editorconfig 的路径段，global config 对项目里所有文件生效
+is_global = true
+
+# 样式值有现成的常量或类型化写法：使用方默认是建议，本仓库当警告（TreatWarningsAsErrors 下保持干净）
+dotnet_diagnostic.RUNE006.severity = warning

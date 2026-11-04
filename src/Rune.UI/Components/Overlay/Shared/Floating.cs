@@ -88,7 +88,7 @@ public static class FloatingStyles
     public static Style Anchored => Css.Define(static () => new Style
     {
         Position = Position.Fixed,
-        Inset = "auto",
+        Inset = CssLength.Auto,
         Margin = 0,
     });
 
@@ -112,8 +112,8 @@ public static class FloatingStyles
     {
         Position = Position.Absolute,
         BoxSizing = BoxSizing.BorderBox,
-        Width = "0.625em",
-        Height = "0.625em",
+        Width = CssLength.Em(0.625),
+        Height = CssLength.Em(0.625),
         BackgroundColor = CssWide.Inherit,
         BorderStyle = BorderStyle.Solid,
         BorderColor = CssWide.Inherit,
@@ -128,5 +128,5 @@ public static class FloatingStyles
     internal static readonly Attrs ArrowLayer = new() { Sx = Arrow };
 
     /// <summary>有箭头的浮层：原生 popover 默认 overflow: auto 会把伸出去的箭头裁掉。</summary>
-    public static Style WithArrow => Css.Define(static () => new Style { Overflow = "visible" });
+    public static Style WithArrow => Css.Define(static () => new Style { Overflow = Overflow.Visible });
 }

@@ -80,7 +80,7 @@
     string? lastPick;
     CancellationTokenSource? searching;
 
-    static Style ListHeight => Css.Define(static () => new Style { Height = "16rem" });
+    static Style ListHeight => Css.Define(static () => new Style { Height = CssLength.Rem(16) });
 
     // 模拟接口：输入停下 600ms 后返回
     async Task Search(string? text)

@@ -49,15 +49,15 @@ public static class EmptyStyles
 
     static Style Icon => Css.Define(static () => new Style
     {
-        Width = "2.5em",
-        Height = "2.5em",
+        Width = CssLength.Em(2.5),
+        Height = CssLength.Em(2.5),
         Color = Colors.TextMuted,
         StrokeWidth = StrokeWidths.Sm,
     });
 
     static Style Title => Css.Define(static () => new Style { FontWeight = FontWeights.Semibold });
 
-    static Style Description => Css.Define(static () => new Style { MaxWidth = "32em", Color = Colors.TextMuted });
+    static Style Description => Css.Define(static () => new Style { MaxWidth = CssLength.Em(32), Color = Colors.TextMuted });
 
     static Style Action => Css.Define(static () => new Style { MarginBlockStart = Space.Sm });
 }

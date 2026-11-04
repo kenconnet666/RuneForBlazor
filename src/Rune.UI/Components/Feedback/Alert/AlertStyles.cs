@@ -135,7 +135,7 @@ public static class AlertStyles
     });
 
     // 图标与第一行文字对齐：行高 1.5em 里居中 1em 的图标
-    static Style Icon => Css.Define(static () => new Style { FlexShrink = 0, MarginBlock = "0.25em" });
+    static Style Icon => Css.Define(static () => new Style { FlexShrink = 0, MarginBlock = CssLength.Em(0.25) });
 
     static Style Body => Css.Define(static () => new Style
     {

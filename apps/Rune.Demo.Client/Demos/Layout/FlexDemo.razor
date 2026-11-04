@@ -250,11 +250,11 @@
     static string BoxSize(double height) =>
         FormattableString.Invariant($"height:{height}rem;padding-inline:{height / 4}rem");
 
-    static Style ControlLabel => Css.Define(static () => new Style { MinWidth = "3.5em", Color = Colors.TextMuted });
+    static Style ControlLabel => Css.Define(static () => new Style { MinWidth = CssLength.Em(3.5), Color = Colors.TextMuted });
 
     static Style Stage => Css.Define(static () => new Style
     {
-        MinHeight = "11rem",
+        MinHeight = CssLength.Rem(11),
         Padding = Space.Md,
         BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Dashed,
@@ -265,8 +265,8 @@
     static Style Box => Css.Define(static () => new Style
     {
         Display = Display.Grid,
-        PlaceItems = "center",
-        MinWidth = "3rem",
+        PlaceItems = PlaceItems.Center,
+        MinWidth = CssLength.Rem(3),
         BorderRadius = Radii.Sm,
         BackgroundColor = Tones.Accent.Soft,
         Color = Tones.Accent.Text,
@@ -276,17 +276,17 @@
     static Style Cover => Css.Define(static () => new Style
     {
         Display = Display.Grid,
-        PlaceItems = "center",
-        Height = "5rem",
+        PlaceItems = PlaceItems.Center,
+        Height = CssLength.Rem(5),
         MarginBlockEnd = Space.Sm,
         BorderRadius = Radii.Sm,
         BackgroundColor = Colors.Fill,
         Color = Colors.TextMuted,
-        FontSize = "2rem",
+        FontSize = CssLength.Rem(2),
     });
 
     // 卡片撑满格子：跨两行的格子里卡片也一样高
-    static Style Cell => Css.Define(static () => new Style { MinHeight = "4.5rem", Height = "100%" });
+    static Style Cell => Css.Define(static () => new Style { MinHeight = CssLength.Rem(4.5), Height = CssLength.Percent(100) });
 
     static Style Page => Css.Define(static () => new Style
     {
@@ -309,8 +309,8 @@
         Display = Display.InlineFlex,
         AlignItems = AlignItems.Center,
         JustifyContent = JustifyContent.Center,
-        Width = "2em",
-        Height = "2em",
+        Width = CssLength.Em(2),
+        Height = CssLength.Em(2),
         FlexShrink = 0,
         BorderRadius = Radii.Full,
         BackgroundColor = Tones.Accent.Soft,

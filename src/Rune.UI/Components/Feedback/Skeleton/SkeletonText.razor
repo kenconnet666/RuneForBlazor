@@ -29,5 +29,5 @@
     // 1em 高的行加 0.5em 间隔，接近正文 1.5 的行高
     static Style Root => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Sm });
 
-    static Style Last => Css.Define(static () => new Style { Width = "60%" });
+    static Style Last => Css.Define(static () => new Style { Width = CssLength.Percent(60) });
 }

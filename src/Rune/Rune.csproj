@@ -24,6 +24,10 @@
     <ProjectReference Include="..\Rune.Generators\Rune.Generators.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
     <None Include="..\Rune.Generators\bin\$(Configuration)\netstandard2.0\Rune.Generators.dll"
           Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <!-- 代码修复（RUNE006 的灯泡、dotnet format）随同一个包发布 -->
+    <ProjectReference Include="..\Rune.CodeFixes\Rune.CodeFixes.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <None Include="..\Rune.CodeFixes\bin\$(Configuration)\netstandard2.0\Rune.CodeFixes.dll"
+          Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
 </Project>

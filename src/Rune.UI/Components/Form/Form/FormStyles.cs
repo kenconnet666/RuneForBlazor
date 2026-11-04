@@ -38,6 +38,6 @@ public static class FormStyles
     static Style SummaryList => Css.Define(static () => new Style
     {
         Margin = 0,
-        PaddingInlineStart = "1.2em",
+        PaddingInlineStart = CssLength.Em(1.2),
     });
 }

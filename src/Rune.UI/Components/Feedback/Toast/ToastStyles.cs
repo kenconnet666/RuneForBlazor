@@ -35,7 +35,7 @@ public static class ToastStyles
         Gap = Space.Sm,
         // 两侧留出与视口边缘的间距（同 InsetInlineEnd）
         Width = $"min(26em, calc(100vw - 2 * {Space.Lg}))",
-        PointerEvents = "none",
+        PointerEvents = PointerEvents.None,
     });
 
     // 新提示从下方滑入；表面换成页面底色，叠在内容上也看得清
@@ -43,7 +43,7 @@ public static class ToastStyles
     {
         BackgroundColor = Colors.SurfaceRaised,
         BoxShadow = Shadows.Md,
-        PointerEvents = "auto",
+        PointerEvents = PointerEvents.Auto,
         Transition = $"opacity {Durations.Md}, translate {Durations.Md} {Easings.Enter}",
         [When.Starting] = new() { Opacity = 0, Translate = "0 0.75em" },
     });

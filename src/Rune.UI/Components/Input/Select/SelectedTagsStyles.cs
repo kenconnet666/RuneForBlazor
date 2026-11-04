@@ -35,7 +35,7 @@ public static class SelectedTagsStyles
         FlexWrap = FlexWrap.Nowrap,
         Position = Position.Relative,
         Overflow = Overflow.Hidden,
-        Contain = "inline-size",
+        Contain = Contain.InlineSize,
     });
 
     /// <summary>每个标签：放不下的（JS 写 data-overflow-hidden）藏起来但仍可测量。</summary>
@@ -46,7 +46,7 @@ public static class SelectedTagsStyles
             Position = Position.Absolute,
             InsetInlineStart = 0,
             InsetBlockStart = 0,
-            Visibility = "hidden",
+            Visibility = Visibility.Hidden,
             PointerEvents = PointerEvents.None,
         },
     });

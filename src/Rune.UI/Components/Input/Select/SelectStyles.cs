@@ -69,7 +69,7 @@ public static class SelectStyles
         Margin = 0,
         Padding = 0,
         BorderWidth = 0,
-        BackgroundColor = "transparent",
+        BackgroundColor = CssColors.Transparent,
         Color = CssWide.Inherit,
         FontFamily = CssWide.Inherit,
         FontSize = CssWide.Inherit,
@@ -79,8 +79,8 @@ public static class SelectStyles
         Cursor = CssWide.Inherit,
         UserSelect = UserSelect.None,
         TouchAction = TouchAction.Manipulation,
-        WebkitTapHighlightColor = "transparent",
-        OutlineStyle = "none",
+        WebkitTapHighlightColor = CssColors.Transparent,
+        OutlineStyle = OutlineStyle.None,
     });
 
     static Style Value => Css.Define(static () => new Style

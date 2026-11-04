@@ -1,0 +1,5 @@
+# 组件库自己的分析器级别（只对 Rune.UI 生效，见 Rune.UI.csproj）
+is_global = true
+
+# 组件内部尺寸用 em、细线经 BorderWidths token，不写 px（使用方的页面不受这条约束，所以默认关闭、在这里打开）
+dotnet_diagnostic.RUNE007.severity = warning

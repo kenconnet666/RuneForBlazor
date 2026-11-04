@@ -9,7 +9,7 @@ public static class DemoStyles
     /// <summary>一块演示区域。</summary>
     public static Style Section => Css.Define(static () => new Style
     {
-        Display = "grid",
+        Display = Display.Grid,
         Gap = Space.Sm,
         Padding = Space.Md,
         BorderRadius = Radii.Md,
@@ -19,10 +19,10 @@ public static class DemoStyles
     /// <summary>一排横向排列的内容。</summary>
     public static Style Row => Css.Define(static () => new Style
     {
-        Display = "flex",
-        FlexWrap = "wrap",
+        Display = Display.Flex,
+        FlexWrap = FlexWrap.Wrap,
         Gap = Space.Sm,
-        AlignItems = "center",
+        AlignItems = AlignItems.Center,
     });
 
     /// <summary>渲染次数、运行环境这类小字。</summary>
@@ -36,17 +36,17 @@ public static class DemoStyles
     /// <summary>演示页的标题行：标题 + 渲染模式切换。</summary>
     public static Style PageHeader => Css.Define(static () => new Style
     {
-        Display = "flex",
-        FlexWrap = "wrap",
-        AlignItems = "center",
-        JustifyContent = "space-between",
+        Display = Display.Flex,
+        FlexWrap = FlexWrap.Wrap,
+        AlignItems = AlignItems.Center,
+        JustifyContent = JustifyContent.SpaceBetween,
         Gap = Space.Md,
     });
 
     /// <summary>渲染模式切换。</summary>
     public static Style ModeSwitch => Css.Define(static () => new Style
     {
-        Display = "flex",
+        Display = Display.Flex,
         Gap = Space.Xs,
         Padding = Space.Xs,
         BorderRadius = Radii.Md,
@@ -60,7 +60,7 @@ public static class DemoStyles
         PaddingInline = Space.Sm,
         BorderRadius = Radii.Sm,
         Color = Colors.Text,
-        TextDecoration = "none",
+        TextDecoration = TextDecoration.None,
         [When.Hover] = new() { BackgroundColor = Colors.FillHover },
         [When.Current] = new() { BackgroundColor = Tones.Accent.Solid, Color = Tones.Accent.Contrast },
     });
@@ -68,7 +68,7 @@ public static class DemoStyles
     /// <summary>一排演示前面的说明文字（固定宽度，几排对齐）。</summary>
     public static Style RowLabel => Css.Define(static () => new Style
     {
-        Width = "6em",
+        Width = CssLength.Em(6),
         FontSize = FontSizes.Xs,
         Color = Colors.TextMuted,
     });
@@ -89,7 +89,7 @@ public static class DemoStyles
         Gap = Space.Xs,
         Padding = Space.Sm,
         BorderRadius = Radii.Md,
-        OverflowWrap = "anywhere",
+        OverflowWrap = OverflowWrap.Anywhere,
         TextAlign = TextAlign.Center,
         [When.Hover] = new() { BackgroundColor = Colors.FillHover },
     });
@@ -118,8 +118,8 @@ public static class DemoStyles
         Display = Display.InlineFlex,
         AlignItems = AlignItems.Center,
         JustifyContent = JustifyContent.Center,
-        Width = "2.5em",
-        Height = "2.5em",
+        Width = CssLength.Em(2.5),
+        Height = CssLength.Em(2.5),
         FlexShrink = 0,
         BorderRadius = Radii.Full,
         BackgroundColor = Tones.Accent.Soft,
@@ -130,8 +130,8 @@ public static class DemoStyles
     /// <summary>小号头像的替身（Avatar 的 xs）：放在选项、触发框里。</summary>
     public static Style InitialsXs => Css.Define(static () => new Style
     {
-        Width = "1.75em",
-        Height = "1.75em",
-        FontSize = "0.75em",
+        Width = CssLength.Em(1.75),
+        Height = CssLength.Em(1.75),
+        FontSize = CssLength.Em(0.75),
     });
 }

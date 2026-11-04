@@ -15,6 +15,9 @@
     <ProjectReference Include="..\Rune\Rune.csproj" />
     <!-- [State] 生成器：以分析器方式引用，不进入程序集引用 -->
     <ProjectReference Include="..\Rune.Generators\Rune.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Rune.CodeFixes\Rune.CodeFixes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- 组件库自己的分析器级别（RUNE007：组件内部不写 px） -->
+    <GlobalAnalyzerConfigFiles Include="components.globalconfig" />
   </ItemGroup>
 
 </Project>

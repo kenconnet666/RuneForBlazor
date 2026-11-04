@@ -118,11 +118,11 @@ public static class InputStyles
     /// <summary>键盘或指针聚焦到里面时的焦点环（外壳上，画在边框上面）。</summary>
     internal static Style FocusRingWithin => Css.Define(static () => new Style
     {
-        OutlineStyle = "none",
+        OutlineStyle = OutlineStyle.None,
         OutlineWidth = BorderWidths.Sm,
         OutlineColor = Colors.FocusRing,
         OutlineOffset = $"calc(-1 * {BorderWidths.Xs})",
-        [When.FocusWithin] = new() { OutlineStyle = "solid" },
+        [When.FocusWithin] = new() { OutlineStyle = OutlineStyle.Solid },
     });
 
     /// <summary>外壳本身（下拉框 NativeSelect 也用）。</summary>
@@ -149,9 +149,9 @@ public static class InputStyles
     /// <summary>浅色底、没有描边（Soft 样式）。下拉框也用。</summary>
     internal static Style Soft => Css.Define(static () => new Style
     {
-        BorderColor = "transparent",
+        BorderColor = CssColors.Transparent,
         BackgroundColor = Colors.Fill,
-        [When.Hover] = new() { BorderColor = "transparent" },
+        [When.Hover] = new() { BorderColor = CssColors.Transparent },
     });
 
     /// <summary>只读：底色变浅，不显示悬停。下拉框也用。</summary>
@@ -193,8 +193,8 @@ public static class InputStyles
         PaddingBlock = Space.Xs,
         PaddingInline = 0,
         BorderWidth = 0,
-        OutlineStyle = "none",
-        BackgroundColor = "transparent",
+        OutlineStyle = OutlineStyle.None,
+        BackgroundColor = CssColors.Transparent,
         Color = CssWide.Inherit,
         Font = CssWide.Inherit,
         Cursor = CssWide.Inherit,

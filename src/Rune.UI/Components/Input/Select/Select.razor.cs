@@ -266,7 +266,7 @@ public partial class Select<TItem>
         ["onrunecommand"] = EventCallback.Factory.Create<CommandEventArgs>(owner, owner.CommandAsync),
     });
 
-    static Style SearchWidth => Css.Define(static () => new Style { Width = "100%" });
+    static Style SearchWidth => Css.Define(static () => new Style { Width = CssLength.Percent(100) });
 
     async Task PickAsync(string value)
     {

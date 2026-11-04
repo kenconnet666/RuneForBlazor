@@ -161,7 +161,7 @@ public static class ButtonStyles
                 MinHeight = 0,
                 PaddingInline = 0,
                 FontWeight = FontWeights.Medium,
-                TextUnderlineOffset = "0.2em",
+                TextUnderlineOffset = CssLength.Em(0.2),
                 [When.HoverEnabled] = new() { TextDecorationLine = TextDecorationLine.Underline },
             },
         };
@@ -185,10 +185,10 @@ public static class ButtonStyles
         PaddingInline = Space.Lg,
         BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
-        BorderColor = "transparent",
-        BackgroundColor = "transparent",
-        Font = "inherit",
-        TextAlign = "inherit",
+        BorderColor = CssColors.Transparent,
+        BackgroundColor = CssColors.Transparent,
+        Font = CssWide.Inherit,
+        TextAlign = CssWide.Inherit,
         FontWeight = FontWeights.Semibold,
         LineHeight = LineHeights.Tight,
         WhiteSpace = WhiteSpace.Nowrap,
@@ -197,11 +197,11 @@ public static class ButtonStyles
         UserSelect = UserSelect.None,
         // 触摸时不等双击缩放的判定，点击立即响应
         TouchAction = TouchAction.Manipulation,
-        WebkitTapHighlightColor = "transparent",
+        WebkitTapHighlightColor = CssColors.Transparent,
         [When.Disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
     });
 
-    static Style FullWidth => Css.Define(static () => new Style { Display = Display.Flex, Width = "100%" });
+    static Style FullWidth => Css.Define(static () => new Style { Display = Display.Flex, Width = CssLength.Percent(100) });
 
     static Style Square => Css.Define(static () => new Style
     {

@@ -58,7 +58,7 @@ public static class LinkStyles
     {
         BorderRadius = Radii.Xs,
         TextDecorationThickness = BorderWidths.Xs,
-        TextUnderlineOffset = "0.2em",
+        TextUnderlineOffset = CssLength.Em(0.2),
         Cursor = Cursor.Pointer,
     });
 
@@ -77,7 +77,7 @@ public static class LinkStyles
     // 图标跟着文字，贴着基线
     static Style Icon => Css.Define(static () => new Style
     {
-        MarginInlineStart = "0.1em",
-        VerticalAlign = "-0.1em",
+        MarginInlineStart = CssLength.Em(0.1),
+        VerticalAlign = CssLength.Em(-0.1),
     });
 }

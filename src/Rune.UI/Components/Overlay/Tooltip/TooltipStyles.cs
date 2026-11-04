@@ -29,6 +29,6 @@ public static class TooltipStyles
         Color = Colors.InverseText,
         FontSize = FontSizes.Sm,
         LineHeight = LineHeights.Normal,
-        OverflowWrap = "break-word",
+        OverflowWrap = OverflowWrap.BreakWord,
     });
 }

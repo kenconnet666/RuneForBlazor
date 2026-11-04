@@ -163,9 +163,9 @@
     static readonly Attrs StackLayer = new() { Sx = Stack };
     static readonly Attrs StackedInitialsLayer = new() { Sx = Sx.Of(DemoStyles.Initials, DemoStyles.InitialsXs, Stacked) };
 
-    static Style Stack => Css.Define(static () => new Style { Display = Display.InlineFlex, PaddingInlineStart = "0.4em" });
+    static Style Stack => Css.Define(static () => new Style { Display = Display.InlineFlex, PaddingInlineStart = CssLength.Em(0.4) });
 
-    static Style Stacked => Css.Define(static () => new Style { MarginInlineStart = "-0.4em", BoxShadow = $"0 0 0 2px {Colors.Surface}" });
+    static Style Stacked => Css.Define(static () => new Style { MarginInlineStart = CssLength.Em(-0.4), BoxShadow = $"0 0 0 2px {Colors.Surface}" });
 
     string? type = "bug";
     string? assignee = "lxm";

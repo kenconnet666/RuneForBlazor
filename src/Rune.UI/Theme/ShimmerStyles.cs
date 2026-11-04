@@ -22,7 +22,7 @@ public static class ShimmerStyles
         Position = Position.Relative,
         // 用绘制包含裁掉移出去的光带（按圆角裁）：不用 overflow，行内的骨架仍按文字基线对齐
         // （overflow 不是 visible 时 inline-block 的基线落到底边）
-        Contain = "paint",
+        Contain = Contain.Paint,
         // 从右到左的语言里整个元素镜像，光带就反向扫；骨架包着的内容本来就看不见，镜像没有影响
         [When.Rtl] = new() { Transform = "scaleX(-1)" },
         [Pseudo.After] = new()
@@ -37,10 +37,10 @@ public static class ShimmerStyles
             // 2 秒一轮，其中 1.4 秒扫过、0.6 秒停顿，接近 Ant Design、MUI 的节奏
             AnimationDuration = "2s",
             // 先慢后快再慢：光带像被推过去，而不是匀速平移
-            AnimationTimingFunction = "ease-in-out",
+            AnimationTimingFunction = AnimationTimingFunction.EaseInOut,
             AnimationIterationCount = "infinite",
             // 延迟写在元素上，这里继承
-            AnimationDelay = "inherit",
+            AnimationDelay = CssWide.Inherit,
         },
         [Media.ReducedMotion] = new() { [Pseudo.After] = new() { AnimationName = "none" } },
     });

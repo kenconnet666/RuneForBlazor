@@ -41,7 +41,7 @@ public static class SliderStyles
     static Style Input => Css.Define(static () => new Style
     {
         FlexGrow = 1,
-        MinWidth = "6em",
+        MinWidth = CssLength.Em(6),
         Margin = 0,
         Cursor = Cursor.Pointer,
         [When.Disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
@@ -49,9 +49,9 @@ public static class SliderStyles
 
     static Style Value => Css.Define(static () => new Style
     {
-        MinWidth = "3em",
+        MinWidth = CssLength.Em(3),
         TextAlign = TextAlign.End,
-        FontVariantNumeric = "tabular-nums",
+        FontVariantNumeric = FontVariantNumeric.TabularNums,
         Color = Colors.TextMuted,
     });
 }

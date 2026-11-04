@@ -48,15 +48,15 @@ public static class ListboxStyles
         Position = Position.Relative,
         Padding = Space.Xs,
         LineHeight = LineHeights.Normal,
-        OutlineStyle = "none",
+        OutlineStyle = OutlineStyle.None,
     });
 
     // 自己是滚动容器时：限制高度，滚动不传给页面
     static Style Scroll => Css.Define(static () => new Style
     {
-        MaxHeight = "20em",
+        MaxHeight = CssLength.Em(20),
         OverflowY = Overflow.Auto,
-        OverscrollBehavior = "contain",
+        OverscrollBehavior = OverscrollBehavior.Contain,
     });
 
     static Style GroupLabel => Css.Define(static () => new Style
@@ -82,8 +82,8 @@ public static class ListboxStyles
     static Style Skeleton => Css.Define(static () => new Style
     {
         Display = Display.Block,
-        Height = "1em",
-        MarginBlock = "0.625em",
+        Height = CssLength.Em(1),
+        MarginBlock = CssLength.Em(0.625),
         MarginInline = Space.Sm,
     });
 
@@ -91,7 +91,7 @@ public static class ListboxStyles
     static Style Check => Css.Define(static () => new Style
     {
         FlexShrink = 0,
-        Visibility = "hidden",
-        [When.Inside(When.Selected)] = new() { Visibility = "visible" },
+        Visibility = Visibility.Hidden,
+        [When.Inside(When.Selected)] = new() { Visibility = Visibility.Visible },
     });
 }

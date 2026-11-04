@@ -48,7 +48,7 @@ public static class MenuStyles
     // 菜单项多时在菜单里滚动（最大高度由 JS 按视口剩下的空间写）
     static Style Root => Css.Define(static () => new Style
     {
-        MinWidth = "12em",
+        MinWidth = CssLength.Em(12),
         MaxWidth = "calc(100vw - 2em)",
         Padding = Space.Xs,
         LineHeight = LineHeights.Normal,
@@ -62,14 +62,14 @@ public static class MenuStyles
         Display = Display.Flex,
         AlignItems = AlignItems.Center,
         Gap = Space.Sm,
-        Width = "100%",
+        Width = CssLength.Percent(100),
         MinHeight = Sizes.Control,
         PaddingInline = Space.Sm,
         BorderWidth = 0,
         BorderRadius = Radii.Sm,
-        BackgroundColor = "transparent",
-        FontFamily = "inherit",
-        FontSize = "inherit",
+        BackgroundColor = CssColors.Transparent,
+        FontFamily = CssWide.Inherit,
+        FontSize = CssWide.Inherit,
         TextAlign = TextAlign.Start,
         Cursor = Cursor.Pointer,
         [When.HoverEnabled] = new() { BackgroundColor = Colors.FillHover },
@@ -81,10 +81,10 @@ public static class MenuStyles
 
     static Style Shortcut => Css.Define(static () => new Style
     {
-        MarginInlineStart = "auto",
+        MarginInlineStart = CssLength.Auto,
         PaddingInlineStart = Space.Lg,
         Color = Colors.TextMuted,
-        FontSize = "0.85em",
+        FontSize = CssLength.Em(0.85),
     });
 
     static Style Separator => Css.Define(static () => new Style

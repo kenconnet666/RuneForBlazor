@@ -10,9 +10,9 @@ public static class TextareaStyles
     internal static Style Textarea => Css.Define(static () => new Style
     {
         AlignSelf = AlignSelf.Stretch,
-        Resize = "none",
+        Resize = Resize.None,
         OverflowY = Overflow.Auto,
-        ScrollbarWidth = "thin",
+        ScrollbarWidth = ScrollbarWidth.Thin,
         ScrollbarColor = $"color-mix(in srgb, {Colors.TextMuted} 50%, transparent) transparent",
     });
 
@@ -22,7 +22,7 @@ public static class TextareaStyles
     /// <summary>清空按钮贴在第一行。</summary>
     internal static Style Clear => Css.Define(static () => new Style { AlignSelf = AlignSelf.FlexStart, MarginBlockStart = Space.Xs });
 
-    internal static Style Resizable => Css.Define(static () => new Style { Resize = "vertical" });
+    internal static Style Resizable => Css.Define(static () => new Style { Resize = Resize.Vertical });
 
     internal static Style MinRows(int rows) => Css.Define(rows, static rows => new Style { MinHeight = $"{rows.ToString(CultureInfo.InvariantCulture)}lh" });
 

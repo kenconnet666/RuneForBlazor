@@ -206,7 +206,7 @@ public static class LayoutStyles
         Recipe.Of("container", (size, padding), styles, static ((ContainerSize Size, SpaceScale Padding) a, LayoutPart _) =>
             Sx.Of(ContainerRoot, ContainerWidth(a.Size), ScaleStyles.PaddingInline(a.Padding)));
 
-    static Style ContainerRoot => Css.Define(static () => new Style { BoxSizing = BoxSizing.BorderBox, Width = "100%", MarginInline = "auto" });
+    static Style ContainerRoot => Css.Define(static () => new Style { BoxSizing = BoxSizing.BorderBox, Width = CssLength.Percent(100), MarginInline = CssLength.Auto });
 
     static Style ContainerWidth(ContainerSize size) => Css.Define(size, static size => new Style
     {
@@ -221,7 +221,7 @@ public static class LayoutStyles
     });
 
     // 列表当布局容器：去掉默认的圆点与缩进（组件同时补上 role="list"）
-    static Style ListReset => Css.Define(static () => new Style { ListStyle = "none", Margin = 0, Padding = 0 });
+    static Style ListReset => Css.Define(static () => new Style { ListStyle = ListStyle.None, Margin = 0, Padding = 0 });
 
     static Style FlexRoot => Css.Define(static () => new Style { Display = Display.Flex });
 

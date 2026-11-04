@@ -78,7 +78,7 @@ public static class FieldStyles
         });
 
     /// <summary>错误信息前的图标：与第一行文字对齐。</summary>
-    internal static Style ErrorIcon => Css.Define(static () => new Style { FlexShrink = 0, MarginBlock = "0.25em" });
+    internal static Style ErrorIcon => Css.Define(static () => new Style { FlexShrink = 0, MarginBlock = CssLength.Em(0.25) });
 
     static Style Root => Css.Define(static () => new Style
     {
@@ -95,13 +95,13 @@ public static class FieldStyles
         GridTemplateColumns = $"var({LabelWidth.Name}, 8em) minmax(0, 1fr)",
         ColumnGap = Space.Md,
         RowGap = Space.Xs,
-        AlignItems = "baseline",
+        AlignItems = AlignItems.Baseline,
     });
 
     static Style Label => Css.Define(static () => new Style
     {
         Display = Display.InlineFlex,
-        AlignItems = "baseline",
+        AlignItems = AlignItems.Baseline,
         Gap = Space.Xs,
         FontSize = FontSizes.Sm,
         FontWeight = FontWeights.Medium,
@@ -111,15 +111,15 @@ public static class FieldStyles
 
     static Style DisabledLabel => Css.Define(static () => new Style { Opacity = Opacities.Disabled });
 
-    static Style LabelStart => Css.Define(static () => new Style { JustifySelf = "start", TextAlign = TextAlign.Start });
+    static Style LabelStart => Css.Define(static () => new Style { JustifySelf = JustifySelf.Start, TextAlign = TextAlign.Start });
 
-    static Style LabelEnd => Css.Define(static () => new Style { JustifySelf = "end", TextAlign = TextAlign.End });
+    static Style LabelEnd => Css.Define(static () => new Style { JustifySelf = JustifySelf.End, TextAlign = TextAlign.End });
 
     static Style RequiredMark => Css.Define(static () => new Style
     {
         AlignSelf = AlignSelf.FlexStart,
-        Width = "0.7em",
-        Height = "0.7em",
+        Width = CssLength.Em(0.7),
+        Height = CssLength.Em(0.7),
         Color = Tones.Danger.Text,
     });
 

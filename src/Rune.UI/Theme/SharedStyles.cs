@@ -62,7 +62,7 @@ public static class SharedStyles
     });
 
     /// <summary>相对所在文字小一档（0.93em）：提示条里的关闭按钮。</summary>
-    public static Style RelativeSmall => Css.Define(static () => new Style { FontSize = "0.93em" });
+    public static Style RelativeSmall => Css.Define(static () => new Style { FontSize = CssLength.Em(0.93) });
 
     /// <summary>键盘聚焦时的焦点环（画在元素外侧）。</summary>
     public static Style FocusRing => Css.Define(static () => new Style
@@ -91,10 +91,12 @@ public static class SharedStyles
     public static Style RippleHost => Css.Define(static () => new Style
     {
         Position = Position.Relative,
-        Overflow = "hidden",
+        Overflow = Overflow.Hidden,
     });
 
     /// <summary>视觉上隐藏、读屏仍能读到（给图标按钮补文字说明）。</summary>
+    // 读屏能读到、视觉上看不见的通行写法：1px 的盒子不随字号变，这里的 px 是有意的
+#pragma warning disable RUNE007
     public static Style VisuallyHidden => Css.Define(static () => new Style
     {
         Position = Position.Absolute,
@@ -102,11 +104,12 @@ public static class SharedStyles
         Height = 1,
         Padding = 0,
         Margin = -1,
-        Overflow = "hidden",
+        Overflow = Overflow.Hidden,
         Clip = "rect(0, 0, 0, 0)",
         WhiteSpace = WhiteSpace.Nowrap,
         BorderWidth = 0,
     });
+#pragma warning restore RUNE007
 
     /// <summary>
     /// 交互状态的过渡：悬停、按下、选中、聚焦时背景色、边框色、文字色、阴影的变化（按钮、菜单项、输入框外框、勾选框共用，同 vue-tsx-pro）。

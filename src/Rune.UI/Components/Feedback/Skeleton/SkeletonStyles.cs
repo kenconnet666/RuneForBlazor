@@ -55,26 +55,26 @@ public static class SkeletonStyles
         PointerEvents = PointerEvents.None,
         UserSelect = UserSelect.None,
         // Windows 高对比下系统把背景色改掉，占位块就看不见了：用系统的灰色文字色
-        [Media.ForcedColors] = new() { BackgroundColor = "GrayText", ForcedColorAdjust = "none" },
+        [Media.ForcedColors] = new() { BackgroundColor = CssColors.GrayText, ForcedColorAdjust = ForcedColorAdjust.None },
     });
 
     // 包着内容时：内容决定大小但看不见
-    static Style Wrapping => Css.Define(static () => new Style { Color = "transparent" });
+    static Style Wrapping => Css.Define(static () => new Style { Color = CssColors.Transparent });
 
-    static Style Hidden => Css.Define(static () => new Style { Visibility = "hidden" });
+    static Style Hidden => Css.Define(static () => new Style { Visibility = Visibility.Hidden });
 
     static Style VariantOf(SkeletonVariant variant) => Css.Define(variant, static variant => variant switch
     {
-        SkeletonVariant.Text => new Style { Display = Display.Block, Width = "100%", Height = "1em" },
-        SkeletonVariant.Heading => new Style { Display = Display.Block, Width = "40%", Height = "1.5em" },
-        SkeletonVariant.Circle => new Style { Width = "2.5em", Height = "2.5em", FlexShrink = 0, BorderRadius = Radii.Full },
+        SkeletonVariant.Text => new Style { Display = Display.Block, Width = CssLength.Percent(100), Height = CssLength.Em(1) },
+        SkeletonVariant.Heading => new Style { Display = Display.Block, Width = CssLength.Percent(40), Height = CssLength.Em(1.5) },
+        SkeletonVariant.Circle => new Style { Width = CssLength.Em(2.5), Height = CssLength.Em(2.5), FlexShrink = 0, BorderRadius = Radii.Full },
         SkeletonVariant.Button => new Style
         {
-            Width = "6em",
+            Width = CssLength.Em(6),
             Height = $"max({Sizes.Control}, {Sizes.MinTarget})",
             FlexShrink = 0,
             BorderRadius = Radii.Md,
         },
-        _ => new Style { Display = Display.Block, Width = "100%", AspectRatio = "16 / 9", BorderRadius = Radii.Md },
+        _ => new Style { Display = Display.Block, Width = CssLength.Percent(100), AspectRatio = "16 / 9", BorderRadius = Radii.Md },
     });
 }

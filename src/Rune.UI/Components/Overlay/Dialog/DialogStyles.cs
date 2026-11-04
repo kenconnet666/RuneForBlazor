@@ -123,7 +123,7 @@ public static class DialogStyles
     // 原生 dialog 已限制 max-width / max-height 不超出视口；这里只把高度上限放到四周各留 1em
     static Style Centered => Css.Define(static () => new Style
     {
-        Width = "100%",
+        Width = CssLength.Percent(100),
         MaxHeight = "calc(100dvh - 2em)",
         BorderRadius = Radii.Xl,
     });
@@ -180,7 +180,7 @@ public static class DialogStyles
         FlexGrow = 1,
         MinHeight = 0,
         OverflowY = Overflow.Auto,
-        OverscrollBehavior = "contain",
+        OverscrollBehavior = OverscrollBehavior.Contain,
         PaddingBlock = Space.Lg,
         PaddingInline = Space.Xl,
     });
@@ -200,11 +200,11 @@ public static class DialogStyles
     static Style DrawerRoot => Css.Define(static () => new Style
     {
         Margin = 0,
-        MaxWidth = "100vw",
-        MaxHeight = "100dvh",
+        MaxWidth = CssLength.Vw(100),
+        MaxHeight = CssLength.Dvh(100),
         BorderRadius = 0,
         Transition = DrawerTransition(Durations.Md, Easings.Exit),
-        [When.Modal] = new() { Translate = "none", Transition = DrawerTransition(Durations.Lg, Easings.Enter) },
+        [When.Modal] = new() { Translate = CssLength.None, Transition = DrawerTransition(Durations.Lg, Easings.Enter) },
     });
 
     static string DrawerTransition(CssValue duration, CssValue easing) =>
@@ -217,11 +217,11 @@ public static class DialogStyles
         DrawerSide.Start => new Style
         {
             InsetBlock = 0,
-            Width = "100%",
-            Height = "100dvh",
-            Overflow = "hidden",
+            Width = CssLength.Percent(100),
+            Height = CssLength.Dvh(100),
+            Overflow = Overflow.Hidden,
             InsetInlineStart = 0,
-            InsetInlineEnd = "auto",
+            InsetInlineEnd = CssLength.Auto,
             BorderInlineStartWidth = 0,
             Translate = "-100% 0",
             [When.Rtl] = new() { Translate = "100% 0" },
@@ -230,10 +230,10 @@ public static class DialogStyles
         DrawerSide.Top => new Style
         {
             InsetInline = 0,
-            Width = "100vw",
-            Height = "auto",
+            Width = CssLength.Vw(100),
+            Height = Height.Auto,
             Top = 0,
-            Bottom = "auto",
+            Bottom = CssLength.Auto,
             BorderBlockStartWidth = 0,
             Translate = "0 -100%",
             [When.Modal] = new() { [When.Starting] = new() { Translate = "0 -100%" } },
@@ -241,9 +241,9 @@ public static class DialogStyles
         DrawerSide.Bottom => new Style
         {
             InsetInline = 0,
-            Width = "100vw",
-            Height = "auto",
-            Top = "auto",
+            Width = CssLength.Vw(100),
+            Height = Height.Auto,
+            Top = CssLength.Auto,
             Bottom = 0,
             BorderBlockEndWidth = 0,
             Translate = "0 100%",
@@ -252,10 +252,10 @@ public static class DialogStyles
         _ => new Style
         {
             InsetBlock = 0,
-            Width = "100%",
-            Height = "100dvh",
-            Overflow = "hidden",
-            InsetInlineStart = "auto",
+            Width = CssLength.Percent(100),
+            Height = CssLength.Dvh(100),
+            Overflow = Overflow.Hidden,
+            InsetInlineStart = CssLength.Auto,
             InsetInlineEnd = 0,
             BorderInlineEndWidth = 0,
             Translate = "100% 0",

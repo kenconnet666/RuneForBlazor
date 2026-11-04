@@ -118,16 +118,16 @@ public static class ChoiceStyles
     static Style Control => Css.Define(static () => new Style
     {
         Display = Display.InlineGrid,
-        PlaceItems = "center",
+        PlaceItems = PlaceItems.Center,
         FlexShrink = 0,
-        MinHeight = "1.5em",
+        MinHeight = CssLength.Em(1.5),
     });
 
     // 去掉浏览器外观，由各种类给出形状
     static Style Input => Css.Define(static () => new Style
     {
         GridArea = "1 / 1",
-        Appearance = "none",
+        Appearance = Appearance.None,
         BoxSizing = BoxSizing.BorderBox,
         Margin = 0,
         BorderWidth = BorderWidths.Sm,
@@ -141,11 +141,11 @@ public static class ChoiceStyles
     // 焦点环贴着边框外侧（同 vue-tsx-pro 的 focusRingStyles.tight）
     static Style FocusRingTight => Css.Define(static () => new Style
     {
-        OutlineStyle = "none",
+        OutlineStyle = OutlineStyle.None,
         OutlineWidth = BorderWidths.Sm,
         OutlineColor = Colors.FocusRing,
         OutlineOffset = BorderWidths.Sm,
-        [When.FocusVisible] = new() { OutlineStyle = "solid" },
+        [When.FocusVisible] = new() { OutlineStyle = OutlineStyle.Solid },
     });
 
     static Style Checked => Css.Define(static () => new Style
@@ -166,17 +166,17 @@ public static class ChoiceStyles
         [When.Inside(When.Attribute("""[aria-invalid="true"]"""))] = new() { BorderColor = Tones.Danger.Solid, OutlineColor = Tones.Danger.Solid },
     });
 
-    static Style Box => Css.Define(static () => new Style { Width = "1.125em", Height = "1.125em", BorderRadius = Radii.Sm });
+    static Style Box => Css.Define(static () => new Style { Width = CssLength.Em(1.125), Height = CssLength.Em(1.125), BorderRadius = Radii.Sm });
 
-    static Style Circle => Css.Define(static () => new Style { Width = "1.125em", Height = "1.125em", BorderRadius = Radii.Full });
+    static Style Circle => Css.Define(static () => new Style { Width = CssLength.Em(1.125), Height = CssLength.Em(1.125), BorderRadius = Radii.Full });
 
     // 轨道：关着时是深一点的描边色
     static Style Track => Css.Define(static () => new Style
     {
-        Width = "2.25em",
-        Height = "1.25em",
+        Width = CssLength.Em(2.25),
+        Height = CssLength.Em(1.25),
         BorderRadius = Radii.Full,
-        BorderColor = "transparent",
+        BorderColor = CssColors.Transparent,
         BackgroundColor = Colors.BorderStrong,
     });
 
@@ -184,21 +184,21 @@ public static class ChoiceStyles
     static Style Check => Css.Define(static () => new Style
     {
         GridArea = "1 / 1",
-        PointerEvents = "none",
-        Width = "0.875em",
-        Height = "0.875em",
+        PointerEvents = PointerEvents.None,
+        Width = CssLength.Em(0.875),
+        Height = CssLength.Em(0.875),
         Color = $"var({OnFillVar})",
-        Visibility = "hidden",
-        [When.After(When.Checked)] = new() { Visibility = "visible" },
-        [When.After(When.Indeterminate)] = new() { Visibility = "visible" },
+        Visibility = Visibility.Hidden,
+        [When.After(When.Checked)] = new() { Visibility = Visibility.Visible },
+        [When.After(When.Indeterminate)] = new() { Visibility = Visibility.Visible },
     });
 
     static Style Dot => Css.Define(static () => new Style
     {
         GridArea = "1 / 1",
-        PointerEvents = "none",
-        Width = "0.45em",
-        Height = "0.45em",
+        PointerEvents = PointerEvents.None,
+        Width = CssLength.Em(0.45),
+        Height = CssLength.Em(0.45),
         BorderRadius = Radii.Full,
         BackgroundColor = $"var({OnFillVar})",
         Transform = "scale(0)",
@@ -210,13 +210,13 @@ public static class ChoiceStyles
     static Style Thumb => Css.Define(static () => new Style
     {
         GridArea = "1 / 1",
-        PointerEvents = "none",
+        PointerEvents = PointerEvents.None,
         Display = Display.Grid,
-        PlaceItems = "center",
-        JustifySelf = "start",
-        Width = "0.875em",
-        Height = "0.875em",
-        MarginInlineStart = "0.1875em",
+        PlaceItems = PlaceItems.Center,
+        JustifySelf = JustifySelf.Start,
+        Width = CssLength.Em(0.875),
+        Height = CssLength.Em(0.875),
+        MarginInlineStart = CssLength.Em(0.1875),
         BorderRadius = Radii.Full,
         BackgroundColor = Colors.Background,
         BoxShadow = Shadows.Sm,
@@ -227,7 +227,7 @@ public static class ChoiceStyles
     // 有说明时文字在上、说明在下
     static Style Label => Css.Define(static () => new Style { MinWidth = 0, Display = Display.Grid });
 
-    static Style Description => Css.Define(static () => new Style { Color = Colors.TextMuted, FontSize = "0.875em" });
+    static Style Description => Css.Define(static () => new Style { Color = Colors.TextMuted, FontSize = CssLength.Em(0.875) });
 
     static Style VerticalGroup => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Xs });
 

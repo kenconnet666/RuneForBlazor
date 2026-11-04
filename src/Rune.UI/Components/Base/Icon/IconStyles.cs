@@ -23,10 +23,10 @@ public static class IconStyles
     // 线条粗细取主题的 token（CSS 的 stroke-width 优先于 svg 上的属性）
     static Style Root => Css.Define(static () => new Style
     {
-        Width = "1em",
-        Height = "1em",
+        Width = CssLength.Em(1),
+        Height = CssLength.Em(1),
         FlexShrink = 0,
-        VerticalAlign = "-0.125em",
+        VerticalAlign = CssLength.Em(-0.125),
         StrokeWidth = StrokeWidths.Md,
     });
 

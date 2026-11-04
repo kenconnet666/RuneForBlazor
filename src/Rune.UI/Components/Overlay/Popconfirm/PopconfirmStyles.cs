@@ -42,10 +42,10 @@ public static class PopconfirmStyles
         GridTemplateColumns = "auto minmax(0, 1fr)",
         ColumnGap = Space.Sm,
         RowGap = Space.Xs,
-        MaxWidth = "20rem",
+        MaxWidth = CssLength.Rem(20),
     });
 
-    static Style Icon => Css.Define(static () => new Style { GridRow = "span 2", MarginBlockStart = "0.15em" });
+    static Style Icon => Css.Define(static () => new Style { GridRow = "span 2", MarginBlockStart = CssLength.Em(0.15) });
 
     static Style Title => Css.Define(static () => new Style
     {

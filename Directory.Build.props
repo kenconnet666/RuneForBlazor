@@ -11,6 +11,11 @@
     <VersionSuffix>alpha.1</VersionSuffix>
   </PropertyGroup>
 
+  <!-- 全仓库的分析器级别（RUNE006 等） -->
+  <ItemGroup>
+    <GlobalAnalyzerConfigFiles Include="$(MSBuildThisFileDirectory)rune.globalconfig" />
+  </ItemGroup>
+
   <!-- CI 上做确定性构建（路径规范化，包可复现） -->
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>

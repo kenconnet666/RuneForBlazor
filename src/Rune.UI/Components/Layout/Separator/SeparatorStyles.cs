@@ -46,10 +46,10 @@ public static class SeparatorStyles
     {
         FlexShrink = 0,
         BackgroundColor = Colors.BorderMuted,
-        [Media.ForcedColors] = new() { BackgroundColor = "CanvasText", ForcedColorAdjust = "none" },
+        [Media.ForcedColors] = new() { BackgroundColor = CssColors.CanvasText, ForcedColorAdjust = ForcedColorAdjust.None },
     });
 
-    static Style Horizontal => Css.Define(static () => new Style { Height = BorderWidths.Xs, Width = "100%" });
+    static Style Horizontal => Css.Define(static () => new Style { Height = BorderWidths.Xs, Width = CssLength.Percent(100) });
 
     // 在 flex 容器里随行高拉伸
     static Style Vertical => Css.Define(static () => new Style { Width = BorderWidths.Xs, AlignSelf = AlignSelf.Stretch });
@@ -60,9 +60,9 @@ public static class SeparatorStyles
         Display = Display.Flex,
         AlignItems = AlignItems.Center,
         Gap = Space.Md,
-        Width = "100%",
+        Width = CssLength.Percent(100),
         Color = Colors.TextMuted,
-        FontSize = "0.93em",
+        FontSize = CssLength.Em(0.93),
         LineHeight = LineHeights.Tight,
     });
 

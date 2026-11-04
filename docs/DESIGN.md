@@ -224,8 +224,13 @@
 - `.razor` 的 `@code` 里写 `[State]`：生成器看不到 Razor 生成的代码，编译器只报 CS9248。生成器扫描 Razor SDK 交来的 `.razor` 附加文件，报 RUNE003 并指向 `.razor` 里的行（分析器在编译出错时不运行，走不通）。
 - 分析器：`Style` 类型的静态只读字段、带初始化器的静态属性（RUNE004，热重载不生效）；组件渲染路径上的 `new Style`（RUNE005，每次都要重新算类名）。
   `Css.Define` 的 lambda 里、静态成员、构造函数不报。
+- 样式值（`StyleValueAnalyzer`）：RUNE006 字面量有现成写法（关键字类、`CssWide`、`CssColors`、`CssLength.Auto`、带单位的 `CssLength.Em(…)`），
+  替换文本放在诊断属性里，`src/Rune.CodeFixes` 的代码修复照它替换（IDE 灯泡、`dotnet format analyzers --diagnostics RUNE006`；.razor 里改不了，手改）；
+  使用方默认是建议，本仓库经 `rune.globalconfig` 提到警告。RUNE007 长度写成 px（非零数字或带 px 的字符串，边框、描边、焦点环属性除外），
+  默认关闭、Rune.UI 经 `components.globalconfig` 打开：使用方的页面写 px 没问题，组件内部要随字号缩放。只看字面量，`CssWide.Inherit` 这类常量不报。
+  代码修复要引用 Workspaces，单独一个程序集（生成器的程序集引用它会在命令行构建时加载失败，RS1038）。
 - 新增诊断要登记在 `AnalyzerReleases.Unshipped.md`。
-- 生成器随 Rune 包发布（`analyzers/dotnet/cs`），仓库里的项目各自以分析器方式引用它。
+- 生成器与代码修复随 Rune 包发布（`analyzers/dotnet/cs`），仓库里的项目各自以分析器方式引用它们。
 
 ## 11. 构建与发布
 

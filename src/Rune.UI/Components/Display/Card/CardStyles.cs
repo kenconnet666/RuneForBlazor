@@ -104,9 +104,9 @@ public static class CardStyles
         MinWidth = 0,
         BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
-        BorderColor = "transparent",
+        BorderColor = CssColors.Transparent,
         Color = Colors.Text,
-        Overflow = "hidden",
+        Overflow = Overflow.Hidden,
     });
 
     static Style Header => Css.Define(static () => new Style

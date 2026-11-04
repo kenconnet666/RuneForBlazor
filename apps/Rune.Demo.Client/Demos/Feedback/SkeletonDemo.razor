@@ -200,11 +200,11 @@
     });
 
 
-    static Style FieldLabel => Css.Define(static () => new Style { Width = "4em", Height = "0.875em" });
+    static Style FieldLabel => Css.Define(static () => new Style { Width = CssLength.Em(4), Height = CssLength.Em(0.875) });
 
     static Style FieldBox => Css.Define(static () => new Style
     {
-        Width = "100%",
+        Width = CssLength.Percent(100),
         Height = $"max({Sizes.Control}, {Sizes.MinTarget})",
         BorderRadius = Radii.Md,
     });

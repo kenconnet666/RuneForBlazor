@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/Rune/Rune.csproj" />
     <Project Path="src/Rune.Generators/Rune.Generators.csproj" />
+    <Project Path="src/Rune.CodeFixes/Rune.CodeFixes.csproj" />
     <Project Path="src/Rune.UI/Rune.UI.csproj" />
     <Project Path="src/Rune.Icons/Rune.Icons.csproj" />
   </Folder>

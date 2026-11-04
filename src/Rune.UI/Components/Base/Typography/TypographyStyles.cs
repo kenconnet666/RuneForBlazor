@@ -188,8 +188,8 @@ public static class TypographyStyles
         MarginInlineStart = Space.Xs,
         BorderRadius = Radii.Xs,
         Color = Colors.TextMuted,
-        FontSize = "0.75em",
-        TextDecoration = "none",
+        FontSize = CssLength.Em(0.75),
+        TextDecoration = TextDecoration.None,
         Opacity = 0,
         Transition = $"opacity {Durations.Sm} {Easings.Standard}",
         [When.Hover] = new() { Color = Tones.Accent.Text },
@@ -259,7 +259,7 @@ public static class TypographyStyles
     static Style Truncate => Css.Define(static () => new Style
     {
         MinWidth = 0,
-        Overflow = "hidden",
+        Overflow = Overflow.Hidden,
         TextOverflow = TextOverflow.Ellipsis,
         WhiteSpace = WhiteSpace.Nowrap,
     });
@@ -267,19 +267,19 @@ public static class TypographyStyles
     // 标准的 line-clamp 还没普及，用 -webkit-box 的写法（各浏览器都支持）
     static Style Clamp(int lines) => Css.Define(lines, static lines => new Style
     {
-        Display = "-webkit-box",
-        WebkitBoxOrient = "vertical",
+        Display = Display.WebkitBox,
+        WebkitBoxOrient = WebkitBoxOrient.Vertical,
         WebkitLineClamp = lines,
-        Overflow = "hidden",
+        Overflow = Overflow.Hidden,
     });
 
-    static Style Numeric => Css.Define(static () => new Style { FontVariantNumeric = "tabular-nums" });
+    static Style Numeric => Css.Define(static () => new Style { FontVariantNumeric = FontVariantNumeric.TabularNums });
 
     static Style Mono => Css.Define(static () => new Style { FontFamily = Fonts.Mono });
 
     static Style MarkRoot => Css.Define(static () => new Style
     {
-        PaddingInline = "0.15em",
+        PaddingInline = CssLength.Em(0.15),
         BorderRadius = Radii.Xs,
         BackgroundColor = Colors.Highlight,
         Color = CssWide.Inherit,
@@ -294,9 +294,9 @@ public static class TypographyStyles
         BackgroundColor = Colors.Fill,
         Color = Colors.Text,
         FontFamily = Fonts.Mono,
-        FontVariantLigatures = "none",
-        FontSize = "0.9em",
-        OverflowWrap = "break-word",
+        FontVariantLigatures = FontVariantLigatures.None,
+        FontSize = CssLength.Em(0.9),
+        OverflowWrap = OverflowWrap.BreakWord,
     });
 
     static Style BlockquoteRoot => Css.Define(static () => new Style
@@ -314,7 +314,7 @@ public static class TypographyStyles
     static Style KbdRoot => Css.Define(static () => new Style
     {
         Display = Display.InlineBlock,
-        MinWidth = "1.6em",
+        MinWidth = CssLength.Em(1.6),
         PaddingInline = Space.Xs,
         BorderWidth = BorderWidths.Xs,
         BorderBottomWidth = BorderWidths.Sm,
@@ -324,7 +324,7 @@ public static class TypographyStyles
         BackgroundColor = Colors.Surface,
         Color = Colors.Text,
         FontFamily = Fonts.Mono,
-        FontSize = "0.85em",
+        FontSize = CssLength.Em(0.85),
         LineHeight = LineHeights.Snug,
         TextAlign = TextAlign.Center,
         WhiteSpace = WhiteSpace.Nowrap,

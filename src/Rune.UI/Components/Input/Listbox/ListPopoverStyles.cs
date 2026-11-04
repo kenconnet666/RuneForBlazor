@@ -59,6 +59,6 @@ public static class ListPopoverStyles
         FlexGrow = 1,
         MinHeight = 0,
         OverflowY = Overflow.Auto,
-        OverscrollBehavior = "contain",
+        OverscrollBehavior = OverscrollBehavior.Contain,
     });
 }

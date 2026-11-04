@@ -33,6 +33,18 @@ internal static class Diagnostics
         "RUNE005", "不要在渲染路径上新建 Style",
         "渲染时新建的 Style 每次都是新实例，引擎要重新计算类名；改成用 Css.Define 定义的静态属性",
         Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    // 建议级：写法问题，不影响结果；本仓库在 rune.globalconfig 里提到警告
+    public static readonly DiagnosticDescriptor StringStyleValue = new(
+        "RUNE006", "样式值有现成的常量或类型化写法",
+        "\"{0}\" 可以写成 {1}：常量与类型化写法有补全、写错编译不过",
+        Category, DiagnosticSeverity.Info, isEnabledByDefault: true);
+
+    // 默认关闭：使用方页面里写 px 没问题；组件库（尺寸随字号缩放）在项目里打开
+    public static readonly DiagnosticDescriptor PixelLength = new(
+        "RUNE007", "组件内部的长度不要用 px",
+        "{0} = {1} 是 px：组件内部尺寸用 em（CssLength.Em、间距与尺寸 token），随字号整体缩放；边框、焦点环、分隔线用 BorderWidths token",
+        Category, DiagnosticSeverity.Warning, isEnabledByDefault: false);
 }
 
 /// <summary>

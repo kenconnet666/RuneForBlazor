@@ -100,7 +100,7 @@ public static class BadgeStyles
         Gap = Space.Xs,
         PaddingInline = Space.Sm,
         // 一行的高度：不随内容的图标、按钮撑高
-        MinHeight = "1.75em",
+        MinHeight = CssLength.Em(1.75),
         FontWeight = FontWeights.Medium,
         LineHeight = LineHeights.Tight,
         WhiteSpace = WhiteSpace.Nowrap,
@@ -111,10 +111,10 @@ public static class BadgeStyles
     static Style Dot => Css.Define(static () => new Style
     {
         FlexShrink = 0,
-        Width = "0.5em",
-        Height = "0.5em",
+        Width = CssLength.Em(0.5),
+        Height = CssLength.Em(0.5),
         BorderRadius = Radii.Full,
-        BackgroundColor = "currentColor",
+        BackgroundColor = CssColors.CurrentColor,
     });
 
     // 标签：移除被拒绝（使用方没移除）时从离场状态过渡回来
@@ -138,8 +138,8 @@ public static class BadgeStyles
     // 移除按钮（CloseButton）比独立的图标按钮紧凑；标签之间留有间距，满足目标尺寸的间距例外
     static Style Remove => Css.Define(static () => new Style
     {
-        Width = "1.5em",
-        MinHeight = "1.5em",
+        Width = CssLength.Em(1.5),
+        MinHeight = CssLength.Em(1.5),
         MarginBlock = $"calc(-1 * {Space.Xs})",
         Color = CssWide.Inherit,
     });
