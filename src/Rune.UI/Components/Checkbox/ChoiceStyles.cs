@@ -2,7 +2,17 @@ using Rune.Styles;
 
 namespace Rune.UI;
 
-/// <summary>勾选框与开关的部件。</summary>
+/// <summary>排列方向。</summary>
+public enum Orientation
+{
+    /// <summary>竖排（默认）。</summary>
+    Vertical,
+
+    /// <summary>横排，放不下时换行。</summary>
+    Horizontal,
+}
+
+/// <summary>勾选框、单选框与开关的部件。</summary>
 public enum ChoicePart
 {
     /// <summary>外层（label）：点文字也能切换。</summary>
@@ -14,7 +24,7 @@ public enum ChoicePart
     /// <summary>原生 input（去掉默认外观后画成方框或轨道）。</summary>
     Input,
 
-    /// <summary>对勾 / 横线图标（勾选框）。</summary>
+    /// <summary>对勾 / 横线图标（勾选框）、圆点（单选框）。</summary>
     Indicator,
 
     /// <summary>文字。</summary>
@@ -22,7 +32,7 @@ public enum ChoicePart
 }
 
 /// <summary>
-/// 勾选框（Checkbox）与开关（Switch）的样式（配方）。都是原生 <c>&lt;input type="checkbox"&gt;</c> 去掉默认外观后重画：
+/// 勾选框（Checkbox）、单选框（Radio）与开关（Switch）的样式（配方）。都是原生 <c>&lt;input type="checkbox"&gt;</c> 去掉默认外观后重画：
 /// 键盘、表单提交、读屏都是原生的；状态写在 input 上（:checked、:indeterminate、aria-invalid），样式跟着状态变。
 /// </summary>
 public static class ChoiceStyles
@@ -37,6 +47,27 @@ public static class ChoiceStyles
             ChoicePart.Indicator => Indicator,
             _ => Label,
         });
+
+    /// <summary>单选框的部件默认层。</summary>
+    public static PartLayers<ChoicePart> Radio(Size? size, ComponentStyles styles) =>
+        Recipe.Of("radio", size, styles, static (Size? size, ChoicePart part) => part switch
+        {
+            ChoicePart.Root => Sx.Of(Root, size is { } s ? ScaleStyles.FontSize(s) : null),
+            ChoicePart.Control => Control,
+            ChoicePart.Input => Sx.Of(Native, Circle, SharedStyles.FocusRing, SharedStyles.ReducedMotion),
+            ChoicePart.Indicator => Dot,
+            _ => Label,
+        });
+
+    /// <summary>单选组的外层（role="radiogroup"）。</summary>
+    public static Style Group(Orientation orientation) => Css.Define(orientation, static orientation => new Style
+    {
+        Display = Display.Flex,
+        FlexDirection = orientation == Orientation.Horizontal ? FlexDirection.Row : FlexDirection.Column,
+        FlexWrap = FlexWrap.Wrap,
+        ColumnGap = Space.Lg,
+        RowGap = Space.Xs,
+    });
 
     /// <summary>开关的部件默认层。</summary>
     public static PartLayers<ChoicePart> Switch(Size? size, ComponentStyles styles) =>
@@ -90,6 +121,28 @@ public static class ChoiceStyles
         BorderRadius = Radii.Sm,
         [When.Checked] = new() { BorderColor = Tones.Accent.Solid, BackgroundColor = Tones.Accent.Solid },
         [When.Indeterminate] = new() { BorderColor = Tones.Accent.Solid, BackgroundColor = Tones.Accent.Solid },
+    });
+
+    static Style Circle => Css.Define(static () => new Style
+    {
+        Width = "1.1em",
+        Height = "1.1em",
+        BorderRadius = Radii.Full,
+        [When.Checked] = new() { BorderColor = Tones.Accent.Solid },
+    });
+
+    // 圆点跟在 input 后面：选中时显示
+    static Style Dot => Css.Define(static () => new Style
+    {
+        GridArea = "1 / 1",
+        Width = "0.5em",
+        Height = "0.5em",
+        BorderRadius = Radii.Full,
+        BackgroundColor = Tones.Accent.Solid,
+        PointerEvents = "none",
+        Scale = 0,
+        Transition = $"scale {Durations.Fast} {Easings.Standard}",
+        [When.After(When.Checked)] = new() { Scale = 1 },
     });
 
     // 对勾跟在 input 后面：input 勾上（或半选）时显示

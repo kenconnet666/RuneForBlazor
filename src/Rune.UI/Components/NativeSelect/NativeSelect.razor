@@ -1,0 +1,64 @@
+@*
+    原生下拉选择（select）：<NativeSelect @bind-Value="city" Items="cities" Placeholder="选择城市" />
+    <NativeSelect @bind-Value="userId" Items="users.Select(u => u.Id).ToList()" ItemText="id => names[id]" />
+    选项少、不需要搜索时用它：手机上是系统自己的选择器，键盘、读屏都是原生的。需要搜索、多选、自定义选项内容时用 Select（之后提供）。
+    值可以是任何类型：选项按位置对应，ItemText 给出显示的文字（默认 ToString）。
+*@
+@namespace Rune.UI
+@typeparam TValue
+@inherits FormControl<TValue>
+@{ var parts = NativeSelectStyles.Of(Size, Radius ?? Config.Defaults.Get<TextFieldDefaults>()?.Radius ?? UI.Radius.Md, Config.Styles); }
+
+<div @attributes="Attrs.Merge(parts[NativeSelectPart.Root], RootUserAttrs)">
+    <select @attributes="Attrs.Merge(parts[NativeSelectPart.Select], InputUserAttrs, SelectManaged)">
+        @if (Placeholder is not null)
+        {
+            <option value="" disabled="@IsRequired">@Placeholder</option>
+        }
+        @for (var i = 0; i < Items.Count; i++)
+        {
+            <option value="@i">@TextOf(Items[i])</option>
+        }
+    </select>
+    <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(parts[NativeSelectPart.Chevron])" />
+</div>
+
+@code {
+    Memo<(Attrs Control, int Index), Attrs> selectManaged;
+
+    /// <summary>选项。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TValue> Items { get; set; } = [];
+
+    /// <summary>选项显示的文字；不写时用 ToString。</summary>
+    [Parameter] public Func<TValue, string>? ItemText { get; set; }
+
+    /// <summary>没有选择时显示的文字（第一个空选项）；必填时这个选项不能选回去。</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>字号档位；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认中圆角。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    string TextOf(TValue item) => ItemText?.Invoke(item) ?? item?.ToString() ?? "";
+
+    // 当前值在选项里的位置；没有选择（或值不在选项里）时是 -1，选中空选项
+    int SelectedIndex
+    {
+        get
+        {
+            var comparer = EqualityComparer<TValue>.Default;
+            for (var i = 0; i < Items.Count; i++)
+                if (comparer.Equals(Items[i], CurrentValue)) return i;
+            return -1;
+        }
+    }
+
+    Attrs SelectManaged => selectManaged.Get((ControlAttrs, SelectedIndex), this, static (k, owner) => Attrs.Merge(k.Control, new Attrs
+    {
+        ["value"] = k.Index < 0 ? "" : k.Index.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync(
+            int.TryParse(e.Value as string, out var index) && index >= 0 && index < owner.Items.Count ? owner.Items[index] : default!)),
+    }));
+}

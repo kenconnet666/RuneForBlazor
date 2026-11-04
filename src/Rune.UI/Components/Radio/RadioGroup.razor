@@ -1,0 +1,66 @@
+@*
+    单选组（role="radiogroup"）：
+    <Field Label="配送方式">
+        <RadioGroup @bind-Value="shipping">
+            <Radio Value="@("express")">快递</Radio>
+            <Radio Value="@("pickup")">自提</Radio>
+        </RadioGroup>
+    </Field>
+    同一组的原生 radio 共用一个 name：Tab 只停在选中项，方向键在组内移动并选中，都是浏览器的原生行为。
+    组以所在 Field 的标签为名称（aria-labelledby），不在 Field 里时写 aria-label。
+*@
+@namespace Rune.UI
+@typeparam TValue
+@attribute [CascadingTypeParameter(nameof(TValue))]
+@inherits FormControl<TValue>
+
+<CascadingValue Value="this">
+    <div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation), Rest, GroupAttrs)">@ChildContent</div>
+</CascadingValue>
+
+@code {
+    readonly string autoName = UniqueId.Next("radio-group");
+    Memo<(string Id, string? LabelledBy, string? DescribedBy, bool Invalid, bool Required, bool Disabled, bool ReadOnly), Attrs> groupAttrs;
+
+    /// <summary>原生 radio 的 name：同组共用（表单提交时的字段名）；不写时自动生成。</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>排列方向，默认竖排。</summary>
+    [Parameter] public Orientation Orientation { get; set; }
+
+    /// <summary>字号档位；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>单选项（Radio）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>同组 radio 共用的 name。</summary>
+    internal string GroupName => Name ?? autoName;
+
+    /// <summary>这个值是否选中。</summary>
+    internal bool IsSelected(TValue value) => EqualityComparer<TValue>.Default.Equals(CurrentValue, value);
+
+    /// <summary>整组不可用。</summary>
+    internal bool GroupDisabled => IsDisabled;
+
+    /// <summary>整组只读：能聚焦，选中项不能改。</summary>
+    internal bool GroupReadOnly => IsReadOnly;
+
+    /// <summary>选中一个值。</summary>
+    internal Task SelectAsync(TValue value) => IsReadOnly ? Task.CompletedTask : SetValueAsync(value);
+
+    // 组上的状态都用 aria（div 没有原生的 disabled、required）
+    Attrs GroupAttrs => groupAttrs.Get(
+        (ControlId, Field?.LabelId, Field?.DescribedBy, IsInvalid, IsRequired, IsDisabled, IsReadOnly),
+        static k => new Attrs
+        {
+            Id = k.Id,
+            Role = "radiogroup",
+            AriaLabelledBy = k.LabelledBy,
+            AriaDescribedBy = k.DescribedBy,
+            ["aria-invalid"] = k.Invalid ? "true" : null,
+            ["aria-required"] = k.Required ? "true" : null,
+            AriaDisabled = k.Disabled ? true : null,
+            ["aria-readonly"] = k.ReadOnly ? "true" : null,
+        });
+}

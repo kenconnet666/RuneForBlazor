@@ -1,0 +1,139 @@
+@*
+    数字输入框（role="spinbutton"）：外框同 TextField，右侧带减少 / 增加按钮。
+    <Field Label="数量"><NumberField @bind-Value="count" Min="1" Max="99" /></Field>
+    <NumberField @bind-Value="price" Step="0.01m" Format="C2" aria-label="单价" />
+    值可以是任何数字类型（int、long、decimal、double…），可空类型（int?）空着时为 null；不可空的不能清空。
+    Min、Max、Step 写成 decimal（同 Blazor 的 InputNumber，值的类型不限）。输入时是普通文本，失去焦点或回车时解析、夹到 Min–Max、
+    对齐到 Step 后写回（decimal 计算，没有浮点误差），解析不了时恢复原值；认全角数字与当前文化的千分位。
+    ↑ / ↓ 加减 Step，Page Up / Page Down 加减 BigStep，Home / End 到 Min / Max（JS 初始化器处理，没有往返）。
+*@
+@namespace Rune.UI
+@typeparam TValue
+@inherits FormControl<TValue>
+@using System.Globalization
+@{
+    var parts = TextFieldStyles.Of(Size, Radius ?? Config.Defaults.Get<TextFieldDefaults>()?.Radius ?? UI.Radius.Md, multiline: false, Config.Styles);
+    var steppers = NumberFieldStyles.Of(Config.Styles);
+    var current = NumberText.ToDecimal(CurrentValue);
+}
+
+<div @attributes="Attrs.Merge(parts[TextFieldPart.Root], RootUserAttrs)">
+    @if (Prefix is not null)
+    {
+        <span @attributes="Attrs.Merge(parts[TextFieldPart.Icon], PropsPrefix)">@Prefix</span>
+    }
+    <input @key="version" type="text" inputmode="decimal" autocomplete="off"
+           @attributes="Attrs.Merge(parts[TextFieldPart.Input], InputUserAttrs, InputManaged)" />
+    @if (Suffix is not null)
+    {
+        <span @attributes="Attrs.Merge(parts[TextFieldPart.Suffix], PropsSuffix)">@Suffix</span>
+    }
+    @if (ShowStepper)
+    {
+        <span @attributes="Attrs.Merge(steppers[NumberFieldPart.Stepper])">
+            <IconButton Icon="BuiltInIcons.Minus" Label="@DecrementLabel" Size="UI.Size.Xs" tabindex="-1"
+                        Disabled="@(IsDisabled || AtLimit(current, Min, -1))" @onclick="() => StepAsync(-1)"
+                        @attributes="Attrs.MergeProps(steppers[NumberFieldPart.Decrement])" />
+            <IconButton Icon="BuiltInIcons.Plus" Label="@IncrementLabel" Size="UI.Size.Xs" tabindex="-1"
+                        Disabled="@(IsDisabled || AtLimit(current, Max, 1))" @onclick="() => StepAsync(1)"
+                        @attributes="Attrs.MergeProps(steppers[NumberFieldPart.Increment])" />
+        </span>
+    }
+</div>
+
+@code {
+    Memo<(Attrs Control, TValue Value, decimal? Min, decimal? Max, decimal Step, decimal? BigStep, string? Format, CultureInfo Culture), Attrs> inputManaged;
+    // 解析不了、或夹到范围后与原值相同时，输入框里的文字要恢复成当前值；值没变 Blazor 不会更新 DOM，换一个 key 重建 input
+    int version;
+
+    /// <summary>最小值；不写时不限。</summary>
+    [Parameter] public decimal? Min { get; set; }
+
+    /// <summary>最大值；不写时不限。</summary>
+    [Parameter] public decimal? Max { get; set; }
+
+    /// <summary>步长，默认 1；提交时对齐到 Min + n × Step。小数步长写成 <c>0.01m</c>。</summary>
+    [Parameter] public decimal Step { get; set; } = 1;
+
+    /// <summary>Page Up / Page Down 的步长，默认 Step × 10。</summary>
+    [Parameter] public decimal? BigStep { get; set; }
+
+    /// <summary>显示的格式（.NET 的数字格式：N2、C2、P0），默认 G；按当前文化显示。</summary>
+    [Parameter] public string? Format { get; set; }
+
+    /// <summary>显示减少 / 增加按钮，默认是；只读时不显示。</summary>
+    [Parameter] public bool Stepper { get; set; } = true;
+
+    /// <summary>字号档位；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认中圆角。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    /// <summary>数字前的内容（币种符号）。</summary>
+    [Parameter] public RenderFragment? Prefix { get; set; }
+
+    /// <summary>数字后的内容（单位）。</summary>
+    [Parameter] public RenderFragment? Suffix { get; set; }
+
+    /// <summary>减少按钮的名称（读屏读出）。</summary>
+    [Parameter] public string DecrementLabel { get; set; } = "减少";
+
+    /// <summary>增加按钮的名称。</summary>
+    [Parameter] public string IncrementLabel { get; set; } = "增加";
+
+    /// <summary>前缀的部件属性。</summary>
+    [Parameter] public Attrs? PropsPrefix { get; set; }
+
+    /// <summary>后缀的部件属性。</summary>
+    [Parameter] public Attrs? PropsSuffix { get; set; }
+
+    bool ShowStepper => Stepper && !IsReadOnly;
+
+    static bool AtLimit(decimal? current, decimal? bound, int direction) =>
+        current is { } value && bound is { } limit && (direction < 0 ? value <= limit : value >= limit);
+
+    // input 上由组件管理的属性：表单状态、显示的文字、spinbutton 的 aria 值，以及给 JS 处理方向键的范围与步长（不变量格式）
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Min, Max, Step, BigStep, Format, CultureInfo.CurrentCulture), this,
+        static (k, owner) =>
+        {
+            var invariant = CultureInfo.InvariantCulture;
+            var value = NumberText.ToDecimal(k.Value);
+            return Attrs.Merge(k.Control, new Attrs
+            {
+                Role = "spinbutton",
+                ["value"] = NumberText.Format(k.Value, k.Format, k.Culture),
+                ["aria-valuenow"] = value?.ToString(invariant),
+                ["aria-valuetext"] = value is null ? null : NumberText.Format(k.Value, k.Format, k.Culture),
+                ["aria-valuemin"] = k.Min?.ToString(invariant),
+                ["aria-valuemax"] = k.Max?.ToString(invariant),
+                ["data-rune-spin"] = true,
+                ["data-step"] = k.Step.ToString(invariant),
+                ["data-big-step"] = k.BigStep?.ToString(invariant),
+                ["data-decimal"] = k.Culture.NumberFormat.NumberDecimalSeparator,
+                ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.CommitAsync(e.Value as string)),
+            });
+        });
+
+    // 解析输入的文字并写回；解析不了时恢复原来的显示
+    async Task CommitAsync(string? text)
+    {
+        if (!NumberText.TryParse(text, CultureInfo.CurrentCulture, out var parsed))
+        {
+            version++;
+            return;
+        }
+        await ApplyAsync(parsed);
+    }
+
+    // 空着时从 Min（没有就是 0）开始
+    Task StepAsync(int direction) => ApplyAsync((NumberText.ToDecimal(CurrentValue) ?? Min ?? 0) + direction * Step);
+
+    // 夹到范围、对齐步长后写回；结果与原值相同（或不可空的类型被清空）时恢复输入框里的显示
+    async Task ApplyAsync(decimal? value)
+    {
+        var constrained = value is { } v ? NumberText.Constrain(v, Min, Max, Step) : (decimal?)null;
+        if (!NumberText.TryFromDecimal<TValue>(constrained, out var next) || EqualityComparer<TValue>.Default.Equals(next, CurrentValue)) version++;
+        else await SetValueAsync(next);
+    }
+}

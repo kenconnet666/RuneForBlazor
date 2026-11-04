@@ -7,6 +7,7 @@ namespace Rune.UI;
 /// 以及必填、不可用、只读、校验未通过。控件上显式写的状态优先于这里的；控件不在 Field 里时照常工作。
 /// </summary>
 /// <param name="ControlId">控件主元素的 id。</param>
+/// <param name="LabelId">标签的 id：控件不是单个原生输入元素（单选组）时用 aria-labelledby 指向它；没有标签时为 null。</param>
 /// <param name="DescribedBy">说明与错误信息的 id，空格分隔；没有时为 null。</param>
 /// <param name="Invalid">校验未通过（给了 Error，或表单里这个字段有错误）。</param>
 /// <param name="Required">必填。</param>
@@ -15,6 +16,7 @@ namespace Rune.UI;
 /// <param name="Registration">控件把自己绑定的字段报给 Field，Field 据此取表单的错误信息。</param>
 public sealed record FieldContext(
     string ControlId,
+    string? LabelId,
     string? DescribedBy,
     bool Invalid,
     bool Required,

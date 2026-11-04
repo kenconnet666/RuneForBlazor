@@ -1,0 +1,58 @@
+@*
+    单选项：放在 RadioGroup 里。<Radio Value="@("express")">快递</Radio>
+    未声明的属性落到 input 上，Sx 落在外层 label 上。
+*@
+@namespace Rune.UI
+@typeparam TValue
+@inherits UIComponent
+@{ var parts = ChoiceStyles.Radio(Size ?? Group?.Size, Config.Styles); }
+
+<label @attributes="Attrs.Merge(parts[ChoicePart.Root], RootAttrs)">
+    <span @attributes="Attrs.Merge(parts[ChoicePart.Control])">
+        <input type="radio" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputAttrs, Managed)"
+               @onclick:preventDefault="@(Group?.GroupReadOnly == true)" />
+        <span @attributes="Attrs.Merge(parts[ChoicePart.Indicator])"></span>
+    </span>
+    @if (ChildContent is not null)
+    {
+        <span @attributes="Attrs.Merge(parts[ChoicePart.Label], PropsLabel)">@ChildContent</span>
+    }
+</label>
+
+@code {
+    Memo<IReadOnlyDictionary<string, object>?, Attrs> inputAttrs;
+    Memo<Sx?, Attrs> rootAttrs;
+    Memo<(string? Name, bool Checked, bool Disabled), Attrs> managed;
+
+    /// <summary>所在的单选组。</summary>
+    [CascadingParameter] RadioGroup<TValue>? Group { get; set; }
+
+    /// <summary>这一项的值。</summary>
+    [Parameter, EditorRequired] public TValue Value { get; set; } = default!;
+
+    /// <summary>这一项不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>字号档位；不写时取单选组的。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    // 使用方写的属性落在 input 上，Sx 落在外层 label 上（同 FormControl）
+    Attrs InputAttrs => inputAttrs.Get(AdditionalAttributes, static attributes => Attrs.From(attributes, null));
+
+    Attrs RootAttrs => rootAttrs.Get(Sx, static sx => sx is null ? Attrs.Empty : new Attrs { Sx = sx });
+
+    Attrs Managed => managed.Get((Group?.GroupName, Group?.IsSelected(Value) == true, Disabled || Group?.GroupDisabled == true), this,
+        static (k, owner) => new Attrs
+        {
+            ["name"] = k.Name,
+            ["checked"] = k.Checked,
+            ["disabled"] = k.Disabled ? true : null,
+            ["onchange"] = (Func<ChangeEventArgs, Task>)(_ => owner.Group?.SelectAsync(owner.Value) ?? Task.CompletedTask),
+        });
+}

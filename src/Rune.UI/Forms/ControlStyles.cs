@@ -72,7 +72,8 @@ public static class ControlStyles
         Color = Colors.TextMuted,
     });
 
-    // 外框里的输入元素校验未通过 / 不可用
-    static readonly Condition invalid = When.Has("[aria-invalid=\"true\"]");
-    static readonly Condition disabled = When.Has(":disabled");
+    // 外框里的输入元素（直接子元素）校验未通过 / 不可用。只看输入元素本身：数字框到了上限时不可用的步进按钮、
+    // 下拉里不可用的占位选项都不算外框不可用
+    static readonly Condition invalid = When.Has("> :is(input, select, textarea)[aria-invalid=\"true\"]");
+    static readonly Condition disabled = When.Has("> :is(input, select, textarea):disabled");
 }
