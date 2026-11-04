@@ -31,7 +31,24 @@ public sealed partial class Attrs : IEnumerable<KeyValuePair<string, object>>
     public string? Class { get => Get<string>("class"); init => Set("class", value); }
 
     /// <summary>元素的 style 属性（行内样式文本）；合并时各层依次拼接。</summary>
-    public string? InlineStyle { get => Get<string>("style"); init => Set("style", value); }
+    public string? InlineStyle { get => Get<string>("style"); init => AppendStyle(value); }
+
+    /// <summary>元素上的 CSS 变量（一直在变的值，见 <see cref="CssVar{T}"/>）：<c>Vars = [FillWidth.Set("40%")]</c>。写进 style 属性。</summary>
+    public IReadOnlyList<CssVarValue>? Vars
+    {
+        get => null;
+        init
+        {
+            if (value is { Count: > 0 }) AppendStyle(string.Join(";", value));
+        }
+    }
+
+    // InlineStyle 与 Vars 都写 style 属性：在初始化器里谁先谁后都不互相覆盖
+    void AppendStyle(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+        Set("style", Get<string>("style") is { } existing ? $"{existing};{text}" : text);
+    }
 
     /// <summary>悬停提示。</summary>
     public string? Title { get => Get<string>("title"); init => Set("title", value); }

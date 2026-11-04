@@ -1,6 +1,6 @@
 # CSS 属性表的数据来源
 
-`generate.mjs` 读取姊妹项目 vue-tsx-pro 已生成的 `packages/tsx/src/styles/documented.ts`（各 CSS 属性的中文说明与值类型）和 `units.ts`（数字单位规则），生成 `src/Rune/Styles/Style.Properties.g.cs`。vue-tsx-pro 的 `scripts/css-docs/NOTICE.md` 记录了这些数据的上游，沿用如下：
+`generate.mjs` 读取姊妹项目 vue-tsx-pro 已生成的 `packages/tsx/src/styles/documented.ts`（各 CSS 属性的中文说明与值类型）和 `units.ts`（数字单位规则），生成 `src/Rune/Styles/Style.Properties.g.cs`（属性表）与 `src/Rune/Styles/CssKeywords.g.cs`（关键字常量，关键字及其说明取自 documented.ts 里的 `XxxKeywords` / `XxxValues` 接口）。vue-tsx-pro 的 `scripts/css-docs/NOTICE.md` 记录了这些数据的上游，沿用如下：
 
 | 内容                                      | 来源                                                                                                                           | 许可       |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------- |
