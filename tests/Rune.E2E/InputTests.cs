@@ -145,6 +145,8 @@ public class InputTests(DemoServer demo)
         await page.GetByLabel("一句话介绍").FillAsync("做组件库");
         await page.GetByLabel("一句话介绍").BlurAsync();
 
+        // 改动报给 C# 后才放上拦截标记：等它出现再点（否则点得太快时链接照常跳走）
+        await Assertions.Expect(page.Locator("[data-rune-leave-guard]")).ToBeAttachedAsync();
         // 点侧栏的链接：交互岛的页面之间走增强导航，由 JS 拦下
         await page.Locator($"a[href$='{mode}/button']").First.ClickAsync();
         var dialog = page.GetByRole(AriaRole.Dialog, new() { Name = "离开这个页面？" });
