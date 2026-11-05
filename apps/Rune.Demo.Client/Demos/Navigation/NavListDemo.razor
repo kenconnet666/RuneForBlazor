@@ -1,5 +1,5 @@
 @*
-    侧边导航：示例与 vue-tsx-pro 文档站的 /components/nav-list 对应。“本页目录”（TableOfContents）做好后补上。
+    侧边导航与本页目录：示例与 vue-tsx-pro 文档站的 /components/nav-list 对应。
     示例里不真的换页：链接只写锚点，当前项由 Active 指定。数据是虚构的。
 *@
 @attribute [ComponentDemo("nav-list", "侧边导航", Group = "导航", Order = 4)]
@@ -80,6 +80,34 @@
     </ChildContent>
 </DemoSection>
 
+<DemoSection Id="toc" Title="本页目录">
+    <Description>TableOfContents 列出各节标题，滚动时高亮正在读的一节，指示条滑过去；当前节带 aria-current="location"。目录项写成 <Code>HeadingEntry</Code>（id、文字、级别）。正文在自己的滚动区域里时给 <Code>ScrollRoot</Code>（滚动容器的 id）。</Description>
+    <ChildContent>
+        <Card>
+            <div @attributes="Attrs.Merge(TocLayout)">
+                <ScrollArea Sx="TocArticle" PropsViewport="TocViewport">
+                    <div @attributes="Attrs.Merge(TocContent)">
+                        @foreach (var heading in headings)
+                        {
+                            if (heading.Level == 2)
+                            {
+                                <H3 @key="heading.Id" id="@heading.Id" Size="Size.Lg">@heading.Label</H3>
+                            }
+                            else
+                            {
+                                <H4 @key="heading.Id" id="@heading.Id" Size="Size.Md">@heading.Label</H4>
+                            }
+                            <Paragraph Size="Size.Sm">@filler</Paragraph>
+                            <Paragraph Size="Size.Sm">@filler</Paragraph>
+                        }
+                    </div>
+                </ScrollArea>
+                <TableOfContents Items="headings" ScrollRoot="toc-demo-article" Title="本文目录" data-testid="toc" />
+            </div>
+        </Card>
+    </ChildContent>
+</DemoSection>
+
 @code {
     static readonly (string Name, int Count)[] approvals = [("待我审批", 4), ("我发起的", 0)];
 
@@ -95,6 +123,23 @@
         ("组件", ["Button 按钮", "Dialog 对话框", "Tabs 标签页", "DataTable 数据表格"]),
         ("资源", ["更新日志", "设计资源"]),
     ];
+
+    // id 带前缀：页面上的锚点不能重名
+    static readonly HeadingEntry[] headings =
+    [
+        new("toc-demo-install", "安装"),
+        new("toc-demo-nuget", "用 NuGet 安装", 3),
+        new("toc-demo-cdn", "引用静态资源", 3),
+        new("toc-demo-usage", "使用"),
+        new("toc-demo-theme", "主题"),
+        new("toc-demo-faq", "常见问题"),
+    ];
+
+    const string filler = "组件库按需注册，样式在用到时才生成，页面只带用到的部分。每个组件都可以用 Sx 覆盖样式，用 PropsXxx 给内部的部件加属性。";
+
+    static readonly Attrs TocLayout = new() { Sx = TocLayoutStyle };
+    static readonly Attrs TocContent = new() { Sx = TocContentStyle };
+    static readonly Attrs TocViewport = new() { Id = "toc-demo-article", AriaLabel = "文章" };
 
     string current = "orders-all";
     string page = "单价台账";
@@ -123,4 +168,16 @@
         Width = CssLength.Rem(3.5),
         Transition = $"width {Durations.Md} {Easings.Standard}",
     });
+
+    static Style TocLayoutStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "1fr 9rem",
+        Gap = Space.Lg,
+        AlignItems = AlignItems.Start,
+    });
+
+    static Style TocArticle => Css.Define(static () => new Style { Height = CssLength.Rem(18) });
+
+    static Style TocContentStyle => Css.Define(static () => new Style { Display = Display.Grid, Gap = Space.Md, PaddingInlineEnd = Space.Md });
 }

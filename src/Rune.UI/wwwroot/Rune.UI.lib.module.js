@@ -54,6 +54,8 @@
 //                            （CSS 藏起来但仍可测量），data-rune-overflow-rest（“+N”）的文字取自 data-rune-more 里的第 N 项
 //   data-rune-tabs           横排的标签栏：放不下时写 data-overflowing、启用滚动按钮，当前标签滚进来；可关闭的标签上 Delete、中键关闭；
 //                            列表带 data-reorderable 时拖动标签（或 Alt + ←→）改顺序，发出冒泡的 rune-reorder（values）
+//   data-rune-toc            本页目录：滚动时给当前节的链接写 aria-current="location"（data-scroll-root 是滚动容器的 id）
+//   data-rune-loading-bar    顶部加载条：按 data-status / data-run 开始、完成、出错（延迟显示、先快后慢地涨）；带 data-navigation 时跟着增强导航走
 //   data-rune-highlight="语言" 代码块的 code 元素：插入后用 Shiki 上色（第一次用到时才加载 Shiki 与这种语言的语法）
 //   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
 //                            （可以移到提示上），键盘聚焦时立即显示；失焦、按下、Esc 隐藏；同一时间只显示一个
@@ -84,7 +86,7 @@
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
-// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、
+// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
@@ -98,6 +100,8 @@ import { onOtpFocus, onOtpInput, watchOtp } from './js/otp.js';
 import { endRatingPreview, pickRating, previewRating } from './js/rating.js';
 import { watchScrollArea } from './js/scroll-area.js';
 import { highlightCode } from './js/highlight.js';
+import { watchToc } from './js/toc.js';
+import { navigationEnded, navigationStarted, watchLoadingBar } from './js/loading-bar.js';
 import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from './js/tabs.js';
 import { watchCollapse } from './js/collapse.js';
 import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle } from './js/resize.js';
@@ -120,6 +124,10 @@ export function afterStarted(blazor) {
 function install(blazor) {
   if (installed) return;
   installed = true;
+
+  // 静态 SSR 页面之间的增强导航：带 data-navigation 的加载条跟着走（独立的 Server / WebAssembly 应用没有这两个事件）
+  blazor.addEventListener?.('enhancednavigationstart', navigationStarted);
+  blazor.addEventListener?.('enhancednavigationend', navigationEnded);
 
   blazor.registerCustomEventType('runetoggle', {
     browserEventName: 'rune-toggle',
@@ -251,9 +259,11 @@ function syncWithin(root) {
     if (element.matches('img[data-rune-avatar-image]') && element.complete) markAvatarImage(element);
     if (element.matches('code[data-rune-highlight]')) highlightCode(element);
     if (element.matches('[data-rune-tabs]')) watchTabs(element);
+    if (element.matches('[data-rune-toc]')) watchToc(element);
+    if (element.matches('[data-rune-loading-bar]')) watchLoadingBar(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar]').forEach(sync);
 }
 
 /** 头像的图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */

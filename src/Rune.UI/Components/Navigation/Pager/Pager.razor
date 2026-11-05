@@ -1,0 +1,49 @@
+@*
+    翻页导航（nav，同 vue-tsx-pro 的 Pager）：文章末尾的“上一篇 / 下一篇”，两张链接卡片。页码式的分页用 Pagination。
+    <Pager Previous="@(new("components/button", "Button 按钮"))" Next="@(new("components/dialog", "Dialog 对话框"))" />
+    链接带 rel="prev" / rel="next"。未声明的属性落到 nav 上；名称默认取语言包（翻页）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@inject NavigationManager Navigation
+
+<nav aria-label="@Config.Lang.PagerLabel" @attributes="Attrs.Merge(PagerStyles.Of(false, Config.Styles)[PagerPart.Root], Rest)">
+    @if (Previous is not null)
+    {
+        @Link(Previous, false)
+    }
+    @if (Next is not null)
+    {
+        @Link(Next, true)
+    }
+</nav>
+
+@code {
+    /// <summary>上一篇；第一篇没有。</summary>
+    [Parameter] public PagerLink? Previous { get; set; }
+
+    /// <summary>下一篇；最后一篇没有。</summary>
+    [Parameter] public PagerLink? Next { get; set; }
+
+    /// <summary>两个链接（a）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLink { get; set; }
+
+    RenderFragment Link(PagerLink link, bool next)
+    {
+        var parts = PagerStyles.Of(next, Config.Styles);
+        return @<a href="@NavLinks.Resolve(Navigation, link.Href)" rel="@(next ? "next" : "prev")" @attributes="Attrs.Merge(parts[PagerPart.Link], PropsLink)">
+            <span @attributes="Attrs.Merge(parts[PagerPart.Hint])">
+                @if (!next)
+                {
+                    <Icon Data="BuiltInIcons.ArrowLeft" @attributes="Attrs.MergeProps(parts[PagerPart.Arrow])" />
+                }
+                @(next ? Config.Lang.PagerNext : Config.Lang.PagerPrevious)
+                @if (next)
+                {
+                    <Icon Data="BuiltInIcons.ArrowRight" @attributes="Attrs.MergeProps(parts[PagerPart.Arrow])" />
+                }
+            </span>
+            <span @attributes="Attrs.Merge(parts[PagerPart.Label])">@link.Label</span>
+        </a>;
+    }
+}

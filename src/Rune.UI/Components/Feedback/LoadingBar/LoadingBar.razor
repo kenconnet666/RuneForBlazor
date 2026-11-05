@@ -1,0 +1,49 @@
+@*
+    页面顶部的加载条（同 vue-tsx-pro 的 LoadingBar）：换页、整页刷新数据时，窗口最上方一条细线从左往右走。
+    <LoadingBar Controller="bar" />                    控制器的 Start / Finish / Error 决定状态
+    <LoadingBar Navigation="true" />                   跟着 Blazor 的增强导航（静态 SSR 的换页）自己开始、结束
+    不知道真实进度：开始后先快后慢地涨，停在 90% 前等完成；完成时走满后淡出，出错时变成危险色走满后淡出。
+    Delay（默认 200ms）之内就完成的不显示，免得每次切换都闪一下。动画都在 JS 初始化器里（data-rune-loading-bar）。
+    加载条只是视觉提示：对读屏是 role="progressbar"，真正的“加载中”应当由页面内容区域（aria-busy、骨架）告诉读屏。
+    未声明的属性落到加载条的 div 上（平时贴在窗口顶部，放进框里时写 style="position: absolute"）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div role="progressbar" aria-label="@Config.Lang.Loading" aria-valuemin="0" aria-valuemax="100" aria-hidden="true"
+     data-rune-loading-bar data-status="@StatusText" data-run="@(Controller?.Run ?? 0)" data-delay="@Delay" data-navigation="@(Navigation ? true : null)"
+     @attributes="Attrs.Merge(LoadingBarStyles.Of(Config.Styles)[LoadingBarPart.Root], Rest)">
+    <div @attributes="Attrs.Merge(LoadingBarStyles.Of(Config.Styles)[LoadingBarPart.Bar])"></div>
+</div>
+
+@code {
+    LoadingBarController? subscribed;
+
+    /// <summary>控制器；只跟着导航走时不写。</summary>
+    [Parameter] public LoadingBarController? Controller { get; set; }
+
+    /// <summary>跟着 Blazor 的增强导航（静态 SSR 页面之间的换页）自己开始、结束。</summary>
+    [Parameter] public bool Navigation { get; set; }
+
+    /// <summary>开始后多久才显示（毫秒），默认 200：很快完成的不显示。</summary>
+    [Parameter] public int Delay { get; set; } = 200;
+
+    string StatusText => (Controller?.Status ?? LoadingBarStatus.Idle).ToString().ToLowerInvariant();
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(subscribed, Controller)) return;
+        if (subscribed is not null) subscribed.Changed -= OnChanged;
+        subscribed = Controller;
+        if (subscribed is not null) subscribed.Changed += OnChanged;
+    }
+
+    void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        if (subscribed is not null) subscribed.Changed -= OnChanged;
+    }
+}

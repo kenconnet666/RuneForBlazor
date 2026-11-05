@@ -13,7 +13,8 @@ export function onFocusLink(event) {
   if (!control) return;
   event.preventDefault();
   control.focus();
-  control.scrollIntoView({ block: 'center', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+  // 跳到正文（SkipLink）滚到起始处；表单错误汇总里的链接把控件放在中间
+  control.scrollIntoView({ block: link.getAttribute('data-focus-block') ?? 'center', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
 }
 
 /** Backspace（输入框里是空的时候）：把 data-rune-backspace 的命令交给 C#（多选下拉移除最后一项）。 */

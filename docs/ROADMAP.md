@@ -119,7 +119,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [ ] 基础：ButtonGroup（相连的按钮）、CloseButton、CopyButton、IconLinkButton、Indicator、StatusDot、Mark、Code / CodeText / CodeBlock（不带高亮，带复制）、Blockquote、List、Can（权限）、ClientOnly（交互模式下才渲染）
       （已做：ButtonGroup、Indicator、StatusDot、CodeBlock（Shiki 在浏览器里高亮）与 CodeText（按“基础组件先做”、文档站提前））
 - [ ] 反馈：Banner、Empty（已做）、Result、Progress（线形、环形）、LoadingBar、LoadingOverlay
-      （已做：Progress（条形、环形、目标、不确定进度）、LoadingOverlay）
+      （已做：Progress（条形、环形、目标、不确定进度）、LoadingOverlay、LoadingBar（动画在 JS，可跟着增强导航走））
 - [ ] 补齐已有组件：Toast（标题与说明、操作、进度、位置、最多条数与堆叠、悬停暂停、important）、Alert（description 与额外内容分开、关闭时淡出）、
       Card（loading 骨架、装饰效果 tilt / spotlight / beam）、Switch（loading、开关内的文字）、Menu（勾选项、单选项、子菜单、分组标题、说明）、Drawer（可拖动宽度，已做）
 
@@ -135,7 +135,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [ ] 浮层：AlertDialog、ContextMenu、HoverCard、CommandPalette、Lightbox、Tour
       （已做：HoverCard（NavList 的紧凑分组要用，按“基础组件先做”提前））
 - [ ] 导航：Tabs（溢出、可关闭、拖动排序）、Breadcrumbs、Steps、NavList、NavMenu、NavBar、Pagination / Pager / PageSizeSelect / PageJump / PaginationBar、SkipLink、TableOfContents、Toolbar
-      （已做：Toolbar、NavList / NavItem / NavGroup / NavSection（按“基础组件先做”提前；宽度手柄示例已换用）；Tabs（溢出滚动、可关闭、新建、拖动与 Alt + ←→ 排序；“全部标签页”菜单等 Menu 有单选项再补））
+      （已做：Toolbar、NavList / NavItem / NavGroup / NavSection（按“基础组件先做”提前；宽度手柄示例已换用）；Tabs（溢出滚动、可关闭、新建、拖动与 Alt + ←→ 排序；“全部标签页”菜单等 Menu 有单选项再补）；TableOfContents、Pager、SkipLink（文档站要用））
 
 ## 阶段 9：表格
 

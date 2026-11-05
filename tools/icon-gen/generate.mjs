@@ -39,6 +39,8 @@ const BUILT_IN = [
   'chevron-up',
   'chevron-left',
   'chevron-right',
+  'arrow-left',
+  'arrow-right',
   'info',
   'circle-check',
   'triangle-exclamation-point',

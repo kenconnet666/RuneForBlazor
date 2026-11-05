@@ -1,0 +1,15 @@
+@*
+    分页：示例与 vue-tsx-pro 文档站的 /components/pagination 对应。现在只有其中的 Pager（上一篇 / 下一篇），Pagination 等分页组件在阶段 8 做。
+*@
+@attribute [ComponentDemo("pagination", "分页", Group = "导航", Order = 6)]
+@inherits RuneComponent
+
+<DemoSection Id="links" Title="链接与翻页">
+    <Description><Code>Pager</Code> 是文章末尾的上一篇 / 下一篇：两张链接卡片，带 rel="prev" / rel="next"。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Small Tone="TextTone.Muted">Pager：文章末尾的上一篇 / 下一篇</Small>
+            <Pager aria-label="文章翻页" Previous="@(new("server/tabs", "Tabs 标签页"))" Next="@(new("server/breadcrumbs", "Breadcrumbs 面包屑"))" data-testid="pager" />
+        </Flex>
+    </ChildContent>
+</DemoSection>

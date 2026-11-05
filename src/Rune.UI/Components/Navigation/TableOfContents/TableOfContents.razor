@@ -1,0 +1,49 @@
+@*
+    本页目录（nav，同 vue-tsx-pro 的 TableOfContents）：列出页面的各节标题，滚动时高亮正在读的一节，侧边的指示条滑过去。
+    <TableOfContents Items="@headings" />          headings = [new("install", "安装"), new("npm", "用 npm 安装", 3)]
+    滚动高亮在 JS 初始化器里（data-rune-toc，没有往返）：当前节 = 顶部已经越过阅读线的最后一个标题，阅读线是标题自己的 scroll-margin-top
+    （让开粘性顶栏）；滚到底时高亮视口里的最后一个。当前节的链接带 aria-current="location"。
+    链接是页内锚点，按当前页解析（NavLinks.Resolve）：Blazor 按 <base href> 解析 #install 会跳到站点根目录。
+    页面在某个容器里滚动时把它的 id 写在 ScrollRoot 上。未声明的属性落到 nav 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@inject NavigationManager Navigation
+@{ var parts = TableOfContentsStyles.Of(Config.Styles); }
+
+<nav aria-labelledby="@titleId" data-rune-toc data-scroll-root="@ScrollRoot" @attributes="Attrs.Merge(parts[TableOfContentsPart.Root], Rest)">
+    <TextSpan Size="UI.Size.Sm" Weight="UI.Weight.Semibold" id="@titleId" @attributes="Attrs.MergeProps(parts[TableOfContentsPart.Title], PropsTitle)">@(Title ?? Config.Lang.TableOfContents)</TextSpan>
+    <FlexList Direction="LayoutDirection.Column" @attributes="Attrs.MergeProps(parts[TableOfContentsPart.List], PropsList)">
+        <span aria-hidden="true" data-rune-indicator='[aria-current="location"]' data-axis="vertical" @attributes="Attrs.Merge(parts[TableOfContentsPart.Indicator])"></span>
+        @foreach (var item in Items)
+        {
+            <li @key="item.Id">
+                <a href="@NavLinks.Resolve(Navigation, "#" + item.Id)" @attributes="Attrs.Merge(Attrs.Layer(parts[TableOfContentsPart.Link], IndentOf(item.Level)), PropsLink)">@item.Label</a>
+            </li>
+        }
+    </FlexList>
+</nav>
+
+@code {
+    readonly string titleId = UniqueId.Next("toc-title");
+
+    /// <summary>目录项。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<HeadingEntry> Items { get; set; } = [];
+
+    /// <summary>目录的标题，同时是导航的名称；默认取语言包（本页目录）。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>页面在哪个容器里滚动（它的 id）；不写时是窗口。</summary>
+    [Parameter] public string? ScrollRoot { get; set; }
+
+    /// <summary>标题的部件属性（交给 TextSpan 组件）。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>列表的部件属性（交给 FlexList 组件）。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>链接的部件属性。</summary>
+    [Parameter] public Attrs? PropsLink { get; set; }
+
+    static Attrs IndentOf(int level) => new() { Sx = TableOfContentsStyles.Indent(level) };
+}

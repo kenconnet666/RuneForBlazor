@@ -138,6 +138,10 @@
   只当导航的标签不写 aria-controls）。漫游焦点、下划线指示条复用 roving.js、indicator.js；溢出时的滚动按钮、当前标签滚进来、Delete / 中键关闭、
   拖动与 Alt + ←→ 排序在 `js/tabs.js`。排序只发 rune-reorder，由使用方重排，JS 不挪 Blazor 管的元素。WebAssembly 下 C# 在 dispatchEvent / click
   里同步就渲染完了，“等渲染后再做”的逻辑（关闭后交焦点、排序后留焦点）要先同步查一次再挂观察器，否则观察器等不到变化、留到以后误触发。
+- **本页目录、加载条、跳到正文**：TableOfContents 由 C# 按 Items 输出链接（预渲染的 HTML 里就有目录），滚动高亮在 `js/toc.js` 里写 aria-current="location"，
+  指示条复用 indicator.js；链接按当前页解析（NavLinks.Resolve）。LoadingBar 的控制器只记状态（Status、Run），延迟显示、先快后慢地涨、走满淡出都在
+  `js/loading-bar.js`，Server 模式不用每 300ms 往返；`Navigation` 时跟着 Blazor 的 enhancednavigationstart / end 走。SkipLink 复用 data-rune-focus
+  （加了 data-focus-block="start"）。
 - **代码高亮在浏览器里做**（同 vue-tsx-pro 的 createShikiHighlighter）：CodeBlock 输出纯文本的 `code[data-rune-highlight]`，JS 初始化器（`js/highlight.js`）
   第一次遇到时加载 vendor 的 Shiki（JavaScript 正则引擎、CSS 变量主题，颜色指向 `--rune-code-colors-*`）上色，三种渲染模式一样，没有往返。
   JS 改过 code 的子节点，所以代码、语言、高亮开关、行设置变了时 code 用 @key 整个重建，不让 Blazor 在上面做差异更新。

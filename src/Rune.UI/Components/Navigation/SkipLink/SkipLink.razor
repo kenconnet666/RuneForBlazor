@@ -1,0 +1,44 @@
+@*
+    跳到正文的链接（WCAG 2.4.1 跳过重复内容，同 vue-tsx-pro 的 SkipLink）：页面第一个可聚焦元素，平时看不见，Tab 聚焦时出现在左上角。
+    AppShell 已经自带；不用 AppShell 时放在页面最前面：
+    <SkipLink Target="main" />  …  <main id="main" tabindex="-1">…</main>
+    点击时 JS 初始化器直接把焦点移到目标上并滚过去（data-rune-focus，不改地址栏、不经过 Blazor 的路由）：之后再按 Tab 从正文继续。
+    未声明的属性落到 a 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<a href="#@Target" data-rune-focus="@Target" data-focus-block="start" @attributes="Attrs.Merge(Style, Rest)">@(ChildContent ?? (RenderFragment)(b => b.AddContent(0, Config.Lang.SkipToContent)))</a>
+
+@code {
+    static readonly Attrs Style = new() { Sx = Sx.Of(Root, SharedStyles.FocusRing) };
+
+    /// <summary>目标（正文容器）的 id；目标要能聚焦（tabindex="-1"）。</summary>
+    [Parameter, EditorRequired] public string Target { get; set; } = "";
+
+    /// <summary>链接文字；默认取语言包（跳到正文）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 移出视口而不是 display: none：读屏照常能读到，Tab 能聚焦；聚焦时滑进来
+    static Style Root => Css.Define(static () => new Style
+    {
+        Position = Position.Fixed,
+        InsetBlockStart = Space.Sm,
+        InsetInlineStart = Space.Sm,
+        // 盖在粘性顶栏之上
+        ZIndex = 100,
+        PaddingBlock = Space.Sm,
+        PaddingInline = Space.Md,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.SurfaceRaised,
+        BoxShadow = Shadows.Lg,
+        Color = Tones.Accent.Text,
+        FontWeight = FontWeights.Medium,
+        TextDecorationLine = TextDecorationLine.None,
+        // 移出视口之外再透明：阴影不会从顶边漏出来
+        Opacity = 0,
+        Translate = "0 calc(-100% - 1em)",
+        Transition = $"translate {Durations.Sm} {Easings.Standard}, opacity {Durations.Sm} {Easings.Standard}",
+        [When.Focus] = new() { Opacity = 1, Translate = CssLength.None },
+    });
+}
