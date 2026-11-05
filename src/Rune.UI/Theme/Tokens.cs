@@ -430,7 +430,11 @@ public static class ZIndices
     public static readonly CssValue Tooltip = "var(--rune-z-indices-tooltip)";
 }
 
-/// <summary>断点（同 vue-tsx-pro）：<c>[Breakpoints.Md] = new() { … }</c> 是宽度至少 48rem 时的样式（移动优先）。</summary>
+/// <summary>
+/// 断点（同 vue-tsx-pro）：<c>[Breakpoints.Md] = new() { … }</c> 是宽度至少 48rem 时的样式（移动优先）。
+/// 同一个属性上写了几个断点时，除最后一档外都用 xxOnly（只在这一档）：样式不按宽度给媒体查询排序，
+/// 重叠的区间谁生效取决于规则的先后，可能是窄的那档盖住宽的。
+/// </summary>
 public static class Breakpoints
 {
     /// <summary>≥ 40rem（640px）。</summary>
@@ -444,4 +448,7 @@ public static class Breakpoints
 
     /// <summary>≥ 80rem（1280px）。</summary>
     public static readonly Condition Xl = Media.Query("(min-width: 80rem)");
+
+    /// <summary>64rem 到 80rem 之间：同一属性还写了 <see cref="Xl"/> 时用。</summary>
+    public static readonly Condition LgOnly = Media.Query("(min-width: 64rem) and (max-width: 79.99rem)");
 }

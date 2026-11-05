@@ -18,12 +18,15 @@ public enum DialogCloseReason
 /// <summary>对话框（Dialog）与抽屉（Drawer）的基类：参数、状态与渲染相同，只有样式不同。</summary>
 public abstract partial class DialogBase
 {
-    readonly string dialogId = UniqueId.Next("dialog");
-    Attrs? triggerAttrs;
-    Memo<(bool Open, bool Described, bool Dismissible, bool Guarded, string? InlineStyle), Attrs> managed;
+    readonly string autoId = UniqueId.Next("dialog");
+    Memo<string, Attrs> triggerAttrs;
+    Memo<(string Id, bool Open, bool Described, bool Dismissible, bool Guarded, string? InlineStyle), Attrs> managed;
     bool hasOpened;
     // 等确认的结果：这期间关不掉
     bool pending;
+
+    /// <summary>dialog 元素的 id，默认自动生成：别处的按钮写 <c>data-rune-open="这个 id"</c> 也能直接打开它（AppShell 顶栏的菜单按钮）。</summary>
+    [Parameter] public string? Id { get; set; }
 
     /// <summary>是否打开（<c>@bind-Open</c>）。只用 Trigger 打开时不用写。</summary>
     [Parameter] public bool Open { get; set; }
@@ -107,14 +110,16 @@ public abstract partial class DialogBase
     /// <summary>各部件的默认层（对话框居中，抽屉贴边）。</summary>
     protected abstract PartLayers<DialogPart> Parts { get; }
 
-    string TitleId => $"{dialogId}-title";
+    string DialogId => Id ?? autoId;
 
-    string DescriptionId => $"{dialogId}-description";
+    string TitleId => $"{DialogId}-title";
+
+    string DescriptionId => $"{DialogId}-description";
 
     // 交互模式下第一次打开才渲染正文；静态渲染一开始就渲染（由 JS 直接打开，来不及等渲染）
     bool ShouldRenderContent => !Lazy || hasOpened || open.Value || !RendererInfo.IsInteractive;
 
-    Attrs TriggerAttrs => triggerAttrs ??= new Attrs { ["data-rune-open"] = dialogId, ["aria-haspopup"] = "dialog" };
+    Attrs TriggerAttrs => triggerAttrs.Get(DialogId, static id => new Attrs { ["data-rune-open"] = id, ["aria-haspopup"] = "dialog" });
 
     // dialog 上由组件管理的属性：data-open 交给 JS 同步原生状态（showModal / close）；
     // 有 BeforeClose 或确认中时 data-rune-guard-close：Esc、遮罩、关闭按钮不直接关，先问 C#
@@ -124,12 +129,12 @@ public abstract partial class DialogBase
     /// <summary>子类放在 dialog 里、各部件之后的内容（抽屉的宽度调整手柄）。</summary>
     protected virtual RenderFragment? Edge => null;
 
-    Attrs Managed => managed.Get((open.Value, Description is not null, Dismissible, BeforeClose is not null || pending, RootInlineStyle), dialogId, static (k, id) => new Attrs
+    Attrs Managed => managed.Get((DialogId, open.Value, Description is not null, Dismissible, BeforeClose is not null || pending, RootInlineStyle), static k => new Attrs
     {
-        Id = id,
+        Id = k.Id,
         InlineStyle = k.InlineStyle,
-        AriaLabelledBy = $"{id}-title",
-        AriaDescribedBy = k.Described ? $"{id}-description" : null,
+        AriaLabelledBy = $"{k.Id}-title",
+        AriaDescribedBy = k.Described ? $"{k.Id}-description" : null,
         ["data-rune-overlay"] = true,
         ["data-open"] = k.Open ? "true" : "false",
         ["data-rune-light-dismiss"] = k.Dismissible ? true : null,

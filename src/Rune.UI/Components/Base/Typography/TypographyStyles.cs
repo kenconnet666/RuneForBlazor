@@ -197,10 +197,10 @@ public static class TypographyStyles
         [When.Parent(When.Hover)] = new() { Opacity = 1 },
     });
 
-    // 锚点跳转（#install）后与视口顶端留一点空
+    // 锚点跳转（#install）后与视口顶端留一点空，并让开粘性顶栏（AppShell 设置的 StickyOffset）
     static Style HeadingRoot => Css.Define(static () => new Style
     {
-        ScrollMarginBlockStart = Space.Lg,
+        ScrollMarginBlockStart = $"calc({LayoutVars.StickyOffset} + {Space.Lg})",
         Margin = 0,
         FontFamily = Fonts.Heading,
         LineHeight = LineHeights.Tight,

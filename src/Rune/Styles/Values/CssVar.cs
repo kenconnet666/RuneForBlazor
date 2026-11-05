@@ -40,8 +40,9 @@ public sealed class CssVar<T>
 /// <summary>创建 <see cref="CssVar{T}"/>。</summary>
 public static class CssVar
 {
-    /// <summary>长度变量；数字值按 px。</summary>
-    public static CssVar<CssLength> Length(string name) => new($"--{name}", $"var(--{name})", static v => v.ToString());
+    /// <summary>长度变量；数字值按 px。<paramref name="fallback"/> 是没有元素设置它时的值（<c>var(--name, 0px)</c>）。</summary>
+    public static CssVar<CssLength> Length(string name, CssLength? fallback = null) =>
+        new($"--{name}", fallback is { } value ? $"var(--{name}, {value})" : $"var(--{name})", static v => v.ToString());
 
     /// <summary>颜色变量。</summary>
     public static CssVar<CssColor> Color(string name) => new($"--{name}", $"var(--{name})", static v => v.ToString());
