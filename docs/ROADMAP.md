@@ -114,7 +114,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 ## 阶段 6：基础与反馈补齐
 
-- [ ] 基础：ButtonGroup（相连的按钮）、CloseButton、CopyButton、IconLinkButton、Indicator、StatusDot、Mark、Code / CodeText / CodeBlock（不带高亮，带复制）、Blockquote、List、Can（权限）
+- [ ] 基础：ButtonGroup（相连的按钮）、CloseButton、CopyButton、IconLinkButton、Indicator、StatusDot、Mark、Code / CodeText / CodeBlock（不带高亮，带复制）、Blockquote、List、Can（权限）、ClientOnly（交互模式下才渲染）
 - [ ] 反馈：Banner、Empty（已做）、Result、Progress（线形、环形）、LoadingBar、LoadingOverlay
 - [ ] 补齐已有组件：Toast（标题与说明、操作、进度、位置、最多条数与堆叠、悬停暂停、important）、Alert（description 与额外内容分开、关闭时淡出）、
       Card（loading 骨架、装饰效果 tilt / spotlight / beam）、Switch（loading、开关内的文字）、Menu（勾选项、单选项、子菜单、分组标题、说明）、Drawer（可拖动宽度）
@@ -143,12 +143,13 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 ## 阶段 11：图表（`Rune.Charts`，SVG）
 
 - [ ] 底座：坐标轴、比例尺、图例、提示、响应式尺寸、图表色 token（已有 `ChartColors`）
-- [ ] Line、Area、Bar、Combo、Scatter、Donut、Radar、Funnel、Treemap、Waterfall、Sankey、Chord、Graph、Timeline；Sparkline、Gauge 改用这套底座；Map 进“待决”（需要地图数据）
+- [ ] Line、Area、Bar、Combo、Scatter、Donut、Radar、Funnel、Treemap、Waterfall、Sankey、Chord、Graph、Timeline；Sparkline、Gauge 改用这套底座；
+      Map（地图数据找公有领域或许可明确的来源导出进来，如 Natural Earth，许可与来源写进 NOTICE）
 
 ## 阶段 12：页面级组合
 
 - [ ] AppShell、AuthLayout、ActionBar、FilterBar、QueryTable、FormDialog、StepsForm、KanbanBoard、NotificationCenter、CommentThread、
-      DataImport、DeadlineBadge、ThemeSwitcher（含主题偏好的保存）、SlideCaptcha、PeoplePicker、ConditionBuilder
+      DataImport、DeadlineBadge、ThemeSwitcher（含主题偏好的保存）、SlideCaptcha、PeoplePicker、ConditionBuilder；ThemeCustomizer、ThemeThumbnail（主题定制页用）
 
 ## 阶段 13：文档站
 
@@ -164,11 +165,16 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 ---
 
+## 已定（2026-11-05 用户决定）
+
+- 所有阶段持续执行到底。
+- 拼音匹配暂时不做（UIConfig.TextMatcher 留着接口）。
+- 地图数据去找资源导出进来（阶段 11），来源与许可写进 NOTICE。
+- vue-tsx-pro 的可选模块（代码编辑器、流程图 diagram、三维与特效背景、xlsx）暂时不移植；不做移动端组件库。
+- NuGet 暂不发布，阶段 14 只做本地打包与安装试用。
+
 ## 待决
 
 （执行中遇到的停顿点记在这里：日期、项号、卡在哪、需要用户决定什么。）
 
-- CD：NuGet 发到 nuget.org 还是私有源；文档站（含 Server 模式）部署到哪里。
-- 地图图表（MapChart）要地图数据（GeoJSON），来源与许可待定。
-- 拼音匹配（vue-tsx-pro 的 createPinyinMatcher，用 pinyin-pro）：.NET 这边要选一个拼音库（字典约 300 KB，许可待查）做成可选包，接到 UIConfig.TextMatcher。
-- vue-tsx-pro 的可选模块（代码编辑器、流程图 diagram、地图、三维与特效背景、xlsx）是否移植。
+- 文档站（含 Server 模式）部署到哪里。
