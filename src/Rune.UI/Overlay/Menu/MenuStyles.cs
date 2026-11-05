@@ -5,16 +5,13 @@ namespace Rune.UI;
 /// <summary>菜单的部件。</summary>
 public enum MenuPart
 {
-    /// <summary>浮层（popover 元素，role="menu"）。</summary>
+    /// <summary>浮层（popover 元素，role="menu"）；子菜单（MenuSub）的浮层也用它。</summary>
     Root,
 
     /// <summary>菜单项的容器（滚动区域的内容层）。</summary>
     Content,
 
-    /// <summary>分隔线（MenuSeparator）。</summary>
-    Separator,
-
-    /// <summary>分组的标题（MenuRadioGroup 的 Label）。</summary>
+    /// <summary>分组的标题（MenuGroup、MenuRadioGroup 的 Label）。</summary>
     GroupLabel,
 }
 
@@ -27,11 +24,20 @@ public enum MenuItemPart
     /// <summary>图标。</summary>
     Icon,
 
-    /// <summary>右侧的快捷键说明。</summary>
+    /// <summary>文字层：占满剩下的宽度；有说明时文字与说明上下排。</summary>
+    Label,
+
+    /// <summary>文字下方的一行说明（弱化）。</summary>
+    Description,
+
+    /// <summary>右侧的快捷键。</summary>
     Shortcut,
 
-    /// <summary>单选项起始边的选中标记（选中时显示，没选中时占着位置）。</summary>
+    /// <summary>复选、单选项起始边的标记（勾选时显示，没勾选时占着位置，各项文字对齐）。</summary>
     Indicator,
+
+    /// <summary>子菜单项右侧的箭头。</summary>
+    Chevron,
 }
 
 /// <summary>菜单的样式（配方）。</summary>
@@ -43,19 +49,30 @@ public static class MenuStyles
         {
             MenuPart.Root => Sx.Of(FloatingStyles.Anchored, FloatingStyles.Surface, OverlayTransitions.Scale, FloatingStyles.ScrollPanel, Root),
             MenuPart.Content => Content,
-            MenuPart.GroupLabel => GroupLabel,
-            _ => Separator,
+            _ => GroupLabel,
         });
 
     /// <summary>菜单项（某个色调、某套定制）的部件默认层。</summary>
     public static PartLayers<MenuItemPart> Item(Tone tone, ComponentStyles styles) =>
         Recipe.Of("menu-item", tone, styles, static (Tone tone, MenuItemPart part) => part switch
         {
-            MenuItemPart.Root => Sx.Of(ItemRoot, SharedStyles.RippleHost, SharedStyles.InteractionColors, SharedStyles.ToneText(tone), SharedStyles.FocusRingInset),
+            // 菜单里通常只区分普通与破坏性操作；其余色调只给文字上色
+            MenuItemPart.Root => Sx.Of(
+                ItemStyles.Row,
+                tone == Tone.Danger ? ItemStyles.Danger : ItemStyles.Hoverable,
+                tone is Tone.Danger or Tone.Neutral ? null : SharedStyles.ToneText(tone),
+                SharedStyles.FocusRingInset,
+                SharedStyles.RippleHost,
+                ItemStyles.Disabled),
             MenuItemPart.Icon => ItemIcon,
+            MenuItemPart.Label => Label,
+            MenuItemPart.Description => Description,
             MenuItemPart.Indicator => Indicator,
-            _ => Shortcut,
+            _ => Trailing,
         });
+
+    /// <summary>有说明时文字层的追加样式：文字与说明上下排。</summary>
+    public static Style StackedLabel => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column });
 
     // 菜单项多时在里面的滚动区域里滚动（最大高度由 JS 按视口剩下的空间写在浮层上）
     static Style Root => Css.Define(static () => new Style
@@ -67,39 +84,22 @@ public static class MenuStyles
 
     static Style Content => Css.Define(static () => new Style { Padding = Space.Xs });
 
-    // 键盘焦点与悬停用同一种高亮：菜单里焦点就是“当前项”
-    static Style ItemRoot => Css.Define(static () => new Style
-    {
-        BoxSizing = BoxSizing.BorderBox,
-        Display = Display.Flex,
-        AlignItems = AlignItems.Center,
-        Gap = Space.Sm,
-        Width = CssLength.Percent(100),
-        MinHeight = Sizes.Control,
-        PaddingInline = Space.Sm,
-        BorderWidth = 0,
-        BorderRadius = Radii.Sm,
-        BackgroundColor = CssColors.Transparent,
-        FontFamily = CssWide.Inherit,
-        FontSize = CssWide.Inherit,
-        TextAlign = TextAlign.Start,
-        Cursor = Cursor.Pointer,
-        [When.HoverEnabled] = new() { BackgroundColor = Colors.FillHover },
-        [When.Focus] = new() { BackgroundColor = Colors.FillHover },
-        [When.Disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
-    });
+    static Style ItemIcon => Css.Define(static () => new Style { FlexShrink = 0 });
 
-    static Style ItemIcon => Css.Define(static () => new Style { FlexShrink = 0, Opacity = 0.8 });
+    static Style Label => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0 });
 
-    static Style Shortcut => Css.Define(static () => new Style
+    static Style Description => Css.Define(static () => new Style { Display = Display.Block, Color = Colors.TextMuted, FontSize = FontSizes.Sm });
+
+    // 快捷键、子菜单的箭头：贴着结束边（文字层占满了中间）
+    static Style Trailing => Css.Define(static () => new Style
     {
-        MarginInlineStart = CssLength.Auto,
-        PaddingInlineStart = Space.Lg,
+        FlexShrink = 0,
+        MarginInlineStart = Space.Lg,
         Color = Colors.TextMuted,
-        FontSize = CssLength.Em(0.85),
+        FontSize = FontSizes.Sm,
     });
 
-    // 单选的标记占一列，选没选中都对齐；按菜单项的 aria-checked 显示（JS 改了选中也跟着变）
+    // 复选、单选的标记占一列，选没选中都对齐；按菜单项的 aria-checked 显示（JS 改了选中也跟着变）
     static Style Indicator => Css.Define(static () => new Style
     {
         FlexShrink = 0,
@@ -116,14 +116,6 @@ public static class MenuStyles
         Color = Colors.TextMuted,
         FontSize = FontSizes.Sm,
         FontWeight = FontWeights.Semibold,
-    });
-
-    static Style Separator => Css.Define(static () => new Style
-    {
-        Height = BorderWidths.Xs,
-        MarginBlock = Space.Xs,
-        MarginInline = $"calc(-1 * {Space.Xs})",
-        BackgroundColor = Colors.Border,
     });
 }
 

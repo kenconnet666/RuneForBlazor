@@ -1,0 +1,38 @@
+@*
+    复选菜单项（button，role="menuitemcheckbox"，同 vue-tsx-pro 的 MenuCheckboxItem）：切换一个开关。
+    <MenuCheckboxItem @bind-Checked="showGrid">显示网格</MenuCheckboxItem>
+    默认执行后不关闭菜单（常连续勾选几项）。起始边的对勾按 aria-checked 显示，没勾选时占着位置。
+*@
+@namespace Rune.UI
+@inherits MenuItemBase
+@{ var parts = MenuStyles.Item(Tone.Neutral, Config.Styles); }
+
+<button type="button" @attributes="Attrs.Merge(parts[MenuItemPart.Root], Rest, Managed)">
+    @ItemContent(parts, ChildContent, BuiltInIcons.Check, PropsIndicator, Shortcut)
+</button>
+
+@code {
+    Attrs Managed => ItemAttrs("menuitemcheckbox", isChecked: checkedValue.Value, closeOnSelect: CloseOnSelect, onClick: toggle);
+
+    EventCallback? toggle;
+
+    /// <summary>是否勾选（<c>@bind-Checked</c>）。</summary>
+    [Parameter] public bool Checked { get; set; }
+
+    /// <summary>勾选状态变了。</summary>
+    [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+
+    /// <summary>执行后关闭菜单，默认 false。</summary>
+    [Parameter] public bool CloseOnSelect { get; set; }
+
+    /// <summary>菜单项文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>勾选标记（对勾，Icon 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsIndicator { get; set; }
+
+    Bindable<bool> checkedValue { get => field ??= new(this, () => Checked, () => CheckedChanged); }
+
+    /// <inheritdoc/>
+    protected override void OnInitialized() => toggle = EventCallback.Factory.Create(this, () => checkedValue.SetAsync(!checkedValue.Value));
+}

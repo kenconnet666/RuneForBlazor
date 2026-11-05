@@ -7,7 +7,31 @@
     <Examples>
         <ExampleColumn>
             <Example Id="actions" Title="操作菜单" Demo="typeof(ActionsExample)">
-                点击、<Kbd>Enter</Kbd>、<Kbd>Space</Kbd> 执行菜单项，随后关闭菜单。<Code>Shortcut</Code> 显示快捷键；<Code>Tone="Tone.Danger"</Code> 标出破坏性操作；不可用的项方向键跳过。
+                <Code>@@onclick</Code> 在点击、<Kbd>Enter</Kbd>、<Kbd>Space</Kbd> 时执行，随后关闭菜单。
+                <Code>Shortcut</Code> 显示成当前系统的写法（macOS 上是 ⌘），菜单挂载期间按下就执行这一项；
+                <Code>Tone="Tone.Danger"</Code> 标出破坏性操作；<Code>MenuSub</Code> 是子菜单，指针斜着移过去不会误关（安全三角）。
+            </Example>
+            <Example Id="description" Title="带说明的菜单项" Demo="typeof(CreateExample)">
+                <Code>Description</Code> 是名称下方的一行说明，弱化显示；读屏先念名称、再把说明作为描述念出，不混进名称里。
+                <Code>MenuGroup</Code> 的 <Code>Label</Code> 是组标题，也是这一组的名称。
+            </Example>
+            <Example Id="checkable" Title="复选与单选" Demo="typeof(ViewExample)">
+                <Code>MenuCheckboxItem</Code> 勾选后菜单不关，方便连续勾几项；<Code>MenuRadioGroup</Code> 里选一项后关闭。
+                <Code>Label</Code> 是这一组的名称，读屏先念组名。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="account" Title="账户菜单：链接项" Demo="typeof(AccountExample)">
+                触发器可以是任何接住 <Code>Trigger</Code> 属性的元素。<Code>MenuLinkItem</Code> 是 <Code>a</Code> 元素：站内地址经路由跳转，
+                中键、右键在新标签页打开照常可用；<Code>Disabled</Code> 时去掉 href、方向键跳过它。
+            </Example>
+            <Example Id="zoom" Title="尺寸与连续操作" Demo="typeof(ZoomExample)">
+                <Code>Size</Code> 是菜单的字号档位，菜单项、图标、内边距随之缩放；不写时跟随上下文。
+                <Code>CloseOnSelect="false"</Code> 让执行后不关菜单，适合放大、缩小这类要连按几次的操作。
+            </Example>
+            <Example Id="context-menu" Title="右键菜单" Demo="typeof(FilesExample)">
+                菜单项与 Menu 完全相同。区域本身不可聚焦：键盘用户聚焦里面的元素后按 <Kbd>Shift</Kbd> + <Kbd>F10</Kbd> 或菜单键，
+                从元素左下角弹出；关闭后焦点回到原处。
             </Example>
         </ExampleColumn>
     </Examples>
@@ -17,11 +41,13 @@
         ("↓ / ↑", "移到下一项 / 上一项，到头后循环；跳过不可用的项"),
         ("Home / End", "移到第一项 / 最后一项"),
         ("字母键", "移到下一个以它开头的项"),
-        ("Enter / Space", "执行这一项；单选项选中"),
+        ("Enter / Space", "执行这一项；复选项切换勾选，单选项选中"),
+        ("→ / ←", "打开子菜单并聚焦第一项 / 关闭子菜单回到上一级（从右到左排版时反过来）"),
         ("Esc", "关闭菜单，焦点回到触发器"),
         ("Tab", "关闭菜单，焦点回到触发器"),
+        ("Shift+F10 / 菜单键", "在右键菜单的区域里：从焦点所在的元素弹出菜单"),
     ])">
         菜单遵循 WAI-ARIA 的 Menu Button 模式：触发器是 <Code>aria-haspopup="menu"</Code> 的按钮，菜单里的项用方向键移动，不在 Tab 顺序里。
     </KeyboardReference>
-    <ApiReference Types="[typeof(MenuItem), typeof(Menu), typeof(MenuRadioGroup), typeof(MenuRadioItem)]" />
+    <ApiReference Types="[typeof(Menu), typeof(MenuItem), typeof(MenuCheckboxItem), typeof(MenuRadioGroup), typeof(MenuRadioItem), typeof(MenuGroup), typeof(MenuLinkItem), typeof(MenuSub), typeof(ContextMenu)]" />
 </DocPage>

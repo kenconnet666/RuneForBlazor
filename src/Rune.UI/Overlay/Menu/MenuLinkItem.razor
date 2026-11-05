@@ -1,0 +1,24 @@
+@*
+    链接菜单项（a，role="menuitem"，同 vue-tsx-pro 的 MenuLinkItem）：跳转到一个地址，随后关闭菜单。
+    <MenuLinkItem Href="settings" Icon="Lucide.Settings">设置</MenuLinkItem>
+    站内地址由 Blazor 的路由接管，中键、右键在新标签页打开照常可用；不可用时去掉 href、方向键跳过它。
+    Shortcut 只显示，不注册（要执行就用 MenuItem 写导航）。
+*@
+@namespace Rune.UI
+@inherits MenuItemBase
+@{ var parts = MenuStyles.Item(Tone.Neutral, Config.Styles); }
+
+<a href="@(Disabled ? null : Href)" data-disabled="@(Disabled ? "true" : null)"
+   @attributes="Attrs.Merge(parts[MenuItemPart.Root], Rest, Managed)">
+    @ItemContent(parts, ChildContent, shortcut: Shortcut)
+</a>
+
+@code {
+    Attrs Managed => ItemAttrs("menuitem", registerShortcut: false);
+
+    /// <summary>地址。</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    /// <summary>菜单项文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

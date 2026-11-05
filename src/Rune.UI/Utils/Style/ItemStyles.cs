@@ -3,7 +3,7 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>
-/// 列表里的一行（同 vue-tsx-pro 的 itemStyles）：下拉选项、菜单项、导航项、命令面板的结果共用。
+/// 列表里的一行（同 vue-tsx-pro 的 itemStyles）：下拉选项、菜单项、导航项、命令面板的结果共用；各状态的颜色只在这里定义。
 /// 键盘高亮由 JS 初始化器写 <c>data-highlighted</c>（aria-activedescendant 指着的那项），与指针悬停同色。
 /// </summary>
 public static class ItemStyles
@@ -47,6 +47,13 @@ public static class ItemStyles
 
     /// <summary>键盘高亮（data-highlighted，aria-activedescendant 指着的选项）：与悬停同色。</summary>
     public static Style Highlighted => Css.Define(static () => new Style { [When.Highlighted] = new() { BackgroundColor = Colors.FillHover } });
+
+    /// <summary>危险操作（删除）：红色文字，悬停时浅红底。</summary>
+    public static Style Danger => Css.Define(static () => new Style
+    {
+        Color = Tones.Danger.Text,
+        [When.Hover] = new() { BackgroundColor = Tones.Danger.Soft },
+    });
 
     /// <summary>已选（下拉选项，aria-selected）：品牌色文字。</summary>
     public static Style Selected => Css.Define(static () => new Style { [When.Selected] = new() { Color = Tones.Accent.Text } });

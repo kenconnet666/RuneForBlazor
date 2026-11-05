@@ -1,0 +1,107 @@
+@*
+    菜单项（MenuItem、MenuCheckboxItem、MenuRadioItem、MenuLinkItem、MenuSub）共用的：图标、文字与说明、快捷键，
+    以及由组件管理的属性（角色、不在 Tab 顺序里、说明的关联、快捷键的注册、执行后是否关闭菜单）。
+    关闭菜单与快捷键都在 JS 里：选了菜单项关闭整串菜单（data-rune-keep-open 的除外）；data-rune-hotkey 的菜单项在菜单挂载期间
+    （不必打开）按下快捷键就点击它。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@code {
+    string? contentId;
+    Memo<(string Role, bool? Checked, bool Disabled, bool Ripple, string? Shortcut, bool Described, bool KeepOpen, bool Register), Attrs> managed;
+
+    /// <summary>文字前的图标。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>
+    /// 快捷键：<c>"Mod+D"</c>（Mod 在 macOS 上是 ⌘，其他系统是 Ctrl，写法见 <see cref="Hotkeys"/>）。右侧显示成当前系统的写法；
+    /// 菜单项、复选项、单选项在菜单挂载期间（不必打开）注册它，按下时执行这一项；读屏从 aria-keyshortcuts 得知。子菜单项没有快捷键。
+    /// </summary>
+    [Parameter] public string? Shortcut { get; set; }
+
+    /// <summary>文字下方的说明（第二行，弱化）：读屏把它当作这一项的描述（aria-describedby），不算进名称。</summary>
+    [Parameter] public RenderFragment? Description { get; set; }
+
+    /// <summary>不可用：可以聚焦（读屏能读到），方向键跳过，不能执行。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>图标的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>文字层的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>快捷键的部件属性。</summary>
+    [Parameter] public Attrs? PropsShortcut { get; set; }
+
+    /// <summary>按下时的波纹；不写时沿用配置。</summary>
+    [Parameter] public bool? Ripple { get; set; }
+
+    string ContentId => contentId ??= UniqueId.Next("menu-item");
+
+    /// <summary>
+    /// 由组件管理的属性；输入不变时是同一个对象。
+    /// </summary>
+    /// <param name="role">menuitem、menuitemcheckbox、menuitemradio。</param>
+    /// <param name="isChecked">复选、单选项是否勾选；普通项不写。</param>
+    /// <param name="closeOnSelect">执行后关闭菜单。</param>
+    /// <param name="registerShortcut">注册快捷键（链接项、子菜单项只显示不注册）。</param>
+    /// <param name="onClick">组件自己的点击处理（切换勾选、选中）：创建一次的同一个委托。</param>
+    protected Attrs ItemAttrs(string role, bool? isChecked = null, bool closeOnSelect = true, bool registerShortcut = true, EventCallback? onClick = null) =>
+        managed.Get((role, isChecked, Disabled, Ripple ?? Config.Ripple, Shortcut, Description is not null, !closeOnSelect, registerShortcut), (this, onClick), static (k, s) => new Attrs
+        {
+            Role = k.Role,
+            TabIndex = -1,
+            AriaDisabled = k.Disabled ? true : null,
+            AriaLabelledBy = k.Described ? $"{s.Item1.ContentId}-label" : null,
+            AriaDescribedBy = k.Described ? $"{s.Item1.ContentId}-description" : null,
+            ["aria-checked"] = k.Checked is { } on ? (on ? "true" : "false") : null,
+            ["data-state"] = k.Checked is { } state ? (state ? "checked" : "unchecked") : null,
+            ["aria-keyshortcuts"] = k.Shortcut is null ? null : Hotkeys.AriaKeyShortcut(k.Shortcut),
+            ["data-rune-hotkey"] = k.Register && !k.Disabled ? k.Shortcut : null,
+            ["data-rune-keep-open"] = k.KeepOpen ? true : null,
+            ["data-rune-ripple"] = k.Ripple ? true : null,
+            ["onclick"] = k.Disabled ? null : s.onClick,
+        });
+
+    /// <summary>菜单项的内容：标记 + 图标 + 文字（与说明）+ 快捷键。</summary>
+    /// <param name="parts">菜单项各部件的默认层。</param>
+    /// <param name="text">文字。</param>
+    /// <param name="mark">复选、单选项起始边的标记（按 aria-checked 显示）；普通项不写。</param>
+    /// <param name="propsMark">标记的部件属性。</param>
+    /// <param name="shortcut">显示的快捷键；子菜单项不写。</param>
+    protected RenderFragment ItemContent(PartLayers<MenuItemPart> parts, RenderFragment? text, IconData? mark = null, Attrs? propsMark = null, string? shortcut = null) => __builder =>
+    {
+        if (mark is not null)
+        {
+            <Icon Data="mark" @attributes="Attrs.MergeProps(parts[MenuItemPart.Indicator], propsMark)" />
+        }
+        if (Icon is not null)
+        {
+            <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[MenuItemPart.Icon], PropsIcon)" />
+        }
+        if (Description is null)
+        {
+            <span @attributes="Attrs.Merge(parts[MenuItemPart.Label], PropsLabel)">@text</span>
+        }
+        else
+        {
+            <span @attributes="Attrs.Merge(parts[MenuItemPart.Label], StackedLabel, PropsLabel)">
+                <span id="@($"{ContentId}-label")">@text</span>
+                <span id="@($"{ContentId}-description")" @attributes="Attrs.Merge(parts[MenuItemPart.Description], PropsDescription)">@Description</span>
+            </span>
+        }
+        if (shortcut is not null)
+        {
+            @* 有 aria-keyshortcuts 时读屏从它念，显示的文字不重复念；序列键没有，照常念 *@
+            <span aria-hidden="@(Hotkeys.AriaKeyShortcut(shortcut) is null ? null : "true")" data-rune-hotkey-label="@shortcut"
+                  @attributes="Attrs.Merge(parts[MenuItemPart.Shortcut], PropsShortcut)">@Hotkeys.Format(shortcut)</span>
+        }
+    };
+
+    static readonly Attrs StackedLabel = new() { Sx = MenuStyles.StackedLabel };
+}

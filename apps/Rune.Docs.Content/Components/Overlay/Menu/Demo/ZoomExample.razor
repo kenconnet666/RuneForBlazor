@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Wrap="true">
+        <ToggleGroup @bind-Value="size" Required="true" aria-label="菜单尺寸">
+            <ToggleItem Value="Sm">sm</ToggleItem>
+            <ToggleItem Value="Md">md</ToggleItem>
+            <ToggleItem Value="Lg">lg</ToggleItem>
+        </ToggleGroup>
+        <Menu Size="MenuSize">
+            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" TrailingIcon="Lucide.ChevronDown">缩放 @zoom%</Button></Trigger>
+            <ChildContent>
+                <MenuItem Icon="Lucide.ZoomIn" CloseOnSelect="false" @onclick="() => Step(25)">放大</MenuItem>
+                <MenuItem Icon="Lucide.ZoomOut" CloseOnSelect="false" @onclick="() => Step(-25)">缩小</MenuItem>
+                <MenuSeparator />
+                <MenuItem Icon="Lucide.Maximize" @onclick="() => zoom = 100">实际大小</MenuItem>
+            </ChildContent>
+        </Menu>
+    </Flex>
+    <Small Tone="TextTone.Muted">放大、缩小执行后菜单不关，可以连着按；“实际大小”执行后关闭</Small>
+</Flex>
+
+@code {
+    string? size = nameof(Size.Md);
+    int zoom = 100;
+
+    Size MenuSize => Enum.Parse<Size>(size ?? nameof(Size.Md));
+
+    void Step(int delta) => zoom = Math.Clamp(zoom + delta, 25, 400);
+}

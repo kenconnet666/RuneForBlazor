@@ -25,7 +25,10 @@
 //   data-rune-light-dismiss  对话框：点遮罩关闭（原生的 closedby="any" 还没普及）
 //   data-rune-guard-close    对话框：要关闭时（Esc、点遮罩、data-rune-close）不直接关，发出冒泡的 rune-close-request
 //                            （Blazor 里是 @onrunecloserequest，带原因 escape / outside / close），由 C# 决定关不关（确认中、关闭前确认）
-//   role="menu"              菜单：方向键、Home / End、类型搜索移动焦点；打开时聚焦第一项（触发按钮上按 ↑ 打开时聚焦最后一项，↓ 也能打开）；选了菜单项就关闭
+//   role="menu"              菜单：方向键、Home / End、类型搜索移动焦点；打开时聚焦第一项（触发按钮上按 ↑ 打开时聚焦最后一项，↓ 也能打开）；
+//                            选了菜单项就关闭整串菜单（data-rune-keep-open 的不关）；data-rune-hotkey 的菜单项按下快捷键时点击它；
+//                            子菜单项（aria-haspopup="menu"）点击、→ 打开并聚焦第一项，指针停留打开、斜着移向子菜单不误关（安全三角），子菜单里 ← 关闭
+//   data-rune-context-menu   右键菜单的区域：右键、Shift+F10、菜单键时从指针位置（键盘时从焦点元素的左下角）弹出里面的菜单，关闭后焦点回到原处
 //   data-rune-list="space typeahead"
 //                            列表的键盘宿主：role="listbox" 本身，或 aria-controls 指向列表的触发按钮、输入框。焦点留在宿主上，
 //                            ↑↓、Home / End、Page Up / Down 移动高亮（宿主的 data-rune-active 与 aria-activedescendant、选项的 data-highlighted），
@@ -130,7 +133,7 @@ import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
 import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './js/theme.js';
 import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './js/fullscreen.js';
-import { announce, closeOnLink, closeOrRequest, focusArrivedContent, moveInMenu, openMenuFromTrigger, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock, watchCloseWhen } from './js/overlays.js';
+import { announce, clickSubMenuTrigger, closeOnLink, closeOrRequest, focusArrivedContent, hoverSubMenu, leaveSubMenu, moveInMenu, openContextMenu, openMenuFromTrigger, onPopoverToggle, open, requestClose, rootMenuOf, syncOpen, updateScrollLock, watchCloseWhen } from './js/overlays.js';
 import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from './js/hover-layers.js';
 
 let installed = false;
@@ -256,6 +259,9 @@ function install(blazor) {
   document.addEventListener('focusin', onFocusIn);
   document.addEventListener('focusout', onFocusOut);
   document.addEventListener('pointerover', onHoverPointerOver);
+  document.addEventListener('pointerover', hoverSubMenu);
+  document.addEventListener('pointerout', leaveSubMenu);
+  document.addEventListener('contextmenu', openContextMenu);
   document.addEventListener('pointerover', previewRating);
   document.addEventListener('pointerout', onHoverPointerOut);
   document.addEventListener('pointerout', endRatingPreview);
@@ -391,10 +397,12 @@ function onClick(event) {
     return;
   }
 
-  // 选了菜单项（不可用的除外）或点了关闭按钮：关闭所在的浮层
+  // 子菜单项：打开子菜单；选了菜单项（不可用、不关菜单的除外）：关闭整串菜单；点了关闭按钮：关闭所在的浮层
   const item = target.closest('[role^="menuitem"]:not([aria-disabled="true"]), [data-rune-close]');
   if (item) {
-    const overlay = item.closest('[data-rune-overlay]');
+    if (item.matches('[aria-haspopup="menu"][popovertarget]')) clickSubMenuTrigger(event, item);
+    if (item.matches('[aria-haspopup="menu"], [data-rune-keep-open]')) return;
+    const overlay = item.matches('[role^="menuitem"]') ? rootMenuOf(item) : item.closest('[data-rune-overlay]');
     if (overlay) closeOrRequest(overlay, 'close');
     return;
   }
@@ -411,6 +419,10 @@ function onClick(event) {
 function onKeyDown(event) {
   // 打开浮层的快捷键（命令面板的 Mod+K）：已经开着时关上
   const hotkeyed = hotkeyTarget(event);
+  if (hotkeyed?.matches('[role^="menuitem"]')) {
+    hotkeyed.click();
+    return;
+  }
   if (hotkeyed) {
     if (hotkeyed.open) closeOrRequest(hotkeyed, 'escape');
     else open(hotkeyed);

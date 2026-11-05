@@ -13,7 +13,7 @@ public class OverlayTests(DemoServer demo)
         var trigger = page.GetByRole(AriaRole.Button, new() { Name = "更多操作" });
 
         await trigger.ClickAsync();
-        var menu = page.GetByRole(AriaRole.Menu);
+        var menu = page.GetByTestId("row-menu");
         await Assertions.Expect(menu).ToBeVisibleAsync();
         await Assertions.Expect(page.GetByRole(AriaRole.Menuitem, new() { Name = "重命名" })).ToBeFocusedAsync();
         // 位置由 Floating UI 算好：在触发按钮下方，与它的结束边对齐
@@ -22,6 +22,13 @@ public class OverlayTests(DemoServer demo)
 
         await page.Keyboard.PressAsync("ArrowDown");
         await Assertions.Expect(page.GetByRole(AriaRole.Menuitem, new() { Name = "创建副本" })).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("ArrowDown");
+        // 子菜单项：→ 打开子菜单并聚焦第一项，← 关上回到这一项
+        await Assertions.Expect(page.GetByRole(AriaRole.Menuitem, new() { Name = "移动到" })).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("ArrowRight");
+        await Assertions.Expect(page.GetByRole(AriaRole.Menuitem, new() { Name = "设计稿" })).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("ArrowLeft");
+        await Assertions.Expect(page.GetByRole(AriaRole.Menuitem, new() { Name = "移动到" })).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("ArrowDown");
         await page.Keyboard.PressAsync("ArrowDown");
         // 归档不可用：从分享直接跳到删除

@@ -9,22 +9,27 @@
         </ChildContent>
     </Menu>
     打开、定位好之后焦点在第一项，方向键、Home / End、类型搜索移动，Enter 选择，Esc 或 Tab 关闭；选了一项菜单自动关闭。
+    菜单项：MenuItem、MenuLinkItem、MenuCheckboxItem、MenuRadioGroup / MenuRadioItem、MenuGroup、MenuSub、MenuSeparator。
+    没有 Trigger 时（ContextMenu）由使用方用 aria-label 给菜单起名。
     最大高度限制在视口剩下的空间里，菜单项多时在菜单里滚动（ScrollArea 的浮层滚动条）。菜单项很轻，一开始就渲染。
 *@
 @namespace Rune.UI
 @inherits PopoverBase
-@{ var overlay = OverlayAttrs("menu", TriggerId, fitHeight: true); }
+@{ var overlay = OverlayAttrs("menu", Trigger is null ? null : TriggerId, fitHeight: true); }
 
 @Trigger?.Invoke(TriggerAttrs)
 @{ var parts = MenuStyles.Of(Config.Styles); }
-<div @attributes="Attrs.Merge(parts[MenuPart.Root], Rest, overlay)" @onrunetoggle="HandleToggle">
+<div @attributes="Attrs.Merge(parts[MenuPart.Root], Attrs.Layer(Size is { } size ? new Attrs { Sx = ScaleStyles.FontSize(size) } : null, Rest), overlay)" @onrunetoggle="HandleToggle">
     @* 焦点在菜单项上，视口不进 Tab 顺序 *@
     <ScrollArea Focusable="false" PropsViewport="FloatingStyles.ContainedViewport" PropsContent="parts[MenuPart.Content]" Sx="FloatingStyles.ScrollArea">@ChildContent</ScrollArea>
 </div>
 
 @code {
-    /// <summary>菜单项（MenuItem、MenuSeparator）。</summary>
+    /// <summary>菜单项。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>字号档位，菜单项、图标、内边距随之缩放；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
 
     /// <inheritdoc/>
     protected override string HasPopup => "menu";

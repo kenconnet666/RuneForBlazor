@@ -1,0 +1,29 @@
+@*
+    菜单里的一组项（div，role="group"，同 vue-tsx-pro 的 MenuGroup），带可选的标题：标题显示在组内第一行，也是这一组的名称。
+    <MenuGroup Label="视图">
+        <MenuCheckboxItem @bind-Checked="grid">网格视图</MenuCheckboxItem>
+    </MenuGroup>
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div role="group" aria-labelledby="@(Label is null ? null : labelId)" @attributes="Attrs.Merge(null, Rest)">
+    @if (Label is not null)
+    {
+        <span id="@labelId" @attributes="Attrs.Merge(MenuStyles.Of(Config.Styles)[MenuPart.GroupLabel], PropsLabel)">@Label</span>
+    }
+    @ChildContent
+</div>
+
+@code {
+    readonly string labelId = UniqueId.Next("menu-group");
+
+    /// <summary>分组的标题；也是分组的名称。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>标题（span）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>组里的菜单项。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

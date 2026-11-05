@@ -4,22 +4,16 @@
         <MenuRadioItem Value="name">名称</MenuRadioItem>
         <MenuRadioItem Value="date">日期</MenuRadioItem>
     </MenuRadioGroup>
-    未声明的属性落到分组（div，role="group"）上。
+    分组与标题同 MenuGroup；未声明的属性落到分组（div，role="group"）上。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 
-<div role="group" aria-labelledby="@(Label is null ? null : labelId)" @attributes="Attrs.Merge(null, Rest)">
-    @if (Label is not null)
-    {
-        <span id="@labelId" @attributes="Attrs.Merge(MenuStyles.Of(Config.Styles)[MenuPart.GroupLabel], PropsLabel)">@Label</span>
-    }
+<MenuGroup Label="@Label" PropsLabel="PropsLabel" @attributes="Rest">
     <CascadingValue Value="new MenuRadioGroupState(value.Value, value.SetAsync)">@ChildContent</CascadingValue>
-</div>
+</MenuGroup>
 
 @code {
-    readonly string labelId = UniqueId.Next("menu-group");
-
     /// <summary>选中项的值（<c>@bind-Value</c>）。</summary>
     [Parameter] public string? Value { get; set; }
 

@@ -27,7 +27,7 @@ public class CommandPaletteTests : BunitContext
         var trigger = cut.Find("button[data-rune-open]");
         var dialog = cut.Find("dialog");
         Assert.Equal(dialog.Id, trigger.GetAttribute("data-rune-open"));
-        Assert.Equal("Control+K", trigger.GetAttribute("aria-keyshortcuts"));
+        Assert.Equal("Control+K Meta+K", trigger.GetAttribute("aria-keyshortcuts"));
         Assert.Equal("mod+k", dialog.GetAttribute("data-rune-hotkey"));
         var input = cut.Find("input[role=combobox]");
         Assert.Equal("text first", input.GetAttribute("data-rune-list"));

@@ -90,6 +90,74 @@ public class OverlayTests : BunitContext
     }
 
     [Fact]
+    public void 菜单项_说明作为描述_快捷键注册在菜单项上_不关菜单的项带标记()
+    {
+        var cut = Render<MenuItem>(p => p
+            .Add(x => x.Shortcut, "Mod+D")
+            .Add(x => x.CloseOnSelect, false)
+            .Add(x => x.Description, (RenderFragment)(b => b.AddContent(0, "复制到同一个文件夹")))
+            .AddChildContent("创建副本"));
+
+        var item = cut.Find("[role=menuitem]");
+        Assert.Equal("创建副本", cut.Find($"#{item.GetAttribute("aria-labelledby")}").TextContent);
+        Assert.Equal("复制到同一个文件夹", cut.Find($"#{item.GetAttribute("aria-describedby")}").TextContent);
+        Assert.Equal(("Mod+D", "Control+D Meta+D"), (item.GetAttribute("data-rune-hotkey"), item.GetAttribute("aria-keyshortcuts")));
+        Assert.True(item.HasAttribute("data-rune-keep-open"));
+        // 显示成 Windows 的写法；读屏从 aria-keyshortcuts 念，显示的文字不重复念
+        var shortcut = cut.Find("[data-rune-hotkey-label]");
+        Assert.Equal(("Ctrl+D", "true"), (shortcut.TextContent, shortcut.GetAttribute("aria-hidden")));
+
+        cut.Render(p => p.Add(x => x.Disabled, true));
+        Assert.False(cut.Find("[role=menuitem]").HasAttribute("data-rune-hotkey"));
+    }
+
+    [Fact]
+    public void 复选菜单项_点击切换勾选_默认不关菜单()
+    {
+        var checkedValue = false;
+        var cut = Render<MenuCheckboxItem>(p => p
+            .Add(x => x.Checked, checkedValue)
+            .Add(x => x.CheckedChanged, v => checkedValue = v)
+            .AddChildContent("显示网格"));
+
+        var item = cut.Find("[role=menuitemcheckbox]");
+        Assert.Equal("false", item.GetAttribute("aria-checked"));
+        Assert.True(item.HasAttribute("data-rune-keep-open"));
+        item.Click();
+        Assert.True(checkedValue);
+    }
+
+    [Fact]
+    public void 子菜单_触发项指向子菜单_子菜单以它为名称_不可用时打不开()
+    {
+        var cut = Render<MenuSub>(p => p
+            .Add(x => x.Label, "移动到")
+            .AddChildContent<MenuItem>(item => item.AddChildContent("设计稿")));
+
+        var trigger = cut.Find("button[role=menuitem]");
+        var panel = cut.Find("[data-rune-submenu]");
+        Assert.Equal((panel.Id, "menu"), (trigger.GetAttribute("popovertarget"), trigger.GetAttribute("aria-haspopup")));
+        Assert.Equal(("menu", trigger.Id, "right-start"), (panel.GetAttribute("role"), panel.GetAttribute("aria-labelledby"), panel.GetAttribute("data-rune-floating")));
+
+        cut.Render(p => p.Add(x => x.Disabled, true));
+        Assert.False(cut.Find("button[role=menuitem]").HasAttribute("popovertarget"));
+    }
+
+    [Fact]
+    public void 链接菜单项与右键菜单()
+    {
+        var link = Render<MenuLinkItem>(p => p.Add(x => x.Href, "settings").Add(x => x.Disabled, true).AddChildContent("设置"));
+        Assert.False(link.Find("a[role=menuitem]").HasAttribute("href"));
+
+        var region = Render<ContextMenu>(p => p
+            .Add(x => x.ChildContent, (RenderFragment)(b => b.AddContent(0, "文件")))
+            .Add(x => x.MenuContent, (RenderFragment)(b => b.AddContent(0, "菜单项"))));
+        var menu = region.Find("[data-rune-context-menu] > [role=menu]");
+        Assert.Equal("更多操作", menu.GetAttribute("aria-label"));
+        Assert.False(menu.HasAttribute("aria-labelledby"));
+    }
+
+    [Fact]
     public void 提示_触发元素指向提示_手动的popover_不可用时只渲染触发元素()
     {
         var cut = Render<Tooltip>(p => p

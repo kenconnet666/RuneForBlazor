@@ -1,59 +1,36 @@
 @*
-    单选菜单项（button，role="menuitemradio"，同 vue-tsx-pro 的 MenuRadioItem）：放在 MenuRadioGroup 里，选中后菜单自动关闭。
-    起始边的圆点表示选中：按 aria-checked 显示，没选中时占着位置，各项文字对齐。
+    单选菜单项（button，role="menuitemradio"，同 vue-tsx-pro 的 MenuRadioItem）：放在 MenuRadioGroup 里，默认选中后关闭菜单。
+    起始边的圆点按 aria-checked 显示，没选中时占着位置，各项文字对齐。
 *@
 @namespace Rune.UI
-@inherits UIComponent
+@inherits MenuItemBase
 @{ var parts = MenuStyles.Item(Tone.Neutral, Config.Styles); }
 
 <button type="button" @attributes="Attrs.Merge(parts[MenuItemPart.Root], Rest, Managed)">
-    <Icon Data="BuiltInIcons.Dot" @attributes="Attrs.MergeProps(parts[MenuItemPart.Indicator], PropsIndicator)" />
-    @if (Icon is not null)
-    {
-        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[MenuItemPart.Icon], PropsIcon)" />
-    }
-    @ChildContent
+    @ItemContent(parts, ChildContent, BuiltInIcons.Dot, PropsIndicator, Shortcut)
 </button>
 
 @code {
-    Memo<(bool Checked, bool Disabled, bool Ripple), Attrs> managed;
+    Attrs Managed => ItemAttrs("menuitemradio", isChecked: Checked, closeOnSelect: CloseOnSelect, onClick: select);
+
+    EventCallback? select;
 
     /// <summary>这一项的值。</summary>
     [Parameter, EditorRequired] public string Value { get; set; } = "";
 
-    /// <summary>文字前的图标。</summary>
-    [Parameter] public IconData? Icon { get; set; }
-
-    /// <summary>不可用：可以聚焦，点击无效，方向键跳过。</summary>
-    [Parameter] public bool Disabled { get; set; }
+    /// <summary>执行后关闭菜单，默认 true。</summary>
+    [Parameter] public bool CloseOnSelect { get; set; } = true;
 
     /// <summary>菜单项文字。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>图标的部件属性。</summary>
-    [Parameter] public Attrs? PropsIcon { get; set; }
-
     /// <summary>选中标记（圆点，Icon 组件）的部件属性。</summary>
     [Parameter] public Attrs? PropsIndicator { get; set; }
-
-    /// <summary>按下时的波纹；不写时沿用配置。</summary>
-    [Parameter] public bool? Ripple { get; set; }
 
     [CascadingParameter] MenuRadioGroupState? Group { get; set; }
 
     bool Checked => Group?.Value is { } value && value == Value;
 
-    // 菜单项不在 Tab 顺序里（菜单里用方向键移动）
-    Attrs Managed => managed.Get((Checked, Disabled, Ripple ?? Config.Ripple), k => new Attrs
-    {
-        Role = "menuitemradio",
-        TabIndex = -1,
-        AriaDisabled = k.Disabled ? true : null,
-        ["aria-checked"] = k.Checked ? "true" : "false",
-        ["data-state"] = k.Checked ? "checked" : "unchecked",
-        ["data-rune-ripple"] = k.Ripple ? true : null,
-        ["onclick"] = k.Disabled ? null : EventCallback.Factory.Create(this, SelectAsync),
-    });
-
-    Task SelectAsync() => Group?.Select(Value) ?? Task.CompletedTask;
+    /// <inheritdoc/>
+    protected override void OnInitialized() => select = EventCallback.Factory.Create(this, () => Group?.Select(Value) ?? Task.CompletedTask);
 }

@@ -1,0 +1,45 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Flex Gap="SpaceScale.Sm">
+        <Menu>
+            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Eye">显示</Button></Trigger>
+            <ChildContent>
+                <MenuGroup Label="视图">
+                    <MenuCheckboxItem @bind-Checked="grid">网格视图</MenuCheckboxItem>
+                    <MenuCheckboxItem @bind-Checked="hidden">显示隐藏文件</MenuCheckboxItem>
+                    <MenuCheckboxItem @bind-Checked="extensions">显示扩展名</MenuCheckboxItem>
+                </MenuGroup>
+            </ChildContent>
+        </Menu>
+        <Menu>
+            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.ArrowDownUp">排序：@sorts[sort ?? "modified"]</Button></Trigger>
+            <ChildContent>
+                <MenuRadioGroup @bind-Value="sort" Label="排序依据">
+                    @foreach (var (key, name) in sorts)
+                    {
+                        <MenuRadioItem Value="@key">@name</MenuRadioItem>
+                    }
+                </MenuRadioGroup>
+                <MenuRadioGroup @bind-Value="order" Label="顺序">
+                    <MenuRadioItem Value="asc">升序</MenuRadioItem>
+                    <MenuRadioItem Value="desc">降序</MenuRadioItem>
+                </MenuRadioGroup>
+            </ChildContent>
+        </Menu>
+    </Flex>
+    <Small Tone="TextTone.Muted">@Summary</Small>
+</Flex>
+
+@code {
+    static readonly Dictionary<string, string> sorts = new() { ["name"] = "名称", ["modified"] = "修改时间", ["size"] = "大小" };
+
+    bool grid = true;
+    bool hidden;
+    bool extensions = true;
+    string? sort = "modified";
+    string? order = "desc";
+
+    string Summary =>
+        $"{(grid ? "网格" : "列表")} · {(hidden ? "含" : "不含")}隐藏文件 · {(extensions ? "显示" : "隐藏")}扩展名 · 按{sorts[sort ?? "modified"]}{(order == "asc" ? "升序" : "降序")}";
+}

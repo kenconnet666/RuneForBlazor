@@ -13,6 +13,12 @@
                 <ChildContent>
                     <MenuItem Icon="Lucide.Pencil" Shortcut="F2" @onclick="@(() => last = "重命名")">重命名</MenuItem>
                     <MenuItem Icon="Lucide.Copy" Shortcut="Ctrl+D" @onclick="@(() => last = "创建副本")">创建副本</MenuItem>
+                    <MenuSub Icon="Lucide.FolderInput" Label="移动到">
+                        @foreach (var folder in folders)
+                        {
+                            <MenuItem Icon="Lucide.Folder" @onclick="@(() => last = $"移动到“{folder}”")">@folder</MenuItem>
+                        }
+                    </MenuSub>
                     <MenuItem Icon="Lucide.Share2" @onclick="@(() => last = "分享")">分享</MenuItem>
                     <MenuItem Icon="Lucide.Archive" Disabled="true">归档（没有权限）</MenuItem>
                     <MenuSeparator />
@@ -25,6 +31,8 @@
 </Flex>
 
 @code {
+    static readonly string[] folders = ["设计稿", "会议纪要", "归档 / 2025"];
+
     string? last;
 
     static Style FileIcon => Css.Define(static () => new Style { Color = Colors.TextMuted, FontSize = CssLength.Rem(1.5) });

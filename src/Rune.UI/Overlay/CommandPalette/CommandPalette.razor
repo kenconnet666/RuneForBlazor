@@ -129,7 +129,7 @@
     // Ctrl K / ⌘K（macOS 上 JS 换写法）与给读屏的 aria-keyshortcuts
     string? HotkeyText => Hotkey?.Replace("Mod+", "Ctrl ", StringComparison.OrdinalIgnoreCase).Replace('+', ' ');
 
-    string? AriaKeyShortcut => Hotkey?.Replace("Mod", "Control", StringComparison.OrdinalIgnoreCase);
+    string? AriaKeyShortcut => Hotkey is null ? null : Hotkeys.AriaKeyShortcut(Hotkey);
 
     Attrs DialogManaged => new() { ["data-rune-hotkey"] = Hotkey?.ToLowerInvariant() };
 

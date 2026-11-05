@@ -1,0 +1,48 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Menu>
+        <Trigger Context="t">
+            <button type="button" @attributes="Attrs.Merge(TriggerLayer, t)">
+                <Avatar Name="林小满" Size="Size.Sm" />
+                <Strong Size="Size.Sm">林小满</Strong>
+                <Icon Data="Lucide.ChevronDown" Tone="TextTone.Muted" />
+            </button>
+        </Trigger>
+        <ChildContent>
+            <MenuGroup Label="xiaoman@example.com">
+                <MenuLinkItem Icon="Lucide.UserRound" Href="components/avatar">个人资料</MenuLinkItem>
+                <MenuLinkItem Icon="Lucide.Palette" Href="guide/theming">外观设置</MenuLinkItem>
+                <MenuLinkItem Icon="Lucide.CreditCard" Href="components/menu" Disabled="true">账单（团队版可用）</MenuLinkItem>
+            </MenuGroup>
+            <MenuSeparator />
+            <MenuLinkItem Icon="Lucide.BookOpen" Href="guide/getting-started">帮助文档</MenuLinkItem>
+            <MenuItem Icon="Lucide.LogOut" Tone="Tone.Danger" @onclick="@(() => signedOut = true)">退出登录</MenuItem>
+        </ChildContent>
+    </Menu>
+    <Small Tone="TextTone.Muted">@(signedOut ? "已退出登录（示例）" : "链接项是 a 元素：可以中键、右键在新标签页打开")</Small>
+</Flex>
+
+@code {
+    bool signedOut;
+
+    static readonly Attrs TriggerLayer = new() { Sx = Sx.Of(TriggerStyle, SharedStyles.FocusRing) };
+
+    static Style TriggerStyle => Css.Define(static () => new Style
+    {
+        Display = Display.InlineFlex,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Sm,
+        PaddingBlock = Space.Xs,
+        PaddingInlineStart = Space.Xs,
+        PaddingInlineEnd = Space.Sm,
+        BorderWidth = 0,
+        BorderRadius = Radii.Full,
+        BackgroundColor = CssColors.Transparent,
+        Color = CssWide.Inherit,
+        FontFamily = CssWide.Inherit,
+        FontSize = CssWide.Inherit,
+        Cursor = Cursor.Pointer,
+        [When.HoverEnabled] = new() { BackgroundColor = Colors.FillHover },
+    });
+}

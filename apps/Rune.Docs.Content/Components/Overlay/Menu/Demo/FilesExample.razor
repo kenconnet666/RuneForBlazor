@@ -1,0 +1,79 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ContextMenu Sx="Area">
+        <ChildContent>
+            <GridList MinItemWidth="CssLength.Rem(9)" Gap="SpaceScale.Sm" aria-label="文件">
+                @foreach (var (name, icon) in files)
+                {
+                    <li @key="name">
+                        <button type="button" aria-pressed="@(selected == name ? "true" : "false")" @attributes="Attrs.Merge(selected == name ? SelectedLayer : FileLayer)"
+                                @onfocus="() => selected = name" @oncontextmenu="() => selected = name" @onclick="() => selected = name">
+                            <Icon Data="icon" Sx="FileIcon" />
+                            @name
+                        </button>
+                    </li>
+                }
+            </GridList>
+        </ChildContent>
+        <MenuContent>
+            <MenuItem Icon="Lucide.Download" @onclick="@(() => Run("下载"))">下载</MenuItem>
+            <MenuItem Icon="Lucide.Pencil" Shortcut="F2" @onclick="@(() => Run("重命名"))">重命名</MenuItem>
+            <MenuItem Icon="Lucide.Copy" @onclick="@(() => Run("复制"))">复制</MenuItem>
+            <MenuSeparator />
+            <MenuItem Icon="Lucide.Trash" Tone="Tone.Danger" @onclick="@(() => Run("删除"))">删除</MenuItem>
+        </MenuContent>
+    </ContextMenu>
+    <Small Tone="TextTone.Muted">@(last ?? "在文件上点右键；键盘聚焦文件后按 Shift+F10 或菜单键")</Small>
+</Flex>
+
+@code {
+    static readonly (string Name, IconData Icon)[] files =
+    [
+        ("报价单.xlsx", Lucide.FileSpreadsheet),
+        ("合同.pdf", Lucide.FileText),
+        ("首页.png", Lucide.FileImage),
+        ("会议纪要.docx", Lucide.FileText),
+        ("logo.svg", Lucide.FileImage),
+        ("预算.xlsx", Lucide.FileSpreadsheet),
+    ];
+
+    string selected = files[0].Name;
+    string? last;
+
+    void Run(string action) => last = $"{action}“{selected}”";
+
+    static readonly Attrs FileLayer = new() { Sx = Sx.Of(FileStyle, SharedStyles.FocusRing) };
+    static readonly Attrs SelectedLayer = new() { Sx = Sx.Of(FileStyle, SharedStyles.FocusRing, Selected) };
+
+    static Style Area => Css.Define(static () => new Style
+    {
+        Padding = Space.Md,
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Dashed,
+        BorderColor = Colors.Border,
+        BorderRadius = Radii.Md,
+    });
+
+    static Style FileStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Xs,
+        Width = CssLength.Percent(100),
+        PaddingBlock = Space.Md,
+        BorderWidth = 0,
+        BorderRadius = Radii.Md,
+        BackgroundColor = CssColors.Transparent,
+        Color = CssWide.Inherit,
+        FontFamily = CssWide.Inherit,
+        FontSize = FontSizes.Sm,
+        Cursor = Cursor.Pointer,
+        [When.HoverEnabled] = new() { BackgroundColor = Colors.FillHover },
+    });
+
+    static Style Selected => Css.Define(static () => new Style { BackgroundColor = Tones.Accent.Soft, [When.HoverEnabled] = new() { BackgroundColor = Tones.Accent.Soft } });
+
+    static Style FileIcon => Css.Define(static () => new Style { Color = Colors.TextMuted, FontSize = CssLength.Rem(2) });
+}

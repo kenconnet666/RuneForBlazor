@@ -89,7 +89,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [x] `tools/parity`：按上面“对照的做法”第 3 条实现；README 写用法；拿已完成的组件试一遍，修掉报告里的差异
       （按钮已对齐：亮暗主题、悬停聚焦按下一致；Badge、Kbd、Card 在各自页面对照时改）
 - [ ] 演示页改名对齐文档站的路由（typography → text、layout → flex / grid 等），示例按文档站补齐；已完成组件逐个过一遍对照报告
-      （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（开关的 loading 与轨道内容在阶段 6）、toggle-group、control-group、slider、rating（结构不同：每颗星都有填色层，视觉一致）、otp-field、listbox、skeleton（Avatar、Stat、DataTable 做好后补全）、popover（HoverCard 在阶段 8）、popconfirm、menu（只有 actions，其余示例随阶段 6 的菜单补齐）、flex（除了还没做的 Avatar、Descriptions、输入框）；card（已对齐）；缺的组件做到时补示例：Descriptions、Table、ButtonGroup、Avatar；toast（已对齐）；dialog（alert-dialog、imperative 在阶段 8）、drawer（detail 等表格与时间线，edit 的拖宽在阶段 6，imperative 在阶段 8）；旧的 form 页等 Form 对齐时换掉）
+      （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（开关的 loading 与轨道内容在阶段 6）、toggle-group、control-group、slider、rating（结构不同：每颗星都有填色层，视觉一致）、otp-field、listbox、skeleton（Avatar、Stat、DataTable 做好后补全）、popover（HoverCard 在阶段 8）、popconfirm、menu（已对齐）、flex（除了还没做的 Avatar、Descriptions、输入框）；card（已对齐）；缺的组件做到时补示例：Descriptions、Table、ButtonGroup、Avatar；toast（已对齐）；dialog（alert-dialog、imperative 在阶段 8）、drawer（detail 等表格与时间线，edit 的拖宽在阶段 6，imperative 在阶段 8）；旧的 form 页等 Form 对齐时换掉）
 - [x] 语言包：`UIConfig.Lang` 与 `RuneProvider` 的 `Lang`；`tools/lang-gen` 从 vue-tsx-pro 的语言包生成 zh-CN、en-US；已有组件里的文字（关闭、确定、取消、增加、减少……）改成取语言包
 - [x] 端到端测试项目 `tests/Rune.E2E`（Microsoft.Playwright，Chromium）：启动演示项目，覆盖已有的键盘与焦点逻辑（菜单、对话框、气泡确认、数字框方向键、表单错误汇总跳转）；进 CI
       （另有数字框按住连加、显示密码、清空回焦、复制、标签移除后的焦点；之后每个有键盘或焦点逻辑的组件都加用例）
@@ -123,7 +123,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [ ] 反馈：Banner、Empty（已做）、Result、Progress（线形、环形）、LoadingBar、LoadingOverlay
       （已做：Progress（条形、环形、目标、不确定进度）、LoadingOverlay、LoadingBar（动画在 JS，可跟着增强导航走））
 - [ ] 补齐已有组件：Toast（已做：ToastService 控制器，标题与说明、操作、进度、六个位置、最多条数与叠放、悬停/聚焦暂停、important、同 Id 替换、PromiseAsync、F8 / Esc / 滑动关闭）、Alert（description 与额外内容分开、关闭时淡出）、
-      Card（loading 骨架、装饰效果 tilt / spotlight / beam，已做）、Switch（loading、开关内的文字）、Menu（勾选项、单选项、子菜单、分组标题、说明）、Drawer（可拖动宽度，已做）
+      Card（loading 骨架、装饰效果 tilt / spotlight / beam，已做）、Switch（loading、开关内的文字）、Menu（勾选项、单选项、子菜单、分组标题、说明、链接项、尺寸、注册快捷键，已做）、Drawer（可拖动宽度，已做）
 
 ## 阶段 7：布局与展示
 
@@ -135,7 +135,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 ## 阶段 8：浮层与导航
 
-- [ ] 浮层：AlertDialog、ContextMenu、HoverCard、CommandPalette、Lightbox、Tour
+- [ ] 浮层：AlertDialog、ContextMenu（已做）、HoverCard、CommandPalette、Lightbox、Tour
       （已做：HoverCard（NavList 的紧凑分组要用，按“基础组件先做”提前）；CommandPalette（文档站的搜索））
 - [ ] 导航：Tabs（溢出、可关闭、拖动排序）、Breadcrumbs、Steps、NavList、NavMenu、NavBar、Pagination / Pager / PageSizeSelect / PageJump / PaginationBar、SkipLink、TableOfContents、Toolbar
       （已做：Toolbar、NavList / NavItem / NavGroup / NavSection（按“基础组件先做”提前；宽度手柄示例已换用）；Tabs（溢出滚动、可关闭、新建、拖动与 Alt + ←→ 排序；“全部标签页”菜单等 Menu 有单选项再补）；TableOfContents、Pager、SkipLink（文档站要用））

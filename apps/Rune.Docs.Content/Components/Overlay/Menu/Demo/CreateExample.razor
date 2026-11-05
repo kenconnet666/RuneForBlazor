@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Menu>
+        <Trigger Context="t"><Button @attributes="t" Icon="Lucide.Plus">新建</Button></Trigger>
+        <ChildContent>
+            <MenuGroup Label="文档">
+                <MenuItem Icon="Lucide.FileText" @onclick="@(() => created = "文档")">
+                    <Description>空白的文字文档</Description>
+                    <ChildContent>文档</ChildContent>
+                </MenuItem>
+                <MenuItem Icon="Lucide.FileSpreadsheet" @onclick="@(() => created = "表格")">
+                    <Description>行列、公式与图表</Description>
+                    <ChildContent>表格</ChildContent>
+                </MenuItem>
+                <MenuItem Icon="Lucide.Presentation" @onclick="@(() => created = "演示文稿")">
+                    <Description>一页页的幻灯片，可以全屏演示</Description>
+                    <ChildContent>演示文稿</ChildContent>
+                </MenuItem>
+            </MenuGroup>
+            <MenuSeparator />
+            <MenuItem Icon="Lucide.FolderPlus" @onclick="@(() => created = "文件夹")">文件夹</MenuItem>
+            <MenuItem Icon="Lucide.Upload" @onclick="@(() => created = "上传的文件")">上传文件…</MenuItem>
+        </ChildContent>
+    </Menu>
+    <Small Tone="TextTone.Muted">@(created is null ? "说明文字在名称下方，读屏念完名称再念说明" : $"新建了：{created}")</Small>
+</Flex>
+
+@code {
+    string? created;
+}

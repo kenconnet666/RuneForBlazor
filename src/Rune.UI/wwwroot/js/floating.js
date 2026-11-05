@@ -21,8 +21,16 @@ const ARROW_EDGE = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' 
 
 const ARROW_ROTATION = { top: 45, right: 135, bottom: 225, left: -45 };
 
-/** 浮层的锚点：data-anchor 指定的元素（Select 的输入框外壳），或触发元素（popovertarget、data-rune-tooltip、data-rune-hovercard 指向它）。 */
+/**
+ * 浮层的锚点：data-point-x / -y 给的视口里的点（右键菜单的指针位置），data-anchor 指定的元素（Select 的输入框外壳），
+ * 或触发元素（popovertarget、data-rune-tooltip、data-rune-hovercard 指向它）。
+ */
 function floatingAnchorOf(overlay) {
+  if (overlay.dataset.pointX !== undefined) {
+    const x = Number(overlay.dataset.pointX);
+    const y = Number(overlay.dataset.pointY);
+    return { getBoundingClientRect: () => new DOMRect(x, y, 0, 0) };
+  }
   const anchor = overlay.dataset.anchor && document.getElementById(overlay.dataset.anchor);
   if (anchor) return anchor;
   const id = CSS.escape(overlay.id);
@@ -62,7 +70,11 @@ export async function anchorFloating(overlay) {
       },
     }));
   }
-  const placement = overlay.dataset.runeFloating;
+  let placement = overlay.dataset.runeFloating;
+  // 子菜单往书写方向的结束边弹出：Floating UI 的 left / right 是物理方向，从右到左排版时换过来
+  if (overlay.hasAttribute('data-rune-submenu') && anchor instanceof Element && getComputedStyle(anchor).direction === 'rtl') {
+    placement = placement.replace(/^right/, 'left');
+  }
   let stopped = false;
   return new Promise((resolve) => {
     const update = () => computePosition(anchor, overlay, { placement, strategy: 'fixed', middleware }).then(({ x, y, placement: final, middlewareData }) => {

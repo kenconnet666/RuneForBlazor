@@ -1,0 +1,75 @@
+@*
+    子菜单（同 vue-tsx-pro 的 MenuSub）：菜单里的一项，打开另一列菜单。
+    <MenuSub Label="分享" Icon="Lucide.Share2">
+        <MenuItem @onclick="CopyLink">复制链接</MenuItem>
+    </MenuSub>
+    →（从右到左排版时 ←）、Enter、空格打开并聚焦第一项；子菜单里 ←（→）或 Esc 关闭并回到这一项。
+    指针停一会儿打开，朝子菜单斜着移动时经过别的项也不关（安全三角）；子菜单里执行一项后整串菜单都关闭。都在 JS 里。
+    未声明的属性落到打开子菜单的按钮（role="menuitem"）上。
+*@
+@namespace Rune.UI
+@inherits MenuItemBase
+@{
+    var parts = MenuStyles.Item(Tone.Neutral, Config.Styles);
+    var menuParts = MenuStyles.Of(Config.Styles);
+}
+
+<button type="button" @attributes="Attrs.Merge(parts[MenuItemPart.Root], Rest, TriggerAttrs)">
+    @ItemContent(parts, (RenderFragment)(b => b.AddContent(0, Label)))
+    <Icon Data="BuiltInIcons.ChevronRight" FlipInRtl="true" @attributes="Attrs.MergeProps(parts[MenuItemPart.Chevron], PropsChevron)" />
+</button>
+<div @attributes="Attrs.Merge(menuParts[MenuPart.Root], PropsPanel, PanelAttrs)" @onrunetoggle="HandleToggle">
+    <ScrollArea Focusable="false" PropsViewport="FloatingStyles.ContainedViewport" PropsContent="menuParts[MenuPart.Content]" Sx="FloatingStyles.ScrollArea">@ChildContent</ScrollArea>
+</div>
+
+@code {
+    readonly string panelId = UniqueId.Next("menu-sub");
+    Attrs? popupAttrs;
+    Memo<bool?, Attrs> panelAttrs;
+
+    /// <summary>这一项的文字（子菜单以它为名称）。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>受控的打开状态（<c>@bind-Open</c>）。</summary>
+    [Parameter] public bool? Open { get; set; }
+
+    /// <summary>子菜单打开或关闭后。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>子菜单里的项。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>子菜单（role="menu" 的 div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPanel { get; set; }
+
+    /// <summary>右侧箭头（Icon 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsChevron { get; set; }
+
+    string TriggerId => $"{panelId}-trigger";
+
+    // 不可用时不能打开子菜单：去掉 popovertarget
+    Attrs TriggerAttrs => Disabled
+        ? ItemAttrs("menuitem", registerShortcut: false)
+        : Attrs.Layer(ItemAttrs("menuitem", registerShortcut: false), null, popupAttrs ??= new Attrs
+        {
+            Id = TriggerId,
+            AriaControls = panelId,
+            ["popovertarget"] = panelId,
+            ["aria-haspopup"] = "menu",
+        });
+
+    // 往书写方向的结束边弹出（从右到左排版时 JS 换到左边），与这一项的顶边对齐
+    Attrs PanelAttrs => panelAttrs.Get(Open, (panelId, TriggerId), static (open, ids) => Attrs.Merge(Floating.Placed(Placement.RightStart, 2), null, new Attrs
+    {
+        Id = ids.panelId,
+        Role = "menu",
+        AriaLabelledBy = ids.TriggerId,
+        ["popover"] = "auto",
+        ["data-rune-overlay"] = true,
+        ["data-rune-submenu"] = true,
+        ["data-fit-height"] = true,
+        ["data-open"] = open is { } value ? (value ? "true" : "false") : null,
+    }));
+
+    Task HandleToggle(OverlayToggleEventArgs e) => OpenChanged.InvokeAsync(e.Open);
+}

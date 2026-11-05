@@ -1,0 +1,43 @@
+@*
+    右键菜单（div，同 vue-tsx-pro 的 ContextMenu）：在一块区域里右键（或键盘的 Shift+F10、菜单键）时，从指针位置弹出菜单。
+    <ContextMenu>
+        <ChildContent><FileCard File="file" /></ChildContent>
+        <MenuContent>
+            <MenuItem @onclick="Rename">重命名</MenuItem>
+            <MenuItem Tone="Tone.Danger" @onclick="Remove">删除</MenuItem>
+        </MenuContent>
+    </ContextMenu>
+    菜单项与 Menu 完全相同，菜单本身就是一个以指针位置为锚点、没有触发器的 Menu；弹出、定位、关闭后还焦点都在 JS 里。
+    键盘打开时（contextmenu 事件不带指针坐标）从获得焦点的元素左下角弹出；关闭后焦点回到打开前的元素。
+    区域本身不可聚焦：键盘用户要能打开，里面得有可聚焦的元素（同 Radix ContextMenu）。未声明的属性落到区域的 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div data-rune-context-menu data-disabled="@(Disabled ? "true" : null)" @attributes="Attrs.Merge(null, Rest)">
+    @ChildContent
+    <Menu Open="Open" OpenChanged="OpenChanged" aria-label="@(Label ?? Config.Lang.ContextMenuLabel)" @attributes="Attrs.MergeProps(null, PropsMenu)">@MenuContent</Menu>
+</div>
+
+@code {
+    /// <summary>区域里的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>菜单项：同 Menu 的 ChildContent。</summary>
+    [Parameter] public RenderFragment? MenuContent { get; set; }
+
+    /// <summary>菜单的名称，默认取语言包（更多操作）。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>不弹出（浏览器自己的右键菜单照常出现）。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>受控的打开状态（<c>@bind-Open</c>）。</summary>
+    [Parameter] public bool? Open { get; set; }
+
+    /// <summary>菜单打开或关闭后。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>菜单（Menu）的部件属性，如字号 <c>new() { ["Size"] = Size.Sm }</c>。</summary>
+    [Parameter] public Attrs? PropsMenu { get; set; }
+}
