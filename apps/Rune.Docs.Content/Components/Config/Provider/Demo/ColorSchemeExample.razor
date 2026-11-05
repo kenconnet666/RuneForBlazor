@@ -8,10 +8,10 @@
 </Flex>
 <RuneProvider ColorScheme="colorScheme">
     <div @attributes="Attrs.Merge(ThemePreview)" data-testid="theme-preview">
-        <Collapsible Open="true" Variant="CollapsibleVariant.Outline">
-            <Title>当前：@colorScheme</Title>
+        <Card Variant="CardVariant.Outline">
+            <Header>当前：@colorScheme</Header>
             <ChildContent>这片区域的颜色来自 Provider 的主题；切换时只换包裹元素上的类，组件不用重新计算样式。</ChildContent>
-        </Collapsible>
+        </Card>
     </div>
 </RuneProvider>
 

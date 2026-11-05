@@ -13,7 +13,7 @@ public interface IComponentDefaults<TSelf> where TSelf : class, IComponentDefaul
 /// <summary>
 /// 各组件的默认值：组件上没写的参数取这里的值。
 /// <code>
-/// o.Defaults = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } };
+/// o.Defaults = new() { new CardDefaults { Variant = CardVariant.Outline } };
 /// </code>
 /// 只在创建时添加，之后不再修改（同一个实例会被缓存引用）。
 /// </summary>

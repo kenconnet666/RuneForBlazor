@@ -1,0 +1,30 @@
+@page "/components/accordion"
+@attribute [DocMeta("Accordion 手风琴", "一组可以展开收起的标题与内容（Accordion），单个的展开区域（Collapsible）与带高度过渡的内容区（Collapse）。", DocCategory.Display, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Accordion.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="faq" Title="常见问题" Demo="typeof(FaqExample)">
+                默认一次只展开一项，再点可以收起（<Code>Collapsible</Code>）；标题是 heading 里的按钮，↑ ↓ 在标题之间移动，Home / End 到两端。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="multiple" Title="多开" Demo="typeof(SettingsExample)">
+                <Code>SelectionMode="SelectionMode.Multiple"</Code> 时每项独立展开，<Code>@@bind-Values</Code> 是列表；
+                <Code>TitleContent</Code> 可以放图标、计数；<Code>HeadingLevel</Code> 按所在页面的大纲选。
+            </Example>
+            <Example Id="collapsible" Title="单个展开区域" Demo="typeof(DisclosureExample)">
+                <Code>Collapsible</Code> 是触发器加 <Code>Collapse</Code>：触发器的 Context 带着 aria-expanded、aria-controls 与点击，展开到任意按钮上。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("Enter / Space", "展开或收起聚焦的那一项"),
+        ("↓ / ↑", "移到下一个 / 上一个标题，到头后循环"),
+        ("Home / End", "移到第一个 / 最后一个标题"),
+        ("Tab", "标题都在 Tab 顺序里；展开的内容里的元素按顺序跟在标题后面"),
+    ])" />
+    <ApiReference Types="[typeof(Accordion), typeof(AccordionItem), typeof(Collapsible), typeof(Collapse)]" />
+</DocPage>

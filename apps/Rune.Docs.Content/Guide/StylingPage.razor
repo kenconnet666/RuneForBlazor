@@ -107,14 +107,14 @@
 
     const string customize = """
         @* 一处：部件属性 *@
-        <Collapsible PropsTrigger="@(new() { Sx = AccentWhenExpanded })">…</Collapsible>
+        <AccordionItem Value="ship" Title="多久发货？" PropsTrigger="@(new() { Sx = AccentWhenExpanded })">…</AccordionItem>
 
-        @* 一片区域：所有折叠面板描边、按钮用强调色 *@
+        @* 一片区域：所有卡片描边、页头用强调色 *@
         <RuneProvider Defaults="@defaults" Styles="@styles">…</RuneProvider>
 
         @code {
-            static readonly ComponentDefaults defaults = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } };
-            static readonly ComponentStyles styles = new() { { CollapsiblePart.Trigger, AccentText } };
+            static readonly ComponentDefaults defaults = new() { new CardDefaults { Variant = CardVariant.Outline } };
+            static readonly ComponentStyles styles = new() { { CardPart.Header, AccentText } };
         }
         """;
 }

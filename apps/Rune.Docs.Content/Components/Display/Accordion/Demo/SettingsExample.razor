@@ -1,0 +1,38 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    @* 多开：每项独立展开收起，值是列表；文档里示例的标题是 h2，各项标题接着用 h3 *@
+    <Accordion SelectionMode="SelectionMode.Multiple" @bind-Values="open" HeadingLevel="3" aria-label="设置">
+        <AccordionItem Value="notify" TitleContent="@Title(Lucide.Bell, "通知", 2)">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Switch @bind-Value="email">邮件通知</Switch>
+                <Switch @bind-Value="push">推送通知</Switch>
+            </Flex>
+        </AccordionItem>
+        <AccordionItem Value="privacy" TitleContent="@Title(Lucide.Lock, "隐私")">
+            <Switch @bind-Value="publicProfile">公开个人主页</Switch>
+        </AccordionItem>
+        <AccordionItem Value="appearance" TitleContent="@Title(Lucide.Palette, "外观")">
+            <Switch @bind-Value="compact">紧凑模式</Switch>
+        </AccordionItem>
+    </Accordion>
+    <Small Tone="TextTone.Muted">展开着：@(open.Count == 0 ? "无" : string.Join("、", open))</Small>
+</Flex>
+
+@code {
+    IReadOnlyList<string> open = ["notify", "privacy"];
+    bool email = true;
+    bool push;
+    bool publicProfile = true;
+    bool compact;
+
+    static RenderFragment Title(IconData icon, string label, int? count = null) =>
+        @<Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <Icon Data="icon" />
+            <TextSpan Weight="Weight.Medium">@label</TextSpan>
+            @if (count is { } n)
+            {
+                <Badge Radius="Radius.Full" Size="Size.Xs">@n</Badge>
+            }
+        </Flex>;
+}

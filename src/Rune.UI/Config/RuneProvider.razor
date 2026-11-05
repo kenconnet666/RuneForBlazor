@@ -2,7 +2,7 @@
     在一片区域里修改组件库的配置：主题、亮暗模式、语言、组件默认值、按部件的样式定制，没写的沿用外层。
     放在应用根部（布局里）时套上应用级的主题；嵌套时只改写了的部分。
     <RuneProvider ColorScheme="ColorScheme.Dark"
-                  Defaults="@(new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } })">
+                  Defaults="@(new() { new CardDefaults { Variant = CardVariant.Outline } })">
         …
     </RuneProvider>
     主题以 CSS 变量作用在包裹元素（display: contents）里面，不影响布局；包裹元素上还写了语言的 lang 与 dir（同 vue-tsx-pro）。

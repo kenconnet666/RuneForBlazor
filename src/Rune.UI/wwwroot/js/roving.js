@@ -1,6 +1,7 @@
 // 漫游焦点（WAI-ARIA 的 roving tabindex，同 vue-tsx-pro 的 rovingFocus）：一组项里只有一个能用 Tab 进入（tabindex=0），其余为 -1；
 // 组内用方向键移动，Home / End 到两端。ToggleGroup、Tabs、Toolbar 共用。
-// 容器写 data-rune-roving="horizontal|vertical|both"（可加 " noloop"：到两端不循环；" first"：Tab 进入落在第一项而不是选中的项，工具栏用），项是容器里的 data-rune-roving-items 选择器（默认 button）；
+// 容器写 data-rune-roving="horizontal|vertical|both"（可加 " noloop"：到两端不循环；" first"：Tab 进入落在第一项而不是选中的项，工具栏用；
+// " tabbable"：只管方向键，不写 tabindex、各项都在 Tab 顺序里，手风琴的标题用），项是容器里的 data-rune-roving-items 选择器（默认 button）；
 // 嵌套的组各管各的，容器里的弹层（popover、dialog）不归它。tabindex 由这里写（组件不渲染 tabindex），项增删、选中变化时重新定 Tab 进入点。
 
 const watched = new WeakSet();
@@ -27,6 +28,8 @@ function itemsOf(container) {
 export function watchRoving(container) {
   if (watched.has(container)) return;
   watched.add(container);
+  // 各项都在 Tab 顺序里：不用定 Tab 进入点
+  if ((container.getAttribute('data-rune-roving') ?? '').split(' ').includes('tabbable')) return;
   new MutationObserver(() => syncRoving(container)).observe(container, {
     childList: true,
     subtree: true,

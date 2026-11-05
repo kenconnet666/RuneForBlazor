@@ -1,0 +1,47 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Field Label="搜索商品">
+            <TextField @bind-Value="keyword" />
+        </Field>
+        <Collapsible @bind-Open="open">
+            <Trigger Context="t">
+                @* Collapsible 不包外层元素：在纵向的 Flex 里触发按钮会被拉满整行，靠左放 *@
+                <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Icon="Lucide.SlidersHorizontal" IconEnd="Lucide.ChevronDown" Sx="TriggerStyle"
+                        PropsIconEnd="@(open ? ChevronOpenLayer : ChevronLayer)" @attributes="t">高级筛选</Button>
+            </Trigger>
+            <ChildContent>
+                <Grid MinItemWidth="CssLength.Em(9)" Gap="SpaceScale.Md">
+                    <Field Label="最低价">
+                        <NumberField @bind-Value="min" Min="0" />
+                    </Field>
+                    <Field Label="最高价">
+                        <NumberField @bind-Value="max" Min="0" />
+                    </Field>
+                    <Field Label="排序">
+                        <Select Items="sorts" @bind-Value="sort" />
+                    </Field>
+                </Grid>
+            </ChildContent>
+        </Collapsible>
+    </Flex>
+</Card>
+
+@code {
+    static readonly ListboxOption[] sorts = [new("relevance", "综合"), new("sales", "销量"), new("price", "价格")];
+    static readonly Attrs ChevronLayer = new() { Sx = Chevron };
+    static readonly Attrs ChevronOpenLayer = new() { Sx = Sx.Of(Chevron, ChevronOpen) };
+
+    string? keyword = "机械键盘";
+    int? min = 200;
+    int? max = 800;
+    string? sort = "relevance";
+    bool open;
+
+    static Style TriggerStyle => Css.Define(static () => new Style { AlignSelf = AlignSelf.FlexStart });
+
+    static Style Chevron => Css.Define(static () => new Style { Transition = $"rotate {Durations.Md} {Easings.Standard}" });
+
+    static Style ChevronOpen => Css.Define(static () => new Style { Rotate = CssValue.Deg(180) });
+}

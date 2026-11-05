@@ -1,0 +1,79 @@
+@*
+    手风琴（同 vue-tsx-pro 的 Accordion，WAI-ARIA 的 Accordion 模式）：Accordion（div）> AccordionItem（标题按钮 + 展开收起的内容）。
+    <Accordion @bind-Value="open" aria-label="常见问题">
+        <AccordionItem Value="ship" Title="多久发货？">付款后 48 小时内。</AccordionItem>
+        <AccordionItem Value="refund" Title="怎么退款？">…</AccordionItem>
+    </Accordion>
+    <Accordion SelectionMode="SelectionMode.Multiple" @bind-Values="openList">…</Accordion>
+    每个标题是 heading（HeadingLevel，默认 h3）里的 button（aria-expanded、aria-controls），内容是 role="region"、以标题为名称；
+    标题都在 Tab 顺序里，另外 ↑ / ↓ 在标题之间移动（到头后循环），Home / End 到两端（JS 初始化器，data-rune-roving 的 tabbable）。
+    展开收起的动画同 Collapse；收起的内容页内查找命中时自动展开。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = AccordionStyles.Of(false, Disabled, Config.Styles); }
+
+<CascadingValue Value="State">
+    <div @attributes="Attrs.Merge(parts[AccordionPart.Root], Rest, RootManaged)">@ChildContent</div>
+</CascadingValue>
+
+@code {
+    Memo<(Size? Size, bool Disabled), Attrs> rootManaged;
+
+    /// <summary>单开（默认，值是 Value）或多开（值是 Values）。</summary>
+    [Parameter] public SelectionMode SelectionMode { get; set; }
+
+    /// <summary>单开时展开着的项（<c>@@bind-Value</c>），没有时为 null。</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>单开时展开的项变了。</summary>
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    /// <summary>多开时展开着的项（<c>@@bind-Values</c>）。</summary>
+    [Parameter] public IReadOnlyList<string>? Values { get; set; }
+
+    /// <summary>多开时展开的项变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> ValuesChanged { get; set; }
+
+    /// <summary>单开时允许把唯一展开的那项也收起，默认 true。</summary>
+    [Parameter] public bool Collapsible { get; set; } = true;
+
+    /// <summary>标题的层级（2–6），按所在页面的大纲选，默认 3。</summary>
+    [Parameter] public int HeadingLevel { get; set; } = 3;
+
+    /// <summary>整组不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>字号档位；不写时继承。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>各项（AccordionItem）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    Bindable<string?> value { get => field ??= new(this, () => Value, () => ValueChanged); }
+
+    // 没给 Values 时用同一个空数组：每次新建的空列表会被当成父级换了值
+    Bindable<IReadOnlyList<string>> values { get => field ??= new(this, () => Values ?? Array.Empty<string>(), () => ValuesChanged); }
+
+    bool Multiple => SelectionMode == SelectionMode.Multiple;
+
+    IReadOnlyList<string> Expanded => Multiple ? values.Value : value.Value is { } open ? [open] : [];
+
+    // 交给各项：展开的项变了时是新的实例，各项跟着重新渲染
+    AccordionState State => new(Expanded, Math.Clamp(HeadingLevel, 2, 6), Disabled, ToggleAsync);
+
+    Attrs RootManaged => rootManaged.Get((Size, Disabled), static k => new Attrs
+    {
+        Sx = k.Size is { } size ? Sx.Of(ScaleStyles.FontSize(size)) : null,
+        ["data-rune-roving"] = "vertical tabbable",
+        ["data-rune-roving-items"] = "[data-accordion-trigger]",
+        ["data-disabled"] = k.Disabled ? true : null,
+    });
+
+    async Task ToggleAsync(string item)
+    {
+        if (Disabled || ListState.Toggle(Expanded, item, SelectionMode, required: !Collapsible) is not { } next) return;
+        if (Multiple) await values.SetAsync(next);
+        else await value.SetAsync(next.Count == 0 ? null : next[0]);
+    }
+}

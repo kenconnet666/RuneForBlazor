@@ -42,14 +42,16 @@ public class DocsContentTests
         Assert.Equal("bool", open.Type);
         Assert.Equal(ApiPropKind.Event, api.Props.Single(p => p.Name == nameof(Collapsible.OpenChanged)).Kind);
         Assert.Equal(ApiPropKind.Content, api.Props.Single(p => p.Name == nameof(Collapsible.ChildContent)).Kind);
-        Assert.Equal(ApiPropKind.Part, api.Props.Single(p => p.Name == nameof(Collapsible.PropsTrigger)).Kind);
-
-        var variant = api.Props.Single(p => p.Name == nameof(Collapsible.Variant));
-        Assert.Equal("CollapsibleVariant?", variant.Type);
-        Assert.Contains(variant.Values!, v => v.Value == nameof(CollapsibleVariant.Outline) && v.Description.Length > 0);
-        Assert.False(string.IsNullOrEmpty(variant.Description));
+        Assert.Equal(ApiPropKind.Part, api.Props.Single(p => p.Name == nameof(Collapsible.PropsContent)).Kind);
         // 自己声明的参数在前，基类的（Sx）在后
         Assert.Equal("Sx", api.Props[^1].Name);
+
+        var accordion = ComponentApiReader.Read(typeof(Accordion));
+        var mode = accordion.Props.Single(p => p.Name == nameof(Accordion.SelectionMode));
+        Assert.Equal("SelectionMode", mode.Type);
+        Assert.Equal("SelectionMode.Single", mode.Default);
+        Assert.Contains(mode.Values!, v => v.Value == nameof(SelectionMode.Multiple) && v.Description.Length > 0);
+        Assert.False(string.IsNullOrEmpty(mode.Description));
 
         var rating = ComponentApiReader.Read(typeof(Rating));
         Assert.Equal("5", rating.Props.Single(p => p.Name == nameof(Rating.Count)).Default);

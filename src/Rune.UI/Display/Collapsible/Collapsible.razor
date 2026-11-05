@@ -1,23 +1,55 @@
 @*
-    折叠面板：一个按钮控制一块内容的展开与收起。
-    <Collapsible @bind-Open="filtersOpen" Variant="CollapsibleVariant.Outline">
-        <Title>筛选条件</Title>
+    可展开收起的区域（同 vue-tsx-pro 的 Collapsible，WAI-ARIA 的 Disclosure 模式）：触发器 + Collapse。Accordion 的每一项也建在 Collapse 上。
+    <Collapsible @bind-Open="advanced">
+        <Trigger Context="t"><Button Variant="ButtonVariant.Ghost" @attributes="t">高级选项</Button></Trigger>
         <ChildContent>…</ChildContent>
     </Collapsible>
-    内容区是 Collapse：展开收起有高度过渡，收起后仍在页面里（inert），页内查找命中时自动展开。
-    未声明的属性与 Sx 落到外层容器；按钮、内容区用 PropsTrigger、PropsContent 定制。
-    每个部件三层合并：部件默认层 < 使用方的 < 组件管理的（见代码隐藏文件里的 *Managed）。
+    触发器由使用方给（任意按钮）：Context 带着 aria-expanded、aria-controls、点击切换与不可用，展开到按钮上即可。
+    键盘由触发器元素自己提供（按钮的 Enter、空格）。不包外层元素；未声明的属性落到 Collapse 上。
 *@
-@* 组件文件按功能分文件夹，命名空间统一是 Rune.UI（与代码隐藏文件一致）；Razor 默认会把文件夹名接进命名空间 *@
 @namespace Rune.UI
 @inherits UIComponent
-@{ var parts = Parts; }
 
-<div @attributes="Attrs.Merge(parts[CollapsiblePart.Root], Rest)" data-state="@(open.Value ? "open" : "closed")">
-    <button type="button" @attributes="Attrs.Merge(parts[CollapsiblePart.Trigger], PropsTrigger, TriggerManaged)">
-        @Title
-    </button>
-    <Collapse Open="open.Value" OpenChanged="open.SetAsync" Lazy="Lazy" PropsContent="Attrs.Layer(parts[CollapsiblePart.Content], PropsContent)" @attributes="ContentManaged">
-        @ChildContent
-    </Collapse>
-</div>
+@Trigger?.Invoke(TriggerAttrs)
+<Collapse id="@ContentId" Open="open.Value" OpenChanged="open.SetAsync" Lazy="Lazy" PropsContent="PropsContent" @attributes="Rest">
+    @ChildContent
+</Collapse>
+
+@code {
+    readonly string generatedId = UniqueId.Next("collapsible");
+    Memo<(bool Open, bool Disabled, string ContentId), Attrs> triggerAttrs;
+
+    /// <summary>触发器：<c>&lt;Trigger Context="t"&gt;&lt;Button @@attributes="t"&gt;更多&lt;/Button&gt;&lt;/Trigger&gt;</c>，t 带 aria-expanded、aria-controls、点击与不可用。</summary>
+    [Parameter, EditorRequired] public RenderFragment<Attrs>? Trigger { get; set; }
+
+    /// <summary>展开收起的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>是否展开（<c>@@bind-Open</c>）。</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>展开或收起了。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>不可用：触发器带上 disabled，点击不切换（Open 仍可由父级控制）。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>第一次展开时才渲染内容（见 Collapse.Lazy）。</summary>
+    [Parameter] public bool Lazy { get; set; }
+
+    /// <summary>内容层的部件属性（交给 Collapse）。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
+
+    // 使用方写了 id 时内容区用它（触发器的 aria-controls 跟着指过去）
+    string ContentId => AdditionalAttributes?.GetValueOrDefault("id") as string ?? generatedId;
+
+    Attrs TriggerAttrs => triggerAttrs.Get((open.Value, Disabled, ContentId), this, static (k, owner) => new Attrs
+    {
+        AriaExpanded = k.Open,
+        AriaControls = k.ContentId,
+        ["disabled"] = k.Disabled ? true : null,
+        OnClick = _ => k.Disabled ? Task.CompletedTask : owner.open.SetAsync(!owner.open.Value),
+    });
+}

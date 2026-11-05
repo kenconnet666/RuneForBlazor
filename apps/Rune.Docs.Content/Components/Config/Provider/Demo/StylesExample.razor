@@ -1,15 +1,15 @@
 @inherits RuneComponent
 
-<p>这片区域给所有折叠面板的按钮（CollapsiblePart.Trigger）追加了样式：标题用强调色。</p>
-<RuneProvider Styles="@accentTriggers">
-    <Collapsible Variant="CollapsibleVariant.Outline" data-testid="styled-trigger">
-        <Title>按钮样式来自 Provider</Title>
+<p>这片区域给所有卡片的页头（CardPart.Header）追加了样式：标题用强调色。</p>
+<RuneProvider Styles="@accentHeaders">
+    <Card data-testid="styled-header">
+        <Header>页头样式来自 Provider</Header>
         <ChildContent>没有改组件，也没有在使用处写 Sx。</ChildContent>
-    </Collapsible>
+    </Card>
 </RuneProvider>
 
 @code {
-    readonly ComponentStyles accentTriggers = new() { { CollapsiblePart.Trigger, AccentText } };
+    readonly ComponentStyles accentHeaders = new() { { CardPart.Header, AccentText } };
 
     static Style AccentText => Css.Define(static () => new Style { Color = Tones.Accent.Text });
 }

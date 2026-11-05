@@ -6,15 +6,15 @@ namespace Rune.UI;
 /// 配方：一个组件各部件的样式，按档位（外观、色调、尺寸……）组合。每种组合只算一次，
 /// 并统一加上配置里的按部件定制与部件标记（<see cref="Part.Of{TPart}"/>）：
 /// <code>
-/// public static PartLayers&lt;CollapsiblePart&gt; Of(CollapsibleVariant variant, ComponentStyles styles) =>
-///     Recipe.Of("collapsible", variant, styles, static (CollapsibleVariant variant, CollapsiblePart part) => part switch
+/// public static PartLayers&lt;AccordionPart&gt; Of(bool open, bool disabled, ComponentStyles styles) =>
+///     Recipe.Of("accordion", (open, disabled), styles, static ((bool Open, bool Disabled) s, AccordionPart part) => part switch
 ///     {
-///         CollapsiblePart.Root => variant == CollapsibleVariant.Outline ? [Root, OutlineRoot] : Root,
-///         CollapsiblePart.Trigger => Trigger,
+///         AccordionPart.Trigger => Sx.Of(Trigger, s.Disabled ? TriggerDisabled : null),
+///         AccordionPart.Chevron => Sx.Of(Chevron, s.Open ? ChevronOpen : null),
 ///         _ => Content,
 ///     });
 /// </code>
-/// 组件渲染时取部件的默认层交给合并：<c>Attrs.Merge(parts[CollapsiblePart.Trigger], PropsTrigger, managed)</c>。
+/// 组件渲染时取部件的默认层交给合并：<c>Attrs.Merge(parts[AccordionPart.Trigger], PropsTrigger, managed)</c>。
 /// </summary>
 public static class Recipe
 {

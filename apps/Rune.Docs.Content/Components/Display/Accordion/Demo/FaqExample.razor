@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.None">
+    <Accordion @bind-Value="open" aria-label="常见问题">
+        <AccordionItem Value="ship" Title="付款后多久发货？">
+            <Paragraph>工作日 16:00 前付款当天发货，之后的次日发货；节假日顺延。</Paragraph>
+        </AccordionItem>
+        <AccordionItem Value="refund" Title="怎么申请退款？">
+            <Paragraph>
+                在订单详情里点“申请售后”，选择退款原因。审核通过后 1–3 个工作日原路退回，进度在<TextLink Href="components/accordion">我的售后</TextLink>里查看。
+            </Paragraph>
+        </AccordionItem>
+        <AccordionItem Value="invoice" Title="可以开发票吗？">
+            <Paragraph>可以。下单时填写抬头与税号，电子发票会在发货后发到邮箱。</Paragraph>
+        </AccordionItem>
+        <AccordionItem Value="member" Title="会员有什么权益？" Disabled="true">
+            <Paragraph>会员计划正在调整，敬请期待。</Paragraph>
+        </AccordionItem>
+    </Accordion>
+</Card>
+
+@code {
+    string? open = "ship";
+}

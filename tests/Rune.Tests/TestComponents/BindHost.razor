@@ -1,7 +1,7 @@
 @inherits RuneComponent
 
 <Collapsible @bind-Open="open">
-    <Title>标题</Title>
+    <Trigger Context="t"><button type="button" @attributes="t">标题</button></Trigger>
     <ChildContent>内容</ChildContent>
 </Collapsible>
 <span id="host-open">@open</span>

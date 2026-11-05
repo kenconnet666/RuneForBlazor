@@ -1,0 +1,76 @@
+@*
+    手风琴里的一项（放在 Accordion 里）：标题按钮 + 展开收起的内容（Collapse，role="region"）。
+    <AccordionItem Value="ship" Title="多久发货？">付款后 48 小时内。</AccordionItem>
+    标题要放图标、计数时写 TitleContent。未声明的属性落到这一项的外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var open = Accordion?.Expanded.Contains(Value) == true;
+    var off = Disabled || Accordion?.Disabled == true;
+    var parts = AccordionStyles.Of(open, off, Config.Styles);
+    var state = open ? "open" : "closed";
+}
+
+<div data-state="@state" data-disabled="@(off ? true : null)" @attributes="Attrs.Merge(parts[AccordionPart.Item], Rest)">
+    @HeadingElement(parts, Trigger(parts, open, off, state))
+    <Collapse id="@contentId" role="region" aria-labelledby="@triggerId" Open="open" OpenChanged="SetOpenAsync"
+              PropsContent="Attrs.Layer(parts[AccordionPart.Content], PropsContent)">
+        @ChildContent
+    </Collapse>
+</div>
+
+@code {
+    readonly string triggerId = UniqueId.Next("accordion-trigger");
+    readonly string contentId = UniqueId.Next("accordion-content");
+
+    /// <summary>这一项的值（组里唯一）。</summary>
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+
+    /// <summary>标题（文字）。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>带格式的标题（图标、计数）：代替 Title。</summary>
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+
+    /// <summary>不可用：标题按钮 disabled，不能展开收起。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>标题（h2–h6）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeading { get; set; }
+
+    /// <summary>标题按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    /// <summary>展开箭头的部件属性。</summary>
+    [Parameter] public Attrs? PropsChevron { get; set; }
+
+    /// <summary>内容层的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    [CascadingParameter] AccordionState? Accordion { get; set; }
+
+    Task ToggleAsync() => Accordion?.Toggle(Value) ?? Task.CompletedTask;
+
+    // Collapse 在页内查找命中收起的内容时报告展开：交给组切换
+    Task SetOpenAsync(bool next) => next == Accordion?.Expanded.Contains(Value) ? Task.CompletedTask : ToggleAsync();
+
+    // 标题的元素随组的 HeadingLevel（h2–h6）
+    RenderFragment HeadingElement(PartLayers<AccordionPart> parts, RenderFragment content) => builder =>
+    {
+        builder.OpenElement(0, $"h{Accordion?.HeadingLevel ?? 3}");
+        builder.AddMultipleAttributes(1, Attrs.Merge(parts[AccordionPart.Heading], PropsHeading));
+        builder.AddContent(2, content);
+        builder.CloseElement();
+    };
+
+    RenderFragment Trigger(PartLayers<AccordionPart> parts, bool open, bool off, string state) =>
+        @<button type="button" id="@triggerId" disabled="@off" aria-expanded="@(open ? "true" : "false")" aria-controls="@contentId" data-accordion-trigger data-state="@state"
+                 @onclick="ToggleAsync" @attributes="Attrs.Merge(parts[AccordionPart.Trigger], PropsTrigger)">
+            <span>@(TitleContent ?? (RenderFragment)(b => b.AddContent(0, Title)))</span>
+            <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(parts[AccordionPart.Chevron], PropsChevron)" />
+        </button>;
+}

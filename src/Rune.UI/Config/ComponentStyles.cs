@@ -7,7 +7,7 @@ namespace Rune.UI;
 /// 按部件定制组件的样式：追加在组件自己的样式之后（外层 Provider 在前、内层在后），使用方的 Sx 再排在它们后面。
 /// 部件用各组件的部件枚举指定，写错组件或部件编译不过：
 /// <code>
-/// o.Styles = new() { { CollapsiblePart.Trigger, AppStyles.BoldTrigger } };
+/// o.Styles = new() { { CardPart.Header, AppStyles.BoldHeader } };
 /// </code>
 /// 只在创建时添加，之后不再修改（同一个实例会被缓存引用）。
 /// </summary>

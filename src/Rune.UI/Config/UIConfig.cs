@@ -71,7 +71,7 @@ public static class RuneUIServiceCollectionExtensions
     /// <summary>
     /// 注册组件库（含 Rune 运行时）与应用级配置。服务端项目与 WebAssembly 项目各调用一次，配置要一致：
     /// <code>
-    /// builder.Services.AddRuneUI(o => o.Defaults = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } });
+    /// builder.Services.AddRuneUI(o => o.Defaults = new() { new CardDefaults { Variant = CardVariant.Outline } });
     /// </code>
     /// </summary>
     public static IServiceCollection AddRuneUI(this IServiceCollection services, Action<RuneUIOptions>? configure = null)
