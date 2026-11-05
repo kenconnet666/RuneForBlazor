@@ -57,7 +57,7 @@ public static class ChoiceStyles
     public static PartLayers<ChoicePart> Of(ChoiceAppearance appearance, ComponentStyles styles) =>
         Recipe.Of("choice", appearance, styles, static (ChoiceAppearance a, ChoicePart part) => part switch
         {
-            ChoicePart.Root => Sx.Of(Root, ToneFill(a.Tone), a.ReadOnly ? ReadOnlyRoot : null, a.Size is { } size ? ScaleStyles.FontSize(size) : null),
+            ChoicePart.Root => Sx.Of(Root, SharedStyles.ToneFill(a.Tone), a.ReadOnly ? ReadOnlyRoot : null, a.Size is { } size ? ScaleStyles.FontSize(size) : null),
             ChoicePart.Control => Control,
             ChoicePart.Input => Sx.Of(
                 Input,
@@ -86,17 +86,6 @@ public static class ChoiceStyles
     public static PartLayers<ChoicePart> Group(Orientation orientation, ComponentStyles styles) =>
         Recipe.Of("choice", orientation, styles, static (Orientation orientation, ChoicePart part) =>
             part == ChoicePart.Group ? (orientation == Orientation.Horizontal ? HorizontalGroup : VerticalGroup) : Sx.Of());
-
-    const string FillVar = "--rune-tone-fill";
-    const string OnFillVar = "--rune-tone-on-fill";
-
-    // 状态色用文字色而不是实色：黄、绿的实色在表面上不到 3:1，图形要的是与周围的对比（同 vue-tsx-pro 的 toneFillStyles）
-    static Style ToneFill(Tone tone) => Css.Define(tone, static tone => tone switch
-    {
-        Tone.Neutral => new Style { [FillVar] = $"{Colors.InverseSurface}", [OnFillVar] = $"{Colors.InverseText}" },
-        Tone.Accent => new Style { [FillVar] = $"{Tones.Accent.Solid}", [OnFillVar] = $"{Tones.Accent.Contrast}" },
-        _ => new Style { [FillVar] = $"{Tones.Of(tone).Text}", [OnFillVar] = $"{Colors.Background}" },
-    });
 
     // 控件与文字一行，整块可点；点击区域不小于 24px（WCAG 2.5.8）
     static Style Root => Css.Define(static () => new Style
@@ -150,13 +139,13 @@ public static class ChoiceStyles
 
     static Style Checked => Css.Define(static () => new Style
     {
-        [When.Checked] = new() { BorderColor = $"var({FillVar})", BackgroundColor = $"var({FillVar})" },
+        [When.Checked] = new() { BorderColor = SharedStyles.FillColor, BackgroundColor = SharedStyles.FillColor },
     });
 
     // 只给复选框：一组单选都没选时浏览器把每个 radio 都算作 :indeterminate
     static Style Indeterminate => Css.Define(static () => new Style
     {
-        [When.Indeterminate] = new() { BorderColor = $"var({FillVar})", BackgroundColor = $"var({FillVar})" },
+        [When.Indeterminate] = new() { BorderColor = SharedStyles.FillColor, BackgroundColor = SharedStyles.FillColor },
     });
 
     /// <summary>单选组的标记：组校验未通过（aria-invalid）时里面的单选变红；不认外面别的控件的 aria-invalid。</summary>
@@ -190,7 +179,7 @@ public static class ChoiceStyles
         PointerEvents = PointerEvents.None,
         Width = CssLength.Em(0.875),
         Height = CssLength.Em(0.875),
-        Color = $"var({OnFillVar})",
+        Color = SharedStyles.OnFillColor,
         Visibility = Visibility.Hidden,
         [When.After(When.Checked)] = new() { Visibility = Visibility.Visible },
         [When.After(When.Indeterminate)] = new() { Visibility = Visibility.Visible },
@@ -203,7 +192,7 @@ public static class ChoiceStyles
         Width = CssLength.Em(0.45),
         Height = CssLength.Em(0.45),
         BorderRadius = Radii.Full,
-        BackgroundColor = $"var({OnFillVar})",
+        BackgroundColor = SharedStyles.OnFillColor,
         Transform = "scale(0)",
         Transition = $"transform {Durations.Sm} {Easings.Standard}",
         [When.After(When.Checked)] = new() { Transform = "none" },
@@ -224,7 +213,7 @@ public static class ChoiceStyles
         BackgroundColor = Colors.Background,
         BoxShadow = Shadows.Sm,
         Transition = $"margin-inline-start {Durations.Sm} {Easings.Standard}",
-        [When.After(When.Checked)] = new() { MarginInlineStart = "calc(100% - 1.0625em)", BackgroundColor = $"var({OnFillVar})" },
+        [When.After(When.Checked)] = new() { MarginInlineStart = "calc(100% - 1.0625em)", BackgroundColor = SharedStyles.OnFillColor },
     });
 
     // 有说明时文字在上、说明在下

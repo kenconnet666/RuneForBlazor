@@ -64,6 +64,23 @@ public static class SharedStyles
     /// <summary>相对所在文字小一档（0.93em）：提示条里的关闭按钮。</summary>
     public static Style RelativeSmall => Css.Define(static () => new Style { FontSize = CssLength.Em(0.93) });
 
+    /// <summary>色调的实底（勾选框勾上、滑块已选的一段）：取自外层的 <see cref="ToneFill"/>。</summary>
+    public static readonly CssVar<CssColor> FillColor = CssVar.Color("rune-tone-fill");
+
+    /// <summary>实底上的前景（对勾、圆点、开关的滑块、刻度点）：取自外层的 <see cref="ToneFill"/>。</summary>
+    public static readonly CssVar<CssColor> OnFillColor = CssVar.Color("rune-tone-on-fill");
+
+    /// <summary>
+    /// 设置 <see cref="FillColor"/> 与 <see cref="OnFillColor"/>（同 vue-tsx-pro 的 toneFillStyles）。
+    /// 状态色用文字色而不是实色：黄、绿的实色在表面上不到 3:1，图形要的是与周围的对比。
+    /// </summary>
+    public static Style ToneFill(Tone tone) => Css.Define(tone, static tone => tone switch
+    {
+        Tone.Neutral => new Style { [FillColor.Name] = $"{Colors.InverseSurface}", [OnFillColor.Name] = $"{Colors.InverseText}" },
+        Tone.Accent => new Style { [FillColor.Name] = $"{Tones.Accent.Solid}", [OnFillColor.Name] = $"{Tones.Accent.Contrast}" },
+        _ => new Style { [FillColor.Name] = $"{Tones.Of(tone).Text}", [OnFillColor.Name] = $"{Colors.Background}" },
+    });
+
     /// <summary>键盘聚焦时的焦点环（画在元素外侧）。</summary>
     public static Style FocusRing => Css.Define(static () => new Style
     {
