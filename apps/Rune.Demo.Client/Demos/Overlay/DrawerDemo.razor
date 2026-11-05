@@ -1,8 +1,7 @@
 @*
     抽屉：示例与 vue-tsx-pro 文档站的 /components/drawer 对应。
     detail（DataTable、Descriptions、Timeline）与 imperative（useDrawer）在后面的阶段补；edit 拖宽后的宽度 vue 记在浏览器里（usePersistentState），这里先记在页面里，
-    这里的“放弃改动？”用页面自己的 Dialog 代替 useConfirm（阶段 8）。筛选里的 Select、CheckboxGroup、NumberRangeField、
-    DateRangePicker 做好前用 NativeSelect、Checkbox、两个 NumberField 代替，日期范围先不放。
+    这里的“放弃改动？”用页面自己的 Dialog 代替 useConfirm（阶段 8）。筛选里的 DateRangePicker 做好前先不放日期范围。
 *@
 @attribute [ComponentDemo("drawer", "抽屉", Group = "浮层", Order = 4)]
 @inherits RuneComponent
@@ -40,7 +39,12 @@
     <ChildContent>
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
             <Field Label="宽度档位（左右两侧）">
-                <NativeSelect @bind-Value="size" Items="sizes" Size="Size.Sm" />
+                <ToggleGroup @bind-Value="size" Required="true" Size="Size.Sm" aria-label="宽度档位">
+                    @foreach (var (key, width) in sizes)
+                    {
+                        <ToggleItem @key="key" Value="@key">@key · @width</ToggleItem>
+                    }
+                </ToggleGroup>
             </Field>
             <Flex Gap="SpaceScale.Sm" Wrap="true">
                 @foreach (var (value, icon, label) in sides)
@@ -48,7 +52,7 @@
                     <Button @key="value" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="icon" @onclick="() => OpenSide(value)">从@(label)滑入</Button>
                 }
             </Flex>
-            <Drawer @bind-Open="sideOpen" Side="side" Size="size" Title="@($"Side=\"{side}\" Size=\"{size}\"")">
+            <Drawer @bind-Open="sideOpen" Side="side" Size="Enum.Parse<ContainerSize>(size!, ignoreCase: true)" Title="@($"Side=\"{side}\" Size=\"{size}\"")">
                 <Paragraph>Start / End 是逻辑方向：从右到左排版时左右互换。左右两侧按 Size 的档位定宽（与 Container 同档）；顶部、底部的抽屉高度随内容，最多到视口高度。</Paragraph>
             </Drawer>
         </Flex>
@@ -67,26 +71,22 @@
                 }
             </Button>
             <Small Tone="TextTone.Muted">@(applied.Count > 0 ? $"已设 {applied.Count} 项条件" : "没有筛选条件：显示全部 128 个项目")</Small>
-            <Drawer @bind-Open="filtering" Title="筛选项目" ConfirmText="@($"查看结果（已设 {filterDraft.Count} 项）")" OnConfirm="() => applied = filterDraft.Copy()">
+            <Drawer @bind-Open="filtering" Size="ContainerSize.Xs" Title="筛选项目" ConfirmText="@($"查看结果（已设 {filterDraft.Count} 项）")" OnConfirm="() => applied = filterDraft.Copy()">
                 <ChildContent>
                     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
                         <Field Label="责任团队">
-                            <NativeSelect @bind-Value="filterDraft.Team" Items="teams" Placeholder="全部团队" />
+                            <Select Items="teams" @bind-Value="filterDraft.Team" Placeholder="全部团队" />
                         </Field>
                         <Field Label="状态">
-                            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" role="group" aria-label="状态">
+                            <CheckboxGroup TItem="string" @bind-Value="filterDraft.Statuses">
                                 @foreach (var (value, label) in statuses)
                                 {
-                                    <Checkbox @key="value" Value="filterDraft.Statuses.Contains(value)" ValueChanged="on => filterDraft.Toggle(value, on)">@label</Checkbox>
+                                    <Checkbox @key="value" GroupValue="@value">@label</Checkbox>
                                 }
-                            </Flex>
+                            </CheckboxGroup>
                         </Field>
                         <Field Label="预计年节省（万元）">
-                            <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-                                <NumberField @bind-Value="filterDraft.SavingFrom" aria-label="最少" placeholder="最少" />
-                                <span>–</span>
-                                <NumberField @bind-Value="filterDraft.SavingTo" aria-label="最多" placeholder="最多" />
-                            </Flex>
+                            <NumberRangeField @bind-Value="filterDraft.Saving" />
                         </Field>
                     </Flex>
                 </ChildContent>
@@ -111,23 +111,17 @@
     sealed class Filters
     {
         public string? Team { get; set; }
-        public HashSet<string> Statuses { get; init; } = [];
-        public decimal? SavingFrom { get; set; }
-        public decimal? SavingTo { get; set; }
+        public IReadOnlyList<string> Statuses { get; set; } = [];
+        public NumberRange<decimal?> Saving { get; set; }
 
-        public int Count => (Team is null ? 0 : 1) + (Statuses.Count > 0 ? 1 : 0) + (SavingFrom is null && SavingTo is null ? 0 : 1);
+        public int Count => (Team is null ? 0 : 1) + (Statuses.Count > 0 ? 1 : 0) + (Saving.Low is null && Saving.High is null ? 0 : 1);
 
-        public void Toggle(string value, bool on)
-        {
-            if (on) Statuses.Add(value);
-            else Statuses.Remove(value);
-        }
-
-        public Filters Copy() => new() { Team = Team, Statuses = [.. Statuses], SavingFrom = SavingFrom, SavingTo = SavingTo };
+        public Filters Copy() => new() { Team = Team, Statuses = Statuses, Saving = Saving };
     }
 
     static readonly Attrs disabledButton = new() { ["Disabled"] = true };
-    static readonly ContainerSize[] sizes = [ContainerSize.Xs, ContainerSize.Sm, ContainerSize.Md, ContainerSize.Lg];
+    // 切换按钮的值是字符串：档位名与它的宽度（同 Container）
+    static readonly (string Key, string Width)[] sizes = [("xs", "30rem"), ("sm", "40rem"), ("md", "48rem"), ("lg", "64rem")];
     static readonly (DrawerSide Side, IconData Icon, string Label)[] sides =
     [
         (DrawerSide.Start, Lucide.ArrowRight, "起始边"),
@@ -138,25 +132,30 @@
     static readonly string[] teams = ["生产部", "研发中心", "产品部", "供应链管理"];
     static readonly (string Value, string Label)[] statuses = [("designing", "设计中"), ("verifying", "测试中"), ("confirming", "待验收"), ("settled", "已结算")];
 
-    Project saved = new("显示器支架合并", "两件合并为一件，减少紧固件");
-    ProjectDraft draft = new();
+    static readonly Project initial = new("显示器支架合并", "两件合并为一件，减少紧固件");
+
+    Project saved = initial;
+    // 草稿一开始就是已保存的内容：没打开过时“保存”也是不可用的
+    ProjectDraft draft = DraftOf(initial);
     bool editing;
     bool asking;
     TaskCompletionSource<bool>? discard;
 
     DrawerSide side = DrawerSide.End;
-    ContainerSize size = ContainerSize.Xs;
+    string? size = "xs";
     bool sideOpen;
 
     bool filtering;
     Filters applied = new();
     Filters filterDraft = new();
 
+    static ProjectDraft DraftOf(Project project) => new() { Name = project.Name, Note = project.Note };
+
     bool Dirty => draft.Name != saved.Name || draft.Note != saved.Note;
 
     void EditProject()
     {
-        draft = new ProjectDraft { Name = saved.Name, Note = saved.Note };
+        draft = DraftOf(saved);
         editing = true;
     }
 
