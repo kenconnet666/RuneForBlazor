@@ -126,7 +126,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 ## 阶段 7：布局与展示
 
 - [ ] 布局：Container、Separator、ScrollArea、Splitter / ResizeHandle、Affix、BackTop、AsideLayout、Prose、PageScrollbar、ViewportFill
-      （已做：Avatar、AvatarGroup、Indicator（演示里的缩写替身都换成了 Avatar）；Collapse（Collapsible 改用，收起可被页内查找）；FormValue（隐藏的表单值，5 个组件改用）；ScrollArea（按“基础组件先做、上层依托”提前做；Listbox、ListPopover、Menu、Dialog / Drawer 的正文已改用它，FloatingStyles 有 ScrollPanel / ScrollArea）、Separator）
+      （已做：Avatar、AvatarGroup、Indicator（演示里的缩写替身都换成了 Avatar）；Collapse（Collapsible 改用，收起可被页内查找）；FormValue（隐藏的表单值，5 个组件改用）；ScrollArea（按“基础组件先做、上层依托”提前做；Listbox、ListPopover、Menu、Dialog / Drawer 的正文已改用它，FloatingStyles 有 ScrollPanel / ScrollArea）、Separator、Descriptions（自适应栏数用容器查询；卡片、布局、宽度手柄示例的替代写法已换掉，布局页的控制条也换成了 ToggleGroup、头像换成 Avatar））
 - [ ] 展示：Accordion、Collapse、Avatar / AvatarGroup、Descriptions、Ellipsis、Image（预览接 Lightbox）、ItemList、Stat、AnimatedNumber、ValueChange、
       Timeline、Tree（勾选、懒加载、拖动排序）、VirtualList、Checklist、Marquee、ProportionBar、Gauge、Sortable、Watermark、FieldCompare
 

@@ -1,0 +1,51 @@
+@*
+    描述列表里的一项（div > dt + dd），放在 Descriptions 里。值写 Value（文字）或子内容（任意内容）。
+    <DescriptionsItem Label="订单号" Value="A-1024" Copyable="true" />
+    <DescriptionsItem Label="收货地址" Span="3">@address</DescriptionsItem>
+    Copyable 时值后面有复制按钮（名称“复制 + 标签”），复制的是 Value；值是图标、链接这类内容或要复制完整写法时用 CopyText 指定。
+    未声明的属性落到这一项的 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@{ var parts = Owner.Parts; }
+<div @attributes="Attrs.Merge(Attrs.Layer(parts[DescriptionsPart.Item], SpanLayer), Owner.PropsItem, Rest)">
+    <dt @attributes="Attrs.Merge(parts[DescriptionsPart.Label], Owner.PropsLabel)">@Label</dt>
+    <dd @attributes="Attrs.Merge(parts[DescriptionsPart.Value], Owner.PropsValue, Copyable ? CopyableValue : null)">
+        @(ChildContent ?? (RenderFragment)(b => b.AddContent(0, Value)))
+        @if (Copyable)
+        {
+            <CopyButton Value="@(CopyText ?? Value ?? "")" Size="UI.Size.Xs" Label="@Config.Lang.DescriptionsCopy(Label ?? Config.Lang.Copy)"
+                        @attributes="Attrs.MergeProps(parts[DescriptionsPart.Copy], Owner.PropsCopy)" />
+        }
+    </dd>
+</div>
+
+@code {
+    static readonly Attrs CopyableValue = new() { Sx = DescriptionsStyles.ValueCopyable };
+
+    /// <summary>名称。</summary>
+    [Parameter, EditorRequired] public string? Label { get; set; }
+
+    /// <summary>值（文字）；有子内容时显示子内容，这个只用于复制。</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>值（任意内容）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>占几栏，默认 1；超过栏数时按栏数。</summary>
+    [Parameter] public int Span { get; set; } = 1;
+
+    /// <summary>值后面放复制按钮。</summary>
+    [Parameter] public bool Copyable { get; set; }
+
+    /// <summary>复制的文字；不写时是 <see cref="Value"/>。</summary>
+    [Parameter] public string? CopyText { get; set; }
+
+    [CascadingParameter] DescriptionsContext? Context { get; set; }
+
+    // 跨栏是默认层的一部分：使用方的 PropsItem、这一项上写的样式能盖过它
+    Attrs? SpanLayer => Owner.Appearance.SpanOf(Span) is { } span ? new Attrs { Sx = span } : null;
+
+    DescriptionsContext Owner => Context ?? throw new InvalidOperationException("DescriptionsItem 要放在 Descriptions 里。");
+}

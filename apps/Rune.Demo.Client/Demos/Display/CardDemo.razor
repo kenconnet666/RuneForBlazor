@@ -1,6 +1,6 @@
 @*
     卡片：示例与 vue-tsx-pro 文档站的 /components/card 一一对应。
-    页头与页脚示例里的收货信息先用网格排，Descriptions 做好后换成它；加载中（骨架）与装饰效果之后补上。
+    加载中（骨架）与装饰效果之后补上。
 *@
 @attribute [ComponentDemo("card", "卡片", Group = "展示", Order = 0)]
 @inherits RuneComponent
@@ -35,11 +35,11 @@
             </Header>
             <ChildContent>
                 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
-                    <Grid Columns="2" Gap="SpaceScale.Sm">
-                        <TextSpan Tone="TextTone.Muted">收货人：林小满 138****0021</TextSpan>
-                        <TextSpan Tone="TextTone.Muted">配送方式：顺丰次日达</TextSpan>
-                        <GridItem Span="2"><TextSpan Tone="TextTone.Muted">收货地址：上海市徐汇区漕溪北路 88 号 12 楼</TextSpan></GridItem>
-                    </Grid>
+                    <Descriptions Columns="2">
+                        <DescriptionsItem Label="收货人" Value="林小满 138****0021" />
+                        <DescriptionsItem Label="配送方式" Value="顺丰次日达" />
+                        <DescriptionsItem Label="收货地址" Value="上海市徐汇区漕溪北路 88 号 12 楼" Span="2" />
+                    </Descriptions>
                     <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between">
                         <TextSpan Tone="TextTone.Muted">实付</TextSpan>
                         <TextSpan Size="Size.Lg" Weight="Weight.Bold">¥1,280.00</TextSpan>

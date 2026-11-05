@@ -134,6 +134,8 @@
   加载失败的图片藏起来、露出首字母；没有往返，静态 SSR 一样。AvatarGroup 的“超过 Max 折叠成 +N”在 Blazor 里没法截取子内容，改为 Items 加每项的模板。
   状态色分两层（同 vue 的 statusToneBorderStyles / statusToneStyles）：`SharedStyles.StatusBordered` 留出边框位置，`StatusColors` 只给颜色；
   标记、角标、提示条两层都用，头像只用颜色层（没有边框）。
+- **Descriptions**：项是子组件 DescriptionsItem（Value 文字 / 子内容任意内容），经级联值拿外观与部件属性。vue 的 columns="auto" 用 ResizeObserver 量宽度算栏数，
+  这里写 MinItemWidth（同 Grid）后改用容器查询：每多一栏一条 `@container (min-width: calc(k * 宽度))`，跨栏同理封顶；静态 SSR 也对、不需要往返。
 - **ResizeHandle**：拖动、方向键、双击都在 JS（`js/resize.js`）当场改父元素的宽（横向是高），并去掉按档位给的最大宽度；一次操作结束才发 rune-resize
   交给 C#（拖动中 C# 不渲染，就不会有晚到的渲染把宽度拉回）。Drawer 左右两侧默认可拖宽（`@bind-Width`，DialogBase 的 Edge / RootInlineStyle 钩子）。
 - **JS 的组织**：入口 `Rune.UI.lib.module.js` 只负责安装（注册自定义事件、全局事件委托、DOM 变化监听）与分发，按职责分到 `wwwroot/js/` 的模块：

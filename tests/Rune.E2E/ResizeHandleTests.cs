@@ -11,7 +11,7 @@ public class ResizeHandleTests(DemoServer demo)
         var page = await demo.OpenAsync(mode, "resize-handle");
         var panel = page.GetByTestId("panel");
         var handle = page.GetByTestId("handle");
-        var width = page.GetByTestId("width");
+        var width = page.GetByTestId("width").Locator("dd");
         var box = await handle.BoundingBoxAsync() ?? throw new InvalidOperationException("看不到手柄");
 
         await page.Mouse.MoveAsync(box.X + box.Width / 2, box.Y + box.Height / 2);

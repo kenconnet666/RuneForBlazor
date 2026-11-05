@@ -1,7 +1,5 @@
 @*
     布局：示例与 vue-tsx-pro 文档站的 /components/flex 一一对应（Flex、Grid、GridList、Separator、Container）。
-    还没做的组件先用近似的写法占位：Flex 示例的控制条（ToggleGroup）先用下拉框，头像（Avatar）先用圆形色块，
-    Descriptions 先用两行文字；做好后换上。
 *@
 @attribute [ComponentDemo("flex", "布局", Group = "布局", Order = 0)]
 @inherits RuneComponent
@@ -13,26 +11,46 @@
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
                 <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
                     <TextSpan Size="Size.Sm" Sx="ControlLabel">direction</TextSpan>
-                    <NativeSelect @bind-Value="direction" Items="directions" ItemText="Lower" Size="Size.Sm" aria-label="direction" />
+                    <ToggleGroup @bind-Value="direction" Required="true" Size="Size.Sm" aria-label="direction">
+                        @foreach (var value in directions)
+                        {
+                            <ToggleItem @key="value" Value="@value">@value</ToggleItem>
+                        }
+                    </ToggleGroup>
                 </Flex>
                 <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
                     <TextSpan Size="Size.Sm" Sx="ControlLabel">gap</TextSpan>
-                    <NativeSelect @bind-Value="gap" Items="gaps" ItemText="Lower" Size="Size.Sm" aria-label="gap" />
+                    <ToggleGroup @bind-Value="gap" Required="true" Size="Size.Sm" aria-label="gap">
+                        @foreach (var value in gaps)
+                        {
+                            <ToggleItem @key="value" Value="@value">@value</ToggleItem>
+                        }
+                    </ToggleGroup>
                 </Flex>
                 <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
                     <TextSpan Size="Size.Sm" Sx="ControlLabel">align</TextSpan>
-                    <NativeSelect @bind-Value="align" Items="aligns" ItemText="Lower" Size="Size.Sm" aria-label="align" />
+                    <ToggleGroup @bind-Value="align" Required="true" Size="Size.Sm" aria-label="align">
+                        @foreach (var value in aligns)
+                        {
+                            <ToggleItem @key="value" Value="@value">@value</ToggleItem>
+                        }
+                    </ToggleGroup>
                 </Flex>
                 <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
                     <TextSpan Size="Size.Sm" Sx="ControlLabel">justify</TextSpan>
-                    <NativeSelect @bind-Value="justify" Items="justifies" ItemText="Lower" Size="Size.Sm" aria-label="justify" />
+                    <ToggleGroup @bind-Value="justify" Required="true" Size="Size.Sm" aria-label="justify">
+                        @foreach (var value in justifies)
+                        {
+                            <ToggleItem @key="value" Value="@value">@value</ToggleItem>
+                        }
+                    </ToggleGroup>
                 </Flex>
                 <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
                     <TextSpan Size="Size.Sm" Sx="ControlLabel">wrap</TextSpan>
                     <Switch @bind-Checked="wrap" aria-label="wrap" />
                 </Flex>
             </Flex>
-            <Flex Direction="direction" Align="align" Justify="justify" Gap="gap" Wrap="wrap" Sx="Stage" data-testid="stage">
+            <Flex Direction="Parse<LayoutDirection>(direction)" Align="Parse<ItemAlign>(align)" Justify="Parse<ContentJustify>(justify)" Gap="Parse<SpaceScale>(gap)" Wrap="wrap" Sx="Stage" data-testid="stage">
                 @for (var i = 0; i < heights.Length; i++)
                 {
                     var height = heights[i];
@@ -82,15 +100,15 @@
             <Card>
                 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
                     <Separator LabelAlign="SeparatorLabelAlign.Start">更改前</Separator>
-                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
-                        <TextSpan Size="Size.Sm">件号：G26</TextSpan>
-                        <TextSpan Size="Size.Sm">材料：铝合金 6061</TextSpan>
-                    </Flex>
+                    <Descriptions Size="Size.Sm">
+                        <DescriptionsItem Label="件号" Value="G26" />
+                        <DescriptionsItem Label="材料" Value="铝合金 6061" />
+                    </Descriptions>
                     <Separator LabelAlign="SeparatorLabelAlign.Start" Decorative="false">更改后</Separator>
-                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
-                        <TextSpan Size="Size.Sm">件号：G29</TextSpan>
-                        <TextSpan Size="Size.Sm">材料：铝合金 7075</TextSpan>
-                    </Flex>
+                    <Descriptions Size="Size.Sm">
+                        <DescriptionsItem Label="件号" Value="G29" />
+                        <DescriptionsItem Label="材料" Value="铝合金 7075" />
+                    </Descriptions>
                 </Flex>
             </Card>
         </Grid>
@@ -123,7 +141,7 @@
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
                 <H3 Size="Size.Lg">用 CSS 变量写一套主题系统</H3>
                 <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
-                    <span @attributes="Attrs.Merge(AvatarStandIn)" aria-hidden="true">周</span>
+                    <Avatar Size="Size.Xs" Name="周一航" />
                     <Small>周一航</Small>
                     <Separator Orientation="Orientation.Vertical" />
                     <Small Tone="TextTone.Muted">10 月 18 日</Small>
@@ -174,7 +192,7 @@
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
             <Card Padding="SpaceScale.Sm">
                 <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
-                    <span @attributes="Attrs.Merge(AvatarStandIn)" aria-hidden="true">林</span>
+                    <Avatar Name="林小满" Size="Size.Sm" />
                     <Flex Direction="LayoutDirection.Column" Grow="true">
                         <Strong Truncate="true">林小满上传了《第三季度经营分析报告（终版，含附录与数据来源说明）》</Strong>
                         <Small Tone="TextTone.Muted" Truncate="true">设计中心 · 10 分钟前 · 来自网页端</Small>
@@ -201,18 +219,18 @@
 </DemoSection>
 
 @code {
-    static readonly LayoutDirection[] directions = [LayoutDirection.Row, LayoutDirection.Column];
-    static readonly SpaceScale[] gaps = [SpaceScale.None, SpaceScale.Xs, SpaceScale.Sm, SpaceScale.Md, SpaceScale.Lg, SpaceScale.Xl];
-    static readonly ItemAlign[] aligns = [ItemAlign.Start, ItemAlign.Center, ItemAlign.End, ItemAlign.Stretch, ItemAlign.Baseline];
-    static readonly ContentJustify[] justifies = [ContentJustify.Start, ContentJustify.Center, ContentJustify.End, ContentJustify.Between, ContentJustify.Evenly];
+    // 切换按钮的值是字符串：写成小写的枚举名，同 vue 的写法
+    static readonly string[] directions = ["row", "column"];
+    static readonly string[] gaps = ["none", "xs", "sm", "md", "lg", "xl"];
+    static readonly string[] aligns = ["start", "center", "end", "stretch", "baseline"];
+    static readonly string[] justifies = ["start", "center", "end", "between", "evenly"];
+
+    static T Parse<T>(string? value) where T : struct, Enum => Enum.Parse<T>(value!, ignoreCase: true);
 
     // 高矮不一，才看得出 align 的差别
     static readonly double[] heights = [2, 3.5, 2.5, 4, 3];
 
-    LayoutDirection direction = LayoutDirection.Row;
-    SpaceScale gap = SpaceScale.Sm;
-    ItemAlign align = ItemAlign.Center;
-    ContentJustify justify = ContentJustify.Start;
+    string? direction = "row", gap = "sm", align = "center", justify = "start";
     bool wrap;
 
     static readonly (IconData Icon, string Name, int Price)[] products =
@@ -301,20 +319,5 @@
         BorderRadius = Radii.Md,
         BackgroundColor = Colors.SurfaceRaised,
         BoxShadow = Shadows.Sm,
-    });
-
-    // 头像（Avatar）做好前的占位：小号圆形、浅色底
-    static Style AvatarStandIn => Css.Define(static () => new Style
-    {
-        Display = Display.InlineFlex,
-        AlignItems = AlignItems.Center,
-        JustifyContent = JustifyContent.Center,
-        Width = CssLength.Em(2),
-        Height = CssLength.Em(2),
-        FlexShrink = 0,
-        BorderRadius = Radii.Full,
-        BackgroundColor = Tones.Accent.Soft,
-        Color = Tones.Accent.Text,
-        FontSize = FontSizes.Sm,
     });
 }

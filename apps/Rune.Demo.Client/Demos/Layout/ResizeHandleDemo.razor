@@ -1,6 +1,6 @@
 @*
     宽度调整手柄：示例与 vue-tsx-pro 文档站的 /components/resize-handle 对应。
-    vue 版的零件列表用 NavList、明细用 Descriptions（阶段 7、8 做）；这里先用按钮列表与普通的键值行，做好后换上。数据是虚构的。
+    vue 版的零件列表用 NavList（阶段 8 做）；这里先用按钮列表，做好后换上。数据是虚构的。
 *@
 @attribute [ComponentDemo("resize-handle", "宽度调整手柄", Group = "布局", Order = 3)]
 @inherits RuneComponent
@@ -21,15 +21,12 @@
             </div>
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Sx="Detail">
                 <TextSpan Weight="Weight.Semibold">@Current.Name</TextSpan>
-                <Grid MinItemWidth="@CssLength.Rem(8)" Gap="SpaceScale.Sm">
-                    @foreach (var (label, value) in Fields)
-                    {
-                        <Flex @key="label" Direction="LayoutDirection.Column">
-                            <Small Tone="TextTone.Muted">@label</Small>
-                            <TextSpan Size="Size.Sm" data-testid="@(label == "列表宽度" ? "width" : null)">@value</TextSpan>
-                        </Flex>
-                    }
-                </Grid>
+                <Descriptions Columns="2" Size="Size.Sm">
+                    <DescriptionsItem Label="件号" Value="@Current.No" />
+                    <DescriptionsItem Label="材料牌号" Value="@Current.Material" />
+                    <DescriptionsItem Label="数量" Value="@Current.Quantity.ToString()" />
+                    <DescriptionsItem Label="列表宽度" Value="@($"{width} px")" data-testid="width" />
+                </Descriptions>
                 <Small Tone="TextTone.Muted">拖动列表的右边、聚焦后按 ← / →，或双击回到 220 px</Small>
             </Flex>
         </div>
@@ -54,14 +51,6 @@
     string current = parts[0].No;
 
     Part Current => parts.First(p => p.No == current);
-
-    (string Label, string Value)[] Fields =>
-    [
-        ("件号", Current.No),
-        ("材料牌号", Current.Material),
-        ("数量", Current.Quantity.ToString()),
-        ("列表宽度", $"{width} px"),
-    ];
 
     static Style FrameStyle => Css.Define(static () => new Style
     {
