@@ -1,4 +1,5 @@
-# 持续集成：每次推送与 PR 都在 Linux、Windows 上构建并运行全部测试，并检查生成的样式属性表与数据源一致。
+# 持续集成：每次推送与 PR 都在 Linux、Windows 上构建并运行单元测试，Linux 上另跑端到端测试，并检查生成的样式属性表与数据源一致。
+# 单元测试、端到端测试与几个生成检查是并行的任务：各自构建，互不等待（端到端最慢，不拖住其余结果）。
 name: CI
 
 on:
@@ -23,7 +24,7 @@ env:
 
 jobs:
   build-test:
-    name: 构建与测试（${{ matrix.os }}）
+    name: 构建与单元测试（${{ matrix.os }}）
     strategy:
       fail-fast: false
       matrix:
@@ -51,17 +52,8 @@ jobs:
       - name: 构建（警告即错误）
         run: dotnet build RuneForBlazor.slnx --configuration Release --no-restore
 
-      - name: 测试
+      - name: 单元测试
         run: dotnet test --project tests/Rune.Tests/Rune.Tests.csproj --configuration Release --no-build
-
-      # 端到端测试只在 Linux 上跑：装 Chromium 与它要的系统库，再启动演示项目逐个操作页面
-      - name: 安装 Playwright 的 Chromium
-        if: runner.os == 'Linux'
-        run: pwsh tests/Rune.E2E/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
-
-      - name: 端到端测试
-        if: runner.os == 'Linux'
-        run: dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build
 
       # 只在 Linux 上打包一次：检查生成器在 Rune 包里（安装 Rune 就能用 [State]）、浮层的 JS 初始化器在 Rune.UI 包里，包作为产物留存
       - name: 打包并检查包的内容
@@ -80,6 +72,34 @@ jobs:
         with:
           name: packages
           path: artifacts/*
+
+  # 端到端测试只在 Linux 上跑：只构建要用的演示项目与测试项目，装 Chromium 与它要的系统库，再启动演示项目逐个操作页面
+  e2e:
+    name: 端到端测试
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 安装 .NET SDK（版本取自 global.json）
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: 缓存 NuGet 包
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: 构建（警告即错误）
+        run: dotnet build tests/Rune.E2E/Rune.E2E.csproj --configuration Release
+
+      - name: 安装 Playwright 的 Chromium
+        run: pwsh tests/Rune.E2E/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: 端到端测试
+        run: dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build
 
   icon-gen:
     name: 图标数据、第三方脚本与上游一致
