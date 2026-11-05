@@ -111,10 +111,13 @@ jobs:
           repository: kenconnet666/vue-tsx-pro
           ref: ${{ env.VUE_TSX_PRO_REF }}
           path: .deps/vue-tsx-pro
+          # patterns、docs-kit 里有页面级组件自带的文案表（messages.ts，lang-gen 生成 PatternsMessages、DocsKitMessages）
           sparse-checkout: |
             packages/tsx/src/styles
             packages/ui/src/config/theme
             packages/ui/src/config/lang
+            packages/ui/src/patterns
+            packages/ui/src/docs-kit
 
       - uses: actions/setup-node@v7
         with:
