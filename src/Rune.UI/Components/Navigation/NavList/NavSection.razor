@@ -1,0 +1,47 @@
+@*
+    带小标题的一组导航链接（li > 标题 + ul，放在 NavList 里）：一直展开、不能收起；要收起用 NavGroup。
+    <NavSection Label="组件" Icon="Lucide.Blocks">
+        <NavItem Href="button">Button 按钮</NavItem>
+    </NavSection>
+    标题同时是这组链接的名称（aria-labelledby）；Icon 是标题前的标记（不能点），紧凑时标题只剩它。未声明的属性落到外层 li 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = NavListStyles.Of(new(false, false, IconOnly), Config.Styles); }
+
+<li @attributes="Attrs.Merge(parts[NavListPart.Section], Rest)">
+    <span @attributes="Attrs.Merge(parts[NavListPart.SectionLabel], PropsLabel)">
+        @if (Icon is not null)
+        {
+            <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[NavListPart.SectionIcon], PropsIcon)" />
+        }
+        <span id="@labelId" @attributes="Attrs.Merge(parts[NavListPart.SectionText])">@Label</span>
+    </span>
+    <FlexList Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" aria-labelledby="@labelId" @attributes="Attrs.MergeProps(parts[NavListPart.List], PropsList)">@ChildContent</FlexList>
+</li>
+
+@code {
+    readonly string labelId = UniqueId.Next("nav-section");
+
+    /// <summary>小节标题，同时是这组链接的名称。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>标题前的图标：只是标记、不能点；紧凑时标题只剩它。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>标题图标的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>里面的列表（ul，FlexList 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>小节里的 NavItem。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] NavListContext? List { get; set; }
+
+    bool IconOnly => List?.Compact == true && Icon is not null;
+}

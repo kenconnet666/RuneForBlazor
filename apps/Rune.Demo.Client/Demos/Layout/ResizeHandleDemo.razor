@@ -1,6 +1,6 @@
 @*
     宽度调整手柄：示例与 vue-tsx-pro 文档站的 /components/resize-handle 对应。
-    vue 版的零件列表用 NavList（阶段 8 做）；这里先用按钮列表，做好后换上。数据是虚构的。
+    数据是虚构的。
 *@
 @attribute [ComponentDemo("resize-handle", "宽度调整手柄", Group = "布局", Order = 3)]
 @inherits RuneComponent
@@ -10,13 +10,12 @@
     <ChildContent>
         <div @attributes="Attrs.Merge(Frame)">
             <div style="@($"width:{width}px")" @attributes="Attrs.Merge(Panel)" data-testid="panel">
-                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" role="list" aria-label="零件">
+                <NavList aria-label="零件">
                     @foreach (var part in parts)
                     {
-                        <Button @key="part.No" Variant="@(part.No == current ? ButtonVariant.Soft : ButtonVariant.Ghost)" Tone="Tone.Neutral" role="listitem"
-                                aria-current="@(part.No == current ? "true" : null)" Sx="ItemButton" @onclick="() => current = part.No">@part.Name</Button>
+                        <NavItem @key="part.No" Href="@($"#{part.No}")" Active="@(part.No == current)" @onclick="() => current = part.No">@part.Name</NavItem>
                     }
-                </Flex>
+                </NavList>
                 <ResizeHandle @bind-Width="width" MinWidth="160" MaxWidth="360" DefaultWidth="220" aria-label="调整零件列表宽度" data-testid="handle" />
             </div>
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Sx="Detail">
@@ -75,8 +74,6 @@
         BorderInlineEndColor = Colors.Border,
         Overflow = Overflow.Hidden,
     });
-
-    static Style ItemButton => Css.Define(static () => new Style { JustifyContent = JustifyContent.FlexStart });
 
     static Style Detail => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0, Padding = Space.Md });
 }

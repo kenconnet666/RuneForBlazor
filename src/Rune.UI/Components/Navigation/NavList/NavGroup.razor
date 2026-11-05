@@ -1,0 +1,125 @@
+@*
+    可展开的导航分组（li > 标题按钮 + 子列表，放在 NavList 里）：内容区是 Collapse（有高度过渡，按钮带 aria-expanded / aria-controls）。
+    <NavGroup Label="订单" Icon="Lucide.Package">
+        <NavItem Href="orders">全部订单</NavItem>
+    </NavGroup>
+    组里有当前页时自动展开（离开时不自动收起，用户可能还想看）。紧凑时只剩图标，悬停、聚焦时子项从右边弹出来（HoverCard，
+    完整的文字，Tab 进入），组里有当前页时图标高亮。未声明的属性落到外层 li 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = NavListStyles.Of(new(IconOnly && state.HasCurrent, false, IconOnly), Config.Styles); }
+
+<CascadingValue Value="state" IsFixed="true">
+    @if (IconOnly)
+    {
+        <li @attributes="Attrs.Merge(null, Rest)">
+            @* 子项一直渲染（Lazy=false）：它们要报告自己是不是当前页，分组的图标才知道要不要高亮 *@
+            <HoverCard Placement="Placement.RightStart" Delay="150" Lazy="false" @attributes="Attrs.MergeProps(parts[NavListPart.Flyout], PropsFlyout)">
+                <Trigger Context="t">
+                    <button type="button" @attributes="Attrs.Merge(Attrs.Layer(parts[NavListPart.Row], t), PropsTrigger, FlyoutTriggerManaged)">
+                        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[NavListPart.Icon], PropsIcon)" />
+                        <span @attributes="Attrs.Merge(parts[NavListPart.Label], PropsLabel)">@Label</span>
+                    </button>
+                </Trigger>
+                <ChildContent>
+                    @* 弹出来的是完整的导航项：里面不再紧凑 *@
+                    <CascadingValue Value="NavListContext.Expanded">
+                        <span @attributes="Attrs.Merge(parts[NavListPart.SectionLabel])">@Label</span>
+                        <FlexList Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" @attributes="Attrs.MergeProps(parts[NavListPart.List], PropsList)">@ChildContent</FlexList>
+                    </CascadingValue>
+                </ChildContent>
+            </HoverCard>
+        </li>
+    }
+    else
+    {
+        <li @attributes="Attrs.Merge(null, Rest)" data-state="@(open.Value ? "open" : "closed")">
+            <button type="button" @attributes="Attrs.Merge(parts[NavListPart.Row], PropsTrigger, TriggerManaged)">
+                @if (Icon is not null)
+                {
+                    <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[NavListPart.Icon], PropsIcon)" />
+                }
+                <span @attributes="Attrs.Merge(parts[NavListPart.Label], PropsLabel)">@Label</span>
+                <Icon Data="BuiltInIcons.ChevronRight" FlipInRtl="true" @attributes="Attrs.MergeProps(parts[NavListPart.Chevron], open.Value ? OpenChevron : null)" />
+            </button>
+            <Collapse Open="open.Value" OpenChanged="open.SetAsync" id="@contentId" @attributes="PropsContent">
+                <FlexList Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" @attributes="Attrs.MergeProps(Attrs.Layer(parts[NavListPart.List], NestedLayer), PropsList)">@ChildContent</FlexList>
+            </Collapse>
+        </li>
+    }
+</CascadingValue>
+
+@code {
+    static readonly Attrs OpenChevron = new() { Sx = NavListStyles.ChevronOpen };
+
+    readonly string contentId = UniqueId.Next("nav-group");
+    NavGroupState state = null!;
+
+    /// <summary>分组标题。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>标题前的图标；紧凑时分组只剩它（没有图标的分组紧凑时照常展开）。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>是否展开（<c>@bind-Open</c>）；组里有当前页时自动展开。</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>展开状态变化。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>标题按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    /// <summary>展开区（Collapse 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>里面的列表（ul，FlexList 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>标题文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>标题图标的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>紧凑时弹出的卡片（HoverCard 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsFlyout { get; set; }
+
+    /// <summary>NavItem。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] NavListContext? List { get; set; }
+
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
+
+    bool IconOnly => List?.Compact == true && Icon is not null;
+
+    Attrs NestedLayer => new() { Sx = NavListStyles.Nested(List?.Compact == true) };
+
+    Attrs TriggerManaged => new()
+    {
+        AriaExpanded = open.Value,
+        AriaControls = contentId,
+        OnClick = ToggleAsync,
+        ["data-rune-ripple"] = Config.Ripple ? true : null,
+    };
+
+    Attrs FlyoutTriggerManaged => new()
+    {
+        ["data-state"] = state.HasCurrent ? "active" : "inactive",
+        ["data-rune-ripple"] = Config.Ripple ? true : null,
+    };
+
+    /// <inheritdoc/>
+    protected override void OnInitialized() => state = new(OnCurrentChanged);
+
+    // 进入含当前页的分组时自动展开；离开时不自动收起（用户可能还想看）
+    void OnCurrentChanged(bool hasCurrent)
+    {
+        if (hasCurrent && !open.Value) _ = open.SetAsync(true);
+        StateHasChanged();
+    }
+
+    Task ToggleAsync(MouseEventArgs _) => open.SetAsync(!open.Value);
+}

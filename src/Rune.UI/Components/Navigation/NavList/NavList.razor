@@ -1,0 +1,40 @@
+@*
+    侧边导航（nav > ul，同 vue-tsx-pro 的 NavList），复合组件：NavItem（链接）、NavGroup（可展开的一组）、NavSection（带小标题、不能收起的一组：
+    文档站这类链接多、按主题分组的侧栏），里面再放 NavItem。
+    <NavList aria-label="后台">
+        <NavItem Href="" Icon="Lucide.House">概览</NavItem>
+        <NavGroup Label="订单" Icon="Lucide.Package">
+            <NavItem Href="orders">全部订单</NavItem>
+            <NavItem Href="orders/refunds">退款</NavItem>
+        </NavGroup>
+    </NavList>
+    当前页按地址判断（也可以用 Active 指定），带 aria-current="page" 与高亮；Match="NavLinkMatch.Prefix" 让 /orders 在 /orders/42 也高亮。
+    含当前页的分组自动展开。
+    紧凑（Compact）：侧栏窄到只放得下图标时，各项只显示图标（文字留给读屏，悬停、聚焦时用 Tooltip 显示），小节标题换成它的图标（不能点）；
+    分组也只剩图标，悬停、聚焦时子项从右边弹出来（HoverCard，完整的文字，Tab 进入），组里有当前页时图标高亮。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<nav @attributes="Attrs.Merge(Parts[NavListPart.Root], Rest)" data-compact="@(IsCompact ? true : null)">
+    <CascadingValue Value="NavListContext.Of(IsCompact)">
+        <FlexList Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" @attributes="Attrs.MergeProps(Parts[NavListPart.List], PropsList)">@ChildContent</FlexList>
+    </CascadingValue>
+</nav>
+
+@code {
+    /// <summary>紧凑：只显示图标；不写时跟随外层（紧凑分组弹出的卡片里不紧凑）。</summary>
+    [Parameter] public bool? Compact { get; set; }
+
+    /// <summary>列表（ul，FlexList 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>NavItem、NavGroup、NavSection。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] NavListContext? Outer { get; set; }
+
+    bool IsCompact => Compact ?? Outer?.Compact ?? false;
+
+    PartLayers<NavListPart> Parts => NavListStyles.Of(default, Config.Styles);
+}

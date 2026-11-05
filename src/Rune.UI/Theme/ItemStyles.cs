@@ -34,6 +34,17 @@ public static class ItemStyles
         Transition = $"background-color {Durations.Sm} {Easings.Standard}, color {Durations.Sm} {Easings.Standard}",
     });
 
+    /// <summary>悬停时的底色（导航项这类由指针直接选的行；下拉选项的悬停由 JS 写成高亮）。</summary>
+    public static Style Hoverable => Css.Define(static () => new Style { [When.Hover] = new() { BackgroundColor = Colors.FillHover } });
+
+    /// <summary>当前（导航的当前页、表格的选中行）：品牌色浅底。</summary>
+    public static Style Current => Css.Define(static () => new Style
+    {
+        BackgroundColor = Tones.Accent.Soft,
+        Color = Tones.Accent.Text,
+        [When.Hover] = new() { BackgroundColor = Tones.Accent.SoftHover },
+    });
+
     /// <summary>键盘高亮（data-highlighted，aria-activedescendant 指着的选项）：与悬停同色。</summary>
     public static Style Highlighted => Css.Define(static () => new Style { [When.Highlighted] = new() { BackgroundColor = Colors.FillHover } });
 

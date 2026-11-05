@@ -196,6 +196,10 @@
   JS 初始化器按悬停意图开关：停留 `data-delay`（默认 500ms）后显示，刚关掉一个（300ms 内）时直接显示，离开 100ms 后隐藏（可以移到提示上），
   键盘聚焦立即显示，按下、失焦、Esc 隐藏，同一时间只显示一个；Server 模式没有往返。最初是纯 CSS（外层悬停时显示），
   做不到组内跳过延迟、移到提示上不消失、同时只显示一个，内容也只能是文字，对齐时换掉。
+- **NavList**：当前页按 NavigationManager 判断（`NavLinks.IsCurrent`，Match 同 Blazor 的 NavLink），换页时各项跟着变；只有锚点的地址
+  （`#orders`）由 `NavLinks.Resolve` 接在当前页后面——Blazor 按 &lt;base href&gt; 解析会跳到站点根目录。组内各项经级联的 NavGroupState 报告
+  自己是不是当前页，分组据此自动展开（静态 SSR 也是：报告时分组 StateHasChanged，输出前处理完）。分组用 Collapse，紧凑分组用 HoverCard（Lazy=false：
+  子项要一直在、才能报告）。ItemStyles 补了 Hoverable、Current。
 - **悬停卡片与提示共用悬停层**（`js/hover-layers.js`，同 vue 的 useHoverLayer）：触发元素分别带 `data-rune-tooltip` / `data-rune-hovercard`，
   面板带 `data-rune-hover-panel="tooltip|card"`（两组各自“同时只开一个”）。卡片停留 700ms 打开、离开 300ms 关闭，焦点移进卡片不关，
   离开触发元素与卡片才关；开关经 rune-toggle 告诉 C#（第一次打开才渲染内容），但不是 data-rune-overlay（打开时焦点不移进去）。

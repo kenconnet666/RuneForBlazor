@@ -1,0 +1,144 @@
+@*
+    导航项（li > a，放在 NavList、NavGroup、NavSection 里）：当前页高亮并带 aria-current="page"。
+    <NavItem Href="orders" Icon="Lucide.Package" Badge="3">订单</NavItem>
+    当前页按地址判断（Match 同 Blazor 的 NavLink），也可以用 Active 指定；只有锚点的地址（#orders）按当前页解析。
+    Badge 是计数角标（待办、未读）：展开时在文字后面，紧凑时是图标右上角的小圆点（读屏照样念出数目）。
+    未声明的属性落到链接（a）上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Routing
+@{ var parts = Parts; }
+
+<li @attributes="Attrs.Merge(null, PropsItem)">
+    @if (IconOnly)
+    {
+        @* 只剩图标：名称在读屏的文字里，看的人悬停、聚焦时从提示里读 *@
+        <Tooltip Placement="Placement.Right" Delay="200">
+            <Trigger Context="t">@Link(parts, t)</Trigger>
+            <ChildContent>@ChildContent</ChildContent>
+        </Tooltip>
+    }
+    else
+    {
+        @Link(parts, null)
+    }
+</li>
+
+@code {
+    Memo<(string? Href, bool Current, bool Disabled, bool Ripple), Attrs> managed;
+    bool current;
+
+    /// <summary>链接地址（相对 &lt;base href&gt;，或只有锚点）。</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    /// <summary>文字前的图标。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>是否是当前页；不写时按地址判断。</summary>
+    [Parameter] public bool? Active { get; set; }
+
+    /// <summary>按地址判断当前页的方式，默认整个地址相同；Prefix 时在它下面的页面也算。</summary>
+    [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.All;
+
+    /// <summary>不可用：不能点、不能聚焦。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>文字后面的内容（自定义的标记）；只是计数时用 <see cref="Badge"/>。</summary>
+    [Parameter] public RenderFragment? End { get; set; }
+
+    /// <summary>计数角标：展开时是文字后面的 Badge，紧凑时是图标右上角的小圆点；0 不显示。</summary>
+    [Parameter] public int Badge { get; set; }
+
+    /// <summary>角标的色调，默认 Danger。</summary>
+    [Parameter] public Tone BadgeTone { get; set; } = Tone.Danger;
+
+    /// <summary>按下时的波纹；不写时沿用配置。</summary>
+    [Parameter] public bool? Ripple { get; set; }
+
+    /// <summary>外层 li 的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    /// <summary>图标的部件属性（交给 Icon 组件）。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] NavListContext? List { get; set; }
+
+    [CascadingParameter] NavGroupState? Group { get; set; }
+
+    bool IconOnly => List?.Compact == true && Icon is not null;
+
+    PartLayers<NavListPart> Parts => NavListStyles.Of(new(current, Disabled, IconOnly), Config.Styles);
+
+    /// <inheritdoc/>
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => UpdateCurrent();
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        Group?.Report(this, false);
+    }
+
+    // 告诉所在的分组自己是不是当前页（分组据此自动展开）
+    bool UpdateCurrent()
+    {
+        var next = Active ?? NavLinks.IsCurrent(Navigation, Href, Match);
+        Group?.Report(this, next);
+        if (next == current) return false;
+        current = next;
+        return true;
+    }
+
+    void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (Active is null && UpdateCurrent()) _ = InvokeAsync(StateHasChanged);
+    }
+
+    // 链接行；tooltip：只剩图标时 Tooltip 交给触发元素的属性
+    RenderFragment Link(PartLayers<NavListPart> parts, Attrs? tooltip) =>
+        @<a @attributes="Attrs.Merge(Attrs.Layer(parts[NavListPart.Row], tooltip), Rest, Managed)">
+            @if (Icon is not null)
+            {
+                if (IconOnly && Badge > 0)
+                {
+                    @* 紧凑：图标右上角一个小圆点（图标太小，叠不下数字）；读屏照样念出数目 *@
+                    <Indicator Dot="true" Tone="BadgeTone" Label="@Config.Lang.IndicatorCount(Badge)">
+                        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[NavListPart.Icon], PropsIcon)" />
+                    </Indicator>
+                }
+                else
+                {
+                    <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[NavListPart.Icon], PropsIcon)" />
+                }
+            }
+            <span @attributes="Attrs.Merge(parts[NavListPart.Label], PropsLabel)">@ChildContent</span>
+            @if (!IconOnly)
+            {
+                @End
+                if (Badge > 0)
+                {
+                    <Badge Size="Size.Xs" Variant="StatusVariant.Solid" Tone="BadgeTone" Radius="Radius.Full">@(Badge > 99 ? "99+" : Badge)</Badge>
+                }
+            }
+        </a>;
+
+    Attrs Managed => managed.Get((Disabled ? null : NavLinks.Resolve(Navigation, Href), current, Disabled, Ripple ?? Config.Ripple), static k => new Attrs
+    {
+        ["href"] = k.Href,
+        ["aria-current"] = k.Current ? "page" : null,
+        AriaDisabled = k.Disabled ? true : null,
+        ["data-state"] = k.Current ? "active" : "inactive",
+        ["data-rune-ripple"] = k.Ripple && !k.Disabled ? true : null,
+    });
+}
