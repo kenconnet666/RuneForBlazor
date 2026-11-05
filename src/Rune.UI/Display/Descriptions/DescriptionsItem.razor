@@ -10,7 +10,7 @@
 
 @{ var parts = Owner.Parts; }
 <div @attributes="Attrs.Merge(Attrs.Layer(parts[DescriptionsPart.Item], SpanLayer), Owner.PropsItem, Rest)">
-    <dt @attributes="Attrs.Merge(parts[DescriptionsPart.Label], Owner.PropsLabel)">@Label</dt>
+    <dt @attributes="Attrs.Merge(parts[DescriptionsPart.Label], Owner.PropsLabel)">@(LabelContent ?? (RenderFragment)(b => b.AddContent(0, Label)))</dt>
     <dd @attributes="Attrs.Merge(parts[DescriptionsPart.Value], Owner.PropsValue, Copyable ? CopyableValue : null)">
         @(ChildContent ?? (RenderFragment)(b => b.AddContent(0, Value)))
         @if (Copyable)
@@ -24,8 +24,11 @@
 @code {
     static readonly Attrs CopyableValue = new() { Sx = DescriptionsStyles.ValueCopyable };
 
-    /// <summary>名称。</summary>
-    [Parameter, EditorRequired] public string? Label { get; set; }
+    /// <summary>名称（文字）；有 LabelContent 时显示它，这个仍用作复制按钮的名称。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>带格式的名称（键帽、图标）：代替 Label 显示。</summary>
+    [Parameter] public RenderFragment? LabelContent { get; set; }
 
     /// <summary>值（文字）；有子内容时显示子内容，这个只用于复制。</summary>
     [Parameter] public string? Value { get; set; }

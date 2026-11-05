@@ -56,12 +56,29 @@ export function onPopoverToggle(event) {
 
 // 打开时还没有可聚焦内容的浮层（Server 模式下第一次打开时内容由 C# 随后渲染）：内容插进来时再聚焦一次
 const awaitingFocus = new WeakSet();
+// 由触发按钮上的 ↑ 打开的菜单：聚焦最后一项
+const focusLast = new WeakSet();
+
+/** 菜单的触发按钮上按 ↓ / ↑：打开菜单并聚焦第一项 / 最后一项（Enter、空格由原生的 popovertarget 打开） */
+export function openMenuFromTrigger(event) {
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+  const id = event.target instanceof Element ? event.target.getAttribute('popovertarget') : null;
+  const menu = id ? document.getElementById(id) : null;
+  if (!menu?.matches('[role="menu"][data-rune-overlay]') || menu.matches(':popover-open')) return;
+  event.preventDefault();
+  if (event.key === 'ArrowUp') focusLast.add(menu);
+  menu.showPopover({ source: event.target });
+}
 
 // 打开、定位好之后（之前不可见、聚焦不了）焦点移进去：菜单到第一项，对话框类的到 autofocus 或第一个可聚焦元素
 function focusInto(overlay) {
   awaitingFocus.delete(overlay);
   if (!overlay.matches(':popover-open') || overlay.contains(document.activeElement)) return;
-  const target = overlay.matches('[role="menu"]') ? menuItems(overlay)[0] : overlay.querySelector('[autofocus]') ?? overlay.querySelector(TABBABLE);
+  const last = focusLast.has(overlay);
+  focusLast.delete(overlay);
+  const target = overlay.matches('[role="menu"]')
+    ? menuItems(overlay).at(last ? -1 : 0)
+    : overlay.querySelector('[autofocus]') ?? overlay.querySelector(TABBABLE);
   if (target) target.focus();
   else awaitingFocus.add(overlay);
 }

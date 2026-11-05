@@ -32,6 +32,14 @@ public class OverlayTests(DemoServer demo)
         await page.Keyboard.PressAsync("Escape");
         await Assertions.Expect(menu).ToBeHiddenAsync();
         await Assertions.Expect(trigger).ToBeFocusedAsync();
+
+        // 触发按钮上按 ↑：打开并聚焦最后一项；↓：打开并聚焦第一项
+        await page.Keyboard.PressAsync("ArrowUp");
+        await Assertions.Expect(page.GetByRole(AriaRole.Menuitem, new() { Name = "删除" })).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(trigger).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("ArrowDown");
+        await Assertions.Expect(page.GetByRole(AriaRole.Menuitem, new() { Name = "重命名" })).ToBeFocusedAsync();
     }
 
     [Theory]
