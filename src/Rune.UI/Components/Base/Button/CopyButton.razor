@@ -69,6 +69,7 @@
             new Attrs
             {
                 AriaLabel = k.Label,
+                ["class"] = ButtonStyles.CopyMarker.ClassName,
                 ["data-rune-copy"] = k.Text ?? "",
                 ["data-rune-copy-on-click"] = k.Click ? null : true,
                 ["data-rune-copy-request"] = k.Request > 0 ? k.Request.ToString(System.Globalization.CultureInfo.InvariantCulture) : null,

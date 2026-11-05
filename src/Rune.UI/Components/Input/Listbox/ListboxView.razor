@@ -162,7 +162,7 @@
                      aria-disabled="@(option.Disabled ? "true" : null)" aria-setsize="@Entries.Count" aria-posinset="@(row.Index + 1)"
                      aria-describedby="@(row.GroupStart < 0 ? null : GroupLabelId(row.GroupStart))" data-label="@option.Label"
                      data-state="@(selected ? "checked" : "unchecked")"
-                     @onclick="() => PickAsync(option)" @attributes="Attrs.Merge(parts[ListboxPart.Option], PropsOption)">
+                     @onclick="() => PickAsync(option)" @attributes="Attrs.Merge(parts[ListboxPart.Option], PropsOption, ListboxStyles.OptionMarker.Attrs)">
             @if (ChildContent is not null)
             {
                 @ChildContent(new ListOptionState<TItem>(item, option, selected))

@@ -87,11 +87,14 @@ public static class ListboxStyles
         MarginInline = Space.Sm,
     });
 
+    /// <summary>选项的标记：对勾按它的 aria-selected 显示（不认外面别的选中状态，如选中的表格行）。</summary>
+    public static readonly Marker OptionMarker = Css.Marker("rune-listbox-option");
+
     // 对勾只在已选的选项里显示，位置照样占着（文字不跳）
     static Style Check => Css.Define(static () => new Style
     {
         FlexShrink = 0,
         Visibility = Visibility.Hidden,
-        [When.Inside(When.Selected)] = new() { Visibility = Visibility.Visible },
+        [When.Inside(When.Selected, OptionMarker)] = new() { Visibility = Visibility.Visible },
     });
 }

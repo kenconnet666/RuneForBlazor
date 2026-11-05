@@ -54,6 +54,9 @@
   关键字类与属性同名（`Display`、`Width`）：组件里如果有同名的参数，`Width.Auto` 会解析成参数，样式类（静态类）里不受影响。
 - **一直在变的值**（进度、宽度）用 `CssVar<T>`：样式引用变量、类不变，值经 `Attrs.Vars` 写在元素的 style 上；写进样式会让每个值多一条规则。
 - **条件**：`When.*` 的状态别名同时认原生、ARIA、data 属性（同 vue-tsx-pro 的 CONDITIONS），状态变化只改属性、类名不变。
+  外层状态决定里面部件的样式用 `When.Inside(状态, 标记)`：标记（`Css.Marker`，同 vue-tsx-pro 的 defineMarker）是挂在被观察元素上的固定类，
+  只认带标记的祖先；不带范围的写法会被外面别的组件的同名状态触发（选中的表格行里的下拉对勾全亮），所以没有提供。只看直接父元素时用 `When.Parent`。
+  另有容器查询 `Containers.MinWidth / MaxWidth / Query`（与 Rune.UI 的 Container 组件错开命名）、`Media.Supports`；回退值 `Css.Fallback("100vh", "100dvh")` 编译成同一属性的几条声明。
 - **合成**：一个元素一个类，类名按内容哈希（服务端、浏览器、所有请求同名）。块的顺序与块内声明顺序沿用 StyleX 的优先级表：无条件块先写，简写先于长属性（探测时没排序，基础块写在 @media 后面把它盖掉了）。
 - **缓存**：结果挂在第一个样式实例上，按后面跟着的实例区分；实例被回收时缓存跟着回收。所以样式要用 `Css.Define(static () => …)` 定义成静态属性，渲染时用同一批实例。
 - **为什么不是 `static readonly`**：静态字段只初始化一次，热重载改了样式值不生效。写在 `Define` 的 lambda 里，热重载改的是方法体；`StyleHotReload`（`MetadataUpdateHandler`）随后清掉缓存，状态不丢。实测 Server 与 WebAssembly 都在 2 秒左右生效。

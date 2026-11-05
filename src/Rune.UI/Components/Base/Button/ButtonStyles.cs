@@ -210,30 +210,36 @@ public static class ButtonStyles
         FlexShrink = 0,
     });
 
+    /// <summary>显示密码按钮的标记：图标按它的 aria-pressed 切换（不认外面别的按下状态，如切换按钮组里的项）。</summary>
+    public static readonly Marker RevealMarker = Css.Marker("rune-reveal-button");
+
+    /// <summary>复制按钮的标记：图标按它的 data-state 切换。</summary>
+    public static readonly Marker CopyMarker = Css.Marker("rune-copy-button");
+
     /// <summary>显示密码按钮平时的图标（睁眼）：按下后（aria-pressed）隐藏。</summary>
     internal static Style RevealIcon => Css.Define(static () => new Style
     {
-        [When.Inside(When.Pressed)] = new() { Display = Display.None },
+        [When.Inside(When.Pressed, RevealMarker)] = new() { Display = Display.None },
     });
 
     /// <summary>显示密码按钮按下后的图标（闭眼）。</summary>
     internal static Style ConcealIcon => Css.Define(static () => new Style
     {
         Display = Display.None,
-        [When.Inside(When.Pressed)] = new() { Display = Display.Block },
+        [When.Inside(When.Pressed, RevealMarker)] = new() { Display = Display.Block },
     });
 
     /// <summary>复制按钮平时的图标：复制后（JS 在按钮上写 data-state="copied"）隐藏。</summary>
     internal static Style CopyIdleIcon => Css.Define(static () => new Style
     {
-        [When.Inside(When.Attribute("[data-state=copied]"))] = new() { Display = Display.None },
+        [When.Inside(When.Attribute("[data-state=copied]"), CopyMarker)] = new() { Display = Display.None },
     });
 
     /// <summary>复制按钮复制后的对勾：平时隐藏，复制后弹出（减少动态效果时时长为 0）。</summary>
     internal static Style CopiedIcon => Css.Define(static () => new Style
     {
         Display = Display.None,
-        [When.Inside(When.Attribute("[data-state=copied]"))] = new()
+        [When.Inside(When.Attribute("[data-state=copied]"), CopyMarker)] = new()
         {
             Display = Display.Block,
             Keyframes = Pop,

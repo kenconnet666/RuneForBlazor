@@ -145,7 +145,8 @@ internal static class StyleCompiler
             foreach (var atRule in atRules) css.Append(atRule).Append('{');
             css.Append(selector).Append('{');
             foreach (var (property, value) in Ordered(declarations))
-                css.Append(property).Append(':').Append(value).Append(';');
+                foreach (var single in value.Split(Css.FallbackSeparator))
+                    css.Append(property).Append(':').Append(single).Append(';');
             css.Append('}');
             css.Append('}', atRules.Count);
         }

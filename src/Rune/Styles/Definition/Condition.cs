@@ -76,12 +76,13 @@ public static class When
         : new($":is({state.Key} > *)");
 
     /// <summary>
-    /// 某个祖先元素处于某个状态时：<c>[When.Inside(When.Attribute("[data-state=copied]"))]</c> 生成 <c>.x:is([data-state=copied] *)</c>。
-    /// 复制按钮复制后换图标这类“外层的状态决定里面隔了几层的部件”的样式用它（同 vue-tsx-pro 的 css.when.ancestor）。
+    /// 祖先处于某个状态时（外层的状态决定里面隔了几层的部件）：<c>[When.Inside(When.Selected, optionMarker)]</c> 生成 <c>.x:is(.rune-listbox-option:is([aria-selected="true"],…) *)</c>。
+    /// 只认挂了这个标记的祖先（同 vue-tsx-pro 的 <c>css.when.ancestor(state, marker)</c>）：不带标记时任何一层祖先的状态都算，
+    /// 组件放进别的组件里（选中的表格行里的下拉、按下的切换按钮里的密码框）会被外面的状态误触发。
     /// </summary>
-    public static Condition Inside(Condition state) => state.IsAtRule
+    public static Condition Inside(Condition state, Marker marker) => state.IsAtRule
         ? throw new ArgumentException($"祖先元素的状态要是选择器片段，收到 @ 规则 {state.Key}", nameof(state))
-        : new($":is({state.Key} *)");
+        : new($":is(.{marker.ClassName}{state.Key} *)");
 
     /// <summary>
     /// 紧挨着的前一个兄弟元素处于某个状态时：<c>[When.After(When.Checked)]</c> 生成 <c>.x:is(:checked + *)</c>。
@@ -171,4 +172,27 @@ public static class Media
 
     /// <summary>任意 @media 查询：<c>Media.Query("(hover: hover)")</c>。</summary>
     public static Condition Query(string query) => new($"@media {query}");
+
+    /// <summary>
+    /// 浏览器支持某个写法时（<c>@supports</c>）：新特性渐进增强，<c>Media.Supports("(field-sizing: content)")</c>。
+    /// 排在 @media 之前（优先级更低），同一属性的 @media 能盖过它。
+    /// </summary>
+    public static Condition Supports(string condition) => new($"@supports {condition}");
+}
+
+/// <summary>
+/// 容器查询（<c>@container</c>）：按最近的容器（<c>ContainerType = ContainerType.InlineSize</c> 的祖先）的宽度变化，
+/// 组件放进窄的侧栏、卡片里时跟着容器排版，而不是看整个视口（同 vue-tsx-pro 组件里的 @container）。
+/// 叫 Containers 而不是 Container：Rune.UI 有 Container 组件，同时 using 两个命名空间时会重名。
+/// </summary>
+public static class Containers
+{
+    /// <summary>容器宽度不小于 <paramref name="width"/>（宽度用 em / rem，随字号缩放）。</summary>
+    public static Condition MinWidth(CssLength width) => new($"@container (min-width: {width})");
+
+    /// <summary>容器宽度不大于 <paramref name="width"/>。</summary>
+    public static Condition MaxWidth(CssLength width) => new($"@container (max-width: {width})");
+
+    /// <summary>任意容器查询：<c>Containers.Query("sidebar (min-width: 30em)")</c>（带容器名）。</summary>
+    public static Condition Query(string query) => new($"@container {query}");
 }

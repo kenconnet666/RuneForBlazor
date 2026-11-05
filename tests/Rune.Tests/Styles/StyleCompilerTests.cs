@@ -44,6 +44,28 @@ public class StyleCompilerTests
     }
 
     [Fact]
+    public void 容器查询_supports_回退值_带标记的祖先状态()
+    {
+        var marker = Css.Marker("rune-test-option");
+        var compiled = Compile(new Style
+        {
+            Height = Css.Fallback("100vh", "100dvh"),
+            [Containers.MinWidth(CssLength.Em(30))] = new() { Display = Display.Grid },
+            [Media.Supports("(field-sizing: content)")] = new() { Display = Display.Block },
+            [When.Inside(When.Selected, marker)] = new() { Visibility = Visibility.Visible },
+        });
+
+        Assert.Contains("height:100vh;height:100dvh;", compiled.Css);
+        Assert.Contains($"@container (min-width: 30em){{.{compiled.ClassName}{{display:grid;}}}}", compiled.Css);
+        Assert.Contains($"@supports (field-sizing: content){{.{compiled.ClassName}{{display:block;}}}}", compiled.Css);
+        Assert.Contains($".{compiled.ClassName}:is(.rune-test-option:is([aria-selected=\"true\"],[data-selected]) *){{visibility:visible;}}", compiled.Css);
+        // @supports 先写，@container 后写（后写的覆盖先写的）
+        Assert.True(compiled.Css.IndexOf("@supports", StringComparison.Ordinal) < compiled.Css.IndexOf("@container", StringComparison.Ordinal));
+        Assert.Equal("rune-test-option", marker.Attrs["class"]);
+        Assert.Throws<ArgumentException>(() => Css.Marker("Not A Class"));
+    }
+
+    [Fact]
     public void 带单位的写法_颜色关键字_只收文字的属性()
     {
         var css = Compile(new Style

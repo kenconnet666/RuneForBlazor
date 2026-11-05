@@ -29,5 +29,5 @@
     Memo<(string Label, bool Disabled), Attrs> managed;
 
     Attrs Managed => managed.Get((Label, Disabled), static k =>
-        Attrs.Merge(StateAttrs(k.Disabled, focusable: false, loading: false, ripple: false), new Attrs { AriaLabel = k.Label }));
+        Attrs.Merge(StateAttrs(k.Disabled, focusable: false, loading: false, ripple: false), new Attrs { AriaLabel = k.Label, ["class"] = ButtonStyles.RevealMarker.ClassName }));
 }

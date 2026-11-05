@@ -36,6 +36,19 @@ public static class Css
     public static T Define<TKey, T>(TKey key, Func<TKey, T> define) where TKey : notnull where T : class =>
         (T)definedByKey.GetOrAdd((define.Method, key), _ => define(key));
 
+    /// <summary>定义标记：<c>Css.Marker("rune-listbox-option")</c>，类名就是这个名字（同 vue-tsx-pro 的 defineMarker），用连字符小写、带组件库前缀，避免与使用方的类重名。</summary>
+    public static Marker Marker(string name) =>
+        System.Text.RegularExpressions.Regex.IsMatch(name, "^[a-z][a-z0-9-]*$") ? new(name) : throw new ArgumentException($"标记名要是连字符小写的类名，收到 {name}", nameof(name));
+
+    /// <summary>
+    /// 回退值：同一个属性写几条声明，浏览器用最后一个认识的（同 vue-tsx-pro 的数组写法）。
+    /// <c>Height = Css.Fallback("100vh", "100dvh")</c> 输出 <c>height:100vh;height:100dvh</c>。
+    /// </summary>
+    public static string Fallback(params string[] values) => string.Join(FallbackSeparator, values);
+
+    /// <summary>回退值之间的分隔（控制字符，不会出现在 CSS 值里）；编译时拆成几条声明。</summary>
+    internal const char FallbackSeparator = (char)1;
+
     /// <summary>清掉定义缓存，之后的读取重新创建样式。</summary>
     internal static void ClearDefinitions()
     {

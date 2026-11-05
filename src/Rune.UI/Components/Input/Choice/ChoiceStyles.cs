@@ -159,11 +159,14 @@ public static class ChoiceStyles
         [When.Indeterminate] = new() { BorderColor = $"var({FillVar})", BackgroundColor = $"var({FillVar})" },
     });
 
+    /// <summary>单选组的标记：组校验未通过（aria-invalid）时里面的单选变红；不认外面别的控件的 aria-invalid。</summary>
+    public static readonly Marker GroupMarker = Css.Marker("rune-radio-group");
+
     // 自己校验未通过，或在校验未通过的组（单选组的 aria-invalid）里
     static Style Invalid => Css.Define(static () => new Style
     {
         [When.Invalid] = new() { BorderColor = Tones.Danger.Solid, OutlineColor = Tones.Danger.Solid },
-        [When.Inside(When.Attribute("""[aria-invalid="true"]"""))] = new() { BorderColor = Tones.Danger.Solid, OutlineColor = Tones.Danger.Solid },
+        [When.Inside(When.Attribute("""[aria-invalid="true"]"""), GroupMarker)] = new() { BorderColor = Tones.Danger.Solid, OutlineColor = Tones.Danger.Solid },
     });
 
     static Style Box => Css.Define(static () => new Style { Width = CssLength.Em(1.125), Height = CssLength.Em(1.125), BorderRadius = Radii.Sm });
