@@ -17,7 +17,8 @@ public static partial class ComponentApiReader
 {
     static readonly ConcurrentDictionary<Type, ComponentApi> cache = new();
     static readonly Lazy<IReadOnlyDictionary<string, XElement>> docs = new(LoadDocs);
-    static readonly NullabilityInfoContext nullability = new();
+    // NullabilityInfoContext 内部有不加锁的缓存：并发渲染的页面（Server 的多个线路）各用各的
+    [ThreadStatic] static NullabilityInfoContext? nullability;
 
     /// <summary>组件的 API 数据。泛型组件（CommandPalette&lt;TItem&gt;）写开放类型 <c>typeof(CommandPalette&lt;&gt;)</c>。</summary>
     public static ComponentApi Read(Type component) => cache.GetOrAdd(component, Build);
@@ -118,7 +119,7 @@ public static partial class ComponentApiReader
     static string TypeName(PropertyInfo property)
     {
         var name = TypeName(property.PropertyType);
-        if (!property.PropertyType.IsValueType && nullability.Create(property).ReadState == NullabilityState.Nullable) name += "?";
+        if (!property.PropertyType.IsValueType && (nullability ??= new()).Create(property).ReadState == NullabilityState.Nullable) name += "?";
         return name;
     }
 
