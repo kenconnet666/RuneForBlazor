@@ -147,25 +147,6 @@ public class InputTests : BunitContext
         Assert.Equal("上海", city);
     }
 
-    [Fact]
-    public void 滑块_松开时写回值_原生的范围属性()
-    {
-        double value = 20;
-        var cut = Render<Slider<double>>(p => p
-            .Add(x => x.Value, value)
-            .Add(x => x.ValueChanged, EventCallback.Factory.Create<double>(this, v => value = v))
-            .Add(x => x.Max, 50)
-            .Add(x => x.Step, 5)
-            .Add(x => x.ShowValue, true));
-
-        var input = cut.Find("input[type=range]");
-        Assert.Equal("50", input.GetAttribute("max"));
-        Assert.Equal("5", input.GetAttribute("step"));
-        Assert.Equal("20", cut.Find("output").TextContent);
-        input.Change("35");
-        Assert.Equal(35, value);
-    }
-
     sealed class Signup
     {
         [Required(ErrorMessage = "请填写姓名")]

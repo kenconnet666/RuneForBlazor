@@ -29,6 +29,22 @@ public sealed class CommandEventArgs : EventArgs
     public string? Text { get; set; }
 }
 
+/// <summary>滑块被拖动、点击或用键盘改了值（<c>@onruneslide</c> 的参数）：值由 JS 算好（夹在范围内、对齐步长）并已画出来。</summary>
+public sealed class SlideEventArgs : EventArgs
+{
+    /// <summary>第几个滑块（范围时 0 是低端、1 是高端）。</summary>
+    public int Index { get; set; }
+
+    /// <summary>新值（不随文化变化的十进制文本）。</summary>
+    public string Value { get; set; } = "";
+
+    /// <summary>一次操作结束（松开、按键）：OnValueCommit 在这时调用。</summary>
+    public bool Commit { get; set; }
+
+    /// <summary>JS 发出的序号（逐次加一）：组件处理完写回 data-ack，JS 据此知道 C# 的渲染追上了没有。</summary>
+    public long Seq { get; set; }
+}
+
 /// <summary>复制按钮写完剪贴板（<c>@onrunecopied</c> 的参数）。</summary>
 public sealed class CopiedEventArgs : EventArgs
 {
@@ -44,6 +60,7 @@ public sealed class CopiedEventArgs : EventArgs
 /// <item><c>@onrunecloserequest</c>：用户要关闭对话框（Esc、点遮罩、关闭按钮），对话框带 <c>data-rune-guard-close</c> 时由 C# 决定关不关。</item>
 /// <item><c>@onrunecommand</c>：键盘、粘贴转成的命令（<c>data-rune-backspace</c>、<c>data-rune-escape</c>、<c>data-rune-enter</c>、<c>data-rune-paste</c>，见 JS 初始化器顶部的约定）。</item>
 /// <item><c>@onrunedismiss</c>：可移除的元素（标签）离场动画结束，该从列表里拿掉了（<c>data-rune-dismiss</c> 的按钮触发）。</item>
+/// <item><c>@onruneslide</c>：滑块（<c>data-rune-slider</c>）的值变了，拖动中每变一次发一次，松开或按键时带 commit。</item>
 /// </list>
 /// </summary>
 [EventHandler("onrunetoggle", typeof(OverlayToggleEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
@@ -51,4 +68,5 @@ public sealed class CopiedEventArgs : EventArgs
 [EventHandler("onrunecloserequest", typeof(CloseRequestEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onrunecommand", typeof(CommandEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onrunecopied", typeof(CopiedEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
+[EventHandler("onruneslide", typeof(SlideEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 public static class EventHandlers;

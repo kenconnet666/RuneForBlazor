@@ -203,7 +203,13 @@
   会生成引用 `global::TValue` 的代码编译失败。所以 TValue 本身可以是 `int?`，Min / Max / Step 写成 decimal，计算都在 decimal 里（没有浮点误差），
   再按值的类型转回去。方向键在 JS 初始化器里处理（按输入框里现在的文字算，没有往返），改完发 change，C# 再夹到范围、对齐步长。
 - **数字框**：写了 name 时提交的是隐藏 input 里的十进制文本（不带千分位与货币符号）；加减按钮按下时不抢输入框的焦点、按住连续加减（JS 初始化器的 `data-rune-repeat`），Clearable 清空成 null。
-- **单选、下拉、滑块用原生元素**：键盘、读屏、手机上的系统选择器都是原生的。下拉按位置对应值（任何类型），可搜索、多选的 Select 之后基于 Popover 做。
+- **单选、原生下拉用原生元素**：键盘、读屏、手机上的系统选择器都是原生的。NativeSelect 按位置对应值（任何类型）。
+- **Slider 不用原生 range**（同 vue-tsx-pro）：原生的做不了两个滑块、刻度，外观也只能靠浏览器各自的伪元素。滑块是 role="slider" 的 div，
+  按下、拖动（`js/move.js`，指针捕获）、方向键都在 JS 里算并当场画出来（外层的位置变量、aria-valuenow 与取值范围、刻度的 data-active、隐藏 input），
+  再经 `rune-slide`（带序号）交给 C#；静态 SSR 下没有 C#，JS 画的就是最终状态，表单照样提交。Server 模式下拖动中 C# 的渲染晚到、会写回旧值：
+  C# 把处理到的序号写回 `data-ack`、认定的值写在 `data-values`（JS 从不改它），没追上时 JS 立刻改回本地的值（MutationObserver 在绘制前回调），
+  追上之后按 `data-values` 画（父级没采纳改动时 Blazor 的旧树没变、不会重写被 JS 改过的属性）。单值绑 Value，范围绑 Range（`NumberRange`），同 Select 的 Value / Values。
+  C# 收到后再夹一次范围、对齐步长，舍入与 JS 的 Math.round 一致（正好一半往大取）。
 - **Form 包一层 EditForm**：默认带 DataAnnotationsValidator；提交回调执行期间级联的 `FormState.Submitting` 让提交按钮显示加载中；
   提交未通过时顶部列出错误，Field 渲染后把“字段 → 标签、控件 id”登记给 Form，汇总写成“标签：错误”并能跳到控件。
   跳转用 `data-rune-focus` 在捕获阶段拦下：`#id` 链接会被 Blazor 按 `<base href>` 解析成别的页面（实测跳回了首页）。

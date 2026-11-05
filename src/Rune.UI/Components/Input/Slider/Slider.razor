@@ -1,0 +1,51 @@
+@*
+    滑块（同 vue-tsx-pro 的 Slider）：在一个范围里拖动选值（音量、进度、价格区间）。WAI-ARIA 的 Slider 模式：滑块是 role="slider"，
+    方向键 ±Step，Page Up / Down ±BigStep，Home / End 到两端，从右到左排版时横向的方向键反过来；点轨道任意位置直接跳过去并接着拖。
+    <Slider @bind-Value="volume" aria-label="音量" />
+    <Slider @bind-Value="price" Min="0" Max="1000" Step="50" ValueText="@(v => $"{v} 元")" />
+    <Slider @bind-Range="budget" Marks="@([0, new(500, "500"), 1000])" aria-label="预算" />     范围：绑 Range（NumberRange，低与高）
+    范围时两个滑块各自可聚焦、不能交叉，名称后面加上“最小值”“最大值”；点轨道移动离得近的那个。
+    （vue-tsx-pro 里值是数组时是范围；这里同 Select 的 Value / Values 分成两个参数，Value 仍按 FormControl 接入表单校验）
+    显式写 ValueChanged、OnValueCommit 等回调（而不是 @bind）时要写 TValue="int"：Razor 推断不出 EventCallback 的类型参数。
+    拖动、键盘都在 JS 初始化器里算并当场画出来（data-rune-slider，没有往返），值经 @onruneslide 交给 C#：拖动中一直写回值，
+    松开或按键改完时调用 OnValueCommit / OnRangeCommit（保存、发请求放在这里）。静态 SSR 下同样能拖，Name 的隐藏 input 随之更新、随表单提交。
+*@
+@namespace Rune.UI
+@typeparam TValue where TValue : struct, System.Numerics.INumber<TValue>
+@inherits FormControl<TValue>
+@{
+    var parts = SliderStyles.Of(new SliderAppearance(Orientation, Labelled, Tone, Size), Config.Styles);
+    var shown = Shown;
+}
+
+<div @attributes="Attrs.Merge(parts[SliderPart.Root], RootUserAttrs, RootManaged(shown))">
+    <div @attributes="Attrs.Merge(parts[SliderPart.Track], PropsTrack)">
+        <div @attributes="Attrs.Merge(parts[SliderPart.Range], PropsRange)"></div>
+        @foreach (var mark in Marks)
+        {
+            <span @key="mark.Value" @attributes="Attrs.Merge(parts[SliderPart.Mark], PropsMark?.Invoke(mark), MarkManaged(mark, shown))"></span>
+        }
+    </div>
+    @for (var i = 0; i < shown.Count; i++)
+    {
+        var index = i;
+        <div @attributes="Attrs.Merge(parts[SliderPart.Thumb], InputUserAttrs, ThumbManaged(index, shown))">
+            @if (PartLabelId(index, shown.Count) is { } partId)
+            {
+                <VisuallyHidden id="@partId">@(index == 0 ? Config.Lang.SliderMin : Config.Lang.SliderMax)</VisuallyHidden>
+            }
+        </div>
+    }
+    @foreach (var mark in Marks)
+    {
+        if (mark.Label is null) continue;
+        <span @key="mark.Value" aria-hidden="true" @attributes="Attrs.Merge(parts[SliderPart.MarkLabel], PropsMarkLabel?.Invoke(mark), MarkPosition(mark))">@mark.Label</span>
+    }
+    @if (Name is not null)
+    {
+        @for (var i = 0; i < shown.Count; i++)
+        {
+            <input type="hidden" name="@Name" value="@Format(shown[i])" data-index="@i" disabled="@IsDisabled" />
+        }
+    }
+</div>

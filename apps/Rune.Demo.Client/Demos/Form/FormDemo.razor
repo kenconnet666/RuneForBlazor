@@ -24,8 +24,8 @@
         <Field Label="城市" Required="true">
             <NativeSelect @bind-Value="model.City" Items="cities" Placeholder="选择城市" data-testid="city" />
         </Field>
-        <Field Label="预算">
-            <Slider @bind-Value="model.Budget" Min="0" Max="5000" Step="100" ShowValue="true" ValueText="@(v => $"{v:N0} 元")" />
+        <Field Label="预算" Description="@($"{model.Budget:N0} 元")">
+            <Slider @bind-Value="model.Budget" Min="0" Max="5000" Step="100" ValueText="@(v => $"{v:N0} 元")" />
         </Field>
         <Field Label="个人简介" Description="最多 60 个字">
             <Textarea @bind-Value="model.Bio" placeholder="一句话介绍自己" data-testid="bio" />
@@ -53,7 +53,8 @@
             <Radio Value="Plan.Team">团队版</Radio>
         </RadioGroup>
         <TextSpan Tone="TextTone.Muted" Size="Size.Sm">套餐：@plan（枚举值）</TextSpan>
-        <Slider @bind-Value="volume" Immediate="true" ShowValue="true" aria-label="音量（Immediate，拖动中就更新）" />
+        <Slider @bind-Value="volume" aria-label="音量" />
+        <TextSpan Tone="TextTone.Muted" Size="Size.Sm">音量：@volume（拖动中实时写回）</TextSpan>
     </Flex>
 </DemoSection>
 
