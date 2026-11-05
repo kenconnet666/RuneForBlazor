@@ -51,7 +51,9 @@ public class AppShellTests(DemoServer demo)
         // 进了浏览器全屏：用户离开浏览器全屏就退出；没进去（浏览器不让）：Esc 退出
         await enter.ClickAsync();
         await Assertions.Expect(exit).ToBeVisibleAsync();
-        if (await page.EvaluateAsync<bool>("() => !!document.fullscreenElement"))
+        // 请求全屏是异步的：等一会儿看进没进去（headless 时浏览器可能不让）
+        var entered = await page.EvaluateAsync<bool>("async () => { for (let i = 0; i < 20 && !document.fullscreenElement; i++) await new Promise(r => setTimeout(r, 50)); return !!document.fullscreenElement; }");
+        if (entered)
             await page.EvaluateAsync("() => document.exitFullscreen()");
         else
             await page.Keyboard.PressAsync("Escape");

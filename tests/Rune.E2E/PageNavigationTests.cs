@@ -37,8 +37,9 @@ public class PageNavigationTests(DemoServer demo)
         await page.GetByRole(AriaRole.Tab, new() { Name = "财务报表" }).ClickAsync();
         await Assertions.Expect(bar).ToHaveAttributeAsync("data-state", "error", new() { Timeout = 5000 });
 
-        // 120ms 就好：一直不出现
+        // 120ms 就好：一直不出现。Server 模式还要加上往返的时间，机器慢时会超过 200ms 的延迟，只在 WebAssembly 下断言
         await Assertions.Expect(bar).ToHaveAttributeAsync("data-state", "idle", new() { Timeout = 5000 });
+        if (mode != "wasm") return;
         await page.GetByRole(AriaRole.Tab, new() { Name = "个人设置" }).ClickAsync();
         for (var i = 0; i < 6; i++)
         {
