@@ -1,0 +1,28 @@
+@*
+    带行内代码的一段文字（同 vue-tsx-pro 的 CodeText）：反引号包起来的部分渲染成 Code，文案写在数据里时不用拆成多个节点。
+    <CodeText Text="`where` 里写数组就是 AND" />
+    只认成对的反引号，不是 Markdown；要标题、列表、链接就直接写组件。多出来的一个反引号后面的文字按代码显示，写文案时要成对。
+*@
+@namespace Rune.UI
+@inherits RuneComponent
+
+@* 按反引号拆开：奇数段是代码 *@
+@foreach (var (part, index) in Text.Split('`').Select((part, index) => (part, index)))
+{
+    if (index % 2 == 1)
+    {
+        <Code @attributes="Attrs.MergeProps(null, PropsCode)">@part</Code>
+    }
+    else
+    {
+        @part
+    }
+}
+
+@code {
+    /// <summary>文字：反引号里的是行内代码。</summary>
+    [Parameter, EditorRequired] public string Text { get; set; } = "";
+
+    /// <summary>行内代码的部件属性（交给 Code 组件）。</summary>
+    [Parameter] public Attrs? PropsCode { get; set; }
+}

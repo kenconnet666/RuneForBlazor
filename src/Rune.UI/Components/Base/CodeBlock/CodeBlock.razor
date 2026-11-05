@@ -1,0 +1,189 @@
+@*
+    代码块（pre > code，同 vue-tsx-pro 的 CodeBlock）：高亮、复制、标题栏、行号、行高亮、diff、长代码折叠。
+    <CodeBlock Code="@source" Lang="razor" />
+    <CodeBlock Code="@source" Lang="csharp" Title="Program.cs" LineNumbers="true" HighlightLines="2,4-5" MaxLines="20" />
+    - 高亮在浏览器里做（JS 初始化器按 data-rune-highlight 用 Shiki 上色，第一次用到时才加载）：先显示纯文本，结果到了再替换，
+      等宽字体下两者排版相同，布局不跳动；Server 模式没有往返，静态 SSR 也会上色。Highlight="false" 时保持纯文本。
+    - 长行在 ScrollArea 里横向滚动：浮层滚动条不占高度；滚动区域可聚焦，键盘也能滚动。Wrap 时换行。
+    - 复制按钮在右上角，有标题时放在标题栏里；行号不可选中，复制的是 Code 本身。
+    - 长代码：MaxLines 之外折叠，底部的按钮展开或收起。
+    未声明的属性落到 pre 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var lines = SplitLines(Code);
+    var collapsible = MaxLines is { } max && lines.Count > max;
+    var byLine = ByLine;
+    var hasTitle = Title is not null || TitleContent is not null;
+    var parts = CodeBlockStyles.Of(new(Flush, Copyable && !hasTitle, Wrap, collapsible && !expanded, byLine), Config.Styles);
+}
+
+<div @attributes="Attrs.Merge(parts[CodeBlockPart.Root], PropsRoot)">
+    @if (hasTitle)
+    {
+        <div @attributes="Attrs.Merge(parts[CodeBlockPart.Header], PropsHeader)">
+            <span @attributes="Attrs.Merge(parts[CodeBlockPart.Title], PropsTitle)">@(TitleContent ?? (RenderFragment)(b => b.AddContent(0, Title)))</span>
+            @if (Copyable)
+            {
+                @CopyButton(parts)
+            }
+        </div>
+    }
+    <div @attributes="Attrs.Merge(parts[CodeBlockPart.Body], PropsBody)">
+        <ScrollArea Axis="ScrollAxis.X" @attributes="Attrs.MergeProps(null, PropsScroll)">
+            <pre @attributes="Attrs.Merge(parts[CodeBlockPart.Pre], Rest, PreManaged(collapsible && !expanded))">@* 代码或高亮的设置变了时整个 code 重建：JS 改过它的子节点，不让 Blazor 在上面做差异更新 *@<code @key="CodeKey" @attributes="Attrs.Merge(parts[CodeBlockPart.Code], PropsCode, CodeManaged)">@if (byLine)
+                {
+                    for (var index = 0; index < lines.Count; index++)
+                    {
+                        var number = index + 1;
+                        var mark = MarkOf(number);
+                        <span @attributes="Attrs.Merge(Attrs.Layer(parts[CodeBlockPart.Line], LineLayer(mark)), PropsLine)" data-diff="@DiffOf(mark)">@if (LineNumbers)
+                            {
+                                <span aria-hidden="true" @attributes="Attrs.Merge(parts[CodeBlockPart.LineNumber], PropsLineNumber)">@number</span>
+                            }<span data-rune-code-text>@lines[index]</span></span>
+                    }
+                }
+                else
+                {
+                    @Code
+                }</code></pre>
+        </ScrollArea>
+        @if (Copyable && !hasTitle)
+        {
+            @CopyButton(parts)
+        }
+    </div>
+    @if (collapsible)
+    {
+        <button type="button" aria-expanded="@(expanded ? "true" : "false")" @onclick="() => expanded = !expanded"
+                @attributes="Attrs.Merge(parts[CodeBlockPart.Expand], PropsExpand)">
+            @(expanded ? Config.Lang.CodeCollapse : Config.Lang.CodeExpand)
+            <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(parts[CodeBlockPart.ExpandIcon], PropsExpandIcon, expanded ? OpenIcon : null)" />
+        </button>
+    }
+</div>
+
+@code {
+    static readonly Attrs OpenIcon = new() { Sx = CodeBlockStyles.ExpandIconOpen };
+
+    bool expanded;
+    Memo<(string? Highlighted, string? Added, string? Removed), LineMarks> marks;
+
+    /// <summary>代码文本。</summary>
+    [Parameter, EditorRequired] public string Code { get; set; } = "";
+
+    /// <summary>语言（razor、csharp、html、css、javascript、typescript、json、xml、bash、powershell、diff 及常用别名）；不写时不高亮，不认识的语言也按纯文本显示。</summary>
+    [Parameter] public string? Lang { get; set; }
+
+    /// <summary>高亮，默认 true；看不见的代码（收起的示例源码）可以先写 false，要显示时再改成 true。</summary>
+    [Parameter] public bool Highlight { get; set; } = true;
+
+    /// <summary>标题栏（文字，通常是文件名）；有标题时复制按钮放在标题栏里。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>标题栏（任意内容），盖过 <see cref="Title"/>。</summary>
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+
+    /// <summary>长行自动换行，而不是横向滚动。</summary>
+    [Parameter] public bool Wrap { get; set; }
+
+    /// <summary>显示复制按钮，默认 true。</summary>
+    [Parameter] public bool Copyable { get; set; } = true;
+
+    /// <summary>显示行号。</summary>
+    [Parameter] public bool LineNumbers { get; set; }
+
+    /// <summary>强调的行：<c>"2,4-5"</c>（从 1 开始）。</summary>
+    [Parameter] public string? HighlightLines { get; set; }
+
+    /// <summary>新增的行（diff）：绿色底。</summary>
+    [Parameter] public string? AddedLines { get; set; }
+
+    /// <summary>删除的行（diff）：红色底。</summary>
+    [Parameter] public string? RemovedLines { get; set; }
+
+    /// <summary>超过这么多行时折叠，底部的按钮展开；不写时不折叠。</summary>
+    [Parameter] public int? MaxLines { get; set; }
+
+    /// <summary>嵌在卡片、标签页这类已经有外框的容器里：去掉自己的边框、圆角和底色。</summary>
+    [Parameter] public bool Flush { get; set; }
+
+    /// <summary>外层的部件属性（使用方的 Sx 落在 pre 上）。</summary>
+    [Parameter] public Attrs? PropsRoot { get; set; }
+
+    /// <summary>标题栏的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>标题文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>代码区的部件属性。</summary>
+    [Parameter] public Attrs? PropsBody { get; set; }
+
+    /// <summary>code 元素的部件属性。</summary>
+    [Parameter] public Attrs? PropsCode { get; set; }
+
+    /// <summary>按行渲染时每一行的部件属性。</summary>
+    [Parameter] public Attrs? PropsLine { get; set; }
+
+    /// <summary>行号的部件属性。</summary>
+    [Parameter] public Attrs? PropsLineNumber { get; set; }
+
+    /// <summary>复制按钮的部件属性（交给 CopyButton 组件）。</summary>
+    [Parameter] public Attrs? PropsCopy { get; set; }
+
+    /// <summary>横向滚动区域的部件属性（交给 ScrollArea 组件）。</summary>
+    [Parameter] public Attrs? PropsScroll { get; set; }
+
+    /// <summary>展开、收起按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsExpand { get; set; }
+
+    /// <summary>展开按钮里箭头的部件属性；展开后的翻转由组件管理。</summary>
+    [Parameter] public Attrs? PropsExpandIcon { get; set; }
+
+    // 行号、行高亮、diff 任一用到时按行渲染；都不用时整段文字，不为每行建节点
+    bool ByLine => LineNumbers || HighlightLines is not null || AddedLines is not null || RemovedLines is not null;
+
+    object CodeKey => (Code, Highlight ? Lang : null, LineNumbers, HighlightLines, AddedLines, RemovedLines);
+
+    Attrs CodeManaged => new() { ["data-rune-highlight"] = Highlight ? Lang : null };
+
+    Attrs PreManaged(bool collapsed) => new()
+    {
+        ["data-lang"] = Lang,
+        Vars = collapsed ? [CodeBlockStyles.MaxLines.Set(MaxLines!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))] : [],
+    };
+
+    sealed record LineMarks(IReadOnlySet<int> Highlighted, IReadOnlySet<int> Added, IReadOnlySet<int> Removed);
+
+    LineMarks Marks => marks.Get((HighlightLines, AddedLines, RemovedLines), static k => new(LineSpec.Parse(k.Highlighted), LineSpec.Parse(k.Added), LineSpec.Parse(k.Removed)));
+
+    CodeLineMark MarkOf(int line)
+    {
+        var (highlighted, added, removed) = Marks;
+        return added.Contains(line) ? CodeLineMark.Added
+            : removed.Contains(line) ? CodeLineMark.Removed
+            : highlighted.Contains(line) ? CodeLineMark.Highlighted
+            : CodeLineMark.None;
+    }
+
+    static string? DiffOf(CodeLineMark mark) => mark switch
+    {
+        CodeLineMark.Added => "added",
+        CodeLineMark.Removed => "removed",
+        _ => null,
+    };
+
+    static Attrs? LineLayer(CodeLineMark mark) => CodeBlockStyles.MarkOf(mark) is { } style ? new Attrs { Sx = style } : null;
+
+    RenderFragment CopyButton(PartLayers<CodeBlockPart> parts) =>
+        @<CopyButton Value="@Code" Size="UI.Size.Sm" Tone="UI.Tone.Neutral" @attributes="Attrs.MergeProps(parts[CodeBlockPart.Copy], PropsCopy)" />;
+
+    /// <summary>按行拆开；结尾的换行不算新的一行（文件末尾通常有一个），不然行号会多出一行空的。</summary>
+    static IReadOnlyList<string> SplitLines(string text)
+    {
+        var lines = text.Replace("\r\n", "\n").Split('\n');
+        return lines.Length > 1 && lines[^1].Length == 0 ? lines[..^1] : lines;
+    }
+}

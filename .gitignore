@@ -8,3 +8,6 @@ riderModule.iml
 *.user
 TestResults/
 artifacts/
+
+# 生成工具临时安装的 npm 包
+node_modules/

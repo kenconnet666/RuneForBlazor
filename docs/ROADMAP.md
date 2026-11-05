@@ -117,7 +117,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 ## 阶段 6：基础与反馈补齐
 
 - [ ] 基础：ButtonGroup（相连的按钮）、CloseButton、CopyButton、IconLinkButton、Indicator、StatusDot、Mark、Code / CodeText / CodeBlock（不带高亮，带复制）、Blockquote、List、Can（权限）、ClientOnly（交互模式下才渲染）
-      （已做：ButtonGroup、Indicator、StatusDot（按“基础组件先做”提前））
+      （已做：ButtonGroup、Indicator、StatusDot、CodeBlock（Shiki 在浏览器里高亮）与 CodeText（按“基础组件先做”、文档站提前））
 - [ ] 反馈：Banner、Empty（已做）、Result、Progress（线形、环形）、LoadingBar、LoadingOverlay
       （已做：Progress（条形、环形、目标、不确定进度）、LoadingOverlay）
 - [ ] 补齐已有组件：Toast（标题与说明、操作、进度、位置、最多条数与堆叠、悬停暂停、important）、Alert（description 与额外内容分开、关闭时淡出）、

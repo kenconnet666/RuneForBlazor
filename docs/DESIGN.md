@@ -134,6 +134,10 @@
   加载失败的图片藏起来、露出首字母；没有往返，静态 SSR 一样。AvatarGroup 的“超过 Max 折叠成 +N”在 Blazor 里没法截取子内容，改为 Items 加每项的模板。
   状态色分两层（同 vue 的 statusToneBorderStyles / statusToneStyles）：`SharedStyles.StatusBordered` 留出边框位置，`StatusColors` 只给颜色；
   标记、角标、提示条两层都用，头像只用颜色层（没有边框）。
+- **代码高亮在浏览器里做**（同 vue-tsx-pro 的 createShikiHighlighter）：CodeBlock 输出纯文本的 `code[data-rune-highlight]`，JS 初始化器（`js/highlight.js`）
+  第一次遇到时加载 vendor 的 Shiki（JavaScript 正则引擎、CSS 变量主题，颜色指向 `--rune-code-colors-*`）上色，三种渲染模式一样，没有往返。
+  JS 改过 code 的子节点，所以代码、语言、高亮开关、行设置变了时 code 用 @key 整个重建，不让 Blazor 在上面做差异更新。
+  选过 C# 的 TextMateSharp（3.0 起纯托管、能跑 WebAssembly），但只有预览版，且 WebAssembly 接管时要另外保留服务端的结果，暂不用。
 - **ColorField 与 ColorValue**：vue 用 culori 解析任意 CSS 颜色；这里 `ColorValue`（Rune.UI/Data）解析 hex、rgb、hsl、hwb、oklab、oklch、148 个颜色名
   （从 culori 的 named.js 生成）与 transparent，单元测试的期望值由 culori 算出。文字框边输边记草稿（oninput，实时标无效），change（失焦、回车）时
   规范成 #hex 写回或恢复；色块里的颜色经 CSS 变量写在元素上，没有值时露出棋盘格（SwatchStyles，之后的 ColorSwatch 共用）。
