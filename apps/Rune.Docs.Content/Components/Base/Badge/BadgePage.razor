@@ -1,0 +1,29 @@
+@page "/components/badge"
+@attribute [DocMeta("Badge 标记", "状态、计数、分类等短文字（Badge），可以移除的标签（Tag）：四种样式 × 六种色调，可带图标。", DocCategory.Base, Order = 5)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Base.Badge.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="matrix" Title="样式与色调" Demo="typeof(MatrixExample)">
+                Variant 决定醒目程度：Solid 实底最醒目，Soft 浅底（默认），Surface 浅底加描边，Outline 只有描边；Tone 是状态色调。
+            </Example>
+            <Example Id="shapes" Title="尺寸、形状与图标" Demo="typeof(ShapesExample)">
+                字号默认 Xs，Size 改档位；Radius.Full 是胶囊形，适合计数与在线状态；Icon 放在文字前。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="statuses" Title="状态映射" Demo="typeof(StatusesExample)">
+                StatusMap 把每种状态的名字、色调、图标与说明写在一处，定义的顺序就是阶段的顺序（Order）；StatusBadge 按它显示，筛选的下拉选项也从它来（Options）。
+            </Example>
+            <Example Id="tag" Title="Tag 标签" Demo="typeof(TagExample)">
+                Tag 的外观选项与 Badge 相同，BadgeDefaults 一起改两者的默认值；技能、分类、关键词这类成组出现的短文字用它。
+            </Example>
+            <Example Id="tag-removable" Title="可移除的标签" Demo="typeof(TagRemovableExample)">
+                写了 OnRemove 就有移除按钮：先淡出，离场结束才调用 OnRemove；按钮的读屏名称是“移除 + 标签文字”，RemoveLabel 可以改。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Badge), typeof(StatusBadge<>), typeof(Tag)]" />
+</DocPage>

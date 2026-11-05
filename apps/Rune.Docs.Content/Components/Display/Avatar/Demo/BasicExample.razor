@@ -1,0 +1,38 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+        <TextSpan Size="Size.Xs" Tone="TextTone.Muted">尺寸</TextSpan>
+        @foreach (var size in sizes)
+        {
+            <Avatar @key="size" Size="size" Src="@DemoPeople.Members[0].Photo" Name="@($"林小满（{size.ToString().ToLowerInvariant()}）")" />
+        }
+    </Flex>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true" data-testid="fallbacks">
+        <TextSpan Size="Size.Xs" Tone="TextTone.Muted">后备内容</TextSpan>
+        <Avatar Name="吴悠" />
+        <Avatar Name="Zhao Qing" />
+        <Avatar Name="陈默" Src="/not-found.png" data-testid="broken" />
+        <Avatar />
+        <Avatar Name="设计中心" Radius="Radius.Md"><Fallback><Icon Data="Lucide.BuildingComplex" /></Fallback></Avatar>
+    </Flex>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+        <TextSpan Size="Size.Xs" Tone="TextTone.Muted">色调</TextSpan>
+        @foreach (var tone in tones)
+        {
+            <Avatar @key="tone" Name="@Lower(tone)" Tone="tone" />
+        }
+        @foreach (var tone in tones)
+        {
+            <Avatar @key="@($"solid-{tone}")" Name="@Lower(tone)" Tone="tone" Variant="StatusVariant.Solid" />
+        }
+    </Flex>
+</Flex>
+
+@code {
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg, Size.Xl];
+
+    static readonly Tone[] tones = [Tone.Accent, Tone.Info, Tone.Success, Tone.Warning, Tone.Danger, Tone.Neutral];
+
+    static string Lower(Tone tone) => tone.ToString().ToLowerInvariant();
+}

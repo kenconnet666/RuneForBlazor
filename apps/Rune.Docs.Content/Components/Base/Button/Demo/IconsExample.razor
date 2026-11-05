@@ -1,0 +1,20 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        <Button Icon="Lucide.Plus">新建</Button>
+        <Button Variant="ButtonVariant.Soft" Icon="Lucide.Download">下载</Button>
+        <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" IconEnd="Lucide.ChevronDown">更多</Button>
+        <Button Variant="ButtonVariant.Ghost" IconEnd="Lucide.ArrowRight">下一步</Button>
+        <Button Variant="ButtonVariant.Link" IconEnd="Lucide.ExternalLink">查看文档</Button>
+    </Flex>
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        <Button Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.Search">搜索 <Kbd>Ctrl K</Kbd></Button>
+        <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral">
+            未读消息 <Badge Variant="StatusVariant.Solid" Tone="Tone.Danger" Radius="Radius.Full">12</Badge>
+        </Button>
+        <IconButton Icon="Lucide.Pencil" Label="编辑" />
+        <IconButton Icon="Lucide.Share2" Label="分享" />
+        <IconButton Icon="Lucide.Trash" Tone="Tone.Danger" Label="删除" />
+    </Flex>
+</Flex>

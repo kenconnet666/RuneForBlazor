@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+        <ThemeSwitcher data-testid="switcher" />
+        <Small Tone="TextTone.Muted">选择作用于整页，与目录顶部的按钮相同</Small>
+    </Flex>
+    <Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <Strong>通知设置</Strong>
+                <Small Tone="TextTone.Muted">这块区域用的是上面选的主题</Small>
+            </Flex>
+            <Switch @bind-Value="notify">新评论时提醒我</Switch>
+            <Flex Gap="SpaceScale.Sm">
+                <Button Size="Size.Sm" Icon="Lucide.Bell">保存</Button>
+                <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Neutral">取消</Button>
+            </Flex>
+        </Flex>
+    </Card>
+</Flex>
+
+@code {
+    bool notify = true;
+}

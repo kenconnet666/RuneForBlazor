@@ -1,33 +1,29 @@
-@* 首页：演示目录。每个演示都能以四种渲染模式打开 *@
+@* 首页：页面目录。每个页面都能以四种渲染模式打开 *@
 @page "/"
 @inherits RuneComponent
 
-<PageTitle>Rune 演示</PageTitle>
+<PageTitle>Rune 渲染模式测试台</PageTitle>
 
-<h1>Rune 演示</h1>
+<h1>Rune 渲染模式测试台</h1>
 <p>
-    开发组件时在这里实际运行、观察。左侧选组件，页面顶部切换渲染模式；
+    文档站（Rune.Docs.Content）的每个页面都能在这里以四种渲染模式打开：左侧选页面，页面顶部切换渲染模式；
     改代码用 <code>dotnet watch --project apps/Rune.Demo</code>，保存后热重载。
 </p>
 
-@foreach (var group in DemoCatalog.All.GroupBy(d => d.Group))
+@foreach (var section in DocsCatalog.Sections)
 {
-    <DemoSection Title="@group.Key">
-        @foreach (var demo in group)
-        {
-            <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-                <strong>@demo.Title</strong>
-                @foreach (var (mode, title) in DemoRenderModes.All)
-                {
-                    <a href="@($"{mode}/{demo.Slug}")">@title</a>
-                }
-            </Flex>
-        }
-    </DemoSection>
+    <H2 Size="Size.Lg">@section.Label</H2>
+    @foreach (var entry in section.Pages)
+    {
+        <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+            <strong>@entry.Meta.Title</strong>
+            @foreach (var (mode, title) in DemoRenderModes.All)
+            {
+                <a href="@($"{mode}/{entry.Slug}")">@title</a>
+            }
+        </Flex>
+    }
 }
 
-<DemoSection Title="渲染方式">
-    <Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
-        <a href="streaming">流式渲染</a>
-    </Flex>
-</DemoSection>
+<H2 Size="Size.Lg">渲染方式</H2>
+<a href="streaming">流式渲染</a>

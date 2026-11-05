@@ -1,0 +1,43 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Slider @bind-Value="position" Max="Duration" ValueText="@(v => $"{Clock(v)} / {Clock(Duration)}")" aria-label="播放进度" data-testid="position" />
+            <Flex Justify="ContentJustify.Between">
+                <Small Tone="TextTone.Muted" data-testid="elapsed">@Clock(position)</Small>
+                <Small Tone="TextTone.Muted">-@Clock(Duration - position)</Small>
+            </Flex>
+        </Flex>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <IconButton Icon="VolumeIcon" Label="@(muted ? "取消静音" : "静音")" aria-pressed="@(muted ? "true" : "false")" @onclick="() => muted = !muted" />
+            <Slider TValue="int" Value="@(muted ? 0 : volume)" ValueChanged="SetVolume" ValueText="@(v => $"音量 {v}%")" aria-label="音量" />
+        </Flex>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <Icon Data="Lucide.Sun" />
+            <Slider @bind-Value="brightness" Min="0" Max="1" Step="0.05" Tone="Tone.Warning" ValueText="@(v => $"{Math.Round(v * 100)}%")" aria-label="亮度" />
+        </Flex>
+    </Flex>
+</Card>
+
+@code {
+    const int Duration = 245;
+
+    int position = 72;
+
+    int volume = 60;
+
+    bool muted;
+
+    double brightness = 0.8;
+
+    IconData VolumeIcon => muted || volume == 0 ? Lucide.VolumeX : volume < 50 ? Lucide.Volume1 : Lucide.Volume2;
+
+    static string Clock(int seconds) => $"{seconds / 60}:{seconds % 60:00}";
+
+    void SetVolume(int next)
+    {
+        volume = next;
+        muted = false;
+    }
+}

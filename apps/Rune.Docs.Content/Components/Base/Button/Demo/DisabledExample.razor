@@ -1,0 +1,32 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        @foreach (var (variant, _) in variants)
+        {
+            <Button Variant="variant" Disabled="true">@variant.ToString().ToLowerInvariant()</Button>
+        }
+    </Flex>
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        <Tooltip>
+            <Trigger Context="t"><Button @attributes="t" Disabled="true" FocusableWhenDisabled="true" data-testid="focusable-disabled">提交</Button></Trigger>
+            <ChildContent>填完必填项后才能提交</ChildContent>
+        </Tooltip>
+        <Tooltip>
+            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Disabled="true" FocusableWhenDisabled="true">注销账号</Button></Trigger>
+            <ChildContent>还有未结清的订单</ChildContent>
+        </Tooltip>
+    </Flex>
+</Flex>
+
+@code {
+    static readonly (ButtonVariant Variant, string Usage)[] variants =
+    [
+        (ButtonVariant.Solid, "主要操作，每组最多一个"),
+        (ButtonVariant.Soft, "需要突出的次要操作"),
+        (ButtonVariant.Surface, "表单、设置页里的次要操作"),
+        (ButtonVariant.Outline, "次要操作"),
+        (ButtonVariant.Ghost, "工具栏、行内操作"),
+        (ButtonVariant.Link, "句子中间的操作"),
+    ];
+}

@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="CssLength.Rem(7)" Gap="SpaceScale.Md" data-testid="swatches">
+    @foreach (var (label, color) in tokens)
+    {
+        <ColorSwatch @key="label" Color="color"><Label>@label</Label></ColorSwatch>
+    }
+</Grid>
+
+@code {
+    static readonly (string Label, CssColor Color)[] tokens =
+    [
+        ("Accent", Tones.Accent.Solid),
+        ("AccentSoft", Tones.Accent.Soft),
+        ("Success", Tones.Success.Solid),
+        ("Warning", Tones.Warning.Solid),
+        ("Danger", Tones.Danger.Solid),
+        ("Info", Tones.Info.Solid),
+        ("Surface", Colors.Surface),
+        ("SurfaceTranslucent", Colors.SurfaceTranslucent),
+        ("Text", Colors.Text),
+        ("TextMuted", Colors.TextMuted),
+        ("Border", Colors.Border),
+        ("Series3", ChartColors.Series3),
+    ];
+
+}

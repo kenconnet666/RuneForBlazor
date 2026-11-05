@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Card>
+        <Flex Gap="SpaceScale.Md" Align="ItemAlign.Start">
+            <Avatar Name="林小满" Size="Size.Sm" />
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Grow="true">
+                <Field Label="发表评论" Description="随内容自动增高，最多 6 行后出现滚动条">
+                    <Textarea @bind-Value="comment" Rows="2" MaxRows="6" maxlength="200" ShowCount="true" placeholder="说点什么…" data-testid="comment" />
+                </Field>
+                <Flex Justify="ContentJustify.End">
+                    <Button Size="Size.Sm" Disabled="string.IsNullOrWhiteSpace(comment)">发布</Button>
+                </Flex>
+            </Flex>
+        </Flex>
+    </Card>
+    <Field Label="固定高度（fixed）" Description="不自动增高，右下角可以拖动调整；clearable 在右上角放清空按钮">
+        <Textarea @bind-Value="notes" Rows="3" Fixed="true" Clearable="true" />
+    </Field>
+</Flex>
+
+@code {
+    string? comment;
+
+    string? notes = "第一行\n第二行\n第三行";
+}

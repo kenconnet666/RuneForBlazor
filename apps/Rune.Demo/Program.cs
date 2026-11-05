@@ -1,5 +1,5 @@
 using Rune.UI;
-using Rune.Demo.Client.Demos.Foundation;
+using Rune.Docs.Site;
 using Rune.Demo.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +10,7 @@ builder.Services.AddRazorComponents()
 
 // 服务端渲染与 Interactive Server 用这里的服务；WebAssembly 用 Rune.Demo.Client/Program.cs 里的同一套
 builder.Services.AddRuneUI(o => o.ThemeChoices = ThemeChoices.Builtin);
-builder.Services.AddScoped<CounterStore>();
+builder.Services.AddDocsContent();
 
 var app = builder.Build();
 

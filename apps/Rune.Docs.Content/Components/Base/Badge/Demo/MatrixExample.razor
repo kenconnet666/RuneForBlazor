@@ -1,0 +1,36 @@
+@inherits RuneComponent
+
+<div @attributes="Attrs.Merge(MatrixGrid)">
+    @foreach (var variant in Enum.GetValues<StatusVariant>())
+    {
+        <TextSpan Size="Size.Xs" Tone="TextTone.Muted">@variant.ToString().ToLowerInvariant()</TextSpan>
+        @foreach (var (tone, label) in tones)
+        {
+            <Badge Variant="variant" Tone="tone">@label</Badge>
+        }
+    }
+</div>
+
+@code {
+    static readonly (Tone Tone, string Label)[] tones =
+    [
+        (Tone.Neutral, "草稿"),
+        (Tone.Accent, "新功能"),
+        (Tone.Info, "处理中"),
+        (Tone.Success, "已完成"),
+        (Tone.Warning, "即将到期"),
+        (Tone.Danger, "已失败"),
+    ];
+
+    // 一行一种样式、一列一种色调：第一列是样式名
+    static Style MatrixGrid => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "repeat(7, max-content)",
+        JustifyContent = JustifyContent.Start,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Sm,
+        ColumnGap = Space.Md,
+        OverflowX = Overflow.Auto,
+    });
+}

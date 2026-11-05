@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("18em")" Gap="SpaceScale.Md">
+    <Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Small Tone="TextTone.Muted">truncate：单行省略</Small>
+            <Strong Truncate="true">vue-tsx-pro / packages / ui / src / display / VirtualList.tsx</Strong>
+            <TextSpan Truncate="true" Tone="TextTone.Muted">@LongText</TextSpan>
+        </Flex>
+    </Card>
+    <Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Small Tone="TextTone.Muted">lineClamp={2}：最多两行</Small>
+            <Paragraph LineClamp="2">@LongText</Paragraph>
+        </Flex>
+    </Card>
+    <Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Small Tone="TextTone.Muted">wrap="balance"：各行长度均衡</Small>
+            <Paragraph Wrap="TextWrapping.Balance" Size="Size.Lg" Weight="Weight.Semibold" Align="TextAlignment.Center">
+                用更自然的 TSX 写 Vue 组件，符文让状态读写像普通变量
+            </Paragraph>
+        </Flex>
+    </Card>
+</Grid>
+
+@code {
+    const string LongText =
+        "组件库按源码使用时，改了组件立刻热更新；发布的包是编译好的 ESM 与类型声明，使用方不需要任何额外配置就能按需引入、摇树优化，样式在用到时由运行时引擎生成，开发服务器把组件库整个预构建。";
+}

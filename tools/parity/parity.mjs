@@ -83,7 +83,7 @@ function collect({ side, ids, props, canvasWidth, SEMANTIC_TAGS }) {
   // 交互状态读样式时也用它
   window.parityNormalize = normalize;
 
-  /** 效果区：vue 是示例卡片里的排布网格，本库是 DemoSection 的 data-demo-canvas */
+  /** 效果区：两边都是示例卡片里的排布网格（本库的带 data-demo-canvas） */
   const canvasOf = (heading) => {
     const section = heading.parentElement;
     if (side === 'rune') return section.querySelector('[data-demo-canvas]');

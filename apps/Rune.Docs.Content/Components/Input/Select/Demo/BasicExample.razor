@@ -1,0 +1,46 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Grid MinItemWidth="@("13rem")" Gap="SpaceScale.Md">
+        <Field Label="类型">
+            <Select Items="types" @bind-Value="type" data-testid="type" />
+        </Field>
+        <Field Label="负责人">
+            <Select Items="members" ToOption="@(m => new ListboxOption(m.Id, m.Name, Group: m.Team))" @bind-Value="assignee" Placeholder="未分配" Clearable="true" data-testid="assignee">
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <Avatar Size="Size.Xs" Name="@context.Item.Name" />
+                    <span>@context.Item.Name</span>
+                </Flex>
+            </Select>
+        </Field>
+    </Grid>
+    <Field Label="标签" Description="多选：已选的在触发框里显示成标签">
+        <Select Items="labels" SelectionMode="SelectionMode.Multiple" @bind-Values="tags" Clearable="true" data-testid="tags" />
+    </Field>
+    <Small Tone="TextTone.Muted" data-testid="basic-summary">@type · @(assignee ?? "未分配") · @(tags.Count > 0 ? string.Join("、", tags) : "无标签")</Small>
+</Flex>
+
+@code {
+    sealed record Member(string Id, string Name, string Team);
+
+    static readonly ListboxOption[] types =
+    [
+        new("bug", "缺陷", Icon: Lucide.Bug, Description: "功能不符合预期"),
+        new("feature", "需求", Icon: Lucide.Lightbulb, Description: "新功能或改进"),
+        new("chore", "杂项", Icon: Lucide.Wrench, Description: "依赖升级、重构"),
+        new("question", "咨询", Icon: Lucide.CircleDot, Disabled: true),
+    ];
+
+    static readonly Member[] members =
+    [
+        new("zyh", "周一航", "设计"), new("xy", "许悠", "设计"), new("lxm", "林小满", "前端"), new("zhr", "赵浩然", "前端"), new("cm", "陈默", "后端"),
+    ];
+
+    static readonly string[] labels = ["紧急", "前端", "后端", "设计", "文档", "性能", "无障碍"];
+
+    string? type = "bug";
+
+    string? assignee = "lxm";
+
+    IReadOnlyList<string> tags = ["前端", "无障碍"];
+}

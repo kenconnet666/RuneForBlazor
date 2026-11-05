@@ -1,0 +1,20 @@
+@page "/components/popconfirm"
+@attribute [DocMeta("Popconfirm 气泡确认", "在触发按钮旁边问一句再执行：移出成员、撤回、清空这类有后果但不必弹对话框的操作。确认可以等接口返回，失败时保持打开。", DocCategory.Overlay, Order = 3)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Overlay.Popconfirm.Demo
+
+<DocPage Meta="Meta" Wide="false">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="members" Title="移出成员" Demo="typeof(MembersExample)">
+                <Code>Trigger</Code> 同 Popover。<Code>OnConfirm</Code> 执行期间确认按钮加载中、取消暂不可用，完成后关闭；把参数的 <Code>KeepOpen</Code> 设为 true 时保持打开，可以再试或取消，失败原因由调用方提示（这里用 Toast）。打开时焦点落在“取消”上，误按 Enter 不会执行。弹出层是 role="alertdialog"，以问题为名称、说明为描述。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="variants" Title="色调、图标与位置" Demo="typeof(VariantsExample)">
+                <Code>Tone</Code> 决定图标与确认按钮的颜色，默认 Warning，删除这类用 Danger；<Code>Icon</Code> 换图标，<Code>HideIcon</Code> 不显示。<Code>Placement</Code> 默认在上方，<Code>Arrow</Code> 加指向触发元素的箭头。<Code>OnCancel</Code> 在点取消、点外面、按 Esc 时调用。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Popconfirm)]" />
+</DocPage>

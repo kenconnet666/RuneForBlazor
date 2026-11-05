@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xl">
+    <Field Label="价格区间" Description="拖动时实时写回；松手（或键盘改完）时 OnRangeCommit 才去查询">
+        <Slider TValue="int" @bind-Range="price" Min="0" Max="5000" Step="100" Marks="priceMarks" ValueText="Yuan"
+                     OnRangeCommit="@(next => committed = next)" data-testid="price" />
+    </Field>
+    <Small Tone="TextTone.Muted" data-testid="price-summary">正在看 @Yuan(price.Low)–@Yuan(price.High)；已查询 @Yuan(committed.Low)–@Yuan(committed.High)</Small>
+    <Field Label="最低评分">
+        <Slider @bind-Value="rating" Min="1" Max="5" Marks="ratingMarks" Tone="Tone.Success" ValueText="@(v => $"{v} 星及以上")" />
+    </Field>
+</Flex>
+
+@code {
+    static readonly SliderMark<int>[] priceMarks = [new(0, "¥0"), new(1000, "¥1k"), new(2500, "¥2.5k"), new(5000, "¥5k+")];
+
+    static readonly SliderMark<int>[] ratingMarks = [.. Enumerable.Range(1, 5).Select(v => new SliderMark<int>(v, $"{v} 星"))];
+
+    NumberRange<int> price = new(800, 3500);
+
+    NumberRange<int> committed = new(800, 3500);
+
+    int rating = 4;
+
+    static string Yuan(int value) => $"¥{value:N0}";
+}

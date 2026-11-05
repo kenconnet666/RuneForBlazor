@@ -1,0 +1,34 @@
+@inherits RuneComponent
+
+<form @onsubmit="Submit" @onsubmit:preventDefault data-testid="slider-form">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+        <Field Label="提醒音量" Description="@($"拖动中 {reminder}，松手后才保存：{saved}")">
+            <Slider TValue="int" @bind-Value="reminder" Name="volume" OnValueCommit="@(value => saved = value)" />
+        </Field>
+        <Field Label="系统音量" Disabled="true" Description="由系统设置控制">
+            <Slider Value="40" />
+        </Field>
+        <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center" Wrap="true">
+            <Button Type="submit" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">提交</Button>
+            @if (submitted is not null)
+            {
+                <Code data-testid="submitted">@submitted</Code>
+            }
+            else
+            {
+                <Small Tone="TextTone.Muted">Name 随表单提交当前值</Small>
+            }
+        </Flex>
+    </Flex>
+</form>
+
+@code {
+
+    int reminder = 60;
+
+    int saved = 60;
+
+    string? submitted;
+
+    void Submit() => submitted = $"{{\"volume\":\"{reminder}\"}}";
+}

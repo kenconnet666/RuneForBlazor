@@ -151,7 +151,7 @@
   `data-rune-fullscreen` 变了时 `js/fullscreen.js` 请求或退出浏览器全屏，用户自己离开浏览器全屏、或没进去时按 Esc，发 rune-command（fullscreen-exit）。
   收起、全屏要交互模式，静态渲染时不显示这两个按钮。顶栏高度经 `LayoutVars.StickyOffset`（`--rune-sticky-offset`）交给标题的 scroll-margin 与粘性侧栏。
   注意：样式合并按“条件 + 属性”覆盖，后写的无条件 `display: none` 盖不住先写的断点里的 display，要隐藏写在断点里显示的元素时断点里也写 none。
-  演示站的整页示例：`[DemoFrame]` 组件渲染在 `/{模式}/frame/{演示}/{名字}`（FrameLayout，不套演示站外壳），DemoSection 写 `Frame` 用 iframe 打开。
+  整页示例：`[DocFrame]` 组件渲染在 `/frame/{页面}/{名字}`（测试台是 `/{模式}/frame/…`，FrameLayout 不套站点外壳），`Example` 写 `Frame="高度"` 用 iframe 打开。
 - **主题切换全在浏览器里**：可选的主题写在 `RuneUIOptions.ThemeChoices`（服务注册的配置三种渲染模式都拿得到；交互模式的根接不到布局级联下来的值）。
   最外层的 RuneProvider 输出每套主题按 `:root[data-theme="名字"] .主题类` 取用的变量（排在跟随系统的两段之后，选择器更具体）；
   head 里的 ThemeBootScript 输出配置（`script#rune-theme-config`：存储键、每套的底色、文字色、配色方案）与一小段脚本，页面显示前按 localStorage
@@ -159,6 +159,11 @@
   同步选中标记与按钮图标（复制选中项的图标），并跟着系统明暗、其他标签页、增强导航换页重新应用。C# 不知道选了哪套，所以单选项的选中标记按
   aria-checked 用 CSS 显示（MenuRadioItem 的 Indicator），JS 改 aria-checked 就够。代价是每页都带全部可选主题的变量（16 套约 230KB，未压缩），
   静态导出时再考虑抽成共享样式表。
+- **文档内容是一个 Razor 类库（apps/Rune.Docs.Content）**：组件页 `Components/<分类>/<组件>/<组件>Page.razor`（`@page` + `[DocMeta]`，示例按 vue-tsx-pro 的两列写定），
+  一个示例一个文件（`Demo/<名字>Example.razor`），源码作为嵌入资源打进程序集，示例卡片按类型取出原文（ExampleSource），WebAssembly 里也能读。
+  API 表运行时生成（ComponentApiReader）：反射读 [Parameter]，新建实例取默认值，说明取嵌进来的 Rune.UI.xml（所以三个库在项目文件里开 GenerateDocumentationFile）。
+  文档站（Rune.Docs）与渲染模式测试台（Rune.Demo，`/{模式}/{页面}`，端到端测试与对照工具用它）渲染同一批页面。
+  注意：收起的源码也在 DOM 里（页内搜索能找到），端到端测试按文字找元素时要只看可见的（`Filter(new() { Visible = true })`）或限定在示例里。
 - **docs-kit 放在 Rune.UI 里**（不像 vue-tsx-pro 分子路径导出）：CodePreview 的源码由使用方给出，收起时是纯文本，指针移到、焦点进入工具栏或展开时才
   交给 CodeBlock 高亮。PropsTable、TextTable 显式转交 Table 的外观参数（未声明的属性按字符串传，类型对不上）。ColorSwatch 的 token 取值由 JS 读
   （`data-rune-token-value`，插入时与换主题后重读），C# 不知道浏览器里当前是哪套主题。

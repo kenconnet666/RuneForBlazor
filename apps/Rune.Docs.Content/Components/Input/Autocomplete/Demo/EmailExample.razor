@@ -1,0 +1,29 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@CssLength.Rem(15)" Gap="SpaceScale.Lg">
+    @* 建议已经按输入算好，不再本地过滤 *@
+    <Field Label="联系邮箱" Description="@($"值就是文字：{(string.IsNullOrEmpty(email) ? "（空）" : email)}")">
+        <Autocomplete Items="Suggest(email)" LocalFilter="false" @bind-Value="email" Icon="Lucide.Mail" Clearable="true" placeholder="输入邮箱" Name="email" data-testid="email" />
+    </Field>
+    <Field Label="抄送" Description="已有值时照常显示；建议只在输入时出现">
+        <Autocomplete Items="Suggest(cc)" LocalFilter="false" @bind-Value="cc" Icon="Lucide.Mail" />
+    </Field>
+</Grid>
+
+@code {
+    static readonly string[] domains = ["qq.com", "163.com", "foxmail.com", "gmail.com", "outlook.com", "company.cn"];
+
+    string? email = "";
+
+    string? cc = "finance@company.cn";
+
+    // 按已输入的 @ 后面部分筛后缀：lin@q → lin@qq.com
+    static string[] Suggest(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return [];
+        var at = text.IndexOf('@');
+        var name = at < 0 ? text : text[..at];
+        var typedDomain = at < 0 ? "" : text[(at + 1)..];
+        return [.. domains.Where(domain => domain.StartsWith(typedDomain, StringComparison.Ordinal)).Select(domain => $"{name}@{domain}")];
+    }
+}

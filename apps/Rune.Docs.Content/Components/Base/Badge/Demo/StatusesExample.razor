@@ -1,0 +1,53 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs" Wrap="true">
+        @* 子内容是推迟执行的委托：不能捕获 for 的循环变量，用 foreach *@
+        @foreach (var key in TaskStatuses.Keys)
+        {
+            <Flex Inline="true" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                @if (TaskStatuses.Order(key) > 0)
+                {
+                    <Icon Data="Lucide.ChevronRight" Tone="TextTone.Muted" aria-hidden="true" />
+                }
+                <StatusBadge Statuses="TaskStatuses" Value="key" Radius="Radius.Full" />
+            </Flex>
+        }
+    </Flex>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+        <Small Tone="TextTone.Muted">异常状态</Small>
+        @foreach (var key in Exceptions.Keys)
+        {
+            <StatusBadge Statuses="Exceptions" Value="key" Variant="StatusVariant.Outline" />
+        }
+    </Flex>
+    <Field Label="按状态筛选" Description="选项来自同一份状态映射，带说明">
+        <Select Items="TaskStatuses.Options()" SelectionMode="SelectionMode.Multiple" @bind-Values="statusFilter" Clearable="true" />
+    </Field>
+    <TextSpan Size="Size.Sm" Tone="TextTone.Muted">
+        “测试中”排在第 @(TaskStatuses.Order("verifying") + 1) 个阶段；不认识的状态显示成：<StatusBadge Statuses="TaskStatuses" Value="@("archived")" />
+    </TextSpan>
+</Flex>
+
+@code {
+    IReadOnlyList<string> statusFilter = ["verifying", "awaiting"];
+
+    static readonly StatusMap<string> TaskStatuses = new()
+    {
+        ["pending"] = new("待启动"),
+        ["designing"] = new("设计中", Tone.Info),
+        ["verifying"] = new("测试中", Tone.Info),
+        ["awaiting"] = new("待验收", Tone.Warning, Description: "等需求方出具验收报告"),
+        ["accepted"] = new("已验收", Tone.Accent),
+        ["settling"] = new("结算中", Tone.Warning, Description: "财务对账，30 天内回填结算金额"),
+        ["settled"] = new("已结算", Tone.Success),
+        ["closed"] = new("关闭", Tone.Success),
+    };
+
+    static readonly StatusMap<string> Exceptions = new()
+    {
+        ["paused"] = new("暂停", Tone.Warning, Lucide.CirclePause),
+        ["terminated"] = new("终止", Tone.Danger, Lucide.CircleSlash),
+        ["queued"] = new("待排期", Tone.Neutral, Lucide.Hourglass),
+    };
+}

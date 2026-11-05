@@ -110,7 +110,8 @@ public class OverlayTests(DemoServer demo)
         var failing = page.GetByRole(AriaRole.Alertdialog, new() { Name = "把 周一航 移出项目？" });
         await Assertions.Expect(failing.GetByRole(AriaRole.Button, new() { Name = "取消" })).ToBeFocusedAsync();
         await failing.GetByRole(AriaRole.Button, new() { Name = "移出" }).ClickAsync();
-        await Assertions.Expect(page.GetByText("没有权限")).ToBeVisibleAsync();
+        // 示例的源码（收起着）里也有这句：只看可见的
+        await Assertions.Expect(page.GetByText("没有权限").Filter(new() { Visible = true })).ToBeVisibleAsync();
         await Assertions.Expect(failing).ToBeVisibleAsync();
         await page.Keyboard.PressAsync("Escape");
         await Assertions.Expect(failing).ToBeHiddenAsync();

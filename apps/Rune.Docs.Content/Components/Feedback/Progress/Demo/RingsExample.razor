@@ -1,0 +1,33 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Grid MinItemWidth="@CssLength.Rem(9)" Gap="SpaceScale.Md">
+        @foreach (var (name, done, target, tone) in plants)
+        {
+            <Card @key="name">
+                <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                    <Progress Shape="ProgressShape.Circle" Size="Size.Lg" Value="done" Target="target" Tone="tone" Label="@($"{name} 产量完成率")" />
+                    <Small Tone="TextTone.Muted">目标 @target%</Small>
+                </Flex>
+            </Card>
+        }
+    </Grid>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Progress Value="6.4m" Max="10" Target="8" Label="年度产量（万件）" ValueLabel="6.4 / 10" data-testid="yearly" />
+        <Progress Value="92" Target="85" Tone="Tone.Success" Label="交付准时率" />
+    </Flex>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md">
+        <Progress Shape="ProgressShape.Circle" Size="Size.Sm" aria-label="正在同步" />
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">不确定进度：弧线一直转</TextSpan>
+        <Progress Shape="ProgressShape.Circle" Value="100" Size="Size.Sm" Tone="Tone.Success" aria-label="已完成" />
+    </Flex>
+</Flex>
+
+@code {
+    static readonly (string Name, decimal Done, decimal Target, Tone Tone)[] plants =
+    [
+        ("一车间", 86, 80, Tone.Success),
+        ("二车间", 64, 80, Tone.Warning),
+        ("三车间", 38, 75, Tone.Danger),
+    ];
+}

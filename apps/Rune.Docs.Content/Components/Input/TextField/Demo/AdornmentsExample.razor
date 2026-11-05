@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Lg">
+    <Field Label="搜索">
+        <TextField @bind-Value="keyword" Type="search" Icon="Lucide.Search" Clearable="true" Radius="Radius.Full" data-testid="search" />
+    </Field>
+    <Field Label="个人主页" Description="prefix 是不算在值里的固定文字，iconEnd 在框尾">
+        <TextField @bind-Value="homepage" IconEnd="Lucide.Link2"><Prefix>https://</Prefix></TextField>
+    </Field>
+    <Field Label="用户名" Error="用户名已被占用，换一个试试">
+        <TextField Value="xiaoman" Icon="Lucide.AtSign" />
+    </Field>
+    <Field Label="简介" Description="自己的输入组件（富文本、代码编辑器）用 CharacterCount 显示字数">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Textarea @bind-Value="bio" Rows="3" />
+            <CharacterCount Count="bio.Length" Max="30" />
+        </Flex>
+    </Field>
+</Grid>
+
+@code {
+    string? keyword = "设计规范";
+
+    string? homepage = "github.com/linxiaoman";
+
+    string bio = "喜欢做小而美的工具，周末在山里跑步。";
+}

@@ -1,0 +1,23 @@
+@page "/components/dialog"
+@attribute [DocMeta("Dialog 对话框", "模态面板：居中的 Dialog 与需要确认的 AlertDialog（从一侧滑入的见 Drawer）。建在原生 dialog 上，焦点、Esc、背景不可操作都由浏览器负责。", DocCategory.Overlay, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Overlay.Dialog.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="dialog" Title="编辑表单" Demo="typeof(DialogExample)">
+                <Code>@@bind-Open</Code> 双向绑定；<Code>Title</Code> 与 <Code>Description</Code> 是对话框的名称与描述。写了 <Code>OnConfirm</Code> 页脚就有“取消 / 确认”：执行期间确认按钮加载中、关不掉，完成后关闭；<Code>KeepOpen</Code> 时对话框留着（校验没过、保存失败）。打开时焦点落在 autofocus 的元素上（没有就是第一个可聚焦的），关闭后回到打开它的按钮。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="long-content" Title="宽度与长内容" Demo="typeof(LongContentExample)">
+                <Code>Size</Code> 与 Container 同档（Xs–Xl），另有 Full 占满视口。内容长时只滚正文，标题与页脚一直看得见。这里用 <Code>Trigger</Code> 打开（不管 Open）：点击由 JS 直接打开，静态 SSR 也能用；页脚的按钮写 <Code>data-rune-close</Code> 点击后关闭。
+            </Example>
+            <Example Id="blocking" Title="进行中的任务" Demo="typeof(BlockingExample)">
+                <Code>Closable="false"</Code> 去掉右上角的关闭按钮，<Code>Dismissible="false"</Code> 让点遮罩不关闭——任务进行中别被误关；<Kbd>Esc</Kbd> 仍然可以关（浏览器的约定），关闭后 <Code>OpenChanged</Code> 收到 false，在那里收尾。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Dialog)]" />
+</DocPage>

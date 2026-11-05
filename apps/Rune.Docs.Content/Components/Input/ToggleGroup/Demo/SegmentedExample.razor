@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true">
+        <ToggleGroup @bind-Value="view" Required="true" aria-label="视图" data-testid="view">
+            <ToggleItem Value="list" Icon="Lucide.List">列表</ToggleItem>
+            <ToggleItem Value="board" Icon="Lucide.Columns3">看板</ToggleItem>
+            <ToggleItem Value="grid" Icon="Lucide.LayoutGrid">卡片</ToggleItem>
+            <ToggleItem Value="calendar" Icon="Lucide.CalendarDays">日历</ToggleItem>
+        </ToggleGroup>
+        <ToggleGroup @bind-Value="period" Required="true" Size="Size.Sm" aria-label="时间范围">
+            <ToggleItem Value="day">日</ToggleItem>
+            <ToggleItem Value="week">周</ToggleItem>
+            <ToggleItem Value="month">月</ToggleItem>
+            <ToggleItem Value="year">年</ToggleItem>
+        </ToggleGroup>
+    </Flex>
+    <Small Tone="TextTone.Muted" data-testid="view-summary">@view · @period：Required 时至少保留一项，再点已选项不会取消（分段控件）</Small>
+</Flex>
+
+@code {
+    string? view = "board";
+
+    string? period = "week";
+}

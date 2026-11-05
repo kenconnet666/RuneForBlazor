@@ -1,0 +1,19 @@
+@page "/components/provider"
+@attribute [DocMeta("Provider 配置", "主题、语言包、组件默认值、路由适配：应用级用 createUi 一次装好，局部用 Provider 覆盖；useFormat 按当前语言格式化数字、金额与日期。", DocCategory.Config, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Config.Provider.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="defaults" Title="组件默认值" Demo="typeof(DefaultsExample)" />
+            <Example Id="color-scheme" Title="亮暗模式" Demo="typeof(ColorSchemeExample)" />
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="styles" Title="按部件定制样式" Demo="typeof(StylesExample)" />
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="themes" Title="内置主题（同 vue-tsx-pro，16 套）" Demo="typeof(ThemesExample)" />
+        </ExampleColumn>
+    </Examples>
+</DocPage>

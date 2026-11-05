@@ -1,0 +1,99 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <TextSpan Size="Size.Sm" Sx="ControlLabel">direction</TextSpan>
+            <ToggleGroup @bind-Value="direction" Required="true" Size="Size.Sm" aria-label="direction">
+                @foreach (var value in directions)
+                {
+                    <ToggleItem @key="value" Value="@value">@value</ToggleItem>
+                }
+            </ToggleGroup>
+        </Flex>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <TextSpan Size="Size.Sm" Sx="ControlLabel">gap</TextSpan>
+            <ToggleGroup @bind-Value="gap" Required="true" Size="Size.Sm" aria-label="gap">
+                @foreach (var value in gaps)
+                {
+                    <ToggleItem @key="value" Value="@value">@value</ToggleItem>
+                }
+            </ToggleGroup>
+        </Flex>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <TextSpan Size="Size.Sm" Sx="ControlLabel">align</TextSpan>
+            <ToggleGroup @bind-Value="align" Required="true" Size="Size.Sm" aria-label="align">
+                @foreach (var value in aligns)
+                {
+                    <ToggleItem @key="value" Value="@value">@value</ToggleItem>
+                }
+            </ToggleGroup>
+        </Flex>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <TextSpan Size="Size.Sm" Sx="ControlLabel">justify</TextSpan>
+            <ToggleGroup @bind-Value="justify" Required="true" Size="Size.Sm" aria-label="justify">
+                @foreach (var value in justifies)
+                {
+                    <ToggleItem @key="value" Value="@value">@value</ToggleItem>
+                }
+            </ToggleGroup>
+        </Flex>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <TextSpan Size="Size.Sm" Sx="ControlLabel">wrap</TextSpan>
+            <Switch @bind-Checked="wrap" aria-label="wrap" />
+        </Flex>
+    </Flex>
+    <Flex Direction="Parse<LayoutDirection>(direction)" Align="Parse<ItemAlign>(align)" Justify="Parse<ContentJustify>(justify)" Gap="Parse<SpaceScale>(gap)" Wrap="wrap" Sx="Stage" data-testid="stage">
+        @for (var i = 0; i < heights.Length; i++)
+        {
+            var height = heights[i];
+            <div @attributes="Attrs.Merge(Box)" style="@BoxSize(height)">@(i + 1)</div>
+        }
+    </Flex>
+</Flex>
+
+@code {
+    // 切换按钮的值是字符串：写成小写的枚举名，同 vue 的写法
+    static readonly string[] directions = ["row", "column"];
+
+    static readonly string[] gaps = ["none", "xs", "sm", "md", "lg", "xl"];
+
+    static readonly string[] aligns = ["start", "center", "end", "stretch", "baseline"];
+
+    static readonly string[] justifies = ["start", "center", "end", "between", "evenly"];
+
+    static T Parse<T>(string? value) where T : struct, Enum => Enum.Parse<T>(value!, ignoreCase: true);
+
+    // 高矮不一，才看得出 align 的差别
+    static readonly double[] heights = [2, 3.5, 2.5, 4, 3];
+
+    string? direction = "row", gap = "sm", align = "center", justify = "start";
+
+    bool wrap;
+
+    static string BoxSize(double height) =>
+        FormattableString.Invariant($"height:{height}rem;padding-inline:{height / 4}rem");
+
+    static Style ControlLabel => Css.Define(static () => new Style { MinWidth = CssLength.Em(3.5), Color = Colors.TextMuted });
+
+    static Style Stage => Css.Define(static () => new Style
+    {
+        MinHeight = CssLength.Rem(11),
+        Padding = Space.Md,
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Dashed,
+        BorderColor = Colors.Border,
+        BorderRadius = Radii.Md,
+    });
+
+    static Style Box => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        MinWidth = CssLength.Rem(3),
+        BorderRadius = Radii.Sm,
+        BackgroundColor = Tones.Accent.Soft,
+        Color = Tones.Accent.Text,
+        FontWeight = FontWeights.Semibold,
+    });
+}

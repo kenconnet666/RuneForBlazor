@@ -1,0 +1,14 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Card Variant="CardVariant.Outline" Padding="SpaceScale.Md">
+        <Header>超时最久的项目</Header>
+        <Extra><TextLink Href="server/card">全部超时<Icon Data="Lucide.ArrowUpRight" /></TextLink></Extra>
+        <ChildContent><Small Tone="TextTone.Muted">PO-2026-0276 线缆收纳夹改版 · 超时 15 天</Small></ChildContent>
+    </Card>
+    <Card Variant="CardVariant.Outline" Padding="SpaceScale.Md">
+        <Header>结项材料</Header>
+        <Extra><Badge Tone="Tone.Warning">缺 2 项</Badge></Extra>
+        <ChildContent><Small Tone="TextTone.Muted">验收报告、财务复核意见、合同签订记录，缺一不能结项</Small></ChildContent>
+    </Card>
+</Flex>

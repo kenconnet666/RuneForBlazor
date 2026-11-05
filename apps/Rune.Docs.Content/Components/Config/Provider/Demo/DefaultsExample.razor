@@ -1,0 +1,18 @@
+@inherits RuneComponent
+
+<p>这片区域把折叠面板的默认外观改成 Outline：组件上没写 Variant，取的是 Provider 的默认值。</p>
+<RuneProvider Defaults="@outlineByDefault">
+    <Collapsible data-testid="default-variant">
+        <Title>没写 Variant 的折叠面板</Title>
+        <ChildContent>外观来自 Provider。</ChildContent>
+    </Collapsible>
+    <Collapsible Variant="CollapsibleVariant.Plain" data-testid="explicit-variant">
+        <Title>显式写了 Variant="Plain"</Title>
+        <ChildContent>组件上写的参数优先。</ChildContent>
+    </Collapsible>
+</RuneProvider>
+
+@code {
+    // 配置对象在组件里只创建一次：Provider 按引用判断配置有没有变
+    readonly ComponentDefaults outlineByDefault = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } };
+}

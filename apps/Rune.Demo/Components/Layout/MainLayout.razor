@@ -1,17 +1,17 @@
-@* 演示项目的外壳：左侧是演示目录，切换演示时保持当前的渲染模式；RuneProvider 套上应用级主题 *@
+@* 渲染模式测试台的外壳：左侧是文档页的目录，切换演示时保持当前的渲染模式；RuneProvider 套上应用级主题 *@
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
 
 <RuneProvider>
 <div class="demo-shell">
     <nav class="demo-nav" aria-label="演示目录">
-        <div class="demo-brand"><a href="">Rune 演示</a><ThemeSwitcher /></div>
-        @foreach (var group in DemoCatalog.All.GroupBy(d => d.Group))
+        <div class="demo-brand"><a href="">Rune 测试台</a><ThemeSwitcher /></div>
+        @foreach (var section in DocsCatalog.Sections)
         {
-            <div class="demo-nav-group">@group.Key</div>
-            @foreach (var demo in group)
+            <div class="demo-nav-group">@section.Label</div>
+            @foreach (var entry in section.Pages)
             {
-                <a href="@($"{CurrentMode}/{demo.Slug}")">@demo.Title</a>
+                <a href="@($"{CurrentMode}/{entry.Slug}")">@entry.Meta.Title</a>
             }
         }
         <div class="demo-nav-group">渲染方式</div>

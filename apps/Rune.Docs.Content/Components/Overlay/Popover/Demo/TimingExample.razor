@@ -1,0 +1,49 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg" Align="ItemAlign.Start">
+    <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Wrap="true">
+        <Flex Gap="SpaceScale.Xs">
+            @foreach (var (icon, label, shortcut) in marks)
+            {
+                <Tooltip @key="label" Delay="0" Disabled="!hints">
+                    <Trigger Context="t"><IconButton @attributes="t" Icon="icon" Label="@label" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" /></Trigger>
+                    <ChildContent>@label <Kbd>@shortcut</Kbd></ChildContent>
+                </Tooltip>
+            }
+        </Flex>
+        <Switch @bind-Value="hints">显示按钮提示</Switch>
+    </Flex>
+    <Flex Gap="SpaceScale.Lg" Align="ItemAlign.Center" Wrap="true">
+        <Tooltip Delay="1000">
+            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">停一秒才提示</Button></Trigger>
+            <ChildContent>不常用的说明可以等久一点，免得指针划过时到处弹出</ChildContent>
+        </Tooltip>
+        <Small Tone="TextTone.Muted">
+            作者
+            <HoverCard Delay="200" CloseDelay="600" Offset="12">
+                <Trigger Context="t"><TextLink @attributes="t" Href="server/avatar">@@周一航</TextLink></Trigger>
+                <ChildContent>
+                    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+                        <Avatar Name="周一航" />
+                        <Flex Direction="LayoutDirection.Column">
+                            <Strong>周一航</Strong>
+                            <Small Tone="TextTone.Muted">设计中心 · 高级交互设计师</Small>
+                        </Flex>
+                    </Flex>
+                </ChildContent>
+            </HoverCard>
+            发布于 3 天前
+        </Small>
+    </Flex>
+</Flex>
+
+@code {
+    static readonly (IconData Icon, string Label, string Shortcut)[] marks =
+    [
+        (Lucide.LetterB, "加粗", "Ctrl+B"),
+        (Lucide.Italic, "斜体", "Ctrl+I"),
+        (Lucide.Underline, "下划线", "Ctrl+U"),
+    ];
+
+    bool hints = true;
+}

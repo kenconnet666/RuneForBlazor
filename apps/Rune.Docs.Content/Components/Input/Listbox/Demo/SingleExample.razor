@@ -1,0 +1,20 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="套餐" Required="true">
+        <Listbox Items="plans" @bind-Value="plan" data-testid="plans" />
+    </Field>
+    <Small Tone="TextTone.Muted" data-testid="plan-picked">选了：@(plans.FirstOrDefault(p => p.Value == plan)?.Label ?? "无")</Small>
+</Flex>
+
+@code {
+    static readonly ListboxOption[] plans =
+    [
+        new("free", "免费版", Icon: Lucide.Sprout, Description: "3 个项目、1 GB 存储", Group: "个人"),
+        new("pro", "专业版", Icon: Lucide.Rocket, Description: "不限项目、100 GB 存储", Group: "个人"),
+        new("team", "团队版", Icon: Lucide.Users, Description: "20 人以内，共享空间", Group: "团队"),
+        new("enterprise", "企业版", Icon: Lucide.BuildingComplex, Description: "单点登录、审计日志（请联系销售）", Group: "团队", Disabled: true),
+    ];
+
+    string? plan = "pro";
+}

@@ -1,0 +1,23 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <Popconfirm Title="撤回这次提交？" Description="撤回后审批流程回到草稿，审批人的意见会保留。" ConfirmText="撤回"
+                    OnConfirm="@(() => last = "已撤回")" OnCancel="@(() => last = "取消了撤回")">
+            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Undo2">撤回（warning）</Button></Trigger>
+        </Popconfirm>
+        <Popconfirm Title="发送给全部 248 位客户？" Tone="Tone.Accent" Icon="Lucide.Send" ConfirmText="发送" Placement="Placement.Bottom" Arrow="true"
+                    OnConfirm="@(() => last = "已发送")" OnCancel="@(() => last = "取消了发送")">
+            <Trigger Context="t"><Button @attributes="t" Icon="Lucide.Send">群发（accent、箭头）</Button></Trigger>
+        </Popconfirm>
+        <Popconfirm Title="归档这个项目？" HideIcon="true" Tone="Tone.Neutral" ConfirmText="归档" Placement="Placement.Right"
+                    OnConfirm="@(() => last = "已归档")" OnCancel="@(() => last = "取消了归档")">
+            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Soft" Tone="Tone.Neutral" Icon="Lucide.Archive">归档（不显示图标）</Button></Trigger>
+        </Popconfirm>
+    </Flex>
+    <Small Tone="TextTone.Muted" aria-live="polite" data-testid="popconfirm-last">@(last ?? "点按钮试试；点外面或按 Esc 等于取消")</Small>
+</Flex>
+
+@code {
+    string? last;
+}

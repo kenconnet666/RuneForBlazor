@@ -1,0 +1,20 @@
+@page "/components/rating"
+@attribute [DocMeta("Rating 评分", "几颗星里选一个分数：供应商评价、满意度、优先级。可以半星，可以只读显示。", DocCategory.Input, Order = 15)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.Rating.Demo
+
+<DocPage Meta="Meta" Wide="false">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="review" Title="供应商评价" Demo="typeof(ReviewExample)">
+                可编辑时是单选组：每颗星是一个原生 radio（视觉上隐藏），方向键、表单提交、读屏都是原生的，名称是“3 星”这样的文字。指针悬停时预览将要选的分数，再点一次已选的分数清空（<Code>Clearable</Code>，默认开）。<Code>AllowHalf</Code> 每颗星左右各一半。<Code>ReadOnly</Code> 只显示：整排是一个 role="img"，读“4.5 星，满分 5 星”。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="variants" Title="图标、颜色与只读列表" Demo="typeof(VariantsExample)">
+                <Code>Icon</Code> 换图标（心、火焰），<Code>Tone</Code> 换选中的颜色，默认金黄（Warning）；<Code>Count</Code> 改星数，<Code>Size</Code> 跟字号档位缩放。评论列表里用只读的小号评分，旁边写上分数或文字。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Rating)]" />
+</DocPage>

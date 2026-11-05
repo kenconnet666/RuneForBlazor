@@ -1,0 +1,57 @@
+@inherits RuneComponent
+
+<Card>
+    <div @attributes="Attrs.Merge(TocLayout)">
+        <ScrollArea Sx="TocArticle" PropsViewport="TocViewport">
+            <div @attributes="Attrs.Merge(TocContent)">
+                @foreach (var heading in headings)
+                {
+                    if (heading.Level == 2)
+                    {
+                        <H3 @key="heading.Id" id="@heading.Id" Size="Size.Lg">@heading.Label</H3>
+                    }
+                    else
+                    {
+                        <H4 @key="heading.Id" id="@heading.Id" Size="Size.Md">@heading.Label</H4>
+                    }
+                    <Paragraph Size="Size.Sm">@filler</Paragraph>
+                    <Paragraph Size="Size.Sm">@filler</Paragraph>
+                }
+            </div>
+        </ScrollArea>
+        <TableOfContents Items="headings" ScrollRoot="toc-demo-article" Title="本文目录" data-testid="toc" />
+    </div>
+</Card>
+
+@code {
+    // id 带前缀：页面上的锚点不能重名
+    static readonly HeadingEntry[] headings =
+    [
+        new("toc-demo-install", "安装"),
+        new("toc-demo-nuget", "用 NuGet 安装", 3),
+        new("toc-demo-cdn", "引用静态资源", 3),
+        new("toc-demo-usage", "使用"),
+        new("toc-demo-theme", "主题"),
+        new("toc-demo-faq", "常见问题"),
+    ];
+
+    const string filler = "组件库按需注册，样式在用到时才生成，页面只带用到的部分。每个组件都可以用 Sx 覆盖样式，用 PropsXxx 给内部的部件加属性。";
+
+    static readonly Attrs TocLayout = new() { Sx = TocLayoutStyle };
+
+    static readonly Attrs TocContent = new() { Sx = TocContentStyle };
+
+    static readonly Attrs TocViewport = new() { Id = "toc-demo-article", AriaLabel = "文章" };
+
+    static Style TocLayoutStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "1fr 9rem",
+        Gap = Space.Lg,
+        AlignItems = AlignItems.Start,
+    });
+
+    static Style TocArticle => Css.Define(static () => new Style { Height = CssLength.Rem(18) });
+
+    static Style TocContentStyle => Css.Define(static () => new Style { Display = Display.Grid, Gap = Space.Md, PaddingInlineEnd = Space.Md });
+}

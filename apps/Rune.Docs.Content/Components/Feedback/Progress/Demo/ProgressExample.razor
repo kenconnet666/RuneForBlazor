@@ -1,0 +1,32 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Strong>套餐用量</Strong>
+        @foreach (var (name, used, total, unit) in quotas)
+        {
+            <Progress @key="name" Value="used" Max="total" Tone="ToneOf(used / total)" Label="@name"
+                      ValueLabel="@($"{used:#,0.#} / {total:#,0} {unit}")" ValueText="@((value, max) => $"{value} / {max} {unit}")"
+                      PropsValueLabel="@(used > total ? Over : null)" data-testid="@name" />
+        }
+        <Progress Value="64" Label="资料完善度" />
+        @* 只要标签、不要右侧的数值 *@
+        <Progress Value="3" Max="5" Label="新手任务" ShowValueLabel="false" Tone="Tone.Success" />
+    </Flex>
+</Card>
+
+@code {
+    static readonly (string Name, decimal Used, decimal Total, string Unit)[] quotas =
+    [
+        ("存储空间", 38.6m, 50, "GB"),
+        ("本月流量", 912, 1000, "GB"),
+        ("团队成员", 7, 20, "人"),
+        ("API 调用", 120_000, 100_000, "次"),
+    ];
+
+    // 超出用量时数值标红（交给 TextSpan 的 Tone 参数）
+    static readonly Attrs Over = new() { ["Tone"] = TextTone.Danger };
+
+    // 用量越接近上限越醒目：80% 以上警告，超出为危险
+    static Tone ToneOf(decimal ratio) => ratio > 1 ? Tone.Danger : ratio >= 0.8m ? Tone.Warning : Tone.Accent;
+}

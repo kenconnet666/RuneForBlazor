@@ -1,0 +1,25 @@
+@*
+    文档页的骨架（同 vue-tsx-pro 文档站的 DocPage）：标题、简介，后面是各个示例与 API。组件页与指南页都用它。
+    组件页写 Wide：内容区放宽，示例（Examples）在宽屏时分两列；指南页保持适合阅读的宽度。
+    <DocPage Meta="Meta" Wide="true">…</DocPage>          （页面继承 DocPageBase，Meta 取自页面的 [DocMeta]）
+*@
+@inherits RuneComponent
+
+<PageTitle>@Meta.Title · Rune</PageTitle>
+<Container Size="@(Wide ? ContainerSize.Xl : ContainerSize.Md)" Padding="SpaceScale.None">
+    <DocArticle Title="@Meta.Title" Description="@Meta.Description" Lead="Lead">@ChildContent</DocArticle>
+</Container>
+
+@code {
+    /// <summary>页面的标题与简介。</summary>
+    [Parameter, EditorRequired] public DocMetaAttribute Meta { get; set; } = default!;
+
+    /// <summary>宽版面：组件页用，示例在宽屏时分两列。</summary>
+    [Parameter] public bool Wide { get; set; }
+
+    /// <summary>简介下面、正文之前的内容。</summary>
+    [Parameter] public RenderFragment? Lead { get; set; }
+
+    /// <summary>正文。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

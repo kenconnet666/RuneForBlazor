@@ -1,0 +1,29 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("18em")" Gap="SpaceScale.Xl">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        @foreach (var size in sizes)
+        {
+            <Flex Align="ItemAlign.Baseline" Gap="SpaceScale.Md">
+                <TextSpan Size="Size.Xs" Tone="TextTone.Muted" Sx="NameColumn">size=@Lower(size)</TextSpan>
+                <TextSpan Size="size">界面里的文字 Typography</TextSpan>
+            </Flex>
+        }
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        @foreach (var weight in Enum.GetValues<Weight>())
+        {
+            <Flex Align="ItemAlign.Baseline" Gap="SpaceScale.Md">
+                <TextSpan Size="Size.Xs" Tone="TextTone.Muted" Sx="NameColumn">@Lower(weight)</TextSpan>
+                <TextSpan Weight="weight" Size="Size.Lg">季度营收 ¥1,280,000</TextSpan>
+            </Flex>
+        }
+    </Flex>
+</Grid>
+
+@code {
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg, Size.Xl];
+
+    // 左边一列是档位名：固定宽度，右边的样例对齐
+    static Style NameColumn => Css.Define(static () => new Style { Width = CssLength.Em(5), FlexShrink = 0 });
+}

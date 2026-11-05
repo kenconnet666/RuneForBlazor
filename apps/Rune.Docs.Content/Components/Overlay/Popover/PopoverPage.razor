@@ -1,0 +1,29 @@
+@page "/components/popover"
+@attribute [DocMeta("Popover 弹出框", "贴着触发器弹出的非模态浮层：点击打开的 Popover、悬停打开的 HoverCard 与 Tooltip。原生 popover 负责顶层与 Esc，floating-ui 负责定位。", DocCategory.Overlay, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Overlay.Popover.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="popover" Title="Popover" Demo="typeof(PopoverExample)">
+                <Code>Trigger</Code> 拿到要加在触发元素上的属性（<Code>@@attributes="t"</Code>），组件接管打开、定位与 aria-expanded。打开时焦点移进去，点外面、Esc 关闭，焦点回到触发元素。弹出层是 role="dialog"，名称默认取触发元素的文字。
+            </Example>
+            <Example Id="tooltip" Title="Tooltip" Demo="typeof(TooltipExample)">
+                给图标按钮补一句用途和快捷键。指针停一会儿显示，在一排按钮上移动时不用每次都等；键盘聚焦立即显示，Esc 隐藏。提示经 aria-describedby 补充说明，触发元素自己要有名称，提示里不放可交互的内容。同一个按钮既有提示又打开菜单时，用 <Code>Attrs.Merge(tip, menu)</Code> 合并两个触发元素的属性。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="hover-card" Title="HoverCard" Demo="typeof(HoverCardExample)">
+                悬停或聚焦链接时弹出一张富内容卡片：可以移到卡片上，卡片里能放按钮（键盘 Tab 进入）。卡片只是预览，里面的信息在别处也要能拿到——触屏没有悬停。
+            </Example>
+            <Example Id="placement" Title="位置与箭头" Demo="typeof(PlacementExample)">
+                <Code>Placement</Code> 是边加对齐，共 12 种；空间不够时自动翻到另一边、贴着视口平移。<Code>Arrow</Code> 显示指向触发元素的小箭头。
+            </Example>
+            <Example Id="timing" Title="显示的时机" Demo="typeof(TimingExample)">
+                Tooltip 的 <Code>Delay</Code> 是指针停多久才显示（默认 500 毫秒），工具栏这类连续的按钮可以设成 0；<Code>Disabled</Code> 时只渲染触发元素。HoverCard 的 <Code>Delay</Code> / <Code>CloseDelay</Code> 分别控制打开与离开后关闭的等待，<Code>Offset</Code> 是与触发元素的距离（像素）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(HoverCard), typeof(Popover), typeof(Tooltip)]" />
+</DocPage>

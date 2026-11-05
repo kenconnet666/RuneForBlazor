@@ -1,0 +1,20 @@
+@page "/components/table"
+@attribute [DocMeta("Table 表格", "静态表格：原生 table 的各个元素各一个组件，内容直接写在 JSX 里（说明文字里的表格、对比表、明细）；ColumnTable 按列定义渲染、可以合并单元格。要排序、勾选、虚拟滚动的用 DataTable。", DocCategory.Table, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Table.Table.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="plans" Title="套餐对比" Demo="typeof(PlansExample)">
+                行标题用 <Code>TableHeaderCell Scope="row"</Code>，读屏念单元格时会带上行名与列名。只用图标表达的值（勾与叉）旁边放一份隐藏文字。<Code>TableCaption</Code> 是表格的标题。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="invoice" Title="报价明细" Demo="typeof(InvoiceExample)">
+                <Code>Density</Code> 三档行高、<Code>Striped</Code> 斑马纹，<Code>TableVariant.Ghost</Code> 去掉外框（放在卡片、对话框里）；数字列 <Code>Align="TableAlign.End"</Code> 右对齐、<Code>NoWrap</Code> 不换行；合计放在 <Code>TableFoot</Code>。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(TableCell), typeof(TableHeaderCell), typeof(Table)]" />
+</DocPage>

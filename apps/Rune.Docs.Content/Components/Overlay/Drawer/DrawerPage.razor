@@ -1,0 +1,23 @@
+@page "/components/drawer"
+@attribute [DocMeta("Drawer 抽屉", "从一侧滑入的模态面板：看详情、编辑、筛选时列表留在原处；可以拖动调宽、记住宽度，关闭前确认未保存的改动。与 Dialog 共用同一个内核。", DocCategory.Overlay, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Overlay.Drawer.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="edit" Title="编辑：关闭前确认" Demo="typeof(EditExample)">
+                靠正文的一边可以拖宽、拖到几乎关上（<Code>@@bind-Width</Code> 记住宽度），聚焦手柄后按 ← / → 也行，双击回到打开时的宽度；<Code>Resizable="false"</Code> 关掉。<Code>OnConfirm</Code> 是保存：执行期间按钮加载中、关不掉。<Code>BeforeClose</Code> 在取消、关闭按钮、<Kbd>Esc</Kbd>、点遮罩时先问一次，返回 false 不关——有未保存的改动时确认。
+            </Example>
+            <Example Id="sides" Title="方向与宽度" Demo="typeof(SidesExample)">
+                <Code>Side</Code> 取 Start、End（默认）、Top、Bottom，Start / End 跟随从右到左排版；<Code>Size</Code> 与 Container 同档，只管左右两侧的宽度，上下两侧的高度随内容。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="filters" Title="筛选" Demo="typeof(FiltersExample)">
+                条件多、页面放不下时收进抽屉：改的是一份草稿，<Code>OnConfirm</Code>（查看结果）时才生效，关掉就放弃；<Code>Footer</Code> 里的“重置”排在取消、确认前面，确认按钮上写着已设几项。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Drawer)]" />
+</DocPage>

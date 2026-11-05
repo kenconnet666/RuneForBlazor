@@ -1,0 +1,32 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("14rem")" Gap="SpaceScale.Lg">
+    <Field Label="界面语言">
+        <Select Items="languages" @bind-Value="language" Icon="Lucide.Globe" />
+    </Field>
+    <Field Label="Variant=&quot;Soft&quot; Radius=&quot;Full&quot;">
+        <Select Items="cities" @bind-Value="city" Icon="Lucide.MapPin" Variant="InputVariant.Soft" Radius="Radius.Full" Clearable="true" Placeholder="选择城市" />
+    </Field>
+    <Field Label="必填" Required="true" Error="@(city is null ? "请选择城市" : null)">
+        <Select Items="cities" @bind-Value="city" Placeholder="选择城市" />
+    </Field>
+    <Field Label="Size=&quot;Sm&quot;">
+        <Select Items="languages" @bind-Value="language" Size="Size.Sm" />
+    </Field>
+    <Field Label="只读" ReadOnly="true" Description="能聚焦、能看，不能打开">
+        <Select Items="languages" Value="en-US" Icon="Lucide.Globe" data-testid="readonly" />
+    </Field>
+    <Field Label="不可用" Disabled="true">
+        <Select Items="languages" Value="ja-JP" />
+    </Field>
+</Grid>
+
+@code {
+    static readonly ListboxOption[] languages = [new("zh-CN", "简体中文"), new("en-US", "English"), new("ja-JP", "日本語")];
+
+    static readonly string[] cities = ["北京", "上海", "广州", "深圳", "杭州"];
+
+    string? language = "zh-CN";
+
+    string? city;
+}

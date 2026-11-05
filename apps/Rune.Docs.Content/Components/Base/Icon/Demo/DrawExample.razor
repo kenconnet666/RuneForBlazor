@@ -1,0 +1,14 @@
+@inherits RuneComponent
+@using System.Reflection
+
+<Flex Gap="SpaceScale.Lg" Align="ItemAlign.Center" Wrap="true">
+    <Icon Data="Lucide.CircleCheck" Size="40" Tone="TextTone.Success" Draw="drawn" />
+    <Icon Data="Lucide.Heart" Size="40" Tone="TextTone.Danger" Draw="drawn" />
+    <Icon Data="Lucide.Rocket" Size="40" Tone="TextTone.Accent" Draw="drawn" />
+    <Icon Data="Lucide.Signature" Size="40" Draw="drawn" />
+    <Button Variant="ButtonVariant.Soft" @onclick="() => drawn = !drawn" data-testid="draw">@(drawn ? "重置" : "画出来")</Button>
+</Flex>
+
+@code {
+    bool drawn = true;
+}

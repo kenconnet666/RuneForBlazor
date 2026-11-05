@@ -1,0 +1,50 @@
+@page "/components/button"
+@attribute [DocMeta("Button 按钮", "触发一个操作：提交表单、打开对话框、删除一项。跳转到别的页面用 LinkButton。", DocCategory.Base, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Base.Button.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
+                一组操作里只有一个主要操作用默认的实底样式，其余按重要程度依次减弱；破坏性操作放在另一侧。
+            </Example>
+            <Example Id="variants" Title="样式" Demo="typeof(VariantsExample)">
+                六种样式对应不同的强调程度：Solid 最醒目，Link 像文字链接，放在句子中间。
+            </Example>
+            <Example Id="tones" Title="色调" Demo="typeof(TonesExample)">
+                六种色调与六种样式任意组合：Neutral 用于不需要强调的操作，Danger 用于删除这类破坏性操作。
+            </Example>
+            <Example Id="sizes" Title="尺寸" Demo="typeof(SizesExample)">
+                Size 对应主题的字号档位，内边距、图标随之按比例缩放；不写时继承所在文字的字号。
+            </Example>
+            <Example Id="radius" Title="圆角" Demo="typeof(RadiusExample)">
+                Radius 从直角到胶囊形，七档与 Badge、Card、输入框共用；图标按钮写 Full 是圆形。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="icons" Title="图标" Demo="typeof(IconsExample)">
+                Icon 在文字前，IconEnd 在文字后；文字旁也可以放快捷键、计数。只有图标时用 IconButton，必须写 Label。
+            </Example>
+            <Example Id="loading" Title="加载中" Demo="typeof(LoadingExample)">
+                加载中显示旋转指示，宽度不变，点击无效，焦点留在按钮上。
+            </Example>
+            <Example Id="full-width" Title="占满宽度" Demo="typeof(FullWidthExample)">
+                FullWidth 让按钮占满容器宽度，并排的几个平分：登录框、移动端底部的操作。
+            </Example>
+            <Example Id="links" Title="链接按钮" Demo="typeof(LinksExample)">
+                跳转到别的页面用 LinkButton（a 元素）而不是 Button 加点击跳转：能右键、在新标签页打开，读屏念“链接”。External 在新窗口打开。
+            </Example>
+            <Example Id="group" Title="按钮组" Demo="typeof(GroupExample)">
+                ButtonGroup 把相关的按钮连成一条：拆分按钮、翻页、缩放、对齐方式。组上写的 <Code>Variant</Code>、<Code>Tone</Code>、<Code>Size</Code> 是组里按钮的默认值；<Code>Orientation.Vertical</Code> 竖排。
+            </Example>
+            <Example Id="disabled" Title="不可用" Demo="typeof(DisabledExample)">
+                Disabled 是原生的不可用，按钮不能聚焦；需要说明原因时加 FocusableWhenDisabled，按钮仍能聚焦，悬停或聚焦时提示照常显示。
+            </Example>
+            <Example Id="types" Title="表单里的按钮与波纹" Demo="typeof(TypesExample)">
+                Type 默认是 button，放在表单里也不会误提交；submit 提交所在的表单，reset 触发表单的 reset 事件。Ripple="false" 关掉单个按钮的点击波纹。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Button), typeof(ButtonGroup), typeof(LinkButton)]" />
+</DocPage>

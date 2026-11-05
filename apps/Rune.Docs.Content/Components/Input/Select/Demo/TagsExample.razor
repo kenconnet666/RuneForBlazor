@@ -1,0 +1,29 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="抄送" Description="一行放不下的收进“+N”">
+        <Select Items="people" SelectionMode="SelectionMode.Multiple" @bind-Values="cc" MaxTagCount="TagLimit.Responsive" Searchable="true" Clearable="true" data-testid="cc" />
+    </Field>
+    <Field Label="适用车型" Description="只显示前两个">
+        <Select Items="models" SelectionMode="SelectionMode.Multiple" @bind-Values="fits" MaxTagCount="2" data-testid="fits" />
+    </Field>
+    <Field Label="工单标签" Description="输入没有的标签，选“新建”加进选项">
+        <Select Items="ticketLabels" SelectionMode="SelectionMode.Multiple" @bind-Values="picked" Creatable="true" OnCreate="@(text => ticketLabels = [.. ticketLabels, text])"
+                Placeholder="选择或新建标签" data-testid="ticket-labels" />
+    </Field>
+    <Small Tone="TextTone.Muted">抄送 @cc.Count 人 · 车型 @fits.Count 个 · 标签：@(picked.Count > 0 ? string.Join("、", picked) : "无")</Small>
+</Flex>
+
+@code {
+    static readonly string[] people = ["周一航", "许悠", "林小满", "赵浩然", "陈默", "韩笑", "宋知遥", "顾北辰", "沈清禾"];
+
+    static readonly string[] models = ["X3 标准版", "X3 长续航", "X5 四驱", "X5 越野", "M7 商务", "M7 豪华"];
+
+    IReadOnlyList<string> cc = ["许悠", "林小满", "赵浩然", "陈默", "韩笑", "宋知遥", "顾北辰", "沈清禾"];
+
+    IReadOnlyList<string> fits = ["X3 标准版", "X3 长续航", "X5 四驱"];
+
+    string[] ticketLabels = ["紧急", "前端", "后端", "设计", "性能"];
+
+    IReadOnlyList<string> picked = ["紧急"];
+}

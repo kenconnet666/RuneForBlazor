@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        @SettingRow("接收通知", "订单状态变化时推送", @<Switch @bind-Value="notify" aria-label="接收通知" />)
+        <Separator />
+        @SettingRow("每周摘要", "每周一早上发送上周数据", @<Switch @bind-Value="digest" Disabled="!notify" aria-label="每周摘要" />)
+        <Separator />
+        @SettingRow("暗色模式", "轨道里可以放图标或文字", @<Switch @bind-Value="dark" Size="Size.Lg" aria-label="暗色模式" />)
+        <Separator />
+        @SettingRow("云端同步", "在所有设备上保持一致", @<Switch @bind-Value="sync" Tone="Tone.Success" aria-label="云端同步" />)
+    </Flex>
+</Card>
+
+@code {
+    bool notify = true, digest, dark = true, sync;
+
+    // 一行设置：标题与说明在起始边，开关在结束边
+    static RenderFragment SettingRow(string title, string description, RenderFragment control) => @<Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Lg">
+        <Flex Direction="LayoutDirection.Column" Grow="true">
+            <TextSpan Weight="Weight.Medium">@title</TextSpan>
+            <Small Tone="TextTone.Muted">@description</Small>
+        </Flex>
+        @control
+    </Flex>;
+}

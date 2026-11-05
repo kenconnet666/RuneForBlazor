@@ -1,0 +1,17 @@
+@inherits RuneComponent
+
+<ul>
+    @foreach (var tip in tips)
+    {
+        <li @key="tip"><CodeText Text="@tip" /></li>
+    }
+</ul>
+
+@code {
+    static readonly string[] tips =
+    [
+        "`Where` 里串起来的条件是 AND，要 OR 用 `||`。",
+        "开发时运行 `dotnet watch`，提交前运行 `dotnet test`。",
+        "密钥写在 `appsettings.Development.json` 或用户机密里，不提交。",
+    ];
+}

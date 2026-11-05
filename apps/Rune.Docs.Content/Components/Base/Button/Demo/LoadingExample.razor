@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        <Button Loading="saving" @onclick="() => RunAsync(v => saving = v, 1500)" data-testid="save">保存</Button>
+        <Button Variant="ButtonVariant.Outline" Icon="Lucide.Send" Loading="submitting" @onclick="() => RunAsync(v => submitting = v, 2000)">提交审核</Button>
+        <Button Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Trash" Loading="deleting" @onclick="() => RunAsync(v => deleting = v, 1200)">删除</Button>
+        <IconButton Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.RefreshCw" Label="刷新" Loading="refreshing" @onclick="() => RunAsync(v => refreshing = v, 1000)" />
+    </Flex>
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        <Button Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Loading="quick" @onclick="() => RunAsync(v => quick = v, 100)">很快完成（0.1 秒）</Button>
+        <Small Tone="TextTone.Muted">不到 0.2 秒的操作不换成加载指示，按钮不会闪一下</Small>
+    </Flex>
+</Flex>
+
+@code {
+    bool saving, submitting, deleting, refreshing, quick;
+
+    static async Task RunAsync(Action<bool> set, int milliseconds)
+    {
+        set(true);
+        await Task.Delay(milliseconds);
+        set(false);
+    }
+}

@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("14em")" Gap="SpaceScale.Lg">
+    <Field Label="数量" Description="1–99，↑ ↓ 加减 1，Page Up / Down 加减 10">
+        <NumberField @bind-Value="quantity" Min="1" Max="99" data-testid="quantity" />
+    </Field>
+    <Field Label="重量" Description="步长 0.1，提交时对齐，没有浮点误差">
+        <NumberField @bind-Value="weight" Min="0" Step="0.1m" Format="0.0## 'kg'" />
+    </Field>
+    <Field Label="折扣" Description="存 0–1 的小数，显示成百分比">
+        <NumberField @bind-Value="discount" Min="0" Max="1" Step="0.05m" Format="P0" />
+    </Field>
+    <Field Label="室外温度" Description="可以是负数，Home / End 到两端">
+        <NumberField @bind-Value="temperature" Min="-40" Max="60" Format="0'°C'" />
+    </Field>
+    <Field Label="评分" Description="空着时为 null，按 ↑ 从 min 开始">
+        <NumberField @bind-Value="rating" Min="1" Max="5" placeholder="1–5" />
+    </Field>
+</Grid>
+
+@code {
+    int? quantity = 2, rating;
+
+    decimal? weight = 1.5m, discount = 0.85m, temperature = -4;
+}

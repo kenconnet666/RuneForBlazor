@@ -1,0 +1,11 @@
+@inherits RuneComponent
+@inject CounterStore Store
+
+<p>每行显示自己的渲染次数：加 A 时只有 A 与 Sum 重新渲染，B 不动。</p>
+<Flex Wrap="true" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+    <button @onclick="() => Store.A++">A + 1</button>
+    <button @onclick="() => Store.B++">B + 1</button>
+</Flex>
+<CounterView Label="A" />
+<CounterView Label="B" />
+<CounterView Label="Sum" />

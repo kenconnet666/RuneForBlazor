@@ -1,0 +1,35 @@
+@page "/components/text"
+@attribute [DocMeta("Text 文字", "正文、链接与标题：字号、字重、色调、截断与换行；Paragraph、Strong、Em、Small、Link、Mark、Kbd、Blockquote、H1–H6。", DocCategory.Base, Order = 0)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Base.Text.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="scale" Title="字号与字重" Demo="typeof(ScaleExample)">
+                Size 对应主题的字号档位，Weight 对应字重；不写时继承上下文，Small 默认 Xs，Strong 默认 Semibold。
+            </Example>
+            <Example Id="tones" Title="色调" Demo="typeof(TonesExample)">
+                Tone 取主题的文字色：Neutral 是正文色，Muted 用于次要说明，其余是品牌色与提示色的文字色。
+            </Example>
+            <Example Id="numeric" Title="编号与数字" Demo="typeof(NumericExample)">
+                Mono 用等宽字体（编号、件号），Numeric 用等宽数字（金额、计数）：上下对齐、变化时不跳动。
+            </Example>
+            <Example Id="overflow" Title="截断与换行" Demo="typeof(OverflowExample)">
+                Truncate 单行省略，LineClamp 限制行数；Wrap 的 Pretty 避免最后一行只剩一个字（Paragraph 默认），Balance 让标题各行长度均衡。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="inline" Title="行内语义" Demo="typeof(InlineExample)">
+                一个元素一个组件：Strong、Em、Small、Mark（高亮）、Kbd（按键）、Code（行内代码）、Blockquote（引用）。
+            </Example>
+            <Example Id="links" Title="链接" Demo="typeof(LinksExample)">
+                TextLink 默认带下划线（WCAG 1.4.1：正文里的链接不能只靠颜色区分）；导航这类上下文明确的地方可以 Underline="Hover" 或 None。按钮样式的链接用 LinkButton。
+            </Example>
+            <Example Id="headings" Title="标题" Demo="typeof(HeadingsExample)">
+                H1–H6 是六个组件，默认字号依次减小；级别要连续，视觉层级用 Size 单独改。Anchor 加指向本节的锚点链接。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Blockquote), typeof(Kbd), typeof(Mark)]" />
+</DocPage>

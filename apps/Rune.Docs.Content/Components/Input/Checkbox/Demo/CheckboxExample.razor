@@ -1,0 +1,52 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            @* 全选：部分勾选时 Indeterminate，读屏念“部分选中” *@
+            <Checkbox Value="AllGranted" Indeterminate="SomeGranted" ValueChanged="ToggleAll" data-testid="all">订单管理员（全部权限）</Checkbox>
+            <CheckboxGroup TItem="string" @bind-Value="granted" aria-label="权限" Sx="Indented" data-testid="permissions">
+                @foreach (var (value, label) in permissions)
+                {
+                    <Checkbox @key="value" GroupValue="@value">@label</Checkbox>
+                }
+            </CheckboxGroup>
+        </Flex>
+    </Card>
+    <Field Label="通知方式" Description="至少选一种" Error="@(channels.Count > 0 ? null : "请至少选一种")">
+        <CheckboxGroup TItem="string" @bind-Value="channels" Name="channels" Orientation="Orientation.Horizontal">
+            <Checkbox GroupValue="email">邮件</Checkbox>
+            <Checkbox GroupValue="sms">短信</Checkbox>
+            <Checkbox GroupValue="push">App 推送</Checkbox>
+            <Checkbox GroupValue="phone" Disabled="true">电话（企业版）</Checkbox>
+        </CheckboxGroup>
+    </Field>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Checkbox @bind-Value="agreed" Tone="Tone.Success">我已阅读并同意《服务条款》</Checkbox>
+        <Small Tone="TextTone.Muted" data-testid="granted">已授予：@(granted.Count == 0 ? "无" : string.Join("、", granted))</Small>
+    </Flex>
+</Flex>
+
+@code {
+    IReadOnlyList<string> channels = ["email"];
+
+    static readonly (string Value, string Label)[] permissions =
+    [
+        ("orders:read", "查看订单"),
+        ("orders:write", "修改订单"),
+        ("refunds", "处理退款"),
+        ("reports", "导出报表"),
+    ];
+
+    IReadOnlyList<string> granted = ["orders:read", "reports"];
+
+    bool agreed;
+
+    bool AllGranted => granted.Count == permissions.Length;
+
+    bool SomeGranted => granted.Count > 0 && !AllGranted;
+
+    void ToggleAll(bool _) => granted = AllGranted ? [] : [.. permissions.Select(p => p.Value)];
+
+    static Style Indented => Css.Define(static () => new Style { PaddingInlineStart = CssLength.Em(1.75) });
+}

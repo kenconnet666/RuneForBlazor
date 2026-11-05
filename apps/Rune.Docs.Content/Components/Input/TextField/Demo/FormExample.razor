@@ -1,0 +1,36 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+        <Grid MinItemWidth="@("14rem")" Gap="SpaceScale.Lg">
+            <Field Label="邮箱" Required="true">
+                <TextField @bind-Value="email" Type="email" Icon="Lucide.Mail" placeholder="you@example.com" />
+            </Field>
+            <Field Label="密码" Required="true" Description="至少 8 位，包含字母和数字"
+                   Error="@(password is { Length: > 0 and < 8 } ? $"还差 {8 - password.Length} 位" : null)">
+                <TextField @bind-Value="password" Type="password" Immediate="true" data-testid="password" />
+            </Field>
+            <Field Label="用户名">
+                <TextField @bind-Value="handle" Icon="Lucide.AtSign" maxlength="20" ShowCount="true" data-testid="handle" />
+            </Field>
+            <Field Label="手机号">
+                <TextField @bind-Value="phone" Type="tel" Icon="Lucide.Phone">
+                    <Prefix>+86</Prefix>
+                </TextField>
+            </Field>
+        </Grid>
+        <Field Label="个人站点">
+            <TextField @bind-Value="site" Icon="Lucide.Globe">
+                <Prefix>https://</Prefix>
+                <Suffix>.example.com</Suffix>
+            </TextField>
+        </Field>
+        <Flex Justify="ContentJustify.End">
+            <Button>注册</Button>
+        </Flex>
+    </Flex>
+</Card>
+
+@code {
+    string? email, password, handle, phone, site;
+}

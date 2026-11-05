@@ -1,0 +1,29 @@
+@page "/components/select"
+@attribute [DocMeta("Select 下拉选择", "点开一列选项选一个或几个，同原生 select 的交互。要边输入边筛选用 Combobox，输入多个标签用 TagsInput，平铺在页面上用 Listbox。", DocCategory.Input, Order = 5)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.Select.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="单选与多选" Demo="typeof(BasicExample)">
+                <Code>Items</Code> 可以是字符串、ListboxOption（值、文字、图标、说明、分组、不可用），或任意数据加 <Code>ToOption</Code>；ChildContent 自定义选项内容，拿到的是原始数据。<Code>SelectionMode.Multiple</Code> 多选，已选的显示成可移除的标签。键盘同原生 select：关闭时按字母直接选中以它开头的项。
+            </Example>
+            <Example Id="appearance" Title="图标、外观与状态" Demo="typeof(AppearanceExample)">
+                <Code>Icon</Code>、<Code>Variant</Code>、<Code>Size</Code>、<Code>Radius</Code> 与其他输入框同一套。只读时能聚焦、能看到已选的内容，不能打开、不能清空；Field 上的 <Code>Required</Code>、<Code>ReadOnly</Code>、<Code>Disabled</Code>、<Code>Error</Code> 都交给里面的 Select。
+            </Example>
+            <Example Id="tags" Title="多选的标签：收起、移除与新建" Demo="typeof(TagsExample)">
+                多选时已选的项是触发按钮前面的一排标签，点 × 移除（先淡出）。<Code>MaxTagCount</Code> 是数字时只显示前几个，<Code>TagLimit.Responsive</Code> 时排成一行、按宽度放，其余收进“+N”。这排标签只给指针用：读屏从触发按钮里念出全部已选内容，键盘在列表里取消勾选，或按 <Kbd>Backspace</Kbd> 移除最后一项。<Code>Creatable</Code> 自带搜索框，输入的文字没有对应的选项时列表末尾多一项“新建”，选中后值就是这段文字，在 <Code>OnCreate</Code> 里把它加进 Items。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="searchable" Title="可搜索" Demo="typeof(SearchableExample)">
+                选项多（供应商、人员、件号）时写 <Code>Searchable</Code>：弹出层顶部是搜索框，打开后焦点就在里面，输入即按显示文字过滤（忽略大小写与重音，<Code>Filter</Code> 可以换规则；<Code>UIConfig.TextMatcher</Code> 可以加拼音匹配）。<Kbd>↑</Kbd> <Kbd>↓</Kbd> 移动、<Kbd>Enter</Kbd> 选中，<Kbd>Esc</Kbd> 关闭并把焦点还给触发按钮。已选的项被过滤掉、或 Items 换成了另一页的搜索结果时，触发框里照样显示它的文字。远程搜索给 <Code>Load</Code>（见下一个示例）；自己管请求时用 <Code>@@bind-Search</Code> 拿到搜索词、<Code>LocalFilter="false"</Code> 关掉本地过滤。
+            </Example>
+            <Example Id="custom" Title="异步加载与自定义显示" Demo="typeof(CustomExample)">
+                <Code>Load(搜索词, 取消令牌)</Code> 在打开时请求（Searchable 时搜索词停下 300 ms 再请求），只采用最后一次，请求期间列表里是骨架行，失败时提示重试；<Code>Items</Code> 是第一次结果之前的选项（编辑页放上已选的那几项）。<Code>RenderValue</Code> 自定义触发框里的已选内容（这里是头像叠放加名字），没有选择时显示占位文字；分组来自选项的 <Code>Group</Code>。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Select<>), typeof(ListPopover<>)]" />
+</DocPage>

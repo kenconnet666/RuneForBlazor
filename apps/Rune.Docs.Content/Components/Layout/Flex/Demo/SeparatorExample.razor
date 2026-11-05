@@ -1,0 +1,40 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <H3 Size="Size.Lg">用 CSS 变量写一套主题系统</H3>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+            <Avatar Size="Size.Xs" Name="周一航" />
+            <Small>周一航</Small>
+            <Separator Orientation="Orientation.Vertical" />
+            <Small Tone="TextTone.Muted">10 月 18 日</Small>
+            <Separator Orientation="Orientation.Vertical" />
+            <Small Tone="TextTone.Muted">阅读约 8 分钟</Small>
+        </Flex>
+        <Separator />
+        <Paragraph Size="Size.Sm">
+            defineVars 声明变量，createTheme 覆盖一组取值，套在任意子树上就能局部换肤；组件只认 token，不写死颜色。
+        </Paragraph>
+        <Separator Decorative="false" />
+        <FlexList Gap="SpaceScale.Lg" aria-label="互动数据">
+            @foreach (var (icon, label, value) in stats)
+            {
+                <li>
+                    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                        <Icon Data="icon" />
+                        <Small Tone="TextTone.Muted">@label @value</Small>
+                    </Flex>
+                </li>
+            }
+        </FlexList>
+    </Flex>
+</Card>
+
+@code {
+    static readonly (IconData Icon, string Label, string Value)[] stats =
+    [
+        (Lucide.Eye, "阅读", "3.2 万"),
+        (Lucide.ThumbsUp, "赞", "1,284"),
+        (Lucide.MessageSquare, "评论", "96"),
+    ];
+}

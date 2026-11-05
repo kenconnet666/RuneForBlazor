@@ -1,0 +1,17 @@
+@inherits RuneComponent
+
+<Card Variant="CardVariant.Outline" Padding="SpaceScale.None">
+    <CodeBlock Flush="true" Title="C#" Code="@query" Lang="csharp" />
+    <Separator />
+    <CodeBlock Flush="true" Title="SQL" Code="@sql" Lang="sql" />
+</Card>
+
+@code {
+    const string sql = "SELECT * FROM t_user WHERE age >= @p0;";
+
+    const string query = """
+        var adults = await db.Users
+            .Where(u => u.Age >= 18)
+            .ToListAsync();
+        """;
+}

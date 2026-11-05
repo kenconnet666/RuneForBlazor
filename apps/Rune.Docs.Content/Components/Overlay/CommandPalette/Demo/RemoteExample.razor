@@ -1,0 +1,54 @@
+@inherits RuneComponent
+@implements IDisposable
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <CommandPalette TItem="Order" Items="results" InputValue="@keyword" InputValueChanged="SearchAsync" LocalFilter="false" Loading="searching" Hotkey="@null"
+                    ToOption="@(o => new(o.Id, $"{o.Id} · {o.Customer}") { Description = $"¥{o.Amount:#,0}", Group = o.Status })"
+                    Label="搜索订单" Placeholder="订单号或客户名" OnAction="@((Order o) => picked = $"{o.Id}（{o.Customer}，{o.Status}）")">
+        <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Search">搜索订单</Button></Trigger>
+    </CommandPalette>
+    <Small Tone="TextTone.Muted">@(picked.Length > 0 ? $"打开了订单 {picked}" : "每次输入都向“服务端”查询，结果约半秒后到")</Small>
+</Flex>
+
+@code {
+    sealed record Order(string Id, string Customer, int Amount, string Status);
+
+    static readonly string[] customers = ["林小满", "周一航", "陈思远", "王可欣", "赵子墨", "孙若溪"];
+
+    static readonly string[] statuses = ["待付款", "已发货", "已完成"];
+
+    static readonly Order[] orders = [.. Enumerable.Range(0, 60).Select(i => new Order($"A-{10200 + i * 7}", customers[i % customers.Length], 120 + i * 389 % 2400, statuses[i % statuses.Length]))];
+
+    string picked = "";
+
+    string? keyword = "";
+
+    IReadOnlyList<Order> results = [.. orders.Take(20)];
+
+    bool searching;
+
+    CancellationTokenSource? search;
+
+    // 模拟服务端搜索：按订单号、客户名匹配，延迟 450 毫秒返回；晚到的旧请求丢掉
+    async Task SearchAsync(string? text)
+    {
+        keyword = text;
+        search?.Cancel();
+        search = new CancellationTokenSource();
+        var token = search.Token;
+        searching = true;
+        try
+        {
+            await Task.Delay(450, token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+        var query = (text ?? "").Trim();
+        results = [.. orders.Where(o => query.Length == 0 || o.Id.Contains(query, StringComparison.OrdinalIgnoreCase) || o.Customer.Contains(query)).Take(20)];
+        searching = false;
+    }
+
+    public void Dispose() => search?.Cancel();
+}

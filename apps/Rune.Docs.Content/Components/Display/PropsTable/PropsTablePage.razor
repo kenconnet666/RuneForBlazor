@@ -1,0 +1,11 @@
+@page "/components/props-table"
+@attribute [DocMeta("PropsTable 属性表", "组件 API 的表格：名称、类型、默认值、说明，档位类的列出每个可选值。本站每页底部的 API 表就是它。", DocCategory.Display, Order = 12)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.PropsTable.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="handwritten" Title="给自己的组件写 API 表" Demo="typeof(HandwrittenExample)">
+        数据类型是 <Code>ApiProp</Code>：名称、种类（参数、事件、内容、部件属性）、类型、必填、默认值、能否 <Code>@@bind</Code>、说明，档位类的 <Code>Values</Code> 列出每个可选值的含义。必填、可绑定的标记文案取语言包；外层是静态表格，窄屏时横向滚动。文档站的 API 表从类型与 XML 文档注释自动生成同样的数据。外观参数同 Table：<Code>Density</Code> 默认 Compact，<Code>Variant</Code>、<Code>Striped</Code> 照常可用。
+    </Example>
+    <ApiReference Types="[typeof(PropsTable)]" />
+</DocPage>

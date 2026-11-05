@@ -1,0 +1,59 @@
+@inherits RuneComponent
+@implements IDisposable
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <TextField Value="@query" ValueChanged="Search" Immediate="true" Icon="Lucide.Search" Variant="InputVariant.Soft" placeholder="搜索成员" aria-label="搜索成员" />
+            <Listbox aria-label="成员" Items="results" @bind-Value="picked" Loading="loading" OnPick="Pick">
+                <Empty>
+                    <Empty Title="@(b => b.AddContent(0, "没有找到"))" Description="@(b => b.AddContent(0, $"没有名字含“{query}”的成员"))" Size="Size.Sm">
+                        <Button Size="Size.Sm" Variant="ButtonVariant.Soft" OnClick="() => Search(string.Empty)">清空搜索</Button>
+                    </Empty>
+                </Empty>
+            </Listbox>
+        </Flex>
+    </Card>
+    <Small Tone="TextTone.Muted">最后点选：@(lastPick ?? "无")</Small>
+</Flex>
+
+@code {
+    static readonly ListboxOption[] people =
+        [.. new[] { "林小满", "周一航", "陈默", "许悠", "王晴", "赵子墨", "孙可", "李想" }.Select(name => new ListboxOption(name, name))];
+
+    string query = string.Empty;
+
+    IReadOnlyList<ListboxOption> results = people;
+
+    bool loading;
+
+    string? picked;
+
+    string? lastPick;
+
+    CancellationTokenSource? searching;
+
+    // 模拟接口：输入停下 600ms 后返回
+    async Task Search(string? text)
+    {
+        query = text ?? string.Empty;
+        searching?.Cancel();
+        var current = searching = new CancellationTokenSource();
+        loading = true;
+        try
+        {
+            await Task.Delay(600, current.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+        loading = false;
+        results = [.. people.Where(person => person.Label.Contains(query.Trim(), StringComparison.Ordinal))];
+    }
+
+    void Pick(string value) => lastPick = $"{value}（{DateTime.Now:T}）";
+
+    /// <inheritdoc/>
+    public void Dispose() => searching?.Cancel();
+}

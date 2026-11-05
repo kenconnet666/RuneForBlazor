@@ -1,0 +1,35 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    @* 编辑器工具栏：默认 Ghost，一组按钮之间用分隔线隔开 *@
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs" Wrap="true">
+        <IconButton Icon="Lucide.LetterB" Label="加粗" />
+        <IconButton Icon="Lucide.Italic" Label="斜体" />
+        <IconButton Icon="Lucide.Underline" Label="下划线" />
+        <IconButton Icon="Lucide.Link2" Label="插入链接" />
+        <Separator Orientation="Orientation.Vertical" />
+        <IconButton Icon="Lucide.TextAlignStart" Label="左对齐" />
+        <IconButton Icon="Lucide.TextAlignCenter" Label="居中" />
+        <IconButton Icon="Lucide.TextAlignEnd" Label="右对齐" />
+    </Flex>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+        <TextSpan Size="Size.Xs" Tone="TextTone.Muted">样式</TextSpan>
+        <IconButton Icon="Lucide.Pencil" Variant="ButtonVariant.Solid" Tone="Tone.Accent" Label="编辑" />
+        <IconButton Icon="Lucide.Share2" Variant="ButtonVariant.Soft" Label="分享" />
+        <IconButton Icon="Lucide.Settings" Variant="ButtonVariant.Surface" Label="设置" />
+        <IconButton Icon="Lucide.Ellipsis" Variant="ButtonVariant.Outline" Label="更多" />
+        <IconButton Icon="Lucide.Heart" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Radius="Radius.Full" Label="收藏" />
+        <IconButton Icon="Lucide.Trash" Tone="Tone.Danger" Label="删除" />
+    </Flex>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+        <TextSpan Size="Size.Xs" Tone="TextTone.Muted">尺寸</TextSpan>
+        @foreach (var size in sizes)
+        {
+            <IconButton Icon="Lucide.Settings" Size="size" Variant="ButtonVariant.Surface" Label="@($"设置（{size.ToString().ToLowerInvariant()}）")" />
+        }
+    </Flex>
+</Flex>
+
+@code {
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg, Size.Xl];
+}

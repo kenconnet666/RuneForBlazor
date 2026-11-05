@@ -1,0 +1,47 @@
+@inherits RuneComponent
+@implements IDisposable
+
+<Field Label="话题" Description="输入“前端”“设计”试试">
+    <TagsInput Items="suggestions" @bind-Value="topics" InputValue="@query" InputValueChanged="SearchAsync" LocalFilter="false" Loading="loading" Max="5" />
+</Field>
+
+@code {
+    static readonly string[] allTopics = ["前端工程化", "前端性能", "组件设计", "设计系统", "无障碍", "国际化", "可视化", "测试", "构建工具", "状态管理"];
+
+    IReadOnlyList<string> topics = ["组件设计"];
+
+    string? query = "";
+
+    bool loading;
+
+    string[] suggestions = [];
+
+    CancellationTokenSource? search;
+
+    // 模拟接口：输入停下 500 ms 后按关键词返回
+    async Task SearchAsync(string? text)
+    {
+        query = text;
+        search?.Cancel();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            loading = false;
+            suggestions = [];
+            return;
+        }
+        var run = search = new CancellationTokenSource();
+        loading = true;
+        try
+        {
+            await Task.Delay(500, run.Token);
+            suggestions = [.. allTopics.Where(topic => topic.Contains(text.Trim(), StringComparison.Ordinal))];
+            loading = false;
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    /// <inheritdoc/>
+    public void Dispose() => search?.Cancel();
+}

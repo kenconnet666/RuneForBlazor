@@ -1,0 +1,62 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Xs">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs" Wrap="true">
+        @for (var index = 0; index < toolGroups.Length; index++)
+        {
+            if (index > 0)
+            {
+                <Separator Orientation="Orientation.Vertical" />
+            }
+            foreach (var (icon, label, shortcut) in toolGroups[index])
+            {
+                <Tooltip @key="label">
+                    <Trigger Context="t"><IconButton @attributes="t" Icon="icon" Label="@label" /></Trigger>
+                    <ChildContent>@label@if (shortcut is not null)
+                        {
+                            @(" ")@ShortcutKeys(shortcut)
+                        }</ChildContent>
+                </Tooltip>
+            }
+        }
+        <Separator Orientation="Orientation.Vertical" />
+        @* 同一个按钮既有提示又打开菜单：合并两边交给触发元素的属性 *@
+        <Tooltip>
+            <Trigger Context="tip">
+                <Menu>
+                    <Trigger Context="menu"><IconButton @attributes="Attrs.Merge(tip, menu)" Icon="Lucide.Ellipsis" Label="更多格式" /></Trigger>
+                    <ChildContent>
+                        <MenuItem>上标</MenuItem>
+                        <MenuItem>下标</MenuItem>
+                        <MenuItem>清除格式</MenuItem>
+                    </ChildContent>
+                </Menu>
+            </Trigger>
+            <ChildContent>更多格式</ChildContent>
+        </Tooltip>
+    </Flex>
+</Card>
+
+@code {
+    static readonly (IconData Icon, string Label, string? Shortcut)[][] toolGroups =
+    [
+        [(Lucide.LetterB, "加粗", "Ctrl B"), (Lucide.Italic, "斜体", "Ctrl I"), (Lucide.Underline, "下划线", "Ctrl U"), (Lucide.Strikethrough, "删除线", null)],
+        [(Lucide.List, "无序列表", null), (Lucide.ListOrdered, "有序列表", null), (Lucide.Quote, "引用", null)],
+        [(Lucide.Link2, "插入链接", "Ctrl K")],
+    ];
+
+    // “Ctrl B” → <Kbd>Ctrl</Kbd> + <Kbd>B</Kbd>
+    static RenderFragment ShortcutKeys(string shortcut) => builder =>
+    {
+        var keys = shortcut.Split(' ');
+        for (var index = 0; index < keys.Length; index++)
+        {
+            // 子内容是延后执行的委托：取出当前的键，不捕获循环变量
+            var key = keys[index];
+            if (index > 0) builder.AddContent(0, " + ");
+            builder.OpenComponent<Kbd>(1);
+            builder.AddAttribute(2, "ChildContent", (RenderFragment)(b => b.AddContent(0, key)));
+            builder.CloseComponent();
+        }
+    };
+}

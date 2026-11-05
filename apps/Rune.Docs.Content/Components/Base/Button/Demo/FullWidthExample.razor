@@ -1,0 +1,11 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Button FullWidth="true" Size="Size.Lg" Icon="Lucide.LogIn">登录</Button>
+    <Small Tone="TextTone.Muted" Align="TextAlignment.Center">或者</Small>
+    <Flex Gap="SpaceScale.Sm">
+        <Button FullWidth="true" Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.Smartphone">手机验证码</Button>
+        <Button FullWidth="true" Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.Mail">邮箱验证码</Button>
+    </Flex>
+    <Button FullWidth="true" Variant="ButtonVariant.Link" Tone="Tone.Neutral">忘记密码？</Button>
+</Flex>

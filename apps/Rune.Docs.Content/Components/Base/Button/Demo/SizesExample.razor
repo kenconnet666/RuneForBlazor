@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        @foreach (var size in sizes)
+        {
+            <Button Size="size" Icon="Lucide.Plus">@Lower(size)</Button>
+        }
+    </Flex>
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        @foreach (var size in sizes)
+        {
+            <Button Size="size" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">@Lower(size)</Button>
+        }
+    </Flex>
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        @foreach (var size in sizes)
+        {
+            <IconButton Size="size" Variant="ButtonVariant.Soft" Icon="Lucide.Settings" Label="@($"设置（{Lower(size)}）")" />
+        }
+    </Flex>
+</Flex>
+
+@code {
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg, Size.Xl];
+}

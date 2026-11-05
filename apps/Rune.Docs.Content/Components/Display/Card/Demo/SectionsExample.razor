@@ -1,0 +1,35 @@
+@inherits RuneComponent
+
+<Card data-testid="card-full">
+    <Header>
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <H3 Size="Size.Md">订单 #10234</H3>
+                <Badge Tone="Tone.Success" Radius="Radius.Full">已发货</Badge>
+            </Flex>
+            <IconButton Icon="Lucide.Ellipsis" Label="更多操作" />
+        </Flex>
+    </Header>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Descriptions Columns="2">
+                <DescriptionsItem Label="收货人" Value="林小满 138****0021" />
+                <DescriptionsItem Label="配送方式" Value="顺丰次日达" />
+                <DescriptionsItem Label="收货地址" Value="上海市徐汇区漕溪北路 88 号 12 楼" Span="2" />
+            </Descriptions>
+            <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between">
+                <TextSpan Tone="TextTone.Muted">实付</TextSpan>
+                <TextSpan Size="Size.Lg" Weight="Weight.Bold">¥1,280.00</TextSpan>
+            </Flex>
+        </Flex>
+    </ChildContent>
+    <Footer>
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+            <Small Tone="TextTone.Muted">下单于 10 月 18 日 14:32</Small>
+            <Flex Gap="SpaceScale.Sm">
+                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost">申请售后</Button>
+                <Button Size="Size.Sm" Icon="Lucide.Truck">查看物流</Button>
+            </Flex>
+        </Flex>
+    </Footer>
+</Card>

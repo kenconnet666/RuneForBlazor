@@ -1,0 +1,33 @@
+@inherits RuneComponent
+
+<Grid Columns="4" Gap="SpaceScale.Sm" Flow="GridFlow.RowDense">
+    @foreach (var (title, note, span, rowSpan) in cells)
+    {
+        <GridItem Span="span" RowSpan="rowSpan">
+            <Card Padding="SpaceScale.Sm" Sx="Cell">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Strong>@title</Strong>
+                    <Small Tone="TextTone.Muted">@note</Small>
+                </Flex>
+            </Card>
+        </GridItem>
+    }
+</Grid>
+
+@code {
+    // 四列三行正好 12 格：跨两列的 3 个、跨两行的 1 个、单格的 4 个
+    static readonly (string Title, string Note, int? Span, int? RowSpan)[] cells =
+    [
+        ("销售趋势", "跨两列", 2, null),
+        ("待办", "跨两行", null, 2),
+        ("新客户", "1 格", null, null),
+        ("转化率", "1 格", null, null),
+        ("退款", "1 格", null, null),
+        ("客单价", "1 格", null, null),
+        ("库存预警", "跨两列", 2, null),
+        ("物流异常", "跨两列", 2, null),
+    ];
+
+    // 卡片撑满格子：跨两行的格子里卡片也一样高
+    static Style Cell => Css.Define(static () => new Style { MinHeight = CssLength.Rem(4.5), Height = CssLength.Percent(100) });
+}

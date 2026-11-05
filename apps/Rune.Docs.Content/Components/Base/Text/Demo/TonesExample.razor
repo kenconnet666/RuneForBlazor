@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("16em")" Gap="SpaceScale.Md">
+    <Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Strong>部署完成</Strong>
+            <TextSpan Size="Size.Sm" Tone="TextTone.Muted">production · 3 分钟前 · 由 @@lin 触发</TextSpan>
+            <TextSpan Size="Size.Sm" Tone="TextTone.Success">全部 128 项检查通过</TextSpan>
+        </Flex>
+    </Card>
+    <Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Strong>账单即将到期</Strong>
+            <TextSpan Size="Size.Sm" Tone="TextTone.Warning">还有 2 天自动续费 ¥299</TextSpan>
+            <TextSpan Size="Size.Sm" Tone="TextTone.Accent">查看账单详情</TextSpan>
+        </Flex>
+    </Card>
+    <Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Strong>同步失败</Strong>
+            <TextSpan Size="Size.Sm" Tone="TextTone.Danger">网络连接中断，已暂停上传</TextSpan>
+            <Paragraph Size="Size.Sm" Tone="TextTone.Info">恢复联网后会自动重试，不用重新选择文件。</Paragraph>
+        </Flex>
+    </Card>
+</Grid>

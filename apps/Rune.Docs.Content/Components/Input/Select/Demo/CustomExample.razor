@@ -1,0 +1,43 @@
+@inherits RuneComponent
+
+<Field Label="项目成员" Description="打开时才加载成员列表">
+    <Select TItem="Member" Load="FetchMembersAsync" ToOption="@(m => new ListboxOption(m.Id, m.Name, Group: m.Team))" SelectionMode="SelectionMode.Multiple"
+            @bind-Values="team" Clearable="true" Placeholder="添加成员" data-testid="members">
+        <RenderValue>
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <AvatarGroup Items="context.Take(3)" Context="member">
+                    <Avatar @key="member.Id" Name="@member.Name" Size="Size.Xs" />
+                </AvatarGroup>
+                <TextSpan Size="Size.Sm">@(context.Count > 3 ? $"{context[0].Name} 等 {context.Count} 人" : string.Join("、", context.Select(m => m.Name)))</TextSpan>
+            </Flex>
+        </RenderValue>
+        <ChildContent>
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <Avatar Name="@context.Item.Name" Size="Size.Sm" />
+                <Flex Direction="LayoutDirection.Column">
+                    <TextSpan Size="Size.Sm">@context.Item.Name</TextSpan>
+                    <Small Tone="TextTone.Muted">@context.Item.Team</Small>
+                </Flex>
+            </Flex>
+        </ChildContent>
+    </Select>
+</Field>
+
+@code {
+    sealed record Member(string Id, string Name, string Team);
+
+    static readonly Member[] directory =
+    [
+        new("zyh", "周一航", "设计"), new("xy", "许悠", "设计"), new("lxm", "林小满", "前端"),
+        new("zhr", "赵浩然", "前端"), new("cm", "陈默", "后端"), new("wq", "王晴", "测试"),
+    ];
+
+    IReadOnlyList<string> team = [];
+
+    // 假的成员接口：900 ms 后返回全部成员；关掉弹层（请求被取消）时中止
+    static async Task<IEnumerable<Member>> FetchMembersAsync(string query, CancellationToken cancellation)
+    {
+        await Task.Delay(900, cancellation);
+        return directory;
+    }
+}

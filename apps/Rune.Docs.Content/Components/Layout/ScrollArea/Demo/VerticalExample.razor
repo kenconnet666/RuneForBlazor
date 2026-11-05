@@ -1,0 +1,50 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.None">
+    <ScrollArea Sx="InboxArea" PropsViewport="InboxViewport" data-testid="inbox">
+        <FlexList Direction="LayoutDirection.Column">
+            @foreach (var message in messages)
+            {
+                <li @key="message.Id">
+                    <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Sx="Item">
+                        <Avatar Size="Size.Sm" Name="@message.Sender" />
+                        <Flex Direction="LayoutDirection.Column" Grow="true" Sx="Shrinkable">
+                            <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                                <Strong>@message.Sender</Strong>
+                                <Small Tone="TextTone.Muted">@message.Time</Small>
+                            </Flex>
+                            <TextSpan Size="Size.Sm" Tone="TextTone.Muted" Truncate="true">@message.Subject</TextSpan>
+                        </Flex>
+                    </Flex>
+                </li>
+            }
+        </FlexList>
+    </ScrollArea>
+</Card>
+
+@code {
+    sealed record Message(int Id, string Sender, string Subject, string Time);
+
+    static readonly string[] senders = ["林小满", "周一航", "陈默", "许悠", "王晴", "赵浩然", "孙思远", "李雨桐"];
+
+    static readonly string[] subjects =
+    [
+        "首页改版的设计稿更新了，麻烦看一下",
+        "下周一的评审会改到下午三点",
+        "发票已经寄出，单号见附件",
+        "接口文档补好了，有问题随时找我",
+        "团建报名今天截止",
+        "服务器续费提醒",
+    ];
+
+    static readonly Message[] messages = [.. Enumerable.Range(0, 24).Select(i =>
+        new Message(i, senders[i % senders.Length], subjects[i % subjects.Length], $"{18 - i / 3:00}:{i * 17 % 60:00}"))];
+
+    static readonly Attrs InboxViewport = new() { ["aria-label"] = "收件箱" };
+
+    static Style InboxArea => Css.Define(static () => new Style { Height = CssLength.Rem(20) });
+
+    static Style Item => Css.Define(static () => new Style { PaddingBlock = Space.Sm, PaddingInline = Space.Md });
+
+    static Style Shrinkable => Css.Define(static () => new Style { MinWidth = 0 });
+}

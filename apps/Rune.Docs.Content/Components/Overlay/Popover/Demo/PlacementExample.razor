@@ -1,0 +1,38 @@
+@inherits RuneComponent
+
+<div @attributes="Attrs.Merge(PlacementGrid)">
+    @foreach (var placement in placementCells)
+    {
+        if (placement is { } value)
+        {
+            <Tooltip @key="value" Placement="value" Arrow="true">
+                <Trigger Context="t"><Button @attributes="t" Size="Size.Sm" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">@Floating.NameOf(value)</Button></Trigger>
+                <ChildContent>placement="@Floating.NameOf(value)"</ChildContent>
+            </Tooltip>
+        }
+        else
+        {
+            <span></span>
+        }
+    }
+</div>
+
+@code {
+    // 五行五列围着中间：每条边三个对齐方式
+    static readonly Placement?[] placementCells =
+    [
+        null, Placement.TopStart, Placement.Top, Placement.TopEnd, null,
+        Placement.LeftStart, null, null, null, Placement.RightStart,
+        Placement.Left, null, null, null, Placement.Right,
+        Placement.LeftEnd, null, null, null, Placement.RightEnd,
+        null, Placement.BottomStart, Placement.Bottom, Placement.BottomEnd, null,
+    ];
+
+    static Style PlacementGrid => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "repeat(5, max-content)",
+        Gap = Space.Sm,
+        JustifyContent = JustifyContent.Center,
+    });
+}

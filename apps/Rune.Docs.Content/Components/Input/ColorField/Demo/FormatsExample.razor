@@ -1,0 +1,18 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="任意格式" Description="输入 rgb(255 99 71)、hsl(…)、颜色名（tomato）后回车或失焦，规范成 #hex 写回">
+        <ColorField @bind-Value="color" data-testid="any" />
+    </Field>
+    <Small Tone="TextTone.Muted">值：<Code data-testid="any-value">@color</Code></Small>
+    <Field Label="带透明度" Description="#rrggbbaa；用原生取色器选色时透明度会去掉（它不支持透明度）">
+        <ColorField @bind-Value="overlay" />
+    </Field>
+    <Field Label="只读" ReadOnly="true">
+        <ColorField Value="#16a34a" />
+    </Field>
+</Flex>
+
+@code {
+    string? color = "#0ea5e9", overlay = "#11182799";
+}

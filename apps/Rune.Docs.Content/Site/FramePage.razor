@@ -1,0 +1,24 @@
+@*
+    整页示例：/frame/{页面}/{名字}，不套站点的外壳，由示例卡片里的 iframe 打开（见 Example 的 Frame、[DocFrame]）。
+*@
+@page "/frame/{Page}/{Name}"
+@layout FrameLayout
+@inherits RuneComponent
+
+<PageTitle>@Page / @Name</PageTitle>
+@if (DocsCatalog.FindFrame(Page, Name) is { } frame)
+{
+    <DynamicComponent Type="frame" />
+}
+else
+{
+    <p>没有名为 “@Page/@Name” 的整页示例。</p>
+}
+
+@code {
+    /// <summary>所属页面。</summary>
+    [Parameter] public string Page { get; set; } = "";
+
+    /// <summary>示例的名字。</summary>
+    [Parameter] public string Name { get; set; } = "";
+}

@@ -1,0 +1,23 @@
+@page "/components/alert"
+@attribute [DocMeta("Alert 提示条", "页面或区块里的说明、成功、警告、错误信息：图标按色调自动选，可带操作、加载中、可以关闭。", DocCategory.Feedback, Order = 0)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Feedback.Alert.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="tones" Title="色调" Demo="typeof(TonesExample)">
+                Tone 决定颜色与默认图标（Lucide），Icon 可以换，HideIcon 去掉。页面加载时就在的提示不打断读屏；操作后才出现的写 Live 让读屏播报。
+            </Example>
+            <Example Id="status" Title="进行中、播报与尺寸" Demo="typeof(StatusExample)">
+                操作后才出现的提示写 Live="AlertLive.Polite"（role="status"），读屏念完当前内容再念；错误等紧急信息用 Assertive。Loading 时图标换成加载指示并带 aria-busy。Size 是字号档位，图标与内边距随之缩放。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="variants" Title="样式、操作与关闭" Demo="typeof(VariantsExample)">
+                Variant 有 Soft、Surface、Outline；Action 放在右侧，Loading 时图标换成旋转指示，写了 OnClose 就有关闭按钮。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Alert)]" />
+</DocPage>

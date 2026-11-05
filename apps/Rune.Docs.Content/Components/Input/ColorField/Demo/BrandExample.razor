@@ -1,0 +1,46 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Grid MinItemWidth="@CssLength.Rem(10)" Gap="SpaceScale.Md">
+        <Field Label="品牌色"><ColorField @bind-Value="brand" data-testid="brand" /></Field>
+        <Field Label="卡片底色"><ColorField @bind-Value="background" /></Field>
+        <Field Label="文字色"><ColorField @bind-Value="text" /></Field>
+    </Grid>
+    <Card Padding="SpaceScale.None">
+        <div @attributes="Attrs.Merge(Preview)" style="@($"background-color: {background}; color: {text}")" data-testid="preview">
+            <span @attributes="Attrs.Merge(BrandBadge)" style="@($"background-color: {brand}")"><Icon Data="Lucide.Sparkles" /></span>
+            <Flex Direction="LayoutDirection.Column">
+                <Strong>小满商城 · 会员日</Strong>
+                <Small>全场满 300 减 50，今晚 24:00 截止</Small>
+            </Flex>
+        </div>
+    </Card>
+</Flex>
+
+@code {
+    static readonly Attrs Preview = new() { Sx = PreviewStyle };
+
+    static readonly Attrs BrandBadge = new() { Sx = BadgeStyle };
+
+    string? brand = "#6e56cf", background = "#f4f0fe", text = "#2f265f";
+
+    static Style PreviewStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Md,
+        Padding = Space.Lg,
+        BorderRadius = Radii.Lg,
+    });
+
+    static Style BadgeStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        Width = CssLength.Rem(2.5),
+        Height = CssLength.Rem(2.5),
+        BorderRadius = Radii.Md,
+        FontSize = CssLength.Rem(1.25),
+        Color = "#fff",
+    });
+}

@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Md">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Field Label="涉及供应商" Description="六十个选项：打开后直接输入“密封”试试">
+            <Select Items="suppliers" @bind-Value="supplier" Searchable="true" data-testid="supplier" />
+        </Field>
+        <Small Tone="TextTone.Muted" data-testid="supplier-value">值：@(supplier ?? "—")</Small>
+    </Flex>
+    <Field Label="第二供应商（多选）">
+        <Select Items="suppliers" SelectionMode="SelectionMode.Multiple" @bind-Values="partners" Searchable="true" Clearable="true" />
+    </Field>
+</Grid>
+
+@code {
+    // 六十家虚构的供应商，按地区分组
+    static readonly string[] regions = ["华东", "华北", "华南", "西南", "东北", "海外"];
+
+    static readonly string[] kinds = ["塑胶", "五金", "钣金", "标准件", "密封件", "线束", "液压", "涂装", "铸锻", "电子"];
+
+    static readonly ListboxOption[] suppliers = [.. regions.SelectMany((region, r) => kinds.Select((kind, k) => new ListboxOption(
+        $"S{r}{k}", $"{region}{kind}供应商{"甲乙丙丁戊己庚辛壬癸"[k]}", Description: $"供应商代码 S-{202600 + r * 10 + k}", Group: region)))];
+
+    string? supplier = "S00";
+
+    IReadOnlyList<string> partners = ["S13", "S51"];
+}

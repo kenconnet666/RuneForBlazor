@@ -1,0 +1,44 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+        <IconButton Icon="Lucide.RefreshCw" Variant="ButtonVariant.Surface" Loading="refreshing" Label="刷新" @onclick="RefreshAsync" data-testid="refresh" />
+        <Small Tone="TextTone.Muted">@(updated is { } time ? $"更新于 {time:HH:mm:ss}" : "还没刷新过")</Small>
+    </Flex>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+        <Tooltip>
+            <Trigger Context="t"><IconButton @attributes="t" Icon="Lucide.Trash" Tone="Tone.Danger" Disabled="true" FocusableWhenDisabled="true" Label="删除项目" /></Trigger>
+            <ChildContent>只有项目所有者可以删除</ChildContent>
+        </Tooltip>
+        <Small Tone="TextTone.Muted">不可用，但能聚焦、悬停看原因</Small>
+    </Flex>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+        <Code>邀请链接（点击时生成）</Code>
+        <CopyButton GetValue="CreateInviteAsync" Variant="ButtonVariant.Surface" Timeout="3000" Label="复制邀请链接"
+                    OnCopied="success => { if (success) copies++; }" data-testid="copy-invite" />
+        <Small Tone="TextTone.Muted" data-testid="copies">已复制 @copies 次</Small>
+    </Flex>
+</Flex>
+
+@code {
+    bool refreshing;
+
+    DateTime? updated;
+
+    int copies;
+
+    async Task RefreshAsync()
+    {
+        refreshing = true;
+        await Task.Delay(1200);
+        refreshing = false;
+        updated = DateTime.Now;
+    }
+
+    // 模拟向服务端申请一条一次性的邀请链接
+    static async Task<string> CreateInviteAsync()
+    {
+        await Task.Delay(800);
+        return $"https://example.com/invite/{Guid.NewGuid().ToString("N")[..8]}";
+    }
+}

@@ -1,0 +1,23 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("20em")" Gap="SpaceScale.Xl">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <H1>H1 页面标题</H1>
+        <H2>H2 一节</H2>
+        <H3>H3 小节</H3>
+        <H4>H4 段落标题</H4>
+        <H5>H5 卡片标题</H5>
+        <H6>H6 最小的标题</H6>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        @* 文档结构与视觉层级分开：级别要连续，字号用 Size 改 *@
+        <H2 Size="Size.Lg">账户设置</H2>
+        <Paragraph Tone="TextTone.Muted">H2 但用 lg 字号：放在卡片里不至于太大。</Paragraph>
+        <H3 id="text-security" Anchor="true">安全与登录</H3>
+        <Paragraph Tone="TextTone.Muted">
+            <TextSpan Weight="Weight.Medium">anchor</TextSpan> 在标题末尾加指向本节的链接，悬停或聚焦时出现，方便复制分享。
+        </Paragraph>
+        <H3 Tone="TextTone.Danger">危险操作</H3>
+        <Paragraph Tone="TextTone.Muted">注销账户后数据不可恢复。</Paragraph>
+    </Flex>
+</Grid>

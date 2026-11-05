@@ -1,0 +1,36 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+            <Strong>已选筛选条件（@filters.Count）</Strong>
+            <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Icon="Lucide.RotateCcw"
+                    Disabled="filters.Count == initialFilters.Length" @onclick="() => filters = [.. initialFilters]">恢复</Button>
+        </Flex>
+        <Flex Gap="SpaceScale.Sm" Wrap="true" data-testid="filters">
+            @foreach (var (label, tone) in filters)
+            {
+                <Tag @key="label" Tone="tone" Radius="Radius.Full" RemoveLabel="@($"移除 {label}")"
+                     OnRemove="() => filters.RemoveAll(f => f.Label == label)">@label</Tag>
+            }
+            @if (filters.Count == 0)
+            {
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">没有筛选条件，显示全部商品</TextSpan>
+            }
+        </Flex>
+    </Flex>
+</Card>
+
+@code {
+    static readonly (string Label, Tone Tone)[] initialFilters =
+    [
+        ("价格：100–500 元", Tone.Accent),
+        ("品牌：小米", Tone.Neutral),
+        ("品牌：华为", Tone.Neutral),
+        ("有货", Tone.Success),
+        ("包邮", Tone.Info),
+        ("评分 4.5 以上", Tone.Warning),
+    ];
+
+    List<(string Label, Tone Tone)> filters = [.. initialFilters];
+}

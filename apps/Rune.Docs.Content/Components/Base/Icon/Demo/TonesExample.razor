@@ -1,0 +1,25 @@
+@inherits RuneComponent
+@using System.Reflection
+
+<Grid MinItemWidth="@("9rem")" Gap="SpaceScale.Md">
+    @foreach (var (tone, icon, label) in tones)
+    {
+        <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+            <Icon Data="icon" Tone="tone" Size="Size.Xl" />
+            <TextSpan Size="Size.Sm">@label</TextSpan>
+        </Flex>
+    }
+</Grid>
+
+@code {
+    static readonly (TextTone Tone, IconData Icon, string Label)[] tones =
+    [
+        (TextTone.Neutral, Lucide.CircleUser, "中性：正文色"),
+        (TextTone.Muted, Lucide.CircleUser, "次要"),
+        (TextTone.Accent, Lucide.Sparkles, "品牌色"),
+        (TextTone.Info, Lucide.Info, "信息"),
+        (TextTone.Success, Lucide.CircleCheck, "成功"),
+        (TextTone.Warning, Lucide.TriangleExclamationPoint, "警告"),
+        (TextTone.Danger, Lucide.CircleExclamationPoint, "危险"),
+    ];
+}

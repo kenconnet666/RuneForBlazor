@@ -1,0 +1,53 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        @* 多选：每一项各自开关 *@
+        <ToggleGroup SelectionMode="SelectionMode.Multiple" @bind-Values="marks" aria-label="字形" data-testid="marks">
+            <ToggleItem Value="bold" Icon="Lucide.LetterB" aria-label="加粗" />
+            <ToggleItem Value="italic" Icon="Lucide.Italic" aria-label="斜体" />
+            <ToggleItem Value="underline" Icon="Lucide.Underline" aria-label="下划线" />
+            <ToggleItem Value="strike" Icon="Lucide.Strikethrough" aria-label="删除线" />
+        </ToggleGroup>
+        <ToggleGroup @bind-Value="align" Required="true" aria-label="对齐">
+            <ToggleItem Value="left" Icon="Lucide.TextAlignStart" aria-label="左对齐" />
+            <ToggleItem Value="center" Icon="Lucide.TextAlignCenter" aria-label="居中" />
+            <ToggleItem Value="right" Icon="Lucide.TextAlignEnd" aria-label="右对齐" />
+            <ToggleItem Value="justify" Icon="Lucide.TextAlignJustify" aria-label="两端对齐" />
+        </ToggleGroup>
+    </Flex>
+    <Card>
+        <Paragraph Sx="TextStyle">分段控件是一组互斥或可多选的按钮：方向键在组内移动，整组只占一个 Tab 位置。只有图标的项要写 aria-label。</Paragraph>
+    </Card>
+</Flex>
+
+@code {
+    IReadOnlyList<string> marks = ["bold"];
+
+    string? align = "left";
+
+    // 示例段落按字形与对齐变化
+    Sx TextStyle => Sx.Of(
+        marks.Contains("bold") ? Bold : null,
+        marks.Contains("italic") ? Italic : null,
+        (marks.Contains("underline"), marks.Contains("strike")) switch
+        {
+            (true, true) => UnderlineStrike,
+            (true, false) => Underline,
+            (false, true) => Strike,
+            _ => null,
+        },
+        AlignOf(align ?? "left"));
+
+    static Style Bold => Css.Define(static () => new Style { FontWeight = FontWeights.Bold });
+
+    static Style Italic => Css.Define(static () => new Style { FontStyle = FontStyle.Italic });
+
+    static Style Underline => Css.Define(static () => new Style { TextDecorationLine = TextDecorationLine.Underline });
+
+    static Style Strike => Css.Define(static () => new Style { TextDecorationLine = TextDecorationLine.LineThrough });
+
+    static Style UnderlineStrike => Css.Define(static () => new Style { TextDecorationLine = "underline line-through" });
+
+    static Style AlignOf(string value) => Css.Define(value, static value => new Style { TextAlign = value });
+}

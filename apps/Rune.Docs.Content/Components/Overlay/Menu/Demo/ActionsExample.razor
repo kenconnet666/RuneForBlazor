@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Card Padding="SpaceScale.Sm">
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md">
+            <Icon Data="Lucide.FileText" Sx="FileIcon" />
+            <Flex Direction="LayoutDirection.Column" Grow="true">
+                <Strong>第三季度经营报告.docx</Strong>
+                <Small Tone="TextTone.Muted">周一航 · 昨天 18:20 修改 · 2.4 MB</Small>
+            </Flex>
+            <Menu Placement="Placement.BottomEnd" data-testid="row-menu">
+                <Trigger Context="t"><IconButton @attributes="t" Icon="Lucide.Ellipsis" Label="更多操作" /></Trigger>
+                <ChildContent>
+                    <MenuItem Icon="Lucide.Pencil" Shortcut="F2" @onclick="@(() => last = "重命名")">重命名</MenuItem>
+                    <MenuItem Icon="Lucide.Copy" Shortcut="Ctrl+D" @onclick="@(() => last = "创建副本")">创建副本</MenuItem>
+                    <MenuItem Icon="Lucide.Share2" @onclick="@(() => last = "分享")">分享</MenuItem>
+                    <MenuItem Icon="Lucide.Archive" Disabled="true">归档（没有权限）</MenuItem>
+                    <MenuSeparator />
+                    <MenuItem Icon="Lucide.Trash" Tone="Tone.Danger" @onclick="@(() => last = "删除")">删除</MenuItem>
+                </ChildContent>
+            </Menu>
+        </Flex>
+    </Card>
+    <Small Tone="TextTone.Muted" data-testid="menu-last">@(last is null ? "点右侧的 … 打开菜单" : $"执行了：{last}")</Small>
+</Flex>
+
+@code {
+    string? last;
+
+    static Style FileIcon => Css.Define(static () => new Style { Color = Colors.TextMuted, FontSize = CssLength.Rem(1.5) });
+}

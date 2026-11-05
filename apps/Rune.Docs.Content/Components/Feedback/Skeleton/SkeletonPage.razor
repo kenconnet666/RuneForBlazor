@@ -1,0 +1,23 @@
+@page "/components/skeleton"
+@attribute [DocMeta("Skeleton 骨架屏", "内容加载时的占位：大致勾出将要出现的布局，一道光带扫过表示内容正在来。", DocCategory.Feedback, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Feedback.Skeleton.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="shapes" Title="形状" Demo="typeof(ShapesExample)">
+                <Code>Variant</Code> 给出常用形状：文字行、标题、头像、按钮、图片；多行段落用 SkeletonText，最后一行短一些，各行的光带依次错开。其他大小用 <Code>Sx</Code> 给。
+            </Example>
+            <Example Id="wrapping" Title="包着内容" Demo="typeof(WrappingExample)">
+                包着真实内容时，内容照常排版但看不见，占位正好是内容的大小，加载完换成内容时布局不跳。<Code>Delay</Code> 让几块骨架依次扫过，连成一道波；间隔用 <Code>ShimmerStyles.Stagger</Code> 的倍数，与列表、表格的骨架行节奏一致。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="layouts" Title="常见布局" Demo="typeof(LayoutsExample)">
+                按真实布局拼骨架：文章（配图、标题、段落）、消息列表（头像加两行文字）、看板、表单。Card 自带 <Code>Loading</Code>；自己拼的骨架换成内容时给内容加 <Code>ShimmerStyles.Reveal</Code> 淡入，不要硬切，并在整块区域上加 <Code>aria-busy</Code>。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Skeleton), typeof(SkeletonText)]" />
+</DocPage>

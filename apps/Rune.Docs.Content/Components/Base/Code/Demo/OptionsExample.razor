@@ -1,0 +1,19 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="wrap">自动换行</Switch>
+        <Switch @bind-Value="copyable">复制按钮</Switch>
+        <Switch @bind-Value="highlight">语法高亮</Switch>
+    </Flex>
+    <CodeBlock Code="@curl" Lang="bash" Wrap="wrap" Copyable="copyable" Highlight="highlight" data-testid="curl" />
+</Flex>
+
+@code {
+    const string curl = """curl -X POST https://api.example.com/v1/projects/42/deployments -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"ref":"main","environment":"production","notify":true}'""";
+
+    static readonly string data = "var items = new[]\n{\n" +
+        string.Join("\n", Enumerable.Range(1, 40).Select(i => $"    new {{ Id = {i}, Name = \"项目 {i}\", Done = {(i % 3 == 1 ? "true" : "false")} }},")) + "\n};";
+
+    bool wrap = true, copyable = true, highlight = true;
+}

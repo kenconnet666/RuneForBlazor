@@ -1,0 +1,22 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        @foreach (var radius in Enum.GetValues<Radius>())
+        {
+            <Button Radius="radius">@Lower(radius)</Button>
+        }
+    </Flex>
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        @foreach (var radius in Enum.GetValues<Radius>())
+        {
+            <Button Radius="radius" Variant="ButtonVariant.Outline" Icon="Lucide.Plus">@Lower(radius)</Button>
+        }
+    </Flex>
+    <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center">
+        @foreach (var radius in Enum.GetValues<Radius>())
+        {
+            <IconButton Radius="radius" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Heart" Label="@($"收藏（{Lower(radius)}）")" />
+        }
+    </Flex>
+</Flex>

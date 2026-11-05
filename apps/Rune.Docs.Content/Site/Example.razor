@@ -1,0 +1,84 @@
+@*
+    示例小节（同 vue-tsx-pro 文档站的 Example）：标题（锚点）、说明、示例卡片（CodePreview：运行中的效果与它的源码）。
+    <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">说明文字</Example>
+    源码取自示例文件本身（ExampleSource），与效果永远一致。整页示例（AppShell）写 Frame="40rem"：效果区用 iframe 单独打开它（[DocFrame]）。
+    效果区带 data-demo（里面的标题不进本页目录）；排布格带 data-demo-canvas（对照工具按它找效果区）。
+*@
+@inherits RuneComponent
+@inject NavigationManager Navigation
+
+<section @attributes="Attrs.Merge(SectionLayer)">
+    <H2 id="@Id" Size="Size.Xl" Anchor="true">@Title</H2>
+    @if (ChildContent is not null)
+    {
+        <Paragraph Sx="DescriptionStyle">@ChildContent</Paragraph>
+    }
+    <CodePreview Code="@ExampleSource.Of(Demo)" Align="Align" PropsPreview="PreviewLayer" PropsLayout="@(Frame is null ? CanvasLayer : FramedCanvasLayer)">
+        @if (Frame is not null)
+        {
+            <iframe src="@FrameSrc" title="@Title" loading="lazy" allow="fullscreen" style="height:@Frame" @attributes="Attrs.Merge(FrameLayer)"></iframe>
+        }
+        else
+        {
+            <DynamicComponent Type="Demo" />
+        }
+    </CodePreview>
+</section>
+
+@code {
+    static readonly Attrs SectionLayer = new() { Sx = Section };
+    // 示例的“画布”：表面色衬底，字号、行高改回界面默认值，示例显示的就是组件的默认大小
+    static readonly Attrs PreviewLayer = new() { Sx = Canvas, ["data-demo"] = true };
+    static readonly Attrs CanvasLayer = new() { ["data-demo-canvas"] = true };
+    // iframe 贴满效果区，不留内边距
+    static readonly Attrs FramedCanvasLayer = new() { Sx = Framed, ["data-demo-canvas"] = true };
+    static readonly Attrs FrameLayer = new() { Sx = FrameStyle };
+
+    /// <summary>小节的锚点（英文，本页唯一）。</summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+
+    /// <summary>小节标题。</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>示例组件（Demo 目录里的一个文件；整页示例是 Frames 目录里带 [DocFrame] 的组件）。</summary>
+    [Parameter, EditorRequired] public Type Demo { get; set; } = default!;
+
+    /// <summary>效果区的排列，默认从起始边排起。</summary>
+    [Parameter] public CodePreviewAlign Align { get; set; }
+
+    /// <summary>整页示例：效果区的高度（CSS 长度），示例在 iframe 里单独打开。</summary>
+    [Parameter] public string? Frame { get; set; }
+
+    /// <summary>说明文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 整页示例的地址：文档站的页面是 /components/{页面}，打开 /frame/{页面}/{名字}；
+    // 渲染模式测试台的页面是 /{模式}/{页面}，打开 /{模式}/frame/{页面}/{名字}（同一种模式）
+    string FrameSrc
+    {
+        get
+        {
+            var frame = System.Reflection.CustomAttributeExtensions.GetCustomAttribute<DocFrameAttribute>(Demo)
+                ?? throw new InvalidOperationException($"{Demo.Name} 没有写 [DocFrame]，不能做整页示例");
+            var segments = Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0].Split('/', StringSplitOptions.RemoveEmptyEntries);
+            var prefix = segments.Length > 1 && segments[0] != "components" ? $"{segments[0]}/" : "";
+            return $"{prefix}frame/{frame.Page}/{frame.Name}";
+        }
+    }
+
+    static Style Section => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Md, MinWidth = 0 });
+
+    static Style DescriptionStyle => Css.Define(static () => new Style { Color = Colors.TextMuted });
+
+    static Style Canvas => Css.Define(static () => new Style
+    {
+        MinHeight = CssLength.Rem(7),
+        FontSize = FontSizes.Md,
+        LineHeight = LineHeights.Normal,
+        BackgroundColor = Colors.Surface,
+    });
+
+    static Style Framed => Css.Define(static () => new Style { Padding = 0, [Breakpoints.Sm] = new() { Padding = 0 } });
+
+    static Style FrameStyle => Css.Define(static () => new Style { Display = Display.Block, Width = CssLength.Percent(100), BorderStyle = BorderStyle.None });
+}

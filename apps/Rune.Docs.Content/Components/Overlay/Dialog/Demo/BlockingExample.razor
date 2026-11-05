@@ -1,0 +1,68 @@
+@inherits RuneComponent
+@implements IDisposable
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Button Icon="Lucide.Contact" @onclick="StartImport">导入通讯录</Button>
+    <Small Tone="TextTone.Muted">@(importResult ?? "导入期间点遮罩不会关闭，也没有右上角的关闭按钮")</Small>
+    <Dialog Open="importing" OpenChanged="ImportOpenChanged" Title="正在导入通讯录" Description="完成后自动关闭；可以随时取消，已导入的联系人会保留。"
+            Closable="false" Dismissible="false">
+        <ChildContent>
+            <Progress Value="imported" Max="Total" Label="导入进度" ValueLabel="@($"{imported} / {Total}")"
+                      ValueText="@((value, max) => $"已导入 {value} / {max} 位")" />
+        </ChildContent>
+        <Footer>
+            <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral" @onclick="CancelImport">取消导入</Button>
+        </Footer>
+    </Dialog>
+</Flex>
+
+@code {
+    const int Total = 1280;
+
+    bool importing;
+
+    int imported;
+
+    string? importResult;
+
+    CancellationTokenSource? importRun;
+
+    async Task StartImport()
+    {
+        imported = 0;
+        importing = true;
+        importRun?.Cancel();
+        var run = importRun = new CancellationTokenSource();
+        try
+        {
+            while (imported < Total)
+            {
+                await Task.Delay(150, run.Token);
+                imported = Math.Min(Total, imported + 96);
+                StateHasChanged();
+            }
+            importResult = $"导入了 {Total} 位联系人";
+            await Task.Delay(400, run.Token);
+            importing = false;
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    void CancelImport()
+    {
+        importRun?.Cancel();
+        importing = false;
+        importResult = $"取消了，已导入 {imported} 位";
+    }
+
+    // Esc 关掉也是取消
+    void ImportOpenChanged(bool open)
+    {
+        if (!open && importing) CancelImport();
+    }
+
+    /// <inheritdoc/>
+    public void Dispose() => importRun?.Cancel();
+}

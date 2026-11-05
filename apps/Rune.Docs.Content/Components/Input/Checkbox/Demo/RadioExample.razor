@@ -1,0 +1,40 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Field Label="配送方式">
+        <RadioGroup @bind-Value="shipping" Name="shipping">
+            @foreach (var (value, title, time, price) in shippingOptions)
+            {
+                <Radio Value="value">
+                    <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Lg">
+                        <Flex Direction="LayoutDirection.Column">
+                            <Strong>@title</Strong>
+                            <Small Tone="TextTone.Muted">@time</Small>
+                        </Flex>
+                        <Small>@price</Small>
+                    </Flex>
+                </Radio>
+            }
+        </RadioGroup>
+    </Field>
+    <Field Label="发票" Required="true" Error="@(invoice is null ? "请选择发票类型" : null)">
+        <RadioGroup @bind-Value="invoice" Name="invoice" Orientation="Orientation.Horizontal">
+            <Radio Value="@("none")">不开发票</Radio>
+            <Radio Value="@("personal")">个人</Radio>
+            <Radio Value="@("company")">企业</Radio>
+        </RadioGroup>
+    </Field>
+</Flex>
+
+@code {
+    static readonly (string Value, string Title, string Time, string Price)[] shippingOptions =
+    [
+        ("standard", "标准快递", "3–5 天送达", "免运费"),
+        ("express", "顺丰次日达", "明天 18:00 前", "¥12"),
+        ("pickup", "门店自提", "今天 15:00 后可取", "免运费"),
+    ];
+
+    string shipping = "express";
+
+    string? invoice;
+}

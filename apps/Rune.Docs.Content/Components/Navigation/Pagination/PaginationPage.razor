@@ -1,0 +1,15 @@
+@page "/components/pagination"
+@attribute [DocMeta("Pagination 分页", "上一页、页码、省略号、下一页；PaginationBar 是表格下方的整行分页栏（总数、页码、每页条数、跳页），PageSizeSelect、PageJump 也可以自己并排，Pager 是文章末尾的上一篇 / 下一篇。", DocCategory.Navigation, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Navigation.Pagination.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="links" Title="链接与翻页" Demo="typeof(LinksExample)">
+                <Code>Pager</Code> 是文章末尾的上一篇 / 下一篇：两张链接卡片，带 rel="prev" / rel="next"。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Pager)]" />
+</DocPage>

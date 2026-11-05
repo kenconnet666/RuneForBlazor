@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("13em")" Gap="SpaceScale.Lg">
+    @foreach (var size in sizes)
+    {
+        <Field Label="@($"surface · {Lower(size)}")"><NumberField @bind-Value="shared" Size="size" /></Field>
+    }
+    @foreach (var size in sizes)
+    {
+        <Field Label="@($"soft · {Lower(size)}")"><NumberField @bind-Value="shared" Variant="InputVariant.Soft" Size="size" /></Field>
+    }
+    <Field Label="胶囊形"><NumberField @bind-Value="shared" Radius="Radius.Full" /></Field>
+    <Field Label="可清空" Description="clearable：选填的数量，清空后值是 null"><NumberField @bind-Value="shared" Clearable="true" /></Field>
+    <Field Label="不要加减按钮" Description="stepper={false}，方向键照常可用"><NumberField @bind-Value="shared" Stepper="false" /></Field>
+    <Field Label="只读"><NumberField @bind-Value="shared" ReadOnly="true" /></Field>
+    <Field Label="不可用"><NumberField @bind-Value="shared" Disabled="true" /></Field>
+    <Field Label="出错" Error="库存只剩 10 件"><NumberField @bind-Value="shared" Max="10" /></Field>
+</Grid>
+
+@code {
+    static readonly Size[] sizes = [Size.Sm, Size.Md, Size.Lg];
+
+    int? shared = 12;
+}

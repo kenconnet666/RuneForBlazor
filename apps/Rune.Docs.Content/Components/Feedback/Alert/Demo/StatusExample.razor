@@ -1,0 +1,32 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Flex>
+            <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.RefreshCw" Loading="checking" @onclick="CheckAsync" data-testid="check">检查更新</Button>
+        </Flex>
+        @if (checking || checkedOnce)
+        {
+            <Alert Live="AlertLive.Polite" Loading="checking" Tone="@(checking ? Tone.Info : Tone.Success)"
+                   Title="@(checking ? "正在检查更新…" : "已是最新版本")" data-testid="update-status">
+                @(checking ? "连接更新服务器" : "当前版本 2.4.0，发布于 10 月 18 日。")
+            </Alert>
+        }
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Alert Size="Size.Sm" Tone="Tone.Warning" Title="size=&quot;sm&quot;">侧栏、表单字段旁的紧凑提示。</Alert>
+        <Alert Size="Size.Lg" Tone="Tone.Accent" Title="size=&quot;lg&quot;">页面顶部的重要公告。</Alert>
+    </Flex>
+</Flex>
+
+@code {
+    bool checking, checkedOnce;
+
+    async Task CheckAsync()
+    {
+        checking = true;
+        await Task.Delay(1500);
+        checking = false;
+        checkedOnce = true;
+    }
+}

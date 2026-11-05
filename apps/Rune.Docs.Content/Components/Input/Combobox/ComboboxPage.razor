@@ -1,0 +1,20 @@
+@page "/components/combobox"
+@attribute [DocMeta("Combobox 输入选择", "边输入边筛选的下拉框：选项多时先打几个字缩小范围；可以远程搜索，也可以允许输入选项之外的文字。", DocCategory.Input, Order = 6)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.Combobox.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="本地筛选与远程搜索" Demo="typeof(BasicExample)">
+                默认本地筛选（忽略大小写与重音），中文输入法组合期间不拿拼音去筛选。远程搜索给 <Code>Load(输入, 取消令牌)</Code>：输入停下 300 ms 后请求，只采用最后一次，被顶掉的请求取消；自己管请求时写 <Code>LocalFilter="false"</Code>，按 <Code>InputValue</Code> 换 <Code>Items</Code>、配合 <Code>Loading</Code>。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="freeform" Title="自由输入、图标与状态" Demo="typeof(FreeformExample)">
+                <Code>AllowCustomValue</Code> 允许输入选项里没有的文字：失焦时保留，<Code>Value</Code> 为 null、文字在 <Code>InputValue</Code> 里。<Code>Icon</Code>、<Code>Variant</Code>、<Code>Radius</Code> 与只读、不可用同其他输入框。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Combobox<>)]" />
+</DocPage>

@@ -1,0 +1,64 @@
+@inherits RuneComponent
+
+<Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+    <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Funnel" @onclick="OpenFilters">
+        筛选
+        @if (applied.Count > 0)
+        {
+            <Badge Size="Size.Xs" Radius="Radius.Full">@applied.Count</Badge>
+        }
+    </Button>
+    <Small Tone="TextTone.Muted">@(applied.Count > 0 ? $"已设 {applied.Count} 项条件" : "没有筛选条件：显示全部 128 个项目")</Small>
+    <Drawer @bind-Open="filtering" Size="ContainerSize.Xs" Title="筛选项目" ConfirmText="@($"查看结果（已设 {filterDraft.Count} 项）")" OnConfirm="() => applied = filterDraft.Copy()">
+        <ChildContent>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+                <Field Label="责任团队">
+                    <Select Items="teams" @bind-Value="filterDraft.Team" Placeholder="全部团队" />
+                </Field>
+                <Field Label="状态">
+                    <CheckboxGroup TItem="string" @bind-Value="filterDraft.Statuses">
+                        @foreach (var (value, label) in statuses)
+                        {
+                            <Checkbox @key="value" GroupValue="@value">@label</Checkbox>
+                        }
+                    </CheckboxGroup>
+                </Field>
+                <Field Label="预计年节省（万元）">
+                    <NumberRangeField @bind-Value="filterDraft.Saving" />
+                </Field>
+            </Flex>
+        </ChildContent>
+        <Footer>
+            <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => filterDraft = new()">重置</Button>
+        </Footer>
+    </Drawer>
+</Flex>
+
+@code {
+    sealed class Filters
+    {
+        public string? Team { get; set; }
+        public IReadOnlyList<string> Statuses { get; set; } = [];
+        public NumberRange<decimal?> Saving { get; set; }
+
+        public int Count => (Team is null ? 0 : 1) + (Statuses.Count > 0 ? 1 : 0) + (Saving.Low is null && Saving.High is null ? 0 : 1);
+
+        public Filters Copy() => new() { Team = Team, Statuses = Statuses, Saving = Saving };
+    }
+
+    static readonly string[] teams = ["生产部", "研发中心", "产品部", "供应链管理"];
+
+    static readonly (string Value, string Label)[] statuses = [("designing", "设计中"), ("verifying", "测试中"), ("confirming", "待验收"), ("settled", "已结算")];
+
+    bool filtering;
+
+    Filters applied = new();
+
+    Filters filterDraft = new();
+
+    void OpenFilters()
+    {
+        filterDraft = applied.Copy();
+        filtering = true;
+    }
+}

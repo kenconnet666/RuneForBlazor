@@ -1,0 +1,199 @@
+using System.Collections.Concurrent;
+using System.Globalization;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using Microsoft.AspNetCore.Components;
+using Rune.UI;
+
+namespace Rune.Docs.Site;
+
+/// <summary>
+/// 从组件类型生成 API 文档数据（同 vue-tsx-pro 文档站从 Props 类型与 JSDoc 生成的 virtual:api）：
+/// 参数按反射读出（[Parameter]，不含级联参数与收集未声明属性的那个），说明取组件库的 XML 文档注释（嵌在内容程序集里），
+/// 默认值取新建的组件实例上的值（与类型的默认值相同时不列）。
+/// </summary>
+public static partial class ComponentApiReader
+{
+    static readonly ConcurrentDictionary<Type, ComponentApi> cache = new();
+    static readonly Lazy<IReadOnlyDictionary<string, XElement>> docs = new(LoadDocs);
+    static readonly NullabilityInfoContext nullability = new();
+
+    /// <summary>组件的 API 数据。泛型组件（CommandPalette&lt;TItem&gt;）写开放类型 <c>typeof(CommandPalette&lt;&gt;)</c>。</summary>
+    public static ComponentApi Read(Type component) => cache.GetOrAdd(component, Build);
+
+    static ComponentApi Build(Type component)
+    {
+        var closed = component.IsGenericTypeDefinition ? Close(component) : component;
+        var instance = Activator.CreateInstance(closed);
+        var properties = closed.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.GetCustomAttribute<ParameterAttribute>() is { CaptureUnmatchedValues: false })
+            .ToList();
+        var names = properties.Select(p => p.Name).ToHashSet();
+        var props = properties
+            .OrderBy(p => Depth(p.DeclaringType!, closed))
+            .Select(p => PropOf(p, instance, names))
+            .ToList();
+        return new ComponentApi(DisplayName(component), Summary(MemberId('T', component)), props);
+    }
+
+    // 泛型组件随便取一个满足约束的类型参数（只读参数、默认值，不渲染）：数字组件（Slider<TValue>）要数字
+    static readonly Type[] Candidates = [typeof(object), typeof(string), typeof(int), typeof(double)];
+
+    static Type Close(Type definition)
+    {
+        foreach (var candidate in Candidates)
+        {
+            try
+            {
+                return definition.MakeGenericType([.. definition.GetGenericArguments().Select(_ => candidate)]);
+            }
+            catch (ArgumentException)
+            {
+                // 不满足约束：换下一个
+            }
+        }
+        throw new InvalidOperationException($"{definition.Name} 的类型参数找不到满足约束的类型");
+    }
+
+    // 子类自己声明的参数在前，基类的在后
+    static int Depth(Type declaring, Type type)
+    {
+        var depth = 0;
+        for (var t = type; t is not null && t != declaring; t = t.BaseType) depth++;
+        return -depth;
+    }
+
+    static ApiProp PropOf(PropertyInfo property, object? instance, HashSet<string> names)
+    {
+        var type = property.PropertyType;
+        var kind = KindOf(property);
+        var description = Summary(MemberId('P', property.DeclaringType!, property.Name));
+        var underlying = Nullable.GetUnderlyingType(type) ?? type;
+        return new ApiProp(property.Name, kind, TypeName(property), description)
+        {
+            Required = property.GetCustomAttribute<EditorRequiredAttribute>() is not null,
+            Bindable = kind != ApiPropKind.Event && names.Contains(property.Name + "Changed"),
+            Default = kind == ApiPropKind.Prop ? DefaultOf(property, instance) : null,
+            Values = underlying.IsEnum ? [.. Enum.GetNames(underlying).Select(n => new ApiValue(n, Summary(MemberId('F', underlying, n))))] : null,
+        };
+    }
+
+    static ApiPropKind KindOf(PropertyInfo property)
+    {
+        var type = property.PropertyType;
+        if (type == typeof(EventCallback) || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(EventCallback<>)) return ApiPropKind.Event;
+        if (type == typeof(RenderFragment) || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(RenderFragment<>)) return ApiPropKind.Content;
+        if (type == typeof(Attrs) && property.Name.StartsWith("Props", StringComparison.Ordinal)) return ApiPropKind.Part;
+        return ApiPropKind.Prop;
+    }
+
+    // 实例上的值与类型的默认值（null、false、0）相同时不列；枚举总是列出（第一项也是有意义的默认）
+    static string? DefaultOf(PropertyInfo property, object? instance)
+    {
+        object? value;
+        try
+        {
+            value = property.GetValue(instance);
+        }
+        catch (TargetInvocationException)
+        {
+            return null;
+        }
+        return value switch
+        {
+            null => null,
+            bool b => b ? "true" : null,
+            string s => s.Length == 0 ? null : $"\"{s}\"",
+            Enum e => $"{e.GetType().Name}.{e}",
+            int or long or double or float or decimal when Convert.ToDouble(value, CultureInfo.InvariantCulture) == 0 => null,
+            IFormattable f when value.GetType().IsPrimitive || value is decimal => f.ToString(null, CultureInfo.InvariantCulture),
+            _ when value.GetType().IsValueType && value.Equals(Activator.CreateInstance(value.GetType())) => null,
+            System.Collections.IEnumerable list when !list.GetEnumerator().MoveNext() => null,
+            _ => value.ToString(),
+        };
+    }
+
+    // C# 的写法：bool、string?、IReadOnlyList<string>、EventCallback<bool>
+    static string TypeName(PropertyInfo property)
+    {
+        var name = TypeName(property.PropertyType);
+        if (!property.PropertyType.IsValueType && nullability.Create(property).ReadState == NullabilityState.Nullable) name += "?";
+        return name;
+    }
+
+    static string TypeName(Type type)
+    {
+        if (Nullable.GetUnderlyingType(type) is { } inner) return TypeName(inner) + "?";
+        if (type.IsArray) return TypeName(type.GetElementType()!) + "[]";
+        var keyword = Type.GetTypeCode(type) switch
+        {
+            TypeCode.Boolean => "bool",
+            TypeCode.String => "string",
+            TypeCode.Int32 => "int",
+            TypeCode.Int64 => "long",
+            TypeCode.Double => "double",
+            TypeCode.Single => "float",
+            TypeCode.Decimal => "decimal",
+            _ => null,
+        };
+        if (keyword is not null) return keyword;
+        if (type == typeof(object)) return "object";
+        if (type.IsGenericParameter) return type.Name;
+        if (!type.IsGenericType) return type.Name;
+        var args = string.Join(", ", type.GetGenericArguments().Select(TypeName));
+        return $"{type.Name[..type.Name.IndexOf('`')]}<{args}>";
+    }
+
+    // 组件名：CommandPalette<TItem>
+    static string DisplayName(Type type) => type.IsGenericTypeDefinition
+        ? $"{type.Name[..type.Name.IndexOf('`')]}<{string.Join(", ", type.GetGenericArguments().Select(a => a.Name))}>"
+        : type.Name;
+
+    // XML 文档的成员 id：T:Rune.UI.Button、P:Rune.UI.Button.Disabled、F:Rune.UI.Size.Md（泛型类型带 `1）
+    static string MemberId(char kind, Type type, string? member = null)
+    {
+        var definition = type.IsGenericType ? type.GetGenericTypeDefinition() : type;
+        var name = definition.FullName!.Replace('+', '.');
+        return member is null ? $"{kind}:{name}" : $"{kind}:{name}.{member}";
+    }
+
+    static string Summary(string id)
+    {
+        if (!docs.Value.TryGetValue(id, out var member) || member.Element("summary") is not { } summary) return "";
+        return Whitespace().Replace(TextOf(summary), " ").Trim();
+    }
+
+    // <c>x</c> 写成 x，<see cref="T:Rune.UI.Button"/> 写成 Button，其余取文字
+    static string TextOf(XElement element) => string.Concat(element.Nodes().Select(node => node switch
+    {
+        XText text => text.Value,
+        XElement { Name.LocalName: "see" or "seealso" } see => see.Attribute("langword")?.Value
+            ?? (see.Value.Length > 0 ? see.Value : ShortName(see.Attribute("cref")?.Value ?? "")),
+        XElement { Name.LocalName: "paramref" or "typeparamref" } reference => reference.Attribute("name")?.Value ?? "",
+        XElement child => TextOf(child),
+        _ => "",
+    }));
+
+    static string ShortName(string cref)
+    {
+        var name = cref.Contains(':') ? cref[(cref.IndexOf(':') + 1)..] : cref;
+        if (name.IndexOf('(') is var paren and > 0) name = name[..paren];
+        var parts = name.Split('.');
+        // 成员写成“类型.成员”，类型只写名字
+        return parts.Length >= 2 && cref.StartsWith("T:", StringComparison.Ordinal) is false ? $"{parts[^2]}.{parts[^1]}" : parts[^1];
+    }
+
+    static IReadOnlyDictionary<string, XElement> LoadDocs()
+    {
+        using var stream = typeof(ComponentApiReader).Assembly.GetManifestResourceStream("api/Rune.UI.xml");
+        if (stream is null) return new Dictionary<string, XElement>();
+        return XDocument.Load(stream).Descendants("member")
+            .Where(m => m.Attribute("name") is not null)
+            .GroupBy(m => m.Attribute("name")!.Value)
+            .ToDictionary(g => g.Key, g => g.First());
+    }
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex Whitespace();
+}

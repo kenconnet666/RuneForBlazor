@@ -1,0 +1,28 @@
+@page "/components/tabs"
+@attribute [DocMeta("Tabs 标签页", "同一区域里切换几组内容：Tabs 管状态，TabList、Tab、TabPanel 各是独立的组件，自由排版。下划线、浅色底两种样式，横排、竖排。", DocCategory.Navigation, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Navigation.Tabs.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="workspace" Title="多页签：关闭、新建、拖动" Demo="typeof(WorkspaceExample)">
+                <Code>Tab</Code> 写了 <Code>OnClose</Code> 就有关闭按钮（不进 Tab 顺序，焦点在标签上时按 Delete，鼠标中键也关）；关掉的是当前标签时选它后面的一个，焦点跟过去。<Code>TabList</Code> 的 <Code>OnAdd</Code> 在标签栏末尾放“新建标签页”，<Code>OnReorder</Code> 让标签能拖动排序（键盘：Alt + ← →），参数是新的顺序。放不下时列表横向滚动，两端出现滚动按钮，切到的标签自己滚进来。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="line" Title="订单状态" Demo="typeof(LineExample)">
+                <Code>@@bind-Value</Code> 双向绑定当前标签；标签里可以放任意内容（计数徽标）。下划线是一个指示条，切换时滑过去，减少动态效果时直接到位。整组只占一个 Tab 位置，方向键移动、Home / End 到两端。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="soft" Title="浅色底与手动切换" Demo="typeof(SoftExample)">
+                <Code>TabsVariant.Soft</Code> 像分段控件；<Code>TabsActivation.Manual</Code> 时按 Enter / 空格才切换，适合切换代价大的内容。不写 Value 时选中第一个标签。
+            </Example>
+            <Example Id="vertical" Title="竖排" Demo="typeof(VerticalExample)">
+                <Code>Orientation.Vertical</Code>：标签在左、内容在右，键盘改用 ↑↓。设置页这类分组多、标签文字长的场景。<Code>Lazy</Code> 时面板第一次显示才渲染。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Tab), typeof(TabList), typeof(TabPanel), typeof(Tabs)]" />
+</DocPage>

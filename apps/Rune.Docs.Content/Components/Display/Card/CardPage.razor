@@ -1,0 +1,21 @@
+@page "/components/card"
+@attribute [DocMeta("Card 卡片", "把一组相关内容放在一块表面上：四种样式，可选的页头与页脚，正文加载中换成骨架，倾斜、聚光、流光三种装饰效果。", DocCategory.Display, Order = 0)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Card.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="variants" Title="样式" Demo="typeof(VariantsExample)">
+                Variant 有 Surface（默认）、Outline、Elevated、Ghost，颜色与阴影都取主题；可以用 CardDefaults 统一改。
+            </Example>
+            <Example Id="sections" Title="页头与页脚" Demo="typeof(SectionsExample)">
+                Header、Footer 与正文之间有分隔线；需要语义容器时把标题放进 Header，或在外面包 article、section。
+            </Example>
+            <Example Id="extra" Title="页头的操作" Demo="typeof(ExtraExample)">
+                Extra 在页头的结束边（“全部 ↗”、标记、按钮），和 Header 排在一行、放不下时换行，不用自己在 Header 里写两端对齐。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Card)]" />
+</DocPage>

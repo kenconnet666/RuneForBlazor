@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <CodeGroup Items="installs" @bind-Value="installer" data-testid="group-a" />
+    <CodeGroup Items="installs" @bind-Value="installer" data-testid="group-b" />
+</Flex>
+
+@code {
+    // 两组绑同一个变量：在一组里选了写法，另一组跟着切换
+    static readonly CodeGroupItem[] installs =
+    [
+        new("dotnet CLI", "dotnet add package Rune.UI", "shellscript"),
+        new("PackageReference", """<PackageReference Include="Rune.UI" Version="0.1.0" />""", "xml"),
+        new("PowerShell", "Install-Package Rune.UI", "powershell"),
+    ];
+
+    string? installer = "dotnet CLI";
+
+    static readonly string data = "var items = new[]\n{\n" +
+        string.Join("\n", Enumerable.Range(1, 40).Select(i => $"    new {{ Id = {i}, Name = \"项目 {i}\", Done = {(i % 3 == 1 ? "true" : "false")} }},")) + "\n};";
+}

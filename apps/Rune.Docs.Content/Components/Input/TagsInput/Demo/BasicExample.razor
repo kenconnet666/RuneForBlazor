@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="关键词" Description="回车或输入逗号加一个；粘贴时按逗号与换行拆开；最多 6 个">
+        <TagsInput TItem="string" @bind-Value="keywords" Max="6" Clearable="true" data-testid="keywords" />
+    </Field>
+    <Field Label="抄送" Description="只能从团队成员里选">
+        <TagsInput Items="team" @bind-Value="recipients" AllowCustomValue="false" data-testid="recipients" />
+    </Field>
+    <Small Tone="TextTone.Muted" data-testid="basic-summary">关键词：@string.Join("、", keywords) · 抄送：@string.Join("、", recipients)</Small>
+</Flex>
+
+@code {
+    static readonly ListboxOption[] team =
+    [
+        new("yihang@example.com", "周一航", Description: "yihang@example.com"),
+        new("xiaoman@example.com", "林小满", Description: "xiaoman@example.com"),
+        new("chenmo@example.com", "陈默", Description: "chenmo@example.com"),
+        new("xuyou@example.com", "许悠", Description: "xuyou@example.com"),
+    ];
+
+    IReadOnlyList<string> keywords = ["组件库", "Vue", "TSX"];
+
+    IReadOnlyList<string> recipients = ["xiaoman@example.com"];
+}

@@ -1,0 +1,29 @@
+@inherits RuneComponent
+
+<form @onsubmit="() => saved = nickname" @onsubmit:preventDefault @onreset="Reset" @onreset:preventDefault>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Field Label="昵称">
+            <TextField @bind-Value="nickname" name="nickname" />
+        </Field>
+        <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center" Wrap="true">
+            <Button Type="submit">保存</Button>
+            <Button Type="reset" Variant="ButtonVariant.Outline">重置</Button>
+            <Button Variant="ButtonVariant.Ghost" Ripple="false" @onclick="() => nickname = string.Empty">清空（无波纹）</Button>
+        </Flex>
+        <Small Tone="TextTone.Muted">@(saved is { Length: > 0 } ? $"已保存：{saved}" : "还没有保存")</Small>
+    </Flex>
+</form>
+
+@code {
+    const string InitialNickname = "林小满";
+
+    string nickname = InitialNickname;
+
+    string saved = "";
+
+    void Reset()
+    {
+        nickname = InitialNickname;
+        saved = "";
+    }
+}

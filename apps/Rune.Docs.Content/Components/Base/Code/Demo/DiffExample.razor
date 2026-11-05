@@ -1,0 +1,20 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <CodeBlock Code="@change" Lang="razor" Title="Counter.razor：从字段换成 Bindable" LineNumbers="true" RemovedLines="2,5" AddedLines="3,6" />
+    <CodeBlock Code="@data" Lang="csharp" Title="Data.cs" MaxLines="8" data-testid="long" />
+</Flex>
+
+@code {
+    const string change = """
+        @code {
+            int count;
+            Bindable<int> count { get => field ??= new(this, () => Value, () => ValueChanged); }
+        }
+        <button @onclick="() => count++">@count</button>
+        <button @onclick="() => count.SetAsync(count.Value + 1)">@count.Value</button>
+        """;
+
+    static readonly string data = "var items = new[]\n{\n" +
+        string.Join("\n", Enumerable.Range(1, 40).Select(i => $"    new {{ Id = {i}, Name = \"项目 {i}\", Done = {(i % 3 == 1 ? "true" : "false")} }},")) + "\n};";
+}

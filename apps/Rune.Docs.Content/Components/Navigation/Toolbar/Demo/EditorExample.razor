@@ -1,0 +1,38 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Card Padding="SpaceScale.Xs">
+        <Toolbar aria-label="文字格式" data-testid="format">
+            <IconButton Icon="Lucide.Undo2" Label="撤销" />
+            <IconButton Icon="Lucide.Redo2" Label="重做" />
+            <Separator Orientation="Orientation.Vertical" />
+            <Select Items="fonts" @bind-Value="font" Size="Size.Sm" aria-label="段落样式" Sx="FontWidth" />
+            <Separator Orientation="Orientation.Vertical" />
+            <ToggleGroup SelectionMode="SelectionMode.Multiple" @bind-Values="marks" Size="Size.Sm" aria-label="字形">
+                <ToggleItem Value="bold" Icon="Lucide.LetterB" aria-label="加粗" />
+                <ToggleItem Value="italic" Icon="Lucide.Italic" aria-label="斜体" />
+                <ToggleItem Value="underline" Icon="Lucide.Underline" aria-label="下划线" />
+            </ToggleGroup>
+            <ToggleGroup @bind-Value="align" Required="true" Size="Size.Sm" aria-label="对齐">
+                <ToggleItem Value="left" Icon="Lucide.TextAlignStart" aria-label="左对齐" />
+                <ToggleItem Value="center" Icon="Lucide.TextAlignCenter" aria-label="居中" />
+                <ToggleItem Value="right" Icon="Lucide.TextAlignEnd" aria-label="右对齐" />
+            </ToggleGroup>
+            <Separator Orientation="Orientation.Vertical" />
+            <IconButton Icon="Lucide.Link2" Label="插入链接" />
+        </Toolbar>
+    </Card>
+    <Small Tone="TextTone.Muted" data-testid="format-summary">@font · @(marks.Count > 0 ? string.Join("、", marks) : "无字形") · @align</Small>
+</Flex>
+
+@code {
+    static readonly string[] fonts = ["正文", "标题 1", "标题 2", "引用"];
+
+    string? font = "正文";
+
+    IReadOnlyList<string> marks = ["bold"];
+
+    string? align = "left";
+
+    static Style FontWidth => Css.Define(static () => new Style { Width = CssLength.Rem(7) });
+}

@@ -13,7 +13,8 @@ public class ThemeSwitcherTests(DemoServer demo)
         var root = page.Locator("html");
         var switcher = page.GetByTestId("switcher");
         var trigger = page.Locator($"[popovertarget='{await switcher.GetAttributeAsync("id")}']");
-        var canvas = page.Locator("[data-demo-canvas]").First;
+        // 示例的效果区（表面色衬底）
+        var canvas = page.Locator("[data-demo]").First;
 
         // 没选过：跟随系统（测试浏览器是亮色）
         await Assertions.Expect(root).ToHaveAttributeAsync("data-theme", "light");

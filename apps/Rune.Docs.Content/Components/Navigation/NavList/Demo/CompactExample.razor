@@ -1,0 +1,54 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Switch @bind-Value="compact">只显示图标</Switch>
+    <Card Padding="SpaceScale.Xs" Sx="@(compact ? CompactNav : ExpandableNav)" data-testid="compact-card">
+        <NavList aria-label="销售管理" Compact="compact" data-testid="compact">
+            <NavItem Href="#home" Icon="Lucide.House" Active="@(page == "首页")" @onclick="@(() => page = "首页")">首页</NavItem>
+            <NavGroup Label="审批" Icon="Lucide.ClipboardCheck">
+                @foreach (var (name, count) in approvals)
+                {
+                    <NavItem @key="name" Href="@Anchor(name)" Badge="count" Active="@(page == name)" @onclick="@(() => page = name)">@name</NavItem>
+                }
+            </NavGroup>
+            @foreach (var (label, icon, pages) in sections)
+            {
+                <NavSection @key="label" Label="@label" Icon="icon">
+                    @foreach (var (name, pageIcon, count) in pages)
+                    {
+                        <NavItem @key="name" Href="@Anchor(name)" Icon="pageIcon" Badge="count" Active="@(page == name)" @onclick="@(() => page = name)">@name</NavItem>
+                    }
+                </NavSection>
+            }
+        </NavList>
+    </Card>
+</Flex>
+
+@code {
+    static readonly (string Name, int Count)[] approvals = [("待我审批", 4), ("我发起的", 0)];
+
+    static readonly (string Label, IconData Icon, (string Name, IconData Icon, int Count)[] Pages)[] sections =
+    [
+        ("项目", Lucide.FolderKanban, [("单价台账", Lucide.Wrench, 0), ("库存台账", Lucide.Gauge, 0)]),
+        ("收益", Lucide.CircleDollarSign, [("财务复核", Lucide.BadgeCheck, 12), ("总账", Lucide.BookOpenText, 0)]),
+    ];
+
+    string page = "单价台账";
+
+    bool compact = true;
+
+    static string Anchor(string name) => "#" + Uri.EscapeDataString(name);
+
+    // 紧凑示例的侧栏：宽窄切换有过渡
+    static Style ExpandableNav => Css.Define(static () => new Style
+    {
+        Width = CssLength.Rem(15),
+        Transition = $"width {Durations.Md} {Easings.Standard}",
+    });
+
+    static Style CompactNav => Css.Define(static () => new Style
+    {
+        Width = CssLength.Rem(3.5),
+        Transition = $"width {Durations.Md} {Easings.Standard}",
+    });
+}

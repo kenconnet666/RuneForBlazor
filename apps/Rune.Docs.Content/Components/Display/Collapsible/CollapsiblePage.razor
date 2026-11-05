@@ -1,0 +1,10 @@
+@page "/components/collapsible"
+@attribute [DocMeta("Collapsible 折叠面板", "一个按钮控制一块内容的展开与收起：受控与非受控、外观、按部件覆盖样式。", DocCategory.Display)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Collapsible.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="controlled" Title="受控（@@bind-Open）" Demo="typeof(ControlledExample)" />
+    <Example Id="uncontrolled" Title="非受控" Demo="typeof(UncontrolledExample)" />
+    <Example Id="custom" Title="使用方覆盖" Demo="typeof(CustomExample)" />
+</DocPage>

@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+@* 一篇文档：标题、简介、引用语句，一节一节往下写；对照表用 TextTable，反引号里的是行内代码 *@
+<DocArticle Title="缓存" Description="本机缓存和 Redis 缓存两级，写入提交后失效。">
+    <Lead><CodeBlock Code="using MyLib.Caching;" Lang="csharp" /></Lead>
+    <ChildContent>
+        <DocSection Id="demo-usage" Title="怎么用">
+            <Paragraph>声明的时候指定过期时间，读的时候和普通查询一样。</Paragraph>
+        </DocSection>
+        <DocSection Id="demo-options" Title="选项">
+            <TextTable Head="@head" Rows="@rows" />
+        </DocSection>
+    </ChildContent>
+</DocArticle>
+
+@code {
+    static readonly string[] head = ["选项", "默认值", "含义"];
+
+    static readonly string[][] rows =
+    [
+        ["`Ttl`", "`60_000`", "过期时间，毫秒"],
+        ["`MaxSize`", "`1000`", "本机缓存最多放多少条，超出按最近最少使用淘汰"],
+        ["`Store`", "无", "外部存储，接 Redis 这类共享缓存时给它"],
+    ];
+}

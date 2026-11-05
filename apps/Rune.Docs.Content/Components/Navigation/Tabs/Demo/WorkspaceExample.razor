@@ -1,0 +1,52 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Sm">
+    <Tabs @bind-Value="currentPage">
+        <TabList aria-label="打开的页面" OnAdd="AddPage" OnReorder="Reorder" data-testid="pages">
+            @foreach (var item in pages)
+            {
+                <Tab @key="item.Id" Value="@item.Id" Text="@item.Title" OnClose="@(item.Pinned ? default : EventCallback.Factory.Create(this, () => Close(item)))">@item.Title</Tab>
+            }
+        </TabList>
+        @foreach (var item in pages)
+        {
+            <TabPanel @key="item.Id" Value="@item.Id">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" style="padding-block: 1em">
+                    <TextSpan Weight="Weight.Semibold">@item.Title</TextSpan>
+                    <Small Tone="TextTone.Muted">拖动标签换顺序（或在标签上按 Alt + ← →），Delete 或中键关闭；共 @pages.Count 个页签</Small>
+                </Flex>
+            </TabPanel>
+        }
+    </Tabs>
+</Card>
+
+@code {
+    sealed record Page(string Id, string Title, bool Pinned = false);
+
+    List<Page> pages =
+    [
+        new("home", "工作台", Pinned: true),
+        new("po-2401", "采购单 PO-2401"),
+        new("po-2402", "采购单 PO-2402"),
+        new("supplier-17", "供应商：远山精密"),
+        new("report-q3", "第三季度销售报表"),
+        new("inspect-88", "来料检验 IQC-88"),
+        new("contract-5", "合同审批 CT-5"),
+    ];
+
+    string? currentPage = "po-2401";
+
+    int created;
+
+    void AddPage()
+    {
+        created++;
+        var item = new Page($"draft-{created}", $"新建草稿 {created}");
+        pages.Add(item);
+        currentPage = item.Id;
+    }
+
+    void Close(Page tab) => pages.Remove(tab);
+
+    void Reorder(IReadOnlyList<string> order) => pages = [.. order.Select(id => pages.First(p => p.Id == id))];
+}

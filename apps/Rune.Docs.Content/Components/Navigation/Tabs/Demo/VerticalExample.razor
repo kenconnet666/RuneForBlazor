@@ -1,0 +1,42 @@
+@inherits RuneComponent
+
+<Tabs Orientation="Orientation.Vertical" data-testid="vertical">
+    <TabList aria-label="设置" Sx="SettingsList">
+        @foreach (var (value, label, icon) in settings)
+        {
+            <Tab @key="value" Value="@value"><Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm"><Icon Data="icon" />@label</Flex></Tab>
+        }
+    </TabList>
+    <TabPanel Value="profile" Sx="SettingsPanel">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Field Label="昵称"><TextField Value="周一航" /></Field>
+            <Field Label="个人主页"><TextField Type="url" placeholder="https://" /></Field>
+        </Flex>
+    </TabPanel>
+    <TabPanel Value="security" Sx="SettingsPanel">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Switch Value="true">两步验证</Switch>
+            <Switch>新设备登录时提醒</Switch>
+        </Flex>
+    </TabPanel>
+    <TabPanel Value="notifications" Sx="SettingsPanel">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <Checkbox Value="true">订单状态变化</Checkbox>
+            <Checkbox Value="true">有人提到我</Checkbox>
+            <Checkbox>每周报告</Checkbox>
+        </Flex>
+    </TabPanel>
+</Tabs>
+
+@code {
+    static readonly (string Value, string Label, IconData Icon)[] settings =
+    [
+        ("profile", "个人资料", Lucide.User),
+        ("security", "账号安全", Lucide.KeyRound),
+        ("notifications", "通知", Lucide.Bell),
+    ];
+
+    static Style SettingsList => Css.Define(static () => new Style { MinWidth = CssLength.Rem(9) });
+
+    static Style SettingsPanel => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0 });
+}

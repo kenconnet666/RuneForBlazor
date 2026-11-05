@@ -1,0 +1,26 @@
+@page "/components/color-field"
+@attribute [DocMeta("ColorField 颜色输入", "颜色输入：色块点开原生取色器，后面可以直接输入颜色值；ColorSwatch 列出一块颜色与它的名称、取值（调色板、设计 token）。", DocCategory.Input, Order = 12)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.ColorField.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="brand" Title="品牌配色" Demo="typeof(BrandExample)">
+                值是 <Code>#rrggbb</Code>，绑定后随拖动实时写回。外观、Field 关联与 TextField 相同。
+            </Example>
+            <Example Id="formats" Title="格式与透明度" Demo="typeof(FormatsExample)">
+                能输入 CSS 的颜色写法（rgb()、hsl()、hwb()、oklch()、颜色名），失焦或回车时规范成 #hex；写不成颜色时标为无效、值不变，失焦后恢复。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="swatch" Title="ColorSwatch" Demo="typeof(SwatchExample)">
+                <Code>Color</Code> 是颜色值或主题 token：token 的取值按当前主题读出，换主题时跟着变（左上角切换主题试试）。半透明的颜色下面垫棋盘格。
+            </Example>
+            <Example Id="states" Title="外观与状态" Demo="typeof(StatesExample)">
+                <Code>Variant</Code>、<Code>Size</Code>、<Code>Radius</Code> 与其他输入框同一套；Field 上的 <Code>Required</Code>、<Code>Error</Code>、<Code>ReadOnly</Code>、<Code>Disabled</Code> 交给里面的 ColorField。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ColorField), typeof(ColorSwatch)]" />
+</DocPage>

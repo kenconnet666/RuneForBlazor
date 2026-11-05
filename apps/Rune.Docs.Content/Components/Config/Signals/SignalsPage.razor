@@ -1,0 +1,9 @@
+@page "/components/signals"
+@attribute [DocMeta("Signals 信号与共享状态", "共享状态只重新渲染读了它的组件；组件里的 [State] 属性可以直接 @bind。", DocCategory.Config, Order = 0)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Config.Signals.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="shared" Title="只重新渲染读了它的组件" Demo="typeof(SharedExample)" />
+    <Example Id="state" Title="组件里的 [State] 与双向绑定" Demo="typeof(StateExample)" />
+</DocPage>

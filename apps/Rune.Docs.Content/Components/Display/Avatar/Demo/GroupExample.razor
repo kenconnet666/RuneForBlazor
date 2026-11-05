@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Card>
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <Strong>官网改版</Strong>
+                <Small Tone="TextTone.Muted">7 位协作者 · 2 小时前更新</Small>
+            </Flex>
+            <AvatarGroup Items="DemoPeople.Members" Max="4" aria-label="协作者" Context="member" data-testid="collaborators">
+                <Avatar @key="member.Name" Name="@member.Name" Src="@member.Photo" />
+            </AvatarGroup>
+        </Flex>
+    </Card>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Lg" Wrap="true">
+        <AvatarGroup Items="DemoPeople.Members.Take(3)" Size="Size.Sm" Max="3" Total="128" aria-label="点赞的人" Context="member">
+            <Avatar @key="member.Name" Name="@member.Name" Src="@member.Photo" />
+        </AvatarGroup>
+        <Small Tone="TextTone.Muted">只拿到了 3 位，Total 是 128：显示“+125”</Small>
+    </Flex>
+    <AvatarGroup Items="DemoPeople.Members.Skip(1).Take(4)" Size="Size.Lg" aria-label="评审人" Context="member">
+        <Avatar @key="member.Name" Name="@member.Name" Src="@member.Photo" />
+    </AvatarGroup>
+</Flex>

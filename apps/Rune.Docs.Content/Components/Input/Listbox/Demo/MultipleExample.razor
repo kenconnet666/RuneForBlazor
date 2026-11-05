@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Sm">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Listbox Items="fields" SelectionMode="SelectionMode.Multiple" @bind-Values="visible" aria-label="显示的列" Sx="ListHeight" data-testid="columns" />
+        <Small Tone="TextTone.Muted">显示 @visible.Count 列 / 共 @fields.Length 个字段</Small>
+    </Flex>
+</Card>
+
+@code {
+    static readonly string[] common = ["订单号", "客户", "金额", "状态", "下单时间", "收货地址"];
+
+    // 一千个可选的列
+    static readonly ListboxOption[] fields = [.. Enumerable.Range(0, 1000).Select(index => index < common.Length
+        ? new ListboxOption($"field-{index}", common[index], Group: "常用")
+        : new ListboxOption($"field-{index}", $"自定义字段 {index - 5}", Group: "自定义"))];
+
+    IReadOnlyList<string> visible = ["field-0", "field-1", "field-2", "field-3"];
+
+    static Style ListHeight => Css.Define(static () => new Style { Height = CssLength.Rem(16) });
+}

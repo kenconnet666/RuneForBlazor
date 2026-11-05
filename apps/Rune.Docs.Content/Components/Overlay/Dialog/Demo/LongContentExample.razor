@@ -1,0 +1,51 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <ToggleGroup @bind-Value="size" Required="true" Size="Size.Sm" aria-label="宽度">
+        @foreach (var value in sizes)
+        {
+            <ToggleItem @key="value" Value="@value">@value</ToggleItem>
+        }
+    </ToggleGroup>
+    <Dialog Size="Enum.Parse<DialogSize>(size!, ignoreCase: true)" Title="用户协议" Description="更新于 2026 年 10 月 1 日">
+        <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline">阅读用户协议（Size="@size"）</Button></Trigger>
+        <ChildContent>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+                @for (var index = 0; index < 3 * sections.Length; index++)
+                {
+                    var (title, text) = sections[index % sections.Length];
+                    <Flex @key="index" Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                        <H3 Size="Size.Md">@title</H3>
+                        <Paragraph Size="Size.Sm">@text</Paragraph>
+                    </Flex>
+                }
+            </Flex>
+        </ChildContent>
+        <Footer>
+            @* 页脚本身靠结束边排；勾选框放在起始边，这一行撑满页脚 *@
+            <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true" Grow="true">
+                <Checkbox @bind-Value="agreed">我已阅读并同意</Checkbox>
+                <Button Disabled="!agreed" data-rune-close>继续</Button>
+            </Flex>
+        </Footer>
+    </Dialog>
+</Flex>
+
+@code {
+    // 切换按钮的值是字符串：小写的档位名，同 vue
+    static readonly string[] sizes = ["xs", "sm", "md", "lg", "full"];
+
+    static readonly (string Title, string Text)[] sections =
+    [
+        ("一、服务内容", "本服务为用户提供在线组件库文档、示例与代码演练场。我们会不断改进服务，可能增加或调整部分功能。"),
+        ("二、账号", "你需要对账号下的全部活动负责。发现账号被盗用时，请立即联系我们。"),
+        ("三、隐私", "我们只收集提供服务所必需的信息，不会向第三方出售你的个人信息。详见隐私政策。"),
+        ("四、内容", "你在演练场里写的代码归你所有。分享链接只把代码编码在地址里，不经过我们的服务器。"),
+        ("五、责任限制", "示例代码按原样提供。用于生产环境前，请自行评估其适用性与安全性。"),
+        ("六、变更", "条款更新时，我们会提前 30 天在站内公告。继续使用即视为同意更新后的条款。"),
+    ];
+
+    string? size = "md";
+
+    bool agreed;
+}

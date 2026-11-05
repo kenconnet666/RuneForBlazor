@@ -1,0 +1,41 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <CommandPalette TItem="Person" Items="people" ToOption="@(p => new(p.Id, p.Name) { Group = p.Team })" Hotkey="@null"
+                    Filter="@((p, q) => p.Name.Contains(q) || p.Email.Contains(q, StringComparison.OrdinalIgnoreCase))"
+                    Label="提及成员" Placeholder="输入姓名或邮箱" OnAction="@((Person p) => mentioned = p)">
+        <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Soft" Icon="Lucide.AtSign">提及成员</Button></Trigger>
+        <ChildContent Context="option">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <Avatar Size="Size.Sm" Name="@option.Item.Name" />
+                <Flex Direction="LayoutDirection.Column" Grow="true">
+                    <TextSpan>@option.Item.Name</TextSpan>
+                    <Small Tone="TextTone.Muted">@option.Item.Email</Small>
+                </Flex>
+            </Flex>
+        </ChildContent>
+        <Empty>
+            <Empty Icon="Lucide.UserPlus" Size="Size.Sm">
+                <Title>没有找到这个人</Title>
+                <Description>可以先邀请对方加入团队</Description>
+            </Empty>
+        </Empty>
+    </CommandPalette>
+    <Small Tone="TextTone.Muted">@(mentioned is { } p ? $"已提及 @{p.Name}（{p.Team}）" : "还没有提及谁")</Small>
+</Flex>
+
+@code {
+    sealed record Person(string Id, string Name, string Email, string Team);
+
+    static readonly Person[] people =
+    [
+        new("zyh", "周一航", "yihang@example.com", "设计中心"),
+        new("lxm", "林小满", "xiaoman@example.com", "前端"),
+        new("cm", "陈默", "chenmo@example.com", "后端"),
+        new("xy", "许悠", "xuyou@example.com", "产品"),
+        new("wq", "王晴", "wangqing@example.com", "市场"),
+        new("zhr", "赵浩然", "haoran@example.com", "前端"),
+    ];
+
+    Person? mentioned;
+}

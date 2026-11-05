@@ -1,0 +1,54 @@
+@*
+    组件页的 API 小节（同 vue-tsx-pro 文档站的 ApiReference）：从组件类型与 XML 文档注释生成的数据（ComponentApiReader）按种类分表列出：
+    参数、事件、内容、部件属性。复合组件写几个类型，依次列出。
+    <ApiReference Types="[typeof(Button), typeof(IconButton)]" />
+*@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <H2 id="api" Size="Size.Xl" Anchor="true">API</H2>
+    @foreach (var api in Apis)
+    {
+        <Flex @key="api.Component" Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            @if (Types.Count > 1)
+            {
+                <H3 id="@($"api-{Slug(api.Component)}")" Size="Size.Lg" Anchor="true">@api.Component</H3>
+            }
+            @if (api.Description.Length > 0)
+            {
+                <Paragraph Tone="TextTone.Muted">@api.Description</Paragraph>
+            }
+            @foreach (var (kind, label) in Kinds)
+            {
+                var props = api.Props.Where(p => p.Kind == kind).ToList();
+                if (props.Count == 0) continue;
+                <div @key="kind" @attributes="Attrs.Merge(TableLayer)">
+                    <PropsTable Props="props"><Caption>@label</Caption></PropsTable>
+                </div>
+            }
+        </Flex>
+    }
+</Flex>
+
+@code {
+    static readonly Attrs TableLayer = new() { Sx = Table };
+
+    // 各种类的小节标题与顺序
+    static readonly (ApiPropKind Kind, string Label)[] Kinds =
+    [
+        (ApiPropKind.Prop, "参数"),
+        (ApiPropKind.Event, "事件"),
+        (ApiPropKind.Content, "内容"),
+        (ApiPropKind.Part, "部件属性"),
+    ];
+
+    /// <summary>一个或几个组件的类型（复合组件各部分依次列出）；泛型组件写开放类型。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<Type> Types { get; set; } = [];
+
+    IEnumerable<ComponentApi> Apis => Types.Select(ComponentApiReader.Read);
+
+    static string Slug(string name) => new([.. name.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant)]);
+
+    // API 表在页面底部，打开页面时在视口外：滚到附近才排版、绘制；auto 记住排过一次的高度，滚回来时滚动条不跳
+    static Style Table => Css.Define(static () => new Style { ContentVisibility = ContentVisibility.Auto, ContainIntrinsicSize = "auto 24rem" });
+}

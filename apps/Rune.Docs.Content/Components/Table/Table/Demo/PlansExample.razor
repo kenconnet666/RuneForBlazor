@@ -1,0 +1,52 @@
+@inherits RuneComponent
+
+<Table aria-label="套餐对比" data-testid="plans">
+    <TableCaption>三档套餐的功能对比，价格按年付折算</TableCaption>
+    <TableHead>
+        <TableRow>
+            <TableHeaderCell>功能</TableHeaderCell>
+            @foreach (var plan in plans)
+            {
+                <TableHeaderCell @key="plan" Align="TableAlign.Center">
+                    @plan
+                    @if (plan == "团队版")
+                    {
+                        @(" ")<Badge Tone="Tone.Accent" Radius="Radius.Full">推荐</Badge>
+                    }
+                </TableHeaderCell>
+            }
+        </TableRow>
+    </TableHead>
+    <TableBody>
+        @foreach (var (feature, values) in features)
+        {
+            <TableRow @key="feature">
+                <TableHeaderCell Scope="row">@feature</TableHeaderCell>
+                @for (var index = 0; index < values.Length; index++)
+                {
+                    var value = values[index];
+                    <TableCell @key="index" Align="TableAlign.Center">@Mark(value)</TableCell>
+                }
+            </TableRow>
+        }
+    </TableBody>
+</Table>
+
+@code {
+    static readonly string[] plans = ["免费版", "团队版", "企业版"];
+
+    static readonly (string Feature, object[] Values)[] features =
+    [
+        ("成员数", ["3", "50", "不限"]),
+        ("存储空间", ["5 GB", "200 GB", "2 TB"]),
+        ("单点登录（SSO）", [false, false, true]),
+        ("操作审计", [false, true, true]),
+        ("专属客服", [false, false, true]),
+        ("价格（每月）", ["¥0", "¥299", "¥1,999"]),
+    ];
+
+    // 勾与叉是图标：旁边放一份给读屏的文字
+    static RenderFragment Mark(object value) => value is bool on
+        ? @<text><Icon Data="@(on ? Lucide.Check : Lucide.Minus)" /><VisuallyHidden>@(on ? "包含" : "不包含")</VisuallyHidden></text>
+        : @<text>@value</text>;
+}

@@ -1,0 +1,26 @@
+@page "/components/slider"
+@attribute [DocMeta("Slider 滑块", "在一个范围里拖动选值：音量、进度、价格区间。单值或 [低, 高] 范围，刻度、竖排、色调；键盘与读屏同 WAI-ARIA Slider 模式。", DocCategory.Input, Order = 10)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.Slider.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="player" Title="播放器" Demo="typeof(PlayerExample)">
+                <Code>ValueText</Code> 是读屏念的值（“1:12 / 4:05”）。<Kbd>←</Kbd> <Kbd>→</Kbd> 按 <Code>Step</Code> 走，<Kbd>Page Up</Kbd> / <Kbd>Page Down</Kbd> 按 <Code>BigStep</Code>（默认十分之一），<Kbd>Home</Kbd> / <Kbd>End</Kbd> 到两端；点轨道任意位置直接跳过去并接着拖。
+            </Example>
+            <Example Id="range" Title="价格区间与刻度" Demo="typeof(RangeExample)">
+                绑 <Code>Range</Code>（<Code>NumberRange</Code>，低与高）时选一个范围：两个滑块各自可聚焦、不能交叉，读屏名称后面加上“最小值”“最大值”。<Code>Marks</Code> 是刻度；拖动时实时写回，<Code>OnRangeCommit</Code> 在松手时调用一次，适合去查询接口。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="vertical" Title="竖排的均衡器" Demo="typeof(VerticalExample)">
+                <Code>Orientation.Vertical</Code>：<Kbd>↑</Kbd> 增大、<Kbd>↓</Kbd> 减小。值的类型随绑定的变量（int、double、decimal……）。
+            </Example>
+            <Example Id="form" Title="表单提交与不可用" Demo="typeof(FormExample)">
+                <Code>Name</Code> 用隐藏的 input 随表单提交当前值（静态 SSR 下拖动同样更新它）；拖动过程中值一直在变，<Code>OnValueCommit</Code> 只在松手（或键盘改完）时调用，适合保存到服务端。Field 的 <Code>Disabled</Code> 交给里面的滑块。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Slider<>)]" />
+</DocPage>

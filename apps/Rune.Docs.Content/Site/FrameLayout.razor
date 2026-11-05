@@ -1,0 +1,10 @@
+@* 整页示例的布局：只有主题与背景，没有站点的外壳 *@
+@inherits LayoutComponentBase
+
+<RuneProvider><div @attributes="Attrs.Merge(RootLayer)">@Body</div></RuneProvider>
+
+@code {
+    static readonly Attrs RootLayer = new() { Sx = Root };
+
+    static Style Root => Css.Define(static () => new Style { MinHeight = CssLength.Dvh(100), BackgroundColor = Colors.Background, Color = Colors.Text });
+}

@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("13em")" Gap="SpaceScale.Md">
+    @foreach (var (variant, description) in variants)
+    {
+        <Card Variant="variant" data-testid="@($"card-{variant}")">
+            <Strong>@variant.ToString().ToLowerInvariant()</Strong>
+            <Paragraph Size="Size.Sm" Tone="TextTone.Muted">@description</Paragraph>
+        </Card>
+    }
+</Grid>
+
+@code {
+    static readonly (CardVariant Variant, string Description)[] variants =
+    [
+        (CardVariant.Surface, "表面色加描边（默认）：页面上最常见的卡片"),
+        (CardVariant.Outline, "只有描边、没有底色：放在有底色的区域里"),
+        (CardVariant.Elevated, "浮起的表面加阴影：可点击、可拖动的卡片"),
+        (CardVariant.Ghost, "没有边框与底色：只用来分组与留白"),
+    ];
+}

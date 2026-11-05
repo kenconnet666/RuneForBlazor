@@ -1,0 +1,15 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Strong>还没有订单</Strong>
+            <Paragraph Size="Size.Sm" Tone="TextTone.Muted">新建第一张订单，或者先看看怎么批量导入。</Paragraph>
+        </Flex>
+        <Flex Gap="SpaceScale.Sm" Wrap="true">
+            <LinkButton Href="server/button" Icon="Lucide.Plus">新建订单</LinkButton>
+            <LinkButton Href="server/badge" Variant="ButtonVariant.Soft" Icon="Lucide.BookOpen">导入指南</LinkButton>
+            <LinkButton Href="https://vuejs.org" External="true" Variant="ButtonVariant.Ghost" IconEnd="Lucide.ArrowRight">Vue 文档</LinkButton>
+        </Flex>
+    </Flex>
+</Card>

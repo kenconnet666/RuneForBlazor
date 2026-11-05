@@ -1,0 +1,45 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Field Label="套餐">
+        @* 任意数据：ToOption 取出文字与说明 *@
+        <RadioGroup Items="plans" @bind-Value="plan" ToOption="@(item => new ListboxOption(item.Id, item.Name, Description: PlanDescription(item)))" />
+    </Field>
+    <Field Label="通知方式">
+        <DescriptionContent>已选：<Code>@(notifyBy.Count > 0 ? string.Join("、", notifyBy) : "（无）")</Code></DescriptionContent>
+        <ChildContent>
+            <CheckboxGroup Items="notifyOptions" @bind-Value="notifyBy" data-testid="notify-by" />
+        </ChildContent>
+    </Field>
+    <Field Label="横排的字符串选项">
+        <RadioGroup Items="periods" @bind-Value="period" Orientation="Orientation.Horizontal" />
+    </Field>
+</Flex>
+
+@code {
+    sealed record Plan(string Id, string Name, string Price, int? Seats);
+
+    static readonly Plan[] plans =
+    [
+        new("team", "团队版", "¥49 / 人 / 月", 50),
+        new("business", "企业版", "¥99 / 人 / 月", 500),
+        new("enterprise", "私有部署", "按需报价", null),
+    ];
+
+    static readonly ListboxOption[] notifyOptions =
+    [
+        new("email", "邮件", Description: "每天 9:00 汇总一封"),
+        new("app", "站内信", Description: "实时推送，登录后可见"),
+        new("sms", "短信", Description: "只发紧急的待办（需要绑定手机号）", Disabled: true),
+    ];
+
+    static readonly string[] periods = ["按日", "按周", "按月"];
+
+    static string PlanDescription(Plan plan) => $"{plan.Price}，{(plan.Seats is { } seats ? $"最多 {seats} 人" : "人数不限")}";
+
+    Plan plan = plans[1];
+
+    IReadOnlyList<string> notifyBy = ["email", "app"];
+
+    string? period = "按周";
+}

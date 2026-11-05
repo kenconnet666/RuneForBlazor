@@ -1,0 +1,49 @@
+@inherits RuneComponent
+@using System.Reflection
+
+<TextField @bind-Value="query" Immediate="true" placeholder="按英文名搜索，如 arrow、user、chart" aria-label="搜索图标" data-testid="icon-search" />
+<div @attributes="Attrs.Merge(IconGrid)">
+    @foreach (var (name, read) in Matches.Take(120))
+    {
+        <div @attributes="Attrs.Merge(IconCell)" title="@name">
+            <Icon Data="read()" Size="Size.Xl" />
+            <small>@name</small>
+        </div>
+    }
+</div>
+
+@code {
+    string query = "";
+
+    // 只取属性的名字与读取方法，不读值：图标在显示时才创建
+    static readonly Lazy<IReadOnlyList<(string Name, Func<IconData> Read)>> all = new(() =>
+        typeof(Lucide).GetProperties(BindingFlags.Public | BindingFlags.Static)
+            // 旧名（[Obsolete] 转发）不重复列出
+            .Where(p => p.PropertyType == typeof(IconData) && !p.IsDefined(typeof(ObsoleteAttribute)))
+            .Select(p => (p.Name, (Func<IconData>)p.GetMethod!.CreateDelegate(typeof(Func<IconData>))))
+            .ToList());
+
+    IEnumerable<(string Name, Func<IconData> Read)> Matches =>
+        string.IsNullOrWhiteSpace(query)
+            ? all.Value
+            : all.Value.Where(i => i.Name.Contains(query.Replace("-", ""), StringComparison.OrdinalIgnoreCase));
+
+    static Style IconGrid => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "repeat(auto-fill, minmax(96px, 1fr))",
+        Gap = Space.Sm,
+    });
+
+    static Style IconCell => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        JustifyItems = JustifyItems.Center,
+        Gap = Space.Xs,
+        Padding = Space.Sm,
+        BorderRadius = Radii.Md,
+        OverflowWrap = OverflowWrap.Anywhere,
+        TextAlign = TextAlign.Center,
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
+    });
+}

@@ -1,0 +1,38 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <TextSpan Weight="Weight.Semibold">杭州远山精密机械 · 2026 年第三季度评价</TextSpan>
+        <Grid MinItemWidth="@CssLength.Rem(13)" Gap="SpaceScale.Md">
+            @foreach (var aspect in aspects)
+            {
+                <Field @key="aspect.Key" Label="@aspect.Label" Description="@aspect.Hint">
+                    <Rating Value="scores[aspect.Key]" ValueChanged="@(next => scores[aspect.Key] = next)" AllowHalf="true" data-testid="@aspect.Key" />
+                </Field>
+            }
+        </Grid>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <Small Tone="TextTone.Muted">综合</Small>
+            <Rating Value="Average" ReadOnly="true" AllowHalf="true" Size="Size.Sm" data-testid="average" />
+            <Small Tone="TextTone.Muted" data-testid="average-text">@(Average?.ToString() ?? "还没打分")</Small>
+        </Flex>
+    </Flex>
+</Card>
+
+@code {
+    sealed record Aspect(string Key, string Label, string Hint);
+
+    static readonly Aspect[] aspects =
+    [
+        new("quality", "质量", "来料合格率、返工次数"),
+        new("delivery", "交期", "准时交付、紧急插单的响应"),
+        new("service", "服务", "沟通、售后、资料齐全"),
+    ];
+
+    readonly Dictionary<string, double?> scores = new() { ["quality"] = 4.5, ["delivery"] = 3, ["service"] = null };
+
+    // 给了分的几项平均，按半颗取整
+    double? Average => scores.Values.OfType<double>().ToList() is { Count: > 0 } given
+        ? Math.Round(given.Average() * 2, MidpointRounding.AwayFromZero) / 2
+        : null;
+}

@@ -1,0 +1,15 @@
+@page "/components/menu"
+@attribute [DocMeta("Menu 菜单", "按钮弹出的一列操作：普通项、复选项、单选组、子菜单、链接项；ContextMenu 是从指针位置弹出的同一套菜单。", DocCategory.Overlay, Order = 4)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Overlay.Menu.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="actions" Title="操作菜单" Demo="typeof(ActionsExample)">
+                点击、<Kbd>Enter</Kbd>、<Kbd>Space</Kbd> 执行菜单项，随后关闭菜单。<Code>Shortcut</Code> 显示快捷键；<Code>Tone="Tone.Danger"</Code> 标出破坏性操作；不可用的项方向键跳过。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(MenuItem), typeof(Menu), typeof(MenuRadioGroup), typeof(MenuRadioItem)]" />
+</DocPage>

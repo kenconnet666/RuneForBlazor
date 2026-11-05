@@ -1,0 +1,15 @@
+@inherits RuneComponent
+
+<Collapsible Variant="CollapsibleVariant.Outline"
+             PropsTrigger="@(new() { Sx = AccentWhenExpanded, AriaLabel = "高级设置" })"
+             data-testid="custom">
+    <Title>展开时标题变成强调色</Title>
+    <ChildContent>样式来自 PropsTrigger.Sx，只覆盖“展开”这一个状态；aria-label 来自使用方，展开状态仍由组件管理。</ChildContent>
+</Collapsible>
+
+@code {
+    static Style AccentWhenExpanded => Css.Define(static () => new Style
+    {
+        [When.Expanded] = new() { Color = Tones.Accent.Text },
+    });
+}

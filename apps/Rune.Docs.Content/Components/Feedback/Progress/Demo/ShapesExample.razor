@@ -1,0 +1,32 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    @foreach (var size in sizes)
+    {
+        <Flex @key="size" Align="ItemAlign.Center" Gap="SpaceScale.Md">
+            <Small Tone="TextTone.Muted">@size.ToString().ToLowerInvariant()</Small>
+            <Progress Value="62" Size="size" Radius="@(size == Size.Lg ? Radius.Sm : Radius.Full)" aria-label="@($"粗细 {size.ToString().ToLowerInvariant()}")" />
+        </Flex>
+    }
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <Spinner Size="Size.Sm" />
+            <TextSpan Size="Size.Sm">正在连接服务器…（不确定进度：不写 Value）</TextSpan>
+        </Flex>
+        <Progress aria-label="正在连接服务器" />
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between">
+            <TextSpan Size="Size.Sm">已上传 @uploaded / 8 个文件</TextSpan>
+            <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Disabled="uploaded >= 8" @onclick="() => uploaded++">再传一个</Button>
+        </Flex>
+        <Progress Value="uploaded" Max="8" Tone="@(uploaded >= 8 ? Tone.Success : Tone.Accent)" aria-label="上传进度"
+                  ValueText="@((value, _) => $"已上传 {value} 个文件，共 8 个")" data-testid="upload" />
+    </Flex>
+</Flex>
+
+@code {
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg];
+
+    int uploaded = 3;
+}

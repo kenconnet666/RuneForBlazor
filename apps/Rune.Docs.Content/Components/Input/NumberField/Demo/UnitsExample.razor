@@ -1,0 +1,29 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@CssLength.Em(16)" Gap="SpaceScale.Lg">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Field Label="年度预算" Description="值是元，按万元输入；步长 100 元">
+            <NumberField @bind-Value="budget" Scale="10000" Format="#,0.##" Step="100" Min="0" data-testid="budget"><Prefix>¥</Prefix><Suffix>万元</Suffix></NumberField>
+        </Field>
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">保存的值：<Code data-testid="budget-value">@(budget is { } b ? $"{b} 元" : "null")</Code></TextSpan>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Field Label="运费目标">
+            <NumberField @bind-Value="freight" Step="0.01m" Min="0" Format="0.00" Stepper="false"><Suffix>元/单</Suffix></NumberField>
+        </Field>
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">每千单：<Code>@(freight is { } f ? $"{f * 1000:#,0.##}元" : "—")</Code></TextSpan>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Field Label="门店数量"><NumberField @bind-Value="stores" Min="0"><Suffix>家</Suffix></NumberField></Field>
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">只读时不显示加减按钮：</TextSpan>
+        <NumberField Value="stores" ReadOnly="true" aria-label="门店数量（只读）"><Suffix>家</Suffix></NumberField>
+    </Flex>
+</Grid>
+
+@code {
+    decimal? freight = 12.5m;
+
+    int? stores = 40;
+
+    decimal? budget = 155353.2m;
+}

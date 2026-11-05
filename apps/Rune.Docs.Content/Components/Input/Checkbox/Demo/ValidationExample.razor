@@ -1,0 +1,35 @@
+@inherits RuneComponent
+
+<form novalidate @onsubmit="Submit" @onsubmit:preventDefault>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg" Align="ItemAlign.Start">
+        <Field Label="通知方式" Required="true" Error="@(submitted && requiredChannels.Count == 0 ? "至少选一种通知方式" : null)">
+            <CheckboxGroup TItem="string" @bind-Value="requiredChannels" Orientation="Orientation.Horizontal">
+                <Checkbox GroupValue="email">邮件</Checkbox>
+                <Checkbox GroupValue="sms">短信</Checkbox>
+                <Checkbox GroupValue="inbox">站内信</Checkbox>
+            </CheckboxGroup>
+        </Field>
+        <Field Error="@(submitted && !termsAccepted ? "请先同意服务条款" : null)">
+            <Checkbox @bind-Value="termsAccepted" Required="true">我已阅读并同意服务条款</Checkbox>
+        </Field>
+        <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+            <Button Type="submit">保存设置</Button>
+            @if (saved)
+            {
+                <Small Tone="TextTone.Success">已保存</Small>
+            }
+        </Flex>
+    </Flex>
+</form>
+
+@code {
+    IReadOnlyList<string> requiredChannels = [];
+
+    bool termsAccepted, submitted, saved;
+
+    void Submit()
+    {
+        submitted = true;
+        saved = termsAccepted && requiredChannels.Count > 0;
+    }
+}

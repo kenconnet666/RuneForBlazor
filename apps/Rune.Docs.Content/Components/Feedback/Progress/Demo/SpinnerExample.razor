@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Lg" Wrap="true">
+        @foreach (var size in spinnerSizes)
+        {
+            <Spinner @key="size" Size="size" />
+        }
+        <TextSpan Tone="TextTone.Accent"><Spinner /> 跟随文字颜色</TextSpan>
+        <TextSpan Tone="TextTone.Success" Size="Size.Sm"><Spinner /> 同步中</TextSpan>
+    </Flex>
+    <Card>
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                @* 单独出现、旁边没有文字时写 Label：role="status"，读屏会念出来 *@
+                <Spinner Label="正在生成报表" />
+                <Small Tone="TextTone.Muted">正在生成报表，大约需要 30 秒</Small>
+            </Flex>
+            <Button Size="Size.Sm" Variant="ButtonVariant.Ghost">取消</Button>
+        </Flex>
+    </Card>
+</Flex>
+
+@code {
+    static readonly Size[] spinnerSizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg, Size.Xl];
+}

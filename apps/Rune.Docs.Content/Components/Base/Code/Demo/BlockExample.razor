@@ -1,0 +1,17 @@
+@inherits RuneComponent
+
+<CodeBlock Code="@program" Lang="csharp" Title="Program.cs" LineNumbers="true" HighlightLines="3,6" data-testid="program" />
+
+@code {
+    const string program = """
+        var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddRuneUI(options => options.Theme = Themes.Ocean);
+        builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+
+        app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+        """;
+
+    static readonly string data = "var items = new[]\n{\n" +
+        string.Join("\n", Enumerable.Range(1, 40).Select(i => $"    new {{ Id = {i}, Name = \"项目 {i}\", Done = {(i % 3 == 1 ? "true" : "false")} }},")) + "\n};";
+}

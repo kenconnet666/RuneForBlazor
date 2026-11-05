@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+    <Field Label="供应商" Description="输入“杭州”“液压”试试；选不到时直接写全称，提交后会新建">
+        <Autocomplete TItem="string" Load="SearchAsync" @bind-Value="supplier" Icon="Lucide.BuildingComplex" Clearable="true" placeholder="供应商全称" data-testid="supplier" />
+    </Field>
+    <Small Tone="TextTone.Muted" aria-live="polite">@(string.IsNullOrEmpty(supplier) ? "还没有填" : $"将提交：{supplier}")</Small>
+</Flex>
+
+@code {
+    static readonly string[] suppliers =
+    [
+        "杭州远山精密机械有限公司", "杭州青禾研发中心有限公司", "宁波海川液压件有限公司", "苏州明德电子科技有限公司",
+        "无锡恒通密封件有限公司", "上海星澜涂装工程有限公司", "成都锐川钣金制造有限公司",
+    ];
+
+    string? supplier = "";
+
+    // 假的接口：400 ms 后返回包含输入的供应商（没输入时不给建议）；新的输入到来时取消
+    static async Task<IEnumerable<string>> SearchAsync(string query, CancellationToken cancellation)
+    {
+        if (string.IsNullOrEmpty(query)) return [];
+        await Task.Delay(400, cancellation);
+        return suppliers.Where(name => name.Contains(query, StringComparison.Ordinal));
+    }
+}

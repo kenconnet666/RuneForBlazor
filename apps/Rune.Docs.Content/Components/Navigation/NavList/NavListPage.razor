@@ -1,0 +1,26 @@
+@page "/components/nav-list"
+@attribute [DocMeta("NavList 侧边导航", "侧栏里的导航链接：NavItem、可展开的 NavGroup、带小标题的 NavSection；TableOfContents 是本页目录，SkipLink 是跳到正文的链接。", DocCategory.Navigation, Order = 4)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Navigation.NavList.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="groups" Title="后台导航" Demo="typeof(GroupsExample)">
+                当前页按地址判断（也可以用 <Code>Active</Code> 指定），带 aria-current="page" 与高亮；含当前页的 NavGroup 自动展开。<Code>End</Code> 放计数之类的尾部内容。<Code>Match="NavLinkMatch.Prefix"</Code> 让 /orders 在 /orders/42 也高亮（同 Blazor 的 NavLink）。
+            </Example>
+            <Example Id="compact" Title="窄侧栏：只显示图标" Demo="typeof(CompactExample)">
+                <Code>Compact</Code> 时各项只剩图标，名称留给读屏、悬停或聚焦时用提示显示；NavSection 的 <Code>Icon</Code> 是小节标题前的标记（不能点），紧凑时代替标题。紧凑时 NavGroup 只剩图标，悬停、聚焦时子项从右边弹出来（完整的文字，Tab 进入），组里有当前页时图标高亮；NavItem 的 <Code>Badge</Code> 是计数角标，展开时在文字后面，紧凑时叠在图标上。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="sections" Title="文档站导航" Demo="typeof(SectionsExample)">
+                NavSection 是带小标题、不能收起的一组：链接多、按主题分组的侧栏。<Code>Disabled</Code> 的项不能点、不能聚焦，<Code>End</Code> 放在项的末尾（计数、标记）。
+            </Example>
+            <Example Id="toc" Title="本页目录" Demo="typeof(TocExample)">
+                TableOfContents 列出各节标题，滚动时高亮正在读的一节，指示条滑过去；当前节带 aria-current="location"。目录项写成 <Code>HeadingEntry</Code>（id、文字、级别）。正文在自己的滚动区域里时给 <Code>ScrollRoot</Code>（滚动容器的 id）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(NavGroup), typeof(NavItem), typeof(NavList), typeof(NavSection), typeof(SkipLink), typeof(TableOfContents)]" />
+</DocPage>

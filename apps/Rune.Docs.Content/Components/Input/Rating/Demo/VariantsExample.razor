@@ -1,0 +1,40 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Field Label="喜欢程度" Description="Icon=Lucide.Heart Tone=Danger">
+            <Rating @bind-Value="like" Icon="Lucide.Heart" Tone="Tone.Danger" />
+        </Field>
+        <Field Label="紧急程度" Description="Count=3，Size=Lg">
+            <Rating @bind-Value="urgency" Icon="Lucide.Flame" Tone="Tone.Accent" Count="3" Size="Size.Lg" />
+        </Field>
+        <Field Label="不可用" Disabled="true">
+            <Rating Value="4" />
+        </Field>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        @foreach (var review in reviews)
+        {
+            <Flex @key="review.Name" Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <Rating Value="review.Score" ReadOnly="true" AllowHalf="true" Size="Size.Xs" />
+                <Small>@review.Name</Small>
+                <Small Tone="TextTone.Muted">@review.Text</Small>
+            </Flex>
+        }
+    </Flex>
+</Flex>
+
+@code {
+    sealed record Review(string Name, double Score, string Text);
+
+    static readonly Review[] reviews =
+    [
+        new("林小满", 5, "交货快，包装很仔细"),
+        new("周一航", 3.5, "质量可以，资料晚了两天"),
+        new("许悠", 2, "第二批有划伤，已退换"),
+    ];
+
+    double? like = 3;
+
+    double? urgency = 2;
+}

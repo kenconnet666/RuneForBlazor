@@ -1,0 +1,20 @@
+@page "/components/otp-field"
+@attribute [DocMeta("OtpField 验证码", "一格一个字符的验证码、动态口令、支付密码：短信自动填充、整段粘贴都能用，填满时自动提交。", DocCategory.Input, Order = 3)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.OtpField.Demo
+
+<DocPage Meta="Meta" Wide="false">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="sms" Title="短信登录" Demo="typeof(SmsExample)">
+                只有一个真正的输入框，透明地盖在格子上（同 input-otp 的做法）：手机上收到短信时键盘上方直接出现验证码（<Code>autocomplete="one-time-code"</Code>），整段粘贴、退格、选中都是原生的，读屏看到的是一个输入框。只留数字（<Code>inputmode="numeric"</Code> 弹数字键盘），填满时调用 <Code>OnComplete</Code>，这里自动校验，错了清空重填（试试 246810）。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="variants" Title="遮罩、分组与状态" Demo="typeof(VariantsExample)">
+                <Code>Mask</Code> 显示成圆点（支付密码、动态口令）；<Code>Charset="OtpCharset.Alphanumeric"</Code> 允许字母（转成大写）；<Code>Groups</Code> 在组之间加短横线，长的码好核对。放进 Field 时标签、说明、错误、不可用照常关联。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(OtpField)]" />
+</DocPage>

@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+        <TextSpan Size="Size.Xs" Tone="TextTone.Muted">字号</TextSpan>
+        @foreach (var size in sizes)
+        {
+            <Badge Size="size" Tone="Tone.Accent">size=@size.ToString().ToLowerInvariant()</Badge>
+        }
+    </Flex>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+        <TextSpan Size="Size.Xs" Tone="TextTone.Muted">胶囊与计数</TextSpan>
+        <Badge Radius="Radius.Full" Variant="StatusVariant.Solid" Tone="Tone.Danger">12</Badge>
+        <Badge Radius="Radius.Full" Variant="StatusVariant.Solid">99+</Badge>
+        <Badge Radius="Radius.Full" Tone="Tone.Success">在线</Badge>
+        <Badge Radius="Radius.Full" Variant="StatusVariant.Outline">v2.4.0</Badge>
+    </Flex>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+        <TextSpan Size="Size.Xs" Tone="TextTone.Muted">图标</TextSpan>
+        <Badge Icon="Lucide.CircleCheck" Tone="Tone.Success">已通过</Badge>
+        <Badge Icon="Lucide.Clock" Tone="Tone.Warning">待审核</Badge>
+        <Badge Icon="Lucide.TriangleExclamationPoint" Tone="Tone.Danger" Variant="StatusVariant.Surface">3 个错误</Badge>
+        <Badge Icon="Lucide.Sparkles" Tone="Tone.Accent" Variant="StatusVariant.Solid">Beta</Badge>
+        <Badge Icon="Lucide.Flame" Tone="Tone.Warning" Variant="StatusVariant.Outline" Radius="Radius.Full">热门</Badge>
+    </Flex>
+</Flex>
+
+@code {
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg];
+}

@@ -1,0 +1,74 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Field Label="手机号">
+            <TextField @bind-Value="phone" Type="tel"><Prefix>+86</Prefix></TextField>
+        </Field>
+        <Field Label="短信验证码" Error="@error" Description="6 位数字，5 分钟内有效">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+                <OtpField @bind-Value="code" OnComplete="VerifyAsync" Disabled="verifying" data-testid="sms-code" />
+                <Button Variant="ButtonVariant.Soft" Disabled="countdown > 0" @onclick="SendAsync">@(countdown > 0 ? $"{countdown} 秒后重发" : "获取验证码")</Button>
+            </Flex>
+        </Field>
+        <Small Tone="@(message == "登录成功" ? TextTone.Success : TextTone.Muted)" aria-live="polite" data-testid="sms-message">@(verifying ? "正在校验…" : message)</Small>
+    </Flex>
+</Card>
+
+@code {
+    readonly CancellationTokenSource disposed = new();
+
+    string? phone = "13800001111";
+
+    string? code = "";
+
+    int countdown;
+
+    string? error;
+
+    bool verifying;
+
+    string message = "";
+
+    async Task SendAsync()
+    {
+        countdown = 60;
+        message = "验证码已发送（试试 246810）";
+        try
+        {
+            while (countdown > 0)
+            {
+                await Task.Delay(1000, disposed.Token);
+                countdown--;
+                StateHasChanged();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 离开页面时停止倒计时
+        }
+    }
+
+    // 假的校验接口：246810 是对的
+    async Task VerifyAsync(string value)
+    {
+        verifying = true;
+        error = null;
+        await Task.Delay(500);
+        verifying = false;
+        if (value == "246810")
+        {
+            message = "登录成功";
+            return;
+        }
+        error = "验证码不对，请重新输入";
+        code = "";
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        disposed.Cancel();
+        disposed.Dispose();
+    }
+}

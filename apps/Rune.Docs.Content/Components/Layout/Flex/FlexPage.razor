@@ -1,0 +1,35 @@
+@page "/components/flex"
+@attribute [DocMeta("Flex 弹性与网格布局", "一维的 Flex、二维的 Grid，加上列表语义的 FlexList / GridList、限宽居中的 Container 与分隔线 Separator：间距都取主题的五档。", DocCategory.Layout, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Layout.Flex.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="flex" Title="Flex" Demo="typeof(FlexExample)">
+                不拆 Stack / Group：竖排写 Direction="LayoutDirection.Column"。Gap 取主题的间距档位（None、Xs–Xl），整站的疏密跟着主题一起变。
+            </Example>
+            <Example Id="auto-grid" Title="自动换列" Demo="typeof(AutoGridExample)">
+                MinItemWidth 给每项的最小宽度，容器多宽就放几列，不需要断点；项目少于放得下的列数时各项拉宽占满（auto-fit）。这里用 GridList：渲染为 ul，子元素用 li，读屏念“列表，6 项”。
+            </Example>
+            <Example Id="labelled-separator" Title="带文字的分隔线" Demo="typeof(LabelledSeparatorExample)">
+                Separator 里写文字：默认居中，两边各一段线；LabelAlign="Start" 文字在前、线在后，像一节的小标题。文字照常给读屏，两段线对读屏隐藏；Decorative="false" 时整条是 role="separator"，以文字为名称。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="dashboard" Title="固定列数与跨格" Demo="typeof(DashboardExample)">
+                Columns 固定等宽列；GridItem 的 Span、RowSpan 跨几列、几行，FullRow 占满一整行（GridList 里用 GridListItem）。Flow="GridFlow.RowDense" 回填前面留下的空位。
+            </Example>
+            <Example Id="separator" Title="分隔线与列表" Demo="typeof(SeparatorExample)">
+                Separator 默认是装饰性的、对读屏隐藏；分隔两组不同内容、需要读屏感知时写 Decorative="false"，渲染为 role="separator"。竖向的在 Flex 里自动撑满行高。
+            </Example>
+            <Example Id="container" Title="Container" Demo="typeof(ContainerExample)">
+                限制最大宽度并水平居中：Xs 30rem（登录）、Sm 40rem（表单、设置）、Md 48rem（文章）、Lg 64rem（默认）、Xl 80rem（仪表盘）。
+            </Example>
+            <Example Id="grow" Title="伸展、行内与行列间距" Demo="typeof(GrowExample)">
+                Grow 让 Flex 在父级的 flex 里占满剩余空间，并且可以收缩到比内容窄——头像旁边的长标题才能截断；Inline 是行内的 flex，放在一段文字中间。Grid 的 RowGap、ColumnGap 分别覆盖 Gap。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Container), typeof(Flex), typeof(GridItem), typeof(Grid), typeof(Separator)]" />
+</DocPage>

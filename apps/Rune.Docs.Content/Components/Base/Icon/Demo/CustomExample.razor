@@ -1,0 +1,17 @@
+@inherits RuneComponent
+@using System.Reflection
+
+<Flex Gap="SpaceScale.Xl" Align="ItemAlign.Center">
+    <Icon Data="logo" Size="40" Label="站点标志" />
+    <Icon Data="verified" Size="40" Tone="TextTone.Accent" Label="已认证" />
+    <Icon Data="wave" Size="40" Tone="TextTone.Info" Label="信号" />
+</Flex>
+
+@code {
+    // 自己的图标：按 Lucide 的格式写 svg 里面的元素；实心的部分写 fill="currentColor"，颜色仍跟随文字
+    static readonly IconData logo = new("site-logo", """<path d="M4 6l8 12 8-12"/><circle cx="12" cy="4" r="1.5"/>""");
+
+    static readonly IconData verified = new("verified", """<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/><circle cx="18.5" cy="5.5" r="2.5" fill="currentColor"/>""");
+
+    static readonly IconData wave = new("wave", """<path d="M2 16c4-8 8-8 12 0s8 8 12 0 4-4 4-4"/>""", ViewBox: "0 0 32 32");
+}

@@ -1,0 +1,39 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    @if (dismissed)
+    {
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">提示已关闭（刷新示例可以恢复）</TextSpan>
+    }
+    else
+    {
+        <Card>
+            <Flex Align="ItemAlign.Start" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Strong>新版本已发布</Strong>
+                    <TextSpan Size="Size.Sm" Tone="TextTone.Muted">CloseButton 的读屏名称取语言包的“关闭”。</TextSpan>
+                </Flex>
+                <CloseButton @onclick="() => dismissed = true" />
+            </Flex>
+        </Card>
+    }
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+        <TextField @bind-Value="keyword" Immediate="true" aria-label="搜索关键词" />
+        <ClearButton Disabled="string.IsNullOrEmpty(keyword)" @onclick="() => keyword = string.Empty" />
+    </Flex>
+    <Card Variant="CardVariant.Surface">
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <Icon Data="Lucide.KeyRound" />
+            <Code>@ApiKey</Code>
+            <CopyButton Value="@ApiKey" Label="复制 API 密钥" data-testid="copy-key" />
+        </Flex>
+    </Card>
+</Flex>
+
+@code {
+    const string ApiKey = "sk-live-3f9a7c21e8b44d0a";
+
+    bool dismissed;
+
+    string keyword = "vue-tsx-pro";
+}

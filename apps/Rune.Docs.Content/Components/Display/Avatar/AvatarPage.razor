@@ -1,0 +1,23 @@
+@page "/components/avatar"
+@attribute [DocMeta("Avatar 头像", "用户、团队的头像：图片加载失败时显示首字母；头像组叠放并折叠成“+N”；角标（Indicator）标出未读数与在线状态。", DocCategory.Display, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Avatar.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
+                <Code>Name</Code> 是读屏念的名称，也用来生成首字母；图片还没加载好、加载失败时显示后备内容。<Code>Radius.Md</Code> 用于团队、组织；后备内容的 <Code>Variant</Code> 与 <Code>Tone</Code> 同 Badge。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="group" Title="头像组" Demo="typeof(GroupExample)">
+                <Code>AvatarGroup</Code> 把头像叠放，超过 <Code>Max</Code> 的折叠成“+N”，读屏念“还有 N 人”；列表只拿到一部分时用 <Code>Total</Code> 算 N。组里头像的大小随组的 <Code>Size</Code>。vue-tsx-pro 按子节点截取，这里给 <Code>Items</Code> 与每一项的模板。
+            </Example>
+            <Example Id="indicator" Title="角标" Demo="typeof(IndicatorExample)">
+                <Code>Indicator</Code> 包住要标记的元素：计数超过 <Code>Max</Code> 显示“99+”，0 时不显示（<Code>ShowZero</Code> 时显示 0）；<Code>Dot</Code> 是小圆点。数字对读屏隐藏，另有一句完整的 <Code>Label</Code>。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Avatar), typeof(AvatarGroup<>), typeof(Indicator)]" />
+</DocPage>

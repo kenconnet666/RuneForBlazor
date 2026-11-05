@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Md">
+    <Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <TextField placeholder="工号或邮箱" aria-label="账号" />
+            <TextField type="password" placeholder="密码" aria-label="密码" />
+            <Button>登录</Button>
+            <Separator>或者</Separator>
+            <Grid Columns="2" Gap="SpaceScale.Sm">
+                <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.MessageSquareText">企业微信</Button>
+                <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Smartphone">短信验证码</Button>
+            </Grid>
+        </Flex>
+    </Card>
+    <Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Separator LabelAlign="SeparatorLabelAlign.Start">更改前</Separator>
+            <Descriptions Size="Size.Sm">
+                <DescriptionsItem Label="件号" Value="G26" />
+                <DescriptionsItem Label="材料" Value="铝合金 6061" />
+            </Descriptions>
+            <Separator LabelAlign="SeparatorLabelAlign.Start" Decorative="false">更改后</Separator>
+            <Descriptions Size="Size.Sm">
+                <DescriptionsItem Label="件号" Value="G29" />
+                <DescriptionsItem Label="材料" Value="铝合金 7075" />
+            </Descriptions>
+        </Flex>
+    </Card>
+</Grid>

@@ -1,0 +1,19 @@
+@* 一列示例（放在 Examples 里）；Wide 时占满整行。 *@
+@inherits RuneComponent
+
+<div @attributes="Attrs.Merge(Wide ? WideLayer : ColumnLayer)">@ChildContent</div>
+
+@code {
+    static readonly Attrs ColumnLayer = new() { Sx = Column };
+    static readonly Attrs WideLayer = new() { Sx = Sx.Of(Column, WideStyle) };
+
+    /// <summary>占满整行（流程图、看板这类宽示例）。</summary>
+    [Parameter] public bool Wide { get; set; }
+
+    /// <summary>这一列的 Example。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    static Style Column => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = CssLength.Rem(3), MinWidth = 0 });
+
+    static Style WideStyle => Css.Define(static () => new Style { GridColumn = "1 / -1" });
+}

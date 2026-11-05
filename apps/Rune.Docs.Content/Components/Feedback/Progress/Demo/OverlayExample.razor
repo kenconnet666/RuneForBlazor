@@ -1,0 +1,37 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+        <Switch @bind-Value="blur">模糊下面的内容</Switch>
+    </Flex>
+    <LoadingOverlay Loading="saving" Blur="blur" Label="正在保存" data-testid="overlay">
+        <Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <Grid MinItemWidth="@CssLength.Em(12)" Gap="SpaceScale.Md">
+                    <Field Label="项目名称">
+                        <TextField @bind-Value="projectName" Disabled="saving" />
+                    </Field>
+                    <Field Label="负责人">
+                        <TextField @bind-Value="owner" Disabled="saving" />
+                    </Field>
+                </Grid>
+                <Flex Justify="ContentJustify.End">
+                    <Button Loading="saving" @onclick="SaveAsync">保存</Button>
+                </Flex>
+            </Flex>
+        </Card>
+    </LoadingOverlay>
+</Flex>
+
+@code {
+    bool saving, blur = true;
+
+    string? projectName = "vue-tsx-pro", owner = "林小满";
+
+    async Task SaveAsync()
+    {
+        saving = true;
+        await Task.Delay(1600);
+        saving = false;
+    }
+}

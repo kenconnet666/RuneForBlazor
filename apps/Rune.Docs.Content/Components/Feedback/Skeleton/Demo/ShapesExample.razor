@@ -1,0 +1,39 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("10em")" Gap="SpaceScale.Lg">
+    @foreach (var (variant, label) in shapes)
+    {
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <div @attributes="Attrs.Merge(Stage)">
+                <Skeleton Variant="variant" />
+            </div>
+            <Small Tone="TextTone.Muted">@label variant="@Lower(variant)"</Small>
+        </Flex>
+    }
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <div @attributes="Attrs.Merge(Stage)">
+            <SkeletonText Lines="3" />
+        </div>
+        <Small Tone="TextTone.Muted">段落 SkeletonText</Small>
+    </Flex>
+</Grid>
+
+@code {
+    static readonly (SkeletonVariant Variant, string Label)[] shapes =
+    [
+        (SkeletonVariant.Text, "文字行"),
+        (SkeletonVariant.Heading, "标题"),
+        (SkeletonVariant.Circle, "头像"),
+        (SkeletonVariant.Button, "按钮"),
+        (SkeletonVariant.Image, "图片"),
+    ];
+
+    // 同一行的格子一样高：形状在剩下的空间里居中，说明文字都落在格子底部
+    static Style Stage => Css.Define(static () => new Style
+    {
+        FlexGrow = 1,
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        JustifyContent = JustifyContent.Center,
+    });
+}

@@ -1,0 +1,66 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md">
+        <Avatar Name="@profile.Name" />
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Grow="true">
+            <Strong>@profile.Name</Strong>
+            <Small Tone="TextTone.Muted">@profile.Department · @profile.Bio</Small>
+        </Flex>
+        <Button Variant="ButtonVariant.Soft" Icon="Lucide.Pencil" @onclick="Edit" data-testid="open-edit">编辑</Button>
+    </Flex>
+    <Dialog @bind-Open="editing" Title="编辑资料" Description="修改后立即对团队成员可见。" ConfirmText="保存" OnConfirm="SaveAsync" Lazy="false" data-testid="edit-dialog">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Field Label="姓名" Required="true" Error="@nameError">
+                <TextField @bind-Value="draft.Name" autofocus />
+            </Field>
+            <Field Label="部门">
+                <Select Items="departments" @bind-Value="draft.Department" />
+            </Field>
+            <Field Label="简介" Description="显示在个人主页，最多 80 字。">
+                <Textarea @bind-Value="draft.Bio" Rows="3" />
+            </Field>
+        </Flex>
+    </Dialog>
+</Card>
+
+@code {
+    sealed record Profile(string Name, string Department, string Bio);
+
+    sealed class Draft
+    {
+        public string Name { get; set; } = "";
+        public string? Department { get; set; }
+        public string? Bio { get; set; }
+    }
+
+    static readonly string[] departments = ["设计中心", "研发部", "市场部", "财务部"];
+
+    Profile profile = new("周一航", "设计中心", "做了八年交互设计，喜欢把复杂的事讲简单。");
+
+    Draft draft = new();
+
+    bool editing;
+
+    string? nameError;
+
+    void Edit()
+    {
+        draft = new Draft { Name = profile.Name, Department = profile.Department, Bio = profile.Bio };
+        nameError = null;
+        editing = true;
+    }
+
+    // 姓名没填时保持打开；保存要一会儿，期间确认按钮加载中、关不掉
+    async Task SaveAsync(ConfirmEventArgs e)
+    {
+        nameError = string.IsNullOrWhiteSpace(draft.Name) ? "请填写姓名" : null;
+        if (nameError is not null)
+        {
+            e.KeepOpen = true;
+            return;
+        }
+        await Task.Delay(800);
+        profile = new Profile(draft.Name.Trim(), draft.Department ?? "", draft.Bio ?? "");
+    }
+}

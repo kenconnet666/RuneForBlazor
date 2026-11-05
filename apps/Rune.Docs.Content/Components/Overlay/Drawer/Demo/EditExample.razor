@@ -1,0 +1,84 @@
+@inherits RuneComponent
+
+<Card>
+    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <span data-testid="project-name">@saved.Name</span>
+            <Small Tone="TextTone.Muted">@saved.Note</Small>
+        </Flex>
+        <Button Variant="ButtonVariant.Soft" Icon="Lucide.Pencil" @onclick="EditProject">编辑</Button>
+    </Flex>
+    <Drawer @bind-Open="editing" @bind-Width="editWidth" Title="编辑项目" Description="改了没保存时关闭会先确认" BeforeClose="MayCloseAsync"
+            ConfirmText="保存" OnConfirm="SaveProjectAsync" PropsConfirm="@(Dirty ? null : disabledButton)" data-testid="edit-drawer">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Field Label="项目名称" Required="true">
+                <TextField @bind-Value="draft.Name" Immediate="true" />
+            </Field>
+            <Field Label="简要描述">
+                <Textarea @bind-Value="draft.Note" Rows="4" Immediate="true" />
+            </Field>
+        </Flex>
+    </Drawer>
+    <Dialog Open="asking" OpenChanged="AnswerDiscard" Title="放弃未保存的改动？" Dismissible="false" Closable="false"
+            ConfirmText="放弃" Tone="Tone.Danger" OnConfirm="() => discard?.TrySetResult(true)" />
+</Card>
+
+@code {
+    double? editWidth = 560;
+
+    sealed record Project(string Name, string Note);
+
+    sealed class ProjectDraft
+    {
+        public string Name { get; set; } = "";
+        public string? Note { get; set; }
+    }
+
+    static readonly Attrs disabledButton = new() { ["Disabled"] = true };
+
+    static readonly Project initial = new("显示器支架合并", "两件合并为一件，减少紧固件");
+
+    Project saved = initial;
+
+    // 草稿一开始就是已保存的内容：没打开过时“保存”也是不可用的
+    ProjectDraft draft = DraftOf(initial);
+
+    bool editing;
+
+    bool asking;
+
+    TaskCompletionSource<bool>? discard;
+
+    static ProjectDraft DraftOf(Project project) => new() { Name = project.Name, Note = project.Note };
+
+    bool Dirty => draft.Name != saved.Name || draft.Note != saved.Note;
+
+    void EditProject()
+    {
+        draft = DraftOf(saved);
+        editing = true;
+    }
+
+    async Task SaveProjectAsync()
+    {
+        await Task.Delay(600);
+        saved = new Project(draft.Name, draft.Note ?? "");
+    }
+
+    // 能不能关：没改过，或者确认放弃（取消、关闭按钮、Esc、点遮罩都走这里）
+    async Task<bool> MayCloseAsync(DialogCloseReason reason)
+    {
+        if (!Dirty) return true;
+        discard = new TaskCompletionSource<bool>();
+        asking = true;
+        StateHasChanged();
+        return await discard.Task;
+    }
+
+    // 确认对话框关上：确认过的结果已经给出，其余（Esc）算不放弃
+    void AnswerDiscard(bool open)
+    {
+        asking = open;
+        if (!open) discard?.TrySetResult(false);
+    }
+}

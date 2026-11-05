@@ -1,0 +1,48 @@
+@inherits RuneComponent
+
+<Flex Gap="SpaceScale.Md">
+    <Card Padding="SpaceScale.Xs">
+        <Toolbar Orientation="Orientation.Vertical" aria-label="绘图工具" data-testid="tools">
+            @foreach (var (value, label, icon) in tools)
+            {
+                <Tooltip @key="value" Placement="Placement.Right">
+                    <Trigger Context="t">
+                        <IconButton @attributes="t" Icon="icon" Label="@label" aria-pressed="@(tool == value ? "true" : "false")"
+                                    Variant="@(tool == value ? ButtonVariant.Soft : ButtonVariant.Ghost)" Tone="@(tool == value ? Tone.Accent : Tone.Neutral)"
+                                    @onclick="() => tool = value" />
+                    </Trigger>
+                    <ChildContent>@label</ChildContent>
+                </Tooltip>
+            }
+        </Toolbar>
+    </Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Sx="Canvas">
+        <Small Tone="TextTone.Muted">当前工具：@tools.First(t => t.Value == tool).Label</Small>
+    </Flex>
+</Flex>
+
+@code {
+    static readonly (string Value, string Label, IconData Icon)[] tools =
+    [
+        ("select", "选择", Lucide.MousePointer2),
+        ("hand", "平移", Lucide.Hand),
+        ("pencil", "画笔", Lucide.Pencil),
+        ("rect", "矩形", Lucide.Square),
+        ("ellipse", "椭圆", Lucide.Circle),
+        ("text", "文字", Lucide.Type),
+        ("eraser", "橡皮", Lucide.Eraser),
+    ];
+
+    string tool = "pencil";
+
+    static Style Canvas => Css.Define(static () => new Style
+    {
+        FlexGrow = 1,
+        MinHeight = CssLength.Rem(16),
+        Padding = Space.Sm,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.Fill,
+        BackgroundImage = $"linear-gradient({Colors.BorderMuted} 1px, transparent 1px), linear-gradient(90deg, {Colors.BorderMuted} 1px, transparent 1px)",
+        BackgroundSize = "24px 24px",
+    });
+}

@@ -31,11 +31,11 @@ node tools/parity/parity.mjs button --shots                # 两边每个示例�
 其他选项：`--themes=light`、`--mode=server`（默认 static）、`--tolerance=0.5`（像素）、`--width=1280`。
 报告写到 `artifacts/parity/<演示>/report.md`；有差异时退出码为 1。
 
-## 演示页怎么写才能对上
+## 文档页怎么写才能对上
 
-- 演示页的地址名与文档站页面一致（`/static/button` ↔ `/components/button`），示例用 `DemoSection`，`Id` 同文档站示例的 id，
+- 页面在 `apps/Rune.Docs.Content`（测试台按 `/static/button` 打开 `/components/button` 那一页），示例用 `Example`，`Id` 同 vue-tsx-pro 文档站示例的 id，
   场景、顺序、文字照文档站（文字不同宽度就不同）。
-- `DemoSection` 的效果区与文档站示例卡片的排布相同（表面色、网格、`Space.Xl` 内边距），脚本把它设成与文档站同宽，占满宽度的元素才可比。
+- `Example` 的示例卡片与 vue-tsx-pro 的相同（CodePreview：表面色、网格、`Space.Xl` 内边距），排布格带 `data-demo-canvas`，脚本把它设成与文档站同宽，占满宽度的元素才可比。
 - 报告里“只有 rune / 只有 vue”的部件是两边结构不同的地方：本库给 Flex、Grid、文字加了部件标记（vue-tsx-pro 没有），
   按钮的内容层、图标是单独的部件。这些不影响其他部件的配对。
 

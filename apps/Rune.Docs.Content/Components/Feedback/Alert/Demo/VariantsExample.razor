@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Alert Variant="AlertVariant.Soft" Tone="Tone.Accent" Icon="Lucide.Sparkles" Title="soft（默认）">浅色底，没有描边。</Alert>
+    <Alert Variant="AlertVariant.Surface" Tone="Tone.Accent" Title="surface">浅色底加描边：放在白色卡片里也看得清边界。</Alert>
+    <Alert Variant="AlertVariant.Outline" Tone="Tone.Accent" Title="outline">只有描边：信息不那么紧急时用。</Alert>
+    <Alert Variant="AlertVariant.Surface" Tone="Tone.Danger" Title="保存失败" Loading="retrying">
+        <Action>
+            <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Loading="retrying" @onclick="RetryAsync">重试</Button>
+        </Action>
+        <ChildContent>服务器暂时不可用。loading 时图标换成旋转指示。</ChildContent>
+    </Alert>
+    @if (!dismissed)
+    {
+        <Alert Tone="Tone.Info" Title="可以关闭" OnClose="() => dismissed = true" data-testid="closable">写了 onClose 就有关闭按钮。</Alert>
+    }
+</Flex>
+
+@code {
+    bool retrying, dismissed;
+
+    async Task RetryAsync()
+    {
+        retrying = true;
+        await Task.Delay(1500);
+        retrying = false;
+    }
+}

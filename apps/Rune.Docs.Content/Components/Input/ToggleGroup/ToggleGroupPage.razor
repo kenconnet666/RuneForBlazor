@@ -1,0 +1,23 @@
+@page "/components/toggle-group"
+@attribute [DocMeta("ToggleGroup 分段控件", "一组切换按钮：单选（视图切换、时间范围）或多选（字形）。选中项的底色滑过去；方向键在组内移动，整组只占一个 Tab 位置。", DocCategory.Input, Order = 11)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.ToggleGroup.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="segmented" Title="视图切换" Demo="typeof(SegmentedExample)">
+                单选时 <Code>Value</Code> 是字符串；<Code>Required</Code> 时至少保留一项（分段控件）。<Code>Icon</Code> 放在文字前；选中项的底色是一个指示条，切换时滑过去，减少动态效果时直接到位。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="multiple" Title="多选的字形" Demo="typeof(MultipleExample)">
+                <Code>SelectionMode.Multiple</Code> 时值是 <Code>Values</Code>（列表），每一项各自开关（aria-pressed）。只有图标的项要写 <Code>aria-label</Code>。
+            </Example>
+            <Example Id="vertical" Title="竖排与不可用" Demo="typeof(VerticalExample)">
+                <Code>Orientation.Vertical</Code> 竖排，键盘改用 ↑↓。放进 Field 时以标签为名称，沿用 Field 的不可用；单项可以单独不可用。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ToggleGroup), typeof(ToggleItem)]" />
+</DocPage>

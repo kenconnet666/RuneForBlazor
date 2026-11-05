@@ -1,0 +1,32 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@CssLength.Rem(12)" Gap="SpaceScale.Lg">
+    <Field Label="外观">
+        <ToggleGroup @bind-Value="appearance" Orientation="Orientation.Vertical" Required="true">
+            <ToggleItem Value="light" Icon="Lucide.Sun">亮色</ToggleItem>
+            <ToggleItem Value="dark" Icon="Lucide.Moon">暗色</ToggleItem>
+            <ToggleItem Value="system" Icon="Lucide.Monitor">跟随系统</ToggleItem>
+        </ToggleGroup>
+    </Field>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Field Label="整组不可用">
+            <ToggleGroup @bind-Value="density" Required="true" Disabled="true">
+                <ToggleItem Value="compact">紧凑</ToggleItem>
+                <ToggleItem Value="comfortable">适中</ToggleItem>
+            </ToggleGroup>
+        </Field>
+        <Field Label="单项不可用">
+            <ToggleGroup @bind-Value="density" Required="true" Size="Size.Lg">
+                <ToggleItem Value="compact">紧凑</ToggleItem>
+                <ToggleItem Value="comfortable">适中</ToggleItem>
+                <ToggleItem Value="spacious" Disabled="true">宽松</ToggleItem>
+            </ToggleGroup>
+        </Field>
+    </Flex>
+</Grid>
+
+@code {
+    string? appearance = "system";
+
+    string? density = "comfortable";
+}

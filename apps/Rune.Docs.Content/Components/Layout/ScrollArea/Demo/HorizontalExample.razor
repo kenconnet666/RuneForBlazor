@@ -1,0 +1,41 @@
+@inherits RuneComponent
+
+<ScrollArea Axis="ScrollAxis.X" Visibility="ScrollbarVisibility.Always" PropsViewport="PlaylistViewport">
+    <FlexList Gap="SpaceScale.Md" Sx="Padded">
+        @foreach (var (name, count, hue) in playlists)
+        {
+            <li @key="name" @attributes="Attrs.Merge(PlaylistItem)">
+                <Card Padding="SpaceScale.Sm">
+                    <div style="@Cover(hue)" @attributes="Attrs.Merge(CoverShape)"></div>
+                    <Flex Direction="LayoutDirection.Column">
+                        <Strong>@name</Strong>
+                        <Small Tone="TextTone.Muted">@count 首</Small>
+                    </Flex>
+                </Card>
+            </li>
+        }
+    </FlexList>
+</ScrollArea>
+
+@code {
+    static readonly (string Name, int Count, int Hue)[] playlists =
+    [
+        ("通勤路上", 32, 210), ("深夜写代码", 48, 265), ("周末早午餐", 21, 30), ("跑步节拍", 40, 0),
+        ("雨天爵士", 27, 230), ("专注白噪音", 12, 160), ("九十年代华语", 55, 340), ("电影原声", 36, 290),
+    ];
+
+    static readonly Attrs PlaylistViewport = new() { ["aria-label"] = "推荐歌单" };
+
+    // 封面色由每张歌单的色相决定
+    static string Cover(int hue) => $"background-image:linear-gradient(135deg, oklch(70% 0.14 {hue}), oklch(45% 0.12 {hue + 40}))";
+
+    static readonly Attrs PlaylistItem = new() { Sx = PlaylistItemStyle };
+
+    static readonly Attrs CoverShape = new() { Sx = CoverStyle };
+
+    static Style Padded => Css.Define(static () => new Style { PaddingBlockEnd = Space.Md });
+
+    static Style PlaylistItemStyle => Css.Define(static () => new Style { FlexShrink = 0, Width = CssLength.Rem(9) });
+
+    static Style CoverStyle => Css.Define(static () => new Style { AspectRatio = "1", MarginBlockEnd = Space.Sm, BorderRadius = Radii.Md });
+}

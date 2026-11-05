@@ -1,0 +1,26 @@
+@page "/components/scroll-area"
+@attribute [DocMeta("ScrollArea 滚动区域", "浮层滚动条：滚动仍是原生的，只把滚动条换成半透明、不占位的一层。纵向、横向、两个方向；整页用 PageScrollbar。", DocCategory.Layout, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Layout.ScrollArea.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="vertical" Title="纵向滚动" Demo="typeof(VerticalExample)">
+                高度（或最大高度）由 <Code>Sx</Code> 给。视口可以用 Tab 聚焦、用方向键滚动，名称写在 <Code>PropsViewport</Code> 上；滚动条对读屏隐藏。
+            </Example>
+            <Example Id="horizontal" Title="横向滚动" Demo="typeof(HorizontalExample)">
+                <Code>ScrollAxis.X</Code> 横向滚动，纵向超出的裁掉。滚动条浮在内容上，底部留出一点空，免得盖住卡片。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="both" Title="两个方向" Demo="typeof(BothExample)">
+                <Code>ScrollAxis.Both</Code>：宽表格、电子表格。表头和行号用 position: sticky 固定，在原生滚动里照常生效。
+            </Example>
+            <Example Id="types" Title="什么时候显示滚动条" Demo="typeof(TypesExample)">
+                <Code>Visibility</Code> 三种显示时机；淡出前的停留时间是 <Code>HideDelay</Code>。整页的滚动条用 PageScrollbar（随 AppShell 做）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ScrollArea)]" />
+</DocPage>

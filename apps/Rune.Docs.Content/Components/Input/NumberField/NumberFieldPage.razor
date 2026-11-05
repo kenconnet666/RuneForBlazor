@@ -1,0 +1,32 @@
+@page "/components/number-field"
+@attribute [DocMeta("NumberField 数字输入框", "输入数字，方向键与按钮加减，按语言格式化；值可以是 number、bigint 或 Decimal。", DocCategory.Input, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.NumberField.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
+                输入时是普通文字，失焦或回车时解析、夹到 Min–Max、对齐到 Step；解析不了时恢复原值，清空写回 null。Format 是 .NET 的数字格式，认当前文化的小数点与千分位，也认中文输入法打出的全角数字。
+            </Example>
+            <Example Id="precise" Title="精确数值" Demo="typeof(PreciseExample)">
+                值的类型不限：decimal 加减与对齐步长都精确运算，不经过浮点数；long 超过 2⁵³ 也不丢位。double 能用，但大数、长小数会丢精度。
+            </Example>
+            <Example Id="units" Title="单位与缩放" Demo="typeof(UnitsExample)">
+                <Code>Suffix</Code>、<Code>Prefix</Code> 把单位放进输入框。值以元保存、按万元输入时写 <Code>Scale="10000"</Code>：显示与编辑都是万元，写回时乘回元（decimal，不丢精度）；<Code>Min</Code>、<Code>Max</Code>、<Code>Step</Code> 仍按值本身的单位。只读时不显示加减按钮。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="appearance" Title="外观与状态" Demo="typeof(AppearanceExample)">
+                外观同 TextField：Variant、Size、Radius；减少、增加按钮不在 Tab 顺序里。
+            </Example>
+            <Example Id="submit" Title="表单提交" Demo="typeof(SubmitExample)">
+                写了 name 时，原生表单提交的是十进制文本（不带千分位与货币符号），不是输入框里显示的格式。
+            </Example>
+            <Example Id="range" Title="数值区间" Demo="typeof(RangeExample)">
+                <Code>NumberRangeField</Code> 是两个数字框，值是 <Code>NumberRange</Code>（低, 高），端点用可空类型时任一端可以空着（“20 家以上”）。两端都填了、低比高大时自动对调，不用报错。Min、Max、Step、Format、Scale、Prefix、Suffix 与外观两端共用；放进 Field 时点标签聚焦第一个框，两个框各念“最小值”“最大值”。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(NumberField<>), typeof(NumberRangeField<>)]" />
+</DocPage>

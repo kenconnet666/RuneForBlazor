@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <CommandPalette Items="commands" Hotkey="Mod+J" Label="命令" Placeholder="输入命令或页面名称" OnAction="@((ListboxOption c) => last = c.Label)" data-testid="commands" />
+    <Small Tone="TextTone.Muted" data-testid="last">
+        也可以按 <Kbd>Ctrl</Kbd> + <Kbd>J</Kbd>（macOS 上 <Kbd>⌘</Kbd> + <Kbd>J</Kbd>）打开。@(last.Length > 0 ? $" 执行了：{last}" : "")
+    </Small>
+</Flex>
+
+@code {
+    static readonly ListboxOption[] commands =
+    [
+        new("home", "概览", Icon: Lucide.House, Group: "页面"),
+        new("orders", "订单", Description: "全部订单、退款与售后", Icon: Lucide.ShoppingCart, Group: "页面"),
+        new("products", "商品", Icon: Lucide.Package, Group: "页面"),
+        new("customers", "客户", Icon: Lucide.Users, Group: "页面"),
+        new("reports", "报表", Description: "销售、库存、流量", Icon: Lucide.ChartLine, Group: "页面"),
+        new("new-product", "新建商品", Icon: Lucide.FilePlus, Group: "操作"),
+        new("invite", "邀请成员", Icon: Lucide.UserPlus, Group: "操作"),
+        new("theme", "切换暗色模式", Icon: Lucide.Moon, Group: "操作"),
+        new("settings", "设置", Icon: Lucide.Settings, Group: "操作"),
+        new("logout", "退出登录", Disabled: true, Icon: Lucide.LogOut, Group: "操作"),
+    ];
+
+    string last = "";
+}

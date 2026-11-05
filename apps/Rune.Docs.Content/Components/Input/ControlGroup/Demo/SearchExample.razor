@@ -1,0 +1,48 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <form role="search" @onsubmit="Search" @onsubmit:preventDefault>
+        <ControlGroup aria-label="搜索任务">
+            <Select Items="scopes" @bind-Value="scope" aria-label="搜索范围" />
+            <TextField @bind-Value="keyword" Icon="Lucide.Search" placeholder="任务名称、编号或负责人" aria-label="关键词" />
+            <Button Type="submit">搜索</Button>
+        </ControlGroup>
+    </form>
+    @if (searched is not null)
+    {
+        <Small Tone="TextTone.Muted" aria-live="polite">@searched</Small>
+    }
+    <Field Label="回调地址">
+        <ControlGroup aria-label="回调地址">
+            <Select Items="protocols" @bind-Value="protocol" aria-label="协议" />
+            <TextField @bind-Value="host" aria-label="域名" />
+            <CopyButton Value="@($"{protocol}{host}")" Variant="ButtonVariant.Outline" aria-label="复制地址" />
+        </ControlGroup>
+    </Field>
+    <Field Label="收货地址" Description="Orientation.Vertical：上下相连">
+        <ControlGroup Orientation="Orientation.Vertical" aria-label="收货地址">
+            <TextField Value="浙江省杭州市西湖区" aria-label="省市区" />
+            <TextField Value="文三路 90 号 3 幢 501" aria-label="详细地址" />
+        </ControlGroup>
+    </Field>
+</Flex>
+
+@code {
+    static readonly ListboxOption[] scopes = [new("all", "全部"), new("title", "标题"), new("owner", "负责人")];
+
+    static readonly string[] protocols = ["https://", "http://"];
+
+    string? scope = "all";
+
+    string? keyword = "";
+
+    string? searched;
+
+    string? protocol = "https://";
+
+    string? host = "hooks.example.com";
+
+    void Search() => searched = string.IsNullOrEmpty(keyword)
+        ? null
+        : $"在“{scopes.First(s => s.Value == scope).Label}”里搜索：{keyword}";
+}

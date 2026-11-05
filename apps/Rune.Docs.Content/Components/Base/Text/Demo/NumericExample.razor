@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+    @foreach (var (number, amount) in orders)
+    {
+        <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Xl">
+            <TextSpan Mono="true" Size="Size.Sm">@number</TextSpan>
+            <TextSpan Numeric="true">@amount 万元</TextSpan>
+        </Flex>
+    }
+    <TextSpan Numeric="true" Tone="TextTone.Danger" Weight="Weight.Semibold">超时 11 天</TextSpan>
+</Flex>
+
+@code {
+    static readonly (string Number, string Amount)[] orders =
+    [
+        ("PO-2026-0276", "1,117.48"),
+        ("PO-2026-0233", "9.10"),
+        ("PO-2026-02114", "211.06"),
+    ];
+}

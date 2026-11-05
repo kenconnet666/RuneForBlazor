@@ -1,0 +1,29 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Switch @bind-Value="wrappingLoading">加载中</Switch>
+    <Card style="max-width: 24rem">
+        <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center">
+            <Skeleton Loading="wrappingLoading" Variant="SkeletonVariant.Circle">
+                <Avatar Name="Ada Lovelace" />
+            </Skeleton>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <Skeleton Loading="wrappingLoading">
+                    <TextSpan Weight="Weight.Semibold">Ada Lovelace</TextSpan>
+                </Skeleton>
+                <Skeleton Loading="wrappingLoading" Delay="ShimmerStyles.Stagger">
+                    <TextSpan Size="Size.Sm" Tone="TextTone.Muted">分析机程序员 · 伦敦</TextSpan>
+                </Skeleton>
+            </Flex>
+        </Flex>
+        <div style="margin-block-start: 1em">
+            <Skeleton Loading="wrappingLoading" Delay="2 * ShimmerStyles.Stagger">
+                <Paragraph>为巴贝奇的分析机写下了计算伯努利数的算法，被认为是世界上第一段程序。</Paragraph>
+            </Skeleton>
+        </div>
+    </Card>
+</Flex>
+
+@code {
+    bool wrappingLoading = true;
+}

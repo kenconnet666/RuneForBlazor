@@ -1,0 +1,34 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Sm" Sx="Nav">
+    <NavList aria-label="文档" data-testid="docs">
+        @foreach (var (label, pages) in docs)
+        {
+            <NavSection @key="label" Label="@label">
+                @foreach (var name in pages)
+                {
+                    @* 还没上线的页面：不能点、不能聚焦 *@
+                    <NavItem @key="name" Href="@Anchor(name)" Active="@(doc == name)" Disabled="@(name == "设计资源")" @onclick="@(() => doc = name)">
+                        <ChildContent>@name</ChildContent>
+                        <End>@if (name == "设计资源") { <Badge Variant="StatusVariant.Soft">即将上线</Badge> }</End>
+                    </NavItem>
+                }
+            </NavSection>
+        }
+    </NavList>
+</Card>
+
+@code {
+    static readonly (string Label, string[] Pages)[] docs =
+    [
+        ("指南", ["快速开始", "主题定制", "国际化"]),
+        ("组件", ["Button 按钮", "Dialog 对话框", "Tabs 标签页", "DataTable 数据表格"]),
+        ("资源", ["更新日志", "设计资源"]),
+    ];
+
+    string doc = "Dialog 对话框";
+
+    static string Anchor(string name) => "#" + Uri.EscapeDataString(name);
+
+    static Style Nav => Css.Define(static () => new Style { Width = CssLength.Rem(15) });
+}

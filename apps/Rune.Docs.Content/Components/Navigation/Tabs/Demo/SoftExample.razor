@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+<Tabs Variant="TabsVariant.Soft" Size="Size.Sm" Activation="TabsActivation.Manual" data-testid="soft">
+    <TabList aria-label="查看方式">
+        <Tab Value="preview"><Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs"><Icon Data="Lucide.Eye" />预览</Flex></Tab>
+        <Tab Value="code"><Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs"><Icon Data="Lucide.CodeXml" />代码</Flex></Tab>
+        <Tab Value="split" Disabled="true"><Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs"><Icon Data="Lucide.SquareSplitHorizontal" />并排（宽屏）</Flex></Tab>
+    </TabList>
+    <TabPanel Value="preview">
+        <Paragraph Sx="PreviewStyle">这里是效果。TabsActivation.Manual：方向键只移动焦点，按 Enter / 空格才切换。</Paragraph>
+    </TabPanel>
+    <TabPanel Value="code">
+        <CodeBlock Code="@saveSource" Lang="razor" />
+    </TabPanel>
+</Tabs>
+
+@code {
+    const string saveSource = """
+        <Button Tone="Tone.Success" Icon="Lucide.Check">
+            保存
+        </Button>
+        """;
+
+    static Style PreviewStyle => Css.Define(static () => new Style { Padding = Space.Lg, BorderRadius = Radii.Md, BackgroundColor = Colors.Fill });
+}

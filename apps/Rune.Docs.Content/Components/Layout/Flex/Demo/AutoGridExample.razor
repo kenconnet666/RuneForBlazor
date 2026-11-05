@@ -1,0 +1,40 @@
+@inherits RuneComponent
+
+<GridList MinItemWidth="@("9rem")" Gap="SpaceScale.Md" aria-label="热卖家具">
+    @foreach (var (icon, name, price) in products)
+    {
+        <li>
+            <Card Padding="SpaceScale.Sm">
+                <div @attributes="Attrs.Merge(Cover)"><Icon Data="icon" /></div>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <TextSpan Size="Size.Sm">@name</TextSpan>
+                    <Strong>¥@price.ToString("N0") <Small Tone="TextTone.Muted">起</Small></Strong>
+                </Flex>
+            </Card>
+        </li>
+    }
+</GridList>
+
+@code {
+    static readonly (IconData Icon, string Name, int Price)[] products =
+    [
+        (Lucide.Sofa, "云朵三人沙发", 4299),
+        (Lucide.Armchair, "藤编单椅", 899),
+        (Lucide.BedDouble, "实木双人床", 3599),
+        (Lucide.Lamp, "黄铜落地灯", 659),
+        (Lucide.Armchair, "人体工学椅", 1999),
+        (Lucide.LampDesk, "护眼台灯", 329),
+    ];
+
+    static Style Cover => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        Height = CssLength.Rem(5),
+        MarginBlockEnd = Space.Sm,
+        BorderRadius = Radii.Sm,
+        BackgroundColor = Colors.Fill,
+        Color = Colors.TextMuted,
+        FontSize = CssLength.Rem(2),
+    });
+}

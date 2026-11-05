@@ -1,0 +1,35 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    @foreach (var (tone, label) in tones)
+    {
+        <Flex Gap="SpaceScale.Sm" Wrap="true" Align="ItemAlign.Center" data-testid="@($"tone-{tone}")">
+            @foreach (var (variant, _) in variants)
+            {
+                <Button Tone="tone" Variant="variant">@label</Button>
+            }
+        </Flex>
+    }
+</Flex>
+
+@code {
+    static readonly (ButtonVariant Variant, string Usage)[] variants =
+    [
+        (ButtonVariant.Solid, "主要操作，每组最多一个"),
+        (ButtonVariant.Soft, "需要突出的次要操作"),
+        (ButtonVariant.Surface, "表单、设置页里的次要操作"),
+        (ButtonVariant.Outline, "次要操作"),
+        (ButtonVariant.Ghost, "工具栏、行内操作"),
+        (ButtonVariant.Link, "句子中间的操作"),
+    ];
+
+    static readonly (Tone Tone, string Label)[] tones =
+    [
+        (Tone.Neutral, "取消"),
+        (Tone.Accent, "确定"),
+        (Tone.Info, "详情"),
+        (Tone.Success, "完成"),
+        (Tone.Warning, "注意"),
+        (Tone.Danger, "删除"),
+    ];
+}

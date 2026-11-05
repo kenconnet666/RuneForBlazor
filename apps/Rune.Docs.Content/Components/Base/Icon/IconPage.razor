@@ -1,0 +1,39 @@
+@page "/components/icon"
+@attribute [DocMeta("Icon 图标", "渲染 Lucide 格式的图标数据：按名导入、可摇树，也能画自己的图标。", DocCategory.Base, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Base.Icon.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
+                Rune.Icons 的 Lucide.Xxx 交给 Data；WebAssembly 发布时裁剪掉没用到的图标。全部图标见页面下方的图标库。
+            </Example>
+            <Example Id="sizes" Title="尺寸与线宽" Demo="typeof(SizesExample)">
+                不写 Size 时是 1em，跟随所在文字；档位对应主题字号，数字是像素。StrokeWidth 调线宽，大图标用细一点的线更精致。
+            </Example>
+            <Example Id="tones" Title="色调" Demo="typeof(TonesExample)">
+                不写 Tone 时跟随文字颜色；状态图标用 Success、Warning、Danger 等色调，和提示条、标记的颜色一致。
+            </Example>
+            <Example Id="gallery" Title="图标库（Lucide 全集）" Demo="typeof(GalleryExample)" />
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="with-text" Title="与文字、按钮搭配" Demo="typeof(WithTextExample)">
+                图标与文字基线对齐，不撑高行距；按钮、标记、链接里的图标由组件排好间距。
+            </Example>
+            <Example Id="direction" Title="从右到左" Demo="typeof(DirectionExample)">
+                FlipInRtl 让图标在从右到左的排版里水平翻转（按所在元素的 dir 判断）：箭头、chevron、“返回”这类有方向的图标要翻，时钟、勾号不翻。
+            </Example>
+            <Example Id="accessibility" Title="装饰与含义" Demo="typeof(AccessibilityExample)">
+                旁边已有文字时图标只是装饰，默认对读屏隐藏；单独出现、表达含义的图标要给 Label。
+            </Example>
+            <Example Id="draw" Title="描线动画" Demo="typeof(DrawExample)">
+                Draw 由 false 变为 true 时一笔画出；开启“减少动态效果”时直接画好。
+            </Example>
+            <Example Id="custom" Title="自定义图标" Demo="typeof(CustomExample)">
+                按 Lucide 的格式写 svg 里面的元素即可，画布默认 24 格，不是 24 时写 ViewBox。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Icon)]" />
+</DocPage>

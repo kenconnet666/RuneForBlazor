@@ -1,0 +1,21 @@
+@inherits RuneComponent
+@using System.ComponentModel.DataAnnotations
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Sx="FormWidth">
+    <TextField @bind-Value="keyword" Immediate="true" Icon="Lucide.Search" placeholder="边输边搜（Immediate）" data-testid="search" />
+    <TextSpan Tone="TextTone.Muted" Size="Size.Sm">关键词：@(string.IsNullOrEmpty(keyword) ? "（空）" : keyword)</TextSpan>
+    <TextField Value="@("只读的值")" ReadOnly="true" />
+    <TextField placeholder="不可用" Disabled="true" />
+    <TextField placeholder="金额" Size="Size.Lg">
+        <Suffix>元</Suffix>
+    </TextField>
+    <Field Label="直接给错误信息" Error="这个用户名已被占用">
+        <TextField Value="@("admin")" />
+    </Field>
+</Flex>
+
+@code {
+    string? keyword;
+
+    static Style FormWidth => Css.Define(static () => new Style { MaxWidth = 420 });
+}

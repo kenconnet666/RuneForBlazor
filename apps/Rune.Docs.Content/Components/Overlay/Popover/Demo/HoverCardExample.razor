@@ -1,0 +1,38 @@
+@inherits RuneComponent
+
+<Paragraph>
+    这一版的设计由 @Mention(people[0]) 负责，组件实现与文档是 @Mention(people[1]) 做的。把指针停在名字上，或用 Tab 聚焦它，就能看到资料卡。
+</Paragraph>
+
+@code {
+    sealed record Person(string Key, string Name, string Handle, string Bio, string City, string Joined, string Followers);
+
+    static readonly Person[] people =
+    [
+        new("yihang", "周一航", "@yihang", "交互设计师，做了八年工具类产品。喜欢把复杂的事讲简单。", "上海", "2019 年加入", "1,284"),
+        new("xiaoman", "林小满", "@xiaoman", "前端工程师，Rune 的维护者之一。", "杭州", "2021 年加入", "3,096"),
+    ];
+
+    // 句子里的 @某人：悬停或聚焦时弹出资料卡
+    static RenderFragment Mention(Person person) => @<HoverCard data-testid="@($"card-{person.Key}")">
+        <Trigger Context="t"><TextLink @attributes="t" Href="@($"server/popover#{person.Key}")">@person.Handle</TextLink></Trigger>
+        <ChildContent>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+                    <Avatar Name="@person.Name" />
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Soft">关注</Button>
+                </Flex>
+                <Flex Direction="LayoutDirection.Column">
+                    <Strong>@person.Name</Strong>
+                    <Small Tone="TextTone.Muted">@person.Handle</Small>
+                </Flex>
+                <Paragraph Size="Size.Sm">@person.Bio</Paragraph>
+                <Flex Gap="SpaceScale.Md" Wrap="true">
+                    <Small Tone="TextTone.Muted"><Icon Data="Lucide.MapPin" /> @person.City</Small>
+                    <Small Tone="TextTone.Muted"><Icon Data="Lucide.CalendarDays" /> @person.Joined</Small>
+                    <Small Tone="TextTone.Muted">@person.Followers 关注者</Small>
+                </Flex>
+            </Flex>
+        </ChildContent>
+    </HoverCard>;
+}

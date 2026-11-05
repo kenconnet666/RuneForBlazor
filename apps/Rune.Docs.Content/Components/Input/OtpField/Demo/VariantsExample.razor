@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Field Label="支付密码" Description="@(pin?.Length == 6 ? "已输入 6 位" : "6 位数字，显示成圆点")">
+        <OtpField @bind-Value="pin" Mask="true" data-testid="pin" />
+    </Field>
+    <Field Label="恢复码">
+        <DescriptionContent>字母与数字，转成大写：<Code>@(string.IsNullOrEmpty(recovery) ? "（空）" : recovery)</Code></DescriptionContent>
+        <ChildContent>
+            <OtpField @bind-Value="recovery" Length="8" Charset="OtpCharset.Alphanumeric" Groups="@([4, 4])" data-testid="recovery" />
+        </ChildContent>
+    </Field>
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Field Label="Size.Sm">
+            <OtpField Value="1234" Length="4" Size="Size.Sm" />
+        </Field>
+        <Field Label="出错" Error="验证码已过期">
+            <OtpField Value="4821" Length="4" />
+        </Field>
+        <Field Label="不可用" Disabled="true">
+            <OtpField Value="99" Length="4" />
+        </Field>
+    </Flex>
+</Flex>
+
+@code {
+    string? pin = "";
+
+    string? recovery = "";
+}

@@ -1,0 +1,15 @@
+@page "/components/theme-switcher"
+@attribute [DocMeta("ThemeSwitcher 主题切换", "切换主题的按钮菜单（跟随系统与各套主题，圆形展开）、主题缩略图，以及调品牌色、圆角、字体的主题编辑器。", DocCategory.Patterns, Order = 9)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Patterns.ThemeSwitcher.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="switcher" Title="主题切换按钮" Demo="typeof(SwitcherExample)">
+                <Code>AddRuneUI</Code> 里设置 <Code>ThemeChoices</Code> 给出可选的主题（最外层的 RuneProvider 输出每套的变量），head 里放 <Code>ThemeBootScript</Code>（页面显示前按记住的选择设好，不闪默认主题）；<Code>ThemeSwitcher</Code> 列出“跟随系统”与各套主题，选中后记进 localStorage，新主题从按钮处圆形展开。切换全在浏览器里，没有往返，静态 SSR 也能用。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ThemeSwitcher)]" />
+</DocPage>

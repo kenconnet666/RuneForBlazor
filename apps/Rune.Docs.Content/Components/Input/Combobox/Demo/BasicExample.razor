@@ -1,0 +1,36 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="城市" Description="本地过滤：输入“州”试试">
+        <Combobox Items="cities" @bind-Value="city" Clearable="true" placeholder="输入或选择" data-testid="city" />
+    </Field>
+    <Field Label="成员" Description="远程搜索：Load 在输入停下 300 ms 后请求，只采用最后一次">
+        <Combobox TItem="string" Load="SearchUsersAsync" @bind-InputValue="keyword" @bind-Value="user" placeholder="输入用户名" data-testid="member">
+            <Empty>@(string.IsNullOrEmpty(keyword) ? "输入关键词开始搜索" : "没有匹配的成员")</Empty>
+        </Combobox>
+    </Field>
+    <Small Tone="TextTone.Muted" data-testid="basic-summary">城市：@(city ?? "未选") · 成员：@(user ?? "未选")</Small>
+</Flex>
+
+@code {
+    static readonly string[] cities =
+    [
+        "北京", "上海", "广州", "深圳", "杭州", "南京", "苏州", "成都", "重庆", "武汉", "西安", "天津", "长沙", "郑州", "青岛",
+        "厦门", "宁波", "合肥", "福州", "昆明", "大连", "沈阳", "哈尔滨", "济南", "无锡", "东莞", "佛山", "珠海", "南宁", "贵阳",
+    ];
+
+    static readonly string[] users = ["zhouyihang", "linxiaoman", "chenmo", "xuyou", "wangqing", "zhaohaoran", "sunsiyuan", "liyutong"];
+
+    string? city;
+
+    string? keyword = "";
+
+    string? user;
+
+    // 假的远程搜索：300 ms 后返回包含关键词的用户名，被后来的请求顶掉时取消
+    static async Task<IEnumerable<string>> SearchUsersAsync(string query, CancellationToken cancellation)
+    {
+        await Task.Delay(300, cancellation);
+        return string.IsNullOrEmpty(query) ? [] : users.Where(name => name.Contains(query, StringComparison.OrdinalIgnoreCase));
+    }
+}

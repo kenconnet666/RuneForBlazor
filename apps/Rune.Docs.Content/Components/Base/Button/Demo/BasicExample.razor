@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+<Card PropsFooter="spaceBetween">
+    <Header>
+        <Flex Justify="ContentJustify.Between" Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+            <Strong>Vue 3.5 的响应式解构</Strong>
+            <TextSpan Size="Size.Sm" Tone="TextTone.Muted">@(published ? "已发布" : "草稿 · 3 分钟前保存")</TextSpan>
+        </Flex>
+    </Header>
+    <ChildContent>
+        <Paragraph Tone="TextTone.Muted">
+            一组操作里只有“发布”用实底；“预览”“取消”依次减弱，“删除”放在另一侧，离主要操作远一点。
+        </Paragraph>
+    </ChildContent>
+    <Footer>
+        <Button Variant="ButtonVariant.Ghost" Tone="Tone.Danger" Icon="Lucide.Trash">删除</Button>
+        <Flex Gap="SpaceScale.Sm" Wrap="true">
+            <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral">取消</Button>
+            <Button Variant="ButtonVariant.Outline" Icon="Lucide.Eye">预览</Button>
+            <Button Icon="Lucide.Send" @onclick="() => published = !published" data-testid="publish">@(published ? "撤回" : "发布")</Button>
+        </Flex>
+    </Footer>
+</Card>
+
+@code {
+    // 页脚默认靠右排；删除放到另一侧，离主要操作远一点
+    static readonly Attrs spaceBetween = new Style { JustifyContent = JustifyContent.SpaceBetween, FlexWrap = FlexWrap.Wrap };
+
+    bool published;
+}

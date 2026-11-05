@@ -1,0 +1,23 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("9rem")" Gap="SpaceScale.Lg">
+    @foreach (var (variant, usage) in variants)
+    {
+        <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Start" Gap="SpaceScale.Xs">
+            <Button Variant="variant">@variant.ToString().ToLowerInvariant()</Button>
+            <Small Tone="TextTone.Muted">@usage</Small>
+        </Flex>
+    }
+</Grid>
+
+@code {
+    static readonly (ButtonVariant Variant, string Usage)[] variants =
+    [
+        (ButtonVariant.Solid, "主要操作，每组最多一个"),
+        (ButtonVariant.Soft, "需要突出的次要操作"),
+        (ButtonVariant.Surface, "表单、设置页里的次要操作"),
+        (ButtonVariant.Outline, "次要操作"),
+        (ButtonVariant.Ghost, "工具栏、行内操作"),
+        (ButtonVariant.Link, "句子中间的操作"),
+    ];
+}

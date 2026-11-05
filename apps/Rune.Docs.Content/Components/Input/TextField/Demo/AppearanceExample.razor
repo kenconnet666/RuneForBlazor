@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Grid Columns="2" Gap="SpaceScale.Md">
+        @foreach (var variant in Enum.GetValues<InputVariant>())
+        {
+            var name = variant.ToString().ToLowerInvariant();
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Small Tone="TextTone.Muted">variant="@name"</Small>
+                @foreach (var size in sizes)
+                {
+                    var sizeName = size.ToString().ToLowerInvariant();
+                    <TextField Variant="variant" Size="size" Icon="Lucide.Search" placeholder="@($"size=\"{sizeName}\"")" aria-label="@($"{name} {sizeName}")" />
+                }
+                <TextField Variant="variant" Radius="Radius.Full" Icon="Lucide.Search" placeholder="radius=&quot;full&quot;" aria-label="@($"{name} 圆角")" />
+            </Flex>
+        }
+    </Grid>
+    <Grid MinItemWidth="@("11rem")" Gap="SpaceScale.Md">
+        <Field Label="不可用" Disabled="true"><TextField Value="不能改" /></Field>
+        <Field Label="只读" ReadOnly="true"><TextField Value="可以选中复制" /></Field>
+        <Field Label="校验未通过" Error="这个用户名已经被占用了"><TextField Value="admin" /></Field>
+    </Grid>
+</Flex>
+
+@code {
+    static readonly Size[] sizes = [Size.Sm, Size.Md, Size.Lg];
+}

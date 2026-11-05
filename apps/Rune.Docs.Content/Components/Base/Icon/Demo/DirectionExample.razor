@@ -1,0 +1,25 @@
+@inherits RuneComponent
+@using System.Reflection
+
+<Grid MinItemWidth="@("14rem")" Gap="SpaceScale.Md">
+    @foreach (var (dir, label) in directions)
+    {
+        <Card Padding="SpaceScale.Sm" dir="@dir">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Small Tone="TextTone.Muted">@label</Small>
+                <TextSpan><Icon Data="Lucide.ChevronLeft" FlipInRtl="true" /> 返回</TextSpan>
+                <TextSpan>下一步 <Icon Data="Lucide.ArrowRight" FlipInRtl="true" /></TextSpan>
+                <TextSpan><Icon Data="Lucide.Clock" /> 刚刚更新</TextSpan>
+                <TextSpan><Icon Data="Lucide.Check" /> 已读</TextSpan>
+            </Flex>
+        </Card>
+    }
+</Grid>
+
+@code {
+    static readonly (string Dir, string Label)[] directions =
+    [
+        ("ltr", "从左到右（中文、英文）"),
+        ("rtl", "从右到左（阿拉伯语、希伯来语）"),
+    ];
+}

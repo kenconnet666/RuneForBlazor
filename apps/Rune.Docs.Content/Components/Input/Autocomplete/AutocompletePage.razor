@@ -1,0 +1,19 @@
+@page "/components/autocomplete"
+@attribute [DocMeta("Autocomplete 自动完成", "带建议的输入框：值就是输入的文字，列表只是建议（邮箱后缀、常用地址、供应商名称），选一项就是把它填进来。", DocCategory.Input, Order = 7)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.Autocomplete.Demo
+
+<DocPage Meta="Meta" Wide="false">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="email" Title="邮箱后缀" Demo="typeof(EmailExample)">
+                <Code>Value</Code> 就是输入框里的文字，不选建议也行；要从固定的选项里选一个（值是选项的 value）时用 Combobox。建议可以随输入算出来，配 <Code>LocalFilter="false"</Code> 不再本地过滤；没有可选的建议时不弹出列表。写了 <Code>Name</Code> 时表单提交的是文字。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="remote" Title="远程建议" Demo="typeof(RemoteExample)">
+                <Code>Load(输入, 取消令牌)</Code> 在输入停下 300 ms 后请求，只采用最后一次，被顶掉的请求取消（同 Combobox、Select）。系统里还没有的名称直接写全称，提交时再建。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+</DocPage>

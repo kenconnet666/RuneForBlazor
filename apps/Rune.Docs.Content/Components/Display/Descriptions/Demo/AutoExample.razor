@@ -1,0 +1,46 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Gap="SpaceScale.Lg" Wrap="true" Align="ItemAlign.Start">
+        <Card Sx="Narrow">
+            <Descriptions Title="抽屉里（窄）" MinItemWidth="220" data-testid="narrow">@Supplier</Descriptions>
+        </Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <div @attributes="Attrs.Merge(Resizable)" data-testid="resizable">
+                <Descriptions Title="详情页（拖动右下角调宽）" MinItemWidth="220" data-testid="wide">@Supplier</Descriptions>
+            </div>
+            <Small Tone="TextTone.Muted">每栏不窄于 220px，最多 4 栏；地址跨 3 栏，栏数少时按栏数封顶</Small>
+        </Flex>
+    </Flex>
+</Flex>
+
+@code {
+    static readonly Attrs Resizable = new() { Sx = ResizableStyle };
+
+    static readonly RenderFragment Supplier = @<text>
+        <DescriptionsItem Label="供应商" Value="华辰精密机械有限公司" />
+        <DescriptionsItem Label="信用代码" Value="91310115MA1K4QXX2R" Copyable="true" />
+        <DescriptionsItem Label="等级"><Badge Tone="Tone.Success">A 级</Badge></DescriptionsItem>
+        <DescriptionsItem Label="联系人" Value="林小满 · 138 0013 8000" />
+        <DescriptionsItem Label="开户行" Value="招商银行上海张江支行" />
+        <DescriptionsItem Label="银行账号" Value="6214 8301 2345 6789" Copyable="true" CopyText="6214830123456789" />
+        <DescriptionsItem Label="地址" Value="上海浦东张江高科园区 88 号" Copyable="true" CopyText="上海市浦东新区张江高科技园区碧波路 88 号 3 号楼" Span="3" />
+    </text>;
+
+    static Style Narrow => Css.Define(static () => new Style { Width = CssLength.Rem(20), FlexShrink = 0 });
+
+    // 可以拖宽的区域：原生的 resize 手柄
+    static Style ResizableStyle => Css.Define(static () => new Style
+    {
+        Resize = Resize.Horizontal,
+        Overflow = Overflow.Hidden,
+        MinWidth = CssLength.Rem(16),
+        MaxWidth = CssLength.Percent(100),
+        Width = CssLength.Rem(40),
+        Padding = CssLength.Rem(1),
+        BorderWidth = 1,
+        BorderStyle = BorderStyle.Dashed,
+        BorderColor = "color-mix(in srgb, currentColor 25%, transparent)",
+        BorderRadius = CssLength.Rem(0.5),
+    });
+}

@@ -1,0 +1,35 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Field Label="合同金额" Description="按当天中间价换算成人民币">
+        <ControlGroup aria-label="合同金额" data-testid="amount-group">
+            <Select Items="currencies" @bind-Value="currency" aria-label="币种" />
+            <NumberField @bind-Value="amount" Min="0" aria-label="金额" />
+            <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" @onclick="Convert">换算</Button>
+        </ControlGroup>
+    </Field>
+    <Small Tone="TextTone.Muted" aria-live="polite">@(result ?? "点“换算”看人民币金额")</Small>
+    <Field Label="单价区间">
+        <ControlGroup aria-label="单价区间">
+            <NumberField Value="10m" aria-label="最低单价"><Prefix>¥</Prefix></NumberField>
+            <NumberField Value="80m" aria-label="最高单价"><Prefix>¥</Prefix></NumberField>
+            <Select Items="units" Value="piece" aria-label="计价单位" />
+        </ControlGroup>
+    </Field>
+</Flex>
+
+@code {
+    static readonly Dictionary<string, decimal> rates = new() { ["CNY"] = 1m, ["USD"] = 7.12m, ["EUR"] = 7.71m, ["JPY"] = 0.047m };
+
+    static readonly string[] currencies = [.. rates.Keys];
+
+    static readonly ListboxOption[] units = [new("piece", "每件"), new("kg", "每千克")];
+
+    string? currency = "USD";
+
+    decimal? amount = 1200;
+
+    string? result;
+
+    void Convert() => result = $"≈ {(amount ?? 0) * rates[currency ?? "CNY"]:#,0.##} 元";
+}

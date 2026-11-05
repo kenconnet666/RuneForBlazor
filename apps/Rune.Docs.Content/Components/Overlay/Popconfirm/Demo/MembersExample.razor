@@ -1,0 +1,64 @@
+@inherits RuneComponent
+@inject ToastService Toasts
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    @foreach (var member in members)
+    {
+        <Flex @key="member.Id" Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <Avatar Name="@member.Name" />
+                <Flex Direction="LayoutDirection.Column">
+                    <TextSpan Size="Size.Sm" Weight="Weight.Medium">@member.Name</TextSpan>
+                    <Small Tone="TextTone.Muted">@member.Role</Small>
+                </Flex>
+                @if (member.Owner)
+                {
+                    <Badge Size="Size.Xs" Variant="StatusVariant.Soft" Tone="Tone.Accent">负责人</Badge>
+                }
+            </Flex>
+            @if (member.Owner)
+            {
+                <Small Tone="TextTone.Muted">不能移出</Small>
+            }
+            else
+            {
+                <Popconfirm Title="@($"把 {member.Name} 移出项目？")" Description="移出后不再收到项目的待办与通知，已提交的记录保留。"
+                            Tone="Tone.Danger" ConfirmText="移出" OnConfirm="e => RemoveAsync(member, e)">
+                    <Trigger Context="t"><IconButton @attributes="t" Icon="Lucide.UserMinus" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@($"移出 {member.Name}")" /></Trigger>
+                </Popconfirm>
+            }
+        </Flex>
+    }
+    <Flex Justify="ContentJustify.End">
+        <Popconfirm Title="清空回收站？" Description="回收站里的 12 个文件将被永久删除。" Tone="Tone.Danger" Icon="Lucide.Trash" ConfirmText="清空"
+                    Placement="Placement.TopEnd" OnConfirm="@(() => Toasts.Show("回收站已清空", Tone.Success))">
+            <Trigger Context="t"><Button @attributes="t" Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Trash">清空回收站</Button></Trigger>
+        </Popconfirm>
+    </Flex>
+</Flex>
+
+@code {
+    sealed record Member(string Id, string Name, string Role, bool Owner = false);
+
+    List<Member> members =
+    [
+        new("m1", "林小满", "项目负责人", Owner: true),
+        new("m2", "韩笑", "设计"),
+        new("m3", "周一航", "前端（移出会失败）"),
+        new("m4", "许悠", "测试"),
+    ];
+
+    // 假的接口：600ms 后返回；名字里带“周”的模拟失败，气泡保持打开
+    async Task RemoveAsync(Member member, ConfirmEventArgs e)
+    {
+        await Task.Delay(600);
+        if (member.Name.Contains('周'))
+        {
+            Toasts.Show("没有权限", Tone.Danger, "移出失败");
+            e.KeepOpen = true;
+            return;
+        }
+        members = [.. members.Where(m => m.Id != member.Id)];
+        Toasts.Show($"已移出 {member.Name}", Tone.Success);
+    }
+}

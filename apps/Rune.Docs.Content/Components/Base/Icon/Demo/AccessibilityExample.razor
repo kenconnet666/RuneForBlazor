@@ -1,0 +1,17 @@
+@inherits RuneComponent
+@using System.Reflection
+
+<Flex Gap="SpaceScale.Xl" Wrap="true">
+    @* 旁边已有文字：图标只是装饰，读屏跳过 *@
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <TextSpan><Icon Data="Lucide.CircleCheck" Tone="TextTone.Success" /> 已保存</TextSpan>
+        <TextSpan><Icon Data="Lucide.TriangleExclamationPoint" Tone="TextTone.Warning" /> 3 项待确认</TextSpan>
+        <TextSpan><Icon Data="Lucide.CircleX" Tone="TextTone.Danger" /> 同步失败</TextSpan>
+    </Flex>
+    @* 单独出现、表达含义：给名称 *@
+    <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center">
+        <Icon Data="Lucide.TriangleExclamationPoint" Tone="TextTone.Warning" Size="Size.Xl" Label="有未保存的修改" />
+        <Icon Data="Lucide.Lock" Tone="TextTone.Muted" Size="Size.Xl" Label="仅自己可见" />
+        <Icon Data="Lucide.Wifi" Tone="TextTone.Success" Size="Size.Xl" Label="已连接" />
+    </Flex>
+</Flex>

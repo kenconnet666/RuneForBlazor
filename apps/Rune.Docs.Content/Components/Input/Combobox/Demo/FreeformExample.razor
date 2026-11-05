@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@CssLength.Rem(15)" Gap="SpaceScale.Lg">
+    <Field Label="职位" Description="@(title is not null ? $"选中了 {title}" : $"自由输入：{(string.IsNullOrEmpty(typed) ? "（空）" : typed)}，Value 为 null")">
+        <Combobox Items="titles" @bind-Value="title" @bind-InputValue="typed" AllowCustomValue="true" Icon="Lucide.BriefcaseBusiness" Clearable="true"
+                  placeholder="选择或输入" data-testid="title" />
+    </Field>
+    <Field Label="Variant=&quot;Soft&quot; Radius=&quot;Full&quot;">
+        <Combobox Items="titles" Icon="Lucide.Search" Variant="InputVariant.Soft" Radius="Radius.Full" placeholder="搜索职位" />
+    </Field>
+    <Field Label="只读" ReadOnly="true">
+        <Combobox Items="titles" Value="前端工程师" />
+    </Field>
+    <Field Label="不可用" Disabled="true">
+        <Combobox Items="titles" Value="测试工程师" />
+    </Field>
+</Grid>
+
+@code {
+    static readonly string[] titles = ["产品经理", "交互设计师", "视觉设计师", "前端工程师", "后端工程师", "测试工程师"];
+
+    string? title;
+
+    string? typed = "";
+}

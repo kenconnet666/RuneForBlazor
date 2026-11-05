@@ -1,0 +1,54 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <Popover @bind-Open="sharing" Placement="Placement.BottomStart" Arrow="true">
+            <Trigger Context="t"><Button @attributes="t" Icon="Lucide.Share2">分享</Button></Trigger>
+            <ChildContent>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" style="width: 20rem">
+                    <Strong>分享“第三季度报告”</Strong>
+                    <Flex Gap="SpaceScale.Xs">
+                        <TextField Value="@link" ReadOnly="true" aria-label="分享链接" />
+                        <CopyButton Value="@link" />
+                    </Flex>
+                    <Switch @bind-Value="comments">允许查看者评论</Switch>
+                </Flex>
+            </ChildContent>
+        </Popover>
+        <Popover @bind-Open="filtering" Placement="Placement.BottomStart" data-testid="filter-popover">
+            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Funnel">订单状态@(applied.Count > 0 ? $"（{applied.Count}）" : "")</Button></Trigger>
+            <ChildContent>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                    <CheckboxGroup Items="statuses" @bind-Value="picked" aria-label="订单状态" />
+                    <Flex Gap="SpaceScale.Sm" Justify="ContentJustify.End">
+                        <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => picked = []">清空</Button>
+                        <Button Size="Size.Sm" @onclick="Apply">应用</Button>
+                    </Flex>
+                </Flex>
+            </ChildContent>
+        </Popover>
+    </Flex>
+    <Small Tone="TextTone.Muted">筛选：@(applied.Count > 0 ? string.Join("、", applied) : "全部状态")</Small>
+</Flex>
+
+@code {
+    const string link = "https://example.com/s/q3-report";
+
+    static readonly string[] statuses = ["待付款", "备货中", "已发货", "已完成", "已退款"];
+
+    bool sharing;
+
+    bool filtering;
+
+    bool comments = true;
+
+    IReadOnlyList<string> picked = ["待付款", "备货中"];
+
+    IReadOnlyList<string> applied = ["待付款", "备货中"];
+
+    void Apply()
+    {
+        applied = [.. picked];
+        filtering = false;
+    }
+}

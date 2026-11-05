@@ -1,0 +1,73 @@
+@inherits RuneComponent
+
+<Tabs @bind-Value="orderTab">
+    <TabList aria-label="订单状态" data-testid="orders">
+        @foreach (var (value, label) in orderTabs)
+        {
+            <Tab @key="value" Value="@value">
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                    @label
+                    <Badge Radius="Radius.Full" Tone="@(orderTab == value ? Tone.Accent : Tone.Neutral)">@OrdersOf(value).Count()</Badge>
+                </Flex>
+            </Tab>
+        }
+    </TabList>
+    @foreach (var (value, label) in orderTabs)
+    {
+        <TabPanel @key="value" Value="@value">
+            @if (OrdersOf(value).Any())
+            {
+                <FlexList Direction="LayoutDirection.Column">
+                    @foreach (var order in OrdersOf(value))
+                    {
+                        <li @key="order.Id">
+                            <div @attributes="Attrs.Merge(OrderRow)">
+                                <Strong>@order.Id</Strong>
+                                <TextSpan Tone="TextTone.Muted">@order.Customer</TextSpan>
+                                <TextSpan>@order.Amount</TextSpan>
+                            </div>
+                        </li>
+                    }
+                </FlexList>
+            }
+            else
+            {
+                <Empty><Title>没有@(label)的订单</Title></Empty>
+            }
+        </TabPanel>
+    }
+    <Small Tone="TextTone.Muted">方向键在标签之间移动，焦点到哪个就切到哪个</Small>
+</Tabs>
+
+@code {
+    sealed record Order(string Id, string Customer, string Amount, string Status);
+
+    static readonly Order[] orders =
+    [
+        new("#10234", "林小满", "¥1,280.00", "shipped"),
+        new("#10233", "周一航", "¥329.00", "unpaid"),
+        new("#10232", "陈默", "¥4,299.00", "shipped"),
+        new("#10231", "许悠", "¥659.00", "unpaid"),
+        new("#10230", "王晴", "¥88.00", "done"),
+    ];
+
+    static readonly (string Value, string Label)[] orderTabs = [("all", "全部"), ("unpaid", "待付款"), ("shipped", "已发货"), ("done", "已完成"), ("refund", "退款")];
+
+    static readonly Attrs OrderRow = new() { Sx = OrderRowStyle };
+
+    string? orderTab = "all";
+
+    static IEnumerable<Order> OrdersOf(string status) => status == "all" ? orders : orders.Where(o => o.Status == status);
+
+    // 订单号、客户、金额三列对齐
+    static Style OrderRowStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "6rem 1fr auto",
+        Gap = Space.Md,
+        PaddingBlock = Space.Sm,
+        BorderBlockEndWidth = BorderWidths.Xs,
+        BorderBlockEndStyle = BorderStyle.Solid,
+        BorderBlockEndColor = Colors.BorderMuted,
+    });
+}

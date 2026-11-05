@@ -1,0 +1,11 @@
+@page "/components/resize-handle"
+@attribute [DocMeta("ResizeHandle 宽度调整手柄", "贴着元素结束边的一条细线：拖动、聚焦后按方向键调整宽度，双击回到初始宽度。DataTable 的列宽就是它。", DocCategory.Layout, Order = 6)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Layout.ResizeHandle.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="split" Title="可以拖宽的列表" Demo="typeof(SplitExample)">
+        手柄放在要调整的元素里（它要有 position: relative 或 fixed），宽度从这个元素量起；<Code>@@bind-Width</Code> 拿到已经夹在 <Code>MinWidth</Code>、<Code>MaxWidth</Code> 之间的新宽度。拖动用 Pointer Events 并捕获指针，移出窗口也能继续；聚焦后按 ← / → 每次调整 <Code>Step</Code>（默认 16 px），这是拖动的键盘替代（WCAG 2.5.7）；写了 <Code>DefaultWidth</Code> 时双击回到它。从右到左排版下方向自动镜像。拖动中由 JS 当场改宽度，松手后才交给 C#。
+    </Example>
+    <ApiReference Types="[typeof(ResizeHandle)]" />
+</DocPage>

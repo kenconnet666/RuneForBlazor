@@ -5,10 +5,10 @@
 @page "/{Mode}/{Slug}"
 @inherits RuneComponent
 
-<PageTitle>@(demo?.Title ?? Slug) · @ModeTitle</PageTitle>
+<PageTitle>@(page?.Meta.Title ?? Slug) · @ModeTitle</PageTitle>
 
 <header @attributes="Attrs.Merge(DemoStyles.PageHeader)">
-    <h1>@(demo?.Title ?? Slug)</h1>
+    <h1>@(page?.Meta.Title ?? Slug)</h1>
     <nav aria-label="渲染模式" @attributes="Attrs.Merge(DemoStyles.ModeSwitch)">
         @foreach (var (slug, title) in DemoRenderModes.All)
         {
@@ -32,7 +32,7 @@ else
 }
 
 @code {
-    DemoEntry? demo;
+    DocEntry? page;
 
     /// <summary>渲染模式：static、server、wasm、auto。</summary>
     [Parameter] public string Mode { get; set; } = DemoRenderModes.Default;
@@ -43,5 +43,5 @@ else
     string ModeTitle => DemoRenderModes.All.FirstOrDefault(m => m.Slug == Mode).Title ?? Mode;
 
     /// <inheritdoc/>
-    protected override void OnParametersSet() => demo = DemoCatalog.Find(Slug);
+    protected override void OnParametersSet() => page = DocsCatalog.Find(Slug);
 }

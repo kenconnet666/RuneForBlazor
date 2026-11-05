@@ -1,0 +1,30 @@
+@*
+    AppShell 的全屏示例（整页，在 iframe 里打开）：同 vue-tsx-pro 文档站 AppShell 的 frames/Fullscreen。
+    点顶栏右上角的按钮，顶栏和左侧栏都收起来，正文占满窗口；右上角的按钮或 Esc 退出。
+*@
+@attribute [DocFrame("app-shell", "fullscreen")]
+@inherits RuneComponent
+
+<AppShell @bind-Fullscreen="fullscreen">
+    <Brand><AppShellBrand Href="#home" Icon="Lucide.Box">采购协同</AppShellBrand></Brand>
+    <Header><Small Tone="TextTone.Muted" data-testid="state">@(fullscreen ? "全屏中" : "点右边的按钮进入全屏")</Small></Header>
+    <Sidebar>
+        <NavList aria-label="导航">
+            <NavItem Href="#home" Icon="Lucide.House" Active="true">工作台</NavItem>
+            <NavItem Href="#contracts" Icon="Lucide.FileText">合同</NavItem>
+            <NavItem Href="#suppliers" Icon="Lucide.Users">供应商</NavItem>
+        </NavList>
+    </Sidebar>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <H1>@(fullscreen ? "只看正文" : "工作台")</H1>
+            <Card>
+                <Paragraph>看大屏、演示、对着一张大表工作时用全屏：顶栏和左侧栏都不占地方。右上角的按钮或 Esc 退出。</Paragraph>
+            </Card>
+        </Flex>
+    </ChildContent>
+</AppShell>
+
+@code {
+    bool fullscreen;
+}

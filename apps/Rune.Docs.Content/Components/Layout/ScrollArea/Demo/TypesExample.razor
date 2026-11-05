@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@CssLength.Rem(10)" Gap="SpaceScale.Md">
+    @foreach (var (visibility, name, description) in visibilities)
+    {
+        <Card @key="name" Padding="SpaceScale.Sm">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Code>Visibility.@name</Code>
+                <Small Tone="TextTone.Muted">@description</Small>
+                <ScrollArea Visibility="visibility" Sx="TypeArea" PropsViewport="@(new Attrs { ["aria-label"] = name })">
+                    <Paragraph Size="Size.Sm" Sx="TypeContent">@Text@Text</Paragraph>
+                </ScrollArea>
+            </Flex>
+        </Card>
+    }
+</Grid>
+
+@code {
+    static readonly (ScrollbarVisibility Visibility, string Name, string Description)[] visibilities =
+    [
+        (ScrollbarVisibility.Hover, "Hover", "指针在上面或正在滚动时显示（默认）"),
+        (ScrollbarVisibility.Scroll, "Scroll", "只在滚动时显示，停下后淡出"),
+        (ScrollbarVisibility.Always, "Always", "内容超出时一直显示"),
+    ];
+
+    const string Text = "滚动仍是浏览器原生的：触控板惯性、键盘、页内搜索、读屏都不变。只是把原生滚动条藏起来，换成半透明、浮在内容上方的滚动条，出现和消失都不占位，内容不会因此左右跳动。滚动条可以拖动，点击轨道翻一页。";
+
+    static Style TypeArea => Css.Define(static () => new Style { Height = CssLength.Rem(9) });
+
+    static Style TypeContent => Css.Define(static () => new Style { PaddingInlineEnd = Space.Md });
+}

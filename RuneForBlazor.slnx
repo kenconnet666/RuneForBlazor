@@ -9,6 +9,7 @@
   <Folder Name="/apps/">
     <Project Path="apps/Rune.Demo/Rune.Demo.csproj" />
     <Project Path="apps/Rune.Demo.Client/Rune.Demo.Client.csproj" />
+    <Project Path="apps/Rune.Docs.Content/Rune.Docs.Content.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Rune.Tests/Rune.Tests.csproj" />

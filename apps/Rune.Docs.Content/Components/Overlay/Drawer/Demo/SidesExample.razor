@@ -1,0 +1,46 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="宽度档位（左右两侧）">
+        <ToggleGroup @bind-Value="size" Required="true" Size="Size.Sm" aria-label="宽度档位">
+            @foreach (var (key, width) in sizes)
+            {
+                <ToggleItem @key="key" Value="@key">@key · @width</ToggleItem>
+            }
+        </ToggleGroup>
+    </Field>
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        @foreach (var (value, icon, label) in sides)
+        {
+            <Button @key="value" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="icon" @onclick="() => OpenSide(value)">从@(label)滑入</Button>
+        }
+    </Flex>
+    <Drawer @bind-Open="sideOpen" Side="side" Size="Enum.Parse<ContainerSize>(size!, ignoreCase: true)" Title="@($"Side=\"{side}\" Size=\"{size}\"")">
+        <Paragraph>Start / End 是逻辑方向：从右到左排版时左右互换。左右两侧按 Size 的档位定宽（与 Container 同档）；顶部、底部的抽屉高度随内容，最多到视口高度。</Paragraph>
+    </Drawer>
+</Flex>
+
+@code {
+    // 切换按钮的值是字符串：档位名与它的宽度（同 Container）
+    static readonly (string Key, string Width)[] sizes = [("xs", "30rem"), ("sm", "40rem"), ("md", "48rem"), ("lg", "64rem")];
+
+    static readonly (DrawerSide Side, IconData Icon, string Label)[] sides =
+    [
+        (DrawerSide.Start, Lucide.ArrowRight, "起始边"),
+        (DrawerSide.End, Lucide.ArrowLeft, "结束边"),
+        (DrawerSide.Top, Lucide.ArrowDown, "顶部"),
+        (DrawerSide.Bottom, Lucide.ArrowUp, "底部"),
+    ];
+
+    DrawerSide side = DrawerSide.End;
+
+    string? size = "xs";
+
+    bool sideOpen;
+
+    void OpenSide(DrawerSide value)
+    {
+        side = value;
+        sideOpen = true;
+    }
+}

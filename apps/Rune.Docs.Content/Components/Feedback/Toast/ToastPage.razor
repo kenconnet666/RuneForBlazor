@@ -1,0 +1,13 @@
+@page "/components/toast"
+@attribute [DocMeta("Toast 通知", "操作结果的短暂提示，几秒后自动消失：控制器 createToaster 在组件内外都能用，Toaster 是显示区域；可撤销、可跟踪一个 Promise。", DocCategory.Feedback, Order = 3)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Feedback.Toast.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="显示提示" Demo="typeof(BasicExample)" />
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Toaster)]" />
+</DocPage>

@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <CodePreview Code="@counterSource" Align="CodePreviewAlign.Center" @bind-ShowCode="showCode" data-testid="preview">
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md">
+            <IconButton Icon="Lucide.Minus" Variant="ButtonVariant.Surface" Label="减少" @onclick="() => count--" />
+            <TextSpan>@count</TextSpan>
+            <IconButton Icon="Lucide.Plus" Variant="ButtonVariant.Surface" Label="增加" @onclick="() => count++" />
+        </Flex>
+    </CodePreview>
+    <Small Tone="TextTone.Muted">源码@(showCode ? "已展开" : "已收起")</Small>
+</Flex>
+
+@code {
+    // 示例卡片：效果与源码由使用方各自给出；文档站从示例文件读出源码，两者永远一致
+    const string counterSource = """
+        <IconButton Icon="Lucide.Minus" Label="减少" @onclick="() => count--" />
+        <TextSpan>@count</TextSpan>
+        <IconButton Icon="Lucide.Plus" Label="增加" @onclick="() => count++" />
+        """;
+
+    bool showCode;
+
+    int count = 3;
+
+    static readonly string data = "var items = new[]\n{\n" +
+        string.Join("\n", Enumerable.Range(1, 40).Select(i => $"    new {{ Id = {i}, Name = \"项目 {i}\", Done = {(i % 3 == 1 ? "true" : "false")} }},")) + "\n};";
+}

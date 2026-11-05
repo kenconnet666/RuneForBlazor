@@ -1,0 +1,57 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+        <ToggleGroup @bind-Value="density" Required="true" Size="Size.Sm" aria-label="密度">
+            <ToggleItem Value="compact">紧凑</ToggleItem>
+            <ToggleItem Value="standard">标准</ToggleItem>
+            <ToggleItem Value="comfortable">宽松</ToggleItem>
+        </ToggleGroup>
+        <Switch @bind-Value="striped" Size="Size.Sm">斑马纹</Switch>
+        <Switch @bind-Value="ghost" Size="Size.Sm">无外框（Ghost）</Switch>
+    </Flex>
+    <Table Density="Enum.Parse<TableDensity>(density!, ignoreCase: true)" Striped="striped" Variant="@(ghost ? TableVariant.Ghost : TableVariant.Surface)" aria-label="报价明细" data-testid="invoice">
+        <TableHead>
+            <TableRow>
+                <TableHeaderCell>项目</TableHeaderCell>
+                <TableHeaderCell Align="TableAlign.End">数量</TableHeaderCell>
+                <TableHeaderCell Align="TableAlign.End">单价</TableHeaderCell>
+                <TableHeaderCell Align="TableAlign.End">小计</TableHeaderCell>
+            </TableRow>
+        </TableHead>
+        <TableBody>
+            @foreach (var (item, quantity, price) in lines)
+            {
+                <TableRow @key="item">
+                    <TableCell>@item</TableCell>
+                    <TableCell Align="TableAlign.End">@quantity</TableCell>
+                    <TableCell Align="TableAlign.End" NoWrap="true">@Money(price)</TableCell>
+                    <TableCell Align="TableAlign.End" NoWrap="true">@Money(quantity * price)</TableCell>
+                </TableRow>
+            }
+        </TableBody>
+        <TableFoot>
+            <TableRow>
+                <TableHeaderCell Scope="row" colspan="3">合计</TableHeaderCell>
+                <TableCell Align="TableAlign.End" NoWrap="true" data-testid="total">@Money(lines.Sum(l => l.Quantity * l.Price))</TableCell>
+            </TableRow>
+        </TableFoot>
+    </Table>
+    <Small Tone="TextTone.Muted">数字右对齐、不换行；表格比容器宽时在外层横向滚动，不撑宽页面</Small>
+</Flex>
+
+@code {
+    static readonly (string Item, int Quantity, decimal Price)[] lines =
+    [
+        ("UI 设计（首页、列表、详情）", 3, 1200),
+        ("组件开发（人天）", 8, 1500.5m),
+        ("无障碍检查与修复", 2, 980),
+        ("部署与上线支持", 1, 600),
+    ];
+
+    string? density = "standard";
+
+    bool striped = true, ghost;
+
+    static string Money(decimal value) => value.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("zh-CN"));
+}

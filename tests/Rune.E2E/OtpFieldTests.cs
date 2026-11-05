@@ -23,7 +23,8 @@ public class OtpFieldTests(DemoServer demo)
         await page.Keyboard.TypeAsync("456");
         // 校验期间不可用，错了清空并标红
         await Assertions.Expect(input).ToHaveValueAsync("");
-        await Assertions.Expect(page.GetByText("验证码不对，请重新输入")).ToBeVisibleAsync();
+        // 示例的源码（收起着）里也有这句：只看可见的
+        await Assertions.Expect(page.GetByText("验证码不对，请重新输入").Filter(new() { Visible = true })).ToBeVisibleAsync();
 
         await input.FillAsync("246810");
         await Assertions.Expect(message).ToHaveTextAsync("登录成功");

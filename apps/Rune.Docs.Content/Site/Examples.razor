@@ -1,0 +1,31 @@
+@*
+    一组示例，分左右两列（同 vue-tsx-pro 文档站的 Examples）：每页在代码里写定哪些示例在左列、哪些在右列（ExampleColumn），不按高度自动分。
+    宽度放得下两列（每列至少 26rem）时并排，否则左列在上、右列在下；阅读、Tab 与本页目录的顺序都是先左列后右列。
+    宽的示例放进 <ExampleColumn Wide="true">：占满整行。两列各自往下排，展开代码、示例变高只把同一列下面的往下推。
+*@
+@inherits RuneComponent
+
+<div @attributes="Attrs.Merge(RootLayer)">
+    <div @attributes="Attrs.Merge(GridLayer)">@ChildContent</div>
+</div>
+
+@code {
+    static readonly Attrs RootLayer = new() { Sx = Root };
+    static readonly Attrs GridLayer = new() { Sx = Grid };
+
+    /// <summary>两个（或更多）ExampleColumn。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    static Style Root => Css.Define(static () => new Style { ContainerType = ContainerType.InlineSize });
+
+    static Style Grid => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        AlignItems = AlignItems.Start,
+        ColumnGap = CssLength.Rem(2),
+        RowGap = CssLength.Rem(3),
+        GridTemplateColumns = "minmax(0, 1fr)",
+        // 两列各至少 26rem，加上列间距
+        [Containers.MinWidth(CssLength.Rem(54))] = new() { GridTemplateColumns = "repeat(2, minmax(0, 1fr))" },
+    });
+}

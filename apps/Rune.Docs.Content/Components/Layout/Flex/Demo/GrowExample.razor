@@ -1,0 +1,32 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Card Padding="SpaceScale.Sm">
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <Avatar Name="林小满" Size="Size.Sm" />
+            <Flex Direction="LayoutDirection.Column" Grow="true">
+                <Strong Truncate="true">林小满上传了《第三季度经营分析报告（终版，含附录与数据来源说明）》</Strong>
+                <Small Tone="TextTone.Muted" Truncate="true">设计中心 · 10 分钟前 · 来自网页端</Small>
+            </Flex>
+            <Badge Tone="Tone.Success">已审核</Badge>
+        </Flex>
+    </Card>
+    <TextSpan>
+        状态：<Flex Inline="true" Align="ItemAlign.Center" Gap="SpaceScale.Xs"><Icon Data="Lucide.CircleCheck" Tone="TextTone.Success" />已通过</Flex>，下一步由财务确认。
+    </TextSpan>
+    <Grid Columns="3" RowGap="SpaceScale.Lg" ColumnGap="SpaceScale.Xs">
+        @foreach (var name in documents)
+        {
+            <Card Padding="SpaceScale.Sm">
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                    <Icon Data="Lucide.FileText" Tone="TextTone.Muted" />
+                    <Small>@name</Small>
+                </Flex>
+            </Card>
+        }
+    </Grid>
+</Flex>
+
+@code {
+    static readonly string[] documents = ["合同", "报价单", "发票", "验收单", "对账单", "回款记录"];
+}

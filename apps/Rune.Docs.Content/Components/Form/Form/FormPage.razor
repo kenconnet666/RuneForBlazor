@@ -1,0 +1,20 @@
+@page "/components/form"
+@attribute [DocMeta("Form 表单", "useForm 把值、校验、错误、提交状态放进一个控制器；Field 关联标签、说明与错误；一份 zod schema 同时给出校验、类型与字段约束。", DocCategory.Form, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Form.Form.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="validation" Title="Form：校验、提交中、错误汇总" Demo="typeof(ValidationExample)" />
+            <Example Id="checkboxes" Title="勾选框：全选与半选" Demo="typeof(CheckboxesExample)" />
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="fields" Title="数字、单选、下拉、滑块" Demo="typeof(FieldsExample)" />
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="standalone" Title="单独使用" Demo="typeof(StandaloneExample)" />
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Field), typeof(Form), typeof(FormValue)]" />
+</DocPage>

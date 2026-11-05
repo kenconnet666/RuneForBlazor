@@ -1,0 +1,13 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@CssLength.Rem(14)" Gap="SpaceScale.Lg">
+    <Field Label="InputVariant.Soft、Radius.Full"><ColorField @bind-Value="accent" Variant="InputVariant.Soft" Radius="Radius.Full" /></Field>
+    <Field Label="Size.Sm"><ColorField @bind-Value="accent" Size="Size.Sm" /></Field>
+    <Field Label="背景色" Required="true" Error="@(string.IsNullOrEmpty(empty) ? "请填写背景色" : null)"><ColorField @bind-Value="empty" /></Field>
+    <Field Label="只读" ReadOnly="true"><ColorField Value="#30a46c" /></Field>
+    <Field Label="不可用" Disabled="true"><ColorField Value="#e5484d" /></Field>
+</Grid>
+
+@code {
+    string? accent = "#3e63dd", empty = "";
+}

@@ -1,0 +1,22 @@
+@inherits RuneComponent
+@using System.Reflection
+
+<Grid MinItemWidth="@("5.5rem")" Gap="SpaceScale.Md">
+    @foreach (var (name, icon) in basicIcons)
+    {
+        <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+            <Icon Data="icon" Size="Size.Xl" />
+            <Small Tone="TextTone.Muted">@name</Small>
+        </Flex>
+    }
+</Grid>
+
+@code {
+    static readonly (string Name, IconData Icon)[] basicIcons =
+    [
+        ("Search", Lucide.Search), ("Bell", Lucide.Bell), ("Heart", Lucide.Heart), ("Settings", Lucide.Settings),
+        ("House", Lucide.House), ("User", Lucide.User), ("Mail", Lucide.Mail), ("Calendar", Lucide.Calendar),
+        ("Camera", Lucide.Camera), ("Cloud", Lucide.Cloud), ("Download", Lucide.Download), ("Folder", Lucide.Folder),
+        ("MapPin", Lucide.MapPin), ("ShoppingCart", Lucide.ShoppingCart), ("Star", Lucide.Star), ("Zap", Lucide.Zap),
+    ];
+}

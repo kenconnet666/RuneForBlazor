@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Sm" Sx="Nav">
+    <NavList aria-label="后台" data-testid="admin">
+        @AdminItem("home", "概览", Lucide.House)
+        <NavGroup Label="订单" Icon="Lucide.ShoppingCart">
+            @AdminItem("orders-all", "全部订单", count: 12)
+            @AdminItem("orders-refund", "退款售后", count: 3)
+            @AdminItem("orders-invoice", "发票")
+        </NavGroup>
+        <NavGroup Label="商品" Icon="Lucide.Package">
+            @AdminItem("products", "商品列表")
+            @AdminItem("inventory", "库存")
+        </NavGroup>
+        @AdminItem("customers", "客户", Lucide.Users)
+        @AdminItem("reports", "报表", Lucide.ChartLine)
+        @AdminItem("settings", "设置", Lucide.Settings)
+    </NavList>
+</Card>
+
+@code {
+    string current = "orders-all";
+
+    RenderFragment AdminItem(string key, string label, IconData? icon = null, int? count = null) =>
+        @<NavItem Href="@($"#{key}")" Icon="icon" Active="@(current == key)" @onclick="@(() => current = key)">
+            <ChildContent>@label</ChildContent>
+            <End>@if (count is { } n) { <Badge Radius="Radius.Full">@n</Badge> }</End>
+        </NavItem>;
+
+    static Style Nav => Css.Define(static () => new Style { Width = CssLength.Rem(15) });
+}

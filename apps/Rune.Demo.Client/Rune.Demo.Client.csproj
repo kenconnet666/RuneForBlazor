@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
-  <!-- 文档与演示的页面：可以在服务端渲染，也可以在浏览器里（WebAssembly）运行 -->
+  <!-- 渲染模式测试台的 WebAssembly 端：文档内容（Rune.Docs.Content）的页面按地址里的模式运行（静态 SSR、Server、WebAssembly、Auto） -->
   <PropertyGroup>
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <!-- 页面与示例都在文档内容里：这里按渲染模式渲染它们 -->
+    <ProjectReference Include="..\Rune.Docs.Content\Rune.Docs.Content.csproj" />
     <ProjectReference Include="..\..\src\Rune.UI\Rune.UI.csproj" />
     <ProjectReference Include="..\..\src\Rune\Rune.csproj" />
     <ProjectReference Include="..\..\src\Rune.Icons\Rune.Icons.csproj" />

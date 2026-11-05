@@ -1,0 +1,20 @@
+@page "/components/control-group"
+@attribute [DocMeta("ControlGroup 组合输入", "输入框、选择框、按钮连成一条、共用边框：币种 + 金额、搜索范围 + 关键词 + 搜索、协议 + 域名。", DocCategory.Input, Order = 14)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.ControlGroup.Demo
+
+<DocPage Meta="Meta" Wide="false">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="amount" Title="币种与金额" Demo="typeof(AmountExample)">
+                组里的输入框与按钮去掉相邻一侧的圆角、边框叠在一起，聚焦的那个浮到上面，焦点环完整。输入框分掉剩余宽度，选择框与按钮按内容宽。每个控件写自己的 <Code>aria-label</Code>，组的名称写在 <Code>ControlGroup</Code> 上（role="group"）；放进 <Code>Field</Code> 时组接 Field 的标签与说明（经 aria-labelledby / aria-describedby）。只有文字的单位、币种符号用输入框自己的 <Code>Prefix</Code> / <Code>Suffix</Code>，不必拆成两个控件。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="search" Title="搜索框、地址与竖排" Demo="typeof(SearchExample)">
+                搜索放在 <Code>&lt;form role="search"&gt;</Code> 里，回车与按钮都能提交。复制按钮这类图标按钮同样相连。<Code>Orientation.Vertical</Code> 上下相连，适合分成几行填写的地址。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ControlGroup)]" />
+</DocPage>

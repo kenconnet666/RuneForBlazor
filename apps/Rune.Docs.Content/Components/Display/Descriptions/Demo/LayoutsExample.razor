@@ -1,0 +1,17 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xl">
+    <Descriptions Title="Bordered：带边框的表格样式" Columns="2" Bordered="true">@Staff</Descriptions>
+    <Descriptions Title="DescriptionsLayout.Vertical：标签在上" Columns="4" Layout="DescriptionsLayout.Vertical">@Staff</Descriptions>
+    <Descriptions Title="Size.Sm" Columns="2" Size="Size.Sm" Bordered="true">@Staff</Descriptions>
+    <Descriptions Title="DescriptionsLayout.Inline：一行排开（页头里的关键信息）" Size="Size.Sm" Layout="DescriptionsLayout.Inline">@Staff</Descriptions>
+</Flex>
+
+@code {
+    static readonly RenderFragment Staff = @<text>
+        <DescriptionsItem Label="姓名" Value="周一航" />
+        <DescriptionsItem Label="部门" Value="设计中心" />
+        <DescriptionsItem Label="职位" Value="高级交互设计师" />
+        <DescriptionsItem Label="入职日期" Value="2021-03-15" />
+    </text>;
+}

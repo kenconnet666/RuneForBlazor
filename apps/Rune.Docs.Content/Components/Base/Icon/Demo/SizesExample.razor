@@ -1,0 +1,40 @@
+@inherits RuneComponent
+@using System.Reflection
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Gap="SpaceScale.Lg" Align="ItemAlign.End" Wrap="true">
+        @foreach (var size in sizes)
+        {
+            <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                <Icon Data="Lucide.Star" Size="size" />
+                <Small Tone="TextTone.Muted">@size.ToString().ToLowerInvariant()</Small>
+            </Flex>
+        }
+        <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+            <TextSpan Size="Size.Xl"><Icon Data="Lucide.Star" /> 星标</TextSpan>
+            <Small Tone="TextTone.Muted">跟随文字</Small>
+        </Flex>
+    </Flex>
+    <Flex Gap="SpaceScale.Lg" Align="ItemAlign.End" Wrap="true">
+        @foreach (var pixels in new[] { 16, 24, 32, 48 })
+        {
+            <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                <Icon Data="Lucide.Star" Size="pixels" />
+                <Small Tone="TextTone.Muted">@(pixels)px</Small>
+            </Flex>
+        }
+    </Flex>
+    <Flex Gap="SpaceScale.Lg" Align="ItemAlign.End" Wrap="true">
+        @foreach (var width in new[] { 1, 1.5, 2, 2.5, 3 })
+        {
+            <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                <Icon Data="Lucide.Star" Size="32" StrokeWidth="width" />
+                <Small Tone="TextTone.Muted">线宽 @width</Small>
+            </Flex>
+        }
+    </Flex>
+</Flex>
+
+@code {
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg, Size.Xl];
+}

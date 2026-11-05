@@ -1,0 +1,36 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("16em")" Gap="SpaceScale.Lg">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Field Label="单价（decimal）" Description="按两次 ↑：0.1 → 0.3，精确">
+            <NumberField @bind-Value="price" Step="0.1m" Format="C2" />
+        </Field>
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">值：<Code>@(price?.ToString() ?? "null")</Code></TextSpan>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Field Label="合计（decimal?）" Description="一开始为空，写回的也是 decimal">
+            <NumberField @bind-Value="total" Step="0.01m" Min="0" placeholder="0.00" />
+        </Field>
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">值：<Code>@(total?.ToString() ?? "null")</Code></TextSpan>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Field Label="播放量（long）" Description="超过 2⁵³ 的整数，加减不丢位">
+            <NumberField @bind-Value="views" />
+        </Field>
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">值：<Code>@views</Code></TextSpan>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Field Label="对照：double" Description="步长 0.1 也能对齐，但大数、长小数会丢精度">
+            <NumberField @bind-Value="floating" Step="0.1m" />
+        </Field>
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">值：<Code>@floating</Code></TextSpan>
+    </Flex>
+</Grid>
+
+@code {
+    decimal? price = 0.1m, total;
+
+    long views = 9_007_199_254_740_993;
+
+    double floating = 0.1;
+}
