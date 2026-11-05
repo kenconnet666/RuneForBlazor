@@ -1,0 +1,119 @@
+@*
+    静态表格：示例与 vue-tsx-pro 文档站的 /components/table 对应。“列定义与合并单元格”（ColumnTable）随 DataTable 一起做（阶段 9）。数据是虚构的。
+*@
+@attribute [ComponentDemo("table", "表格", Group = "表格", Order = 0)]
+@inherits RuneComponent
+
+<DemoSection Id="plans" Title="套餐对比">
+    <Description>行标题用 <Code>TableHeaderCell Scope="row"</Code>，读屏念单元格时会带上行名与列名。只用图标表达的值（勾与叉）旁边放一份隐藏文字。<Code>TableCaption</Code> 是表格的标题。</Description>
+    <ChildContent>
+        <Table aria-label="套餐对比" data-testid="plans">
+            <TableCaption>三档套餐的功能对比，价格按年付折算</TableCaption>
+            <TableHead>
+                <TableRow>
+                    <TableHeaderCell>功能</TableHeaderCell>
+                    @foreach (var plan in plans)
+                    {
+                        <TableHeaderCell @key="plan" Align="TableAlign.Center">
+                            @plan
+                            @if (plan == "团队版")
+                            {
+                                @(" ")<Badge Tone="Tone.Accent" Radius="Radius.Full">推荐</Badge>
+                            }
+                        </TableHeaderCell>
+                    }
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                @foreach (var (feature, values) in features)
+                {
+                    <TableRow @key="feature">
+                        <TableHeaderCell Scope="row">@feature</TableHeaderCell>
+                        @for (var index = 0; index < values.Length; index++)
+                        {
+                            var value = values[index];
+                            <TableCell @key="index" Align="TableAlign.Center">@Mark(value)</TableCell>
+                        }
+                    </TableRow>
+                }
+            </TableBody>
+        </Table>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="invoice" Title="报价明细">
+    <Description><Code>Density</Code> 三档行高、<Code>Striped</Code> 斑马纹，<Code>TableVariant.Ghost</Code> 去掉外框（放在卡片、对话框里）；数字列 <Code>Align="TableAlign.End"</Code> 右对齐、<Code>NoWrap</Code> 不换行；合计放在 <Code>TableFoot</Code>。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+                <ToggleGroup @bind-Value="density" Required="true" Size="Size.Sm" aria-label="密度">
+                    <ToggleItem Value="compact">紧凑</ToggleItem>
+                    <ToggleItem Value="standard">标准</ToggleItem>
+                    <ToggleItem Value="comfortable">宽松</ToggleItem>
+                </ToggleGroup>
+                <Switch @bind-Value="striped" Size="Size.Sm">斑马纹</Switch>
+                <Switch @bind-Value="ghost" Size="Size.Sm">无外框（Ghost）</Switch>
+            </Flex>
+            <Table Density="Enum.Parse<TableDensity>(density!, ignoreCase: true)" Striped="striped" Variant="@(ghost ? TableVariant.Ghost : TableVariant.Surface)" aria-label="报价明细" data-testid="invoice">
+                <TableHead>
+                    <TableRow>
+                        <TableHeaderCell>项目</TableHeaderCell>
+                        <TableHeaderCell Align="TableAlign.End">数量</TableHeaderCell>
+                        <TableHeaderCell Align="TableAlign.End">单价</TableHeaderCell>
+                        <TableHeaderCell Align="TableAlign.End">小计</TableHeaderCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    @foreach (var (item, quantity, price) in lines)
+                    {
+                        <TableRow @key="item">
+                            <TableCell>@item</TableCell>
+                            <TableCell Align="TableAlign.End">@quantity</TableCell>
+                            <TableCell Align="TableAlign.End" NoWrap="true">@Money(price)</TableCell>
+                            <TableCell Align="TableAlign.End" NoWrap="true">@Money(quantity * price)</TableCell>
+                        </TableRow>
+                    }
+                </TableBody>
+                <TableFoot>
+                    <TableRow>
+                        <TableHeaderCell Scope="row" colspan="3">合计</TableHeaderCell>
+                        <TableCell Align="TableAlign.End" NoWrap="true" data-testid="total">@Money(lines.Sum(l => l.Quantity * l.Price))</TableCell>
+                    </TableRow>
+                </TableFoot>
+            </Table>
+            <Small Tone="TextTone.Muted">数字右对齐、不换行；表格比容器宽时在外层横向滚动，不撑宽页面</Small>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly string[] plans = ["免费版", "团队版", "企业版"];
+
+    static readonly (string Feature, object[] Values)[] features =
+    [
+        ("成员数", ["3", "50", "不限"]),
+        ("存储空间", ["5 GB", "200 GB", "2 TB"]),
+        ("单点登录（SSO）", [false, false, true]),
+        ("操作审计", [false, true, true]),
+        ("专属客服", [false, false, true]),
+        ("价格（每月）", ["¥0", "¥299", "¥1,999"]),
+    ];
+
+    static readonly (string Item, int Quantity, decimal Price)[] lines =
+    [
+        ("UI 设计（首页、列表、详情）", 3, 1200),
+        ("组件开发（人天）", 8, 1500.5m),
+        ("无障碍检查与修复", 2, 980),
+        ("部署与上线支持", 1, 600),
+    ];
+
+    string? density = "standard";
+    bool striped = true, ghost;
+
+    static string Money(decimal value) => value.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("zh-CN"));
+
+    // 勾与叉是图标：旁边放一份给读屏的文字
+    static RenderFragment Mark(object value) => value is bool on
+        ? @<text><Icon Data="@(on ? Lucide.Check : Lucide.Minus)" /><VisuallyHidden>@(on ? "包含" : "不包含")</VisuallyHidden></text>
+        : @<text>@value</text>;
+}

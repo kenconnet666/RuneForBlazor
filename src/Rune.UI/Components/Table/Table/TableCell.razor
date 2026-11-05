@@ -1,0 +1,29 @@
+@*
+    单元格（td）：<TableCell Align="TableAlign.End" NoWrap="true">¥1,280.00</TableCell>
+    默认可以换行；表尾里的格加粗、上面一条分隔线。未声明的属性（colspan 等）落到 td 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = TableStyles.Of(Table ?? TableAppearance.Standalone, Config.Styles);
+    var layer = Attrs.Layer(parts[TablePart.Cell], Section == TableSection.Foot ? parts[TablePart.FootCell] : null, CellLayer);
+}
+
+<td @attributes="Attrs.Merge(layer, Rest)">@ChildContent</td>
+
+@code {
+    /// <summary>对齐，默认起始边；数字、金额用 End。</summary>
+    [Parameter] public TableAlign Align { get; set; }
+
+    /// <summary>不换行（超出时省略号）；默认可以换行。</summary>
+    [Parameter] public bool NoWrap { get; set; }
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] TableAppearance? Table { get; set; }
+
+    [CascadingParameter] TableSection Section { get; set; }
+
+    Attrs CellLayer => new() { Sx = Sx.Of(TableStyles.AlignOf(Align), NoWrap ? null : TableStyles.Wrap) };
+}

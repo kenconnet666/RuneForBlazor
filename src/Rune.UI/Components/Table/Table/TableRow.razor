@@ -1,0 +1,14 @@
+@*
+    行（tr）：底色随表格的样式，斑马纹时隔行浅色底。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<tr @attributes="Attrs.Merge(TableStyles.Of(Table ?? TableAppearance.Standalone, Config.Styles)[TablePart.Row], Rest)">@ChildContent</tr>
+
+@code {
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] TableAppearance? Table { get; set; }
+}

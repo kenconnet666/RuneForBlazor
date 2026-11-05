@@ -141,6 +141,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 - [ ] Table（静态表格的样式）、DataTable / DataTableView（排序、筛选、选择、展开、固定列、列宽拖动、虚拟滚动、骨架行）、
       ColumnHeaderActions、ColumnResizer、ColumnSettings、SelectionBar、ColumnTable、TreeDataTable、PivotTable
+      （已做：静态 Table 及各元素组件（按文档站需要提前；ColumnTable 随 DataTable 做））
 
 ## 阶段 10：日期（`Rune.UI.Dates`）
 

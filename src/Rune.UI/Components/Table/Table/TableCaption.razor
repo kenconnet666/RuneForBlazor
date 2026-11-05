@@ -1,0 +1,14 @@
+@*
+    表格标题（caption）：同时是表格的名称；不想显示时包进 VisuallyHidden。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<caption @attributes="Attrs.Merge(TableStyles.Of(Table ?? TableAppearance.Standalone, Config.Styles)[TablePart.Caption], Rest)">@ChildContent</caption>
+
+@code {
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] TableAppearance? Table { get; set; }
+}

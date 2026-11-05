@@ -1,0 +1,14 @@
+@*
+    表尾（tfoot）：合计行，格子加粗、上面一条分隔线。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<tfoot @attributes="Attrs.Merge(TableStyles.Of(Table ?? TableAppearance.Standalone, Config.Styles)[TablePart.Foot], Rest)"><CascadingValue Value="TableSection.Foot" IsFixed="true">@ChildContent</CascadingValue></tfoot>
+
+@code {
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] TableAppearance? Table { get; set; }
+}

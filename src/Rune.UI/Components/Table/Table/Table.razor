@@ -1,0 +1,50 @@
+@*
+    静态表格（同 vue-tsx-pro 的 Table）：原生 table 的各个元素各一个组件，内容直接写在 Razor 里（说明文字里的表格、属性表）。
+    要排序、勾选、虚拟滚动、列宽调整的数据表格用 DataTable（之后做）。
+    <Table aria-label="属性">
+        <TableHead><TableRow><TableHeaderCell>名称</TableHeaderCell><TableHeaderCell>说明</TableHeaderCell></TableRow></TableHead>
+        <TableBody><TableRow><TableCell><Code>Size</Code></TableCell><TableCell>尺寸档位</TableCell></TableRow></TableBody>
+    </Table>
+    外观（密度、样式、斑马纹）经级联值交给行与单元格；单元格默认可以换行，列宽按内容分配。
+    表格比容器宽时在外层横向滚动（ScrollArea：浮层滚动条，不占高度），不撑宽页面。未声明的属性落到 table 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = TableStyles.Of(Appearance, Config.Styles); }
+
+<ScrollArea Axis="ScrollAxis.X" @attributes="Attrs.MergeProps(parts[TablePart.Root], PropsRoot)">
+    <table @attributes="Attrs.Merge(parts[TablePart.Table], Rest)">
+        <CascadingValue Value="Appearance">@ChildContent</CascadingValue>
+    </table>
+</ScrollArea>
+
+@code {
+    /// <summary>密度；不写时取配置的默认值（<see cref="TableDefaults"/>），再没有就是标准。</summary>
+    [Parameter] public TableDensity? Density { get; set; }
+
+    /// <summary>样式；不写时取配置的默认值，再没有就是表面色加外框。</summary>
+    [Parameter] public TableVariant? Variant { get; set; }
+
+    /// <summary>斑马纹：隔行浅色底。</summary>
+    [Parameter] public bool? Striped { get; set; }
+
+    /// <summary>外层（横向滚动的 ScrollArea）的部件属性。</summary>
+    [Parameter] public Attrs? PropsRoot { get; set; }
+
+    /// <summary>TableCaption、TableHead、TableBody、TableFoot。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    Memo<(TableDensity, TableVariant, bool), TableAppearance> appearance;
+
+    // 外观不变时是同一个实例
+    TableAppearance Appearance
+    {
+        get
+        {
+            var defaults = Config.Defaults.Get<TableDefaults>();
+            return appearance.Get(
+                (Density ?? defaults?.Density ?? TableDensity.Standard, Variant ?? defaults?.Variant ?? TableVariant.Surface, Striped ?? defaults?.Striped ?? false),
+                static k => new TableAppearance(k.Item1, k.Item2, k.Item3));
+        }
+    }
+}

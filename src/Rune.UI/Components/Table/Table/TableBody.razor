@@ -1,0 +1,14 @@
+@*
+    表体（tbody）：里面的 th 是行标题。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<tbody @attributes="Attrs.Merge(TableStyles.Of(Table ?? TableAppearance.Standalone, Config.Styles)[TablePart.Body], Rest)"><CascadingValue Value="TableSection.Body" IsFixed="true">@ChildContent</CascadingValue></tbody>
+
+@code {
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] TableAppearance? Table { get; set; }
+}
