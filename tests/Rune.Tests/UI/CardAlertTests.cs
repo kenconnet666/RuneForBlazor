@@ -30,6 +30,21 @@ public class CardAlertTests : BunitContext
     }
 
     [Fact]
+    public void 有装饰效果时外面多一层_属性落在外层_光层对读屏隐藏()
+    {
+        var spotlight = Render<Card>(p => p.Add(x => x.Effect, CardEffect.Spotlight).AddUnmatched("id", "feature").AddChildContent("正文"));
+        var beam = Render<Card>(p => p.Add(x => x.Effect, CardEffect.Beam).AddChildContent("正文"));
+
+        var frame = spotlight.Find("[data-part=frame]");
+        Assert.Equal(("feature", "sm"), (frame.Id, frame.GetAttribute("data-rune-pointer")));
+        Assert.Equal(["frame", "root", "body", "effect", "ring"], spotlight.FindAll("[data-part]").Select(e => e.GetAttribute("data-part")));
+        Assert.All(spotlight.FindAll("[data-part=effect],[data-part=ring]"), layer => Assert.Equal("true", layer.GetAttribute("aria-hidden")));
+        // 流光不跟指针：没有 data-rune-pointer，光带在轨道里
+        Assert.False(beam.Find("[data-part=frame]").HasAttribute("data-rune-pointer"));
+        Assert.NotNull(beam.Find("[data-part=ring] > [data-part=beam]"));
+    }
+
+    [Fact]
     public void 有Extra时页头两端对齐()
     {
         var withExtra = Render<Card>(p => p.Add(x => x.Header, "收货地址").Add(x => x.Extra, "<a href=\"#\">修改</a>"));

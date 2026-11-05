@@ -1,0 +1,22 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Switch @bind-Value="loading">加载中</Switch>
+    <Grid MinItemWidth="CssLength.Em(11)" Gap="SpaceScale.Md">
+        @foreach (var padding in paddings)
+        {
+            <Card Padding="padding" Loading="loading">
+                <Header><H3 Size="Size.Sm">Padding="@padding"</H3></Header>
+                <ChildContent>
+                    <Paragraph Size="Size.Sm">正文加载中换成几行扫光的骨架，页头照常显示，卡片带 aria-busy。</Paragraph>
+                    <Small Tone="TextTone.Muted">很快完成的加载不出现骨架</Small>
+                </ChildContent>
+            </Card>
+        }
+    </Grid>
+</Flex>
+
+@code {
+    static readonly SpaceScale[] paddings = [SpaceScale.Sm, SpaceScale.Md, SpaceScale.Lg];
+    bool loading = true;
+}

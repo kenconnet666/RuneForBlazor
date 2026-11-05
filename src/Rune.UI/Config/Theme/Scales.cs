@@ -122,17 +122,17 @@ public static class ScaleStyles
     };
 
     /// <summary>圆角档位的样式。</summary>
-    public static Style Radius(Radius radius) => Css.Define(radius, static radius => new Style
+    public static Style Radius(Radius radius) => Css.Define(radius, static radius => new Style { BorderRadius = RadiusLength(radius) });
+
+    /// <summary>圆角档位对应的主题长度（要拿圆角算别的值时用，如流光的路径）。</summary>
+    public static CssLength RadiusLength(Radius radius) => radius switch
     {
-        BorderRadius = radius switch
-        {
-            UI.Radius.None => Radii.None,
-            UI.Radius.Xs => Radii.Xs,
-            UI.Radius.Sm => Radii.Sm,
-            UI.Radius.Lg => Radii.Lg,
-            UI.Radius.Xl => Radii.Xl,
-            UI.Radius.Full => Radii.Full,
-            _ => Radii.Md,
-        },
-    });
+        UI.Radius.None => Radii.None,
+        UI.Radius.Xs => Radii.Xs,
+        UI.Radius.Sm => Radii.Sm,
+        UI.Radius.Lg => Radii.Lg,
+        UI.Radius.Xl => Radii.Xl,
+        UI.Radius.Full => Radii.Full,
+        _ => Radii.Md,
+    };
 }

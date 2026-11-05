@@ -7,13 +7,23 @@
     <Examples>
         <ExampleColumn>
             <Example Id="variants" Title="样式" Demo="typeof(VariantsExample)">
-                Variant 有 Surface（默认）、Outline、Elevated、Ghost，颜色与阴影都取主题；可以用 CardDefaults 统一改。
+                <Code>Variant</Code> 有 Surface（默认）、Outline、Elevated、Ghost，颜色与阴影都取主题；可以用 <Code>CardDefaults</Code> 统一改。
             </Example>
             <Example Id="sections" Title="页头与页脚" Demo="typeof(SectionsExample)">
-                Header、Footer 与正文之间有分隔线；需要语义容器时把标题放进 Header，或在外面包 article、section。
+                <Code>Header</Code>、<Code>Footer</Code> 与正文之间有分隔线；需要语义容器时把标题放进 Header，或在外面包 article、section。
             </Example>
             <Example Id="extra" Title="页头的操作" Demo="typeof(ExtraExample)">
-                Extra 在页头的结束边（“全部 ↗”、标记、按钮），和 Header 排在一行、放不下时换行，不用自己在 Header 里写两端对齐。
+                <Code>Extra</Code> 在页头的结束边（“全部 ↗”、标记、按钮），和 <Code>Header</Code> 排在一行、放不下时换行，不用自己在 Header 里写两端对齐。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="loading" Title="内边距与加载中" Demo="typeof(LoadingExample)">
+                <Code>Padding</Code> 取间距档位；<Code>Loading</Code> 时正文换成扫光的骨架（SkeletonText），<Code>PropsSkeleton</Code> 改行数。
+            </Example>
+            <Example Id="effects" Title="装饰效果" Demo="typeof(EffectsExample)">
+                <Code>Effect</Code> 是纯 CSS 的装饰：<Code>Tilt</Code> 跟着指针倾斜、带高光，<Code>Spotlight</Code> 一团光跟着指针、靠近边框时点亮边框，
+                <Code>Beam</Code> 一段光沿边框流动。光层对读屏隐藏、不接收指针；减少动态效果时不倾斜、流光不动。有效果时外面多一层定位用的
+                div，未声明的属性落在它上面；<Code>PropsEffect</Code> 落在光层上。
             </Example>
         </ExampleColumn>
     </Examples>

@@ -1,0 +1,50 @@
+@inherits RuneComponent
+
+@* 装饰效果：Tilt 跟着指针倾斜、带高光；Spotlight 一团光跟着指针、靠近边框时点亮边框（并排的几张光会在它们之间传递）；
+   Beam 一段光沿边框循环流动，用来突出推荐的那一张 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Grid MinItemWidth="CssLength.Rem(9)" Gap="SpaceScale.Sm">
+        @foreach (var feature in features)
+        {
+            <Card Effect="CardEffect.Spotlight" Padding="SpaceScale.Md">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Icon Data="feature.Icon" Sx="FeatureIcon" />
+                    <Strong>@feature.Title</Strong>
+                    <Paragraph Size="Size.Sm" Tone="TextTone.Muted">@feature.Text</Paragraph>
+                </Flex>
+            </Card>
+        }
+    </Grid>
+    <Grid MinItemWidth="CssLength.Rem(12)" Gap="SpaceScale.Md">
+        <Card Effect="CardEffect.Tilt" Variant="CardVariant.Elevated">
+            <Header>团队版</Header>
+            <ChildContent>
+                <TextSpan Sx="Price">¥99</TextSpan>
+                <Paragraph Size="Size.Sm" Tone="TextTone.Muted">每人每月；指针放上来，卡片朝它倾斜</Paragraph>
+            </ChildContent>
+            <Footer><Button Variant="ButtonVariant.Soft">试用</Button></Footer>
+        </Card>
+        <Card Effect="CardEffect.Beam">
+            <Header>企业版</Header>
+            <Extra><Badge Tone="Tone.Accent">推荐</Badge></Extra>
+            <ChildContent>
+                <TextSpan Sx="Price">¥299</TextSpan>
+                <Paragraph Size="Size.Sm" Tone="TextTone.Muted">每人每月；流光沿边框转圈，突出推荐的方案</Paragraph>
+            </ChildContent>
+            <Footer><Button>联系销售</Button></Footer>
+        </Card>
+    </Grid>
+</Flex>
+
+@code {
+    static readonly (IconData Icon, string Title, string Text)[] features =
+    [
+        (Lucide.Rocket, "开箱即用", "一行 AddRuneUI 配好主题、语言与路由。"),
+        (Lucide.Gauge, "性能优先", "虚拟滚动、按需绘制，大表格也流畅。"),
+        (Lucide.Layers, "可组合", "每个内部节点都开放部件属性。"),
+    ];
+
+    static Style FeatureIcon => Css.Define(static () => new Style { Color = Tones.Accent.Text, FontSize = CssLength.Rem(1.25) });
+
+    static Style Price => Css.Define(static () => new Style { Display = Display.Block, FontSize = CssLength.Rem(1.75), FontWeight = FontWeights.Semibold });
+}

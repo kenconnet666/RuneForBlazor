@@ -8,40 +8,72 @@
     </Card>
     标题需要标题语义时在 Header 里放 H2/H3；需要语义容器（article、section）时在外面包。
     Loading：正文换成几行扫光的骨架（页头、页脚照常显示），卡片带 aria-busy；很快完成时不闪，内容回来时淡入。
+    Effect：纯 CSS 的装饰（Tilt 倾斜、Spotlight 聚光、Beam 流光边框）。光要画在边框上，而卡片裁掉了边框以内之外的内容，
+    所以有效果时外面多一层定位用的 div（Frame），未声明的属性落在这一层上；指针位置由 JS（data-rune-pointer）阻尼后写成变量。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 @{
-    var parts = CardStyles.Of(CardAppearance.Resolve(Variant, Padding, Radius, Extra is not null, Config), Config.Styles);
+    var parts = CardStyles.Of(CardAppearance.Resolve(Variant, Padding, Radius, Extra is not null, Effect, Config), Config.Styles);
     // 显示过骨架之后，内容回来时淡入
     if (indicator.Shown) revealing = true;
 }
 
-<div aria-busy="@(Loading ? "true" : null)" @attributes="Attrs.Merge(parts[CardPart.Root], Rest)">
-    @if (Header is not null || Extra is not null)
-    {
-        <div @attributes="Attrs.Merge(parts[CardPart.Header], PropsHeader)">@Header@Extra</div>
-    }
-    <div @attributes="Attrs.Merge(parts[CardPart.Body], revealing && !indicator.Shown ? RevealLayer : null, PropsBody)">
-        @if (indicator.Shown)
+@if (Effect is null)
+{
+    <div aria-busy="@Busy" @attributes="Attrs.Merge(parts[CardPart.Root], Rest)">@Content(parts)</div>
+}
+else
+{
+    var pointer = Effect is CardEffect.Beam ? null : Effect is CardEffect.Tilt ? "lg" : "sm";
+    <div aria-busy="@Busy" data-rune-pointer="@pointer" data-rune-pointer-bounce="@(Effect is CardEffect.Tilt ? "0.3" : null)"
+         @attributes="Attrs.Merge(parts[CardPart.Frame], Rest)">
+        <div @attributes="Attrs.Merge(parts[CardPart.Root])">@Content(parts)</div>
+        @switch (Effect)
         {
-            <SkeletonText @attributes="Attrs.MergeProps(RevealLayer, PropsSkeleton)" />
-        }
-        else
-        {
-            @ChildContent
+            case CardEffect.Tilt:
+                <span aria-hidden="true" @attributes="Attrs.Merge(parts[CardPart.Effect], PropsEffect)"></span>
+                break;
+            case CardEffect.Spotlight:
+                <span aria-hidden="true" @attributes="Attrs.Merge(parts[CardPart.Effect], PropsEffect)"></span>
+                <span aria-hidden="true" @attributes="Attrs.Merge(parts[CardPart.Ring], PropsEffect)"></span>
+                break;
+            default:
+                <span aria-hidden="true" @attributes="Attrs.Merge(parts[CardPart.Ring], PropsEffect)"><span @attributes="Attrs.Merge(parts[CardPart.Beam])"></span></span>
+                break;
         }
     </div>
-    @if (Footer is not null)
-    {
-        <div @attributes="Attrs.Merge(parts[CardPart.Footer], PropsFooter)">@Footer</div>
-    }
-</div>
+}
 
 @code {
     static readonly Attrs RevealLayer = new() { Sx = ShimmerStyles.Reveal };
 
     bool revealing;
+
+    string? Busy => Loading ? "true" : null;
+
+    /// <summary>页头、正文（或骨架）、页脚。</summary>
+    RenderFragment Content(PartLayers<CardPart> parts) => __builder =>
+    {
+        if (Header is not null || Extra is not null)
+        {
+            <div @attributes="Attrs.Merge(parts[CardPart.Header], PropsHeader)">@Header@Extra</div>
+        }
+        <div @attributes="Attrs.Merge(parts[CardPart.Body], revealing && !indicator.Shown ? RevealLayer : null, PropsBody)">
+            @if (indicator.Shown)
+            {
+                <SkeletonText @attributes="Attrs.MergeProps(RevealLayer, PropsSkeleton)" />
+            }
+            else
+            {
+                @ChildContent
+            }
+        </div>
+        if (Footer is not null)
+        {
+            <div @attributes="Attrs.Merge(parts[CardPart.Footer], PropsFooter)">@Footer</div>
+        }
+    };
     DelayedLoading? delayedLoading;
     DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
 
@@ -68,6 +100,12 @@
 
     /// <summary>正文加载中：正文换成几行扫光的骨架（页头、页脚照常显示），卡片带 aria-busy；很快完成时不闪。</summary>
     [Parameter] public bool Loading { get; set; }
+
+    /// <summary>装饰效果（见 <see cref="CardEffect"/>）；有效果时外面多一层定位用的 div，未声明的属性落在它上面。</summary>
+    [Parameter] public CardEffect? Effect { get; set; }
+
+    /// <summary>效果的光层（倾斜的高光、聚光的表面光与边框光、流光的轨道）的部件属性。</summary>
+    [Parameter] public Attrs? PropsEffect { get; set; }
 
     /// <summary>页头的部件属性。</summary>
     [Parameter] public Attrs? PropsHeader { get; set; }
