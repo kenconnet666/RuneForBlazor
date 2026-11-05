@@ -1,0 +1,108 @@
+@*
+    验证码输入框：示例与 vue-tsx-pro 文档站的 /components/otp-field 对应。
+*@
+@attribute [ComponentDemo("otp-field", "验证码", Group = "表单", Order = 13)]
+@inherits RuneComponent
+
+<DemoSection Id="sms" Title="短信登录">
+    <Description>只有一个真正的输入框，透明地盖在格子上（同 input-otp 的做法）：手机上收到短信时键盘上方直接出现验证码（<Code>autocomplete="one-time-code"</Code>），整段粘贴、退格、选中都是原生的，读屏看到的是一个输入框。只留数字（<Code>inputmode="numeric"</Code> 弹数字键盘），填满时调用 <Code>OnComplete</Code>，这里自动校验，错了清空重填（试试 246810）。</Description>
+    <ChildContent>
+        <Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <Field Label="手机号">
+                    <TextField @bind-Value="phone" Type="tel"><Prefix>+86</Prefix></TextField>
+                </Field>
+                <Field Label="短信验证码" Error="@error" Description="6 位数字，5 分钟内有效">
+                    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+                        <OtpField @bind-Value="code" OnComplete="VerifyAsync" Disabled="verifying" data-testid="sms-code" />
+                        <Button Variant="ButtonVariant.Soft" Disabled="countdown > 0" @onclick="SendAsync">@(countdown > 0 ? $"{countdown} 秒后重发" : "获取验证码")</Button>
+                    </Flex>
+                </Field>
+                <Small Tone="@(message == "登录成功" ? TextTone.Success : TextTone.Muted)" aria-live="polite" data-testid="sms-message">@(verifying ? "正在校验…" : message)</Small>
+            </Flex>
+        </Card>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="variants" Title="遮罩、分组与状态">
+    <Description><Code>Mask</Code> 显示成圆点（支付密码、动态口令）；<Code>Charset="OtpCharset.Alphanumeric"</Code> 允许字母（转成大写）；<Code>Groups</Code> 在组之间加短横线，长的码好核对。放进 Field 时标签、说明、错误、不可用照常关联。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Field Label="支付密码" Description="@(pin?.Length == 6 ? "已输入 6 位" : "6 位数字，显示成圆点")">
+                <OtpField @bind-Value="pin" Mask="true" data-testid="pin" />
+            </Field>
+            <Field Label="恢复码">
+                <DescriptionContent>字母与数字，转成大写：<Code>@(string.IsNullOrEmpty(recovery) ? "（空）" : recovery)</Code></DescriptionContent>
+                <ChildContent>
+                    <OtpField @bind-Value="recovery" Length="8" Charset="OtpCharset.Alphanumeric" Groups="@([4, 4])" data-testid="recovery" />
+                </ChildContent>
+            </Field>
+            <Flex Gap="SpaceScale.Lg" Wrap="true">
+                <Field Label="Size.Sm">
+                    <OtpField Value="1234" Length="4" Size="Size.Sm" />
+                </Field>
+                <Field Label="出错" Error="验证码已过期">
+                    <OtpField Value="4821" Length="4" />
+                </Field>
+                <Field Label="不可用" Disabled="true">
+                    <OtpField Value="99" Length="4" />
+                </Field>
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    readonly CancellationTokenSource disposed = new();
+    string? phone = "13800001111";
+    string? code = "";
+    int countdown;
+    string? error;
+    bool verifying;
+    string message = "";
+
+    string? pin = "";
+    string? recovery = "";
+
+    async Task SendAsync()
+    {
+        countdown = 60;
+        message = "验证码已发送（试试 246810）";
+        try
+        {
+            while (countdown > 0)
+            {
+                await Task.Delay(1000, disposed.Token);
+                countdown--;
+                StateHasChanged();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 离开页面时停止倒计时
+        }
+    }
+
+    // 假的校验接口：246810 是对的
+    async Task VerifyAsync(string value)
+    {
+        verifying = true;
+        error = null;
+        await Task.Delay(500);
+        verifying = false;
+        if (value == "246810")
+        {
+            message = "登录成功";
+            return;
+        }
+        error = "验证码不对，请重新输入";
+        code = "";
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        disposed.Cancel();
+        disposed.Dispose();
+    }
+}

@@ -89,7 +89,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [x] `tools/parity`：按上面“对照的做法”第 3 条实现；README 写用法；拿已完成的组件试一遍，修掉报告里的差异
       （按钮已对齐：亮暗主题、悬停聚焦按下一致；Badge、Kbd、Card 在各自页面对照时改）
 - [ ] 演示页改名对齐文档站的路由（typography → text、layout → flex / grid 等），示例按文档站补齐；已完成组件逐个过一遍对照报告
-      （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（开关的 loading 与轨道内容在阶段 6）、toggle-group、control-group、slider、rating（结构不同：每颗星都有填色层，视觉一致）、listbox、skeleton（Avatar、Stat、DataTable 做好后补全）、popover（HoverCard 在阶段 8）、popconfirm、menu（只有 actions，其余示例随阶段 6 的菜单补齐）、flex（除了还没做的 Avatar、Descriptions、输入框）；card 差 effects 示例；缺的组件做到时补示例：Descriptions、Table、ButtonGroup、Avatar；toast 的完整功能在阶段 6；dialog（alert-dialog、imperative 在阶段 8）、drawer（detail 等表格与时间线，edit 的拖宽在阶段 6，imperative 在阶段 8）；旧的 form 页等 Form 对齐时换掉）
+      （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（开关的 loading 与轨道内容在阶段 6）、toggle-group、control-group、slider、rating（结构不同：每颗星都有填色层，视觉一致）、otp-field、listbox、skeleton（Avatar、Stat、DataTable 做好后补全）、popover（HoverCard 在阶段 8）、popconfirm、menu（只有 actions，其余示例随阶段 6 的菜单补齐）、flex（除了还没做的 Avatar、Descriptions、输入框）；card 差 effects 示例；缺的组件做到时补示例：Descriptions、Table、ButtonGroup、Avatar；toast 的完整功能在阶段 6；dialog（alert-dialog、imperative 在阶段 8）、drawer（detail 等表格与时间线，edit 的拖宽在阶段 6，imperative 在阶段 8）；旧的 form 页等 Form 对齐时换掉）
 - [x] 语言包：`UIConfig.Lang` 与 `RuneProvider` 的 `Lang`；`tools/lang-gen` 从 vue-tsx-pro 的语言包生成 zh-CN、en-US；已有组件里的文字（关闭、确定、取消、增加、减少……）改成取语言包
 - [x] 端到端测试项目 `tests/Rune.E2E`（Microsoft.Playwright，Chromium）：启动演示项目，覆盖已有的键盘与焦点逻辑（菜单、对话框、气泡确认、数字框方向键、表单错误汇总跳转）；进 CI
       （另有数字框按住连加、显示密码、清空回焦、复制、标签移除后的焦点；之后每个有键盘或焦点逻辑的组件都加用例）
@@ -109,7 +109,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [x] TagsInput、SelectedTags、ToggleGroup、ControlGroup、CheckboxGroup（Checkbox 的 items）
       （输入组件的外观参数收进 InputControl；相连的样式 AttachedStyles 之后 ButtonGroup 共用；JS 补了漫游焦点、滑块；Field 的说明可以带格式（DescriptionContent）；标签增删时其余标签平移补位的动画（vue-tsx-pro 的 useLayoutAnimation）待做通用的 FLIP 时补）
 - [ ] Slider 的范围（两个滑块）、刻度、竖向；Rating；OtpField；NumberRangeField；ColorField；CharacterCount（Textarea 的字数统计与清空）
-      （已做：Rating（填充纯 CSS、悬停预览在 JS）；Slider 按 vue-tsx-pro 重写（范围、刻度、竖向、只读、OnValueCommit，拖动与键盘在 JS），NumberRange 之后 NumberRangeField 共用）
+      （已做：OtpField（格子由 JS 按输入框画；不写 maxlength，粘贴带分隔的码不丢位）；Rating（填充纯 CSS、悬停预览在 JS）；Slider 按 vue-tsx-pro 重写（范围、刻度、竖向、只读、OnValueCommit，拖动与键盘在 JS），NumberRange 之后 NumberRangeField 共用）
 - [ ] Cascader、Transfer、Mentions、FileDrop / Upload（拖放、进度、列表）
 - [ ] TreeSelect（依赖阶段 7 的 Tree）、PeoplePicker（阶段 12）、ConditionBuilder（阶段 12）
 - [ ] 表单：FormSection、FormErrorSummary 独立成组件、FormValue（只读展示）、Form 的离开前确认

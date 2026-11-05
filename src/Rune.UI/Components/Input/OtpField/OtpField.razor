@@ -1,0 +1,119 @@
+@*
+    验证码输入框（同 vue-tsx-pro 的 OtpField）：一格一个字符的短信验证码、动态口令、取件码。
+    <Field Label="短信验证码"><OtpField @bind-Value="code" OnComplete="VerifyAsync" /></Field>
+    <OtpField Length="8" Charset="OtpCharset.Alphanumeric" Groups="[4, 4]" aria-label="恢复码" />
+    参考 input-otp（shadcn 的 InputOTP）：只有一个真正的 input（透明、盖在格子上），格子只是显示。所以短信验证码的自动填充
+    （autocomplete="one-time-code"）、整段粘贴、退格、选中都是原生的，读屏看到的是一个输入框；输入时只留数字（或字母数字），填满时调用 OnComplete。
+    格子里的字（data-char）与当前格（data-active）由 JS 初始化器按输入框的当前值当场画（data-rune-otp），不等往返，静态 SSR 也一样；
+    使用方写的属性（name、aria-label……）落在 input 上，Sx 落在格子的容器上。
+*@
+@namespace Rune.UI
+@inherits FormControl<string?>
+@{
+    var parts = OtpFieldStyles.Of(Size, Config.Styles);
+    var ends = GroupEnds;
+    var chars = Text;
+}
+
+<div @attributes="Attrs.Merge(parts[OtpFieldPart.Root], RootUserAttrs, RootManaged)">
+    @for (var index = 0; index < Length; index++)
+    {
+        var shown = index < chars.Length ? (Mask ? "•" : chars[index].ToString()) : "";
+        <div aria-hidden="true" data-index="@index" data-char="@shown" data-state="@(shown.Length > 0 ? "filled" : "empty")"
+             @attributes="Attrs.Merge(parts[OtpFieldPart.Slot], PropsSlot)"></div>
+        @if (ends.Contains(index))
+        {
+            <span aria-hidden="true" @attributes="Attrs.Merge(parts[OtpFieldPart.Separator], PropsSeparator)"></span>
+        }
+    }
+    @ValueElement.Input(Mask ? "password" : "text", Attrs.Merge(parts[OtpFieldPart.Input], InputUserAttrs, InputManaged))
+</div>
+
+@code {
+    static readonly Attrs InputDefaults = new() { ["autocomplete"] = "one-time-code", ["spellcheck"] = "false" };
+
+    Memo<(int Length, OtpCharset Charset, bool Mask, bool Invalid, bool Disabled, bool ReadOnly), Attrs> rootManaged;
+    Memo<(Attrs Control, string Text, int Length, OtpCharset Charset), Attrs> inputManaged;
+
+    /// <summary>几位，默认 6。</summary>
+    [Parameter] public int Length { get; set; } = 6;
+
+    /// <summary>能输入的字符，默认只有数字。</summary>
+    [Parameter] public OtpCharset Charset { get; set; }
+
+    /// <summary>分组显示（如 <c>[3, 3]</c> 在中间加一道短横线）；各组加起来要等于 Length。</summary>
+    [Parameter] public IReadOnlyList<int>? Groups { get; set; }
+
+    /// <summary>显示成圆点（动态口令、支付密码）。</summary>
+    [Parameter] public bool Mask { get; set; }
+
+    /// <summary>填满时调用（输入、粘贴、自动填充都算）。</summary>
+    [Parameter] public EventCallback<string> OnComplete { get; set; }
+
+    /// <summary>字号档位：格子随之缩放；不写时继承。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>每一格的部件属性。</summary>
+    [Parameter] public Attrs? PropsSlot { get; set; }
+
+    /// <summary>分组之间的分隔的部件属性。</summary>
+    [Parameter] public Attrs? PropsSeparator { get; set; }
+
+    string Text => CurrentValue ?? "";
+
+    // 第几格后面是一组的结尾（要加分隔）
+    HashSet<int> GroupEnds
+    {
+        get
+        {
+            var ends = new HashSet<int>();
+            var sum = 0;
+            foreach (var size in Groups ?? [])
+            {
+                sum += size;
+                if (sum < Length) ends.Add(sum - 1);
+            }
+            return ends;
+        }
+    }
+
+    // 格子的容器：交给 JS 的规则（几位、字符、是否显示成圆点）与状态
+    Attrs RootManaged => rootManaged.Get((Length, Charset, Mask, IsInvalid, IsDisabled, IsReadOnly), static k => new Attrs
+    {
+        ["class"] = OtpFieldStyles.RootMarker.ClassName,
+        ["data-rune-otp"] = true,
+        ["data-length"] = k.Length.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        ["data-charset"] = k.Charset == OtpCharset.Alphanumeric ? "alphanumeric" : "numeric",
+        ["data-mask"] = k.Mask ? true : null,
+        ["data-invalid"] = k.Invalid ? true : null,
+        ["data-disabled"] = k.Disabled ? true : null,
+        ["data-readonly"] = k.ReadOnly ? true : null,
+    });
+
+    // input：表单状态、值、键盘与校验的提示（inputmode、pattern）。不写 maxlength：它按原始文字截断，
+    // 粘贴“123-456”这种带分隔的码会先被截成“123-45”再过滤，丢一位；长度由过滤负责
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, Text, Length, Charset), this, static (k, owner) => Attrs.Merge(InputDefaults, k.Control, new Attrs
+    {
+        ["value"] = k.Text,
+        ["inputmode"] = k.Charset == OtpCharset.Numeric ? "numeric" : "text",
+        ["pattern"] = k.Charset == OtpCharset.Numeric ? $"\\d{{{k.Length}}}" : $"[0-9A-Za-z]{{{k.Length}}}",
+        ["oninput"] = EventCallback.Factory.Create<ChangeEventArgs>(owner, owner.TypedAsync),
+    }));
+
+    /// <summary>只留能输入的字符（字母转大写），截到 Length 位。JS 已经在输入时过滤过，这里再做一次（不信任客户端）。</summary>
+    string Sanitize(string text)
+    {
+        var kept = Charset == OtpCharset.Numeric
+            ? text.Where(char.IsAsciiDigit)
+            : text.Where(char.IsAsciiLetterOrDigit).Select(char.ToUpperInvariant);
+        return new string([.. kept.Take(Length)]);
+    }
+
+    async Task TypedAsync(ChangeEventArgs e)
+    {
+        var next = Sanitize(e.Value as string ?? "");
+        if (next == Text) return;
+        await SetValueAsync(next);
+        if (next.Length == Length) await OnComplete.InvokeAsync(next);
+    }
+}
