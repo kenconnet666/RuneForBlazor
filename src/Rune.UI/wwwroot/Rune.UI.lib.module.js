@@ -30,6 +30,10 @@
 //   data-rune-query="词"      弹层里的列表：搜索词变了时高亮第一个匹配项，停顿后播报 data-rune-results（“12 个选项”）
 //   data-rune-backspace="命令" 按 Backspace（输入框里是空的时候）发出冒泡的 rune-command（Blazor 里是 @onrunecommand，带命令名）：
 //                            多选下拉移除最后一个已选项
+//   data-rune-escape="命令"   弹层关着时在有字的输入框里按 Esc：发出 rune-command（Combobox 清空）
+//   data-rune-popover="id"   输入框做列表宿主时它的弹层（输入框不能做 popovertarget）：输入时打开，↑↓ 打开并发 show-all 命令
+//   data-rune-hide-empty     这样的弹层只在输入过、且有建议（或正在加载，aria-busy）时显示（Autocomplete）
+//   输入法组合期间           列表宿主输入框（data-rune-list 含 text）的 input 事件拦下，组合结束补发一次：不拿拼音字母去过滤
 //   data-rune-overflow       一行标签（Select 的 MaxTagCount 按宽度）：量出放得下几个 data-rune-overflow-item，其余写 data-overflow-hidden
 //                            （CSS 藏起来但仍可测量），data-rune-overflow-rest（“+N”）的文字取自 data-rune-more 里的第 N 项
 //   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
@@ -62,10 +66,10 @@
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、tooltips（提示）、overflow（标签收起）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
-import { autosize, focusOnShell, onFocusLink, sendBackspaceCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
+import { autosize, focusOnShell, onFocusLink, sendKeyCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawIcon, startDismiss, startRipple } from './js/effects.js';
 import { watchGrid } from './js/layout.js';
-import { activeIndex, closeAfterPick, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onQueryChanged, syncHighlight, toggleFromShell } from './js/lists.js';
+import { activeIndex, closeAfterPick, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
 import { scheduleOverflow, watchOverflow } from './js/overflow.js';
 import { announce, closeOrRequest, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock } from './js/overlays.js';
 import { hideTooltip, hideTooltipOf, onPointerOut, onPointerOver, scheduleTooltip, shownTooltip, tooltipOf } from './js/tooltips.js';
@@ -141,7 +145,15 @@ function install(blazor) {
       if (check instanceof SVGSVGElement) drawIcon(check);
     }
   });
+  // 输入法组合期间的 input 不交给 C#（不拿拼音字母去过滤），组合结束补发一次
   document.addEventListener('input', (event) => {
+    if (event.isComposing && event.target instanceof Element && event.target.matches('input[data-rune-list~="text"]')) event.stopImmediatePropagation();
+  }, true);
+  document.addEventListener('compositionend', (event) => {
+    if (event.target instanceof Element && event.target.matches('input[data-rune-list~="text"]')) event.target.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  document.addEventListener('input', (event) => {
+    onHostInput(event);
     const target = event.target;
     if (target instanceof HTMLTextAreaElement && target.hasAttribute('data-rune-autosize')) autosize(target);
     if (target instanceof Element && target.hasAttribute('data-rune-count')) updateCount(target);
@@ -157,7 +169,7 @@ function install(blazor) {
     childList: true,
     attributes: true,
     attributeOldValue: true,
-    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query'],
+    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query', 'aria-busy'],
   });
   syncWithin(document);
   // 装好了：端到端测试、对照工具等它出现再操作（脚本加载之前的点击没人处理）
@@ -184,6 +196,7 @@ function onMutations(mutations) {
       if (mutation.attributeName === 'data-indeterminate') syncIndeterminate(mutation.target);
       else if (mutation.attributeName === 'data-rune-autosize') autosize(mutation.target);
       else if (mutation.attributeName === 'data-rune-query') onQueryChanged(mutation.target);
+      else if (mutation.attributeName === 'aria-busy') syncHideEmpty(mutation.target.closest('[role="listbox"]'));
       else if (mutation.attributeName === 'data-rune-copy-request') {
         if (mutation.target.hasAttribute('data-rune-copy-request')) copyFrom(mutation.target);
       } else if (mutation.attributeName === 'data-rune-draw') {
@@ -201,6 +214,7 @@ function onMutations(mutations) {
       const list = mutation.target.closest('[role="listbox"]');
       const host = list && hostOf(list);
       if (host?.hasAttribute('data-rune-active')) syncHighlight(host, list);
+      if (list) onOptionsChanged(list);
     }
     // 一行标签里加减了标签（或“+N”的文字变了）：重新量
     const row = mutation.target.closest('[data-rune-overflow]');
@@ -263,7 +277,7 @@ function onClick(event) {
 
 function onKeyDown(event) {
   if (event.key === 'Escape' && shownTooltip) hideTooltip(shownTooltip);
-  if (event.key === 'Backspace') sendBackspaceCommand(event);
+  if (event.key === 'Backspace' || event.key === 'Escape') sendKeyCommand(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;

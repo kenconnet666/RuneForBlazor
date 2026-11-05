@@ -30,6 +30,11 @@ let speakTimer;
 export const TABBABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
 
 /** 过渡结束后执行：没有过渡（减少动态效果时时长为 0）立即执行；transitionend 没来（页面在后台）时按时长兜底 */
+/** 把按键交给 C#：发出冒泡的 rune-command（Blazor 里是 @onrunecommand），带命令名。 */
+export function sendCommand(target, name) {
+  target.dispatchEvent(new CustomEvent('rune-command', { bubbles: true, detail: { name } }));
+}
+
 export function afterTransition(element, done) {
   const seconds = (value) => Math.max(0, ...value.split(',').map((part) => parseFloat(part) * (part.trim().endsWith('ms') ? 0.001 : 1)));
   const style = getComputedStyle(element);

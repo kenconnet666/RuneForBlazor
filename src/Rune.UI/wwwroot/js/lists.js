@@ -1,6 +1,6 @@
 // 列表：类型搜索、高亮与键盘（data-rune-list）、选项弹出层（Select）的开关与焦点、搜索词变化后的高亮与播报。
 
-import { speak } from './shared.js';
+import { sendCommand, speak } from './shared.js';
 
 
 // 每个菜单、列表各有一个输入缓冲（同 vue-tsx-pro 的 createTypeahead）
@@ -169,7 +169,7 @@ export function moveInList(host, event) {
   const table = optionTable(list);
   // 可用项的序号：方向键、类型搜索都跳过不可用的项
   const usable = table.flatMap((option, index) => (option.disabled ? [] : [index]));
-  const panel = host.popoverTargetElement;
+  const panel = popoverOfHost(host);
   if (panel && !panel.matches(':popover-open')) {
     keyOnClosedTrigger(host, panel, list, event, flags, usable.map((index) => table[index].label), usable);
     return;
@@ -229,13 +229,34 @@ const highlightLastOnOpen = new WeakSet();
 // 按下时弹层开着的外壳：按下已经把弹层当作点在外面关掉了（popover="auto"），松开后的点击不要再打开
 export const pressedWhileOpen = new WeakSet();
 
-/** 弹层的触发按钮（列表宿主）。 */
+// 用户输入过的弹层（data-rune-hide-empty 的）：有建议时才显示，Esc、选中、失焦关上后清掉
+const typedPanels = new WeakSet();
+
+/** 宿主的弹层：触发按钮的 popovertarget，或输入框（不能做 popovertarget）上的 data-rune-popover。 */
+export function popoverOfHost(host) {
+  if (host.popoverTargetElement) return host.popoverTargetElement;
+  const id = host.getAttribute('data-rune-popover');
+  return id ? document.getElementById(id) : null;
+}
+
+/** 弹层外面的列表宿主（Select 的触发按钮、Combobox 的输入框）；弹层里的搜索框不算。 */
 function listTriggerOf(panel) {
-  return panel.id ? document.querySelector(`[data-rune-list][popovertarget="${CSS.escape(panel.id)}"]`) : null;
+  const list = panel.querySelector('[role="listbox"]');
+  if (!list?.id) return null;
+  return [...document.querySelectorAll(`[data-rune-list][aria-controls="${CSS.escape(list.id)}"]`)].find((host) => !panel.contains(host)) ?? null;
 }
 
 /** 关闭时在触发按钮上按键：↓ / Enter / 空格打开，↑ 打开并高亮最后一项；单选时按字母直接选中以它开头的项（同原生 select）。 */
 function keyOnClosedTrigger(host, panel, list, event, flags, labels, usable) {
+  if (flags.includes('text')) {
+    // 输入框：只有 ↑↓ 打开，并显示全部选项（C# 清掉过滤词）；Enter、空格、字母照常输入
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    sendCommand(host, 'show-all');
+    if (event.key === 'ArrowUp') highlightLastOnOpen.add(host);
+    panel.showPopover();
+    return;
+  }
   if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
     panel.showPopover();
@@ -271,6 +292,7 @@ export function listPopoverOpened(panel) {
 export function listPopoverClosed(panel) {
   const trigger = listTriggerOf(panel);
   const list = panel.querySelector('[role="listbox"]');
+  typedPanels.delete(panel);
   if (!trigger || !list) return;
   highlightLastOnOpen.delete(trigger);
   for (const host of [trigger, ...panel.querySelectorAll('[data-rune-list]')]) highlight(host, list, -1, false);
@@ -278,12 +300,44 @@ export function listPopoverClosed(panel) {
   if (!active || active === document.body || panel.contains(active)) trigger.focus();
 }
 
-/** 触发按钮的 aria-expanded、外壳的 data-state 跟着弹层（C# 收到 rune-toggle 后写的是同样的值；静态 SSR 只有这里写）。 */
+/**
+ * 弹层外面控制列表的元素（触发按钮、输入框、展开按钮）的 aria-expanded、外壳的 data-state 跟着弹层
+ * （C# 收到 rune-toggle 后写的是同样的值；静态 SSR 只有这里写）。
+ */
 export function syncTriggerExpanded(panel, opened) {
+  const list = panel.querySelector('[role="listbox"]');
+  if (!list?.id) return;
+  const controls = [...document.querySelectorAll(`[aria-controls="${CSS.escape(list.id)}"]`)].filter((element) => !panel.contains(element));
+  for (const element of controls) element.setAttribute('aria-expanded', String(opened));
+  listTriggerOf(panel)?.closest('[data-rune-control]')?.setAttribute('data-state', opened ? 'open' : 'closed');
+}
+
+/**
+ * 在输入框宿主（data-rune-popover）里输入：打开弹层。data-rune-hide-empty 的弹层（Autocomplete）先记下“输入过”，
+ * 等 C# 渲染出建议后由 syncHideEmpty 决定显示不显示（没有建议时不弹出）。
+ */
+export function onHostInput(event) {
+  const host = event.target;
+  if (!(host instanceof HTMLInputElement) || event.isComposing || !host.hasAttribute('data-rune-popover')) return;
+  const panel = popoverOfHost(host);
+  if (!panel) return;
+  if (panel.hasAttribute('data-rune-hide-empty')) {
+    typedPanels.add(panel);
+    syncHideEmpty(panel.querySelector('[role="listbox"]'));
+  } else if (!panel.matches(':popover-open')) {
+    panel.showPopover();
+  }
+}
+
+/** data-rune-hide-empty 的弹层：输入过且有建议（或正在加载）时显示，否则藏起来；建议、加载状态、搜索词变了时调用。 */
+export function syncHideEmpty(list) {
+  const panel = list?.closest('[popover][data-rune-hide-empty]');
+  if (!panel) return;
   const trigger = listTriggerOf(panel);
-  if (!trigger) return;
-  trigger.setAttribute('aria-expanded', String(opened));
-  trigger.closest('[data-rune-control]')?.setAttribute('data-state', opened ? 'open' : 'closed');
+  const wanted = typedPanels.has(panel) && trigger === document.activeElement
+    && (optionTable(list).length > 0 || list.getAttribute('aria-busy') === 'true');
+  if (wanted && !panel.matches(':popover-open')) panel.showPopover();
+  else if (!wanted && panel.matches(':popover-open')) panel.hidePopover();
 }
 
 /** 单选列表在弹层里选中了一项（点击，或 Enter 转成的点击）：关闭弹层。 */
@@ -309,7 +363,19 @@ const resultTimers = new WeakMap();
 
 const RESULT_ANNOUNCE_DELAY = 500;
 
+/**
+ * 弹层里的列表换了一批选项（远程结果晚到、虚拟滚动）：有搜索词且还没有高亮项时高亮第一项
+ * （搜索词变化时可能还是骨架行，那时没有可高亮的）。
+ */
+export function onOptionsChanged(list) {
+  syncHideEmpty(list);
+  if (!list.getAttribute('data-rune-query') || !list.closest('[popover]')?.matches(':popover-open')) return;
+  const host = hostOf(list);
+  if (host && activeIndex(host, list) < 0) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
+}
+
 export function onQueryChanged(list) {
+  syncHideEmpty(list);
   if (!list.closest('[popover]')?.matches(':popover-open')) return;
   const host = hostOf(list);
   const query = list.getAttribute('data-rune-query') ?? '';

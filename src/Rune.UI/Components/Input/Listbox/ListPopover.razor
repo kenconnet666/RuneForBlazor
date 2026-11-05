@@ -22,7 +22,7 @@
 </div>
 
 @code {
-    Memo<(string Id, string AnchorId, Placement Placement, bool? Open), Attrs> panelManaged;
+    Memo<(string Id, string AnchorId, Placement Placement, bool? Open, bool HideEmpty), Attrs> panelManaged;
     Memo<(string? LabelledBy, string? Label, string? Query, string? Results), Attrs> listManaged;
 
     /// <summary>浮层的 id：触发按钮的 popovertarget 指向它。</summary>
@@ -39,6 +39,9 @@
 
     /// <summary>受控的打开状态；null 时由浏览器管理（popovertarget、点外面、Esc）。</summary>
     [Parameter] public bool? Open { get; set; }
+
+    /// <summary>没有可选的项时不弹出（JS 初始化器在用户输入过、且有选项或正在加载时才显示）：只当带建议的输入框用时（Autocomplete）。</summary>
+    [Parameter] public bool HideEmpty { get; set; }
 
     /// <summary>浏览器报告打开或关闭。</summary>
     [Parameter] public EventCallback<OverlayToggleEventArgs> OnToggle { get; set; }
@@ -92,7 +95,7 @@
     [Parameter] public Attrs? PropsListbox { get; set; }
 
     // 浮层上由组件管理的属性：popover、贴着外壳定位、同宽、限高，开关报给使用方
-    Attrs PanelManaged => panelManaged.Get((Id, AnchorId, Placement, Open), this, static (k, owner) => Attrs.Merge(
+    Attrs PanelManaged => panelManaged.Get((Id, AnchorId, Placement, Open, HideEmpty), this, static (k, owner) => Attrs.Merge(
         Floating.Placed(k.Placement, null),
         new Attrs
         {
@@ -103,6 +106,7 @@
             ["data-anchor"] = k.AnchorId,
             ["data-match-width"] = true,
             ["data-fit-height"] = true,
+            ["data-rune-hide-empty"] = k.HideEmpty ? true : null,
             ["onrunetoggle"] = EventCallback.Factory.Create<OverlayToggleEventArgs>(owner, (OverlayToggleEventArgs e) => owner.OnToggle.InvokeAsync(e)),
         }));
 

@@ -1,0 +1,47 @@
+@*
+    组合框（WAI-ARIA Combobox，aria-autocomplete="list"）：边输入边从列表里选，或者只当带建议的输入框用（同 vue-tsx-pro 的 Combobox）。
+    <Field Label="城市"><Combobox Items="cities" @bind-Value="city" /></Field>
+    <Combobox Items="results" LocalFilter="false" Loading="searching" @bind-InputValue="keyword" aria-label="搜索用户" />
+    <Combobox TItem="string" Load="SearchUsersAsync" @bind-InputValue="keyword" @bind-Value="user" />      远程搜索
+
+    外壳同 TextField，弹出层是 ListPopover（贴着外壳、同宽），列表同 Listbox。焦点一直在输入框里，高亮项经 aria-activedescendant 告诉读屏。
+    - 过滤：默认本地按显示文字包含输入（忽略大小写与重音，见 UIConfig.Matches）；LocalFilter="false" 时由调用方按 InputValue 换 Items；
+      给 Load 时组件自己请求：打开时与输入停下 300 ms 后按输入请求，只采用最后一次（同 Select）。
+    - 中文输入法：组合输入期间 JS 初始化器不把 input 交给 C#，不会拿拼音去过滤。
+    - 选中后输入框显示选项文字；失焦时如果文字不是某个选项（且没开 AllowCustomValue），恢复成已选项的文字，清空则取消选择。
+    - 键盘（JS 初始化器，没有往返）：输入时打开，↓ / ↑ 打开并显示全部选项，↑↓ / Page Up / Down 移动，Enter 选中，
+      Esc 关闭（关闭时再按 Esc 清空）；Home / End 照常移动光标。
+    只要文字、列表只是建议时用 Autocomplete（值就是文字）。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits FormControl<string?>
+@{
+    var shell = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config), Config.Styles);
+    var entries = ShownEntries;
+}
+
+<div @attributes="Attrs.Merge(shell[InputPart.Root], RootUserAttrs, ShellManaged)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsIcon)" />
+    }
+    <input @attributes="Attrs.Merge(shell[InputPart.Input], InputUserAttrs, InputManaged)" />
+    @if (Clearable && Text.Length > 0 && Editable)
+    {
+        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="ClearAsync" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusInput)" />
+    }
+    @if (ShowsToggle)
+    {
+        <IconButton Icon="BuiltInIcons.ChevronDown" Label="@Config.Lang.ComboboxToggle" Radius="UI.Radius.Full" Disabled="!Editable" @onclick="ShowAll"
+                    @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsChevron, ToggleManaged)" />
+    }
+    @if (Name is not null)
+    {
+        <input type="hidden" name="@Name" value="@SubmittedValue" disabled="@IsDisabled" />
+    }
+</div>
+<ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@ShellId" ListId="@ListId" Placement="Placement" Open="Open" HideEmpty="@(HideEmpty || TextIsValue)" OnToggle="ToggledAsync" Size="Size"
+             LabelledBy="@(AriaLabel is null ? Field?.LabelId : null)" Label="@AriaLabel" Query="@query" Results="@Results(entries.Count)"
+             Entries="entries" Selected="SelectedValues" Loading="@(Loading || options.Loading)" OnPick="PickAsync" ChildContent="ChildContent"
+             Empty="@(EmptyText is null ? Empty : null)" EmptyText="@EmptyText" PropsPopover="PropsPopover" PropsListbox="PropsListbox" />

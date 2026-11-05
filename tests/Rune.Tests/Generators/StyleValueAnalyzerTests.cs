@@ -46,6 +46,8 @@ public class StyleValueAnalyzerTests
     [InlineData("""MaxWidth = "20rem" """, "CssLength.Rem(20)")]
     [InlineData("""Inset = "auto" """, "CssLength.Auto")]
     [InlineData("""Height = "auto" """, "Height.Auto")]
+    [InlineData("""Rotate = "180deg" """, "CssValue.Deg(180)")]
+    [InlineData("""Rotate = ".5turn" """, "CssValue.Turn(0.5)")]
     public async Task 有现成写法的字符串报RUNE006并给出替换(string assignment, string expected) =>
         Assert.Equal(expected, await Replacement(assignment));
 

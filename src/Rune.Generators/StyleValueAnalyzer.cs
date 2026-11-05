@@ -30,6 +30,9 @@ public sealed class StyleValueAnalyzer : DiagnosticAnalyzer
         ["em"] = "Em", ["rem"] = "Rem", ["%"] = "Percent", ["vw"] = "Vw", ["dvh"] = "Dvh", ["ch"] = "Ch",
     };
 
+    // 角度 → CssValue 的方法
+    static readonly Regex Angle = new(@"^(-?(?:\d+\.?\d*|\.\d+))(deg|turn)$", RegexOptions.CultureInvariant);
+
     static readonly Regex Pixels = new(@"(?<![\w.-])-?(?:\d*\.)?[1-9]\d*(?:\.\d+)?px\b", RegexOptions.CultureInvariant);
 
     // 允许 px 的属性：边框、描边、焦点环这类细线（应经 BorderWidths token，这里只管“写了 px”）
@@ -91,14 +94,18 @@ public sealed class StyleValueAnalyzer : DiagnosticAnalyzer
         if (KeywordMember(propertyName, type, text, types.Compilation) is { } keyword) return keyword;
         if (SymbolEqualityComparer.Default.Equals(type, types.Color))
             return ConstantNamed(types.Colors, text, ignoreCase: true) is { } color ? $"CssColors.{color}" : null;
+        if (SymbolEqualityComparer.Default.Equals(type, types.Value) && Angle.Match(text) is { Success: true } angle)
+            return $"CssValue.{(angle.Groups[2].Value == "deg" ? "Deg" : "Turn")}({Number(angle.Groups[1].Value)})";
         if (!SymbolEqualityComparer.Default.Equals(type, types.Length)) return null;
         if (text == "auto") return "CssLength.Auto";
         if (text == "none") return "CssLength.None";
         var match = UnitLength.Match(text);
         if (!match.Success) return null;
-        var number = double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture);
-        return $"CssLength.{UnitMethods[match.Groups[2].Value]}({number})";
+        return $"CssLength.{UnitMethods[match.Groups[2].Value]}({Number(match.Groups[1].Value)})";
     }
+
+    // 数字写法规范化（".5" → "0.5"）
+    static string Number(string text) => double.Parse(text, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture);
 
     /// <summary>属性的关键字类（与属性同名，或重名时加 Keywords 后缀）里对应这个关键字的成员。成员名按生成器的规则从关键字推出。</summary>
     static string? KeywordMember(string propertyName, ITypeSymbol? type, string text, Compilation compilation)
@@ -143,6 +150,7 @@ public sealed class StyleValueAnalyzer : DiagnosticAnalyzer
     {
         public Compilation Compilation { get; } = compilation;
         public INamedTypeSymbol? Length { get; } = compilation.GetTypeByMetadataName(StylesNamespace + "CssLength");
+        public INamedTypeSymbol? Value { get; } = compilation.GetTypeByMetadataName(StylesNamespace + "CssValue");
         public INamedTypeSymbol? Color { get; } = compilation.GetTypeByMetadataName(StylesNamespace + "CssColor");
         public INamedTypeSymbol? Wide { get; } = compilation.GetTypeByMetadataName(StylesNamespace + "CssWide");
         public INamedTypeSymbol? Colors { get; } = compilation.GetTypeByMetadataName(StylesNamespace + "CssColors");

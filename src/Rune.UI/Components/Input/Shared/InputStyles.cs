@@ -201,6 +201,16 @@ public static class InputStyles
         [Pseudo.Placeholder] = new() { Color = Colors.TextPlaceholder, Opacity = 1 },
     });
 
+    /// <summary>下拉箭头（Select 的图标、Combobox 的展开按钮）打开时转半圈：外壳（它的父元素）的 data-state 由组件与 JS 初始化器写。</summary>
+    internal static Style Chevron => Css.Define(static () => new Style
+    {
+        // 写长属性：放在按钮（Combobox 的展开按钮）上时要盖过按钮自己的颜色过渡（长属性排在简写后面，简写盖不过）
+        TransitionProperty = "rotate",
+        TransitionDuration = Durations.Sm,
+        TransitionTimingFunction = Easings.Standard,
+        [When.Parent(When.Attribute("[data-state=open]"))] = new() { Rotate = CssValue.Deg(180) },
+    });
+
     /// <summary>前后的图标：次要颜色。下拉框的箭头也用。</summary>
     internal static Style Icon => Css.Define(static () => new Style { FlexShrink = 0, Color = Colors.TextMuted });
 

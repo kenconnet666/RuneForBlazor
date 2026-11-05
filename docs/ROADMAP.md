@@ -105,7 +105,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 ## 阶段 5：输入与选择（阶段 3 后半）
 
 - [ ] Select（单选、多选、可搜索、清空、远程选项、已选标签“+N”）、Combobox、Autocomplete、ListPopover
-      （已做：Select、ListPopover、SelectedTags（按数量、按宽度收起）、远程选项 RemoteItems、文字匹配 UIConfig.Matches；Combobox、Autocomplete 待做）
+      （已做：Select、Combobox、Autocomplete、ListPopover、SelectedTags（按数量、按宽度收起）、选项数据 OptionSource（远程、过滤、已选项文字）、文字匹配 UIConfig.Matches）
 - [ ] TagsInput、SelectedTags、ToggleGroup、ControlGroup、CheckboxGroup（Checkbox 的 items）
 - [ ] Slider 的范围（两个滑块）、刻度、竖向；Rating；OtpField；NumberRangeField；ColorField；CharacterCount（Textarea 的字数统计与清空）
 - [ ] Cascader、Transfer、Mentions、FileDrop / Upload（拖放、进度、列表）

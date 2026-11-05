@@ -75,12 +75,12 @@
 <ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@ShellId" ListId="@ListId" Placement="Placement" Open="Open" OnToggle="ToggledAsync" Size="Size"
              LabelledBy="@(AriaLabel is null ? Field?.LabelId : null)" Label="@AriaLabel" Header="@(WithSearch ? SearchHeader : null)"
              Query="@(WithSearch ? SearchText : null)" Results="@Results(shown.Entries.Count)" Entries="shown.Entries" Selected="values" Multiple="Multiple"
-             Loading="@(Loading || remote?.Loading == true)" OnPick="PickAsync" ChildContent="OptionContent" Empty="@(EmptyText is null ? Empty : null)"
+             Loading="@(Loading || options.Loading)" OnPick="PickAsync" ChildContent="OptionContent" Empty="@(EmptyText is null ? Empty : null)"
              EmptyText="@EmptyText" PropsPopover="PropsPopover" PropsListbox="PropsListbox" />
 
 @code {
     static readonly Attrs VisuallyHiddenLayer = new() { Sx = SharedStyles.VisuallyHidden };
-    static readonly Attrs ChevronLayer = new() { Sx = SelectStyles.Chevron };
+    static readonly Attrs ChevronLayer = new() { Sx = InputStyles.Chevron };
 
     // 搜索框：占满头部、浅色底；不归外面的 Field 管（它的 id、标签、错误属于 Select 本身）
     RenderFragment SearchHeader => searchHeader ??= @<CascadingValue TValue="FieldContext" Value="null" IsFixed="true">

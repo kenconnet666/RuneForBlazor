@@ -221,6 +221,13 @@
   多选时标签排在触发按钮前面（按钮里不能有按钮），触发按钮让出宽度、只留读屏用的文字，点外壳空白处与点它一样；Backspace 经 `data-rune-backspace`
   发 `rune-command`（不用每次按键往返）。按宽度收起标签由 JS 量（`data-rune-overflow`，同 vue-tsx-pro 的 useOverflowItems），“+N”的文字由 C# 按语言包给全（`data-rune-more`）。
   远程选项 `RemoteItems`：打开时请求、输入停下 300 ms 再请求、只采用最后一次。过滤用 `UIConfig.Matches`（按语言忽略大小写、重音与全半角，可另配 `TextMatcher`）。
+- **Combobox / Autocomplete**：焦点一直在输入框里。输入框不能做 popovertarget，用 `data-rune-popover` 指出弹层：输入时 JS 打开，↑↓ 打开并发 `show-all`
+  命令（C# 清掉过滤词、显示全部），弹层关着时 Esc 发 `clear`；展开按钮用原生 popovertarget。过滤词（query）与输入框的文字分开：选中后文字是选项的文字、
+  过滤词清空。失焦时由 C# 提交（文字不是选项就恢复）。Autocomplete 是子类（值就是文字），弹层带 `data-rune-hide-empty`：输入过且有建议或正在加载才显示。
+  中文输入法：组合期间列表宿主输入框的 input 在捕获阶段拦下、组合结束补发一次，不拿拼音字母去过滤（Select 的搜索框同样受益）。
+  Select、Combobox 的选项数据（本地或远程、过滤、已选项文字的记忆、播报与空状态文字）在 `OptionSource`。
+- **交给子组件的样式要经 `Attrs.MergeProps` 作为 Sx 交下去**：先 `Attrs.Merge` 合成类再交给子组件，元素上会有两个类，谁赢看规则插入的先后
+  （Combobox 的展开按钮的箭头过渡就被按钮自己的过渡盖掉过）。
 - **外框的状态只看自己的输入元素**：`:has(> :is(input, select, textarea, [role=combobox]):disabled)`。最初写的 `:has(:disabled)` 会被数字框到了上限时不可用的步进按钮、
   下拉里不可用的占位选项匹配，整个外框变灰（实测发现）。
 

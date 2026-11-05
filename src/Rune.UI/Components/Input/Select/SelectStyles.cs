@@ -50,13 +50,6 @@ public static class SelectStyles
     /// <summary>多选时标签排在触发按钮前面、占剩余宽度，触发按钮里只剩读屏用的文字。</summary>
     internal static Style TriggerBehindTags => Css.Define(static () => new Style { FlexGrow = 0 });
 
-    /// <summary>下拉箭头（输入框的图标部件）打开时转半圈：外壳（它的父元素）的 data-state 由组件与 JS 初始化器写。</summary>
-    internal static Style Chevron => Css.Define(static () => new Style
-    {
-        Transition = $"rotate {Durations.Sm} {Easings.Standard}",
-        [When.Parent(When.Attribute("[data-state=open]"))] = new() { Rotate = "180deg" },
-    });
-
     // 去掉按钮的默认外观；像输入框一样没有自己的焦点环（焦点环画在外壳上）
     static Style Trigger => Css.Define(static () => new Style
     {

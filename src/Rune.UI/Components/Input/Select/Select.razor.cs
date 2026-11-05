@@ -7,19 +7,13 @@ namespace Rune.UI;
 /// <typeparam name="TItem">选项的数据：ListboxOption、字符串，或任意数据加 ToOption。</typeparam>
 public partial class Select<TItem>
 {
-    Memo<(IEnumerable<TItem> Items, Func<TItem, ListboxOption>? ToOption), IReadOnlyList<ListEntry<TItem>>> allEntries;
-    Memo<IReadOnlyList<ListEntry<TItem>>, Dictionary<string, ListEntry<TItem>>> byValue;
-    Memo<(IReadOnlyList<ListEntry<TItem>> All, string Query, bool Filtering, Func<TItem, string, bool>? Filter, bool Creatable), ShownOptions> shown;
+    Memo<(IReadOnlyList<ListEntry<TItem>> Filtered, IReadOnlyList<ListEntry<TItem>> All, string Query, bool Creatable), ShownOptions> shown;
     Memo<(Attrs Control, bool Open, bool Locked, bool ReadOnly, bool Multiple, bool Tagged), Attrs> triggerManaged;
     Memo<(string Id, bool Open, bool Disabled), Attrs> shellManaged;
     Memo<(string ListId, bool Multiple), Attrs> searchManaged;
     Memo<string, Attrs> searchDefaults, refocusTrigger;
     EventCallback<string>? removeCallback;
-    RemoteItems<TItem>? remote;
     bool open;
-
-    // 已选项最后一次在选项里找到时的样子：远程搜索换掉了选项后，触发框里照样显示它的文字
-    readonly Dictionary<string, ListEntry<TItem>> seen = [];
 
     /// <summary>数据：ListboxOption、字符串，或任意数据加 ToOption；有 Load 时是第一次加载之前的选项（编辑页放上已选的那一项）。</summary>
     [Parameter] public IEnumerable<TItem> Items { get; set; } = [];
@@ -162,20 +156,24 @@ public partial class Select<TItem>
 
     IReadOnlyList<string> Selected => Multiple ? values.Value : CurrentValue is { } value ? [value] : [];
 
-    RemoteItems<TItem> Remote => remote ??= new(() => InvokeAsync(StateHasChanged));
+    // 选项数据：本地或远程、按搜索词过滤、已选项的文字
+    OptionSource<TItem> options { get => field ??= new(() => InvokeAsync(StateHasChanged)); }
 
-    IReadOnlyList<ListEntry<TItem>> AllEntries =>
-        allEntries.Get((remote?.Data ?? Items, ToOption), static k => ListState.Entries(k.Items, k.ToOption));
+    IReadOnlyList<ListEntry<TItem>> AllEntries => options.All(Items, ToOption);
 
-    // 列表里显示的选项：搜索词过滤后的，Creatable 时末尾可能多一项“新建”
-    ShownOptions Shown => shown.Get((AllEntries, SearchText, WithSearch && Load is null && LocalFilter, Filter, Creatable), this,
-        static (k, owner) => owner.Compute(k.All, k.Query, k.Filtering, k.Filter, k.Creatable));
-
-    ShownOptions Compute(IReadOnlyList<ListEntry<TItem>> all, string query, bool filtering, Func<TItem, string, bool>? filter, bool creatable)
+    // 列表里显示的选项：搜索词过滤后的（有 Load、关掉本地过滤时由服务端过滤），Creatable 时末尾可能多一项“新建”
+    ShownOptions Shown
     {
-        IReadOnlyList<ListEntry<TItem>> entries = filtering && query.Length > 0
-            ? [.. all.Where(e => filter?.Invoke(e.Item, query) ?? Config.Matches(e.Option.Label, query))]
-            : all;
+        get
+        {
+            var all = AllEntries;
+            var filtered = WithSearch && Load is null && LocalFilter ? options.Filter(all, SearchText, Filter, Config) : all;
+            return shown.Get((filtered, all, SearchText, Creatable), this, static (k, owner) => owner.Compute(k.Filtered, k.All, k.Query, k.Creatable));
+        }
+    }
+
+    ShownOptions Compute(IReadOnlyList<ListEntry<TItem>> entries, IReadOnlyList<ListEntry<TItem>> all, string query, bool creatable)
+    {
         var text = query.Trim();
         if (!creatable || text.Length == 0) return new(entries, null);
         // 已经有同值或同名（忽略大小写）的选项时不新建
@@ -184,36 +182,11 @@ public partial class Select<TItem>
         return new([.. entries, new ListEntry<TItem>(creation, default!)], creation);
     }
 
-    // 已选的项：文字取自全部选项（被过滤掉的、远程搜索换掉的也在）；都找不到时显示值本身
-    List<ChosenOption> Chosen(IReadOnlyList<string> selected)
-    {
-        var index = byValue.Get(AllEntries, static entries =>
-        {
-            var map = new Dictionary<string, ListEntry<TItem>>(entries.Count);
-            foreach (var entry in entries) map.TryAdd(entry.Option.Value, entry);
-            return map;
-        });
-        var result = new List<ChosenOption>(selected.Count);
-        foreach (var value in selected)
-        {
-            if (index.TryGetValue(value, out var found)) seen[value] = found;
-            else if (!seen.TryGetValue(value, out found))
-            {
-                result.Add(new(new ListboxOption(value, value), default!, false));
-                continue;
-            }
-            result.Add(new(found.Option, found.Item, true));
-        }
-        return result;
-    }
+    List<ChosenOption<TItem>> Chosen(IReadOnlyList<string> selected) => options.Chosen(AllEntries, selected);
 
-    // 搜索后播报的结果
-    string? Results(int count) => WithSearch && SearchText.Length > 0
-        ? count > 0 ? Config.Lang.ListResultCount(count) : Config.Lang.SelectNoMatch
-        : null;
+    string? Results(int count) => WithSearch ? OptionSource<TItem>.Results(Config.Lang, SearchText, count) : null;
 
-    // 列表空着时的文字：加载失败、搜索没有匹配；其余用使用方的 Empty 或默认文案
-    string? EmptyText => remote?.Failed == true ? Config.Lang.ListLoadFailed : SearchText.Length > 0 ? Config.Lang.SelectNoMatch : null;
+    string? EmptyText => options.EmptyText(Config.Lang, SearchText);
 
     EventCallback<string> RemoveCallback => removeCallback ??= EventCallback.Factory.Create<string>(this, RemoveAsync);
 
@@ -292,7 +265,7 @@ public partial class Select<TItem>
     async Task SetSearchAsync(string? text)
     {
         await search.SetAsync(text);
-        if (open && Load is not null) _ = Remote.RequestAsync(Load, text ?? "", debounce: true);
+        if (open) options.Request(Load, text ?? "", debounce: true);
     }
 
     async Task ToggledAsync(OverlayToggleEventArgs e)
@@ -301,12 +274,12 @@ public partial class Select<TItem>
         open = e.Open;
         if (open)
         {
-            // 打开就按当前搜索词请求，不等防抖；请求自己处理失败，这里不等它
-            if (Load is not null) _ = Remote.RequestAsync(Load, SearchText, debounce: false);
+            // 打开就按当前搜索词请求，不等防抖
+            options.Request(Load, SearchText, debounce: false);
         }
         else
         {
-            remote?.Cancel();
+            options.Cancel();
             // 关闭时清空搜索词：下次打开是全部选项
             if (SearchText.Length > 0) await search.SetAsync("");
         }
@@ -317,12 +290,10 @@ public partial class Select<TItem>
     protected override void OnDispose()
     {
         base.OnDispose();
-        remote?.Dispose();
+        options.Dispose();
     }
 
     /// <summary>列表里显示的选项与其中“新建”的那一项（没有时为 null）。</summary>
     sealed record ShownOptions(IReadOnlyList<ListEntry<TItem>> Entries, ListboxOption? Creation);
 
-    /// <summary>一个已选的项：选项信息与它的数据（只知道值、找不到数据时 HasItem 为 false）。</summary>
-    readonly record struct ChosenOption(ListboxOption Option, TItem Item, bool HasItem);
 }

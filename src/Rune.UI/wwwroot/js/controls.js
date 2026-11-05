@@ -1,7 +1,7 @@
 // 输入框一类：数字框的按键加减、点外壳聚焦、字数计数、按住连续点击、多行自动增高、半选、键盘命令、跳到字段的链接。
 
-import { pressedWhileOpen } from './lists.js';
-import { reducedMotion } from './shared.js';
+import { popoverOfHost, pressedWhileOpen } from './lists.js';
+import { reducedMotion, sendCommand } from './shared.js';
 
 export function syncIndeterminate(input) {
   input.indeterminate = input.dataset.indeterminate === 'true';
@@ -17,13 +17,21 @@ export function onFocusLink(event) {
 }
 
 /** Backspace（输入框里是空的时候）：把 data-rune-backspace 的命令交给 C#（多选下拉移除最后一项）。 */
-export function sendBackspaceCommand(event) {
+/**
+ * 要 C# 处理的按键转成命令（不用每次按键都往返一次）：
+ * Backspace 时取 data-rune-backspace（输入框里是空的时候，多选移除最后一项）；
+ * Esc 时取 data-rune-escape（弹层关着、输入框里有字的时候，Combobox 清空；弹层开着时 Esc 先关弹层）。
+ */
+export function sendKeyCommand(event) {
   const target = event.target;
-  if (!(target instanceof Element) || event.altKey || event.ctrlKey || event.metaKey) return;
-  const name = target.getAttribute('data-rune-backspace');
-  if (!name || (target instanceof HTMLInputElement && target.value !== '')) return;
+  if (!(target instanceof Element) || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+  const typed = target instanceof HTMLInputElement && target.value !== '';
+  let name = null;
+  if (event.key === 'Backspace' && !typed) name = target.getAttribute('data-rune-backspace');
+  else if (event.key === 'Escape' && typed && !popoverOfHost(target)?.matches(':popover-open')) name = target.getAttribute('data-rune-escape');
+  if (!name) return;
   event.preventDefault();
-  target.dispatchEvent(new CustomEvent('rune-command', { bubbles: true, detail: { name } }));
+  sendCommand(target, name);
 }
 
 
