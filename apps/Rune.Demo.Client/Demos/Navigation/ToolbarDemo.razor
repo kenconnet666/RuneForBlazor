@@ -1,0 +1,94 @@
+@*
+    工具栏：示例与 vue-tsx-pro 文档站的 /components/toolbar 对应。
+*@
+@attribute [ComponentDemo("toolbar", "工具栏", Group = "导航", Order = 0)]
+@inherits RuneComponent
+
+<DemoSection Id="editor" Title="编辑器工具栏">
+    <Description><Kbd>Tab</Kbd> 进入工具栏，<Kbd>←</Kbd> <Kbd>→</Kbd> 在按钮之间移动，<Kbd>Home</Kbd> / <Kbd>End</Kbd> 到两端，再按 <Kbd>Tab</Kbd> 离开。里面可以放 ToggleGroup、Select 和分隔线；名称写在 <Code>aria-label</Code>。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <Card Padding="SpaceScale.Xs">
+                <Toolbar aria-label="文字格式" data-testid="format">
+                    <IconButton Icon="Lucide.Undo2" Label="撤销" />
+                    <IconButton Icon="Lucide.Redo2" Label="重做" />
+                    <Separator Orientation="Orientation.Vertical" />
+                    <Select Items="fonts" @bind-Value="font" Size="Size.Sm" aria-label="段落样式" Sx="FontWidth" />
+                    <Separator Orientation="Orientation.Vertical" />
+                    <ToggleGroup SelectionMode="SelectionMode.Multiple" @bind-Values="marks" Size="Size.Sm" aria-label="字形">
+                        <ToggleItem Value="bold" Icon="Lucide.LetterB" aria-label="加粗" />
+                        <ToggleItem Value="italic" Icon="Lucide.Italic" aria-label="斜体" />
+                        <ToggleItem Value="underline" Icon="Lucide.Underline" aria-label="下划线" />
+                    </ToggleGroup>
+                    <ToggleGroup @bind-Value="align" Required="true" Size="Size.Sm" aria-label="对齐">
+                        <ToggleItem Value="left" Icon="Lucide.TextAlignStart" aria-label="左对齐" />
+                        <ToggleItem Value="center" Icon="Lucide.TextAlignCenter" aria-label="居中" />
+                        <ToggleItem Value="right" Icon="Lucide.TextAlignEnd" aria-label="右对齐" />
+                    </ToggleGroup>
+                    <Separator Orientation="Orientation.Vertical" />
+                    <IconButton Icon="Lucide.Link2" Label="插入链接" />
+                </Toolbar>
+            </Card>
+            <Small Tone="TextTone.Muted" data-testid="format-summary">@font · @(marks.Count > 0 ? string.Join("、", marks) : "无字形") · @align</Small>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="vertical" Title="竖排的绘图工具">
+    <Description><Code>Orientation.Vertical</Code> 时用 <Kbd>↑</Kbd> <Kbd>↓</Kbd> 移动。选中的工具用 <Code>aria-pressed</Code> 告诉读屏；图标按钮配 Tooltip 说明用途。</Description>
+    <ChildContent>
+        <Flex Gap="SpaceScale.Md">
+            <Card Padding="SpaceScale.Xs">
+                <Toolbar Orientation="Orientation.Vertical" aria-label="绘图工具" data-testid="tools">
+                    @foreach (var (value, label, icon) in tools)
+                    {
+                        <Tooltip @key="value" Placement="Placement.Right">
+                            <Trigger Context="t">
+                                <IconButton @attributes="t" Icon="icon" Label="@label" aria-pressed="@(tool == value ? "true" : "false")"
+                                            Variant="@(tool == value ? ButtonVariant.Soft : ButtonVariant.Ghost)" Tone="@(tool == value ? Tone.Accent : Tone.Neutral)"
+                                            @onclick="() => tool = value" />
+                            </Trigger>
+                            <ChildContent>@label</ChildContent>
+                        </Tooltip>
+                    }
+                </Toolbar>
+            </Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Sx="Canvas">
+                <Small Tone="TextTone.Muted">当前工具：@tools.First(t => t.Value == tool).Label</Small>
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly string[] fonts = ["正文", "标题 1", "标题 2", "引用"];
+    static readonly (string Value, string Label, IconData Icon)[] tools =
+    [
+        ("select", "选择", Lucide.MousePointer2),
+        ("hand", "平移", Lucide.Hand),
+        ("pencil", "画笔", Lucide.Pencil),
+        ("rect", "矩形", Lucide.Square),
+        ("ellipse", "椭圆", Lucide.Circle),
+        ("text", "文字", Lucide.Type),
+        ("eraser", "橡皮", Lucide.Eraser),
+    ];
+
+
+    string? font = "正文";
+    IReadOnlyList<string> marks = ["bold"];
+    string? align = "left";
+    string tool = "pencil";
+
+    static Style FontWidth => Css.Define(static () => new Style { Width = CssLength.Rem(7) });
+
+    static Style Canvas => Css.Define(static () => new Style
+    {
+        FlexGrow = 1,
+        MinHeight = CssLength.Rem(16),
+        Padding = Space.Sm,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.Fill,
+        BackgroundImage = $"linear-gradient({Colors.BorderMuted} 1px, transparent 1px), linear-gradient(90deg, {Colors.BorderMuted} 1px, transparent 1px)",
+        BackgroundSize = "24px 24px",
+    });
+}

@@ -59,8 +59,11 @@
 
     IReadOnlyList<string> Selected => Multiple ? values.Value : CurrentValue is { } value ? [value] : [];
 
-    // 交给 JS 的漫游焦点：方向键跟随排列方向
-    Attrs RootAttrs => GroupAttrs("group", Orientation, Orientation == Orientation.Vertical ? RovingVertical : RovingHorizontal);
+    // 交给 JS 的漫游焦点：方向键跟随排列方向；在工具栏里时焦点交给工具栏（整栏一个 Tab 位置，方向键跨过组内外的按钮）
+    Attrs RootAttrs => GroupAttrs("group", Orientation, Toolbar is not null ? null : Orientation == Orientation.Vertical ? RovingVertical : RovingHorizontal);
+
+    /// <summary>所在的工具栏。</summary>
+    [CascadingParameter] ToolbarContext? Toolbar { get; set; }
 
     // 交给各项：每次渲染一个新实例，选中变了时项跟着重新渲染
     ToggleGroupState State => new(Selected, Size, IsDisabled, IsReadOnly, Ripple, !Multiple, ToggleAsync);

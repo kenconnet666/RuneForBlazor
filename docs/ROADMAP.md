@@ -134,6 +134,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 - [ ] 浮层：AlertDialog、ContextMenu、HoverCard、CommandPalette、Lightbox、Tour
 - [ ] 导航：Tabs（溢出、可关闭、拖动排序）、Breadcrumbs、Steps、NavList、NavMenu、NavBar、Pagination / Pager / PageSizeSelect / PageJump / PaginationBar、SkipLink、TableOfContents、Toolbar
+      （已做：Toolbar（按“基础组件先做”提前））
 
 ## 阶段 9：表格
 

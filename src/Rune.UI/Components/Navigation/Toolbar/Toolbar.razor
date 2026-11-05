@@ -1,0 +1,49 @@
+@*
+    工具栏（role="toolbar"，同 vue-tsx-pro 的 Toolbar）：一组相关的按钮、链接。整组只占一个 Tab 位置，组内用方向键移动（漫游焦点），
+    键盘用户不必一个个 Tab 过去（WAI-ARIA 的 Toolbar 模式）。名称写 aria-label。
+    <Toolbar aria-label="文字格式">
+        <IconButton Icon="Lucide.LetterB" Label="加粗" />
+        <IconButton Icon="Lucide.Italic" Label="斜体" />
+    </Toolbar>
+    Tab 进入时落在上次聚焦的项，没有就是第一项（不跳到按下的切换按钮上，那是标签页的习惯）。
+    里面的输入框不参与方向键移动（左右键要用来移动光标），用 Tab 进出。
+    里面的 ToggleGroup 不再自己管焦点，它的按钮和其他按钮一起用方向键移动（同 WAI-ARIA 的文字格式工具栏示例）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(ToolbarStyles.Of(Orientation, Gap, Config.Styles)[ToolbarPart.Root], Rest, Managed)">
+    <CascadingValue Value="ToolbarContext.Instance" IsFixed="true">@ChildContent</CascadingValue>
+</div>
+
+@code {
+    /// <summary>默认参与方向键移动的项：按钮、链接、自定义的 role="button"。</summary>
+    public const string DefaultItems = """button, a[href], [role="button"]""";
+
+    Memo<(Orientation Orientation, bool Loop, string Items), Attrs> managed;
+
+    /// <summary>方向，默认横排（左右键移动）；竖排时上下键移动。</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>到两端后是否从另一端继续，默认 true。</summary>
+    [Parameter] public bool Loop { get; set; } = true;
+
+    /// <summary>项之间的间距档位，默认 Xs。</summary>
+    [Parameter] public SpaceScale Gap { get; set; } = SpaceScale.Xs;
+
+    /// <summary>参与方向键移动的项的选择器，默认按钮与链接（<see cref="DefaultItems"/>）。</summary>
+    [Parameter] public string Items { get; set; } = DefaultItems;
+
+    /// <summary>按钮、链接、分隔线、切换按钮组……</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 角色与方向，交给 JS 的漫游焦点（first：Tab 进入落在第一项，不找按下的项）
+    Attrs Managed => managed.Get((Orientation, Loop, Items), static k => new Attrs
+    {
+        Role = "toolbar",
+        ["aria-orientation"] = k.Orientation == Orientation.Vertical ? "vertical" : "horizontal",
+        ["data-orientation"] = k.Orientation == Orientation.Vertical ? "vertical" : "horizontal",
+        ["data-rune-roving"] = $"{(k.Orientation == Orientation.Vertical ? "vertical" : "horizontal")} first{(k.Loop ? "" : " noloop")}",
+        ["data-rune-roving-items"] = k.Items,
+    });
+}
