@@ -54,14 +54,28 @@ export function onPopoverToggle(event) {
   if (overlay.matches('[popover][data-rune-overlay], [popover][data-rune-hover-panel="card"]')) announce(overlay, opened);
 }
 
+// 打开时还没有可聚焦内容的浮层（Server 模式下第一次打开时内容由 C# 随后渲染）：内容插进来时再聚焦一次
+const awaitingFocus = new WeakSet();
+
 // 打开、定位好之后（之前不可见、聚焦不了）焦点移进去：菜单到第一项，对话框类的到 autofocus 或第一个可聚焦元素
 function focusInto(overlay) {
+  awaitingFocus.delete(overlay);
   if (!overlay.matches(':popover-open') || overlay.contains(document.activeElement)) return;
-  if (overlay.matches('[role="menu"]')) {
-    menuItems(overlay)[0]?.focus();
+  const target = overlay.matches('[role="menu"]') ? menuItems(overlay)[0] : overlay.querySelector('[autofocus]') ?? overlay.querySelector(TABBABLE);
+  if (target) target.focus();
+  else awaitingFocus.add(overlay);
+}
+
+/** 有元素插进了打开着的浮层：它还在等可聚焦的内容、焦点也没被用户移到别处时，把焦点移进去 */
+export function focusArrivedContent(node) {
+  const overlay = node.closest?.('[data-rune-overlay]');
+  if (!overlay || !awaitingFocus.has(overlay)) return;
+  const active = document.activeElement;
+  if (active && active !== document.body && !overlay.contains(active) && active.getAttribute('popovertarget') !== overlay.id) {
+    awaitingFocus.delete(overlay);
     return;
   }
-  (overlay.querySelector('[autofocus]') ?? overlay.querySelector(TABBABLE))?.focus();
+  focusInto(overlay);
 }
 
 // 锁定期间恢复原样的函数；没锁时为 null

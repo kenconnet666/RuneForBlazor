@@ -125,7 +125,7 @@ import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
 import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './js/theme.js';
 import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './js/fullscreen.js';
-import { announce, closeOnLink, closeOrRequest, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock, watchCloseWhen } from './js/overlays.js';
+import { announce, closeOnLink, closeOrRequest, focusArrivedContent, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock, watchCloseWhen } from './js/overlays.js';
 import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from './js/hover-layers.js';
 
 let installed = false;
@@ -322,7 +322,9 @@ function onMutations(mutations) {
       continue;
     }
     for (const node of mutation.addedNodes) {
-      if (node instanceof Element) syncWithin(node);
+      if (!(node instanceof Element)) continue;
+      syncWithin(node);
+      focusArrivedContent(node);
     }
     if (mutation.removedNodes.length > 0) releaseFullscreen();
     if (!(mutation.target instanceof Element)) continue;
