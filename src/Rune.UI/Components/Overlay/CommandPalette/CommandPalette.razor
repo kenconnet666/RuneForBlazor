@@ -1,0 +1,206 @@
+@*
+    命令面板（同 vue-tsx-pro 的 CommandPalette）：Mod+K（macOS 上 ⌘K，其他系统 Ctrl+K）或点触发按钮打开的搜索对话框，边输入边过滤，回车执行。
+    文档站的站内搜索、后台的“跳转到…”都用它；数据由使用方给，选中后做什么也由使用方决定。
+    <CommandPalette Items="pages" ToOption="@(p => new(p.Path, p.Title) { Description = p.Summary, Group = p.Section })"
+                    OnAction="@(p => Navigation.NavigateTo(p.Path))" />
+    结构是 Dialog（模态、焦点循环、Esc 关闭）里放一个 combobox 输入框与 ListboxView：焦点一直在输入框上，↑↓ / Page Up / Down 移动高亮
+    （aria-activedescendant，JS 初始化器的列表键盘），Enter 执行；打开、聚焦时高亮第一项。快捷键与打开都在 JS 里（data-rune-hotkey、data-rune-open），没有往返。
+    默认按选项的文字与说明过滤（忽略大小写与重音，见 UIConfig.Matches）；远程搜索时 @bind-InputValue 拿到输入、LocalFilter="false"、取数据时给 Loading。
+    未声明的属性落到对话框（dialog）上。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits UIComponent
+@{
+    var parts = CommandPaletteStyles.Of(Config.Styles);
+    var shell = InputStyles.Of(InputAppearance.Resolve(null, null, null, false, Config), Config.Styles);
+    var entries = Shown;
+}
+
+@* 内容一开始就渲染（Lazy=false）：打开时输入框已经在里面，autofocus 才生效 *@
+<Dialog Open="open.Value" OpenChanged="OpenChangedAsync" Title="@AriaLabel" Size="DialogSize.Sm" Closable="false" Lazy="false"
+        Trigger="@(ShowTrigger ? (Trigger ?? (attrs => DefaultTrigger(parts, shell, attrs))) : null)"
+        PropsHeader="VisuallyHiddenLayer" PropsBody="BodyLayer" @attributes="Attrs.MergeProps(DialogLayer, Rest, DialogManaged)">
+    <div @attributes="Attrs.Merge(parts[CommandPalettePart.Search])">
+        <Icon Data="BuiltInIcons.Search" @attributes="Attrs.MergeProps(shell[InputPart.Icon])" />
+        @ValueElement.Input("search", Attrs.Merge(Attrs.Layer(shell[InputPart.Input], parts[CommandPalettePart.Input]), PropsInput, InputManaged))
+    </div>
+    <ListboxView TItem="TItem" Id="@listId" Entries="entries" Selected="Array.Empty<string>()" OwnScroll="true" Loading="Loading"
+                 OnPick="PickAsync" ChildContent="ChildContent" Empty="Empty" EmptyText="@Config.Lang.SearchEmpty"
+                 @attributes="Attrs.MergeProps(parts[CommandPalettePart.Listbox], PropsListbox, ListManaged)" />
+</Dialog>
+
+@code {
+    static readonly Attrs DialogLayer = new() { Sx = CommandPaletteStyles.Dialog };
+    // 默认触发按钮：先去掉按钮外观，再画成输入框外壳（同 vue 的 ButtonBase + 外壳样式）
+    static readonly Attrs ButtonLayer = new() { Sx = Sx.Of(SharedStyles.ButtonReset, SharedStyles.RippleHost, SharedStyles.FocusRing) };
+    // 标题只给读屏：面板的名称
+    static readonly Attrs VisuallyHiddenLayer = new() { Sx = SharedStyles.VisuallyHidden };
+    // 正文贴边（对话框正文的内容层交给 ScrollArea 的 PropsContent）
+    static readonly Attrs BodyLayer = new() { ["PropsContent"] = new Attrs { Sx = CommandPaletteStyles.Body } };
+
+    readonly string listId = UniqueId.Next("command-palette-list");
+    OptionSource<TItem>? options;
+    string query = "";
+
+    /// <summary>是否打开（<c>@bind-Open</c>）；快捷键、触发按钮、执行、Esc 都会改它。</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>打开或关闭后。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>数据：ListboxOption、字符串，或任意数据加 ToOption。</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem> Items { get; set; } = [];
+
+    /// <summary>数据 → 选项（值、文字、说明、分组）。</summary>
+    [Parameter] public Func<TItem, ListboxOption>? ToOption { get; set; }
+
+    /// <summary>执行了一项（回车或点击）：面板随即关闭。</summary>
+    [Parameter] public EventCallback<TItem> OnAction { get; set; }
+
+    /// <summary>输入框里的文字（<c>@bind-InputValue</c>，远程搜索时据此取数据）；每次打开清空。</summary>
+    [Parameter] public string? InputValue { get; set; }
+
+    /// <summary>输入框里的文字变了。</summary>
+    [Parameter] public EventCallback<string?> InputValueChanged { get; set; }
+
+    /// <summary>怎样算匹配（数据、输入）；默认选项的文字或说明包含输入。</summary>
+    [Parameter] public Func<TItem, string, bool>? Filter { get; set; }
+
+    /// <summary>在本地按输入过滤，默认 true；远程搜索（Items 就是结果）时写 false。</summary>
+    [Parameter] public bool LocalFilter { get; set; } = true;
+
+    /// <summary>正在取结果（远程搜索）：列表里换成骨架行。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>打开面板的快捷键，默认 Mod+K（Mod 在 macOS 上是 ⌘、其他系统是 Ctrl）；null 时不注册。</summary>
+    [Parameter] public string? Hotkey { get; set; } = "Mod+K";
+
+    /// <summary>输入框与默认触发按钮的占位文字；默认取语言包（搜索文档）。</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>面板的名称（读屏念的）；默认取语言包（搜索）。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>显示触发按钮，默认 true；只用快捷键或 @bind-Open 打开时写 false。</summary>
+    [Parameter] public bool ShowTrigger { get; set; } = true;
+
+    /// <summary>自定义触发元素：参数是要加在它上面的属性（打开、aria-haspopup）；默认是一个像搜索框的按钮。</summary>
+    [Parameter] public RenderFragment<Attrs>? Trigger { get; set; }
+
+    /// <summary>自定义选项内容。</summary>
+    [Parameter] public RenderFragment<ListOptionState<TItem>>? ChildContent { get; set; }
+
+    /// <summary>没有匹配时显示的内容；默认是 Empty（文案取语言包）。</summary>
+    [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <summary>默认触发按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    /// <summary>输入框的部件属性。</summary>
+    [Parameter] public Attrs? PropsInput { get; set; }
+
+    /// <summary>结果列表的部件属性（交给 ListboxView 组件）。</summary>
+    [Parameter] public Attrs? PropsListbox { get; set; }
+
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
+
+    Bindable<string?> inputValue { get => field ??= new(this, () => InputValue, () => InputValueChanged); }
+
+    OptionSource<TItem> Options => options ??= new(() => InvokeAsync(StateHasChanged));
+
+    string AriaLabel => Label ?? Config.Lang.SearchLabel;
+
+    string PlaceholderText => Placeholder ?? Config.Lang.SearchPlaceholder;
+
+    IReadOnlyList<ListEntry<TItem>> All => Options.All(Items, ToOption);
+
+    // 默认按文字或说明匹配
+    IReadOnlyList<ListEntry<TItem>> Shown => LocalFilter
+        ? Options.Filter(All, query, Filter ?? Matches, Config)
+        : All;
+
+    bool Matches(TItem item, string text)
+    {
+        var option = ListState.OptionOf(item, ToOption);
+        return Config.Matches(option.Label, text) || (option.Description is { } description && Config.Matches(description, text));
+    }
+
+    // Ctrl K / ⌘K（macOS 上 JS 换写法）与给读屏的 aria-keyshortcuts
+    string? HotkeyText => Hotkey?.Replace("Mod+", "Ctrl ", StringComparison.OrdinalIgnoreCase).Replace('+', ' ');
+
+    string? AriaKeyShortcut => Hotkey?.Replace("Mod", "Control", StringComparison.OrdinalIgnoreCase);
+
+    Attrs DialogManaged => new() { ["data-rune-hotkey"] = Hotkey?.ToLowerInvariant() };
+
+    Attrs InputManaged => new()
+    {
+        Role = "combobox",
+        ["value"] = query,
+        ["autofocus"] = true,
+        ["autocomplete"] = "off",
+        ["enterkeyhint"] = "go",
+        ["placeholder"] = PlaceholderText,
+        ["aria-label"] = AriaLabel,
+        ["aria-autocomplete"] = "list",
+        ["aria-expanded"] = "true",
+        ["aria-controls"] = listId,
+        // 焦点留在输入框上，键盘移动列表里的高亮；聚焦、结果变了时高亮第一项
+        ["data-rune-list"] = "text first",
+        ["oninput"] = EventCallback.Factory.Create<ChangeEventArgs>(this, TypedAsync),
+    };
+
+    Attrs ListManaged => new()
+    {
+        AriaLabel = AriaLabel,
+        ["data-rune-query"] = query,
+    };
+
+    RenderFragment DefaultTrigger(PartLayers<CommandPalettePart> parts, PartLayers<InputPart> shell, Attrs attrs) =>
+        @<button type="button" aria-keyshortcuts="@AriaKeyShortcut"
+                 @attributes="Attrs.Merge(Attrs.Layer(ButtonLayer, shell[InputPart.Root], parts[CommandPalettePart.Trigger]), PropsTrigger, attrs)">
+            <Icon Data="BuiltInIcons.Search" @attributes="Attrs.MergeProps(shell[InputPart.Icon])" />
+            <span @attributes="Attrs.Merge(parts[CommandPalettePart.TriggerLabel])">@PlaceholderText</span>
+            @if (HotkeyText is not null)
+            {
+                @* 快捷键由 aria-keyshortcuts 告诉读屏，显示它的 Kbd 不算进名称 *@
+                <Kbd aria-hidden="true" data-rune-hotkey-label @attributes="Attrs.MergeProps(parts[CommandPalettePart.TriggerHotkey])">@HotkeyText</Kbd>
+            }
+        </button>;
+
+    // 每次打开从空白开始
+    async Task OpenChangedAsync(bool next)
+    {
+        if (next && query.Length > 0)
+        {
+            query = "";
+            await inputValue.SetAsync("");
+        }
+        await open.SetAsync(next);
+    }
+
+    async Task TypedAsync(ChangeEventArgs e)
+    {
+        query = e.Value as string ?? "";
+        await inputValue.SetAsync(query);
+    }
+
+    async Task PickAsync(string value)
+    {
+        foreach (var entry in Shown)
+        {
+            if (entry.Option.Value != value) continue;
+            if (entry.Option.Disabled) return;
+            await open.SetAsync(false);
+            await OnAction.InvokeAsync(entry.Item);
+            return;
+        }
+    }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        // 远程搜索时父级改了输入（清空）：跟着变
+        if (InputValueChanged.HasDelegate && (inputValue.Value ?? "") != query) query = inputValue.Value ?? "";
+    }
+}

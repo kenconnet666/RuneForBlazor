@@ -138,6 +138,10 @@
   只当导航的标签不写 aria-controls）。漫游焦点、下划线指示条复用 roving.js、indicator.js；溢出时的滚动按钮、当前标签滚进来、Delete / 中键关闭、
   拖动与 Alt + ←→ 排序在 `js/tabs.js`。排序只发 rune-reorder，由使用方重排，JS 不挪 Blazor 管的元素。WebAssembly 下 C# 在 dispatchEvent / click
   里同步就渲染完了，“等渲染后再做”的逻辑（关闭后交焦点、排序后留焦点）要先同步查一次再挂观察器，否则观察器等不到变化、留到以后误触发。
+- **CommandPalette**：Dialog（Lazy=false：打开时输入框已经在，autofocus 才生效）里放 combobox 输入框与 ListboxView，键盘复用 lists.js：
+  列表在打开的对话框里也算“显示着”（原来只认弹出层），宿主写 `data-rune-list="text first"` 时聚焦、结果变了高亮第一项；输入时先清掉旧高亮
+  （C# 渲染出新结果前按 Enter 不选中上一批的项）。快捷键在 `js/hotkeys.js`（`data-rune-hotkey` 写在对话框上，按下时直接打开或关上；
+  显示快捷键的 Kbd 在 macOS 上换成 ⌘）。
 - **本页目录、加载条、跳到正文**：TableOfContents 由 C# 按 Items 输出链接（预渲染的 HTML 里就有目录），滚动高亮在 `js/toc.js` 里写 aria-current="location"，
   指示条复用 indicator.js；链接按当前页解析（NavLinks.Resolve）。LoadingBar 的控制器只记状态（Status、Run），延迟显示、先快后慢地涨、走满淡出都在
   `js/loading-bar.js`，Server 模式不用每 300ms 往返；`Navigation` 时跟着 Blazor 的 enhancednavigationstart / end 走。SkipLink 复用 data-rune-focus

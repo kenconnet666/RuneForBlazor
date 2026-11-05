@@ -165,7 +165,7 @@ export function moveInList(host, event) {
   if (host.getAttribute('aria-disabled') === 'true') return;
   const list = listOf(host);
   if (!list) return;
-  const flags = (host.getAttribute('data-rune-list') ?? '').split(' ');
+  const flags = flagsOf(host);
   const table = optionTable(list);
   // 可用项的序号：方向键、类型搜索都跳过不可用的项
   const usable = table.flatMap((option, index) => (option.disabled ? [] : [index]));
@@ -322,12 +322,14 @@ export function syncTriggerExpanded(panel, opened) {
  */
 export function onHostInput(event) {
   const host = event.target;
-  if (!(host instanceof HTMLInputElement) || event.isComposing || !host.hasAttribute('data-rune-popover')) return;
+  if (!(host instanceof HTMLInputElement) || event.isComposing || !host.matches('[data-rune-list]')) return;
+  // 旧的高亮指着上一批结果：C# 渲染出新结果之前按 Enter 不该选中它（新结果渲染后 onQueryChanged 高亮第一项）。
+  // 命令面板的输入框没有弹层，也一样
+  const list = listOf(host);
+  if (list && flagsOf(host).includes('text')) highlight(host, list, -1, false);
+  if (!host.hasAttribute('data-rune-popover')) return;
   const panel = popoverOfHost(host);
   if (!panel) return;
-  // 旧的高亮指着上一批结果：C# 渲染出新结果之前按 Enter 不该选中它（新结果渲染后 onQueryChanged 高亮第一项）
-  const list = listOf(host);
-  if (list) highlight(host, list, -1, false);
   if (panel.hasAttribute('data-rune-hide-empty')) {
     typedPanels.add(panel);
     syncHideEmpty(panel.querySelector('[role="listbox"]'));
@@ -380,18 +382,35 @@ const RESULT_ANNOUNCE_DELAY = 500;
  */
 export function onOptionsChanged(list) {
   syncHideEmpty(list);
-  if (!list.getAttribute('data-rune-query') || !list.closest('[popover]')?.matches(':popover-open')) return;
+  if (!isShown(list)) return;
   const host = hostOf(list);
-  if (host && activeIndex(host, list) < 0) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
+  // 有搜索词，或宿主要一直高亮第一项（命令面板）：还没有高亮项时高亮第一项
+  if (!host || (!list.getAttribute('data-rune-query') && !flagsOf(host).includes('first'))) return;
+  if (activeIndex(host, list) < 0) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
+}
+
+/** 列表在打开着的浮层里：弹出层打开着，或在打开的对话框里（命令面板）。 */
+function isShown(list) {
+  const panel = list.closest('[popover]');
+  return panel ? panel.matches(':popover-open') : !!list.closest('dialog[open]');
+}
+
+const flagsOf = (host) => (host.getAttribute('data-rune-list') ?? '').split(' ');
+
+/** 宿主写了 first（命令面板的输入框）：聚焦时高亮第一项，打开就能直接回车。 */
+export function highlightFirstOnFocus(host) {
+  if (!host.matches('[data-rune-list]') || !flagsOf(host).includes('first')) return;
+  const list = listOf(host);
+  if (list) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
 }
 
 export function onQueryChanged(list) {
   syncHideEmpty(list);
-  if (!list.closest('[popover]')?.matches(':popover-open')) return;
+  if (!isShown(list)) return;
   const host = hostOf(list);
   const query = list.getAttribute('data-rune-query') ?? '';
   if (host) {
-    if (query) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
+    if (query || flagsOf(host).includes('first')) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
     else highlightDefault(host, list);
   }
   clearTimeout(resultTimers.get(list));

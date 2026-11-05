@@ -56,6 +56,7 @@
 //                            列表带 data-reorderable 时拖动标签（或 Alt + ←→）改顺序，发出冒泡的 rune-reorder（values）
 //   data-rune-toc            本页目录：滚动时给当前节的链接写 aria-current="location"（data-scroll-root 是滚动容器的 id）
 //   data-rune-loading-bar    顶部加载条：按 data-status / data-run 开始、完成、出错（延迟显示、先快后慢地涨）；带 data-navigation 时跟着增强导航走
+//   data-rune-hotkey="mod+k" 对话框（命令面板）：按下快捷键时打开或关上；显示快捷键的元素写 data-rune-hotkey-label（macOS 上换成 ⌘）
 //   data-rune-highlight="语言" 代码块的 code 元素：插入后用 Shiki 上色（第一次用到时才加载 Shiki 与这种语言的语法）
 //   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
 //                            （可以移到提示上），键盘聚焦时立即显示；失焦、按下、Esc 隐藏；同一时间只显示一个
@@ -86,13 +87,13 @@
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
-// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、
+// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawIcon, startDismiss, startRipple } from './js/effects.js';
 import { watchGrid } from './js/layout.js';
-import { activeIndex, closeAfterPick, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
+import { activeIndex, closeAfterPick, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
 import { watchIndicator } from './js/indicator.js';
 import { scheduleOverflow, watchOverflow } from './js/overflow.js';
 import { moveRoving, noteRovingFocus, watchRoving } from './js/roving.js';
@@ -102,6 +103,7 @@ import { watchScrollArea } from './js/scroll-area.js';
 import { highlightCode } from './js/highlight.js';
 import { watchToc } from './js/toc.js';
 import { navigationEnded, navigationStarted, watchLoadingBar } from './js/loading-bar.js';
+import { formatHotkeyLabel, hotkeyTarget } from './js/hotkeys.js';
 import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from './js/tabs.js';
 import { watchCollapse } from './js/collapse.js';
 import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle } from './js/resize.js';
@@ -261,9 +263,10 @@ function syncWithin(root) {
     if (element.matches('[data-rune-tabs]')) watchTabs(element);
     if (element.matches('[data-rune-toc]')) watchToc(element);
     if (element.matches('[data-rune-loading-bar]')) watchLoadingBar(element);
+    if (element.matches('[data-rune-hotkey-label]')) formatHotkeyLabel(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar], [data-rune-hotkey-label]').forEach(sync);
 }
 
 /** 头像的图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */
@@ -360,6 +363,13 @@ function onClick(event) {
 
 
 function onKeyDown(event) {
+  // 打开浮层的快捷键（命令面板的 Mod+K）：已经开着时关上
+  const hotkeyed = hotkeyTarget(event);
+  if (hotkeyed) {
+    if (hotkeyed.open) closeOrRequest(hotkeyed, 'escape');
+    else open(hotkeyed);
+    return;
+  }
   onHoverEscape(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
@@ -378,6 +388,7 @@ function onFocusIn(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
   noteRovingFocus(event);
+  highlightFirstOnFocus(target);
   onOtpFocus(event);
   onHoverFocusIn(event);
   // 列表自己获得焦点：还没有高亮项时高亮默认项（触发按钮、输入框做宿主时由打开下拉的一方决定）
