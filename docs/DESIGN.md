@@ -130,6 +130,8 @@
 - **Collapse 是展开收起的基础组件**（同 vue-tsx-pro）：grid-template-rows 0fr ↔ 1fr 做高度过渡；收起时组件渲染 inert，过渡结束后 JS（`js/collapse.js`）加
   hidden="until-found"，页内查找命中时 beforematch 转成 rune-toggle 让 C# 展开。Collapsible 的内容区是 Collapse（收起后内容仍在页面里，Lazy 时第一次展开才渲染）。
   注意：带内容片段参数的组件会随外层 CascadingValue 的通知重新渲染（ParameterChangeDetector 把 RenderFragment 一律当作变了）。
+- **Avatar**：图片盖在后备内容（首字母）上，加载状态由 JS 按 load / error 写在图片自己的 data-state 上（换图时图片按地址重建、状态重置），
+  加载失败的图片藏起来、露出首字母；没有往返，静态 SSR 一样。AvatarGroup 的“超过 Max 折叠成 +N”在 Blazor 里没法截取子内容，改为 Items 加每项的模板。
 - **JS 的组织**：入口 `Rune.UI.lib.module.js` 只负责安装（注册自定义事件、全局事件委托、DOM 变化监听）与分发，按职责分到 `wwwroot/js/` 的模块：
   overlays、floating、lists、tooltips、overflow、controls、effects、layout、shared，以及 roving、indicator、slider、move、rating、otp、scroll-area。模块用相对路径互相 import（浏览器原生 ES 模块，不打包）；
   入口顶部的注释是全部 data 属性约定的总表，新增约定写在那里。

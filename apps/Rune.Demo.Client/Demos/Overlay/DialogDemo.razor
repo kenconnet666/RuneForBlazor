@@ -12,7 +12,7 @@
     <ChildContent>
         <Card>
             <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md">
-                <span @attributes="Attrs.Merge(DemoStyles.Initials)">@profile.Name[..1]</span>
+                <Avatar Name="@profile.Name" />
                 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Grow="true">
                     <Strong>@profile.Name</Strong>
                     <Small Tone="TextTone.Muted">@profile.Department · @profile.Bio</Small>

@@ -1,0 +1,83 @@
+@*
+    头像（span，role="img"，同 vue-tsx-pro 的 Avatar）：显示图片，图片还没加载好或加载失败时显示后备内容（默认是名字的首字母）。
+    名称写在外层（aria-label），图片本身是装饰（alt=""），读屏不会念两遍；没有 Name 时整个头像是装饰性的（对读屏隐藏）。
+    <Avatar Src="@user.Avatar" Name="@user.Name" />
+    <Avatar Name="张三" Size="Size.Lg" Radius="Radius.Md" />
+    <Avatar Name="李四" Variant="StatusVariant.Solid" Tone="Tone.Success" />
+    图片盖在后备内容上：加载状态由 JS 初始化器按图片的 load / error 写在图片的 data-state 上（loaded / error），没有往返，静态 SSR 也一样。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var defaults = Config.Defaults.Get<AvatarDefaults>();
+    var parts = AvatarStyles.Of(new AvatarAppearance(
+        Size ?? defaults?.Size,
+        Radius ?? defaults?.Radius ?? UI.Radius.Full,
+        Variant ?? defaults?.Variant ?? StatusVariant.Soft,
+        Tone ?? defaults?.Tone ?? UI.Tone.Accent,
+        Group is not null), Config.Styles);
+}
+
+<span data-state="@(Src is null ? "fallback" : "image")" @attributes="Attrs.Merge(parts[AvatarPart.Root], Rest, RootManaged)">
+    <span aria-hidden="true" @attributes="Attrs.Merge(parts[AvatarPart.Fallback], PropsFallback)">
+        @if (Fallback is not null)
+        {
+            @Fallback
+        }
+        else if (Name is not null)
+        {
+            @AvatarStyles.Initials(Name)
+        }
+        else
+        {
+            <Icon Data="BuiltInIcons.User" />
+        }
+    </span>
+    @if (Src is not null)
+    {
+        <img @key="Src" alt="" src="@Src" data-rune-avatar-image @attributes="Attrs.Merge(parts[AvatarPart.Image], PropsImage)" />
+    }
+</span>
+
+@code {
+    static readonly Attrs Decorative = new() { AriaHidden = true };
+
+    Memo<string?, Attrs> rootManaged;
+
+    /// <summary>图片地址；不写或加载失败时显示后备内容。</summary>
+    [Parameter] public string? Src { get; set; }
+
+    /// <summary>名字：无障碍名称，也用来生成首字母；不写时头像是装饰性的。</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>后备内容，默认是名字的首字母，没有名字时是人像图标。</summary>
+    [Parameter] public RenderFragment? Fallback { get; set; }
+
+    /// <summary>字号档位，头像边长是它的 2.5 倍；不写时继承（在头像组里随组）。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认圆形；团队、组织、应用的图标常用 Md。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    /// <summary>后备内容的底色样式，默认浅色底（Soft）。</summary>
+    [Parameter] public StatusVariant? Variant { get; set; }
+
+    /// <summary>后备内容的色调，默认品牌色。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>图片的部件属性。</summary>
+    [Parameter] public Attrs? PropsImage { get; set; }
+
+    /// <summary>后备内容的部件属性。</summary>
+    [Parameter] public Attrs? PropsFallback { get; set; }
+
+    /// <summary>所在的头像组：叠放。</summary>
+    [CascadingParameter] AvatarGroupContext? Group { get; set; }
+
+    // 有名字时是一张图（名字作为名称），没有时对读屏隐藏
+    Attrs RootManaged => Name is null ? Decorative : rootManaged.Get(Name, static name => new Attrs
+    {
+        Role = "img",
+        ["aria-label"] = name,
+    });
+}

@@ -1,0 +1,54 @@
+@*
+    头像组（div，role="group"，同 vue-tsx-pro 的 AvatarGroup）：一排头像叠放，超过 Max 的折叠成“+N”。协作者、参与人、点赞的人。
+    <AvatarGroup Items="members" Max="3" aria-label="协作者" Context="member">
+        <Avatar Name="@member.Name" Src="@member.Avatar" />
+    </AvatarGroup>
+    vue-tsx-pro 按子节点截取；Blazor 的子内容没法截取，这里给 Items 与每一项的模板。头像的大小随组的 Size（或上下文字号）；
+    组里的 Avatar 经级联得知自己在组里，叠放并加一圈页面底色的描边。“+N”读屏念“还有 N 人”；Total 给了时按它算 N（列表只拿到了一部分时）。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits UIComponent
+@{
+    var shown = Max is { } max ? Items.Take(max).ToList() : Items.ToList();
+    var hidden = (Total ?? Items.Count()) - shown.Count;
+    var parts = AvatarGroupStyles.Of(Size, Config.Styles);
+}
+
+<div role="group" @attributes="Attrs.Merge(parts[AvatarGroupPart.Root], Rest)">
+    <CascadingValue Value="AvatarGroupContext.Instance" IsFixed="true">
+        @foreach (var item in shown)
+        {
+            @ChildContent?.Invoke(item)
+        }
+    </CascadingValue>
+    @if (hidden > 0)
+    {
+        <span role="img" aria-label="@Config.Lang.AvatarMore(hidden)" @attributes="Attrs.Merge(parts[AvatarGroupPart.More], PropsMore)">
+            <span aria-hidden="true" @attributes="Attrs.Merge(parts[AvatarGroupPart.MoreText], PropsMoreText)">+@hidden</span>
+        </span>
+    }
+</div>
+
+@code {
+    /// <summary>这组人。</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem> Items { get; set; } = [];
+
+    /// <summary>每个人的头像（Avatar）。</summary>
+    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+
+    /// <summary>最多显示几个头像，其余折叠成“+N”；不写时全部显示。</summary>
+    [Parameter] public int? Max { get; set; }
+
+    /// <summary>总人数：列表只拿到前几个时给出，“+N”按它算。</summary>
+    [Parameter] public int? Total { get; set; }
+
+    /// <summary>字号档位，头像边长是它的 2.5 倍；不写时继承。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>“+N”的部件属性。</summary>
+    [Parameter] public Attrs? PropsMore { get; set; }
+
+    /// <summary>“+N”文字的部件属性；读屏念的是 More 的 aria-label，这里对读屏隐藏。</summary>
+    [Parameter] public Attrs? PropsMoreText { get; set; }
+}

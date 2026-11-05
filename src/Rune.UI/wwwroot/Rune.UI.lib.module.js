@@ -47,6 +47,7 @@
 //   data-rune-otp            验证码输入框：输入时先过滤（data-charset、data-length），再按输入框的值画各格的 data-char 与当前格的 data-active
 //   data-rune-scroll-area    滚动区域：浮层滚动条的大小与位置、显示与淡出、拖动、点轨道翻页、滚轮转交；内容超出时视口可聚焦（data-focusable）
 //   data-rune-collapse       折叠内容区：收起的过渡结束后加 hidden="until-found"，页内查找命中时发 rune-toggle（open: true）让 C# 展开
+//   data-rune-avatar-image   头像的图片：加载完写 data-state="loaded"（显示出来），失败写 "error"（藏起来，露出后备内容）；插入时已经加载完的照样标
 //   data-rune-overflow       一行标签（Select 的 MaxTagCount 按宽度）：量出放得下几个 data-rune-overflow-item，其余写 data-overflow-hidden
 //                            （CSS 藏起来但仍可测量），data-rune-overflow-rest（“+N”）的文字取自 data-rune-more 里的第 N 项
 //   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
@@ -171,6 +172,9 @@ function install(blazor) {
       if (check instanceof SVGSVGElement) drawIcon(check);
     }
   });
+  // 头像的图片：load / error 不冒泡，在捕获阶段接住
+  document.addEventListener('load', (event) => markAvatarImage(event.target), true);
+  document.addEventListener('error', (event) => markAvatarImage(event.target), true);
   // 输入法组合期间的 input 不交给 C#（不拿拼音字母去过滤），组合结束补发一次
   document.addEventListener('input', (event) => {
     if (event.isComposing && event.target instanceof Element && event.target.matches('input[data-rune-list~="text"]')) event.stopImmediatePropagation();
@@ -222,9 +226,16 @@ function syncWithin(root) {
     if (element.matches('[data-rune-otp]')) watchOtp(element);
     if (element.matches('[data-rune-scroll-area]')) watchScrollArea(element);
     if (element.matches('[data-rune-collapse]')) watchCollapse(element);
+    if (element.matches('img[data-rune-avatar-image]') && element.complete) markAvatarImage(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], img[data-rune-avatar-image]').forEach(sync);
+}
+
+/** 头像的图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */
+function markAvatarImage(image) {
+  if (!(image instanceof HTMLImageElement) || !image.hasAttribute('data-rune-avatar-image')) return;
+  image.dataset.state = image.complete && image.naturalWidth > 0 ? 'loaded' : 'error';
 }
 
 function onMutations(mutations) {

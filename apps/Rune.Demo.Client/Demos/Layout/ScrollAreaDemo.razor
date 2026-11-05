@@ -1,5 +1,5 @@
 @*
-    滚动区域：示例与 vue-tsx-pro 文档站的 /components/scroll-area 对应。收件箱的头像暂用缩写的替身（Avatar 随后做）。
+    滚动区域：示例与 vue-tsx-pro 文档站的 /components/scroll-area 对应。
 *@
 @attribute [ComponentDemo("scroll-area", "滚动区域", Group = "布局", Order = 2)]
 @inherits RuneComponent
@@ -14,7 +14,7 @@
                     {
                         <li @key="message.Id">
                             <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Sx="Item">
-                                <span aria-hidden="true" @attributes="Attrs.Merge(Initials)">@message.Sender[..1]</span>
+                                <Avatar Size="Size.Sm" Name="@message.Sender" />
                                 <Flex Direction="LayoutDirection.Column" Grow="true" Sx="Shrinkable">
                                     <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
                                         <Strong>@message.Sender</Strong>
@@ -149,7 +149,6 @@
     // 封面色由每张歌单的色相决定
     static string Cover(int hue) => $"background-image:linear-gradient(135deg, oklch(70% 0.14 {hue}), oklch(45% 0.12 {hue + 40}))";
 
-    static readonly Attrs Initials = new() { Sx = DemoStyles.Initials };
     static readonly Attrs PlaylistItem = new() { Sx = PlaylistItemStyle };
     static readonly Attrs CoverShape = new() { Sx = CoverStyle };
     static readonly Attrs SheetTable = new() { Sx = TableStyle };

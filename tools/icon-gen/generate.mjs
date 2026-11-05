@@ -56,6 +56,7 @@ const BUILT_IN = [
   'copy',
   'inbox',
   'star',
+  'user',
 ];
 
 /** 文档注释里最多列几个关键词 */

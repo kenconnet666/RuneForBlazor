@@ -1,6 +1,6 @@
 @*
     下拉选择：示例与 vue-tsx-pro 文档站的 /components/select 对应。
-    头像（Avatar、AvatarGroup）在阶段 7 做好前用 DemoStyles.Initials 代替；拼音匹配（createPinyinMatcher）见 ROADMAP 的“待决”。
+    拼音匹配（createPinyinMatcher）见 ROADMAP 的“待决”。
 *@
 @attribute [ComponentDemo("select", "下拉选择", Group = "表单", Order = 5)]
 @inherits RuneComponent
@@ -16,7 +16,7 @@
                 <Field Label="负责人">
                     <Select Items="members" ToOption="@(m => new ListboxOption(m.Id, m.Name, Group: m.Team))" @bind-Value="assignee" Placeholder="未分配" Clearable="true" data-testid="assignee">
                         <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
-                            <span @attributes="Attrs.Merge(new Attrs { Sx = Sx.Of(DemoStyles.Initials, DemoStyles.InitialsXs) })">@context.Item.Name[..1]</span>
+                            <Avatar Size="Size.Xs" Name="@context.Item.Name" />
                             <span>@context.Item.Name</span>
                         </Flex>
                     </Select>
@@ -100,18 +100,15 @@
                     @bind-Values="team" Clearable="true" Placeholder="添加成员" data-testid="members">
                 <RenderValue>
                     <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
-                        <span @attributes="Attrs.Merge(StackLayer)">
-                            @foreach (var member in context.Take(3))
-                            {
-                                <span @key="member.Id" @attributes="Attrs.Merge(StackedInitialsLayer)">@member.Name[..1]</span>
-                            }
-                        </span>
+                        <AvatarGroup Items="context.Take(3)" Context="member">
+                            <Avatar @key="member.Id" Name="@member.Name" Size="Size.Xs" />
+                        </AvatarGroup>
                         <TextSpan Size="Size.Sm">@(context.Count > 3 ? $"{context[0].Name} 等 {context.Count} 人" : string.Join("、", context.Select(m => m.Name)))</TextSpan>
                     </Flex>
                 </RenderValue>
                 <ChildContent>
                     <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
-                        <span @attributes="Attrs.Merge(new Attrs { Sx = DemoStyles.Initials })">@context.Item.Name[..1]</span>
+                        <Avatar Name="@context.Item.Name" Size="Size.Sm" />
                         <Flex Direction="LayoutDirection.Column">
                             <TextSpan Size="Size.Sm">@context.Item.Name</TextSpan>
                             <Small Tone="TextTone.Muted">@context.Item.Team</Small>
@@ -158,14 +155,6 @@
         new("zyh", "周一航", "设计"), new("xy", "许悠", "设计"), new("lxm", "林小满", "前端"),
         new("zhr", "赵浩然", "前端"), new("cm", "陈默", "后端"), new("wq", "王晴", "测试"),
     ];
-
-    // 头像叠放：后一个压住前一个的一部分，描一圈底色隔开
-    static readonly Attrs StackLayer = new() { Sx = Stack };
-    static readonly Attrs StackedInitialsLayer = new() { Sx = Sx.Of(DemoStyles.Initials, DemoStyles.InitialsXs, Stacked) };
-
-    static Style Stack => Css.Define(static () => new Style { Display = Display.InlineFlex, PaddingInlineStart = CssLength.Em(0.4) });
-
-    static Style Stacked => Css.Define(static () => new Style { MarginInlineStart = CssLength.Em(-0.4), BoxShadow = $"0 0 0 2px {Colors.Surface}" });
 
     string? type = "bug";
     string? assignee = "lxm";

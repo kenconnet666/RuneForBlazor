@@ -67,6 +67,12 @@ public static class When
     /// <summary>没有子节点（空白文字也算没有）。浮层的内容第一次打开才渲染，渲染前用它把空壳藏起来。</summary>
     public static readonly Condition Empty = new(":empty");
 
+    /// <summary>父元素里的第一个子元素（叠放的头像里第一个不往前叠）。</summary>
+    public static readonly Condition FirstChild = new(":first-child");
+
+    /// <summary>父元素里的最后一个子元素。</summary>
+    public static readonly Condition LastChild = new(":last-child");
+
     /// <summary>
     /// 父元素处于某个状态时：<c>[When.Parent(When.Hover)] = new() { Visibility = "visible" }</c> 生成 <c>.x:is(:hover &gt; *)</c>。
     /// 提示这类“悬停在外层上时显示里面某个部件”的样式用它，不用为父元素另起类名。

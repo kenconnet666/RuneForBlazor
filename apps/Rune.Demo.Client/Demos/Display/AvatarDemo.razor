@@ -1,0 +1,112 @@
+@*
+    头像：示例与 vue-tsx-pro 文档站的 /components/avatar 对应（头像、头像组、角标）。
+*@
+@attribute [ComponentDemo("avatar", "头像", Group = "展示", Order = 1)]
+@inherits RuneComponent
+
+<DemoSection Id="basic" Title="基础用法">
+    <Description><Code>Name</Code> 是读屏念的名称，也用来生成首字母；图片还没加载好、加载失败时显示后备内容。<Code>Radius.Md</Code> 用于团队、组织；后备内容的 <Code>Variant</Code> 与 <Code>Tone</Code> 同 Badge。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+                <TextSpan Size="Size.Xs" Tone="TextTone.Muted">尺寸</TextSpan>
+                @foreach (var size in sizes)
+                {
+                    <Avatar @key="size" Size="size" Src="@DemoPeople.Members[0].Photo" Name="@($"林小满（{size.ToString().ToLowerInvariant()}）")" />
+                }
+            </Flex>
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true" data-testid="fallbacks">
+                <TextSpan Size="Size.Xs" Tone="TextTone.Muted">后备内容</TextSpan>
+                <Avatar Name="吴悠" />
+                <Avatar Name="Zhao Qing" />
+                <Avatar Name="陈默" Src="/not-found.png" data-testid="broken" />
+                <Avatar />
+                <Avatar Name="设计中心" Radius="Radius.Md"><Fallback><Icon Data="Lucide.BuildingComplex" /></Fallback></Avatar>
+            </Flex>
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+                <TextSpan Size="Size.Xs" Tone="TextTone.Muted">色调</TextSpan>
+                @foreach (var tone in tones)
+                {
+                    <Avatar @key="tone" Name="@Lower(tone)" Tone="tone" />
+                }
+                @foreach (var tone in tones)
+                {
+                    <Avatar @key="@($"solid-{tone}")" Name="@Lower(tone)" Tone="tone" Variant="StatusVariant.Solid" />
+                }
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="group" Title="头像组">
+    <Description><Code>AvatarGroup</Code> 把头像叠放，超过 <Code>Max</Code> 的折叠成“+N”，读屏念“还有 N 人”；列表只拿到一部分时用 <Code>Total</Code> 算 N。组里头像的大小随组的 <Code>Size</Code>。vue-tsx-pro 按子节点截取，这里给 <Code>Items</Code> 与每一项的模板。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Card>
+                <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true">
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                        <Strong>官网改版</Strong>
+                        <Small Tone="TextTone.Muted">7 位协作者 · 2 小时前更新</Small>
+                    </Flex>
+                    <AvatarGroup Items="DemoPeople.Members" Max="4" aria-label="协作者" Context="member" data-testid="collaborators">
+                        <Avatar @key="member.Name" Name="@member.Name" Src="@member.Photo" />
+                    </AvatarGroup>
+                </Flex>
+            </Card>
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Lg" Wrap="true">
+                <AvatarGroup Items="DemoPeople.Members.Take(3)" Size="Size.Sm" Max="3" Total="128" aria-label="点赞的人" Context="member">
+                    <Avatar @key="member.Name" Name="@member.Name" Src="@member.Photo" />
+                </AvatarGroup>
+                <Small Tone="TextTone.Muted">只拿到了 3 位，Total 是 128：显示“+125”</Small>
+            </Flex>
+            <AvatarGroup Items="DemoPeople.Members.Skip(1).Take(4)" Size="Size.Lg" aria-label="评审人" Context="member">
+                <Avatar @key="member.Name" Name="@member.Name" Src="@member.Photo" />
+            </AvatarGroup>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="indicator" Title="角标">
+    <Description><Code>Indicator</Code> 包住要标记的元素：计数超过 <Code>Max</Code> 显示“99+”，0 时不显示（<Code>ShowZero</Code> 时显示 0）；<Code>Dot</Code> 是小圆点。数字对读屏隐藏，另有一句完整的 <Code>Label</Code>。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Lg" Wrap="true">
+                <Indicator Count="unread" data-testid="unread">
+                    <IconButton Icon="Lucide.Bell" Variant="ButtonVariant.Surface" Label="通知" />
+                </Indicator>
+                <Indicator Count="120" Max="99" Tone="Tone.Accent">
+                    <IconButton Icon="Lucide.Inbox" Variant="ButtonVariant.Surface" Label="收件箱" />
+                </Indicator>
+                <Indicator Count="0" ShowZero="true" Tone="Tone.Neutral">
+                    <IconButton Icon="Lucide.ListTodo" Variant="ButtonVariant.Surface" Label="待办" />
+                </Indicator>
+                <Indicator Dot="true" Tone="Tone.Warning" Label="有新回复">
+                    <IconButton Icon="Lucide.MessageCircle" Variant="ButtonVariant.Surface" Label="评论" />
+                </Indicator>
+                <Button Size="Size.Sm" Variant="ButtonVariant.Soft" @onclick="() => unread++">来一条消息</Button>
+                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Disabled="unread == 0" @onclick="() => unread = 0">全部已读</Button>
+            </Flex>
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Lg" Wrap="true">
+                <TextSpan Size="Size.Xs" Tone="TextTone.Muted">在线状态</TextSpan>
+                @for (var i = 0; i < 4; i++)
+                {
+                    var index = i;
+                    var member = DemoPeople.Members[index];
+                    <Indicator @key="member.Name" Dot="true" Tone="@(index == 3 ? Tone.Neutral : index == 2 ? Tone.Warning : Tone.Success)"
+                               Placement="IndicatorPlacement.BottomEnd" Overlap="IndicatorOverlap.Circular" Label="@(index == 3 ? "离线" : index == 2 ? "忙碌" : "在线")">
+                        <Avatar Size="Size.Lg" Name="@member.Name" Src="@member.Photo" />
+                    </Indicator>
+                }
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg, Size.Xl];
+    static readonly Tone[] tones = [Tone.Accent, Tone.Info, Tone.Success, Tone.Warning, Tone.Danger, Tone.Neutral];
+
+    int unread = 8;
+
+    static string Lower(Tone tone) => tone.ToString().ToLowerInvariant();
+}

@@ -1,0 +1,74 @@
+@*
+    角标（span，同 vue-tsx-pro 的 Indicator）：叠在头像、图标按钮角上的计数或小圆点（未读消息、在线状态）。
+    包住要标记的元素，角标绝对定位在它的角上；计数超过 Max 显示“99+”。
+    <Indicator Count="unread"><IconButton Icon="Lucide.Bell" Label="通知" /></Indicator>
+    <Indicator Dot="true" Tone="Tone.Success" Placement="IndicatorPlacement.BottomEnd" Overlap="IndicatorOverlap.Circular" Label="在线"><Avatar Name="张三" /></Indicator>
+    读屏：角标里的数字对读屏隐藏，另有一句完整的说明（Label，默认取语言包的“N 条新消息”“有新消息”），念在被标记的元素之后。
+    Count 为 0（且没有 ShowZero）、也没有 Dot 时不显示角标。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var visible = Dot || (Count is { } count && (count > 0 || ShowZero));
+    var tone = Tone ?? Config.Defaults.Get<IndicatorDefaults>()?.Tone ?? UI.Tone.Danger;
+    var parts = IndicatorStyles.Of(new IndicatorAppearance(Dot, Placement, Overlap, tone), Config.Styles);
+}
+
+<span @attributes="Attrs.Merge(parts[IndicatorPart.Root], Rest)">
+    @ChildContent
+    @if (visible)
+    {
+        <span data-placement="@PlacementName" @attributes="Attrs.Merge(parts[IndicatorPart.Badge], PropsBadge)">
+            @if (!Dot)
+            {
+                <span aria-hidden="true" @attributes="Attrs.Merge(parts[IndicatorPart.Count], PropsCount)">@CountText</span>
+            }
+            <VisuallyHidden>@(Label ?? (Dot ? Config.Lang.IndicatorDot : Config.Lang.IndicatorCount(Count ?? 0)))</VisuallyHidden>
+        </span>
+    }
+</span>
+
+@code {
+    /// <summary>计数；超过 Max 显示“Max+”。</summary>
+    [Parameter] public int? Count { get; set; }
+
+    /// <summary>计数的上限，默认 99。</summary>
+    [Parameter] public int Max { get; set; } = 99;
+
+    /// <summary>只显示小圆点（不显示数字）。</summary>
+    [Parameter] public bool Dot { get; set; }
+
+    /// <summary>Count 为 0 时也显示。</summary>
+    [Parameter] public bool ShowZero { get; set; }
+
+    /// <summary>色调，默认红色（Danger）。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>位置，默认行尾的上角。</summary>
+    [Parameter] public IndicatorPlacement Placement { get; set; }
+
+    /// <summary>被标记元素的形状，默认方形。</summary>
+    [Parameter] public IndicatorOverlap Overlap { get; set; }
+
+    /// <summary>给读屏的说明；默认取语言包（“N 条新消息”“有新消息”）。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>角标的部件属性。</summary>
+    [Parameter] public Attrs? PropsBadge { get; set; }
+
+    /// <summary>计数文字的部件属性（读屏念的是 Label，计数文字对读屏隐藏）。</summary>
+    [Parameter] public Attrs? PropsCount { get; set; }
+
+    /// <summary>被标记的元素。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    string CountText => Count is not { } count ? "" : count > Max ? $"{Max}+" : count.ToString(System.Globalization.CultureInfo.CurrentCulture);
+
+    string PlacementName => Placement switch
+    {
+        IndicatorPlacement.BottomEnd => "bottom-end",
+        IndicatorPlacement.TopStart => "top-start",
+        IndicatorPlacement.BottomStart => "bottom-start",
+        _ => "top-end",
+    };
+}

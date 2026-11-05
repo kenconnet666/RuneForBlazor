@@ -111,27 +111,4 @@ public static class DemoStyles
     {
         [When.Expanded] = new() { Color = Tones.Accent.Text },
     });
-
-    /// <summary>头像的替身（Avatar 在阶段 7 做）：与 Avatar 同大的圆形缩写。</summary>
-    public static Style Initials => Css.Define(static () => new Style
-    {
-        Display = Display.InlineFlex,
-        AlignItems = AlignItems.Center,
-        JustifyContent = JustifyContent.Center,
-        Width = CssLength.Em(2.5),
-        Height = CssLength.Em(2.5),
-        FlexShrink = 0,
-        BorderRadius = Radii.Full,
-        BackgroundColor = Tones.Accent.Soft,
-        Color = Tones.Accent.Text,
-        FontWeight = FontWeights.Semibold,
-    });
-
-    /// <summary>小号头像的替身（Avatar 的 xs）：放在选项、触发框里。</summary>
-    public static Style InitialsXs => Css.Define(static () => new Style
-    {
-        Width = CssLength.Em(1.75),
-        Height = CssLength.Em(1.75),
-        FontSize = CssLength.Em(0.75),
-    });
 }

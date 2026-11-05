@@ -1,6 +1,6 @@
 @*
     气泡确认：示例与 vue-tsx-pro 文档站的 /components/popconfirm 对应。
-    头像用 DemoStyles.Initials 代替（Avatar 在阶段 7 做）；失败提示用现有的 Toast（阶段 6 补齐说明、位置）。
+    失败提示用现有的 Toast（阶段 6 补齐说明、位置）。
 *@
 @attribute [ComponentDemo("popconfirm", "气泡确认", Group = "浮层", Order = 2)]
 @inherits RuneComponent
@@ -14,7 +14,7 @@
             {
                 <Flex @key="member.Id" Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
                     <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
-                        <span @attributes="Attrs.Merge(DemoStyles.Initials)">@member.Name[..1]</span>
+                        <Avatar Name="@member.Name" />
                         <Flex Direction="LayoutDirection.Column">
                             <TextSpan Size="Size.Sm" Weight="Weight.Medium">@member.Name</TextSpan>
                             <Small Tone="TextTone.Muted">@member.Role</Small>
