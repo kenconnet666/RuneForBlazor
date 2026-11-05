@@ -28,23 +28,32 @@ public static class SharedStyles
     static Style InheritedText => Css.Define(static () => new Style { Color = CssWide.Inherit });
 
     /// <summary>
-    /// 状态表面的颜色（同 vue-tsx-pro 的 statusToneSx）：样式 × 色调 → 文字色、底色与边框。
-    /// 每种样式都留出边框的位置（实底、浅色底时透明），切换样式时尺寸不变。标记、标签、提示条共用。
+    /// 状态表面的边框位置（同 vue-tsx-pro 的 statusToneBorderStyles.bordered）：每种样式都留出边框（实底、浅色底时透明），
+    /// 切换样式时尺寸不变。排在 <see cref="StatusColors"/> 之前；标记、角标、提示条用，头像不用（同 vue 的 statusToneSx 与 statusToneStyles）。
+    /// </summary>
+    public static Style StatusBordered => Css.Define(static () => new Style
+    {
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = CssColors.Transparent,
+    });
+
+    /// <summary>
+    /// 状态表面的颜色（同 vue-tsx-pro 的 statusToneStyles）：样式 × 色调 → 文字色、底色与边框色（只有表面、描边样式有边框色）。
+    /// 要边框时前面加 <see cref="StatusBordered"/>。
     /// </summary>
     public static Style StatusColors(StatusVariant variant, Tone tone) => Css.Define((variant, tone), static key =>
     {
         var t = Tones.Of(key.tone);
         var (color, background, border) = key.variant switch
         {
-            StatusVariant.Solid => (t.Contrast, t.Solid, (CssColor)"transparent"),
+            StatusVariant.Solid => (t.Contrast, t.Solid, null),
             StatusVariant.Surface => (t.Text, t.Surface, t.Border),
-            StatusVariant.Outline => (t.Text, (CssColor?)null, t.Border),
-            _ => (t.Text, t.Soft, (CssColor)"transparent"),
+            StatusVariant.Outline => (t.Text, null, t.Border),
+            _ => ((CssColor, CssColor?, CssColor?))(t.Text, t.Soft, null),
         };
         return new Style
         {
-            BorderWidth = BorderWidths.Xs,
-            BorderStyle = BorderStyle.Solid,
             BorderColor = border,
             Color = color,
             BackgroundColor = background,

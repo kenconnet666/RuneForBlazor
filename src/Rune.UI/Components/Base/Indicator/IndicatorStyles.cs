@@ -67,6 +67,7 @@ public static class IndicatorStyles
         {
             IndicatorPart.Root => Root,
             IndicatorPart.Badge => Sx.Of(
+                SharedStyles.StatusBordered,
                 SharedStyles.StatusColors(StatusVariant.Solid, a.Tone),
                 Badge,
                 a.Dot ? Dot : Counter,

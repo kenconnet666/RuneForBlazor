@@ -101,6 +101,7 @@ public static class AlertStyles
         {
             // 色调排在前面：按部件定制能盖过它
             AlertPart.Root => Sx.Of(
+                SharedStyles.StatusBordered,
                 SharedStyles.StatusColors(StatusVariantOf(a.Variant), a.Tone),
                 Root,
                 SharedStyles.Fade,

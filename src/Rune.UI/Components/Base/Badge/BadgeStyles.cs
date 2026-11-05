@@ -84,7 +84,7 @@ public static class BadgeStyles
     public static PartLayers<BadgePart> Of(BadgeAppearance appearance, ComponentStyles styles) =>
         Recipe.Of("badge", appearance, styles, static (BadgeAppearance a, BadgePart part) => part switch
         {
-            BadgePart.Root => Sx.Of(Root, SharedStyles.StatusColors(a.Variant, a.Tone), ScaleStyles.FontSize(a.Size), ScaleStyles.Radius(a.Radius),
+            BadgePart.Root => Sx.Of(Root, SharedStyles.StatusBordered, SharedStyles.StatusColors(a.Variant, a.Tone), ScaleStyles.FontSize(a.Size), ScaleStyles.Radius(a.Radius),
                 a.Kind == BadgeKind.Badge ? null : TagRoot,
                 a.Kind == BadgeKind.RemovableTag ? Removable : null),
             BadgePart.Dot => Dot,
