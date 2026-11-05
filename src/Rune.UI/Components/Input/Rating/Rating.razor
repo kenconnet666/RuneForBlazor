@@ -1,0 +1,126 @@
+@*
+    评分（同 vue-tsx-pro 的 Rating）：几颗星（或别的图标）里选一个分数，供应商评价、满意度、优先级。可以半星，可以只读显示。
+    <Field Label="交付质量"><Rating @bind-Value="score" /></Field>
+    <Rating Value="4.5" ReadOnly="true" />                                 只读：一个 role="img"，读“4.5 星，满分 5 星”
+    <Rating @bind-Value="score" AllowHalf="true" Count="10" Icon="Lucide.Heart" Tone="Tone.Danger" />
+    可编辑时是单选组（role="radiogroup"）：每颗星是一个原生 radio（视觉上隐藏），方向键、表单提交、读屏都是原生的；名称是“3 星”这样的文字。
+    已选的填充按勾上的 radio 用 CSS 算，悬停预览由 JS 初始化器写（data-rune-rating），都没有往返，静态 SSR 也一样；
+    再点一次已选的分数清空（Clearable，默认开，要交互模式）。半星：每颗星左右各一半，各是一个 radio。
+*@
+@namespace Rune.UI
+@inherits FormControl<double?>
+@{
+    var parts = RatingStyles.Of(new RatingAppearance(Tone, Size, IsReadOnly), Config.Styles);
+    var icon = Icon ?? BuiltInIcons.Star;
+}
+
+@if (IsReadOnly)
+{
+    <div @attributes="Attrs.Merge(parts[RatingPart.Root], Rest, ReadOnlyManaged)">
+        @for (var index = 1; index <= Count; index++)
+        {
+            <span aria-hidden="true" @attributes="Attrs.Merge(parts[RatingPart.Star], PropsStar, FillOf(Filled(CurrentValue, index)))">
+                @StarIcon(parts, icon)
+            </span>
+        }
+    </div>
+}
+else
+{
+    <div @attributes="Attrs.Merge(parts[RatingPart.Root], Rest, RootManaged)">
+        @for (var index = 1; index <= Count; index++)
+        {
+            var score = (double)index;
+            <span data-state="@StateOf(Filled(CurrentValue, index))" @attributes="Attrs.Merge(parts[RatingPart.Star], PropsStar, StarMarker)">
+                @StarIcon(parts, icon)
+                @if (AllowHalf)
+                {
+                    @Radio(score - 0.5, "start")
+                }
+                @Radio(score, AllowHalf ? "end" : "whole")
+            </span>
+        }
+    </div>
+}
+
+@code {
+    static readonly Attrs StarMarker = new() { ["class"] = RatingStyles.StarMarker.ClassName };
+
+    readonly string autoName = UniqueId.Next("rating");
+    Memo<(string Id, string? LabelledBy, string? DescribedBy, bool Disabled), Attrs> rootManaged;
+    Memo<(string Id, string? LabelledBy, double? Value, int Count), Attrs> readOnlyManaged;
+
+    /// <summary>一共几颗星，默认 5。</summary>
+    [Parameter] public int Count { get; set; } = 5;
+
+    /// <summary>可以选半颗。</summary>
+    [Parameter] public bool AllowHalf { get; set; }
+
+    /// <summary>再点一次已选的分数时清空，默认 true。</summary>
+    [Parameter] public bool Clearable { get; set; } = true;
+
+    /// <summary>图标，默认星星。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>选中的颜色，默认金黄（Warning）。</summary>
+    [Parameter] public Tone Tone { get; set; } = Tone.Warning;
+
+    /// <summary>字号档位：图标随之缩放；不写时继承。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>表单提交时的 name；不写时自动生成（同组的 radio 共用）。</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>每颗星的部件属性。</summary>
+    [Parameter] public Attrs? PropsStar { get; set; }
+
+    string? LabelledBy => AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId;
+
+    // 可编辑：单选组；不可用写在外层（div 没有原生的 disabled），交给 JS 不出预览
+    Attrs RootManaged => rootManaged.Get((ControlId, LabelledBy, Field?.DescribedBy, IsDisabled), static k => new Attrs
+    {
+        Id = k.Id,
+        Role = "radiogroup",
+        AriaLabelledBy = k.LabelledBy,
+        AriaDescribedBy = k.DescribedBy,
+        AriaDisabled = k.Disabled ? true : null,
+        ["class"] = RatingStyles.RatingMarker.ClassName,
+        ["data-rune-rating"] = true,
+        ["data-disabled"] = k.Disabled ? true : null,
+    });
+
+    // 只读：整排是一张图，读“4.5 星，满分 5 星”
+    Attrs ReadOnlyManaged => readOnlyManaged.Get((ControlId, LabelledBy, CurrentValue, Count), this, static (k, owner) => new Attrs
+    {
+        Id = k.Id,
+        Role = "img",
+        AriaLabelledBy = k.LabelledBy,
+        ["aria-label"] = owner.Config.Lang.RatingSummary(k.Value, k.Count),
+    });
+
+    /// <summary>第 index 颗星（从 1 开始）填了多少：0、50、100。</summary>
+    static int Filled(double? value, int index) => value is not { } v ? 0 : v >= index ? 100 : v >= index - 0.5 ? 50 : 0;
+
+    static string StateOf(int filled) => filled switch { 100 => "full", 50 => "half", _ => "empty" };
+
+    static Attrs FillOf(int filled) => new() { Vars = [RatingStyles.Fill.Set($"{filled}%")] };
+
+    RenderFragment StarIcon(PartLayers<RatingPart> parts, IconData icon) =>
+        @<text>
+            <Icon Data="icon" @attributes="Attrs.MergeProps(parts[RatingPart.Icon])" />
+            <span @attributes="Attrs.Merge(RatingStyles.Clip)"><Icon Data="icon" Sx="RatingStyles.ClipIcon(Tone)" /></span>
+        </text>;
+
+    // 一个分数：visually hidden 的 radio 盖在整颗（或半颗）上；data-score 给 JS 预览
+    RenderFragment Radio(double score, string half) =>
+        @<label data-score="@Format(score)" @attributes="Attrs.Merge(RatingStyles.HitArea(half))">
+            <input type="radio" name="@(Name ?? autoName)" value="@Format(score)" checked="@(CurrentValue == score)" disabled="@IsDisabled"
+                   data-half="@half" aria-label="@Config.Lang.RatingStar(score)" @onclick="() => PickAsync(score)"
+                   @attributes="Attrs.Merge(SharedStyles.VisuallyHidden)" />
+        </label>;
+
+    static string Format(double value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    Task PickAsync(double score) =>
+        IsDisabled || IsReadOnly ? Task.CompletedTask : SetValueAsync(Clearable && CurrentValue == score ? null : score);
+}

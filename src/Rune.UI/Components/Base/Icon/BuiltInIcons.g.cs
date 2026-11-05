@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（22 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（23 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -50,6 +50,8 @@ public static partial class BuiltInIcons
     public static IconData Plus => field ??= new("plus", "<path d=\"M5 12h14\"/><path d=\"M12 5v14\"/>");
     /// <summary>Lucide 图标 <c>search</c>（search、magnifier、scan、scanning、browsing、finding、find、lookup）。</summary>
     public static IconData Search => field ??= new("search", "<path d=\"m21 21-4.34-4.34\"/><circle cx=\"11\" cy=\"11\" r=\"8\"/>");
+    /// <summary>Lucide 图标 <c>star</c>（starred、featured、favorite、favourite、save、wishlist、bookmark、highlight）。</summary>
+    public static IconData Star => field ??= new("star", "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\"/>");
     /// <summary>Lucide 图标 <c>triangle-exclamation-point</c>（alert、warning、danger、caution、notice、error、risk、concern）。</summary>
     public static IconData TriangleExclamationPoint => field ??= new("triangle-exclamation-point", "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/>");
     /// <summary>Lucide 图标 <c>x</c>（alphabet、character、text、font、typography、x、remove、delete）。</summary>

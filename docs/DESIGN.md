@@ -245,6 +245,9 @@
   使用方写了 aria-label 就不再 aria-labelledby，后者会盖过前者）。radiogroup 才支持 aria-required / aria-invalid / aria-readonly，group 只写 data-*。
   组挡住外面 Field 的级联（Field 的 id、说明属于组），把不可用、只读、校验未通过经 `InheritedState` 交给里面的控件。
   CheckboxGroup、RadioGroup 的 Items 同 Select（ListboxOption、字符串，或任意数据加 ToOption）。
+- **Rating**：可编辑时每个分数是一个视觉上隐藏的原生 radio（半星时每颗两个），键盘、表单、读屏都是原生的。已选的填充不由 C# 渲染，
+  按勾上的 radio 用 CSS 算（这颗之后有勾上的 → 满；勾在自己里面 → 整颗或半颗，三条互斥，不打特异性的仗），静态 SSR 下点了也会变；
+  悬停预览由 JS 在每颗星上写行内的 `--rune-rating-fill`（行内盖过类规则，离开时去掉），都没有往返。只读时整排是 role="img"，填充由 C# 写。
 - **ToggleGroup**：项是按钮家族（ToggleItem 继承 ButtonBase），按下时 aria-pressed。整组一个 Tab 位置、组内方向键移动是 JS 的漫游焦点
   （`data-rune-roving`，ToggleGroup、之后的 Tabs、Toolbar 共用；tabindex 只由 JS 写，组件不渲染）。单选时选中项的底色是一个滑块
   （`data-rune-indicator` 指出跟随哪一项，JS 量好位置写成 CSS 变量，样式里过渡；减少动态效果时直接到位）。

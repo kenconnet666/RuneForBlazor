@@ -55,6 +55,7 @@ const BUILT_IN = [
   'asterisk',
   'copy',
   'inbox',
+  'star',
 ];
 
 /** 文档注释里最多列几个关键词 */
