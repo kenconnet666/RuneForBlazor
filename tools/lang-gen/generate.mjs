@@ -1,6 +1,7 @@
 // 从 vue-tsx-pro 的语言包（packages/ui/src/config/lang）生成 Rune.UI 的语言包：
 //
-//   src/Rune.UI/Configuration/Lang.g.cs   Lang 记录（每条文案一个属性，带 lang.ts 里的中文说明）与 ZhCn、EnUs 两份内置语言
+//   src/Rune.UI/Configuration/Lang.g.cs   Lang 记录（每条文案一个属性，带 lang.ts 里的中文说明）与 ZhCn、EnUs 两份内置语言；
+//                                          页面级组件自带的文案表（patterns、docs-kit 的 messages.ts）各生成一个记录，挂在 Lang 上（Lang.Patterns、Lang.DocsKit）
 //
 // 读法：lang.ts 的 Lang 接口给出字段的顺序、说明与类型（函数的参数类型）；zh-CN.ts、en-US.ts 由 Node 直接导入
 // （Node 24 自带去掉 TS 类型），取到每条文案的值。需要插值的文案在 vue-tsx-pro 里是箭头函数，这里把函数源码
@@ -32,23 +33,30 @@ const SKIPPED = {
   formIssues: '表单校验文案由 zod 生成；Blazor 用 DataAnnotations 等自己的校验文案',
   messages: '页面级组件（主题编辑器、文档站）自带的文案表，做到这些组件时再定',
   diagram: '流程图模块不移植',
-  docsKit: '文档站组件的文案，做文档站时再定',
-  patterns: '页面级组合的文案，做到时再定',
   themeCustomizer: '主题编辑器的文案，做到时再定',
 };
 
+/**
+ * 页面级组件自带的文案表（vue-tsx-pro 里不在 Lang 上，按 lang.messages.xxx 覆盖）：这里各生成一个记录，作为 Lang 的属性。
+ * file 相对 packages/ui/src；表是 { 'zh-CN': {…}, 'en-US': {…} }
+ */
+const MESSAGE_TABLES = [
+  { key: 'patterns', file: 'patterns/messages.ts', iface: 'PatternsMessages', table: 'patternsMessages', summary: '页面组合（AppShell……）的文案' },
+  { key: 'docsKit', file: 'docs-kit/messages.ts', iface: 'DocsKitMessages', table: 'docsKitMessages', summary: '文档站组件（CodePreview、PropsTable……）的文案' },
+];
+
 /** 内置的语言：文件名、导出名、C# 属性名、说明 */
 const LOCALES = [
-  { file: 'zh-CN.ts', name: 'ZhCn', summary: '简体中文（默认）' },
-  { file: 'en-US.ts', name: 'EnUs', summary: '美国英语' },
+  { file: 'zh-CN.ts', name: 'ZhCn', tag: 'zh-CN', summary: '简体中文（默认）' },
+  { file: 'en-US.ts', name: 'EnUs', tag: 'en-US', summary: '美国英语' },
 ];
 
 // ───────── lang.ts：字段的顺序、说明与类型 ─────────
 
-/** 取出 Lang 接口里的字段：说明（JSDoc）、名字、是否可选、类型文本 */
-function parseLangInterface(source) {
-  const start = source.indexOf('export interface Lang {');
-  if (start < 0) throw new Error('lang.ts 里找不到 export interface Lang');
+/** 取出接口（默认 Lang）里的字段：说明（JSDoc）、名字、是否可选、类型文本 */
+function parseLangInterface(source, name = 'Lang') {
+  const start = source.indexOf(`export interface ${name} {`);
+  if (start < 0) throw new Error(`找不到 export interface ${name}`);
   const body = source.slice(source.indexOf('{', start) + 1);
   const members = [];
   let doc = '';
@@ -114,14 +122,19 @@ async function loadLocale(file) {
   const text = readFileSync(join(langDir, file), 'utf8')
     .replace(/^import\s+zodMessages\s+from\s+[^\n]+\n/m, '')
     .replace(/zodMessages\(\)\.localeError/g, 'undefined');
+  const module = await importText(file, text);
+  const value = Object.values(module).find((v) => v && typeof v === 'object');
+  if (!value) throw new Error(`${file} 没有导出语言对象`);
+  return value;
+}
+
+/** 把 TS 源码写到临时目录再导入（Node 24 自带去掉类型；只有 import type 的文件不连带别的模块） */
+async function importText(file, text) {
   const dir = mkdtempSync(join(tmpdir(), 'rune-lang-'));
   try {
-    const path = join(dir, file);
+    const path = join(dir, file.replace(/[\\/]/g, '-'));
     writeFileSync(path, text);
-    const module = await import(pathToFileURL(path).href);
-    const value = Object.values(module).find((v) => v && typeof v === 'object');
-    if (!value) throw new Error(`${file} 没有导出语言对象`);
-    return value;
+    return await import(pathToFileURL(path).href);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -346,9 +359,19 @@ function parseExpression(tokens, scope) {
     return left;
   };
   const equality = () => {
-    let left = additive();
+    let left = relational();
     while (['==', '===', '!=', '!=='].some(isPunct)) {
       const op = next().value.startsWith('!') ? '!=' : '==';
+      const right = relational();
+      left = { code: `(${left.code} ${op} ${right.code})`, kind: 'bool' };
+    }
+    return left;
+  };
+  // 数字的比较（count > 0）：C# 写法相同
+  const relational = () => {
+    let left = additive();
+    while (['<', '>', '<=', '>='].some(isPunct)) {
+      const op = next().value;
       const right = additive();
       left = { code: `(${left.code} ${op} ${right.code})`, kind: 'bool' };
     }
@@ -518,30 +541,49 @@ function csValue(type, value, params) {
 
 // ───────── 生成 ─────────
 
+const errors = [];
+
+/** 一组文案（Lang 或一张文案表）：每个字段的 C# 类型与各语言的值；翻译不了的记进 errors */
+function buildProperties(members, localeValues, source, skipped = {}) {
+  const properties = [];
+  for (const member of members) {
+    if (member.name in skipped) continue;
+    const type = csMemberType(member);
+    if (!type) {
+      errors.push(`${source} ${member.name}：类型 ${member.type} 还不认识`);
+      continue;
+    }
+    const values = {};
+    for (const locale of LOCALES) {
+      try {
+        values[locale.name] = csValue(type, localeValues[locale.name][member.name], type.params);
+      } catch (error) {
+        errors.push(`${source} ${member.name}（${locale.tag}）：${error.message}`);
+      }
+    }
+    properties.push({ member, type, values });
+  }
+  for (const locale of LOCALES) {
+    const unknown = Object.keys(localeValues[locale.name]).filter((key) => !members.some((m) => m.name === key));
+    if (unknown.length) errors.push(`${source}（${locale.tag}）有接口里没有的字段：${unknown.join('、')}`);
+  }
+  return properties;
+}
+
 const members = parseLangInterface(readFileSync(join(langDir, 'lang.ts'), 'utf8'));
 const locales = await Promise.all(LOCALES.map(async (locale) => ({ ...locale, value: await loadLocale(locale.file) })));
-const errors = [];
-const properties = [];
-for (const member of members) {
-  if (member.name in SKIPPED) continue;
-  const type = csMemberType(member);
-  if (!type) {
-    errors.push(`${member.name}：类型 ${member.type} 还不认识`);
-    continue;
-  }
-  const values = {};
-  for (const locale of locales) {
-    try {
-      values[locale.name] = csValue(type, locale.value[member.name], type.params);
-    } catch (error) {
-      errors.push(`${member.name}（${locale.file}）：${error.message}`);
-    }
-  }
-  properties.push({ member, type, values });
-}
-for (const locale of locales) {
-  const unknown = Object.keys(locale.value).filter((key) => !members.some((m) => m.name === key));
-  if (unknown.length) errors.push(`${locale.file} 有 lang.ts 里没有的字段：${unknown.join('、')}`);
+const properties = buildProperties(members, Object.fromEntries(locales.map((l) => [l.name, l.value])), 'lang.ts', SKIPPED);
+
+const srcDir = resolve(langDir, '../..');
+const tables = [];
+for (const table of MESSAGE_TABLES) {
+  const text = readFileSync(join(srcDir, table.file), 'utf8');
+  const module = await importText(table.file, text);
+  const values = module[table.table];
+  if (!values) throw new Error(`${table.file} 没有导出 ${table.table}`);
+  const tableMembers = parseLangInterface(text, table.iface);
+  const localeValues = Object.fromEntries(LOCALES.map((l) => [l.name, values[l.tag] ?? {}]));
+  tables.push({ ...table, properties: buildProperties(tableMembers, localeValues, table.file) });
 }
 if (errors.length) {
   console.error(`语言包有 ${errors.length} 处翻译不了：\n  ${errors.join('\n  ')}`);
@@ -570,6 +612,10 @@ for (const { member, type } of properties) {
   if (member.doc) lines.push(`    /// <summary>${escapeXml(member.doc)}</summary>`);
   lines.push(`    public ${member.optional ? '' : 'required '}${type.cs} ${pascal(member.name)} { get; init; }`, '');
 }
+for (const table of tables) {
+  lines.push(`    /// <summary>${table.summary}。</summary>`);
+  lines.push(`    public required ${table.iface} ${pascal(table.key)} { get; init; }`, '');
+}
 for (const locale of locales) {
   lines.push(`    /// <summary>${locale.summary}。</summary>`);
   lines.push(`    public static Lang ${locale.name} => field ??= new()`, '    {');
@@ -577,9 +623,28 @@ for (const locale of locales) {
     if (values[locale.name] === 'null') continue;
     lines.push(`        ${pascal(member.name)} = ${values[locale.name]},`);
   }
+  for (const table of tables) lines.push(`        ${pascal(table.key)} = ${table.iface}.${locale.name},`);
   lines.push('    };', '');
 }
 lines[lines.length - 1] = '}';
+for (const table of tables) {
+  lines.push('', '/// <summary>', `/// ${table.summary}（同 vue-tsx-pro 的 ${table.file}），挂在 <see cref="Lang"/> 上：改几条用 <c>Lang.ZhCn with { ${pascal(table.key)} = Lang.ZhCn.${pascal(table.key)} with { … } }</c>。`, '/// </summary>');
+  lines.push(`public sealed partial record ${table.iface}`, '{');
+  for (const { member, type } of table.properties) {
+    if (member.doc) lines.push(`    /// <summary>${escapeXml(member.doc)}</summary>`);
+    lines.push(`    public ${member.optional ? '' : 'required '}${type.cs} ${pascal(member.name)} { get; init; }`, '');
+  }
+  for (const locale of LOCALES) {
+    lines.push(`    /// <summary>${locale.summary}。</summary>`);
+    lines.push(`    public static ${table.iface} ${locale.name} => field ??= new()`, '    {');
+    for (const { member, values } of table.properties) {
+      if (values[locale.name] === 'null') continue;
+      lines.push(`        ${pascal(member.name)} = ${values[locale.name]},`);
+    }
+    lines.push('    };', '');
+  }
+  lines[lines.length - 1] = '}';
+}
 const output = lines.join('\n') + '\n';
 
 if (options.check) {
@@ -591,5 +656,5 @@ if (options.check) {
   console.log('语言包与 vue-tsx-pro 一致');
 } else {
   writeFileSync(outputPath, output);
-  console.log(`已写入 ${outputPath}：${properties.length} 个字段，跳过 ${Object.keys(SKIPPED).length} 个`);
+  console.log(`已写入 ${outputPath}：${properties.length} 个字段，跳过 ${Object.keys(SKIPPED).length} 个；文案表 ${tables.map((t) => `${t.key}（${t.properties.length}）`).join('、')}`);
 }
