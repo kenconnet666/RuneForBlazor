@@ -138,6 +138,28 @@ public static class SharedStyles
 #pragma warning restore RUNE007
 
     /// <summary>
+    /// 去掉按钮的默认外观（同 vue-tsx-pro 的 buttonBaseStyles.root）：外观全由组件自己给的按钮用（标签页的标签、展开按钮）。
+    /// 文字样式继承，触摸时点击立即响应；不可用时是禁止的指针。
+    /// </summary>
+    public static Style ButtonReset => Css.Define(static () => new Style
+    {
+        BoxSizing = BoxSizing.BorderBox,
+        Margin = 0,
+        Padding = 0,
+        BorderWidth = 0,
+        BackgroundColor = CssColors.Transparent,
+        Color = CssWide.Inherit,
+        Font = CssWide.Inherit,
+        TextAlign = CssWide.Inherit,
+        TextDecorationLine = TextDecorationLine.None,
+        Cursor = Cursor.Pointer,
+        UserSelect = UserSelect.None,
+        TouchAction = TouchAction.Manipulation,
+        WebkitTapHighlightColor = CssColors.Transparent,
+        [When.Disabled] = new() { Cursor = Cursor.NotAllowed },
+    });
+
+    /// <summary>
     /// 交互状态的过渡：悬停、按下、选中、聚焦时背景色、边框色、文字色、阴影的变化（按钮、菜单项、输入框外框、勾选框共用，同 vue-tsx-pro）。
     /// 用户要求减少动态效果时时长 token 为 0，这里不用另写。
     /// </summary>

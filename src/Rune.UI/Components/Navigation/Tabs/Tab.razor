@@ -1,0 +1,97 @@
+@*
+    标签（role="tab" 的 button，放在 TabList 里）：<Tab Value="paid">已付款</Tab>
+    写了 OnClose 就能关闭：标签末尾有关闭按钮（只给指针用，不进 Tab 顺序），标签上按 Delete、鼠标中键点也关（JS 初始化器转成点关闭按钮）。
+    使用方移除这个标签；关掉的是当前标签时 Tabs 选它后面（没有时前面）的一个，焦点也跟过去。
+    未声明的属性落到 button 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var selected = Tabs.Value == Value;
+    var parts = TabsStyles.Of(new(Tabs.Variant, Tabs.Orientation, null, Closable), Config.Styles);
+}
+
+@if (Closable)
+{
+    @* 关闭按钮不能放进标签按钮里（按钮里不能有按钮）：一起包在 role="presentation" 里，按钮本身只给指针用（对读屏隐藏） *@
+    <span role="presentation" @attributes="Attrs.Merge(parts[TabsPart.CloseWrapper])">
+        @TabButton(parts, selected)
+        <IconButton Icon="BuiltInIcons.X" Label="@Config.Lang.TabClose(Label)" Size="UI.Size.Xs" Variant="ButtonVariant.Ghost" Radius="UI.Radius.Full"
+                    Disabled="Disabled" @onclick="OnClose" @attributes="Attrs.MergeProps(parts[TabsPart.Close], PropsClose, CloseManaged)" />
+    </span>
+}
+else
+{
+    @TabButton(parts, selected)
+}
+
+@code {
+    static readonly Attrs CloseManaged = new() { ["tabindex"] = "-1", AriaHidden = true, ["data-rune-tab-close"] = true };
+
+    string? registered;
+
+    /// <summary>这个标签的值，与对应 TabPanel 的 Value 相同。</summary>
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+
+    /// <summary>不可用：方向键跳过它。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>关闭：写了就有关闭按钮；使用方在这里移除这个标签。</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    /// <summary>标签的文字（关闭按钮的名称“关闭 …”用）；不写时用 Value。</summary>
+    [Parameter] public string? Text { get; set; }
+
+    /// <summary>标签的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>关闭按钮的部件属性（交给 IconButton 组件）。</summary>
+    [Parameter] public Attrs? PropsClose { get; set; }
+
+    [CascadingParameter] TabsState? State { get; set; }
+
+    TabsState Tabs => State ?? throw new InvalidOperationException("Tab 要放在 Tabs 里。");
+
+    bool Closable => OnClose.HasDelegate;
+
+    string Label => Text ?? Value;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (registered == Value) return;
+        if (registered is not null) Tabs.Registry.RemoveTab(registered);
+        registered = Value;
+        Tabs.Registry.AddTab(Value);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        if (registered is null || State is not { } tabs) return;
+        var index = tabs.Registry.RemoveTab(registered);
+        // 关掉的是当前标签（使用方没有另选）：选它后面的一个，没有时选前面的一个
+        var rest = tabs.Registry.Tabs;
+        if (tabs.Value == registered && rest.Count > 0) _ = tabs.Select(rest[Math.Clamp(index, 0, rest.Count - 1)]);
+    }
+
+    RenderFragment TabButton(PartLayers<TabsPart> parts, bool selected) =>
+        @<button type="button" @attributes="Attrs.Merge(parts[TabsPart.Tab], Rest, Managed(selected))">@ChildContent</button>;
+
+    Attrs Managed(bool selected) => new()
+    {
+        Role = "tab",
+        Id = Tabs.TabId(Value),
+        ["aria-selected"] = selected ? "true" : "false",
+        AriaControls = Tabs.Registry.HasPanel(Value) ? Tabs.PanelId(Value) : null,
+        ["aria-keyshortcuts"] = Closable ? "Delete" : null,
+        ["disabled"] = Disabled ? true : null,
+        ["data-state"] = selected ? "active" : "inactive",
+        ["data-value"] = Value,
+        ["data-closable"] = Closable ? true : null,
+        ["data-rune-ripple"] = Tabs.Ripple ?? Config.Ripple ? true : null,
+        ["onclick"] = EventCallback.Factory.Create(this, () => Tabs.Select(Value)),
+        // 自动切换：方向键把焦点移到哪个标签就切到哪个
+        ["onfocus"] = Tabs.Activation == TabsActivation.Automatic ? EventCallback.Factory.Create(this, () => Tabs.Select(Value)) : null,
+    };
+}

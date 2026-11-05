@@ -1,0 +1,70 @@
+@*
+    标签页（WAI-ARIA 的 Tabs 模式，同 vue-tsx-pro 的 Tabs），复合组件：Tabs（状态）> TabList（role="tablist"）> Tab（role="tab"），
+    加上与每个 Tab 对应的 TabPanel（role="tabpanel"）。各层都是独立的组件，可以自由排版、各自加属性。
+    <Tabs @bind-Value="tab">
+        <TabList aria-label="订单">
+            <Tab Value="all">全部</Tab>
+            <Tab Value="paid">已付款</Tab>
+        </TabList>
+        <TabPanel Value="all">…</TabPanel>
+        <TabPanel Value="paid">…</TabPanel>
+    </Tabs>
+    键盘：标签之间用方向键移动（JS 的漫游焦点，整组一个 Tab 位置），Home / End 到两端；
+    Activation.Automatic（默认）时焦点移到哪个标签就切换到哪个，Manual 时按 Enter / 空格才切换。不写 Value 时选中第一个标签。
+    line 样式的下划线是 TabList 里的一个指示条：跟着当前标签走（切换时滑过去，减少动态效果时直接到位）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<CascadingValue Value="State">
+    <div @attributes="Attrs.Merge(TabsStyles.Of(new(EffectiveVariant, Orientation, Size ?? Defaults?.Size, false), Config.Styles)[TabsPart.Root], Rest)"
+         data-orientation="@(Orientation == Orientation.Vertical ? "vertical" : "horizontal")">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    TabsRegistry? registry;
+
+    /// <summary>当前标签的值（<c>@bind-Value</c>）；不写时选中第一个标签。</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>当前标签变了。</summary>
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    /// <summary>方向，默认横排（左右键）；竖排时标签在左、上下键。</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>焦点移动时是否同时切换，默认自动。</summary>
+    [Parameter] public TabsActivation Activation { get; set; }
+
+    /// <summary>样式；不写时取配置的默认值（<see cref="TabsDefaults"/>），再没有就是下划线。</summary>
+    [Parameter] public TabsVariant? Variant { get; set; }
+
+    /// <summary>字号档位；不写时继承。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>面板第一次显示时才渲染，之后切走也保留（面板内容重时用）。</summary>
+    [Parameter] public bool Lazy { get; set; }
+
+    /// <summary>标签按下时的波纹；不写时沿用配置。</summary>
+    [Parameter] public bool? Ripple { get; set; }
+
+    /// <summary>TabList 与 TabPanel。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    Bindable<string?> value { get => field ??= new(this, () => Value, () => ValueChanged); }
+
+    TabsDefaults? Defaults => Config.Defaults.Get<TabsDefaults>();
+
+    TabsVariant EffectiveVariant => Variant ?? Defaults?.Variant ?? TabsVariant.Line;
+
+    TabsRegistry Registry => registry ??= new(UniqueId.Next("tabs"), StateHasChanged);
+
+    // 每次渲染一个新实例：当前标签变了时 TabList、Tab、TabPanel 跟着重新渲染
+    TabsState State => new(
+        value.Value ?? Registry.Tabs.FirstOrDefault(),
+        Orientation, Activation, EffectiveVariant, Lazy, Ripple, Registry, SelectAsync);
+
+    Task SelectAsync(string next) => next == value.Value ? Task.CompletedTask : value.SetAsync(next);
+}

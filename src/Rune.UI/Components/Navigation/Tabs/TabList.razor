@@ -1,0 +1,94 @@
+@*
+    标签列表（role="tablist"，放在 Tabs 里）：方向键在标签之间移动。横排放不下时在列表里滚动，两边出现滚动按钮（只给指针用），
+    切到滚在外面的标签时把它滚进来；OnAdd 在末尾放“新建标签页”按钮。这些都在 JS 初始化器里（data-rune-tabs），没有往返。
+    写了 OnReorder 时标签能拖动排序（键盘：Alt + ←→，念出新位置），参数是新的顺序，使用方按它重排（Tab 要写 @key）。
+    未声明的属性落到 role="tablist" 的 div 上；aria-label 是这组标签的名称。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var vertical = Tabs.Orientation == Orientation.Vertical;
+    var parts = TabsStyles.Of(new(Tabs.Variant, Tabs.Orientation, null, false), Config.Styles);
+}
+
+@if (vertical)
+{
+    @List(parts)
+}
+else
+{
+    <div data-rune-tabs @attributes="Attrs.Merge(parts[TabsPart.Bar], PropsBar)">
+        @* 滚动按钮只给指针用：键盘在标签之间移动时，当前标签会自己滚进来 *@
+        <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@Config.Lang.TabScrollPrevious" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
+                    PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(parts[TabsPart.BarButton], null, ScrollBack)" />
+        @List(parts)
+        <IconButton Icon="BuiltInIcons.ChevronRight" Label="@Config.Lang.TabScrollNext" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
+                    PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(parts[TabsPart.BarButton], null, ScrollForward)" />
+        @if (OnAdd.HasDelegate)
+        {
+            <IconButton Icon="BuiltInIcons.Plus" Label="@Config.Lang.TabAdd" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
+                        @onclick="OnAdd" @attributes="Attrs.MergeProps(parts[TabsPart.BarButton], PropsAdd)" />
+        }
+    </div>
+}
+
+@code {
+    static readonly Attrs FlipIcon = new() { ["FlipInRtl"] = true };
+    // 一开始藏着：放不下时 JS 去掉 hidden（Blazor 之后渲染时这个属性没变，不会再写回去）
+    static readonly Attrs ScrollBack = new() { ["tabindex"] = "-1", ["hidden"] = true, ["data-rune-tab-scroll"] = "-1" };
+    static readonly Attrs ScrollForward = new() { ["tabindex"] = "-1", ["hidden"] = true, ["data-rune-tab-scroll"] = "1" };
+
+    Memo<(Orientation Orientation, bool Loop, bool Reorderable), Attrs> managed;
+
+    /// <summary>到两端后是否从另一端继续，默认 true。</summary>
+    [Parameter] public bool Loop { get; set; } = true;
+
+    /// <summary>列表末尾的“新建标签页”按钮：点了调用。</summary>
+    [Parameter] public EventCallback OnAdd { get; set; }
+
+    /// <summary>
+    /// 拖动标签（或在标签上按 Alt + ←→）改变顺序：参数是新的顺序（各标签的 Value），使用方按它重排；不写时不能拖。
+    /// </summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> OnReorder { get; set; }
+
+    /// <summary>标签（Tab）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>line 样式的下划线指示条的部件属性。</summary>
+    [Parameter] public Attrs? PropsIndicator { get; set; }
+
+    /// <summary>横排时包着标签列表与右边按钮的那一层的部件属性。</summary>
+    [Parameter] public Attrs? PropsBar { get; set; }
+
+    /// <summary>“新建标签页”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsAdd { get; set; }
+
+    [CascadingParameter] TabsState? State { get; set; }
+
+    TabsState Tabs => State ?? throw new InvalidOperationException("TabList 要放在 Tabs 里。");
+
+    RenderFragment List(PartLayers<TabsPart> parts) =>
+        @<div @attributes="Attrs.Merge(parts[TabsPart.List], Rest, Managed)">
+            @ChildContent
+            @if (Tabs.Variant == TabsVariant.Line)
+            {
+                <span @attributes="Attrs.Merge(parts[TabsPart.Indicator], PropsIndicator, Tabs.Orientation == Orientation.Vertical ? IndicatorVertical : IndicatorHorizontal)"></span>
+            }
+        </div>;
+
+    static readonly Attrs IndicatorHorizontal = new() { AriaHidden = true, ["data-rune-indicator"] = "[aria-selected=\"true\"]", ["data-axis"] = "horizontal" };
+    static readonly Attrs IndicatorVertical = new() { AriaHidden = true, ["data-rune-indicator"] = "[aria-selected=\"true\"]", ["data-axis"] = "vertical" };
+
+    // 角色与方向，交给 JS 的漫游焦点（项是标签）
+    Attrs Managed => managed.Get((Tabs.Orientation, Loop, OnReorder.HasDelegate), this, static (k, owner) => new Attrs
+    {
+        Role = "tablist",
+        ["aria-orientation"] = k.Orientation == Orientation.Vertical ? "vertical" : "horizontal",
+        ["data-rune-roving"] = (k.Orientation == Orientation.Vertical ? "vertical" : "horizontal") + (k.Loop ? "" : " noloop"),
+        ["data-rune-roving-items"] = "[role=\"tab\"]",
+        // 可以拖动排序；念出新位置用的句子（标签文字、位置、总数先用占位，JS 换掉）
+        ["data-reorderable"] = k.Reorderable ? true : null,
+        ["data-moved-template"] = k.Reorderable ? owner.Config.Lang.TabMoved("{label}", 900001, 900002) : null,
+        ["onrunereorder"] = k.Reorderable ? EventCallback.Factory.Create<ReorderEventArgs>(owner, e => owner.OnReorder.InvokeAsync(e.Values)) : null,
+    });
+}

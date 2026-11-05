@@ -52,6 +52,13 @@ public sealed class ResizeEventArgs : EventArgs
     public double Size { get; set; }
 }
 
+/// <summary>拖动标签（或在标签上按 Alt + ←→）改了顺序：<c>@onrunereorder</c> 的参数。</summary>
+public sealed class ReorderEventArgs : EventArgs
+{
+    /// <summary>新的顺序（各项的值）。</summary>
+    public string[] Values { get; set; } = [];
+}
+
 /// <summary>复制按钮写完剪贴板（<c>@onrunecopied</c> 的参数）。</summary>
 public sealed class CopiedEventArgs : EventArgs
 {
@@ -68,6 +75,7 @@ public sealed class CopiedEventArgs : EventArgs
 /// <item><c>@onrunecommand</c>：键盘、粘贴转成的命令（<c>data-rune-backspace</c>、<c>data-rune-escape</c>、<c>data-rune-enter</c>、<c>data-rune-paste</c>，见 JS 初始化器顶部的约定）。</item>
 /// <item><c>@onrunedismiss</c>：可移除的元素（标签）离场动画结束，该从列表里拿掉了（<c>data-rune-dismiss</c> 的按钮触发）。</item>
 /// <item><c>@onruneresize</c>：宽度调整手柄调整完一次（拖动中由 JS 当场改父元素的尺寸，松开时才交给 C#）。</item>
+/// <item><c>@onrunereorder</c>：标签栏（<c>data-reorderable</c> 的 tablist）拖动或按 Alt + ←→ 改了标签的顺序。</item>
 /// <item><c>@onruneslide</c>：滑块（<c>data-rune-slider</c>）的值变了，拖动中每变一次发一次，松开或按键时带 commit。</item>
 /// </list>
 /// </summary>
@@ -78,4 +86,5 @@ public sealed class CopiedEventArgs : EventArgs
 [EventHandler("onrunecopied", typeof(CopiedEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onruneresize", typeof(ResizeEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onruneslide", typeof(SlideEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
+[EventHandler("onrunereorder", typeof(ReorderEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 public static class EventHandlers;

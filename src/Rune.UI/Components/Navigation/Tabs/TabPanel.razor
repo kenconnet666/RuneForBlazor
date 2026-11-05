@@ -1,0 +1,58 @@
+@*
+    标签面板（role="tabpanel"，放在 Tabs 里）：只显示当前标签的那一个。<TabPanel Value="paid">…</TabPanel>
+    Tabs 写了 Lazy 时第一次显示才渲染内容，之后切走也保留。面板可以聚焦（tabindex=0），读屏用户 Tab 一下就进到内容。
+    未声明的属性落到 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var selected = Tabs.Value == Value;
+    if (selected) shown = true;
+}
+
+<div @attributes="Attrs.Merge(TabsStyles.Of(new(Tabs.Variant, Tabs.Orientation, null, false), Config.Styles)[TabsPart.Panel], Rest, Managed(selected))">
+    @if (!Tabs.Lazy || shown)
+    {
+        @ChildContent
+    }
+</div>
+
+@code {
+    bool shown;
+    string? registered;
+
+    /// <summary>对应标签的值。</summary>
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] TabsState? State { get; set; }
+
+    TabsState Tabs => State ?? throw new InvalidOperationException("TabPanel 要放在 Tabs 里。");
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (registered == Value) return;
+        if (registered is not null) Tabs.Registry.RemovePanel(registered);
+        registered = Value;
+        Tabs.Registry.AddPanel(Value);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        if (registered is not null) State?.Registry.RemovePanel(registered);
+    }
+
+    Attrs Managed(bool selected) => new()
+    {
+        Role = "tabpanel",
+        Id = Tabs.PanelId(Value),
+        AriaLabelledBy = Tabs.TabId(Value),
+        ["tabindex"] = "0",
+        ["hidden"] = selected ? null : true,
+        ["data-state"] = selected ? "active" : "inactive",
+    };
+}

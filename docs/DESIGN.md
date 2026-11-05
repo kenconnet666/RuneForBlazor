@@ -134,6 +134,10 @@
   加载失败的图片藏起来、露出首字母；没有往返，静态 SSR 一样。AvatarGroup 的“超过 Max 折叠成 +N”在 Blazor 里没法截取子内容，改为 Items 加每项的模板。
   状态色分两层（同 vue 的 statusToneBorderStyles / statusToneStyles）：`SharedStyles.StatusBordered` 留出边框位置，`StatusColors` 只给颜色；
   标记、角标、提示条两层都用，头像只用颜色层（没有边框）。
+- **Tabs**：Tabs 每次渲染新建 TabsState 级联下去（当前标签变了 Tab、TabPanel 跟着重渲染），标签与面板登记在同一个 TabsRegistry 里（不写值时选第一个，
+  只当导航的标签不写 aria-controls）。漫游焦点、下划线指示条复用 roving.js、indicator.js；溢出时的滚动按钮、当前标签滚进来、Delete / 中键关闭、
+  拖动与 Alt + ←→ 排序在 `js/tabs.js`。排序只发 rune-reorder，由使用方重排，JS 不挪 Blazor 管的元素。WebAssembly 下 C# 在 dispatchEvent / click
+  里同步就渲染完了，“等渲染后再做”的逻辑（关闭后交焦点、排序后留焦点）要先同步查一次再挂观察器，否则观察器等不到变化、留到以后误触发。
 - **代码高亮在浏览器里做**（同 vue-tsx-pro 的 createShikiHighlighter）：CodeBlock 输出纯文本的 `code[data-rune-highlight]`，JS 初始化器（`js/highlight.js`）
   第一次遇到时加载 vendor 的 Shiki（JavaScript 正则引擎、CSS 变量主题，颜色指向 `--rune-code-colors-*`）上色，三种渲染模式一样，没有往返。
   JS 改过 code 的子节点，所以代码、语言、高亮开关、行设置变了时 code 用 @key 整个重建，不让 Blazor 在上面做差异更新。

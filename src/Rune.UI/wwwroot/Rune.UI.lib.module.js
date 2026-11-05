@@ -52,6 +52,8 @@
 //                            结束时发出冒泡的 rune-resize（size）；没给宽度时按父元素量出 aria-valuenow
 //   data-rune-overflow       一行标签（Select 的 MaxTagCount 按宽度）：量出放得下几个 data-rune-overflow-item，其余写 data-overflow-hidden
 //                            （CSS 藏起来但仍可测量），data-rune-overflow-rest（“+N”）的文字取自 data-rune-more 里的第 N 项
+//   data-rune-tabs           横排的标签栏：放不下时写 data-overflowing、启用滚动按钮，当前标签滚进来；可关闭的标签上 Delete、中键关闭；
+//                            列表带 data-reorderable 时拖动标签（或 Alt + ←→）改顺序，发出冒泡的 rune-reorder（values）
 //   data-rune-highlight="语言" 代码块的 code 元素：插入后用 Shiki 上色（第一次用到时才加载 Shiki 与这种语言的语法）
 //   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
 //                            （可以移到提示上），键盘聚焦时立即显示；失焦、按下、Esc 隐藏；同一时间只显示一个
@@ -82,7 +84,7 @@
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
-// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、
+// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
@@ -96,6 +98,7 @@ import { onOtpFocus, onOtpInput, watchOtp } from './js/otp.js';
 import { endRatingPreview, pickRating, previewRating } from './js/rating.js';
 import { watchScrollArea } from './js/scroll-area.js';
 import { highlightCode } from './js/highlight.js';
+import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from './js/tabs.js';
 import { watchCollapse } from './js/collapse.js';
 import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle } from './js/resize.js';
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
@@ -133,6 +136,10 @@ function install(blazor) {
   blazor.registerCustomEventType('runecloserequest', {
     browserEventName: 'rune-close-request',
     createEventArgs: (event) => ({ reason: event.detail.reason }),
+  });
+  blazor.registerCustomEventType('runereorder', {
+    browserEventName: 'rune-reorder',
+    createEventArgs: (event) => ({ values: event.detail.values }),
   });
   blazor.registerCustomEventType('runeresize', {
     browserEventName: 'rune-resize',
@@ -174,7 +181,9 @@ function install(blazor) {
   document.addEventListener('pointerdown', keepFocusOnListHost);
   document.addEventListener('pointerdown', grabSlider);
   document.addEventListener('pointerdown', grabResizeHandle);
+  document.addEventListener('pointerdown', grabTab);
   document.addEventListener('dblclick', resetResizeHandle);
+  document.addEventListener('auxclick', auxClickTabs);
   document.addEventListener('pointerdown', onHoverPointerDown);
   document.addEventListener('pointermove', highlightUnderPointer);
   document.addEventListener('change', (event) => {
@@ -241,9 +250,10 @@ function syncWithin(root) {
     if (element.matches('[data-rune-resize]')) watchResizeHandle(element);
     if (element.matches('img[data-rune-avatar-image]') && element.complete) markAvatarImage(element);
     if (element.matches('code[data-rune-highlight]')) highlightCode(element);
+    if (element.matches('[data-rune-tabs]')) watchTabs(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs]').forEach(sync);
 }
 
 /** 头像的图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */
@@ -289,6 +299,7 @@ function onClick(event) {
   if (!(target instanceof Element)) return;
 
   pickRating(event);
+  scrollTabs(event);
   closeAfterPick(target);
   toggleFromShell(target);
 
@@ -348,6 +359,7 @@ function onKeyDown(event) {
   moveRoving(event);
   keySlider(event);
   keyResizeHandle(event);
+  keyTabs(event);
   // 列表没用掉的按键再转成命令（Enter 选中了高亮项时不再加标签）
   if (event.key === 'Backspace' || event.key === 'Escape' || event.key === 'Enter') sendKeyCommand(event);
 }
