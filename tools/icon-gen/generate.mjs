@@ -24,7 +24,7 @@ import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
 /** 使用的 Lucide 版本；升级时改这里并重新生成 */
-const LUCIDE_VERSION = '1.68.0';
+const LUCIDE_VERSION = '1.69.0';
 
 const repoRoot = resolve(import.meta.dirname, '../..');
 const lucidePath = resolve(repoRoot, 'src/Rune.Icons/Lucide.g.cs');
