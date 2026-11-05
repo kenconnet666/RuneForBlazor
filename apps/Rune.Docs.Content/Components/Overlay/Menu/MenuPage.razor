@@ -11,5 +11,17 @@
             </Example>
         </ExampleColumn>
     </Examples>
+    <KeyboardReference Keys="@([
+        ("Enter / Space / ↓", "在触发器上：打开菜单并聚焦第一项"),
+        ("↑", "在触发器上：打开菜单并聚焦最后一项"),
+        ("↓ / ↑", "移到下一项 / 上一项，到头后循环；跳过不可用的项"),
+        ("Home / End", "移到第一项 / 最后一项"),
+        ("字母键", "移到下一个以它开头的项"),
+        ("Enter / Space", "执行这一项；单选项选中"),
+        ("Esc", "关闭菜单，焦点回到触发器"),
+        ("Tab", "关闭菜单，焦点回到触发器"),
+    ])">
+        菜单遵循 WAI-ARIA 的 Menu Button 模式：触发器是 <Code>aria-haspopup="menu"</Code> 的按钮，菜单里的项用方向键移动，不在 Tab 顺序里。
+    </KeyboardReference>
     <ApiReference Types="[typeof(MenuItem), typeof(Menu), typeof(MenuRadioGroup), typeof(MenuRadioItem)]" />
 </DocPage>

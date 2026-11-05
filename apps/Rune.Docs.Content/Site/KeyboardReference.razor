@@ -1,0 +1,74 @@
+@*
+    组件页的“键盘”小节（同 vue-tsx-pro 文档站的 KeyboardReference）：按键 → 作用。放在示例之后、API 之前，进本页目录。
+    按键写成 "Shift+Tab"，几种按法效果相同时用 " / " 隔开（"↑ / ↓"），每个键画成一个键帽。
+    <KeyboardReference Keys="@([("Enter / Space", "打开菜单，高亮第一项"), ("↑ / ↓", "移动高亮")])">表格前的说明</KeyboardReference>
+*@
+@inherits RuneComponent
+@inject DocHeadings Headings
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <H2 id="keyboard" Size="Size.Xl" Anchor="true">键盘</H2>
+    @if (ChildContent is not null)
+    {
+        <Paragraph Tone="TextTone.Muted">@ChildContent</Paragraph>
+    }
+    <Descriptions Bordered="true" PropsLabel="LabelLayer">
+        @foreach (var (combo, action) in Keys)
+        {
+            <DescriptionsItem @key="combo" Label="@combo" LabelContent="Keycaps(combo)">@action</DescriptionsItem>
+        }
+    </Descriptions>
+</Flex>
+
+@code {
+    static readonly Attrs LabelLayer = new() { Sx = LabelStyle };
+    static readonly Attrs KeysLayer = new() { Sx = KeysStyle };
+    static readonly Attrs JoinerLayer = new() { Sx = JoinerStyle };
+    static readonly Attrs HiddenJoinerLayer = new() { Sx = JoinerStyle, AriaHidden = true };
+
+    /// <summary>按键与作用。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<(string Keys, string Action)> Keys { get; set; } = [];
+
+    /// <summary>表格前的说明（焦点从哪里进、哪些键在哪个部件上生效）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => Headings.Add(this, new("keyboard", "键盘"), DocHeadings.AfterExamples);
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => Headings.Remove(this);
+
+    // 一组按键画成键帽：" / " 隔开的几种按法（之间写“或”），每种按法是 "+" 连起来的组合；只有 "+" 一个字时它就是那个键
+    static RenderFragment Keycaps(string keys) =>
+        @<span @attributes="Attrs.Merge(KeysLayer)">
+            @foreach (var (combo, index) in keys.Split(" / ").Select((c, i) => (c, i)))
+            {
+                if (index > 0)
+                {
+                    <span @attributes="Attrs.Merge(JoinerLayer)">或</span>
+                }
+                var parts = combo == "+" ? ["+"] : combo.Split('+');
+                foreach (var (key, keyIndex) in parts.Select((k, i) => (k, i)))
+                {
+                    if (keyIndex > 0)
+                    {
+                        <span @attributes="Attrs.Merge(HiddenJoinerLayer)">+</span>
+                    }
+                    <Kbd>@key</Kbd>
+                }
+            }
+        </span>;
+
+    // 按键一栏定宽（各行的作用对齐），长的组合在栏里换行；作用一栏占满
+    static Style LabelStyle => Css.Define(static () => new Style { Width = CssLength.Em(15), MaxWidth = CssLength.Percent(45) });
+
+    static Style KeysStyle => Css.Define(static () => new Style
+    {
+        Display = Display.InlineFlex,
+        FlexWrap = FlexWrap.Wrap,
+        AlignItems = AlignItems.Center,
+        Gap = CssLength.Em(0.3),
+    });
+
+    static Style JoinerStyle => Css.Define(static () => new Style { Color = Colors.TextMuted, FontSize = FontSizes.Xs });
+}

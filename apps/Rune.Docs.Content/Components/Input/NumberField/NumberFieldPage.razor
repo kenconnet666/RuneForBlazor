@@ -28,5 +28,13 @@
             </Example>
         </ExampleColumn>
     </Examples>
+    <KeyboardReference Keys="@([
+        ("↑ / ↓", "加减一个 Step"),
+        ("PageUp / PageDown", "加减一个 BigStep（默认 Step × 10）"),
+        ("Home / End", "到 Min / Max（有设时）"),
+        ("Enter", "按当前输入解析、校正并写回"),
+    ])">
+        输入框是 role="spinbutton"；加减按钮不在 Tab 顺序里（键盘用方向键），指针按住时连续加减。
+    </KeyboardReference>
     <ApiReference Types="[typeof(NumberField<>), typeof(NumberRangeField<>)]" />
 </DocPage>

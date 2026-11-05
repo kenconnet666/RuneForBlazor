@@ -25,5 +25,18 @@
             </Example>
         </ExampleColumn>
     </Examples>
+    <KeyboardReference Keys="@([
+        ("↓ / Enter / Space", "关闭时：打开列表，高亮已选的项（没有时是第一项）"),
+        ("↑", "关闭时：打开列表并高亮最后一项"),
+        ("字母键", "关闭时（单选）：直接选中下一个以它开头的项；打开时移动高亮"),
+        ("↓ / ↑", "打开时：移动高亮"),
+        ("Home / End / PageUp / PageDown", "打开时：移到第一项、最后一项，或按一屏移动"),
+        ("Enter / Space", "打开时：选中高亮的项；单选随后关闭，多选切换勾选"),
+        ("Esc / Tab", "关闭列表；焦点一直在触发按钮上"),
+        ("Backspace", "多选：移除最后一个已选项（触发按钮上，或空的搜索框里）"),
+        ("输入（Searchable）", "打开时焦点在搜索框里：输入过滤选项，↑↓、Enter 同上，Esc 关闭并回到触发按钮"),
+    ])">
+        焦点一直留在触发按钮上，高亮项经 aria-activedescendant 告诉读屏。写了 <Code>Name</Code> 时用隐藏的 input 随表单提交（多选每个值一个）。数据层与 <TextLink Href="components/listbox">Listbox</TextLink> 相同，选项多时虚拟滚动。
+    </KeyboardReference>
     <ApiReference Types="[typeof(Select<>), typeof(ListPopover<>)]" />
 </DocPage>

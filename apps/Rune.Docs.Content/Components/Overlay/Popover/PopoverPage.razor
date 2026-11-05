@@ -25,5 +25,12 @@
             </Example>
         </ExampleColumn>
     </Examples>
+    <KeyboardReference Keys="@([
+        ("Enter / Space", "Popover 的触发器：打开或关闭；打开后焦点移到第一个可聚焦元素（有 autofocus 的优先）"),
+        ("Tab", "聚焦 Tooltip 的触发器时立即显示提示；聚焦 HoverCard 的触发器时打开卡片，再按 Tab 进入卡片"),
+        ("Esc", "关闭弹出层或隐藏提示；Popover 关闭后焦点回到触发器"),
+    ])">
+        焦点离开 HoverCard 的触发器与卡片时卡片关闭；Tooltip 不可交互，焦点不会进入提示。
+    </KeyboardReference>
     <ApiReference Types="[typeof(HoverCard), typeof(Popover), typeof(Tooltip)]" />
 </DocPage>

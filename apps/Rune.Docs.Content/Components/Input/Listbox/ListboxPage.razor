@@ -19,5 +19,13 @@
             </Example>
         </ExampleColumn>
     </Examples>
+    <KeyboardReference Keys="@([
+        ("↓ / ↑", "移动高亮，跳过不可用的项"),
+        ("Home / End / PageUp / PageDown", "移到第一项、最后一项，或按一屏移动"),
+        ("字母键", "移到下一个以它开头的项"),
+        ("Enter / Space", "选中高亮的项；多选时切换勾选"),
+    ])">
+        整个列表只占一个 Tab 位置，高亮项经 aria-activedescendant 告诉读屏。
+    </KeyboardReference>
     <ApiReference Types="[typeof(Listbox<>), typeof(ListboxView<>)]" />
 </DocPage>

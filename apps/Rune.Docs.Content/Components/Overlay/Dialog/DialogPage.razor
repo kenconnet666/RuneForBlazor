@@ -19,5 +19,12 @@
             </Example>
         </ExampleColumn>
     </Examples>
+    <KeyboardReference Keys="@([
+        ("Tab / Shift+Tab", "在对话框里的可聚焦元素之间移动；页面其余部分不可操作（原生模态 dialog 的 inert）"),
+        ("Esc", "关闭对话框，焦点回到打开它的元素；Tone=\"Danger\" 的确认对话框相当于取消"),
+        ("Enter / Space", "按下聚焦的按钮"),
+    ])">
+        打开时焦点落在带 <Code>autofocus</Code> 的元素上，没有就是第一个可聚焦的元素。
+    </KeyboardReference>
     <ApiReference Types="[typeof(Dialog)]" />
 </DocPage>
