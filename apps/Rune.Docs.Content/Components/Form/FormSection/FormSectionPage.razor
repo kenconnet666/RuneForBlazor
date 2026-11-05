@@ -1,0 +1,29 @@
+@page "/components/form-section"
+@attribute [DocMeta("FormSection 表单分组", "长表单按主题分组：标题、说明、结束边的操作，下面是最多几列的字段栅格；可以收起，整组只读或不可用，带 id 时当锚点。", DocCategory.Form, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Form.FormSection.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn Wide="true">
+            <Example Id="admission" Title="长表单分组与目录" Demo="typeof(AdmissionExample)">
+                <Code>Columns</Code> 是最多几列，每列不窄于 <Code>MinColumnWidth</Code>，容器窄时自动减少列数，不用断点；跨整行用
+                <Code>GridItem FullRow="true"</Code>。给了 <Code>id</Code> 就能当锚点：旁边放一个 TableOfContents 做分节导航，跳过来时让开粘性顶栏。
+                语义是以标题为名称的 group，标题是 h2–h6（<Code>HeadingLevel</Code>，默认 h3），读屏能按标题跳转。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="review" Title="审批时整组只读" Demo="typeof(ReviewExample)">
+                分组也是一层字段布局：<Code>ReadOnly</Code>、<Code>Disabled</Code>、<Code>LabelPlacement</Code>、<Code>LabelWidth</Code>
+                写在分组上只作用于这一组，没写的沿用 Form 的。申请内容只读，审批意见照常填。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="collapsible" Title="可收起、标题栏的操作" Demo="typeof(CollapsibleExample)">
+                <Code>Collapsible</Code> 时标题是展开收起的按钮（aria-expanded），<Code>@@bind-Open</Code> 可以绑定；收起的字段不能被 Tab 到。
+                <Code>Extra</Code> 放在标题栏的结束边：添加一行、查看关联明细。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(FormSection)]" />
+</DocPage>

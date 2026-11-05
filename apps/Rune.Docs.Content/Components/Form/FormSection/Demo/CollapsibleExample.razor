@@ -1,0 +1,57 @@
+@* 可收起的分组：不常填的“高级选项”默认收起；标题栏结束边放这一组的操作（添加一行）；重复的行只在第一行显示列名，其余行 LabelHidden（读屏照样念） *@
+@inherits RuneComponent
+
+<form @onsubmit:preventDefault="true">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+        <FormSection Title="联系人" Description="@($"{contacts.Count} 位，至少保留一位")">
+            <Extra>
+                <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Icon="Lucide.Plus" @onclick="() => contacts.Add(new())">添加联系人</Button>
+            </Extra>
+            <ChildContent>
+                @for (var i = 0; i < contacts.Count; i++)
+                {
+                    var index = i;
+                    var contact = contacts[index];
+                    <Flex @key="contact" Align="ItemAlign.End" Gap="SpaceScale.Sm">
+                        <Field Label="姓名" LabelHidden="index > 0">
+                            <TextField @bind-Value="contact.Name" />
+                        </Field>
+                        <Field Label="职务" LabelHidden="index > 0">
+                            <TextField @bind-Value="contact.Role" />
+                        </Field>
+                        <Field Label="手机" LabelHidden="index > 0">
+                            <TextField @bind-Value="contact.Phone" inputmode="numeric" />
+                        </Field>
+                        <IconButton Icon="Lucide.Trash" Label="@($"删除第 {index + 1} 位联系人")" Disabled="contacts.Count == 1"
+                                    @onclick="() => contacts.Remove(contact)" />
+                    </Flex>
+                }
+            </ChildContent>
+        </FormSection>
+        <FormSection Title="高级选项" Description="通知方式、对接系统；不填时按默认" Collapsible="true" @bind-Open="advancedOpen"
+                     Columns="2" MinColumnWidth="CssLength.Em(14)">
+            <Field Label="状态变更时通知">
+                <Switch @bind-Value="notify">通知联系人</Switch>
+            </Field>
+            <Field Label="通知方式">
+                <Select Items="channels" @bind-Value="channel" Disabled="!notify" />
+            </Field>
+        </FormSection>
+    </Flex>
+</form>
+
+@code {
+    static readonly ListboxOption[] channels = [new("email", "邮件"), new("sms", "短信"), new("portal", "供应商门户站内信")];
+
+    readonly List<Contact> contacts = [new() { Name = "周岚", Role = "销售经理", Phone = "13800001234" }, new() { Name = "陈默", Role = "质量工程师", Phone = "13900005678" }];
+    bool advancedOpen;
+    bool notify = true;
+    string? channel = "email";
+
+    sealed class Contact
+    {
+        public string? Name { get; set; }
+        public string? Role { get; set; }
+        public string? Phone { get; set; }
+    }
+}

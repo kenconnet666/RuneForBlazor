@@ -17,7 +17,26 @@ export function onFocusLink(event) {
   control.scrollIntoView({ block: link.getAttribute('data-focus-block') ?? 'center', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
 }
 
-/** Backspace（输入框里是空的时候）：把 data-rune-backspace 的命令交给 C#（多选下拉移除最后一项）。 */
+/**
+ * 表单提交没通过（data-rune-invalid-submit 变了）：焦点到错误汇总（data-rune-error-summary），没有汇总时到第一个出错的控件。
+ * 等一帧再找：控件的 aria-invalid 可能在随后的渲染里才写上。
+ */
+export function focusInvalid(form) {
+  requestAnimationFrame(() => {
+    const target = form.querySelector('[data-rune-error-summary]') ?? firstInvalidControl(form);
+    if (!target) return;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block: 'center', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+  });
+}
+
+// 单选组、勾选组的 aria-invalid 写在组上（div）：聚焦组里选中的那项，没有就第一项
+function firstInvalidControl(form) {
+  const invalid = form.querySelector('[aria-invalid="true"]');
+  if (!invalid || invalid.matches('input, select, textarea, button, [tabindex]')) return invalid;
+  return invalid.querySelector('input:checked, input:not(:disabled), button:not(:disabled), [tabindex]');
+}
+
 /**
  * 要 C# 处理的按键转成命令（不用每次按键都往返一次）；在列表的键盘处理之后调用，按键已经被用掉（defaultPrevented）时不发：
  * Backspace 时取 data-rune-backspace（输入框里是空的时候，多选移除最后一项）；

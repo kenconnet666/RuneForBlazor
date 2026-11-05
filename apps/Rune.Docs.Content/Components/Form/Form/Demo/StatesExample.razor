@@ -1,0 +1,29 @@
+@* Field 上的状态交给里面的控件：Required 加星号与 aria-required，ReadOnly、Disabled 同步给控件；
+   给了 Error 就算出错（标红、关联错误信息），只写 Invalid 时只标红，错误在别处汇总 *@
+@inherits RuneComponent
+
+<Grid MinItemWidth="CssLength.Rem(14)" Gap="SpaceScale.Md">
+    <Field Label="姓名" Required="true" Description="和证件上的一致">
+        <TextField @bind-Value="name" />
+    </Field>
+    <Field Label="工号" ReadOnly="true" Description="入职时分配，不能修改">
+        <TextField Value="E-10024" />
+    </Field>
+    <Field Label="部门" Disabled="true" Description="由管理员调整">
+        <Select Items="departments" Value="@("设计部")" />
+    </Field>
+    <Field Label="邮箱" Error="@(email?.Contains('.') == true ? null : "邮箱格式不对，例如 lin@example.com")">
+        <TextField @bind-Value="email" Type="email" />
+    </Field>
+    <Field Label="座位数" Invalid="true" Description="超出了场地容量（见上方汇总）">
+        <NumberField @bind-Value="seats" />
+    </Field>
+</Grid>
+
+@code {
+    static readonly string[] departments = ["设计部", "研发部", "市场部"];
+
+    string? name = "";
+    string? email = "lin@";
+    int seats = 120;
+}

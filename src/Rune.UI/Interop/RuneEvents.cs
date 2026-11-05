@@ -21,11 +21,12 @@ public sealed class CommandEventArgs : EventArgs
 {
     /// <summary>
     /// 命令名：remove-last（Backspace，移除最后一个已选项）、clear（Esc，清空输入）、show-all（↑↓ 打开，显示全部选项）、
-    /// add（Enter，把输入加成标签）、paste（粘贴了多段文字）、fullscreen-exit（AppShell：离开了浏览器全屏或按了 Esc）。
+    /// add（Enter，把输入加成标签）、paste（粘贴了多段文字）、fullscreen-exit（AppShell：离开了浏览器全屏或按了 Esc）、
+    /// leave（LeaveConfirmation：点了去本站别的页面的链接，Text 是目标地址）。
     /// </summary>
     public string Name { get; set; } = "";
 
-    /// <summary>命令带的文字（paste 时是粘贴的整段内容）；没有时为 null。</summary>
+    /// <summary>命令带的文字（paste 时是粘贴的整段内容，leave 时是目标地址）；没有时为 null。</summary>
     public string? Text { get; set; }
 }
 

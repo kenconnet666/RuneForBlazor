@@ -1,20 +1,51 @@
 @page "/components/form"
-@attribute [DocMeta("Form 表单", "useForm 把值、校验、错误、提交状态放进一个控制器；Field 关联标签、说明与错误；一份 zod schema 同时给出校验、类型与字段约束。", DocCategory.Form, Order = 1)]
+@attribute [DocMeta("Form 表单", "Form 包一层 EditForm：DataAnnotations 校验、提交中、错误汇总；Field 关联标签、说明与错误；表单上的标签布局、只读、不可用交给里面所有字段。", DocCategory.Form, Order = 1)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Form.Form.Demo
 
 <DocPage Meta="Meta" Wide="true">
+    <Example Id="admission" Title="供应商准入：错误汇总与跨字段规则" Demo="typeof(AdmissionExample)">
+        控件写 <Code>@@bind-Value="model.X"</Code>，所在的 Field 就认得这个字段：显示它的校验错误，控件标红并经 aria-describedby 关联。
+        <Code>Form</Code> 默认在顶上放 <Code>FormErrorSummary</Code>：提交没通过时列出各项错误（按字段在表单里的顺序、带字段名），焦点先到它上面，
+        点哪一项跳到那个字段，改对一项就少一项（GOV.UK 的 Error summary）。跨字段的规则写在模型的 <Code>IValidatableObject.Validate</Code> 里，
+        <Code>ValidationResult</Code> 的成员名指到要标错的字段。
+    </Example>
     <Examples>
         <ExampleColumn>
-            <Example Id="validation" Title="Form：校验、提交中、错误汇总" Demo="typeof(ValidationExample)" />
-            <Example Id="checkboxes" Title="勾选框：全选与半选" Demo="typeof(CheckboxesExample)" />
+            <Example Id="signup" Title="注册：校验与异步校验" Demo="typeof(SignupExample)">
+                字段改了（失焦时）就校验这一个，提交时校验全部；<Code>ErrorSummary="false"</Code> 时提交没通过把焦点移到第一个出错的控件。
+                用户名的异步校验写在 <Code>@@bind-Value:after</Code> 里，结果交给 Field 的 <Code>Error</Code>：停顿后查，只采用最后一次的结果。
+                <Code>LeaveConfirmation When="context.IsModified()"</Code> 在有未保存的改动时拦住离开（注册成功后 <Code>MarkAsUnmodified</Code>）：关掉、刷新标签页由浏览器问；站内跳转弹确认对话框，只换查询串、锚点不问。
+                填几个字后点侧栏的别的页面试试。
+            </Example>
+            <Example Id="layout" Title="标签在左侧、整组只读" Demo="typeof(LayoutExample)">
+                <Code>LabelPlacement="FieldLabelPlacement.Start"</Code> 把标签放到控件的起始边：标签一列（<Code>LabelWidth</Code>，默认 8em）贴着控件右对齐，
+                控件一列；两列按第一行文字的基线对齐，单选组、多行文本框也对得齐。写在 <Code>Form</Code> 上的布局与 <Code>ReadOnly</Code>、<Code>Disabled</Code>
+                交给所有字段与控件：只读时勾选、开关、滑块照常显示与聚焦，读屏念“只读”，点了不变。Field 与控件上显式写的优先。
+            </Example>
+            <Example Id="states" Title="字段的状态" Demo="typeof(StatesExample)">
+                写在 <Code>Field</Code> 上的状态交给里面的控件（控件上显式写的优先）：<Code>Required</Code> 在标签后加星号、控件带 aria-required；
+                <Code>ReadOnly</Code>、<Code>Disabled</Code> 同步给控件。给了 <Code>Error</Code> 就算出错，控件标红并经 aria-describedby 关联错误信息；
+                只写 <Code>Invalid</Code> 时只标红。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
-            <Example Id="fields" Title="数字、单选、下拉、滑块" Demo="typeof(FieldsExample)" />
-        </ExampleColumn>
-        <ExampleColumn>
-            <Example Id="standalone" Title="单独使用" Demo="typeof(StandaloneExample)" />
+            <Example Id="array" Title="报价单：集合字段与 decimal" Demo="typeof(ArrayExample)">
+                DataAnnotations 不进集合里的对象：在 <Code>EditContext.OnValidationRequested</Code> 里逐行校验，错误用
+                <Code>ValidationMessageStore</Code> 写到 <Code>new FieldIdentifier(行, 属性名)</Code> 上，就显示在那一行的字段下；
+                <Code>OnFieldChanged</Code> 里只重新校验改了的那一行。金额用 decimal，合计没有浮点误差。
+            </Example>
+            <Example Id="wizard" Title="分步填写：局部校验与字段联动" Demo="typeof(WizardExample)">
+                对这一步的字段逐个 <Code>EditContext.NotifyFieldChanged</Code>，再看 <Code>GetValidationMessages</Code>：只校验这一步、立即显示它们的错误，
+                通过才进下一步，别的步骤的错误不打扰。<Code>[Compare]</Code> 比较两个字段；改了密码重新校验“确认密码”、改了预算下限重新校验上限，
+                被依赖的字段填过时才提示。
+            </Example>
+            <Example Id="native" Title="原生提交" Demo="typeof(NativeExample)">
+                不用 Form 也可以：Select、NumberField、Slider、TagsInput 写了 <Code>Name</Code>（NumberField 是 <Code>name</Code>）就带着隐藏的 input（FormValue），
+                原生表单直接提交；数字按规范的十进制文本提交（decimal 不丢精度），多值同名多个。静态 SSR 下配 <Code>FormName</Code> 与
+                <Code>[SupplyParameterFromForm]</Code> 接收。
+            </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(Field), typeof(Form), typeof(FormValue)]" />
+    <ApiReference Types="[typeof(Form), typeof(FormErrorSummary), typeof(Field), typeof(FormValue), typeof(LeaveConfirmation)]" />
 </DocPage>

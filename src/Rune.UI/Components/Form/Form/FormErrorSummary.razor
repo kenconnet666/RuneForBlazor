@@ -1,0 +1,65 @@
+@*
+    错误汇总（同 vue-tsx-pro 的 FormErrorSummary）：提交没通过时列出各项错误（“有 3 项需要修改”），每项是链接，点了跳到那个字段的控件。
+    Form 默认在顶部放一个；要放在别处时给 Form 写 ErrorSummary="false"，再把它放在想要的位置（要在 Form 里面）。
+    提交没通过时焦点先到它上面（读屏念出标题与各项）。只在提交过之后显示；改对一项它就从列表里消失，全改对了收起。按 Field 在页面上的顺序，没有 Field 的错误排在后面、不带链接。
+    未声明的属性落到 Alert 组件上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using Microsoft.AspNetCore.Components.Forms
+@{ var parts = FormStyles.Of(Config.Styles); }
+
+@if (Form is { ShowErrors: true } && Form.Errors(Config.Lang) is { Count: > 0 } errors)
+{
+    <Alert Tone="Tone.Danger" Title="@(Title?.Invoke(errors.Count) ?? Config.Lang.FormErrorSummary(errors.Count))" Live="AlertLive.Assertive"
+           @attributes="Attrs.MergeProps(parts[FormPart.Summary], Rest, Managed)">
+        <ul @attributes="Attrs.Merge(parts[FormPart.SummaryList], PropsList)">
+            @foreach (var (text, controlId) in errors)
+            {
+                <li>
+                    @if (controlId is not null)
+                    {
+                        <TextLink Href="@($"#{controlId}")" data-rune-focus="@controlId">@text</TextLink>
+                    }
+                    else
+                    {
+                        @text
+                    }
+                </li>
+            }
+        </ul>
+    </Alert>
+}
+
+@code {
+    // 提交没通过时 JS 把焦点放到这里（见 Form 的 data-rune-invalid-submit）
+    static readonly Attrs Managed = new() { ["tabindex"] = "-1", ["data-rune-error-summary"] = true };
+
+    EditContext? subscribed;
+
+    /// <summary>标题（参数是错误数）；不写时取语言包的“有 N 项需要修改”。</summary>
+    [Parameter] public Func<int, string>? Title { get; set; }
+
+    /// <summary>列表（ul）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    [CascadingParameter] FormState? Form { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        // 改对一项就更新（全改完就收起）
+        if (ReferenceEquals(subscribed, Form?.Context)) return;
+        if (subscribed is not null) subscribed.OnValidationStateChanged -= OnValidationStateChanged;
+        subscribed = Form?.Context;
+        if (subscribed is not null) subscribed.OnValidationStateChanged += OnValidationStateChanged;
+    }
+
+    void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) => StateHasChanged();
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        if (subscribed is not null) subscribed.OnValidationStateChanged -= OnValidationStateChanged;
+    }
+}

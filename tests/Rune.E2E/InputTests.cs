@@ -118,9 +118,41 @@ public class InputTests(DemoServer demo)
 
         var summary = page.GetByRole(AriaRole.Alert).First;
         await Assertions.Expect(summary).ToBeVisibleAsync();
+        await Assertions.Expect(summary).ToBeFocusedAsync();
         await summary.GetByRole(AriaRole.Link).First.ClickAsync();
         await Assertions.Expect(page.GetByTestId("name")).ToBeFocusedAsync();
         // 跳转留在本页：Blazor 的链接拦截没有把 #id 当成别的地址
         Assert.EndsWith($"/{mode}/form", page.Url);
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 没有错误汇总的表单提交未通过时聚焦第一个出错的控件(string mode)
+    {
+        var page = await demo.OpenAsync(mode, "form");
+        await page.GetByRole(AriaRole.Button, new() { Name = "注册" }).ClickAsync();
+
+        await Assertions.Expect(page.GetByLabel("用户名", new() { Exact = true })).ToBeFocusedAsync();
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 有未保存的改动时站内跳转先确认(string mode)
+    {
+        var page = await demo.OpenAsync(mode, "form");
+        await page.GetByLabel("一句话介绍").FillAsync("做组件库");
+        await page.GetByLabel("一句话介绍").BlurAsync();
+
+        // 点侧栏的链接：交互岛的页面之间走增强导航，由 JS 拦下
+        await page.Locator($"a[href$='{mode}/button']").First.ClickAsync();
+        var dialog = page.GetByRole(AriaRole.Dialog, new() { Name = "离开这个页面？" });
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+        Assert.EndsWith($"/{mode}/form", page.Url);
+
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "离开" }).ClickAsync();
+        // 增强导航只换 history、不触发 load：轮询地址
+        await Assertions.Expect(page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex($"/{mode}/button$"));
     }
 }

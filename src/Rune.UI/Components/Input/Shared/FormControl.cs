@@ -35,10 +35,10 @@ public abstract class FormControl<TValue> : UIComponent
     /// <summary>绑定的字段（<c>@bind-Value</c> 自动给出）：用它在表单里找到这个字段的校验状态。</summary>
     [Parameter] public Expression<Func<TValue>>? ValueExpression { get; set; }
 
-    /// <summary>不可用；不写时取所在 Field 的。</summary>
+    /// <summary>不可用；不写时取所在 Field、Form、FormSection 的。</summary>
     [Parameter] public bool? Disabled { get; set; }
 
-    /// <summary>只读；不写时取所在 Field 的。</summary>
+    /// <summary>只读；不写时取所在 Field、Form、FormSection 的。</summary>
     [Parameter] public bool? ReadOnly { get; set; }
 
     /// <summary>必填；不写时取所在 Field 的。</summary>
@@ -53,6 +53,9 @@ public abstract class FormControl<TValue> : UIComponent
     /// <summary>所在的 Field。</summary>
     [CascadingParameter] protected FieldContext? Field { get; set; }
 
+    /// <summary>所在的 Form、FormSection 的只读、不可用（控件不在 Field 里时也按它）。</summary>
+    [CascadingParameter] FieldLayout? Layout { get; set; }
+
     Bindable<TValue> value { get => field ??= new(this, () => Value, () => ValueChanged); }
 
     /// <summary>当前值（受控时是父级给的，非受控时是组件自己的）。</summary>
@@ -61,11 +64,11 @@ public abstract class FormControl<TValue> : UIComponent
     /// <summary>控件主元素的 id：使用方写的 id &gt; Field 给的 &gt; 自动生成的。</summary>
     protected string ControlId => AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string s ? s : Field?.ControlId ?? ownId;
 
-    /// <summary>当前生效的状态（控件上写的 &gt; Field &gt; 表单）。</summary>
-    protected bool IsDisabled => Disabled ?? InheritedState?.Disabled ?? Field?.Disabled ?? false;
+    /// <summary>当前生效的状态（控件上写的 &gt; 组 &gt; Field &gt; Form、FormSection）。</summary>
+    protected bool IsDisabled => Disabled ?? InheritedState?.Disabled ?? Field?.Disabled ?? Layout?.Disabled ?? false;
 
     /// <inheritdoc cref="IsDisabled"/>
-    protected bool IsReadOnly => ReadOnly ?? InheritedState?.ReadOnly ?? Field?.ReadOnly ?? false;
+    protected bool IsReadOnly => ReadOnly ?? InheritedState?.ReadOnly ?? Field?.ReadOnly ?? Layout?.ReadOnly ?? false;
 
     /// <inheritdoc cref="IsDisabled"/>
     protected bool IsRequired => Required ?? Field?.Required ?? false;

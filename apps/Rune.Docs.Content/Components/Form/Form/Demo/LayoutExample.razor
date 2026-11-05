@@ -1,0 +1,72 @@
+@* 标签放在起始边：Form 上统一设置，标签一列右对齐、控件一列，按第一行文字的基线对齐；
+   ReadOnly / Disabled 写在 Form 上，所有字段与控件（含勾选、开关、滑块、分段）一起只读或不可用 *@
+@inherits RuneComponent
+
+<Card>
+    <Header>
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true">
+            <Strong>项目基本信息</Strong>
+            <ToggleGroup @bind-Value="mode" Required="true" Size="Size.Sm" aria-label="表单状态" data-testid="mode">
+                <ToggleItem Value="edit">编辑</ToggleItem>
+                <ToggleItem Value="readonly">只读</ToggleItem>
+                <ToggleItem Value="disabled">不可用</ToggleItem>
+            </ToggleGroup>
+        </Flex>
+    </Header>
+    <ChildContent>
+        <Form Model="project" LabelPlacement="FieldLabelPlacement.Start" LabelWidth="CssLength.Em(6.5)"
+              ReadOnly="@(mode == "readonly")" Disabled="@(mode == "disabled")" ErrorSummary="false">
+            <Field Label="项目名称" Required="true">
+                <TextField @bind-Value="project.Name" />
+            </Field>
+            <Field Label="改造类型" Required="true">
+                <RadioGroup @bind-Value="project.Category" Orientation="Orientation.Horizontal">
+                    <Radio Value="@("display")">陈列调整</Radio>
+                    <Radio Value="@("device")">设备更新</Radio>
+                    <Radio Value="@("process")">流程优化</Radio>
+                </RadioGroup>
+            </Field>
+            <Field Label="执行范围" Required="true">
+                <ToggleGroup @bind-Value="project.Scope" Required="true" Size="Size.Sm">
+                    <ToggleItem Value="all">全部门店</ToggleItem>
+                    <ToggleItem Value="pilot">试点门店</ToggleItem>
+                </ToggleGroup>
+            </Field>
+            <Field Label="经费来源" Description="可多选">
+                <CheckboxGroup TItem="string" @bind-Value="project.Funding" Orientation="Orientation.Horizontal">
+                    <Checkbox GroupValue="budget">年度预算</Checkbox>
+                    <Checkbox GroupValue="special">专项资金</Checkbox>
+                    <Checkbox GroupValue="brand">品牌合作</Checkbox>
+                    <Checkbox GroupValue="self">其他自筹</Checkbox>
+                </CheckboxGroup>
+            </Field>
+            <Field Label="涉及门店">
+                <NumberField @bind-Value="project.Stores" Min="0">
+                    <Suffix>家</Suffix>
+                </NumberField>
+            </Field>
+            <Field Label="通知门店">
+                <Switch @bind-Value="project.Notify">开工前三天通知店长</Switch>
+            </Field>
+            <Field Label="简要描述" Required="true" Description="说明改造内容与节省金额的计算依据">
+                <Textarea @bind-Value="project.Description" Rows="3" />
+            </Field>
+        </Form>
+    </ChildContent>
+</Card>
+
+@code {
+    readonly Project project = new();
+    string? mode = "readonly";
+
+    sealed class Project
+    {
+        public string? Name { get; set; } = "华东门店陈列改造";
+        public string? Category { get; set; } = "display";
+        public string? Scope { get; set; } = "all";
+        public IReadOnlyList<string> Funding { get; set; } = ["budget", "special"];
+        public int Stores { get; set; } = 40;
+        public bool Notify { get; set; }
+        public string? Description { get; set; } = "收银台移到入口一侧，高频商品移到视线高度；货架由五层减为四层，单店节省陈列物料约 3000 元。";
+    }
+}

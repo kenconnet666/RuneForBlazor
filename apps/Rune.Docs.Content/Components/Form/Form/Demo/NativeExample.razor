@@ -1,0 +1,59 @@
+@* 不用 Form 也行：控件写了 name，就有隐藏的 input 随原生表单提交（FormValue）。这里用 GET 提交回本页，再从查询串读出来 *@
+@inherits RuneComponent
+@inject NavigationManager Navigation
+
+<form method="get" action="@action">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Grid MinItemWidth="CssLength.Rem(12)" Gap="SpaceScale.Md">
+            <Field Label="城市">
+                <Select Items="cities" @bind-Value="city" Name="city" />
+            </Field>
+            <Field Label="月租预算（元）">
+                <NumberField @bind-Value="budget" Step="100" name="budget" />
+            </Field>
+        </Grid>
+        <Field Label="@($"卧室：{rooms} 间")">
+            <Slider TValue="int" @bind-Value="rooms" Min="1" Max="5" Name="rooms" />
+        </Field>
+        <Field Label="偏好">
+            <TagsInput TItem="string" @bind-Value="tags" Name="tags" />
+        </Field>
+        <Flex Justify="ContentJustify.End">
+            <Button Type="submit">搜索房源</Button>
+        </Flex>
+        @if (submitted is not null)
+        {
+            <Small Tone="TextTone.Muted">提交的查询串：<Code>@submitted</Code></Small>
+        }
+    </Flex>
+</form>
+
+@code {
+    static readonly string[] cities = ["北京", "上海", "深圳", "杭州"];
+
+    string? city = "上海";
+    decimal budget = 2999.90m;
+    int rooms = 2;
+    IReadOnlyList<string> tags = ["近地铁", "南向"];
+    string action = "";
+    string? submitted;
+
+    // 提交回到这一页（锚点留在这个示例上），带着查询串时把提交的值填回去
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        action = $"{uri.AbsolutePath}#native";
+        if (uri.Query.Length <= 1) return;
+        submitted = Decode(uri.Query[1..]);
+        // 多值同名多个（tags=近地铁&tags=南向）
+        var pairs = uri.Query[1..].Split('&').Select(pair => pair.Split('=', 2)).Where(pair => pair.Length == 2)
+            .Select(pair => (Name: Decode(pair[0]), Value: Decode(pair[1]))).ToList();
+        string? First(string name) => pairs.FirstOrDefault(pair => pair.Name == name).Value;
+        city = First("city") ?? city;
+        if (decimal.TryParse(First("budget"), System.Globalization.CultureInfo.InvariantCulture, out var parsed)) budget = parsed;
+        if (int.TryParse(First("rooms"), out var count)) rooms = count;
+        tags = [.. pairs.Where(pair => pair.Name == "tags" && pair.Value.Length > 0).Select(pair => pair.Value)];
+    }
+
+    static string Decode(string text) => Uri.UnescapeDataString(text.Replace('+', ' '));
+}

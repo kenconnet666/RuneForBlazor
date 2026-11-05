@@ -6,49 +6,42 @@
     </Form>
     - 默认带 DataAnnotationsValidator（用 FluentValidation 等时写 DataAnnotations="false"，把自己的校验器放在内容里）；
     - 提交的回调执行期间，里面的提交按钮（Type="submit"）显示加载中、不能重复提交；
-    - 提交未通过时在顶部列出错误（“姓名：请填写姓名”），点一项跳到那个控件；也可以关掉（ErrorSummary="false"）。
+    - 提交未通过时在顶部列出错误（FormErrorSummary：“姓名：请填写姓名”），焦点到它上面，点一项跳到那个控件；
+      没有错误汇总时焦点到第一个出错的控件；
+      ErrorSummary="false" 时不放，可以自己把 FormErrorSummary 放在别处；
+    - 整张表单的标签布局与只读、不可用（LabelPlacement、LabelWidth、LabelAlign、Disabled、ReadOnly）交给里面的 Field 与控件（FieldLayout），
+      FormSection 可以按组再改。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 @using Microsoft.AspNetCore.Components.Forms
 @{ var parts = FormStyles.Of(Config.Styles); }
 
-<EditForm EditContext="context" OnSubmit="HandleSubmitAsync" FormName="@FormName" @attributes="Attrs.Merge(parts[FormPart.Root], Rest)">
+<EditForm EditContext="context" OnSubmit="HandleSubmitAsync" FormName="@FormName" data-disabled="@(Disabled ? true : null)" data-readonly="@(ReadOnly ? true : null)"
+          data-rune-invalid-submit="@(invalidSubmits > 0 ? invalidSubmits : null)"
+          @attributes="Attrs.Merge(parts[FormPart.Root], Rest)">
     @if (DataAnnotations)
     {
         <DataAnnotationsValidator />
     }
     <CascadingValue Value="state">
-        @if (ErrorSummary && showErrors && Errors is { Count: > 0 } errors)
-        {
-            <Alert Tone="Tone.Danger" Title="@(SummaryTitle?.Invoke(errors.Count) ?? Config.Lang.FormErrorSummary(errors.Count))" Live="AlertLive.Assertive"
-                   @attributes="Attrs.MergeProps(parts[FormPart.Summary], PropsSummary)">
-                <ul @attributes="Attrs.Merge(parts[FormPart.SummaryList])">
-                    @foreach (var (text, controlId) in errors)
-                    {
-                        <li>
-                            @if (controlId is not null)
-                            {
-                                <TextLink Href="@($"#{controlId}")" data-rune-focus="@controlId">@text</TextLink>
-                            }
-                            else
-                            {
-                                @text
-                            }
-                        </li>
-                    }
-                </ul>
-            </Alert>
-        }
-        @ChildContent
+        <CascadingValue Value="Layout">
+            @if (ErrorSummary)
+            {
+                <FormErrorSummary Title="SummaryTitle" @attributes="Attrs.MergeProps(null, PropsSummary)" />
+            }
+            @ChildContent
+        </CascadingValue>
     </CascadingValue>
 </EditForm>
 
 @code {
     readonly FormState state = new();
+    // 每次提交没通过加一：属性变了，JS 把焦点移到错误汇总或第一个出错的控件
+    int invalidSubmits;
     EditContext context = default!;
     object? contextModel;
-    bool showErrors;
+    Memo<FieldLayout, FieldLayout> layout;
 
     /// <summary>表单绑定的对象（与 <see cref="EditContext"/> 二选一）。</summary>
     [Parameter] public object? Model { get; set; }
@@ -65,7 +58,7 @@
     /// <summary>自动加上 DataAnnotationsValidator，默认是。</summary>
     [Parameter] public bool DataAnnotations { get; set; } = true;
 
-    /// <summary>提交未通过时在顶部列出错误，默认是。</summary>
+    /// <summary>在顶部放一个错误汇总（FormErrorSummary），默认是。</summary>
     [Parameter] public bool ErrorSummary { get; set; } = true;
 
     /// <summary>错误汇总的标题（参数是错误数）；不写时取语言包的“有 N 项需要修改”。</summary>
@@ -80,17 +73,27 @@
     /// <summary>标签在起始边时标签列的宽度，默认 8em。</summary>
     [Parameter] public CssLength? LabelWidth { get; set; }
 
+    /// <summary>标签在起始边时文字的对齐，默认靠结束边（贴着控件）。</summary>
+    [Parameter] public FieldLabelAlign? LabelAlign { get; set; }
+
+    /// <summary>整张表单不可用：里面的字段与控件都不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>整张表单只读（查看详情、审批时）：里面的字段与控件都只读。</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
     /// <summary>表单内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>错误汇总的部件属性（交给 Alert）。</summary>
+    /// <summary>错误汇总的部件属性（交给 FormErrorSummary，再交给 Alert）。</summary>
     [Parameter] public Attrs? PropsSummary { get; set; }
+
+    // 字段布局：输入不变时是同一个对象，里面的 Field 不被迫重新渲染
+    FieldLayout Layout => layout.Get(new(LabelPlacement, LabelWidth, LabelAlign, Disabled, ReadOnly), static k => k);
 
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
-        state.LabelPlacement = LabelPlacement;
-        state.LabelWidth = LabelWidth;
         if (EditContext is not null)
         {
             if (!ReferenceEquals(context, EditContext)) Subscribe(EditContext);
@@ -106,51 +109,21 @@
 
     void Subscribe(EditContext next)
     {
-        if (context is not null) context.OnValidationStateChanged -= OnValidationStateChanged;
         context = next;
-        context.OnValidationStateChanged += OnValidationStateChanged;
-        showErrors = false;
-    }
-
-    // 错误改掉后汇总跟着更新（全改完就消失）
-    void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
-    {
-        if (showErrors) StateHasChanged();
-    }
-
-    /// <inheritdoc/>
-    protected override void OnDispose() => context.OnValidationStateChanged -= OnValidationStateChanged;
-
-    // 每条错误：有登记的 Field 时写成“标签：错误”并能跳到控件（按 Field 在页面上的顺序）；
-    // 没有 Field 的字段、整个对象的错误排在后面，只有文字
-    IReadOnlyList<(string Text, string? ControlId)> Errors
-    {
-        get
-        {
-            var errors = new List<(string, string?)>();
-            var rest = context.GetValidationMessages().ToList();
-            foreach (var (identifier, label, controlId) in state.Fields)
-            {
-                foreach (var message in context.GetValidationMessages(identifier))
-                {
-                    errors.Add((label is null ? message : Config.Lang.FormErrorItem(label, message), controlId));
-                    rest.Remove(message);
-                }
-            }
-            errors.AddRange(rest.Select(message => (message, (string?)null)));
-            return errors;
-        }
+        state.Context = next;
+        state.ShowErrors = false;
     }
 
     async Task HandleSubmitAsync(EditContext editContext)
     {
         if (!editContext.Validate())
         {
-            showErrors = true;
+            state.ShowErrors = true;
+            invalidSubmits++;
             await OnInvalidSubmit.InvokeAsync(editContext);
             return;
         }
-        showErrors = false;
+        state.ShowErrors = false;
         state.Submitting = true;
         StateHasChanged();
         try

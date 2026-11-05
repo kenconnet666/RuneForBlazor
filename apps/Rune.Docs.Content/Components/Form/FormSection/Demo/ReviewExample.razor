@@ -1,0 +1,44 @@
+@* 审批时：申请内容整组只读（ReadOnly 写在分组上），只有最后一组“审批意见”能填；标签放在起始边，两组用同一个宽度 *@
+@inherits RuneComponent
+
+<form @onsubmit:preventDefault="true">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+        <FormSection Title="申请内容" Description="由申请人填写，审批时只读" ReadOnly="true"
+                     LabelPlacement="FieldLabelPlacement.Start" LabelWidth="CssLength.Em(6.5)">
+            <Field Label="项目">
+                <TextField Value="显示器支架合并为一体成型" />
+            </Field>
+            <Field Label="编号">
+                <TextField Value="PO-2026-0187" />
+            </Field>
+            <Field Label="预计年节省">
+                <NumberField Value="174752">
+                    <Suffix>元</Suffix>
+                </NumberField>
+            </Field>
+            <Field Label="说明">
+                <Textarea Value="两件合并为一件，减少紧固件 36 个，单件减重 0.4 kg。" Rows="2" />
+            </Field>
+        </FormSection>
+        <FormSection Title="审批意见" LabelPlacement="FieldLabelPlacement.Start" LabelWidth="CssLength.Em(6.5)">
+            <Field Label="结论" Required="true">
+                <RadioGroup @bind-Value="decision" Orientation="Orientation.Horizontal">
+                    <Radio Value="@("approve")">同意</Radio>
+                    <Radio Value="@("return")">退回修改</Radio>
+                    <Radio Value="@("reject")">不同意</Radio>
+                </RadioGroup>
+            </Field>
+            <Field Label="意见" Required="@(decision != "approve")">
+                <Textarea @bind-Value="note" Rows="3" placeholder="退回、不同意时写明原因" />
+            </Field>
+        </FormSection>
+        <Flex Justify="ContentJustify.End">
+            <Button Disabled="decision is null">提交</Button>
+        </Flex>
+    </Flex>
+</form>
+
+@code {
+    string? decision;
+    string? note = "";
+}

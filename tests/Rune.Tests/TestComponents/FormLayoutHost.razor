@@ -1,0 +1,33 @@
+@* 表单布局测试用：Form 上的标签布局与只读交给字段；FormSection 按组覆盖；错误汇总 *@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="model" LabelPlacement="FieldLabelPlacement.Start" LabelWidth="CssLength.Em(6)" ReadOnly="FormReadOnly" ErrorSummary="ErrorSummary">
+    <Field Label="姓名"><TextField @bind-Value="model.Name" data-testid="name" /></Field>
+    <Field Label="邮箱"><TextField @bind-Value="model.Email" data-testid="email" /></Field>
+    <FormSection Title="审批" LabelPlacement="FieldLabelPlacement.Top" Disabled="true">
+        <Field Label="意见"><TextField @bind-Value="model.Note" data-testid="note" /></Field>
+    </FormSection>
+    <button type="submit">提交</button>
+</Form>
+
+@code {
+    readonly HostModel model = new();
+
+    [Parameter] public bool FormReadOnly { get; set; }
+
+    [Parameter] public bool ErrorSummary { get; set; } = true;
+
+    /// <summary>改对姓名（错误汇总少一项）。</summary>
+    public void FixName() => model.Name = "张三";
+
+    sealed class HostModel
+    {
+        [Required(ErrorMessage = "请填写姓名")]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "请填写邮箱")]
+        public string? Email { get; set; }
+
+        public string? Note { get; set; }
+    }
+}

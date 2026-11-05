@@ -1,0 +1,178 @@
+@*
+    表单里的一组字段（同 vue-tsx-pro 的 FormSection）：标题、说明、结束边的操作，下面一条细线，再下面是字段的栅格。长表单按主题分组。
+    <FormSection Title="项目基本信息" Columns="2">
+        <Field Label="项目名称">…</Field>
+        <Field Label="任务类别">…</Field>
+        <GridItem FullRow="true"><Field Label="简要描述">…</Field></GridItem>
+    </FormSection>
+    Columns 是最多几列：每列不窄于 MinColumnWidth，容器窄时自动减少列数，不需要断点；跨列用 GridItem。
+    也是一层字段布局（FieldLayout）：标签位置、宽度、对齐、只读、不可用写在这里只作用于这一组，没写的沿用 Form 的。
+    Collapsible 时标题是展开收起的按钮（aria-expanded），收起的字段不能被 Tab 到。给了 id 就能当锚点（让开粘性顶栏）。
+    语义：有标题时 role="group"，以标题为名称、说明为描述；标题是 h2–h6（HeadingLevel），读屏能按标题跳转。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var closed = Collapsible && !open.Value;
+    var parts = FormSectionStyles.Of(Columns > 1, closed, Config.Styles);
+    var hasTitle = Title is not null || TitleContent is not null;
+    var hasDescription = Description is not null || DescriptionContent is not null;
+}
+
+<div role="@(hasTitle ? "group" : null)" aria-labelledby="@(hasTitle ? titleId : null)" aria-describedby="@(hasDescription ? descriptionId : null)"
+     data-state="@(Collapsible ? (closed ? "closed" : "open") : null)" @attributes="Attrs.Merge(parts[FormSectionPart.Root], Rest)">
+    @if (hasTitle || Extra is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[FormSectionPart.Header], PropsHeader)">
+            <div @attributes="Attrs.Merge(parts[FormSectionPart.HeaderText])">
+                @if (hasTitle)
+                {
+                    @HeadingElement(parts, closed)
+                }
+                @if (hasDescription)
+                {
+                    <Paragraph id="@descriptionId" Tone="TextTone.Muted" @attributes="Attrs.MergeProps(parts[FormSectionPart.Description], PropsDescription)">@(DescriptionContent ?? (RenderFragment)(b => b.AddContent(0, Description)))</Paragraph>
+                }
+            </div>
+            @if (Extra is not null)
+            {
+                <div @attributes="Attrs.Merge(parts[FormSectionPart.Extra], PropsExtra)">@Extra</div>
+            }
+        </div>
+    }
+    <CascadingValue Value="LayoutFor()">
+        @if (Collapsible)
+        {
+            <Collapse id="@bodyId" Open="open.Value" OpenChanged="open.SetAsync">@Body(parts, false)</Collapse>
+        }
+        else
+        {
+            @Body(parts, true)
+        }
+    </CascadingValue>
+</div>
+
+@code {
+    readonly string titleId = UniqueId.Next("form-section-title");
+    readonly string descriptionId = UniqueId.Next("form-section-description");
+    readonly string bodyId = UniqueId.Next("form-section-body");
+    Memo<FieldLayout, FieldLayout> layout;
+    Memo<(int Columns, CssLength MinWidth, bool Id), Attrs> bodyAttrs;
+
+    /// <summary>标题；不写时没有标题栏，只是一层栅格与字段布局。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>标题（带标记的内容）；写了时不用 Title。</summary>
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+
+    /// <summary>标题下面的说明。</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>说明（带标记的内容）；写了时不用 Description。</summary>
+    [Parameter] public RenderFragment? DescriptionContent { get; set; }
+
+    /// <summary>标题栏结束边的内容：链接、按钮（“查看关联明细”“添加”）。</summary>
+    [Parameter] public RenderFragment? Extra { get; set; }
+
+    /// <summary>标题的级别（2–6），默认 3。</summary>
+    [Parameter] public int HeadingLevel { get; set; } = 3;
+
+    /// <summary>最多几列，默认 1；容器窄时按 MinColumnWidth 自动减少。</summary>
+    [Parameter] public int Columns { get; set; } = 1;
+
+    /// <summary>每列的最小宽度，默认 26em：标签在起始边时放得下标签、控件与横排的三四个选项。</summary>
+    [Parameter] public CssLength? MinColumnWidth { get; set; }
+
+    /// <summary>可以展开收起：标题变成按钮。</summary>
+    [Parameter] public bool Collapsible { get; set; }
+
+    /// <summary>是否展开（Collapsible 时，<c>@bind-Open</c>），默认展开。</summary>
+    [Parameter] public bool Open { get; set; } = true;
+
+    /// <summary>展开或收起了。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>这一组的标签位置；不写时沿用 Form 的。</summary>
+    [Parameter] public FieldLabelPlacement? LabelPlacement { get; set; }
+
+    /// <summary>这一组标签在起始边时标签列的宽度；不写时沿用 Form 的。</summary>
+    [Parameter] public CssLength? LabelWidth { get; set; }
+
+    /// <summary>这一组标签在起始边时文字的对齐；不写时沿用 Form 的。</summary>
+    [Parameter] public FieldLabelAlign? LabelAlign { get; set; }
+
+    /// <summary>这一组不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>这一组只读。</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <summary>字段。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>标题栏的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>标题（h2–h6）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeading { get; set; }
+
+    /// <summary>展开收起按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    /// <summary>展开箭头（Icon 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsChevron { get; set; }
+
+    /// <summary>说明（Paragraph 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>标题栏结束边内容的部件属性。</summary>
+    [Parameter] public Attrs? PropsExtra { get; set; }
+
+    /// <summary>字段栅格的部件属性。</summary>
+    [Parameter] public Attrs? PropsBody { get; set; }
+
+    [CascadingParameter] FieldLayout? Outer { get; set; }
+
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
+
+    // 这一组的字段布局叠在外层（Form、外面的 FormSection）上；输入不变时是同一个对象
+    FieldLayout LayoutFor() => layout.Get(new FieldLayout(LabelPlacement, LabelWidth, LabelAlign, Disabled, ReadOnly).Over(Outer), static k => k);
+
+    RenderFragment TitleText => TitleContent ?? (b => b.AddContent(0, Title));
+
+    // 标题是 h2–h6；可折叠时里面是按钮
+    RenderFragment HeadingElement(PartLayers<FormSectionPart> parts, bool closed) => builder =>
+    {
+        builder.OpenElement(0, $"h{Math.Clamp(HeadingLevel, 2, 6)}");
+        builder.AddMultipleAttributes(1, Attrs.Merge(parts[FormSectionPart.Heading], PropsHeading));
+        if (Collapsible)
+        {
+            builder.AddContent(2, TriggerButton(parts, closed));
+        }
+        else
+        {
+            builder.OpenElement(3, "span");
+            builder.AddAttribute(4, "id", titleId);
+            builder.AddContent(5, TitleText);
+            builder.CloseElement();
+        }
+        builder.CloseElement();
+    };
+
+    RenderFragment TriggerButton(PartLayers<FormSectionPart> parts, bool closed) =>
+        @<button type="button" id="@titleId" aria-expanded="@(closed ? "false" : "true")" aria-controls="@bodyId" data-state="@(closed ? "closed" : "open")"
+                 @onclick="() => open.SetAsync(!open.Value)" @attributes="Attrs.Merge(parts[FormSectionPart.Trigger], PropsTrigger)">
+            <span>@TitleText</span>
+            <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(parts[FormSectionPart.Chevron], PropsChevron)" />
+        </button>;
+
+    RenderFragment Body(PartLayers<FormSectionPart> parts, bool withId) =>
+        @<div @attributes="Attrs.Merge(parts[FormSectionPart.Body], PropsBody, BodyAttrs(withId))">@ChildContent</div>;
+
+    // 多列时列数与最小宽度经 CSS 变量写在栅格上（类不随数字变化）
+    Attrs BodyAttrs(bool withId) => bodyAttrs.Get((Columns, MinColumnWidth ?? CssLength.Em(26), withId), this, static (k, owner) => new Attrs
+    {
+        Id = k.Id ? owner.bodyId : null,
+        Vars = k.Columns > 1 ? [FormSectionStyles.Columns.Set(k.Columns), FormSectionStyles.MinColumnWidth.Set(k.MinWidth)] : [],
+    });
+}

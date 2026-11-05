@@ -1,0 +1,78 @@
+@*
+    未保存离开的提醒（同 vue-tsx-pro 的 useLeaveConfirmation）：When 为 true 时——
+    - 关闭标签页、刷新、跳到别的网站前，浏览器问一下（只显示浏览器自己的固定文案）；
+    - 去本站别的页面先弹确认对话框，选“离开”才走；只换查询串、锚点时不问。
+    <LeaveConfirmation When="dirty" />
+    点链接由 JS 初始化器拦（data-rune-leave-guard）：交互岛的页面之间走增强导航，Blazor 的 NavigationLock 拦不到；
+    代码里的 NavigateTo、浏览器的后退由 NavigationLock 拦，只在交互式路由（全局交互）下有效。要交互模式，静态 SSR 下不起作用。
+    对话框的文字默认取语言包。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Routing
+
+<NavigationLock ConfirmExternalNavigation="Guarding" OnBeforeInternalNavigation="Check" />
+@if (Guarding && RendererInfo.IsInteractive)
+{
+    <span hidden data-rune-leave-guard @onrunecommand="OnCommand"></span>
+}
+<Dialog Open="asking" OpenChanged="OnOpenChanged" Title="@(Title ?? Config.Lang.LeaveTitle)" Description="@(Description ?? Config.Lang.LeaveDescription)"
+        Tone="Tone.Danger" ConfirmText="@Config.Lang.LeaveConfirm" OnConfirm="Leave" Size="DialogSize.Xs" />
+
+@code {
+    bool asking;
+    string? pending;
+    bool leaving;
+
+    /// <summary>有未保存的修改：为 true 时拦住离开。</summary>
+    [Parameter] public bool When { get; set; }
+
+    /// <summary>确认对话框的标题；默认取语言包（离开这个页面？）。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>确认对话框的说明；默认取语言包（有未保存的修改，离开后会丢失）。</summary>
+    [Parameter] public string? Description { get; set; }
+
+    bool Guarding => When && !leaving;
+
+    void Check(LocationChangingContext context)
+    {
+        if (!Guarding || SamePage(context.TargetLocation)) return;
+        context.PreventNavigation();
+        Ask(context.TargetLocation);
+    }
+
+    void OnCommand(CommandEventArgs e)
+    {
+        if (e.Name == "leave" && e.Text is { } target) Ask(target);
+    }
+
+    void Ask(string target)
+    {
+        pending = target;
+        asking = true;
+        StateHasChanged();
+    }
+
+    // 只换查询串、锚点：还在这一页，不算离开
+    bool SamePage(string target) =>
+        string.Equals(Navigation.ToAbsoluteUri(target).AbsolutePath, new Uri(Navigation.Uri).AbsolutePath, StringComparison.OrdinalIgnoreCase);
+
+    void OnOpenChanged(bool open)
+    {
+        asking = open;
+        if (!open && !leaving) pending = null;
+    }
+
+    async Task Leave()
+    {
+        if (pending is not { } target) return;
+        leaving = true;
+        // 先渲染一次撤掉拦截（NavigationLock 关掉 beforeunload、去掉拦截标记），再跳：
+        // 不然跳转若走整页加载（增强导航失败时退回），浏览器还会再问一次
+        StateHasChanged();
+        await Task.Yield();
+        Navigation.NavigateTo(target);
+    }
+}

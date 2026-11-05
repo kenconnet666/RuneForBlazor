@@ -17,7 +17,7 @@
     var startLayout = appearance.Placement == FieldLabelPlacement.Start && !LabelHidden;
 }
 
-<div data-label-placement="@(startLayout ? "start" : "top")" data-invalid="@(errors.Count > 0 ? "true" : null)" data-disabled="@(Disabled ? "true" : null)"
+<div data-label-placement="@(startLayout ? "start" : "top")" data-invalid="@(errors.Count > 0 || Invalid ? "true" : null)" data-disabled="@(IsDisabled ? "true" : null)"
      @attributes="Attrs.Merge(parts[FieldPart.Root], Rest, LayoutAttrs(startLayout))">
     @if (Label is not null)
     {
@@ -59,22 +59,25 @@
     /// <summary>错误信息；不写时取表单里这个字段的校验结果。</summary>
     [Parameter] public string? Error { get; set; }
 
+    /// <summary>校验未通过、但不显示错误信息：控件只标红（错误写在别处时）。</summary>
+    [Parameter] public bool Invalid { get; set; }
+
     /// <summary>必填：标签后加 *，控件加 aria-required（校验交给表单）。</summary>
     [Parameter] public bool Required { get; set; }
 
-    /// <summary>里面的控件不可用。</summary>
+    /// <summary>里面的控件不可用；所在的 Form、FormSection 不可用时也是。</summary>
     [Parameter] public bool Disabled { get; set; }
 
-    /// <summary>里面的控件只读。</summary>
+    /// <summary>里面的控件只读；所在的 Form、FormSection 只读时也是。</summary>
     [Parameter] public bool ReadOnly { get; set; }
 
-    /// <summary>标签的位置：上方（默认）或起始边；不写时取所在 Form 的。</summary>
+    /// <summary>标签的位置：上方（默认）或起始边；不写时取所在 Form、FormSection 的。</summary>
     [Parameter] public FieldLabelPlacement? LabelPlacement { get; set; }
 
-    /// <summary>标签在起始边时标签列的宽度，默认 8em；不写时取所在 Form 的。</summary>
+    /// <summary>标签在起始边时标签列的宽度，默认 8em；不写时取所在 Form、FormSection 的。</summary>
     [Parameter] public CssLength? LabelWidth { get; set; }
 
-    /// <summary>标签在起始边时标签文字的对齐，默认靠结束边（贴着控件）。</summary>
+    /// <summary>标签在起始边时标签文字的对齐，默认靠结束边（贴着控件）；不写时取所在 Form、FormSection 的。</summary>
     [Parameter] public FieldLabelAlign? LabelAlign { get; set; }
 
     /// <summary>视觉上隐藏标签（读屏仍读得到）：上下文已经说明了是什么（表格里的单元格、搜索框）。</summary>
@@ -101,7 +104,16 @@
     /// <summary>所在的 Form：登记标签与控件 id，错误汇总据此写出“标签：错误”并跳到控件。</summary>
     [CascadingParameter] FormState? Form { get; set; }
 
+    /// <summary>所在的 Form、FormSection 的标签布局与只读、不可用。</summary>
+    [CascadingParameter] FieldLayout? Layout { get; set; }
+
+    bool IsDisabled => Disabled || Layout?.Disabled == true;
+
+    bool IsReadOnly => ReadOnly || Layout?.ReadOnly == true;
+
     FieldIdentifier? registered;
+    // 创建序号：错误汇总排序时区分同一个模型的不同实例（报价单的各行）
+    readonly long order = FormState.NextOrder();
 
     // 控件与说明、错误：标签在上方时直接排在外层里，在起始边时放进第二列的容器
     RenderFragment Content(IReadOnlyList<string> errors) => @<text>
@@ -118,12 +130,12 @@
 
     bool HasDescription => Description is not null || DescriptionContent is not null;
 
-    FieldAppearance Appearance => new(LabelPlacement ?? Form?.LabelPlacement ?? FieldLabelPlacement.Top, LabelAlign ?? FieldLabelAlign.End, LabelHidden, Label is not null, Disabled);
+    FieldAppearance Appearance => new(LabelPlacement ?? Layout?.LabelPlacement ?? FieldLabelPlacement.Top, LabelAlign ?? Layout?.LabelAlign ?? FieldLabelAlign.End, LabelHidden, Label is not null, IsDisabled);
     Memo<CssLength, Attrs> layoutAttrs;
 
     // 标签在起始边时标签列的宽度：任意长度，经 CSS 变量写在元素上（类不随宽度变化）；没写时用样式里的默认值
     Attrs? LayoutAttrs(bool startLayout) =>
-        startLayout && (LabelWidth ?? Form?.LabelWidth) is { } width
+        startLayout && (LabelWidth ?? Layout?.LabelWidth) is { } width
             ? layoutAttrs.Get(width, static w => new Attrs { Vars = [FieldStyles.LabelWidth.Set(w)] })
             : null;
 
@@ -142,7 +154,8 @@
             (false, true) => errorId,
             _ => null,
         };
-        return context.Get((Label is not null, describedBy, invalid, Required, Disabled, ReadOnly), this,
+        // 只写了 Invalid 时只标红：没有错误元素，不进 aria-describedby
+        return context.Get((Label is not null, describedBy, invalid || Invalid, Required, IsDisabled, IsReadOnly), this,
             static (k, owner) => new FieldContext(owner.controlId, k.HasLabel ? owner.labelId : null, k.DescribedBy, k.Invalid, k.Required, k.Disabled, k.ReadOnly, owner.registration));
     }
 
@@ -164,7 +177,7 @@
         // 控件渲染后才报上它绑定的字段，所以在渲染之后登记
         if (Form is null || registration.Field is not { } field) return;
         if (registered is { } old && !old.Equals(field)) Form.Unregister(old);
-        Form.Register(field, Label, controlId);
+        Form.Register(field, Label, controlId, order);
         registered = field;
     }
 

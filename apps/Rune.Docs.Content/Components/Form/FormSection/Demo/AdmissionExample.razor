@@ -1,0 +1,127 @@
+@* 供应商准入申请：长表单按主题分成几组，每组最多两列（容器窄时自动单列）；分组带 id，旁边的目录跳到各组 *@
+@inherits RuneComponent
+
+<div @attributes="Attrs.Merge(Container)">
+    <div @attributes="Attrs.Merge(Layout)">
+        <form @onsubmit:preventDefault="true">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xl">
+                <FormSection id="admission-basic" Title="企业信息" Columns="2" MinColumnWidth="CssLength.Em(16)">
+                    <Field Label="企业名称" Required="true">
+                        <TextField @bind-Value="name" />
+                    </Field>
+                    <Field Label="统一社会信用代码" Required="true">
+                        <TextField @bind-Value="code" />
+                    </Field>
+                    <Field Label="成立日期">
+                        <TextField @bind-Value="founded" Type="date" />
+                    </Field>
+                    <Field Label="员工人数">
+                        <NumberField @bind-Value="staff">
+                            <Suffix>人</Suffix>
+                        </NumberField>
+                    </Field>
+                    <GridItem FullRow="true">
+                        <Field Label="注册地址">
+                            <TextField @bind-Value="address" />
+                        </Field>
+                    </GridItem>
+                </FormSection>
+                <FormSection id="admission-scope" Title="供货范围" Description="勾选能供的零件类别；年产能按最近一年实际产量填" Columns="2" MinColumnWidth="CssLength.Em(16)">
+                    <Field Label="主营类别" Required="true">
+                        <Select Items="categories" @bind-Value="category" />
+                    </Field>
+                    <Field Label="年产能">
+                        <NumberField @bind-Value="capacity">
+                            <Suffix>件 / 年</Suffix>
+                        </NumberField>
+                    </Field>
+                    <GridItem FullRow="true">
+                        <Field Label="零件类别">
+                            <CheckboxGroup TItem="string" @bind-Value="parts" Orientation="Orientation.Horizontal">
+                                <Checkbox GroupValue="bracket">支架</Checkbox>
+                                <Checkbox GroupValue="fastener">紧固件</Checkbox>
+                                <Checkbox GroupValue="seal">密封件</Checkbox>
+                                <Checkbox GroupValue="harness">线束卡箍</Checkbox>
+                                <Checkbox GroupValue="packaging">包装</Checkbox>
+                            </CheckboxGroup>
+                        </Field>
+                    </GridItem>
+                </FormSection>
+                <FormSection id="admission-quality" Title="质量体系" Columns="2" MinColumnWidth="CssLength.Em(16)">
+                    <Field Label="认证" Required="true">
+                        <Select Items="certs" @bind-Value="cert" />
+                    </Field>
+                    <Field Label="证书有效期至">
+                        <TextField @bind-Value="certExpire" Type="date" />
+                    </Field>
+                    <GridItem FullRow="true">
+                        <Field Label="最近一次二方审核" Description="时间、审核方、主要不符合项">
+                            <Textarea @bind-Value="audit" Rows="2" />
+                        </Field>
+                    </GridItem>
+                </FormSection>
+                <FormSection id="admission-settle" Title="结算信息" Columns="2" MinColumnWidth="CssLength.Em(16)">
+                    <Field Label="开户行" Required="true">
+                        <TextField @bind-Value="bank" />
+                    </Field>
+                    <Field Label="账号" Required="true">
+                        <TextField @bind-Value="account" />
+                    </Field>
+                    <Field Label="账期">
+                        <Select Items="terms" @bind-Value="term" />
+                    </Field>
+                </FormSection>
+                <Flex Justify="ContentJustify.End" Gap="SpaceScale.Sm">
+                    <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral">保存草稿</Button>
+                    <Button>提交准入申请</Button>
+                </Flex>
+            </Flex>
+        </form>
+        <TableOfContents Items="sections" @attributes="Attrs.Merge(Aside)" />
+    </div>
+</div>
+
+@code {
+    static readonly HeadingEntry[] sections =
+    [
+        new("admission-basic", "企业信息"),
+        new("admission-scope", "供货范围"),
+        new("admission-quality", "质量体系"),
+        new("admission-settle", "结算信息"),
+    ];
+    static readonly ListboxOption[] categories = [new("machining", "机械件"), new("composite", "复合材料件"), new("standard", "标准件")];
+    static readonly ListboxOption[] certs = [new("iso9001", "ISO 9001"), new("iso14001", "ISO 14001")];
+    static readonly ListboxOption[] terms = [new("30", "30 天"), new("60", "60 天"), new("90", "90 天")];
+
+    string? name = "供应商甲精密制造有限公司";
+    string? code = "91310115MA1K4XXX0Q";
+    string? founded = "2012-06-18";
+    int? staff = 860;
+    string? address = "上海市浦东新区某路 88 号";
+    string? category = "machining";
+    IReadOnlyList<string> parts = ["bracket", "fastener"];
+    int? capacity = 12000;
+    string? cert = "iso9001";
+    string? certExpire = "2027-03-31";
+    string? audit = "";
+    string? bank = "某银行上海浦东支行";
+    string? account = "6222 0210 0100 1234 567";
+    string? term = "60";
+
+    // 同 AsideLayout（阶段 7 做成组件）：容器够宽（56rem）时目录在右边一列、粘在顶栏下面；窄了叠成一列，目录在后
+    static readonly Condition Wide = Containers.MinWidth(CssLength.Rem(56));
+
+    static Style Container => Css.Define(static () => new Style { ContainerType = ContainerType.InlineSize, MinWidth = 0 });
+
+    static Style Layout => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        Gap = Space.Xl,
+        [Wide] = new() { GridTemplateColumns = "minmax(0, 1fr) 12rem", AlignItems = AlignItems.Start },
+    });
+
+    static Style Aside => Css.Define(static () => new Style
+    {
+        [Wide] = new() { Position = Position.Sticky, InsetBlockStart = LayoutVars.StickyOffset },
+    });
+}

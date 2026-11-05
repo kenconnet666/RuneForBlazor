@@ -1,0 +1,101 @@
+@* 注册：字段改了（失焦时）就校验这一个，提交时校验全部；用户名另有异步校验（停顿后查，只采用最后一次的结果）；填了没注册就离开时先问一下 *@
+@inherits RuneComponent
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+<Card>
+    <Form EditContext="context" OnValidSubmit="SubmitAsync" ErrorSummary="false">
+        <Field Label="用户名" Required="true" Description="admin、root、xiaoman 已被占用" Error="@usernameError">
+            <TextField @bind-Value="model.Username" @bind-Value:after="CheckUsernameAsync">
+                <Suffix>
+                    @if (checking)
+                    {
+                        <Spinner Size="Size.Sm" Label="校验中" />
+                    }
+                </Suffix>
+            </TextField>
+        </Field>
+        <Field Label="邮箱" Required="true">
+            <TextField @bind-Value="model.Email" Type="email" />
+        </Field>
+        <Field Label="密码" Required="true">
+            <TextField @bind-Value="model.Password" Type="password" />
+        </Field>
+        <Field Label="年龄" Required="true">
+            <NumberField @bind-Value="model.Age" Min="18" Max="120" />
+        </Field>
+        <Field Label="一句话介绍">
+            <TextField @bind-Value="model.Bio" maxlength="60" ShowCount="true" />
+        </Field>
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+            <Small Tone="TextTone.Muted">@(result ?? (context.IsModified() ? "有未保存的改动" : ""))</Small>
+            <Flex Gap="SpaceScale.Sm">
+                <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="Reset">重置</Button>
+                <Button Type="submit">注册</Button>
+            </Flex>
+        </Flex>
+    </Form>
+</Card>
+@* 有未保存的改动时，点去别的页面先问（关掉、刷新标签页由浏览器问） *@
+<LeaveConfirmation When="context.IsModified()" />
+
+@code {
+    static readonly string[] taken = ["admin", "root", "xiaoman"];
+
+    Account model = new();
+    EditContext context = default!;
+    string? result;
+    string? usernameError;
+    bool checking;
+    int checkRun;
+
+    protected override void OnInitialized() => Reset();
+
+    void Reset()
+    {
+        model = new();
+        context = new EditContext(model);
+        usernameError = null;
+        result = null;
+    }
+
+    // 假的“用户名已占用”接口：400ms 后返回；晚到的旧结果丢掉
+    async Task CheckUsernameAsync()
+    {
+        var run = ++checkRun;
+        usernameError = null;
+        if (model.Username is not { Length: >= 2 } name) return;
+        checking = true;
+        await Task.Delay(400);
+        if (run != checkRun) return;
+        checking = false;
+        usernameError = taken.Contains(name) ? "这个用户名已被占用" : null;
+    }
+
+    async Task SubmitAsync()
+    {
+        if (usernameError is not null || checking) return;
+        await Task.Delay(800);
+        result = $"已注册 {model.Username}（{model.Email}）";
+        // 注册成功：现在的值就是“已保存”的
+        context.MarkAsUnmodified();
+    }
+
+    sealed class Account
+    {
+        [Required(ErrorMessage = "必填"), StringLength(16, MinimumLength = 2, ErrorMessage = "至少 2 个字")]
+        public string? Username { get; set; }
+
+        [Required(ErrorMessage = "必填"), EmailAddress(ErrorMessage = "邮箱格式不对")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "必填"), MinLength(8, ErrorMessage = "至少 8 位")]
+        public string? Password { get; set; }
+
+        [Required(ErrorMessage = "请填写年龄"), Range(18, 120, ErrorMessage = "未满 18 岁")]
+        public int? Age { get; set; } = 18;
+
+        [MaxLength(60)]
+        public string? Bio { get; set; }
+    }
+}

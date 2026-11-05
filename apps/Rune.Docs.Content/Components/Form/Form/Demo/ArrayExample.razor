@@ -1,0 +1,122 @@
+@* 报价单：可以增删的行。DataAnnotations 不进集合里的对象，这里在 OnValidationRequested 里逐行校验，错误挂在那一行的字段上（FieldIdentifier(行, 属性名)）；金额用 decimal，合计没有浮点误差 *@
+@inherits RuneComponent
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+<Card>
+    <Form EditContext="context" OnValidSubmit="Submit" ErrorSummary="false">
+        <Field Label="客户" Required="true">
+            <TextField @bind-Value="quote.Customer" />
+        </Field>
+        @* 只有第一行显示列标题；每行的控件另有 aria-label，读屏知道是第几项 *@
+        @for (var i = 0; i < quote.Items.Count; i++)
+        {
+            var index = i;
+            var item = quote.Items[index];
+            <div @key="item" @attributes="Attrs.Merge(Row)">
+                <Field Label="@(index == 0 ? "品名" : null)" Required="true">
+                    <TextField @bind-Value="item.Name" aria-label="@($"第 {index + 1} 项品名")" />
+                </Field>
+                <Field Label="@(index == 0 ? "单价（元）" : null)" Required="true">
+                    <NumberField @bind-Value="item.Price" Min="0" Step="0.01m" Format="#,0.##" aria-label="@($"第 {index + 1} 项单价")" />
+                </Field>
+                <Field Label="@(index == 0 ? "数量" : null)" Required="true">
+                    <NumberField @bind-Value="item.Quantity" Min="1" aria-label="@($"第 {index + 1} 项数量")" />
+                </Field>
+                <IconButton Icon="Lucide.Trash" Label="@($"删除第 {index + 1} 项")" Disabled="quote.Items.Count == 1" @onclick="() => Remove(item)" />
+            </div>
+        }
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+            <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Icon="Lucide.Plus" @onclick="Add">加一项</Button>
+            <Strong>合计 ¥@Total.ToString("0.00")</Strong>
+        </Flex>
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+            <Small Tone="TextTone.Muted">@submitted</Small>
+            <Button Type="submit">提交报价</Button>
+        </Flex>
+    </Form>
+</Card>
+
+@code {
+    readonly Quote quote = new()
+    {
+        Customer = "云杉科技",
+        Items = [new() { Name = "设计稿评审", Price = 1200.00m }, new() { Name = "组件开发（人天）", Price = 1500.50m, Quantity = 3 }],
+    };
+    EditContext context = default!;
+    ValidationMessageStore messages = default!;
+    string submitted = "";
+
+    decimal Total => quote.Items.Sum(item => item.Price * item.Quantity);
+
+    protected override void OnInitialized()
+    {
+        context = new EditContext(quote);
+        messages = new ValidationMessageStore(context);
+        context.OnValidationRequested += (_, _) => ValidateItems();
+        // 改了某一行的字段：只重新校验那一行
+        context.OnFieldChanged += (_, e) =>
+        {
+            if (e.FieldIdentifier.Model is not QuoteItem item) return;
+            messages.Clear(e.FieldIdentifier);
+            Validate(item, e.FieldIdentifier.FieldName);
+        };
+    }
+
+    void ValidateItems()
+    {
+        messages.Clear();
+        foreach (var item in quote.Items) Validate(item, null);
+    }
+
+    // 用 DataAnnotations 校验一行（property 不为空时只校验这个属性），错误写到那一行的字段上
+    void Validate(QuoteItem item, string? property)
+    {
+        var results = new List<ValidationResult>();
+        if (property is null) Validator.TryValidateObject(item, new ValidationContext(item), results, validateAllProperties: true);
+        else Validator.TryValidateProperty(typeof(QuoteItem).GetProperty(property)!.GetValue(item), new ValidationContext(item) { MemberName = property }, results);
+        foreach (var result in results)
+        foreach (var member in result.MemberNames)
+            messages.Add(new FieldIdentifier(item, member), result.ErrorMessage ?? "");
+    }
+
+    void Add() => quote.Items.Add(new());
+
+    void Remove(QuoteItem item)
+    {
+        quote.Items.Remove(item);
+        foreach (var property in (string[])[nameof(QuoteItem.Name), nameof(QuoteItem.Price), nameof(QuoteItem.Quantity)])
+            messages.Clear(new FieldIdentifier(item, property));
+        context.NotifyValidationStateChanged();
+    }
+
+    void Submit() => submitted = $"报价已提交：{quote.Items.Count} 项";
+
+    sealed class Quote
+    {
+        [Required(ErrorMessage = "请填写客户")]
+        public string? Customer { get; set; }
+
+        public List<QuoteItem> Items { get; set; } = [];
+    }
+
+    sealed class QuoteItem
+    {
+        [Required(ErrorMessage = "请填写品名")]
+        public string? Name { get; set; }
+
+        [Range(typeof(decimal), "0", "99999999", ErrorMessage = "单价不能是负数")]
+        public decimal Price { get; set; }
+
+        [Range(1, 9999, ErrorMessage = "至少 1 件")]
+        public int Quantity { get; set; } = 1;
+    }
+
+    static Style Row => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "minmax(0, 2fr) minmax(0, 1fr) 6rem auto",
+        Gap = Space.Sm,
+        AlignItems = AlignItems.End,
+    });
+}

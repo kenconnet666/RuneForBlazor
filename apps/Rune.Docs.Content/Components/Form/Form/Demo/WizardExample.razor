@@ -1,0 +1,141 @@
+@* 开户申请分两步：只校验这一步的字段，通过才进下一步，最后整份提交；改了密码重新校验“确认密码”，改了预算下限重新校验上限 *@
+@inherits RuneComponent
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+<Card>
+    <Form EditContext="context" OnValidSubmit="SubmitAsync" ErrorSummary="false">
+        <Small Tone="TextTone.Muted">第 @(step + 1) 步，共 @steps.Length 步：@steps[step].Title</Small>
+        @if (step == 0)
+        {
+            <Field Label="企业名称">
+                <TextField @bind-Value="model.Company" />
+            </Field>
+            <Grid MinItemWidth="CssLength.Rem(12)" Gap="SpaceScale.Md">
+                <Field Label="联系人">
+                    <TextField @bind-Value="model.Contact" />
+                </Field>
+                <Field Label="手机号">
+                    <TextField @bind-Value="model.Phone" Type="tel" />
+                </Field>
+            </Grid>
+        }
+        else
+        {
+            <Grid MinItemWidth="CssLength.Rem(12)" Gap="SpaceScale.Md">
+                <Field Label="登录密码">
+                    <TextField @bind-Value="model.Password" Type="password" autocomplete="new-password" />
+                </Field>
+                <Field Label="确认密码">
+                    <TextField @bind-Value="model.Confirm" Type="password" autocomplete="new-password" />
+                </Field>
+            </Grid>
+            <Grid MinItemWidth="CssLength.Rem(12)" Gap="SpaceScale.Md">
+                <Field Label="年度预算下限（万元）">
+                    <NumberField @bind-Value="model.BudgetMin" Min="0" />
+                </Field>
+                <Field Label="年度预算上限（万元）">
+                    <NumberField @bind-Value="model.BudgetMax" Min="0" />
+                </Field>
+            </Grid>
+        }
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+            <Small Tone="TextTone.Muted" aria-live="polite">@result</Small>
+            <Flex Gap="SpaceScale.Sm">
+                @if (step > 0)
+                {
+                    <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => step--">上一步</Button>
+                }
+                @if (step < steps.Length - 1)
+                {
+                    <Button @onclick="Next">下一步</Button>
+                }
+                else
+                {
+                    <Button Type="submit">提交申请</Button>
+                }
+            </Flex>
+        </Flex>
+    </Form>
+</Card>
+
+@code {
+    static readonly (string Title, string[] Fields)[] steps =
+    [
+        ("企业信息", [nameof(Application.Company), nameof(Application.Contact), nameof(Application.Phone)]),
+        ("账号与预算", [nameof(Application.Password), nameof(Application.Confirm), nameof(Application.BudgetMin), nameof(Application.BudgetMax)]),
+    ];
+
+    // 改了左边的字段，右边的跟着重新校验（填过的才校验，没填过的不打扰）
+    static readonly Dictionary<string, string> dependents = new()
+    {
+        [nameof(Application.Password)] = nameof(Application.Confirm),
+        [nameof(Application.BudgetMin)] = nameof(Application.BudgetMax),
+    };
+
+    readonly Application model = new();
+    readonly HashSet<string> touched = [];
+    EditContext context = default!;
+    int step;
+    string result = "";
+
+    protected override void OnInitialized()
+    {
+        context = new EditContext(model);
+        context.OnFieldChanged += (_, e) =>
+        {
+            touched.Add(e.FieldIdentifier.FieldName);
+            if (dependents.TryGetValue(e.FieldIdentifier.FieldName, out var dependent) && touched.Contains(dependent))
+                context.NotifyFieldChanged(context.Field(dependent));
+        };
+    }
+
+    // 只校验这一步的字段：NotifyFieldChanged 让 DataAnnotationsValidator 逐个校验并显示错误，没错才进下一步
+    void Next()
+    {
+        foreach (var field in steps[step].Fields) context.NotifyFieldChanged(context.Field(field));
+        if (steps[step].Fields.All(field => !context.GetValidationMessages(context.Field(field)).Any())) step++;
+    }
+
+    async Task SubmitAsync()
+    {
+        await Task.Delay(600);
+        result = $"已提交：{model.Company}，预算 {model.BudgetMin}–{model.BudgetMax} 万元";
+    }
+
+    sealed class Application
+    {
+        [Required(ErrorMessage = "必填"), MinLength(2, ErrorMessage = "至少 2 个字")]
+        public string? Company { get; set; }
+
+        [Required(ErrorMessage = "请填写联系人")]
+        public string? Contact { get; set; }
+
+        [Required(ErrorMessage = "请填写 11 位手机号"), RegularExpression(@"^1\d{10}$", ErrorMessage = "请填写 11 位手机号")]
+        public string? Phone { get; set; }
+
+        [Required(ErrorMessage = "必填"), MinLength(8, ErrorMessage = "至少 8 位")]
+        public string? Password { get; set; }
+
+        [Required(ErrorMessage = "请再输入一次密码"), Compare(nameof(Password), ErrorMessage = "两次输入的密码不一致")]
+        public string? Confirm { get; set; }
+
+        [Required(ErrorMessage = "请填写下限"), Range(0, 100000)]
+        public int? BudgetMin { get; set; } = 10;
+
+        [Required(ErrorMessage = "请填写上限"), Range(0, 100000), NotBelow(nameof(BudgetMin), ErrorMessage = "上限不能低于下限")]
+        public int? BudgetMax { get; set; } = 50;
+    }
+
+    // 跨字段的单属性规则（同 [Compare]）：放在属性上，单个字段校验时也会跑
+    sealed class NotBelowAttribute(string other) : ValidationAttribute
+    {
+        protected override ValidationResult? IsValid(object? value, ValidationContext context)
+        {
+            var lower = context.ObjectType.GetProperty(other)?.GetValue(context.ObjectInstance) as int?;
+            return value is int upper && lower is { } min && upper < min
+                ? new ValidationResult(ErrorMessage, [context.MemberName!])
+                : ValidationResult.Success;
+        }
+    }
+}

@@ -1,0 +1,92 @@
+@* 供应商准入申请：提交没通过时顶上的错误汇总列出各项错误，点哪一项跳到那个字段；有效期的起止是跨字段的规则（IValidatableObject） *@
+@inherits RuneComponent
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="model" OnValidSubmit="SubmitAsync" LabelPlacement="FieldLabelPlacement.Start" LabelWidth="CssLength.Em(7)">
+    <Grid MinItemWidth="CssLength.Rem(20)" Gap="SpaceScale.Md">
+        <Field Label="公司全称" Required="true">
+            <TextField @bind-Value="model.Company" data-testid="name" />
+        </Field>
+        <Field Label="信用代码" Required="true">
+            <TextField @bind-Value="model.CreditCode" placeholder="18 位" />
+        </Field>
+        <Field Label="供货品类" Required="true">
+            <Select Items="categories" @bind-Value="model.Category" Placeholder="请选择" />
+        </Field>
+        <Field Label="联系人" Required="true">
+            <TextField @bind-Value="model.Contact" />
+        </Field>
+        <Field Label="手机号" Required="true">
+            <TextField @bind-Value="model.Phone" Type="tel" />
+        </Field>
+        <Field Label="有效期起" Required="true">
+            <TextField @bind-Value="model.ValidFrom" Type="date" />
+        </Field>
+        <Field Label="有效期止" Required="true">
+            <TextField @bind-Value="model.ValidTo" Type="date" />
+        </Field>
+    </Grid>
+    <Field Label="补充说明">
+        <Textarea @bind-Value="model.Note" Rows="2" maxlength="200" ShowCount="true" />
+    </Field>
+    <Field Label="准入须知">
+        <Switch @bind-Value="model.Agreed">已阅读并同意准入须知</Switch>
+    </Field>
+    <Flex Gap="SpaceScale.Sm" Justify="ContentJustify.End" Align="ItemAlign.Center">
+        <Small Tone="TextTone.Muted" aria-live="polite">@result</Small>
+        @* 换一个模型就是重置：Form 跟着换 EditContext，错误与改动标记一起清掉 *@
+        <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral" @onclick="() => model = new()">重置</Button>
+        <Button Type="submit" data-testid="submit">提交申请</Button>
+    </Flex>
+</Form>
+
+@code {
+    static readonly string[] categories = ["机械件", "塑料件", "钣金件", "标准件", "线缆"];
+
+    Supplier model = new();
+    string result = "";
+
+    async Task SubmitAsync()
+    {
+        await Task.Delay(600);
+        result = $"{model.Company} 的准入申请已提交";
+        model = new();
+    }
+
+    sealed class Supplier : IValidatableObject
+    {
+        [Required(ErrorMessage = "请填写公司全称"), MinLength(2, ErrorMessage = "请填写公司全称")]
+        public string? Company { get; set; }
+
+        [Required(ErrorMessage = "请填写信用代码"), RegularExpression("^[0-9A-Z]{18}$", ErrorMessage = "统一社会信用代码是 18 位数字或大写字母")]
+        public string? CreditCode { get; set; }
+
+        [Required(ErrorMessage = "请选择供货品类")]
+        public string? Category { get; set; }
+
+        [Required(ErrorMessage = "请填写联系人")]
+        public string? Contact { get; set; }
+
+        [Required(ErrorMessage = "请填写手机号"), RegularExpression(@"^1\d{10}$", ErrorMessage = "手机号是 11 位数字")]
+        public string? Phone { get; set; }
+
+        [Required(ErrorMessage = "请选择开始日期")]
+        public string? ValidFrom { get; set; }
+
+        [Required(ErrorMessage = "请选择结束日期")]
+        public string? ValidTo { get; set; }
+
+        [MaxLength(200)]
+        public string? Note { get; set; }
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "请确认已阅读准入须知")]
+        public bool Agreed { get; set; }
+
+        // 跨字段：结束日期要晚于开始日期，错误标在结束日期上
+        public IEnumerable<ValidationResult> Validate(ValidationContext context)
+        {
+            if (ValidFrom is { Length: > 0 } from && ValidTo is { Length: > 0 } to && string.CompareOrdinal(to, from) <= 0)
+                yield return new ValidationResult("结束日期要晚于开始日期", [nameof(ValidTo)]);
+        }
+    }
+}
