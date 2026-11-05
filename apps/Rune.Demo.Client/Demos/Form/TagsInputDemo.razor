@@ -1,0 +1,102 @@
+@*
+    标签输入：示例与 vue-tsx-pro 文档站的 /components/tags-input 对应。
+*@
+@attribute [ComponentDemo("tags-input", "标签输入", Group = "表单", Order = 8)]
+@inherits RuneComponent
+@implements IDisposable
+
+<DemoSection Id="basic" Title="输入与建议">
+    <Description>回车、逗号或分号加一个标签（<Code>Delimiters</Code> 可以改），粘贴时自动拆开，重复的不加；输入框空着时退格删掉最后一个。给了 <Code>Items</Code> 就有建议列表；<Code>AllowCustomValue="false"</Code> 只能从建议里选。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Field Label="关键词" Description="回车或输入逗号加一个；粘贴时按逗号与换行拆开；最多 6 个">
+                <TagsInput TItem="string" @bind-Value="keywords" Max="6" Clearable="true" data-testid="keywords" />
+            </Field>
+            <Field Label="抄送" Description="只能从团队成员里选">
+                <TagsInput Items="team" @bind-Value="recipients" AllowCustomValue="false" data-testid="recipients" />
+            </Field>
+            <Small Tone="TextTone.Muted" data-testid="basic-summary">关键词：@string.Join("、", keywords) · 抄送：@string.Join("、", recipients)</Small>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="remote" Title="异步建议">
+    <Description><Code>@@bind-InputValue</Code> 双向绑定输入框的文字，按它请求建议；<Code>LocalFilter="false"</Code> 不再本地过滤，<Code>Loading</Code> 时建议列表显示加载中。</Description>
+    <ChildContent>
+        <Field Label="话题" Description="输入“前端”“设计”试试">
+            <TagsInput Items="suggestions" @bind-Value="topics" InputValue="@query" InputValueChanged="SearchAsync" LocalFilter="false" Loading="loading" Max="5" />
+        </Field>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="states" Title="上限、图标与状态">
+    <Description><Code>Max</Code> 限制个数，满了以后输入框不再接受新的标签。<Code>Icon</Code>、<Code>Variant</Code>、<Code>Size</Code> 与其他输入框同一套；只读时标签不能移除。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@CssLength.Rem(16)" Gap="SpaceScale.Lg">
+            <Field Label="话题" Description="@($"最多 3 个，已有 {hashTags.Count} 个")">
+                <TagsInput TItem="string" @bind-Value="hashTags" Max="3" Icon="Lucide.Hash" Clearable="true" placeholder="输入后回车" />
+            </Field>
+            <Field Label="关键词" Required="true" Error="@(requiredTags.Count > 0 ? null : "至少填一个关键词")">
+                <TagsInput TItem="string" @bind-Value="requiredTags" Variant="InputVariant.Soft" placeholder="逗号或分号分隔" />
+            </Field>
+            <Field Label="只读" ReadOnly="true">
+                <TagsInput TItem="string" Value="fixedTags" />
+            </Field>
+            <Field Label="不可用" Disabled="true">
+                <TagsInput TItem="string" Value="fixedTags" Size="Size.Sm" />
+            </Field>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly ListboxOption[] team =
+    [
+        new("yihang@example.com", "周一航", Description: "yihang@example.com"),
+        new("xiaoman@example.com", "林小满", Description: "xiaoman@example.com"),
+        new("chenmo@example.com", "陈默", Description: "chenmo@example.com"),
+        new("xuyou@example.com", "许悠", Description: "xuyou@example.com"),
+    ];
+
+    static readonly string[] allTopics = ["前端工程化", "前端性能", "组件设计", "设计系统", "无障碍", "国际化", "可视化", "测试", "构建工具", "状态管理"];
+    static readonly IReadOnlyList<string> fixedTags = ["设计", "前端"];
+
+    IReadOnlyList<string> keywords = ["组件库", "Vue", "TSX"];
+    IReadOnlyList<string> recipients = ["xiaoman@example.com"];
+
+    IReadOnlyList<string> topics = ["组件设计"];
+    string? query = "";
+    bool loading;
+    string[] suggestions = [];
+    CancellationTokenSource? search;
+
+    IReadOnlyList<string> hashTags = ["vue", "tsx"];
+    IReadOnlyList<string> requiredTags = [];
+
+    // 模拟接口：输入停下 500 ms 后按关键词返回
+    async Task SearchAsync(string? text)
+    {
+        query = text;
+        search?.Cancel();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            loading = false;
+            suggestions = [];
+            return;
+        }
+        var run = search = new CancellationTokenSource();
+        loading = true;
+        try
+        {
+            await Task.Delay(500, run.Token);
+            suggestions = [.. allTopics.Where(topic => topic.Contains(text.Trim(), StringComparison.Ordinal))];
+            loading = false;
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    /// <inheritdoc/>
+    public void Dispose() => search?.Cancel();
+}

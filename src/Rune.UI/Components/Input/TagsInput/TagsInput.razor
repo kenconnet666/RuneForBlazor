@@ -1,0 +1,55 @@
+@*
+    标签输入（多选的组合框，同 vue-tsx-pro 的 TagsInput）：输入框里排着已选的标签，输入文字后回车（或输入逗号）加一个，可以从建议列表里选。
+    关键词、收件人、标签、多个城市。
+    <TagsInput @bind-Value="keywords" aria-label="关键词" />                                  自由输入
+    <TagsInput @bind-Value="cities" Items="cityOptions" AllowCustomValue="false" />         只能从建议里选
+    - 回车、输入分隔符（默认 , ， ; ；）把文字加成标签；粘贴时按分隔符与换行拆成多个（JS 初始化器拦下整段交给 C#）；重复的不加；
+    - 输入框为空时按退格删掉最后一个标签；每个标签有移除按钮（先淡出）；
+    - 有 Items 时边输入边过滤建议（同 Combobox），↑↓ 移动、回车加入或移除高亮项（已选的打勾）；
+      异步取建议时绑定 InputValue 去请求、写 LocalFilter="false" 与 Loading，结果没回来时列表显示加载中；
+    - 写了 Name 时每个值一个隐藏的 input 随表单提交。
+    未声明的属性落到 input 上；Sx 落在外壳上。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits FormControl<IReadOnlyList<string>>
+@{
+    var shell = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config) with { Wrap = true }, Config.Styles);
+    var tags = Tags;
+    var labels = options.Chosen(AllEntries, tags);
+}
+
+<div @attributes="Attrs.Merge(shell[InputPart.Root], RootUserAttrs, ShellManaged)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsIcon)" />
+    }
+    @for (var index = 0; index < tags.Count; index++)
+    {
+        @* 子内容延后执行：循环变量先取成局部变量 *@
+        var tag = tags[index];
+        var label = labels[index].Option.Label;
+        <Tag @key="tag" Variant="StatusVariant.Surface" OnRemove="@(Editable ? EventCallback.Factory.Create(this, () => RemoveAsync(tag)) : default)"
+             @attributes="Attrs.MergeProps(null, PropsTag?.Invoke(tag))">@label</Tag>
+    }
+    <input @attributes="Attrs.Merge(shell[InputPart.Input], InputUserAttrs, InputManaged)" />
+    @if (Clearable && tags.Count > 0 && Editable)
+    {
+        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="ClearAsync" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusInput)" />
+    }
+    @if (Name is not null)
+    {
+        foreach (var tag in tags)
+        {
+            <input type="hidden" name="@Name" value="@tag" disabled="@IsDisabled" />
+        }
+    }
+</div>
+@if (HasSuggestions)
+{
+    var entries = ShownEntries;
+    <ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@ShellId" ListId="@ListId" Placement="Placement" Open="Open" OnToggle="ToggledAsync" Size="Size"
+                 LabelledBy="@(AriaLabel is null ? Field?.LabelId : null)" Label="@AriaLabel" Query="@Query" Results="@Results(entries.Count)"
+                 Entries="entries" Selected="tags" Multiple="true" Loading="Loading" OnPick="PickAsync" ChildContent="ChildContent"
+                 PropsPopover="PropsPopover" PropsListbox="PropsListbox" />
+}

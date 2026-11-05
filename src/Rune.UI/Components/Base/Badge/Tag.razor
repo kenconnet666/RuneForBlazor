@@ -16,7 +16,7 @@
             <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[BadgePart.Icon], PropsIcon)" />
         }
         @* 文字与移除按钮之间不留空白 *@
-        @ChildContent<CloseButton Label="@(RemoveLabel ?? Config.Lang.Remove)" Radius="UI.Radius.Full" @attributes="Attrs.MergeProps(parts[BadgePart.Remove], PropsRemove, dismissButton)" />
+        @ChildContent<CloseButton Label="@(RemoveLabel ?? Config.Lang.Remove)" Radius="UI.Radius.Full" @attributes="Attrs.MergeProps(RemoveStyle(parts), PropsRemove, dismissButton)" />
     </span>
 }
 else
@@ -64,6 +64,10 @@ else
     [Parameter] public Attrs? PropsRemove { get; set; }
 
     Attrs? dismissible;
+    Memo<Attrs, Attrs> removeStyle;
+
+    // 移除按钮只拿样式（与按部件的定制）：部件标记留给 CloseButton 自己（button/root），同 vue-tsx-pro
+    Attrs RemoveStyle(PartLayers<BadgePart> parts) => removeStyle.Get(parts[BadgePart.Remove], static layer => new Attrs { Sx = layer.Sx });
 
     // 可移除时根元素上由组件管理的属性：标记与离场结束的事件；只建一次
     Attrs Dismissible => dismissible ??= new Attrs

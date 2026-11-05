@@ -18,20 +18,38 @@ export function onFocusLink(event) {
 
 /** Backspace（输入框里是空的时候）：把 data-rune-backspace 的命令交给 C#（多选下拉移除最后一项）。 */
 /**
- * 要 C# 处理的按键转成命令（不用每次按键都往返一次）：
+ * 要 C# 处理的按键转成命令（不用每次按键都往返一次）；在列表的键盘处理之后调用，按键已经被用掉（defaultPrevented）时不发：
  * Backspace 时取 data-rune-backspace（输入框里是空的时候，多选移除最后一项）；
- * Esc 时取 data-rune-escape（弹层关着、输入框里有字的时候，Combobox 清空；弹层开着时 Esc 先关弹层）。
+ * Esc 时取 data-rune-escape（弹层关着、输入框里有字的时候，Combobox 清空；弹层开着时 Esc 先关弹层）；
+ * Enter 时取 data-rune-enter（输入框里有字、列表没有选中高亮项的时候，TagsInput 把文字加成标签）。
  */
 export function sendKeyCommand(event) {
   const target = event.target;
-  if (!(target instanceof Element) || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
-  const typed = target instanceof HTMLInputElement && target.value !== '';
+  if (!(target instanceof Element) || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+  const typed = target instanceof HTMLInputElement && target.value.trim() !== '';
   let name = null;
-  if (event.key === 'Backspace' && !typed) name = target.getAttribute('data-rune-backspace');
+  if (event.key === 'Backspace' && !(target instanceof HTMLInputElement && target.value !== '')) name = target.getAttribute('data-rune-backspace');
   else if (event.key === 'Escape' && typed && !popoverOfHost(target)?.matches(':popover-open')) name = target.getAttribute('data-rune-escape');
+  else if (event.key === 'Enter' && typed) name = target.getAttribute('data-rune-enter');
   if (!name) return;
   event.preventDefault();
   sendCommand(target, name);
+}
+
+/**
+ * 粘贴到带 data-rune-paste="命令" 的输入框：内容里有分隔符（data-rune-delimiters 里的字符）或换行、制表符时拦下，
+ * 把整段文字随命令交给 C# 拆开（TagsInput 一次加几个标签）；只有一段时照常粘贴。
+ */
+export function sendPasteCommand(event) {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const name = target.getAttribute('data-rune-paste');
+  if (!name) return;
+  const text = event.clipboardData?.getData('text') ?? '';
+  const separators = [...(target.getAttribute('data-rune-delimiters') ?? ''), '\n', '\r', '\t'];
+  if (![...text].some((char) => separators.includes(char))) return;
+  event.preventDefault();
+  sendCommand(target, name, text);
 }
 
 

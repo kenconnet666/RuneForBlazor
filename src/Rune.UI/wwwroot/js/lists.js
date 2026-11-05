@@ -232,6 +232,9 @@ export const pressedWhileOpen = new WeakSet();
 // 用户输入过的弹层（data-rune-hide-empty 的）：有建议时才显示，Esc、选中、失焦关上后清掉
 const typedPanels = new WeakSet();
 
+// 因输入而打开的弹层：打开后不高亮已选项（Enter 会把它取消掉），等过滤结果渲染出来再高亮第一项（onQueryChanged）
+const openedByTyping = new WeakSet();
+
 /** 宿主的弹层：触发按钮的 popovertarget，或输入框（不能做 popovertarget）上的 data-rune-popover。 */
 export function popoverOfHost(host) {
   if (host.popoverTargetElement) return host.popoverTargetElement;
@@ -279,6 +282,7 @@ export function listPopoverOpened(panel) {
   const trigger = listTriggerOf(panel);
   const list = panel.querySelector('[role="listbox"]');
   if (!trigger || !list || !panel.matches(':popover-open')) return;
+  if (openedByTyping.delete(panel)) return;
   const host = hostOf(list) ?? trigger;
   if (!highlightLastOnOpen.delete(trigger)) {
     highlightDefault(host, list);
@@ -321,10 +325,14 @@ export function onHostInput(event) {
   if (!(host instanceof HTMLInputElement) || event.isComposing || !host.hasAttribute('data-rune-popover')) return;
   const panel = popoverOfHost(host);
   if (!panel) return;
+  // 旧的高亮指着上一批结果：C# 渲染出新结果之前按 Enter 不该选中它（新结果渲染后 onQueryChanged 高亮第一项）
+  const list = listOf(host);
+  if (list) highlight(host, list, -1, false);
   if (panel.hasAttribute('data-rune-hide-empty')) {
     typedPanels.add(panel);
     syncHideEmpty(panel.querySelector('[role="listbox"]'));
   } else if (!panel.matches(':popover-open')) {
+    openedByTyping.add(panel);
     panel.showPopover();
   }
 }
@@ -336,7 +344,10 @@ export function syncHideEmpty(list) {
   const trigger = listTriggerOf(panel);
   const wanted = typedPanels.has(panel) && trigger === document.activeElement
     && (optionTable(list).length > 0 || list.getAttribute('aria-busy') === 'true');
-  if (wanted && !panel.matches(':popover-open')) panel.showPopover();
+  if (wanted && !panel.matches(':popover-open')) {
+    openedByTyping.add(panel);
+    panel.showPopover();
+  }
   else if (!wanted && panel.matches(':popover-open')) panel.hidePopover();
 }
 

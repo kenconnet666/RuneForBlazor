@@ -52,7 +52,7 @@
 </DemoSection>
 
 <DemoSection Id="statuses" Title="状态映射">
-    <Description>StatusMap 把每种状态的名字、色调、图标与说明写在一处，定义的顺序就是阶段的顺序（Order）；StatusBadge 按它显示。</Description>
+    <Description>StatusMap 把每种状态的名字、色调、图标与说明写在一处，定义的顺序就是阶段的顺序（Order）；StatusBadge 按它显示，筛选的下拉选项也从它来（Options）。</Description>
     <ChildContent>
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
             <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs" Wrap="true">
@@ -75,6 +75,9 @@
                     <StatusBadge Statuses="Exceptions" Value="key" Variant="StatusVariant.Outline" />
                 }
             </Flex>
+            <Field Label="按状态筛选" Description="选项来自同一份状态映射，带说明">
+                <Select Items="TaskStatuses.Options()" SelectionMode="SelectionMode.Multiple" @bind-Values="statusFilter" Clearable="true" />
+            </Field>
             <TextSpan Size="Size.Sm" Tone="TextTone.Muted">
                 “测试中”排在第 @(TaskStatuses.Order("verifying") + 1) 个阶段；不认识的状态显示成：<StatusBadge Statuses="TaskStatuses" Value="@("archived")" />
             </TextSpan>
@@ -134,6 +137,8 @@
 </DemoSection>
 
 @code {
+    IReadOnlyList<string> statusFilter = ["verifying", "awaiting"];
+
     static readonly (Tone Tone, string Label)[] tones =
     [
         (Tone.Neutral, "草稿"),

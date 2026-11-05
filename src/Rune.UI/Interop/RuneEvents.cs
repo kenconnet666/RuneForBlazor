@@ -19,8 +19,14 @@ public sealed class CloseRequestEventArgs : EventArgs
 /// <summary>键盘命令（<c>@onrunecommand</c> 的参数）：JS 初始化器把要 C# 处理的按键转成命名的命令，不用每次按键都往返一次。</summary>
 public sealed class CommandEventArgs : EventArgs
 {
-    /// <summary>命令名：remove-last（多选时在触发按钮、空的搜索框里按 Backspace，移除最后一个已选项）。</summary>
+    /// <summary>
+    /// 命令名：remove-last（Backspace，移除最后一个已选项）、clear（Esc，清空输入）、show-all（↑↓ 打开，显示全部选项）、
+    /// add（Enter，把输入加成标签）、paste（粘贴了多段文字）。
+    /// </summary>
     public string Name { get; set; } = "";
+
+    /// <summary>命令带的文字（paste 时是粘贴的整段内容）；没有时为 null。</summary>
+    public string? Text { get; set; }
 }
 
 /// <summary>复制按钮写完剪贴板（<c>@onrunecopied</c> 的参数）。</summary>
@@ -36,7 +42,7 @@ public sealed class CopiedEventArgs : EventArgs
 /// <item><c>@onrunetoggle</c>：浮层开关。原生的 <c>toggle</c>（popover）、<c>close</c>（dialog）不冒泡，Blazor 内置的 <c>@ontoggle</c> 也不带新状态，JS 转发成冒泡的 <c>rune-toggle</c>。</item>
 /// <item><c>@onrunecopied</c>：复制按钮写完剪贴板（成功或失败）。</item>
 /// <item><c>@onrunecloserequest</c>：用户要关闭对话框（Esc、点遮罩、关闭按钮），对话框带 <c>data-rune-guard-close</c> 时由 C# 决定关不关。</item>
-/// <item><c>@onrunecommand</c>：带 <c>data-rune-backspace="命令名"</c> 的元素上按 Backspace（输入框里是空的时候）。</item>
+/// <item><c>@onrunecommand</c>：键盘、粘贴转成的命令（<c>data-rune-backspace</c>、<c>data-rune-escape</c>、<c>data-rune-enter</c>、<c>data-rune-paste</c>，见 JS 初始化器顶部的约定）。</item>
 /// <item><c>@onrunedismiss</c>：可移除的元素（标签）离场动画结束，该从列表里拿掉了（<c>data-rune-dismiss</c> 的按钮触发）。</item>
 /// </list>
 /// </summary>

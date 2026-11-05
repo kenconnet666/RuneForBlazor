@@ -62,6 +62,7 @@ public sealed record InputDefaults : IComponentDefaults<InputDefaults>
 /// <param name="MaxRows">多行时最多几行高（超过时滚动）。</param>
 /// <param name="Fixed">多行时固定高度，可以拖动改变。</param>
 /// <param name="Picker">下拉选择（Select）：整个外壳都能点开（指针），在 ControlGroup 里也按内容宽。</param>
+/// <param name="Wrap">框里排着多个标签（TagsInput）：放不下时换行，输入框至少留出几个字的宽度。</param>
 public readonly record struct InputAppearance(
     InputVariant Variant,
     Size? Size,
@@ -71,7 +72,8 @@ public readonly record struct InputAppearance(
     int Rows = 0,
     int? MaxRows = null,
     bool Fixed = false,
-    bool Picker = false)
+    bool Picker = false,
+    bool Wrap = false)
 {
     /// <summary>外观：组件上写的 &gt; 配置的默认值（<see cref="InputDefaults"/>）&gt; 表面色、中圆角。</summary>
     public static InputAppearance Resolve(InputVariant? variant, Size? size, Radius? radius, bool readOnly, UIConfig config)
@@ -98,7 +100,8 @@ public static class InputStyles
                 a.Variant == InputVariant.Soft ? Soft : null,
                 a.ReadOnly ? ReadOnlyRoot : null,
                 StateRoot,
-                a.Picker ? PickerRoot : null,
+                a.Picker ? (a.ReadOnly ? PickerReadOnlyRoot : PickerRoot) : null,
+                a.Wrap ? WrapRoot : null,
                 a.Multiline ? MultilineRoot : null,
                 ScaleStyles.Radius(a.Radius),
                 a.Size is { } size ? ScaleStyles.FontSize(size) : null),
@@ -109,7 +112,7 @@ public static class InputStyles
                     a.Fixed ? TextareaStyles.Resizable : null,
                     TextareaStyles.MinRows(a.Rows),
                     !a.Fixed && a.MaxRows is { } max ? TextareaStyles.MaxRows(max) : null)
-                : InputElement,
+                : a.Wrap ? Sx.Of(InputElement, WrapInput) : InputElement,
             InputPart.Icon => Icon,
             InputPart.Affix => Affix,
             _ => Button,
@@ -174,7 +177,16 @@ public static class InputStyles
         [disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
     });
 
+    // 标签多了换行；行与行之间留出间距
+    static Style WrapRoot => Css.Define(static () => new Style { FlexWrap = FlexWrap.Wrap, RowGap = Space.Xs, PaddingBlock = Space.Xs });
+
+    // 输入框至少留出几个字的位置，放不下时换到下一行
+    static Style WrapInput => Css.Define(static () => new Style { FlexBasis = CssLength.Em(6) });
+
+    // 整个外壳都能点开（指针）；只读时打不开，是普通箭头（不可用时由 StateRoot 换成 not-allowed）
     static Style PickerRoot => Css.Define(static () => new Style { Cursor = Cursor.Pointer, FlexGrow = 0 });
+
+    static Style PickerReadOnlyRoot => Css.Define(static () => new Style { Cursor = Cursor.Default, FlexGrow = 0 });
 
     static Style MultilineRoot => Css.Define(static () => new Style { AlignItems = AlignItems.Stretch, PaddingBlock = Space.Xs });
 

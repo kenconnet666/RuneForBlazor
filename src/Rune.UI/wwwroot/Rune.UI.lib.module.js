@@ -31,6 +31,8 @@
 //   data-rune-backspace="命令" 按 Backspace（输入框里是空的时候）发出冒泡的 rune-command（Blazor 里是 @onrunecommand，带命令名）：
 //                            多选下拉移除最后一个已选项
 //   data-rune-escape="命令"   弹层关着时在有字的输入框里按 Esc：发出 rune-command（Combobox 清空）
+//   data-rune-enter="命令"    在有字的输入框里按 Enter、列表没有用掉它时：发出 rune-command（TagsInput 加成标签）
+//   data-rune-paste="命令"    粘贴的内容里有 data-rune-delimiters 里的分隔符或换行时拦下，整段随 rune-command 交给 C#（带 text）
 //   data-rune-popover="id"   输入框做列表宿主时它的弹层（输入框不能做 popovertarget）：输入时打开，↑↓ 打开并发 show-all 命令
 //   data-rune-hide-empty     这样的弹层只在输入过、且有建议（或正在加载，aria-busy）时显示（Autocomplete）
 //   输入法组合期间           列表宿主输入框（data-rune-list 含 text）的 input 事件拦下，组合结束补发一次：不拿拼音字母去过滤
@@ -66,7 +68,7 @@
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、tooltips（提示）、overflow（标签收起）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
-import { autosize, focusOnShell, onFocusLink, sendKeyCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
+import { autosize, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawIcon, startDismiss, startRipple } from './js/effects.js';
 import { watchGrid } from './js/layout.js';
 import { activeIndex, closeAfterPick, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
@@ -108,7 +110,7 @@ function install(blazor) {
   });
   blazor.registerCustomEventType('runecommand', {
     browserEventName: 'rune-command',
-    createEventArgs: (event) => ({ name: event.detail.name }),
+    createEventArgs: (event) => ({ name: event.detail.name, text: event.detail.text ?? null }),
   });
 
   // 原生的 toggle（popover）与 close（dialog）不冒泡：在捕获阶段接住，转发成冒泡的 rune-toggle
@@ -158,6 +160,7 @@ function install(blazor) {
     if (target instanceof HTMLTextAreaElement && target.hasAttribute('data-rune-autosize')) autosize(target);
     if (target instanceof Element && target.hasAttribute('data-rune-count')) updateCount(target);
   });
+  document.addEventListener('paste', sendPasteCommand);
   document.addEventListener('focusin', onFocusIn);
   document.addEventListener('focusout', onFocusOut);
   document.addEventListener('pointerover', onPointerOver);
@@ -277,12 +280,13 @@ function onClick(event) {
 
 function onKeyDown(event) {
   if (event.key === 'Escape' && shownTooltip) hideTooltip(shownTooltip);
-  if (event.key === 'Backspace' || event.key === 'Escape') sendKeyCommand(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
   if (menu) moveInMenu(menu, event);
   if (event.target instanceof Element && event.target.matches('[data-rune-list]')) moveInList(event.target, event);
+  // 列表没用掉的按键再转成命令（Enter 选中了高亮项时不再加标签）
+  if (event.key === 'Backspace' || event.key === 'Escape' || event.key === 'Enter') sendKeyCommand(event);
 }
 
 function onFocusIn(event) {

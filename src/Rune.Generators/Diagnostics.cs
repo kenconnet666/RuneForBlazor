@@ -45,6 +45,11 @@ internal static class Diagnostics
         "RUNE007", "组件内部的长度不要用 px",
         "{0} = {1} 是 px：组件内部尺寸用 em（CssLength.Em、间距与尺寸 token），随字号整体缩放；边框、焦点环、分隔线用 BorderWidths token",
         Category, DiagnosticSeverity.Warning, isEnabledByDefault: false);
+
+    public static readonly DiagnosticDescriptor LoopVariableCaptured = new(
+        "RUNE008", "for 循环变量被延后执行的内容捕获",
+        "'{0}' 是 for 循环变量，被 lambda（Razor 的子内容、事件处理）捕获：执行时循环已经走完，拿到的是最后的值；在循环体里先复制成局部变量（var item = items[{0}];）",
+        Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 }
 
 /// <summary>

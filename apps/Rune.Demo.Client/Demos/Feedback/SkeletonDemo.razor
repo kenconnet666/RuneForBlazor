@@ -91,11 +91,13 @@
                         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
                             @for (var index = 0; index < messages.Length; index++)
                             {
+                                @* 子内容延后执行：循环变量先取成局部变量 *@
+                                var delay = index * ShimmerStyles.Stagger;
                                 <Flex @key="index" Gap="SpaceScale.Md" Align="ItemAlign.Center">
-                                    <Skeleton Variant="SkeletonVariant.Circle" Delay="index * ShimmerStyles.Stagger" />
+                                    <Skeleton Variant="SkeletonVariant.Circle" Delay="delay" />
                                     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" style="flex: 1">
-                                        <Skeleton Variant="SkeletonVariant.Text" Delay="index * ShimmerStyles.Stagger" style="width: 35%" />
-                                        <Skeleton Variant="SkeletonVariant.Text" Delay="index * ShimmerStyles.Stagger + ShimmerStyles.Stagger / 2" />
+                                        <Skeleton Variant="SkeletonVariant.Text" Delay="delay" style="width: 35%" />
+                                        <Skeleton Variant="SkeletonVariant.Text" Delay="delay + ShimmerStyles.Stagger / 2" />
                                     </Flex>
                                 </Flex>
                             }
@@ -133,9 +135,11 @@
                         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
                             @for (var index = 0; index < formFields.Length; index++)
                             {
+                                @* 子内容延后执行：循环变量先取成局部变量 *@
+                                var delay = index * ShimmerStyles.Stagger;
                                 <Flex @key="index" Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
-                                    <Skeleton Sx="FieldLabel" Delay="index * ShimmerStyles.Stagger" />
-                                    <Skeleton Sx="FieldBox" Delay="index * ShimmerStyles.Stagger + ShimmerStyles.Stagger / 2" />
+                                    <Skeleton Sx="FieldLabel" Delay="delay" />
+                                    <Skeleton Sx="FieldBox" Delay="delay + ShimmerStyles.Stagger / 2" />
                                 </Flex>
                             }
                             <Skeleton Variant="SkeletonVariant.Button" Delay="3 * ShimmerStyles.Stagger" />

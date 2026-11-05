@@ -226,6 +226,9 @@
   过滤词清空。失焦时由 C# 提交（文字不是选项就恢复）。Autocomplete 是子类（值就是文字），弹层带 `data-rune-hide-empty`：输入过且有建议或正在加载才显示。
   中文输入法：组合期间列表宿主输入框的 input 在捕获阶段拦下、组合结束补发一次，不拿拼音字母去过滤（Select 的搜索框同样受益）。
   Select、Combobox 的选项数据（本地或远程、过滤、已选项文字的记忆、播报与空状态文字）在 `OptionSource`。
+- **TagsInput**：分隔符在 C# 里按输入拆（输入框本来就逐字交给 C#）；Enter（列表没用掉时）、退格（输入框空时）、粘贴多段（JS 按 `data-rune-delimiters` 判断）
+  由 JS 转成 `rune-command`（add、remove-last、paste 带文字）。输入时 JS 立刻清掉旧的高亮、因输入打开的弹层也不高亮已选项：
+  过滤结果渲染出来之前按 Enter，不能选中上一批结果里的项（Server 模式下打字快时真的会发生，多选时还会把已选的取消掉）。
 - **交给子组件的样式要经 `Attrs.MergeProps` 作为 Sx 交下去**：先 `Attrs.Merge` 合成类再交给子组件，元素上会有两个类，谁赢看规则插入的先后
   （Combobox 的展开按钮的箭头过渡就被按钮自己的过渡盖掉过）。
 - **外框的状态只看自己的输入元素**：`:has(> :is(input, select, textarea, [role=combobox]):disabled)`。最初写的 `:has(:disabled)` 会被数字框到了上限时不可用的步进按钮、

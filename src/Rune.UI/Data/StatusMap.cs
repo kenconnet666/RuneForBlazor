@@ -9,7 +9,7 @@ public sealed record StatusDefinition(string Label, Tone Tone = Tone.Neutral, Ic
 
 /// <summary>
 /// 状态映射（同 vue-tsx-pro 的 createStatusMap）：一处写好每种状态的名字、色调、图标与说明，
-/// 标记（<see cref="StatusBadge{TKey}"/>）、表格的状态列、筛选的选项、步骤、看板的列共用，同一种状态在哪儿都是同一个颜色、同一个叫法。
+/// 标记（<see cref="StatusBadge{TKey}"/>）、表格的状态列、筛选的选项（<see cref="Options"/>）、步骤、看板的列共用，同一种状态在哪儿都是同一个颜色、同一个叫法。
 /// 定义的顺序就是阶段的顺序。
 /// <code>
 /// static readonly StatusMap&lt;string&gt; TaskStatuses = new()
@@ -48,6 +48,17 @@ public sealed class StatusMap<TKey> : IEnumerable<KeyValuePair<TKey, StatusDefin
 
     /// <summary>在阶段里的位置（从 0 起）；不认识的键是 -1。</summary>
     public int Order(TKey key) => definitions.TryGetValue(key, out var entry) ? entry.Order : -1;
+
+    /// <summary>
+    /// 给 Select、Listbox、筛选用的选项：值是键（ToString），带名字、说明与图标；只要一部分时传 <paramref name="subset"/>（按它的顺序）。
+    /// <code>&lt;Select Items="TaskStatuses.Options()" SelectionMode="SelectionMode.Multiple" @bind-Values="filter" /&gt;</code>
+    /// </summary>
+    public IReadOnlyList<ListboxOption> Options(IEnumerable<TKey>? subset = null) =>
+        [.. (subset ?? keys).Select(key =>
+        {
+            var status = this[key];
+            return new ListboxOption(key.ToString() ?? "", status.Label, Description: status.Description, Icon: status.Icon);
+        })];
 
     /// <inheritdoc/>
     public IEnumerator<KeyValuePair<TKey, StatusDefinition>> GetEnumerator() =>

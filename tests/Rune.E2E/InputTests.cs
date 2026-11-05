@@ -99,12 +99,12 @@ public class InputTests(DemoServer demo)
     {
         var page = await demo.OpenAsync(mode, "badge");
         var filters = page.GetByTestId("filters");
-        await Assertions.Expect(filters.Locator("[data-part=root]")).ToHaveCountAsync(6);
+        await Assertions.Expect(filters.Locator("[data-scope=badge][data-part=root]")).ToHaveCountAsync(6);
 
         await page.GetByRole(AriaRole.Button, new() { Name = "移除 品牌：小米" }).FocusAsync();
         await page.Keyboard.PressAsync("Enter");
 
-        await Assertions.Expect(filters.Locator("[data-part=root]")).ToHaveCountAsync(5);
+        await Assertions.Expect(filters.Locator("[data-scope=badge][data-part=root]")).ToHaveCountAsync(5);
         await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "移除 品牌：华为" })).ToBeFocusedAsync();
     }
 
