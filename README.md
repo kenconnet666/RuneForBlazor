@@ -38,6 +38,7 @@ public sealed partial class CartStore
 | `tools/theme-gen` | 从 vue-tsx-pro 的主题生成 16 套内置主题（`Themes.g.cs`）；CI 校验 |
 | `tools/icon-gen` | 下载 Lucide 官方 SVG（`lucide-static`，版本固定在脚本里）生成图标数据：全集、组件库内置的一小组与许可文件；CI 校验 |
 | `tools/lang-gen` | 从 vue-tsx-pro 的语言包生成 `Lang`（简体中文、美国英语，插值文案翻译成 C# 的 lambda）；CI 校验 |
+| `tools/docs-export` | 把文档站导出成静态文件（发布、预渲染全部页面、按端点清单复制带指纹的静态资源），`--serve` 按 Cloudflare 的规则本地预览；部署见 `.github/workflows/docs.yml`（手动触发） |
 | `tools/parity` | 与 vue-tsx-pro 文档站逐个部件对比计算后的样式（亮、暗主题、悬停聚焦按下），本地跑，见其 README |
 
 依赖方向：`Rune.UI → Rune`，`apps → Rune.UI + Rune`（文档站与测试台都引用 `Rune.Docs.Content`）；生成器以分析器方式引用。包版本统一在 `Directory.Packages.props`。
@@ -71,6 +72,7 @@ dotnet build RuneForBlazor.slnx
 dotnet test --project tests/Rune.Tests/Rune.Tests.csproj
 dotnet watch --project apps/Rune.Docs    # 文档站（http://localhost:5310），保存后热重载
 dotnet watch --project apps/Rune.Demo    # 渲染模式测试台
+node tools/docs-export/export.mjs         # 导出文档站到 artifacts/docs-site（--serve 预览）
 node tools/css-gen/generate.mjs           # 重新生成 Style 属性表
 node tools/css-gen/generate.mjs --check   # 只检查是否与数据源一致
 ```

@@ -164,6 +164,10 @@
   API 表运行时生成（ComponentApiReader）：反射读 [Parameter]，新建实例取默认值，说明取嵌进来的 Rune.UI.xml（所以三个库在项目文件里开 GenerateDocumentationFile）。
   文档站（Rune.Docs）与渲染模式测试台（Rune.Demo，`/{模式}/{页面}`，端到端测试与对照工具用它）渲染同一批页面。
   注意：收起的源码也在 DOM 里（页内搜索能找到），端到端测试按文字找元素时要只看可见的（`Filter(new() { Visible = true })`）或限定在示例里。
+- **文档站静态导出**（tools/docs-export）：整站是 WebAssembly 的交互根，服务端只做预渲染，所以可以导出成静态文件。静态资源按发布结果的
+  端点清单复制（MapStaticAssets 的地址带指纹，磁盘上是原名；压缩版本不要，托管方自己压缩），import map 里服务端运行时生成的模块
+  （`_framework/resource-collection.*.js`）从运行中的服务端取下来；页面从首页按站内链接与 iframe 爬完，存成 `路径.html`。
+  部署到 Cloudflare Workers 的静态资源（apps/Rune.Docs/wrangler.jsonc，`not_found_handling: 404-page`）。
 - **docs-kit 放在 Rune.UI 里**（不像 vue-tsx-pro 分子路径导出）：CodePreview 的源码由使用方给出，收起时是纯文本，指针移到、焦点进入工具栏或展开时才
   交给 CodeBlock 高亮。PropsTable、TextTable 显式转交 Table 的外观参数（未声明的属性按字符串传，类型对不上）。ColorSwatch 的 token 取值由 JS 读
   （`data-rune-token-value`，插入时与换主题后重读），C# 不知道浏览器里当前是哪套主题。

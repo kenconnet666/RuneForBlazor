@@ -1,0 +1,12 @@
+{
+  // 文档站部署到 Cloudflare Workers 的静态资源（免费额度：纯静态文件不限访问量）。上传由 .github/workflows/docs.yml 做（手动触发），
+  // 先用 tools/docs-export 导出到 artifacts/docs-site。账号取 API 令牌所属的账号；有几个账号时在 CI 里设 CLOUDFLARE_ACCOUNT_ID
+  "$schema": "https://www.unpkg.com/wrangler@4.156.1/config-schema.json",
+  "name": "rune-docs",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "../../artifacts/docs-site",
+    // /components/button 直接取 components/button.html（默认的 auto-trailing-slash，不跳转）；没有对应文件的地址回 404.html
+    "not_found_handling": "404-page",
+  },
+}

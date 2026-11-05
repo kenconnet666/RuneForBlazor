@@ -32,6 +32,6 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(Rune.Demo.Client._Imports).Assembly);
+    .AddAdditionalAssemblies(typeof(Rune.Demo.Client._Imports).Assembly, typeof(DocsCatalog).Assembly);
 
 app.Run();

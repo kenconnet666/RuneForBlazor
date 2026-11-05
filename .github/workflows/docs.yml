@@ -1,0 +1,63 @@
+# 文档站：导出成静态文件（tools/docs-export），上传到 Cloudflare Workers 的静态资源（apps/Rune.Docs/wrangler.jsonc）。
+# 只手动触发（Actions 页面的 Run workflow）；没有配置 CLOUDFLARE_API_TOKEN 时只导出、上传构件，不部署。
+name: Docs
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: docs
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  export-deploy:
+    name: 导出与部署
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 安装 .NET SDK（版本取自 global.json）
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: 缓存 NuGet 包
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # 发布 apps/Rune.Docs，启动它预渲染全部页面，连同静态资源写到 artifacts/docs-site
+      - name: 导出静态站点
+        run: node tools/docs-export/export.mjs
+
+      - name: 上传构件（可以下载下来检查）
+        uses: actions/upload-artifact@v7
+        with:
+          name: docs-site
+          path: artifacts/docs-site
+          retention-days: 7
+
+      - name: 部署到 Cloudflare
+        working-directory: apps/Rune.Docs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo '::warning::没有配置 CLOUDFLARE_API_TOKEN，跳过部署'
+            exit 0
+          fi
+          npx --yes wrangler@4.156.1 deploy

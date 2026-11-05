@@ -15,7 +15,7 @@
 
     // 句子里的 @某人：悬停或聚焦时弹出资料卡
     static RenderFragment Mention(Person person) => @<HoverCard data-testid="@($"card-{person.Key}")">
-        <Trigger Context="t"><TextLink @attributes="t" Href="@($"server/popover#{person.Key}")">@person.Handle</TextLink></Trigger>
+        <Trigger Context="t"><TextLink @attributes="t" Href="@($"components/popover#{person.Key}")">@person.Handle</TextLink></Trigger>
         <ChildContent>
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
                 <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">

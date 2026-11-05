@@ -168,7 +168,9 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
       （已做：docs-kit 的 CodePreview、CodeGroup、DocArticle / DocSection、PropsTable（含 ApiProp、ComponentApi 数据）、TextTable、ColorSwatch、DocsKitIcons.Github，
       统一放在 Rune.UI 里；文档站 Rune.Docs：演示迁成文档页（一个示例一个文件、按 vue-tsx-pro 分两列），API 表从类型与 XML 文档生成，
       首页、快速开始 / 写样式 / 主题定制三篇指南、搜索、本页目录、上一篇 / 下一篇。还缺：演练场（暂不做）、主题定制页（等 ThemeCustomizer）、
-      图标库页、键盘说明表（KeyboardReference）、靠后示例的延后渲染）
+      图标库页、键盘说明表（KeyboardReference）、靠后示例的延后渲染）。
+      部署已准备好没发布：tools/docs-export 导出静态站点（57 页，WebAssembly 接管），.github/workflows/docs.yml 手动触发，
+      wrangler 部署到 Cloudflare Workers 的静态资源（令牌放在仓库 secret CLOUDFLARE_API_TOKEN）
 
 ## 阶段 14：质量与发布准备（贯穿全程，这里收尾）
 

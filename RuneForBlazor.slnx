@@ -26,6 +26,7 @@
     <File Path="tools/theme-gen/NOTICE.md" />
     <File Path="tools/lang-gen/generate.mjs" />
     <File Path="tools/lang-gen/NOTICE.md" />
+    <File Path="tools/docs-export/export.mjs" />
     <File Path="tools/parity/parity.mjs" />
     <File Path="tools/parity/README.md" />
   </Folder>
