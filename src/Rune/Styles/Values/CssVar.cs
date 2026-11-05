@@ -32,6 +32,9 @@ public sealed class CssVar<T>
 
     /// <summary>直接写在样式属性上：<c>Width = fillWidth</c>。</summary>
     public static implicit operator T(CssVar<T> variable) => variable.Reference;
+
+    /// <summary>引用它的写法（<c>var(--progress-fill)</c>）：插进 calc() 这类字符串里时用得上。</summary>
+    public override string ToString() => Reference?.ToString() ?? "";
 }
 
 /// <summary>创建 <see cref="CssVar{T}"/>。</summary>

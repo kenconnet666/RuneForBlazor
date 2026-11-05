@@ -37,4 +37,10 @@ public class CssVarTests : IDisposable
         Assert.Contains("position:sticky;", css);
         Assert.Contains("width:inherit;", css);
     }
+
+    [Fact]
+    public void 插进字符串时是引用的写法()
+    {
+        Assert.Equal("calc(var(--fill-width) * 2)", $"calc({fillWidth} * 2)");
+    }
 }
