@@ -1,0 +1,34 @@
+@*
+    文档页骨架：示例与 vue-tsx-pro 文档站的 /components/doc-article 对应。
+*@
+@attribute [ComponentDemo("doc-article", "文档页骨架", Group = "展示", Order = 20)]
+@inherits RuneComponent
+
+<DemoSection Id="article" Title="一篇文档">
+    <Description>正文比界面文字大一号、行距宽松；页面多宽由外面的 <Code>Container</Code> 决定。<Code>Lead</Code> 放在简介下面，引用语句之类。<Code>DocSection</Code> 的 <Code>Id</Code> 是锚点，也进 <Code>TableOfContents</Code>。<Code>TextTable</Code> 的表头和单元格都是文字，反引号里的是行内代码（<Code>CodeText</Code>），第一列默认不折行；要排序、合并单元格用 DataTable。</Description>
+    <ChildContent>
+        @* 一篇文档：标题、简介、引用语句，一节一节往下写；对照表用 TextTable，反引号里的是行内代码 *@
+        <DocArticle Title="缓存" Description="本机缓存和 Redis 缓存两级，写入提交后失效。">
+            <Lead><CodeBlock Code="using MyLib.Caching;" Lang="csharp" /></Lead>
+            <ChildContent>
+                <DocSection Id="demo-usage" Title="怎么用">
+                    <Paragraph>声明的时候指定过期时间，读的时候和普通查询一样。</Paragraph>
+                </DocSection>
+                <DocSection Id="demo-options" Title="选项">
+                    <TextTable Head="@head" Rows="@rows" />
+                </DocSection>
+            </ChildContent>
+        </DocArticle>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly string[] head = ["选项", "默认值", "含义"];
+
+    static readonly string[][] rows =
+    [
+        ["`Ttl`", "`60_000`", "过期时间，毫秒"],
+        ["`MaxSize`", "`1000`", "本机缓存最多放多少条，超出按最近最少使用淘汰"],
+        ["`Store`", "无", "外部存储，接 Redis 这类共享缓存时给它"],
+    ];
+}

@@ -1,0 +1,136 @@
+@*
+    代码示例卡片（同 vue-tsx-pro 的 CodePreview）：上面是运行中的效果，下面是它的源码（可以收起、复制）。文档站的每个示例都是一张。
+    <CodePreview Code="@source"><Basic /></CodePreview>
+    效果与源码由使用方各自给出（组件本身不执行代码）：文档站从示例文件读出源码（嵌入的资源），两者永远一致。
+    源码默认收起，“显示代码”按钮带 aria-expanded / aria-controls；复制按钮一直在工具栏上。收起的源码是纯文本（页内搜索照样找得到），
+    指针移到、焦点进入工具栏或展开时才高亮。Actions 往工具栏最前面加按钮。
+    外框是 Card（Outline），源码是 CodeBlock，收起展开用 Collapse。未声明的属性落到 Card 组件上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var lang = Config.Lang.DocsKit; }
+
+<Card Variant="CardVariant.Outline" Padding="SpaceScale.None" PropsFooter="Attrs.Layer(FooterLayer, PropsFooter)" @attributes="Attrs.MergeProps(null, PropsCard, Rest)">
+    <Footer>
+        <div @attributes="Attrs.Merge(ToolbarLayer, PropsToolbar)" @onpointerenter="Prepare" @onfocusin="Prepare">
+            @Actions
+            <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="UI.Size.Sm" Icon="BuiltInIcons.Code" @onclick="ToggleAsync"
+                    @attributes="Attrs.MergeProps(null, PropsToggle, ToggleManaged)">@(showCode.Value ? lang.HideCode : lang.ShowCode)</Button>
+            <CopyButton Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="UI.Size.Sm" Value="@Code" @attributes="Attrs.MergeProps(null, PropsCopy)" />
+        </div>
+        <Collapse id="@codeId" Open="showCode.Value" OpenChanged="showCode.SetAsync" @attributes="Attrs.MergeProps(null, PropsCollapse)">
+            <CodeBlock Code="@Code" Lang="@Lang" Highlight="@(showCode.Value || wanted)" MaxLines="MaxLines" Copyable="false" Flush="true"
+                       PropsRoot="CodeLayer" @attributes="Attrs.MergeProps(null, PropsCode)" />
+        </Collapse>
+    </Footer>
+    <ChildContent>
+        <div role="group" aria-label="@lang.Preview" @attributes="Attrs.Merge(PreviewLayer, PropsPreview)">
+            <ScrollArea Axis="ScrollAxis.X" @attributes="Attrs.MergeProps(null, PropsPreviewScroll)">
+                <div @attributes="Attrs.Merge(Align == CodePreviewAlign.Center ? CenteredLayer : LayoutLayer, PropsLayout)">@ChildContent</div>
+            </ScrollArea>
+        </div>
+    </ChildContent>
+</Card>
+
+@code {
+    static readonly Attrs FooterLayer = new() { Sx = FooterStyle };
+    static readonly Attrs ToolbarLayer = new() { Sx = Toolbar };
+    static readonly Attrs CodeLayer = new() { Sx = CodeStyle };
+    static readonly Attrs PreviewLayer = new() { Sx = Preview };
+    static readonly Attrs LayoutLayer = new() { Sx = Layout };
+    static readonly Attrs CenteredLayer = new() { Sx = Sx.Of(Layout, Center) };
+
+    readonly string codeId = UniqueId.Next("code-preview");
+    // 收起的源码先按纯文本渲染：要显示时才高亮，指针移到、焦点落到工具栏上就开始
+    bool wanted;
+
+    /// <summary>源码。</summary>
+    [Parameter, EditorRequired] public string Code { get; set; } = "";
+
+    /// <summary>源码的语言，默认 razor。</summary>
+    [Parameter] public string Lang { get; set; } = "razor";
+
+    /// <summary>是否显示源码（<c>@bind-ShowCode</c>）；默认收起。</summary>
+    [Parameter] public bool ShowCode { get; set; }
+
+    /// <summary>显示或收起了源码。</summary>
+    [Parameter] public EventCallback<bool> ShowCodeChanged { get; set; }
+
+    /// <summary>效果区的排列，默认从起始边排起、占满宽度。</summary>
+    [Parameter] public CodePreviewAlign Align { get; set; }
+
+    /// <summary>源码超过这么多行时折叠（见 CodeBlock 的 MaxLines）；不写时不折叠。</summary>
+    [Parameter] public int? MaxLines { get; set; }
+
+    /// <summary>工具栏上额外的操作，排在“显示代码”前面。</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>运行中的效果。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>外框（Card 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCard { get; set; }
+
+    /// <summary>卡片页脚（工具栏与源码）的部件属性。</summary>
+    [Parameter] public Attrs? PropsFooter { get; set; }
+
+    /// <summary>效果区（外层，背景、最小高度写在这里）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPreview { get; set; }
+
+    /// <summary>效果区里横向滚动的 ScrollArea 的部件属性。</summary>
+    [Parameter] public Attrs? PropsPreviewScroll { get; set; }
+
+    /// <summary>效果的排布格（div，带内边距的网格）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLayout { get; set; }
+
+    /// <summary>工具栏的部件属性。</summary>
+    [Parameter] public Attrs? PropsToolbar { get; set; }
+
+    /// <summary>“显示代码”按钮（Button 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsToggle { get; set; }
+
+    /// <summary>复制按钮（CopyButton 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCopy { get; set; }
+
+    /// <summary>源码收起展开（Collapse 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCollapse { get; set; }
+
+    /// <summary>源码（CodeBlock 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCode { get; set; }
+
+    Bindable<bool> showCode { get => field ??= new(this, () => ShowCode, () => ShowCodeChanged); }
+
+    Attrs ToggleManaged => new() { ["aria-expanded"] = showCode.Value ? "true" : "false", ["aria-controls"] = codeId };
+
+    void Prepare() => wanted = true;
+
+    Task ToggleAsync() => showCode.SetAsync(!showCode.Value);
+
+    // Card 的页脚默认是一行靠右的按钮：这里是工具栏加源码，上下排
+    static Style FooterStyle => Css.Define(static () => new Style { Display = Display.Block, Padding = 0 });
+
+    static Style Toolbar => Css.Define(static () => new Style { Display = Display.Flex, JustifyContent = JustifyContent.FlexEnd, Gap = Space.Xs, Padding = Space.Xs });
+
+    // 源码贴着卡片：只留与工具栏之间的分隔线
+    static Style CodeStyle => Css.Define(static () => new Style
+    {
+        BorderTopWidth = BorderWidths.Xs,
+        BorderTopStyle = BorderStyle.Solid,
+        BorderTopColor = Colors.BorderMuted,
+    });
+
+    // 效果区：给了最小高度时，效果在里面上下居中
+    static Style Preview => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, JustifyContent = JustifyContent.Center });
+
+    // 效果的排布：靠起始边时示例占满宽度；宽内容（表格）在外面的 ScrollArea 里横向滚动，不撑宽卡片；手机宽度留给示例本身
+    static Style Layout => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Md,
+        Padding = Space.Md,
+        [Breakpoints.Sm] = new() { Padding = Space.Xl },
+    });
+
+    static Style Center => Css.Define(static () => new Style { JustifyItems = JustifyItems.Center });
+}

@@ -159,6 +159,9 @@
   同步选中标记与按钮图标（复制选中项的图标），并跟着系统明暗、其他标签页、增强导航换页重新应用。C# 不知道选了哪套，所以单选项的选中标记按
   aria-checked 用 CSS 显示（MenuRadioItem 的 Indicator），JS 改 aria-checked 就够。代价是每页都带全部可选主题的变量（16 套约 230KB，未压缩），
   静态导出时再考虑抽成共享样式表。
+- **docs-kit 放在 Rune.UI 里**（不像 vue-tsx-pro 分子路径导出）：CodePreview 的源码由使用方给出，收起时是纯文本，指针移到、焦点进入工具栏或展开时才
+  交给 CodeBlock 高亮。PropsTable、TextTable 显式转交 Table 的外观参数（未声明的属性按字符串传，类型对不上）。ColorSwatch 的 token 取值由 JS 读
+  （`data-rune-token-value`，插入时与换主题后重读），C# 不知道浏览器里当前是哪套主题。
 - **代码高亮在浏览器里做**（同 vue-tsx-pro 的 createShikiHighlighter）：CodeBlock 输出纯文本的 `code[data-rune-highlight]`，JS 初始化器（`js/highlight.js`）
   第一次遇到时加载 vendor 的 Shiki（JavaScript 正则引擎、CSS 变量主题，颜色指向 `--rune-code-colors-*`）上色，三种渲染模式一样，没有往返。
   JS 改过 code 的子节点，所以代码、语言、高亮开关、行设置变了时 code 用 @key 整个重建，不让 Blazor 在上面做差异更新。

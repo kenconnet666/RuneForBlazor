@@ -45,6 +45,18 @@
     </ChildContent>
 </DemoSection>
 
+<DemoSection Id="swatch" Title="ColorSwatch">
+    <Description><Code>Color</Code> 是颜色值或主题 token：token 的取值按当前主题读出，换主题时跟着变（左上角切换主题试试）。半透明的颜色下面垫棋盘格。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="CssLength.Rem(7)" Gap="SpaceScale.Md" data-testid="swatches">
+            @foreach (var (label, color) in tokens)
+            {
+                <ColorSwatch @key="label" Color="color"><Label>@label</Label></ColorSwatch>
+            }
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
 <DemoSection Id="states" Title="外观与状态">
     <Description><Code>Variant</Code>、<Code>Size</Code>、<Code>Radius</Code> 与其他输入框同一套；Field 上的 <Code>Required</Code>、<Code>Error</Code>、<Code>ReadOnly</Code>、<Code>Disabled</Code> 交给里面的 ColorField。</Description>
     <ChildContent>
@@ -59,6 +71,22 @@
 </DemoSection>
 
 @code {
+    static readonly (string Label, CssColor Color)[] tokens =
+    [
+        ("Accent", Tones.Accent.Solid),
+        ("AccentSoft", Tones.Accent.Soft),
+        ("Success", Tones.Success.Solid),
+        ("Warning", Tones.Warning.Solid),
+        ("Danger", Tones.Danger.Solid),
+        ("Info", Tones.Info.Solid),
+        ("Surface", Colors.Surface),
+        ("SurfaceTranslucent", Colors.SurfaceTranslucent),
+        ("Text", Colors.Text),
+        ("TextMuted", Colors.TextMuted),
+        ("Border", Colors.Border),
+        ("Series3", ChartColors.Series3),
+    ];
+
     static readonly Attrs Preview = new() { Sx = PreviewStyle };
     static readonly Attrs BrandBadge = new() { Sx = BadgeStyle };
 

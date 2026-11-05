@@ -1,0 +1,72 @@
+@*
+    文档页的骨架（同 vue-tsx-pro 的 DocArticle）：标题、简介与正文；正文里一节一节是 DocSection。
+    <DocArticle Title="快速开始" Description="两分钟跑起来">
+        <DocSection Id="install" Title="安装">…</DocSection>
+    </DocArticle>
+    字号比界面文字大一号、行距宽松，间距随之放大；页面的宽度由外面的 Container 决定。未声明的属性落到 article 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<article @attributes="Attrs.Merge(RootLayer, Rest)">
+    <div @attributes="Attrs.Merge(HeaderLayer, PropsHeader)">
+        <H1 @attributes="Attrs.MergeProps(null, PropsTitle)">@(TitleContent ?? (RenderFragment)(b => b.AddContent(0, Title)))</H1>
+        @if (Description is not null || DescriptionContent is not null)
+        {
+            <Paragraph Size="UI.Size.Lg" Tone="TextTone.Muted" @attributes="Attrs.MergeProps(DescriptionLayer, PropsDescription)">@(DescriptionContent ?? (RenderFragment)(b => b.AddContent(0, Description)))</Paragraph>
+        }
+        @Lead
+    </div>
+    @ChildContent
+</article>
+
+@code {
+    static readonly Attrs RootLayer = new() { Sx = Root };
+    static readonly Attrs HeaderLayer = new() { Sx = Header };
+    static readonly Attrs DescriptionLayer = new() { Sx = DescriptionStyle };
+
+    /// <summary>标题。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>标题（带标记的内容）；写了时不用 Title。</summary>
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+
+    /// <summary>简介。</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>简介（带标记的内容，如行内代码）；写了时不用 Description。</summary>
+    [Parameter] public RenderFragment? DescriptionContent { get; set; }
+
+    /// <summary>简介下面、正文之前的内容：引用语句之类。</summary>
+    [Parameter] public RenderFragment? Lead { get; set; }
+
+    /// <summary>正文：各个 DocSection。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>头部（标题、简介、Lead 外面的 div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>标题（H1 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>简介（Paragraph 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    // 长文阅读：比界面文字（14px）大一号、行距宽松
+    static Style Root => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        Gap = CssLength.Rem(3),
+        MinWidth = 0,
+#pragma warning disable RUNE007 // 同 vue-tsx-pro：长文正文固定 15px，介于 md 与 lg 两档之间
+        FontSize = 15,
+#pragma warning restore RUNE007
+        LineHeight = LineHeights.Relaxed,
+    });
+
+    static Style Header => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Lg });
+
+    // 简介保持适合阅读的行宽，宽版面时也不拉满
+    static Style DescriptionStyle => Css.Define(static () => new Style { MaxWidth = CssLength.Rem(48), LineHeight = LineHeights.Relaxed });
+}

@@ -66,7 +66,53 @@
     </ChildContent>
 </DemoSection>
 
+<DemoSection Id="group" Title="一组代码">
+    <Description><Code>CodeGroup</Code> 用标签页切换几段代码，标签栏就是代码块的标题栏；几组绑同一个 <Code>@@bind-Value</Code> 就一起切换。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <CodeGroup Items="installs" @bind-Value="installer" data-testid="group-a" />
+            <CodeGroup Items="installs" @bind-Value="installer" data-testid="group-b" />
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="preview" Title="示例卡片">
+    <Description><Code>CodePreview</Code> 上面是运行中的效果、下面是源码（默认收起，可复制），文档站的每个示例都是一张；<Code>@@bind-ShowCode</Code> 可以双向绑定源码的展开状态，<Code>Actions</Code> 往工具栏最前面加按钮。源码由使用方给出：文档站从示例文件里读，两者永远一致。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <CodePreview Code="@counterSource" Align="CodePreviewAlign.Center" @bind-ShowCode="showCode" data-testid="preview">
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md">
+                    <IconButton Icon="Lucide.Minus" Variant="ButtonVariant.Surface" Label="减少" @onclick="() => count--" />
+                    <TextSpan>@count</TextSpan>
+                    <IconButton Icon="Lucide.Plus" Variant="ButtonVariant.Surface" Label="增加" @onclick="() => count++" />
+                </Flex>
+            </CodePreview>
+            <Small Tone="TextTone.Muted">源码@(showCode ? "已展开" : "已收起")</Small>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
 @code {
+    // 两组绑同一个变量：在一组里选了写法，另一组跟着切换
+    static readonly CodeGroupItem[] installs =
+    [
+        new("dotnet CLI", "dotnet add package Rune.UI", "shellscript"),
+        new("PackageReference", """<PackageReference Include="Rune.UI" Version="0.1.0" />""", "xml"),
+        new("PowerShell", "Install-Package Rune.UI", "powershell"),
+    ];
+
+    // 示例卡片：效果与源码由使用方各自给出；文档站从示例文件读出源码，两者永远一致
+    const string counterSource = """
+        <IconButton Icon="Lucide.Minus" Label="减少" @onclick="() => count--" />
+        <TextSpan>@count</TextSpan>
+        <IconButton Icon="Lucide.Plus" Label="增加" @onclick="() => count++" />
+        """;
+
+    string? installer = "dotnet CLI";
+    bool showCode;
+    int count = 3;
+
+
     const string program = """
         var builder = WebApplication.CreateBuilder(args);
 

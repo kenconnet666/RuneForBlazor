@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（50 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（51 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -40,6 +40,8 @@ public static partial class BuiltInIcons
     public static IconData CircleX => field ??= new("circle-x", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m15 9-6 6\"/><path d=\"m9 9 6 6\"/>");
     /// <summary>Lucide 图标 <c>citrus</c>（lemon、orange、grapefruit、fruit）。</summary>
     public static IconData Citrus => field ??= new("citrus", "<path d=\"M21.66 17.67a1.08 1.08 0 0 1-.04 1.6A12 12 0 0 1 4.73 2.38a1.1 1.1 0 0 1 1.61-.04z\"/><path d=\"M19.65 15.66A8 8 0 0 1 8.35 4.34\"/><path d=\"m14 10-5.5 5.5\"/><path d=\"M14 17.85V10H6.15\"/>");
+    /// <summary>Lucide 图标 <c>code</c>（coding、programming、development、source、html、xml）。</summary>
+    public static IconData Code => field ??= new("code", "<path d=\"m16 18 6-6-6-6\"/><path d=\"m8 6-6 6 6 6\"/>");
     /// <summary>Lucide 图标 <c>contrast</c>（display、accessibility）。</summary>
     public static IconData Contrast => field ??= new("contrast", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 18a6 6 0 0 0 0-12v12z\"/>");
     /// <summary>Lucide 图标 <c>copy</c>（clone、duplicate、multiple）。</summary>

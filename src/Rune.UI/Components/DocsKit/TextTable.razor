@@ -1,0 +1,55 @@
+@*
+    文字表格（同 vue-tsx-pro 的 TextTable）：说明文档里的对照表，表头和单元格都是文字，反引号里的是行内代码（CodeText）。
+    <TextTable Head="@(["方法", "含义"])" Rows="@([["`Has(值)`", "含有这个值"]])" />
+    第一列通常是名字，默认不折行。手机宽度放不下时横向滚动，不把列压得只剩几个字。按列定义、要排序的表格用 DataTable。
+    外观参数同 Table。未声明的属性落到 table 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<Table Density="Density" Variant="Variant" Striped="Striped" @attributes="Attrs.Merge(null, Rest, MinWidth)">
+    <TableHead>
+        <TableRow>
+            @foreach (var cell in Head)
+            {
+                <TableHeaderCell>@cell</TableHeaderCell>
+            }
+        </TableRow>
+    </TableHead>
+    <TableBody>
+        @foreach (var row in Rows)
+        {
+            <TableRow>
+                @foreach (var (cell, index) in row.Select((cell, index) => (cell, index)))
+                {
+                    <TableCell NoWrap="@(index == 0 && NoWrapFirst)"><CodeText Text="@cell" /></TableCell>
+                }
+            </TableRow>
+        }
+    </TableBody>
+</Table>
+
+@code {
+    // 每列至少留多宽（rem）：表格的最小宽度按列数算
+    const int ColumnMinRem = 8;
+
+    /// <summary>表头。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<string> Head { get; set; } = [];
+
+    /// <summary>各行：每格一段文字。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<IReadOnlyList<string>> Rows { get; set; } = [];
+
+    /// <summary>第一列不折行，默认 true。</summary>
+    [Parameter] public bool NoWrapFirst { get; set; } = true;
+
+    /// <summary>密度（同 Table）。</summary>
+    [Parameter] public TableDensity? Density { get; set; }
+
+    /// <summary>样式（同 Table）。</summary>
+    [Parameter] public TableVariant? Variant { get; set; }
+
+    /// <summary>斑马纹（同 Table）。</summary>
+    [Parameter] public bool? Striped { get; set; }
+
+    Attrs MinWidth => new() { InlineStyle = $"min-width:{Head.Count * ColumnMinRem}rem" };
+}

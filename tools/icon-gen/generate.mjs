@@ -65,6 +65,7 @@ const BUILT_IN = [
   'panel-left-close',
   'panel-left-open',
   'dot',
+  'code',
   // ThemeSwitcher：跟随系统与各套内置主题
   'monitor',
   'sun',

@@ -165,6 +165,8 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 - [ ] 用本库组件搭（同 vue-tsx-pro 的 docs-kit：CodePreview、PropsTable 从 XML 文档注释生成、DocArticle、ColorSwatch）；页面与 vue-tsx-pro 文档站一一对应；
       主题定制页（同 theme-customize）；演示项目的示例迁过去
+      （已做：docs-kit 的 CodePreview、CodeGroup、DocArticle / DocSection、PropsTable（含 ApiProp、ComponentApi 数据）、TextTable、ColorSwatch、DocsKitIcons.Github，
+      统一放在 Rune.UI 里）
 
 ## 阶段 14：质量与发布准备（贯穿全程，这里收尾）
 

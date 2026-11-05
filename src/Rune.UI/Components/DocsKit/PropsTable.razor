@@ -1,0 +1,122 @@
+@*
+    组件 API 的表格（同 vue-tsx-pro 的 PropsTable）：一行一个参数，列出名称、类型、默认值与说明；档位类（枚举）的参数在说明下列出每个可选值的含义。
+    <PropsTable Props="@api.Props.Where(p => p.Kind == ApiPropKind.Prop).ToList()" Caption="参数" />
+    数据可以由文档站从类型与 XML 文档注释生成，也可以手写。必填的参数名称旁标“必填”，能 @bind 双向绑定的标“可绑定”。
+    外层是静态表格 Table（默认紧凑），窄屏时横向滚动。未声明的属性落到 table 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var lang = Config.Lang.DocsKit; }
+
+<Table Density="@(Density ?? TableDensity.Compact)" Variant="Variant" Striped="Striped" @attributes="Rest">
+    @if (Caption is not null)
+    {
+        <TableCaption>@Caption</TableCaption>
+    }
+    <TableHead>
+        <TableRow>
+            @* 表头都很短，中文会在任意字间断开（“默认 / 值”） *@
+            <TableHeaderCell NoWrap="true">@lang.Name</TableHeaderCell>
+            <TableHeaderCell NoWrap="true">@lang.Type</TableHeaderCell>
+            <TableHeaderCell NoWrap="true">@lang.DefaultValue</TableHeaderCell>
+            <TableHeaderCell NoWrap="true">@lang.Description</TableHeaderCell>
+        </TableRow>
+    </TableHead>
+    <TableBody>
+        @foreach (var prop in Props)
+        {
+            <TableRow @key="prop.Name">
+                <TableCell>
+                    <span @attributes="Attrs.Merge(NameLayer)">
+                        <Code Sx="NameCode">@prop.Name</Code>
+                        @if (prop.Required)
+                        {
+                            <Badge Tone="Tone.Warning">@lang.Required</Badge>
+                        }
+                        @if (prop.Bindable)
+                        {
+                            <Badge Tone="Tone.Accent">@lang.Bindable</Badge>
+                        }
+                    </span>
+                </TableCell>
+                <TableCell><Code Sx="TypeStyle">@prop.Type</Code></TableCell>
+                <TableCell NoWrap="true">
+                    @if (prop.Default is { } value)
+                    {
+                        <Code>@value</Code>
+                    }
+                    else
+                    {
+                        <span @attributes="Attrs.Merge(MutedLayer)">—</span>
+                    }
+                </TableCell>
+                <TableCell Sx="DescriptionCell">
+                    <p @attributes="Attrs.Merge(DescriptionLayer)">@prop.Description</p>
+                    @if (prop.Values is { } values && values.Any(v => v.Description.Length > 0))
+                    {
+                        <dl @attributes="Attrs.Merge(ValuesLayer)">
+                            @foreach (var option in values)
+                            {
+                                <dt @attributes="Attrs.Merge(ValueTermLayer)"><Code>@option.Value</Code></dt>
+                                <dd @attributes="Attrs.Merge(ValueTextLayer)">@option.Description</dd>
+                            }
+                        </dl>
+                    }
+                </TableCell>
+            </TableRow>
+        }
+    </TableBody>
+</Table>
+
+@code {
+    static readonly Attrs NameLayer = new() { Sx = Name };
+    static readonly Attrs MutedLayer = new() { Sx = Muted };
+    static readonly Attrs DescriptionLayer = new() { Sx = DescriptionStyle };
+    static readonly Attrs ValuesLayer = new() { Sx = Values };
+    static readonly Attrs ValueTermLayer = new() { Sx = ValueTerm };
+    static readonly Attrs ValueTextLayer = new() { Sx = ValueText };
+
+    /// <summary>要列出的参数。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ApiProp> Props { get; set; } = [];
+
+    /// <summary>表格标题（caption），同时是表格的名称。</summary>
+    [Parameter] public RenderFragment? Caption { get; set; }
+
+    /// <summary>密度，默认紧凑。</summary>
+    [Parameter] public TableDensity? Density { get; set; }
+
+    /// <summary>样式（同 Table）。</summary>
+    [Parameter] public TableVariant? Variant { get; set; }
+
+    /// <summary>斑马纹（同 Table）。</summary>
+    [Parameter] public bool? Striped { get; set; }
+
+    static Style Name => Css.Define(static () => new Style { Display = Display.Flex, FlexWrap = FlexWrap.Wrap, AlignItems = AlignItems.Center, Gap = Space.Xs });
+
+    // 参数名不断开：Code 默认可以在任意位置换行，表格会按它把名称列压到最窄
+    static Style NameCode => Css.Define(static () => new Style { WhiteSpace = WhiteSpace.Nowrap });
+
+    static Style TypeStyle => Css.Define(static () => new Style { Color = CodeColors.Type });
+
+    static Style Muted => Css.Define(static () => new Style { Color = Colors.TextMuted });
+
+    // 说明是最长的一列：至少留出一段可读的宽度，类型再长也不挤掉它
+    static Style DescriptionCell => Css.Define(static () => new Style { MinWidth = CssLength.Rem(18) });
+
+    static Style DescriptionStyle => Css.Define(static () => new Style { Margin = 0 });
+
+    static Style Values => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "max-content 1fr",
+        ColumnGap = Space.Md,
+        RowGap = Space.Xs,
+        Margin = 0,
+        MarginBlockStart = Space.Sm,
+        FontSize = FontSizes.Sm,
+    });
+
+    static Style ValueTerm => Css.Define(static () => new Style { Margin = 0 });
+
+    static Style ValueText => Css.Define(static () => new Style { Margin = 0, Color = Colors.TextMuted });
+}

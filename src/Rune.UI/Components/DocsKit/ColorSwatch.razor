@@ -1,0 +1,80 @@
+@*
+    色块（同 vue-tsx-pro 的 ColorSwatch）：一块颜色加它的名称与取值。主题文档里列调色板、设计 token 用。
+    <ColorSwatch Color="#3e63dd" Label="品牌色" />
+    <ColorSwatch Color="Colors.Accent" Label="Accent" />   主题 token：取值由 JS 按当前主题读出，换主题时跟着变
+    半透明的颜色（如 SurfaceTranslucent）下面垫棋盘格，看得出透明度。色块是装饰，名称与取值是文字，读屏都能读到。
+    未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(RootLayer, Rest)">
+    <div aria-hidden="true" @attributes="Attrs.Merge(SwatchLayer, PropsSwatch)">
+        <div @attributes="Attrs.Merge(FillLayer, null, FillManaged)"></div>
+    </div>
+    @if (Label is not null)
+    {
+        <span @attributes="Attrs.Merge(LabelLayer)">@Label</span>
+    }
+    @if (ShowValue)
+    {
+        @if (Value is not null || TokenName is null)
+        {
+            <span @attributes="Attrs.Merge(ValueLayer)">@(Value ?? Color.ToString())</span>
+        }
+        else
+        {
+            @* token 的值随主题变：由 JS 从色块上读出来填进去（data-rune-token-value） *@
+            <span data-rune-token-value="@TokenName" @attributes="Attrs.Merge(ValueLayer)"></span>
+        }
+    }
+</div>
+
+@code {
+    static readonly CssVar<CssColor> FillColor = CssVar.Color("rune-color-swatch-fill");
+    static readonly Attrs RootLayer = new() { Sx = Root };
+    static readonly Attrs SwatchLayer = new() { Sx = Sx.Of(SwatchStyles.Checkerboard, Swatch) };
+    static readonly Attrs FillLayer = new() { Sx = Sx.Of(Fill, SwatchStyles.Ring) };
+    static readonly Attrs LabelLayer = new() { Sx = LabelStyle };
+    static readonly Attrs ValueLayer = new() { Sx = ValueStyle };
+
+    /// <summary>颜色：任意 CSS 颜色，或主题 token（<c>Colors.Accent</c>）。</summary>
+    [Parameter, EditorRequired] public CssColor Color { get; set; }
+
+    /// <summary>名称。</summary>
+    [Parameter] public RenderFragment? Label { get; set; }
+
+    /// <summary>显示的取值；不写时：普通颜色显示它本身，token 显示当前主题下的值。</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>显示取值，默认 true。</summary>
+    [Parameter] public bool ShowValue { get; set; } = true;
+
+    /// <summary>色块（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSwatch { get; set; }
+
+    // token 是 var(--rune-colors-accent)：取出变量名
+    string? TokenName => Color.ToString() is var text && text.StartsWith("var(--", StringComparison.Ordinal) && text.EndsWith(')') && !text.Contains(',')
+        ? text[4..^1]
+        : null;
+
+    Attrs FillManaged => new() { Vars = [FillColor.Set(Color)] };
+
+    static Style Root => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Xs, MinWidth = 0 });
+
+    // 大色块的格子放大一倍
+    static Style Swatch => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        Height = CssLength.Rem(3),
+        BorderRadius = Radii.Md,
+        Overflow = Overflow.Hidden,
+        BackgroundSize = "1rem 1rem",
+    });
+
+    static Style Fill => Css.Define(static () => new Style { Position = Position.Absolute, Inset = 0, BackgroundColor = FillColor });
+
+    static Style LabelStyle => Css.Define(static () => new Style { Color = Colors.Text, FontSize = FontSizes.Sm, FontWeight = FontWeights.Medium });
+
+    static Style ValueStyle => Css.Define(static () => new Style { Color = Colors.TextMuted, FontFamily = Fonts.Mono, FontSize = FontSizes.Xs });
+}

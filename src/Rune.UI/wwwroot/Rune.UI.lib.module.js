@@ -21,6 +21,7 @@
 //   data-rune-theme-switcher 主题切换的菜单：里面 data-rune-theme-choice="名字" 的项点了就切换主题（记在 localStorage、写根元素的 data-theme，
 //                            从触发按钮处圆形展开），选中项的 aria-checked 与触发按钮里 data-rune-theme-icon 的图标按当前选择同步
 //                            （配置是 ThemeBootScript 输出的 script#rune-theme-config）
+//   data-rune-token-value="--变量名"  显示主题 token 当前取值的元素（ColorSwatch）：插入时与换主题后读出来写进去
 //   data-rune-light-dismiss  对话框：点遮罩关闭（原生的 closedby="any" 还没普及）
 //   data-rune-guard-close    对话框：要关闭时（Esc、点遮罩、data-rune-close）不直接关，发出冒泡的 rune-close-request
 //                            （Blazor 里是 @onrunecloserequest，带原因 escape / outside / close），由 C# 决定关不关（确认中、关闭前确认）
@@ -117,7 +118,7 @@ import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from './js/tabs
 import { watchCollapse } from './js/collapse.js';
 import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle } from './js/resize.js';
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
-import { chooseTheme, installTheme, reapplyTheme, watchThemeSwitcher } from './js/theme.js';
+import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './js/theme.js';
 import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './js/fullscreen.js';
 import { announce, closeOnLink, closeOrRequest, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock, watchCloseWhen } from './js/overlays.js';
 import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from './js/hover-layers.js';
@@ -282,9 +283,10 @@ function syncWithin(root) {
     if (element.matches('dialog[data-rune-close-when]')) watchCloseWhen(element);
     if (element.matches('[data-rune-fullscreen="true"]')) syncFullscreen(element);
     if (element.matches('[data-rune-theme-switcher]')) watchThemeSwitcher(element);
+    if (element.matches('[data-rune-token-value]')) fillTokenValue(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar], [data-rune-hotkey-label], dialog[data-rune-close-when], [data-rune-fullscreen="true"], [data-rune-theme-switcher]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar], [data-rune-hotkey-label], dialog[data-rune-close-when], [data-rune-fullscreen="true"], [data-rune-theme-switcher], [data-rune-token-value]').forEach(sync);
 }
 
 /** 头像的图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */

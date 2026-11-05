@@ -2,7 +2,7 @@
 // 与选择（data-theme-preference），再按配置设好根元素的底色、文字色与配色方案。配置是 ThemeBootScript 输出的 script#rune-theme-config。
 // 跟随系统时系统明暗变了、其他标签页改了选择、增强导航换了页之后都重新应用。切换时新主题从按钮处圆形展开（View Transitions；
 // 不支持或减少动态效果时直接换）。菜单里的单选项（data-rune-theme-choice）的 aria-checked 与触发按钮的图标（data-rune-theme-icon，
-// 换成选中项的图标）在这里同步：C# 不知道选了哪套。
+// 换成选中项的图标）在这里同步：C# 不知道选了哪套。显示 token 取值的元素（data-rune-token-value）换主题后重新读。
 
 import { reducedMotion } from './shared.js';
 
@@ -48,6 +48,16 @@ function apply(config, preference) {
     root.style.color = colors.text;
   }
   document.querySelectorAll('[data-rune-theme-switcher]').forEach((switcher) => syncSwitcher(switcher, preference));
+  refreshTokenValues();
+}
+
+/** 显示 token 取值的元素（ColorSwatch，data-rune-token-value="--变量名"）：按当前主题读出来写进去 */
+export function fillTokenValue(element) {
+  element.textContent = getComputedStyle(element).getPropertyValue(element.getAttribute('data-rune-token-value')).trim();
+}
+
+function refreshTokenValues() {
+  document.querySelectorAll('[data-rune-token-value]').forEach(fillTokenValue);
 }
 
 /** 重新按记住的选择应用（增强导航换页后根元素的属性可能被换掉、其他标签页改了选择） */
@@ -61,6 +71,8 @@ export function installTheme() {
   darkQuery.addEventListener('change', () => {
     const config = readConfig();
     if (config && storedPreference(config) === SYSTEM) apply(config, SYSTEM);
+    // 没有可选主题时跟随系统的暗色主题由媒体查询切换：token 的取值也变了
+    else if (!config) refreshTokenValues();
   });
   window.addEventListener('storage', (event) => {
     const config = readConfig();

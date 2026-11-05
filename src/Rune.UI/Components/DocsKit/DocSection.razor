@@ -1,0 +1,32 @@
+@*
+    文档页的一节（同 vue-tsx-pro 的 DocSection）：带锚点的标题（H2，id 进本页目录）与内容。放在 DocArticle 里。
+    未声明的属性落到 section 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<section @attributes="Attrs.Merge(RootLayer, Rest)">
+    <H2 id="@Id" Size="UI.Size.Xl" Anchor="true" @attributes="Attrs.MergeProps(null, PropsTitle)">@(TitleContent ?? (RenderFragment)(b => b.AddContent(0, Title)))</H2>
+    @ChildContent
+</section>
+
+@code {
+    static readonly Attrs RootLayer = new() { Sx = Root };
+
+    /// <summary>标题的 id：锚点，也进本页目录。</summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+
+    /// <summary>标题。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>标题（带标记的内容）；写了时不用 Title。</summary>
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>标题（H2 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    static Style Root => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Lg, MinWidth = 0 });
+}

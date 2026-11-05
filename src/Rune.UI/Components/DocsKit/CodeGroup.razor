@@ -1,0 +1,62 @@
+@*
+    一组代码，用标签页切换（同 vue-tsx-pro 的 CodeGroup）：安装命令（dotnet / PowerShell）、同一段逻辑的几个文件。
+    由 Tabs 与 CodeBlock 组合，标签栏就是代码块的标题栏。
+    <CodeGroup Items="@([new("CLI", "dotnet add package Rune.UI", "shellscript"), new("PackageReference", xml, "xml")])" />
+    选中哪一个可以双向绑定（@bind-Value），几组代码绑同一个变量就一起切换。未声明的属性落到外层的 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(RootLayer, Rest)">
+    <Tabs Value="@Selected" ValueChanged="value.SetAsync" Size="UI.Size.Sm">
+        <TabList aria-label="@string.Join(" / ", Items.Select(i => i.Label))" @attributes="Attrs.MergeProps(ListLayer, PropsList)">
+            @foreach (var item in Items)
+            {
+                <Tab @key="item.Key" Value="@item.Key">@item.Label</Tab>
+            }
+        </TabList>
+        @foreach (var item in Items)
+        {
+            <TabPanel @key="item.Key" Value="@item.Key" Sx="Panel">
+                <CodeBlock Code="@item.Code" Lang="@item.Lang" Flush="true" @attributes="Attrs.MergeProps(null, item.Props)" />
+            </TabPanel>
+        }
+    </Tabs>
+</div>
+
+@code {
+    static readonly Attrs RootLayer = new() { Sx = Root };
+    static readonly Attrs ListLayer = new() { Sx = List };
+
+    /// <summary>各段代码。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<CodeGroupItem> Items { get; set; } = [];
+
+    /// <summary>选中的那一段的值（<c>@bind-Value</c>）；默认第一段。</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>选了另一段。</summary>
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    /// <summary>标签栏（TabList 组件）的部件属性；名称（aria-label）默认是各段标签连起来。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    Bindable<string?> value { get => field ??= new(this, () => Value, () => ValueChanged); }
+
+    string? Selected => value.Value ?? Items.FirstOrDefault()?.Key;
+
+    static Style Root => Css.Define(static () => new Style
+    {
+        MinWidth = 0,
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = Colors.BorderMuted,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.Surface,
+        Overflow = Overflow.Hidden,
+    });
+
+    static Style List => Css.Define(static () => new Style { PaddingInline = Space.Sm, BackgroundColor = Colors.SurfaceMuted, FontSize = FontSizes.Sm });
+
+    // 焦点框画在面板里面：外框裁掉了溢出
+    static Style Panel => Css.Define(static () => new Style { OutlineOffset = $"calc(-1 * {BorderWidths.Sm})" });
+}
