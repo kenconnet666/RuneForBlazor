@@ -40,6 +40,12 @@ public sealed class StyleRegistry
         }
     }
 
+    /// <summary>从第 <paramref name="start"/> 条起新登记的规则（<see cref="RuneStyles"/> 每次只取新增的部分）。</summary>
+    internal IReadOnlyList<string> RulesFrom(int start)
+    {
+        lock (rulesLock) return start >= rules.Count ? [] : rules[start..];
+    }
+
     /// <summary>当前作用域的登记表：显式设置的（<see cref="Enter"/>）优先，其次按渲染器找；都没有时为 null。</summary>
     internal static StyleRegistry? Current =>
         current

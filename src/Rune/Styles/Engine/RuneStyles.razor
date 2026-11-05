@@ -1,5 +1,6 @@
 @*
-    输出当前作用域登记的样式规则：每条规则一个 style 元素，只追加，界面更新时只发新增的那条。
+    输出当前作用域登记的样式规则，只追加：每次渲染把这期间新登记的规则合成一个 style 元素加在后面，已经输出的不再变。
+    （每条规则单独一个 style 元素时，交互模式下翻几页就有几百个，每插入一个浏览器都要重新整理一遍样式表。）
     放置位置：
       1. App.razor 的 head 里：服务端渲染（含增强导航）的样式；
       2. 每个交互根（带 @rendermode 的页面或组件）里：交互模式下新用到的样式；
@@ -8,13 +9,17 @@
 @namespace Rune.Styles
 @implements IDisposable
 @inject StyleRegistry Registry
+@{ Collect(); }
 
-@foreach (var rule in Registry.Rules)
+@foreach (var (start, css) in chunks)
 {
-    <style @key="rule" data-rune>@((MarkupString)rule)</style>
+    <style @key="start" data-rune>@((MarkupString)css)</style>
 }
 
 @code {
+    readonly List<(int Start, string Css)> chunks = [];
+    int collected;
+
     /// <inheritdoc/>
     protected override void OnInitialized()
     {
@@ -23,7 +28,16 @@
         Registry.Changed += OnRulesChanged;
     }
 
-    // 规则多半在别的组件渲染时登记，这时可能在渲染器的线程上，也可能不在
+    // 上次渲染以来新登记的规则合成一块
+    void Collect()
+    {
+        var added = Registry.RulesFrom(collected);
+        if (added.Count == 0) return;
+        chunks.Add((collected, string.Concat(added)));
+        collected += added.Count;
+    }
+
+    // 规则多半在别的组件渲染时登记，这时可能在渲染器的线程上，也可能不在；渲染排着队时不重复排
     void OnRulesChanged() => _ = InvokeAsync(StateHasChanged);
 
     /// <inheritdoc/>
