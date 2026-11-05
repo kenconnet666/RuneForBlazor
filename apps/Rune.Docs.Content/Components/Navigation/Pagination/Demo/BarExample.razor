@@ -1,0 +1,57 @@
+@inherits RuneComponent
+@using System.Globalization
+
+@* 表格下方的分页栏：页码、每页条数、跳页都写回同一份 page / pageSize，表格跟着显示那一页 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Table aria-label="订单">
+        <TableHead>
+            <TableRow>
+                <TableHeaderCell>订单号</TableHeaderCell>
+                <TableHeaderCell>客户</TableHeaderCell>
+                <TableHeaderCell Align="TableAlign.End">金额</TableHeaderCell>
+                <TableHeaderCell>状态</TableHeaderCell>
+            </TableRow>
+        </TableHead>
+        <TableBody>
+            @foreach (var order in Rows)
+            {
+                <TableRow @key="order.Id">
+                    <TableCell>@order.Id</TableCell>
+                    <TableCell>@order.Customer</TableCell>
+                    <TableCell Align="TableAlign.End">¥@order.Amount.ToString("N2", CultureInfo.GetCultureInfo("zh-CN"))</TableCell>
+                    <TableCell><Badge Tone="order.Tone">@order.Status</Badge></TableCell>
+                </TableRow>
+            }
+        </TableBody>
+    </Table>
+    <PaginationBar @bind-Page="page" @bind-PageSize="pageSize" Total="Total" PageSizeOptions="sizes"
+                   PropsPagination="@(new() { ["aria-label"] = "订单表格分页" })" />
+</Flex>
+
+@code {
+    sealed record Order(string Id, string Customer, decimal Amount, Tone Tone, string Status);
+
+    const int Total = 1286;
+    static readonly int[] sizes = [5, 10, 20, 50];
+    static readonly string[] customers = ["林小满", "周一航", "陈默", "许悠", "宋知远", "顾青", "沈遥", "韩笑"];
+    static readonly (Tone Tone, string Name)[] statuses = [(Tone.Success, "已发货"), (Tone.Warning, "待付款"), (Tone.Info, "备货中"), (Tone.Neutral, "已完成")];
+
+    int page = 1;
+    int pageSize = 5;
+
+    // 1,286 条假订单：按序号算出来，不占内存
+    static Order OrderAt(int index)
+    {
+        var (tone, status) = statuses[index * 3 % statuses.Length];
+        return new($"#{10_000 + Total - index}", customers[index * 5 % customers.Length], index * 7919 % 50_000 / 10m + 39, tone, status);
+    }
+
+    IEnumerable<Order> Rows
+    {
+        get
+        {
+            var start = (page - 1) * pageSize;
+            return Enumerable.Range(start, Math.Max(0, Math.Min(pageSize, Total - start))).Select(OrderAt);
+        }
+    }
+}

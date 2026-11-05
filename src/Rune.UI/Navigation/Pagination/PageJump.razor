@@ -1,0 +1,60 @@
+@*
+    跳页（同 vue-tsx-pro 的 PageJump）：分页的配套组件，“跳至 [  ] 页”，回车或失焦后跳过去（夹在 1–PageCount），输入框随后清空。
+    <PageJump @bind-Page="page" PageCount="32" />
+    基于 NumberField：未声明的属性落到外层 div 上，输入框用 PropsInput。读屏念输入框的名称（语言包的“跳到第几页”），
+    前后的“跳至”“页”只是视觉上的提示。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(RootLayer, Attrs.Layer(new Attrs { Sx = ScaleStyles.FontSize(Size) }, Rest))">
+    @if (Config.Lang.PageJumpBefore is { Length: > 0 } before)
+    {
+        <span aria-hidden="true" @attributes="Attrs.Merge(TextLayer, PropsBefore)">@before</span>
+    }
+    @* 只在跳之前暂存页码：@key 换一个新的输入框，跳完就是空的 *@
+    <NumberField @key="version" TValue="int?" Value="null" ValueChanged="JumpAsync" Min="1" Max="Math.Max(1, PageCount)" Stepper="false"
+                 aria-label="@Config.Lang.PageJumpLabel" Sx="PaginationStyles.JumpInput" @attributes="Attrs.MergeProps(null, PropsInput)" />
+    @if (Config.Lang.PageJumpAfter is { Length: > 0 } after)
+    {
+        <span aria-hidden="true" @attributes="Attrs.Merge(TextLayer, PropsAfter)">@after</span>
+    }
+</div>
+
+@code {
+    static readonly Attrs RootLayer = new() { Sx = PaginationStyles.JumpRoot };
+    static readonly Attrs TextLayer = new() { Sx = PaginationStyles.JumpText };
+
+    int version;
+
+    /// <summary>当前页（<c>@bind-Page</c>），跳页时写回。</summary>
+    [Parameter] public int Page { get; set; } = 1;
+
+    /// <summary>跳到了另一页。</summary>
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+
+    /// <summary>总页数：输入的页码夹在 1–PageCount。</summary>
+    [Parameter, EditorRequired] public int PageCount { get; set; }
+
+    /// <summary>字号档位，默认 Sm（同 Pagination）。</summary>
+    [Parameter] public Size Size { get; set; } = Size.Sm;
+
+    /// <summary>输入框前文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsBefore { get; set; }
+
+    /// <summary>输入框（NumberField）的部件属性。</summary>
+    [Parameter] public Attrs? PropsInput { get; set; }
+
+    /// <summary>输入框后文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsAfter { get; set; }
+
+    Bindable<int> page { get => field ??= new(this, () => Page, () => PageChanged); }
+
+    async Task JumpAsync(int? target)
+    {
+        version++;
+        if (target is not { } value) return;
+        var next = Math.Clamp(value, 1, Math.Max(1, PageCount));
+        if (next != page.Value) await page.SetAsync(next);
+    }
+}

@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+        <Pagination aria-label="订单分页" @bind-Page="page" Total="Total" PageSize="size" ShowTotal="true" />
+        <PageSizeSelect Value="size" ValueChanged="ChangeSize" />
+        <PageJump @bind-Page="page" PageCount="PageCount" />
+    </Flex>
+    <Small Tone="TextTone.Muted">第 @First–@Math.Min(First + size - 1, Total) 条，共 @Total.ToString("N0") 条</Small>
+</Flex>
+
+@code {
+    const int Total = 1286;
+    int page = 1;
+    int size = 20;
+
+    int PageCount => (int)Math.Ceiling(Total / (double)size);
+
+    int First => (page - 1) * size + 1;
+
+    // 每页条数变了：回到第 1 页
+    void ChangeSize(int next)
+    {
+        size = next;
+        page = 1;
+    }
+}

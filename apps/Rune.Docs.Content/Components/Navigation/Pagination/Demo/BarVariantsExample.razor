@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+@* 分页栏按自己的宽度取舍：窄时跳页先收起、总数换到单独一行；也可以自己写总数、只留其中几样 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">放在 20rem 宽的卡片里：不显示跳页，总数单独一行</Small>
+        <Card Sx="Narrow">
+            <PaginationBar @bind-Page="narrow" Total="86" ShowSizeSelect="false"
+                           PropsPagination="@(new() { ["aria-label"] = "窄分页", [nameof(Pagination.Siblings)] = 0 })" />
+        </Card>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">TotalContent：自己写总数</Small>
+        <PaginationBar @bind-Page="custom" @bind-PageSize="customSize" Total="342" PropsPagination="@(new() { ["aria-label"] = "供应商分页" })">
+            <TotalContent>供应商 @context.From–@context.To / @context.Total 家 · 勾选跨页保留</TotalContent>
+        </PaginationBar>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">只要页码与总数：ShowSizeSelect、ShowJump 关掉</Small>
+        <PaginationBar @bind-Page="simple" Total="48" ShowSizeSelect="false" ShowJump="false" PropsPagination="@(new() { ["aria-label"] = "简单分页" })" />
+    </Flex>
+</Flex>
+
+@code {
+    int narrow = 4;
+    int custom = 1;
+    int customSize = 20;
+    int simple = 2;
+
+    static Style Narrow => Css.Define(static () => new Style { MaxWidth = CssLength.Rem(20) });
+}

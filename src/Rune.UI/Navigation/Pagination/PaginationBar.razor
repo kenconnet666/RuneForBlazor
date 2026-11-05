@@ -1,0 +1,111 @@
+@*
+    分页栏（同 vue-tsx-pro 的 PaginationBar）：表格、列表下方的一整行，起始边是“第 1–20 条，共 320 条”，结束边是页码、每页条数、跳页。
+    <PaginationBar @bind-Page="page" @bind-PageSize="size" Total="320" />
+    拼的是 Pagination、PageSizeSelect、PageJump，换每页条数时回到第 1 页；只有一页时不显示跳页。
+    占满所在的行，按自己的宽度取舍（容器查询）：窄于 36em 时不显示跳页，窄于 24em 时总数单独一行。
+    只要其中几样时用 ShowTotal / ShowSizeSelect / ShowJump 关掉，或者直接并排三个组件。
+    未声明的属性落到外层 div 上；分页导航的名称用 PropsPagination 的 aria-label。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = PaginationStyles.Bar(Config.Styles);
+    var size = pageSize.Value;
+    var pageCount = Math.Max(1, (int)Math.Ceiling(Total / (double)Math.Max(1, size)));
+    var range = RangeOf(Math.Clamp(page.Value, 1, pageCount), size);
+}
+
+<div @attributes="Attrs.Merge(parts[PaginationBarPart.Root], Attrs.Layer(SizeLayer, Rest))">
+    @if (ShowTotal)
+    {
+        <span @attributes="Attrs.Merge(parts[PaginationBarPart.Total], PropsTotal)">
+            @if (TotalContent is not null)
+            {
+                @TotalContent(range)
+            }
+            else
+            {
+                @(range.Total == 0 ? Config.Lang.PaginationTotal(0) : Config.Lang.PaginationRange(range.From, range.To, range.Total))
+            }
+        </span>
+    }
+    <div @attributes="Attrs.Merge(parts[PaginationBarPart.Controls], PropsControls)">
+        <Pagination Size="Size" Page="page.Value" PageChanged="page.SetAsync" Total="Total" PageSize="size"
+                    @attributes="Attrs.MergeProps(null, PropsPagination)" />
+        @if (ShowSizeSelect)
+        {
+            <PageSizeSelect Value="size" ValueChanged="SetSizeAsync" Options="PageSizeOptions" @attributes="Attrs.MergeProps(null, PropsSizeSelect)" />
+        }
+        @if (ShowJump && pageCount > 1)
+        {
+            <PageJump Page="page.Value" PageChanged="page.SetAsync" PageCount="pageCount" Size="Size"
+                      @attributes="Attrs.MergeProps(parts[PaginationBarPart.Jump], PropsJump)" />
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>当前页，从 1 开始（<c>@bind-Page</c>）。</summary>
+    [Parameter] public int Page { get; set; } = 1;
+
+    /// <summary>换了一页。</summary>
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+
+    /// <summary>每页条数（<c>@bind-PageSize</c>），默认 10。</summary>
+    [Parameter] public int PageSize { get; set; } = 10;
+
+    /// <summary>换了每页条数（随后回到第 1 页）。</summary>
+    [Parameter] public EventCallback<int> PageSizeChanged { get; set; }
+
+    /// <summary>总条数。</summary>
+    [Parameter, EditorRequired] public int Total { get; set; }
+
+    /// <summary>每页条数的选项，默认 10、20、50、100。</summary>
+    [Parameter] public IReadOnlyList<int>? PageSizeOptions { get; set; }
+
+    /// <summary>起始边的总数，默认显示（“第 1–20 条，共 320 条”）。</summary>
+    [Parameter] public bool ShowTotal { get; set; } = true;
+
+    /// <summary>自己写总数：参数是当前页显示的是哪几条。</summary>
+    [Parameter] public RenderFragment<PageRange>? TotalContent { get; set; }
+
+    /// <summary>每页条数选择，默认显示。</summary>
+    [Parameter] public bool ShowSizeSelect { get; set; } = true;
+
+    /// <summary>跳页，默认显示（窄于 36em 时不显示）。</summary>
+    [Parameter] public bool ShowJump { get; set; } = true;
+
+    /// <summary>字号档位，各部分随之缩放，默认 Sm。</summary>
+    [Parameter] public Size Size { get; set; } = Size.Sm;
+
+    /// <summary>总数文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsTotal { get; set; }
+
+    /// <summary>结束边那一组（页码、条数、跳页）的部件属性。</summary>
+    [Parameter] public Attrs? PropsControls { get; set; }
+
+    /// <summary>页码（Pagination）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPagination { get; set; }
+
+    /// <summary>每页条数（PageSizeSelect）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSizeSelect { get; set; }
+
+    /// <summary>跳页（PageJump）的部件属性。</summary>
+    [Parameter] public Attrs? PropsJump { get; set; }
+
+    Bindable<int> page { get => field ??= new(this, () => Page, () => PageChanged); }
+
+    Bindable<int> pageSize { get => field ??= new(this, () => PageSize, () => PageSizeChanged); }
+
+    Attrs SizeLayer => new() { Sx = ScaleStyles.FontSize(Size) };
+
+    PageRange RangeOf(int current, int size) => Total == 0
+        ? new(0, 0, 0)
+        : new((current - 1) * size + 1, Math.Min(current * size, Total), Total);
+
+    async Task SetSizeAsync(int size)
+    {
+        await pageSize.SetAsync(size);
+        await page.SetAsync(1);
+    }
+}

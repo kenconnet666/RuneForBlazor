@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（51 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（52 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -48,6 +48,8 @@ public static partial class BuiltInIcons
     public static IconData Copy => field ??= new("copy", "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/>");
     /// <summary>Lucide 图标 <c>dot</c>（interpunct、interpoint、middot、step、punctuation、period、full stop、end）。</summary>
     public static IconData Dot => field ??= new("dot", "<circle cx=\"12\" cy=\"12\" r=\"1\"/>");
+    /// <summary>Lucide 图标 <c>ellipsis</c>（et cetera、etc、loader、loading、progress、pending、throbber、menu）。</summary>
+    public static IconData Ellipsis => field ??= new("ellipsis", "<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/>");
     /// <summary>Lucide 图标 <c>eye</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>
     public static IconData Eye => field ??= new("eye", "<path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>");
     /// <summary>Lucide 图标 <c>eye-off</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>

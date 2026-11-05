@@ -1,0 +1,135 @@
+@*
+    分页（nav > ul，同 vue-tsx-pro 的 Pagination）：上一页、页码、省略号、下一页，当前页带 aria-current="page"。
+    <Pagination @bind-Page="page" Total="320" PageSize="20" />
+    <Pagination Page="page" PageCount="12" Href="@(n => $"articles?page={n}")" />   渲染为链接（可分享、可被收录）
+    页码序列见 PaginationItems（项数固定，翻页时按钮不跳动）；按钮用 Button / IconButton，文案取语言包。
+    未声明的属性落到 nav 上；名称默认取语言包（分页），一页里有几个分页时用 aria-label 区分。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = PaginationStyles.Of(Config.Styles);
+    var count = Count;
+    var current = Math.Clamp(page.Value, 1, count);
+}
+
+<nav aria-label="@Config.Lang.Pagination" @attributes="Attrs.Merge(parts[PaginationPart.Root], Rest)">
+    <FlexList Align="ItemAlign.Center" Gap="SpaceScale.Xs" @attributes="Attrs.MergeProps(parts[PaginationPart.List], PropsList)">
+        <li @attributes="Attrs.Merge(parts[PaginationPart.Item], PropsItem)">@Step(-1, current, count)</li>
+        @foreach (var item in PaginationItems.Of(current, count, Siblings, Boundaries))
+        {
+            <li @key="item.Key" @attributes="Attrs.Merge(parts[PaginationPart.Item], PropsItem)">
+                @if (item.Page is { } target)
+                {
+                    @PageButton(parts, target, target == current)
+                }
+                else
+                {
+                    <span aria-hidden="true" @attributes="Attrs.Merge(parts[PaginationPart.Ellipsis], PropsEllipsis)"><Icon Data="BuiltInIcons.Ellipsis" /></span>
+                }
+            </li>
+        }
+        <li @attributes="Attrs.Merge(parts[PaginationPart.Item], PropsItem)">@Step(1, current, count)</li>
+    </FlexList>
+    @if (ShowTotal && Total is { } total)
+    {
+        <span @attributes="Attrs.Merge(parts[PaginationPart.Total], PropsTotal)">@Config.Lang.PaginationTotal(total)</span>
+    }
+</nav>
+
+@code {
+    static readonly Attrs FlipIcon = new() { [nameof(UI.Icon.FlipInRtl)] = true };
+
+    /// <summary>当前页，从 1 开始（<c>@bind-Page</c>）。</summary>
+    [Parameter] public int Page { get; set; } = 1;
+
+    /// <summary>换了一页。</summary>
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+
+    /// <summary>总页数；不写时按 <see cref="Total"/> 与 <see cref="PageSize"/> 算。</summary>
+    [Parameter] public int? PageCount { get; set; }
+
+    /// <summary>总条数：给了就能算页数，<see cref="ShowTotal"/> 时显示“共 n 条”。</summary>
+    [Parameter] public int? Total { get; set; }
+
+    /// <summary>每页条数，默认 10。</summary>
+    [Parameter] public int PageSize { get; set; } = 10;
+
+    /// <summary>当前页左右各显示几页，默认 1。</summary>
+    [Parameter] public int Siblings { get; set; } = 1;
+
+    /// <summary>首尾各固定显示几页，默认 1。</summary>
+    [Parameter] public int Boundaries { get; set; } = 1;
+
+    /// <summary>显示总条数（需要 Total）。</summary>
+    [Parameter] public bool ShowTotal { get; set; }
+
+    /// <summary>给了就渲染为链接：每页的地址。</summary>
+    [Parameter] public Func<int, string>? Href { get; set; }
+
+    /// <summary>字号档位，按钮随之缩放，默认 Sm。</summary>
+    [Parameter] public Size Size { get; set; } = Size.Sm;
+
+    /// <summary>列表（FlexList）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>每一项（li）的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    /// <summary>页码按钮（Button / LinkButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPage { get; set; }
+
+    /// <summary>上一页、下一页按钮（IconButton / IconLinkButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsStep { get; set; }
+
+    /// <summary>省略号的部件属性。</summary>
+    [Parameter] public Attrs? PropsEllipsis { get; set; }
+
+    /// <summary>总条数文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsTotal { get; set; }
+
+    Bindable<int> page { get => field ??= new(this, () => Page, () => PageChanged); }
+
+    int Count => Math.Max(1, PageCount ?? (int)Math.Ceiling((Total ?? 0) / (double)Math.Max(1, PageSize)));
+
+    // 总数变少（筛选后）时父级的 Page 可能超出范围：写回前夹到 1–页数
+    Task GoAsync(int target) => page.SetAsync(Math.Clamp(target, 1, Count));
+
+    /// <summary>一个页码：当前页是浅底品牌色，其余是 ghost；有 Href 时是链接。</summary>
+    RenderFragment PageButton(PartLayers<PaginationPart> parts, int target, bool isCurrent) => __builder =>
+    {
+        var attrs = Attrs.MergeProps(
+            Attrs.Layer(parts[PaginationPart.Page], new Attrs { AriaLabel = Config.Lang.PageLabel(target) }),
+            PropsPage,
+            new Attrs { ["aria-current"] = isCurrent ? "page" : null });
+        var variant = isCurrent ? ButtonVariant.Soft : ButtonVariant.Ghost;
+        var tone = isCurrent ? UI.Tone.Accent : UI.Tone.Neutral;
+        if (Href is null)
+        {
+            <Button Size="Size" Variant="variant" Tone="tone" @onclick="() => GoAsync(target)" @attributes="attrs">@target</Button>
+        }
+        else
+        {
+            <LinkButton Href="@Href(target)" Size="Size" Variant="variant" Tone="tone" @onclick="() => GoAsync(target)" @attributes="attrs">@target</LinkButton>
+        }
+    };
+
+    /// <summary>上一页、下一页：到头时不可用；有 Href 时也是链接（rel="prev" / "next"），与页码一样可分享。</summary>
+    RenderFragment Step(int direction, int current, int count) => __builder =>
+    {
+        var target = current + direction;
+        var disabled = target < 1 || target > count;
+        var icon = direction < 0 ? BuiltInIcons.ChevronLeft : BuiltInIcons.ChevronRight;
+        var label = direction < 0 ? Config.Lang.PreviousPage : Config.Lang.NextPage;
+        if (Href is null)
+        {
+            <IconButton Size="Size" Icon="icon" PropsIcon="FlipIcon" Label="@label" Disabled="disabled" @onclick="() => GoAsync(target)"
+                        @attributes="Attrs.MergeProps(null, PropsStep)" />
+        }
+        else
+        {
+            <IconLinkButton Size="Size" Icon="icon" PropsIcon="FlipIcon" Label="@label" Disabled="disabled" Href="@Href(disabled ? current : target)"
+                            rel="@(direction < 0 ? "prev" : "next")" @onclick="() => GoAsync(target)" @attributes="Attrs.MergeProps(null, PropsStep)" />
+        }
+    };
+}

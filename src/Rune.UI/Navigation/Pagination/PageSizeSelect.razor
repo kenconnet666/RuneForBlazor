@@ -1,0 +1,51 @@
+@*
+    每页条数选择（同 vue-tsx-pro 的 PageSizeSelect）：分页的配套组件，与 Pagination 并排放；三样都要时用 PaginationBar。
+    <PageSizeSelect @bind-Value="size" />   选项文字取语言包（“20 条/页”）
+    基于 Select：未声明的属性落到 Select 上，名称默认取语言包（每页条数）。
+    按钮按最长的选项定宽：换条数时不变宽窄，下拉（与按钮同宽）里的选项也不被截断。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using System.Globalization
+
+<Select Items="Items" Value="@Value.ToString(CultureInfo.InvariantCulture)" ValueChanged="SelectAsync" Size="UI.Size.Sm"
+        aria-label="@Config.Lang.PageSizeLabel" RenderValue="RenderValue" @attributes="Attrs.MergeProps(null, Rest)" />
+
+@code {
+    static readonly IReadOnlyList<int> DefaultOptions = [10, 20, 50, 100];
+    static readonly Attrs StackLayer = new() { Sx = PaginationStyles.SizeStack };
+    static readonly Attrs OptionLayer = new() { Sx = PaginationStyles.SizeOption };
+    static readonly Attrs HiddenOptionLayer = new() { Sx = Sx.Of(PaginationStyles.SizeOption, PaginationStyles.Hidden), AriaHidden = true };
+
+    Memo<(IReadOnlyList<int>, Lang), ListboxOption[]> items;
+
+    /// <summary>每页条数（<c>@bind-Value</c>），默认 10。</summary>
+    [Parameter] public int Value { get; set; } = 10;
+
+    /// <summary>用户换了条数（PaginationBar 随后回到第 1 页；自己并排时在这里把页码回到 1）。</summary>
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+
+    /// <summary>可选的条数，默认 10、20、50、100。</summary>
+    [Parameter] public IReadOnlyList<int>? Options { get; set; }
+
+    IReadOnlyList<int> Choices => Options ?? DefaultOptions;
+
+    ListboxOption[] Items => items.Get((Choices, Config.Lang), static k =>
+        [.. k.Item1.Select(size => new ListboxOption(size.ToString(CultureInfo.InvariantCulture), k.Item2.PageSizeOption(size)))]);
+
+    // 所有选项的文字叠在同一格，按最宽的撑开，只显示选中的
+    RenderFragment<IReadOnlyList<ListboxOption>> RenderValue => _ => __builder =>
+    {
+        <span @attributes="Attrs.Merge(StackLayer)">
+            @foreach (var size in Choices)
+            {
+                <span @key="size" @attributes="Attrs.Merge(size == Value ? OptionLayer : HiddenOptionLayer)">@Config.Lang.PageSizeOption(size)</span>
+            }
+        </span>
+    };
+
+    Task SelectAsync(string? next) =>
+        int.TryParse(next, NumberStyles.Integer, CultureInfo.InvariantCulture, out var size) && size != Value
+            ? ValueChanged.InvokeAsync(size)
+            : Task.CompletedTask;
+}

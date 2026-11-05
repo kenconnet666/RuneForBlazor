@@ -8,7 +8,7 @@
             <ToggleItem Value="Lg">lg</ToggleItem>
         </ToggleGroup>
         <Menu Size="MenuSize">
-            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" TrailingIcon="Lucide.ChevronDown">缩放 @zoom%</Button></Trigger>
+            <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" IconEnd="Lucide.ChevronDown">缩放 @zoom%</Button></Trigger>
             <ChildContent>
                 <MenuItem Icon="Lucide.ZoomIn" CloseOnSelect="false" @onclick="() => Step(25)">放大</MenuItem>
                 <MenuItem Icon="Lucide.ZoomOut" CloseOnSelect="false" @onclick="() => Step(-25)">缩小</MenuItem>

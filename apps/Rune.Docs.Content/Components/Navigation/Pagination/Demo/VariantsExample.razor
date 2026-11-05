@@ -1,0 +1,22 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">默认：当前页两侧各 1 个，首尾各 1 个</Small>
+        <Pagination aria-label="默认页码数" @bind-Page="compact" PageCount="20" />
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">Siblings="2" Boundaries="2"：页码多显示几个</Small>
+        <Pagination aria-label="更多页码" @bind-Page="wide" PageCount="20" Siblings="2" Boundaries="2" />
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">Size="Size.Sm"，页数少时不出现省略号</Small>
+        <Pagination aria-label="小号分页" @bind-Page="small" PageCount="5" Size="Size.Sm" />
+    </Flex>
+</Flex>
+
+@code {
+    int compact = 6;
+    int wide = 6;
+    int small = 2;
+}

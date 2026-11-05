@@ -138,7 +138,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 - [ ] 浮层：AlertDialog（已做，另有命令式的 DialogService：Open、ConfirmAsync）、ContextMenu（已做）、HoverCard、CommandPalette、Lightbox、Tour
       （已做：HoverCard（NavList 的紧凑分组要用，按“基础组件先做”提前）；CommandPalette（文档站的搜索））
-- [ ] 导航：Tabs（溢出、可关闭、拖动排序）、Breadcrumbs、Steps、NavList、NavMenu、NavBar、Pagination / Pager / PageSizeSelect / PageJump / PaginationBar、SkipLink、TableOfContents、Toolbar
+- [ ] 导航：Tabs（溢出、可关闭、拖动排序）、Breadcrumbs、Steps、NavList、NavMenu、NavBar、Pagination / Pager / PageSizeSelect / PageJump / PaginationBar（已做）、SkipLink、TableOfContents、Toolbar
       （已做：Toolbar、NavList / NavItem / NavGroup / NavSection（按“基础组件先做”提前；宽度手柄示例已换用）；Tabs（溢出滚动、可关闭、新建、拖动与 Alt + ←→ 排序；“全部标签页”菜单等 Menu 有单选项再补）；TableOfContents、Pager、SkipLink（文档站要用））
 
 ## 阶段 9：表格

@@ -6,10 +6,29 @@
 <DocPage Meta="Meta" Wide="true">
     <Examples>
         <ExampleColumn>
-            <Example Id="links" Title="链接与翻页" Demo="typeof(LinksExample)">
-                <Code>Pager</Code> 是文章末尾的上一篇 / 下一篇：两张链接卡片，带 rel="prev" / rel="next"。
+            <Example Id="bar" Title="分页栏" Demo="typeof(BarExample)">
+                表格、列表下方的一整行：起始边是“第 1–5 条，共 1,286 条”，结束边是页码、每页条数与跳页。
+                <Code>@@bind-Page</Code>、<Code>@@bind-PageSize</Code> 都双向绑定，换每页条数回到第 1 页；只有一页时不显示跳页。
+                分页导航的名称用 <Code>PropsPagination</Code> 的 <Code>aria-label</Code> 区分。
+            </Example>
+            <Example Id="full" Title="自己组合" Demo="typeof(FullExample)">
+                给了 <Code>Total</Code> 与 <Code>PageSize</Code> 就自动算页数，也可以直接给 <Code>PageCount</Code>。<Code>ShowTotal</Code> 显示总条数；
+                每页条数变了时，在 PageSizeSelect 的 <Code>ValueChanged</Code> 里回到第 1 页。三个组件各自独立，排法与分页栏不同时自己并排。
+            </Example>
+            <Example Id="variants" Title="页码的数量" Demo="typeof(VariantsExample)">
+                按钮数固定：翻页时省略号换位置，按钮不跳动、不会让指针下的按钮变成别的页码。当前页带 aria-current="page"。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="bar-variants" Title="分页栏的宽度与取舍" Demo="typeof(BarVariantsExample)">
+                分页栏按自己的宽度（容器查询）取舍：窄于 36em 时不显示跳页，窄于 24em 时总数换到单独一行，放在卡片、侧栏里也不挤。
+                <Code>TotalContent</Code> 自己写总数（拿到 <Code>From</Code>、<Code>To</Code>、<Code>Total</Code>）；
+                <Code>ShowSizeSelect</Code>、<Code>ShowJump</Code> 关掉不要的部分。
+            </Example>
+            <Example Id="links" Title="链接与上一篇 / 下一篇" Demo="typeof(LinksExample)">
+                <Code>Href</Code> 给出每页的地址时页码渲染为链接；站内地址经路由跳转不刷新页面。Pager 带 rel="prev" / rel="next"。
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(Pager)]" />
+    <ApiReference Types="[typeof(Pagination), typeof(PaginationBar), typeof(PageSizeSelect), typeof(PageJump), typeof(Pager)]" />
 </DocPage>
