@@ -1,6 +1,5 @@
 @*
-    弹出框与提示：示例与 vue-tsx-pro 文档站的 /components/popover 对应。
-    hover-card 示例与 timing 里的 HoverCard 等阶段 8 做 HoverCard 时补上；订单状态的筛选在阶段 5 换成 CheckboxGroup。
+    弹出框、提示与悬停卡片：示例与 vue-tsx-pro 文档站的 /components/popover 对应。数据是虚构的。
 *@
 @attribute [ComponentDemo("popover", "弹出框与提示", Group = "浮层", Order = 0)]
 @inherits RuneComponent
@@ -27,14 +26,9 @@
                     <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Funnel">订单状态@(applied.Count > 0 ? $"（{applied.Count}）" : "")</Button></Trigger>
                     <ChildContent>
                         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
-                            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" role="group" aria-label="订单状态">
-                                @foreach (var status in statuses)
-                                {
-                                    <Checkbox @key="status" Value="picked.Contains(status)" ValueChanged="on => Pick(status, on)">@status</Checkbox>
-                                }
-                            </Flex>
+                            <CheckboxGroup Items="statuses" @bind-Value="picked" aria-label="订单状态" />
                             <Flex Gap="SpaceScale.Sm" Justify="ContentJustify.End">
-                                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => picked.Clear()">清空</Button>
+                                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => picked = []">清空</Button>
                                 <Button Size="Size.Sm" @onclick="Apply">应用</Button>
                             </Flex>
                         </Flex>
@@ -88,6 +82,15 @@
     </ChildContent>
 </DemoSection>
 
+<DemoSection Id="hover-card" Title="HoverCard">
+    <Description>悬停或聚焦链接时弹出一张富内容卡片：可以移到卡片上，卡片里能放按钮（键盘 Tab 进入）。卡片只是预览，里面的信息在别处也要能拿到——触屏没有悬停。</Description>
+    <ChildContent>
+        <Paragraph>
+            这一版的设计由 @Mention(people[0]) 负责，组件实现与文档是 @Mention(people[1]) 做的。把指针停在名字上，或用 Tab 聚焦它，就能看到资料卡。
+        </Paragraph>
+    </ChildContent>
+</DemoSection>
+
 <DemoSection Id="placement" Title="位置与箭头">
     <Description><Code>Placement</Code> 是边加对齐，共 12 种；空间不够时自动翻到另一边、贴着视口平移。<Code>Arrow</Code> 显示指向触发元素的小箭头。</Description>
     <ChildContent>
@@ -111,7 +114,7 @@
 </DemoSection>
 
 <DemoSection Id="timing" Title="显示的时机">
-    <Description>Tooltip 的 <Code>Delay</Code> 是指针停多久才显示（默认 500 毫秒），工具栏这类连续的按钮可以设成 0；<Code>Disabled</Code> 时只渲染触发元素。</Description>
+    <Description>Tooltip 的 <Code>Delay</Code> 是指针停多久才显示（默认 500 毫秒），工具栏这类连续的按钮可以设成 0；<Code>Disabled</Code> 时只渲染触发元素。HoverCard 的 <Code>Delay</Code> / <Code>CloseDelay</Code> 分别控制打开与离开后关闭的等待，<Code>Offset</Code> 是与触发元素的距离（像素）。</Description>
     <ChildContent>
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg" Align="ItemAlign.Start">
             <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Wrap="true">
@@ -126,10 +129,28 @@
                 </Flex>
                 <Switch @bind-Value="hints">显示按钮提示</Switch>
             </Flex>
-            <Tooltip Delay="1000">
-                <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">停一秒才提示</Button></Trigger>
-                <ChildContent>不常用的说明可以等久一点，免得指针划过时到处弹出</ChildContent>
-            </Tooltip>
+            <Flex Gap="SpaceScale.Lg" Align="ItemAlign.Center" Wrap="true">
+                <Tooltip Delay="1000">
+                    <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">停一秒才提示</Button></Trigger>
+                    <ChildContent>不常用的说明可以等久一点，免得指针划过时到处弹出</ChildContent>
+                </Tooltip>
+                <Small Tone="TextTone.Muted">
+                    作者
+                    <HoverCard Delay="200" CloseDelay="600" Offset="12">
+                        <Trigger Context="t"><TextLink @attributes="t" Href="server/avatar">@@周一航</TextLink></Trigger>
+                        <ChildContent>
+                            <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+                                <Avatar Name="周一航" />
+                                <Flex Direction="LayoutDirection.Column">
+                                    <Strong>周一航</Strong>
+                                    <Small Tone="TextTone.Muted">设计中心 · 高级交互设计师</Small>
+                                </Flex>
+                            </Flex>
+                        </ChildContent>
+                    </HoverCard>
+                    发布于 3 天前
+                </Small>
+            </Flex>
         </Flex>
     </ChildContent>
 </DemoSection>
@@ -137,6 +158,37 @@
 @code {
     const string link = "https://example.com/s/q3-report";
     static readonly string[] statuses = ["待付款", "备货中", "已发货", "已完成", "已退款"];
+
+    sealed record Person(string Key, string Name, string Handle, string Bio, string City, string Joined, string Followers);
+
+    static readonly Person[] people =
+    [
+        new("yihang", "周一航", "@yihang", "交互设计师，做了八年工具类产品。喜欢把复杂的事讲简单。", "上海", "2019 年加入", "1,284"),
+        new("xiaoman", "林小满", "@xiaoman", "前端工程师，Rune 的维护者之一。", "杭州", "2021 年加入", "3,096"),
+    ];
+
+    // 句子里的 @某人：悬停或聚焦时弹出资料卡
+    static RenderFragment Mention(Person person) => @<HoverCard data-testid="@($"card-{person.Key}")">
+        <Trigger Context="t"><TextLink @attributes="t" Href="@($"server/popover#{person.Key}")">@person.Handle</TextLink></Trigger>
+        <ChildContent>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+                    <Avatar Name="@person.Name" />
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Soft">关注</Button>
+                </Flex>
+                <Flex Direction="LayoutDirection.Column">
+                    <Strong>@person.Name</Strong>
+                    <Small Tone="TextTone.Muted">@person.Handle</Small>
+                </Flex>
+                <Paragraph Size="Size.Sm">@person.Bio</Paragraph>
+                <Flex Gap="SpaceScale.Md" Wrap="true">
+                    <Small Tone="TextTone.Muted"><Icon Data="Lucide.MapPin" /> @person.City</Small>
+                    <Small Tone="TextTone.Muted"><Icon Data="Lucide.CalendarDays" /> @person.Joined</Small>
+                    <Small Tone="TextTone.Muted">@person.Followers 关注者</Small>
+                </Flex>
+            </Flex>
+        </ChildContent>
+    </HoverCard>;
 
     static readonly (IconData Icon, string Label, string? Shortcut)[][] toolGroups =
     [
@@ -166,8 +218,8 @@
     bool filtering;
     bool comments = true;
     bool hints = true;
-    readonly List<string> picked = ["待付款", "备货中"];
-    List<string> applied = ["待付款", "备货中"];
+    IReadOnlyList<string> picked = ["待付款", "备货中"];
+    IReadOnlyList<string> applied = ["待付款", "备货中"];
 
     static Style PlacementGrid => Css.Define(static () => new Style
     {
@@ -177,11 +229,6 @@
         JustifyContent = JustifyContent.Center,
     });
 
-    void Pick(string status, bool on)
-    {
-        if (on && !picked.Contains(status)) picked.Add(status);
-        else if (!on) picked.Remove(status);
-    }
 
     void Apply()
     {

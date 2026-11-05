@@ -112,6 +112,27 @@ public class OverlayTests : BunitContext
     }
 
     [Fact]
+    public void 悬停卡片_挂载后才输出面板_第一次打开才渲染内容()
+    {
+        var opened = new List<bool>();
+        var cut = Render<HoverCard>(p => p
+            .Add(x => x.Trigger, TriggerButton("@ada"))
+            .Add(x => x.OpenChanged, (bool open) => opened.Add(open))
+            .AddChildContent("<p>资料</p>"));
+
+        var card = cut.Find("[popover]");
+        Assert.Equal("manual", card.GetAttribute("popover"));
+        Assert.Equal("card", card.GetAttribute("data-rune-hover-panel"));
+        Assert.Equal(("700", "300"), (card.GetAttribute("data-delay"), card.GetAttribute("data-close-delay")));
+        Assert.Equal(card.Id, cut.Find("button").GetAttribute("data-rune-hovercard"));
+        Assert.Empty(cut.FindAll("[popover] p"));
+
+        card.TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = true });
+        Assert.Equal("资料", cut.Find("[popover] p").TextContent);
+        Assert.Equal([true], opened);
+    }
+
+    [Fact]
     public async Task 气泡确认_确认期间加载中_保持打开时不关闭_取消时通知()
     {
         var cancelled = 0;

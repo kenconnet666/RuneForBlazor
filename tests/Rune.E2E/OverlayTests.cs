@@ -204,4 +204,36 @@ public class OverlayTests(DemoServer demo)
         await Assertions.Expect(drawer).ToBeHiddenAsync();
         await Assertions.Expect(page.GetByTestId("project-name")).ToHaveTextAsync("显示器支架合并");
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 悬停卡片_停留后打开_可以移到卡片上_键盘Tab进入卡片_Esc关闭(string mode)
+    {
+        var page = await demo.OpenAsync(mode, "popover");
+        var link = page.GetByRole(AriaRole.Link, new() { Name = "@yihang" });
+        var card = page.GetByTestId("card-yihang");
+        var follow = card.GetByRole(AriaRole.Button, new() { Name = "关注" });
+
+        await link.HoverAsync();
+        await Assertions.Expect(card).ToBeVisibleAsync();
+        await Assertions.Expect(card).ToContainTextAsync("交互设计师");
+        // 移到卡片上不关，离开后关
+        await follow.HoverAsync();
+        await page.WaitForTimeoutAsync(500);
+        await Assertions.Expect(card).ToBeVisibleAsync();
+        await page.Mouse.MoveAsync(0, 0);
+        await Assertions.Expect(card).ToBeHiddenAsync();
+
+        // 键盘聚焦立即打开；Tab 进卡片里的按钮时不关，Esc 关闭
+        await link.FocusAsync();
+        await page.Keyboard.PressAsync("Shift+Tab");
+        await page.Keyboard.PressAsync("Tab");
+        await Assertions.Expect(card).ToBeVisibleAsync();
+        await page.Keyboard.PressAsync("Tab");
+        await Assertions.Expect(follow).ToBeFocusedAsync();
+        await Assertions.Expect(card).ToBeVisibleAsync();
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(card).ToBeHiddenAsync();
+    }
 }

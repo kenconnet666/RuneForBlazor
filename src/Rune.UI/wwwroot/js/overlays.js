@@ -50,7 +50,8 @@ export function onPopoverToggle(event) {
   }
   if (!opened) listPopoverClosed(overlay);
   syncTriggerExpanded(overlay, opened);
-  if (overlay.matches('[popover][data-rune-overlay]')) announce(overlay, opened);
+  // 悬停卡片也要让 C# 知道开关（第一次打开才渲染内容）；它不是 data-rune-overlay：打开时焦点不移进去
+  if (overlay.matches('[popover][data-rune-overlay], [popover][data-rune-hover-panel="card"]')) announce(overlay, opened);
 }
 
 // 打开、定位好之后（之前不可见、聚焦不了）焦点移进去：菜单到第一项，对话框类的到 autofocus 或第一个可聚焦元素

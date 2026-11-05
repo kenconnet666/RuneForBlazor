@@ -8,7 +8,7 @@
 //   data-rune-open="id"      点击时打开这个 id 的浮层（对话框的触发按钮；popover 用原生的 popovertarget）
 //   data-rune-close          点击时关闭所在的浮层（对话框的取消按钮、关闭按钮）
 //   data-rune-floating="bottom-start"
-//                            锚定浮层（popover 元素）：打开时用 Floating UI 贴着触发元素（popovertarget 或 data-rune-tooltip 指向它的元素）
+//                            锚定浮层（popover 元素）：打开时用 Floating UI 贴着触发元素（popovertarget、data-rune-tooltip 或 data-rune-hovercard 指向它的元素）
 //                            定位并持续跟随，空间不够时翻转、贴着视口平移；data-offset 是距离，data-fit-height 时最大高度限制在视口剩下的空间里；
 //                            最终方向写到 data-side / data-align；里面的 data-rune-arrow 是箭头。定位好之后才可见，菜单聚焦第一项，
 //                            对话框类的浮层聚焦 autofocus 或第一个可聚焦元素
@@ -54,6 +54,7 @@
 //                            （CSS 藏起来但仍可测量），data-rune-overflow-rest（“+N”）的文字取自 data-rune-more 里的第 N 项
 //   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
 //                            （可以移到提示上），键盘聚焦时立即显示；失焦、按下、Esc 隐藏；同一时间只显示一个
+//   data-rune-hovercard="id" 悬停卡片的触发元素：同提示（停留 data-delay、离开 data-close-delay），但焦点可以移进卡片，离开触发元素与卡片才隐藏
 //   data-indeterminate       勾选框的半选：原生的 indeterminate 只能用 JS 设置，按这个属性同步
 //   data-rune-focus="id"     点击时聚焦这个 id 的控件并滚到它（表单错误汇总里的链接）
 //   data-rune-spin           数字输入框：↑↓ 加减步长、Page Up / Down 加减大步长、Home / End 到最小 / 最大，改完发 change（C# 再校正）
@@ -79,7 +80,7 @@
 // 模态对话框打开时锁定页面滚动。
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
-// overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、tooltips（提示）、overflow（标签收起）、
+// overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
@@ -97,7 +98,7 @@ import { watchCollapse } from './js/collapse.js';
 import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle } from './js/resize.js';
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
 import { announce, closeOrRequest, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock } from './js/overlays.js';
-import { hideTooltip, hideTooltipOf, onPointerOut, onPointerOver, scheduleTooltip, shownTooltip, tooltipOf } from './js/tooltips.js';
+import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from './js/hover-layers.js';
 
 let installed = false;
 
@@ -172,7 +173,7 @@ function install(blazor) {
   document.addEventListener('pointerdown', grabSlider);
   document.addEventListener('pointerdown', grabResizeHandle);
   document.addEventListener('dblclick', resetResizeHandle);
-  document.addEventListener('pointerdown', (event) => hideTooltipOf(event.target));
+  document.addEventListener('pointerdown', onHoverPointerDown);
   document.addEventListener('pointermove', highlightUnderPointer);
   document.addEventListener('change', (event) => {
     const target = event.target;
@@ -202,9 +203,9 @@ function install(blazor) {
   document.addEventListener('paste', sendPasteCommand);
   document.addEventListener('focusin', onFocusIn);
   document.addEventListener('focusout', onFocusOut);
-  document.addEventListener('pointerover', onPointerOver);
+  document.addEventListener('pointerover', onHoverPointerOver);
   document.addEventListener('pointerover', previewRating);
-  document.addEventListener('pointerout', onPointerOut);
+  document.addEventListener('pointerout', onHoverPointerOut);
   document.addEventListener('pointerout', endRatingPreview);
 
   // 组件改属性（data-open、data-indeterminate），这里同步原生状态；新插入的元素（第一次渲染就带着状态）一并处理
@@ -335,7 +336,7 @@ function onClick(event) {
 
 
 function onKeyDown(event) {
-  if (event.key === 'Escape' && shownTooltip) hideTooltip(shownTooltip);
+  onHoverEscape(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
@@ -353,16 +354,12 @@ function onFocusIn(event) {
   if (!(target instanceof Element)) return;
   noteRovingFocus(event);
   onOtpFocus(event);
-  // 只在键盘聚焦时显示；点击聚焦（按钮被按下）时不显示
-  if (target.matches('[data-rune-tooltip]:focus-visible')) {
-    const tooltip = tooltipOf(target);
-    if (tooltip) scheduleTooltip(tooltip, true, 0);
-  }
+  onHoverFocusIn(event);
   // 列表自己获得焦点：还没有高亮项时高亮默认项（触发按钮、输入框做宿主时由打开下拉的一方决定）
   if (target.matches('[role="listbox"][data-rune-list]') && activeIndex(target, target) < 0) highlightDefault(target, target);
 }
 
 function onFocusOut(event) {
   onOtpFocus(event);
-  if (event.target instanceof Element && event.target.matches('[data-rune-tooltip]')) hideTooltipOf(event.target);
+  onHoverFocusOut(event);
 }

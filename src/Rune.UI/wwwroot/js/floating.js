@@ -21,12 +21,12 @@ const ARROW_EDGE = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' 
 
 const ARROW_ROTATION = { top: 45, right: 135, bottom: 225, left: -45 };
 
-/** 浮层的锚点：data-anchor 指定的元素（Select 的输入框外壳），或触发元素（popovertarget、data-rune-tooltip 指向它）。 */
+/** 浮层的锚点：data-anchor 指定的元素（Select 的输入框外壳），或触发元素（popovertarget、data-rune-tooltip、data-rune-hovercard 指向它）。 */
 function floatingAnchorOf(overlay) {
   const anchor = overlay.dataset.anchor && document.getElementById(overlay.dataset.anchor);
   if (anchor) return anchor;
   const id = CSS.escape(overlay.id);
-  return document.querySelector(`[popovertarget="${id}"], [data-rune-tooltip="${id}"]`);
+  return document.querySelector(`[popovertarget="${id}"], [data-rune-tooltip="${id}"], [data-rune-hovercard="${id}"]`);
 }
 
 /** 贴着触发元素定位并持续跟随；第一次定位完成（可见）时完成。 */

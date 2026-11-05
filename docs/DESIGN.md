@@ -196,6 +196,10 @@
   JS 初始化器按悬停意图开关：停留 `data-delay`（默认 500ms）后显示，刚关掉一个（300ms 内）时直接显示，离开 100ms 后隐藏（可以移到提示上），
   键盘聚焦立即显示，按下、失焦、Esc 隐藏，同一时间只显示一个；Server 模式没有往返。最初是纯 CSS（外层悬停时显示），
   做不到组内跳过延迟、移到提示上不消失、同时只显示一个，内容也只能是文字，对齐时换掉。
+- **悬停卡片与提示共用悬停层**（`js/hover-layers.js`，同 vue 的 useHoverLayer）：触发元素分别带 `data-rune-tooltip` / `data-rune-hovercard`，
+  面板带 `data-rune-hover-panel="tooltip|card"`（两组各自“同时只开一个”）。卡片停留 700ms 打开、离开 300ms 关闭，焦点移进卡片不关，
+  离开触发元素与卡片才关；开关经 rune-toggle 告诉 C#（第一次打开才渲染内容），但不是 data-rune-overlay（打开时焦点不移进去）。
+  卡片在交互渲染后才输出：预渲染的 HTML 里触发元素在 `<p>` 里时 `<div>` 会把段落截断（同 vue 的 useMounted）。
 - **消息提示**：`ToastService`（scoped）把列表放在 `State` 里，`Toaster` 读到它就随变化重新渲染，后台线程调用也安全；每条是一个 Alert。
   Toaster 要放在交互区域里（同一个电路 / WebAssembly 实例才拿得到同一个服务）。
 
