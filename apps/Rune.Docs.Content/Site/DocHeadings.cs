@@ -10,8 +10,11 @@ namespace Rune.Docs.Site;
 /// </summary>
 public sealed class DocHeadings
 {
+    /// <summary>示例后面、API 前面的一组（页面自己写的小节，如 Icon 页的图标库：页面比示例先登记）。</summary>
+    public const int AfterExamples = 1;
+
     /// <summary>排在页面最后的一组（API）。</summary>
-    public const int Last = 1;
+    public const int Last = 2;
 
     readonly List<(object Owner, HeadingEntry Entry, int Group)> entries = [];
 

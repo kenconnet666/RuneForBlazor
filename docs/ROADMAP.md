@@ -100,7 +100,8 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [ ] JS 初始化器按需补的能力（用到时再加，每项写进 DESIGN 第 8 节）：尺寸变化（ResizeObserver → data 属性或事件）、拖动（指针捕获）、复制到剪贴板、滚动到可见、宽度与触发元素一致的浮层
       （已有：复制到剪贴板、滚动到可见（列表高亮）、漫游焦点（data-rune-roving）、跟随选中项的滑块（data-rune-indicator）、浮层定位换成 Floating UI（12 种位置、箭头、shift、`data-fit-height` / `data-match-width`）、提示的悬停意图；拖动（js/move.js，Slider 在用）；尺寸变化在 Splitter 用到时做）
 - [x] 虚拟滚动：包一层 Blazor 的 `Virtualize`，与列表状态配合（VirtualList、DataTable、长下拉要用）
-      （Listbox 超过 100 项且在交互模式下用 Virtualize；JS 的高亮改成按序号，看不见的选项由 `data-rune-options` 给出；VirtualList 组件在阶段 7 做）
+      （Listbox 超过 100 项且在交互模式下用 Virtualize；JS 的高亮改成按序号，看不见的选项由 `data-rune-options` 给出；
+      VirtualList 先做了容器滚动的第一版（图标库用），随页面滚动、横向、骨架行、跳到第几项在阶段 7 补齐）
 
 ## 阶段 5：输入与选择（阶段 3 后半）
 
@@ -127,6 +128,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 ## 阶段 7：布局与展示
 
 - [ ] 布局：Container、Separator、ScrollArea、Splitter / ResizeHandle、Affix、BackTop、AsideLayout、Prose、PageScrollbar、ViewportFill
+      （PageScrollbar 已做：整页的浮层滚动条，AppShell 默认带着，JS 与 ScrollArea 共用一套）
       （已做：Avatar、AvatarGroup、Indicator（演示里的缩写替身都换成了 Avatar）；Collapse（Collapsible 改用，收起可被页内查找）；FormValue（隐藏的表单值，5 个组件改用）；ScrollArea（按“基础组件先做、上层依托”提前做；Listbox、ListPopover、Menu、Dialog / Drawer 的正文已改用它，FloatingStyles 有 ScrollPanel / ScrollArea）、Separator、Descriptions（自适应栏数用容器查询；卡片、布局、宽度手柄示例的替代写法已换掉，布局页的控制条也换成了 ToggleGroup、头像换成 Avatar））
 - [ ] 展示：Accordion、Collapse、Avatar / AvatarGroup、Descriptions、Ellipsis、Image（预览接 Lightbox）、ItemList、Stat、AnimatedNumber、ValueChange、
       Timeline、Tree（勾选、懒加载、拖动排序）、VirtualList、Checklist、Marquee、ProportionBar、Gauge、Sortable、Watermark、FieldCompare
@@ -159,7 +161,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 - [ ] AppShell、AuthLayout、ActionBar、FilterBar、QueryTable、FormDialog、StepsForm、KanbanBoard、NotificationCenter、CommentThread、
       DataImport、DeadlineBadge、ThemeSwitcher（含主题偏好的保存）、SlideCaptcha、PeoplePicker、ConditionBuilder；ThemeCustomizer、ThemeThumbnail（主题定制页用）
-      （已做：AppShell、AppShellBrand、ThemeSwitcher（文档站的外壳，按“基础组件先做”提前）；还缺 vue 的 pageScrollbar（等 PageScrollbar），
+      （已做：AppShell、AppShellBrand、ThemeSwitcher（文档站的外壳，按“基础组件先做”提前）；pageScrollbar 已做（PageScrollbar），
       混合布局示例的 NavBar 先用链接按钮代替；ThemeSwitcher 只做了整页切换，vue 示例里只作用于一块区域的局部主题还没做）
 
 ## 阶段 13：文档站
@@ -169,7 +171,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
       （已做：docs-kit 的 CodePreview、CodeGroup、DocArticle / DocSection、PropsTable（含 ApiProp、ComponentApi 数据）、TextTable、ColorSwatch、DocsKitIcons.Github，
       统一放在 Rune.UI 里；文档站 Rune.Docs：演示迁成文档页（一个示例一个文件、按 vue-tsx-pro 分两列），API 表从类型与 XML 文档生成，
       首页、快速开始 / 写样式 / 主题定制三篇指南、搜索、本页目录、上一篇 / 下一篇。还缺：演练场（暂不做）、主题定制页（等 ThemeCustomizer）、
-      图标库页、键盘说明表（KeyboardReference））。
+      键盘说明表（KeyboardReference））。图标库已做（Icon 页的图标库小节，同 vue 的 IconLibrary：搜索、按行虚拟滚动、详情卡复制或下载 SVG）。
       换页性能（已做）：外壳的侧栏、顶栏工具、本页目录拆成没有参数的组件；站内换页后示例与 API 表排队渲染（RenderQueue / Queued），
       骨架先出来；XML 文档注释按成员位置建索引、用到才解析；组件库层面见阶段 14 的性能项
       部署已准备好没发布：tools/docs-export 导出静态站点（57 页，WebAssembly 接管），.github/workflows/docs.yml 手动触发，
@@ -199,5 +201,4 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 （执行中遇到的停顿点记在这里：日期、项号、卡在哪、需要用户决定什么。）
 
-- 2026-11-05：vue-tsx-pro 的 f1a6a09f（CodePreview 加 propsLayout，整页示例贴满效果区）只提交在本地，要不要推送由用户决定。
 

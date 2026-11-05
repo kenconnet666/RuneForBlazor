@@ -2,6 +2,7 @@
 @attribute [DocMeta("Icon 图标", "渲染 Lucide 格式的图标数据：按名导入、可摇树，也能画自己的图标。", DocCategory.Base, Order = 2)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Base.Icon.Demo
+@inject DocHeadings Headings
 
 <DocPage Meta="Meta" Wide="true">
     <Examples>
@@ -15,7 +16,6 @@
             <Example Id="tones" Title="色调" Demo="typeof(TonesExample)">
                 不写 Tone 时跟随文字颜色；状态图标用 Success、Warning、Danger 等色调，和提示条、标记的颜色一致。
             </Example>
-            <Example Id="gallery" Title="图标库（Lucide 全集）" Demo="typeof(GalleryExample)" />
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="with-text" Title="与文字、按钮搭配" Demo="typeof(WithTextExample)">
@@ -35,5 +35,19 @@
             </Example>
         </ExampleColumn>
     </Examples>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <H2 id="library" Size="Size.Xl" Anchor="true">图标库</H2>
+        <Paragraph Tone="TextTone.Muted">搜索并点选一个图标，复制用法或 SVG。图标来自 Lucide，按英文名搜索（如 arrow、user、chart）。</Paragraph>
+        @* 一千多个图标的反射与网格：站内换页后排在示例后面 *@
+        <Queued><IconLibrary /></Queued>
+    </Flex>
     <ApiReference Types="[typeof(Icon)]" />
 </DocPage>
+
+@code {
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => Headings.Add(this, new("library", "图标库"), DocHeadings.AfterExamples);
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => Headings.Remove(this);
+}

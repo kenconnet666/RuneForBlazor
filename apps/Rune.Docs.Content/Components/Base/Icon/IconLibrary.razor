@@ -1,0 +1,89 @@
+@*
+    Icon 文档页的“图标库”（同 vue-tsx-pro 文档站的 IconLibrary）：搜索、点选图标，看大图；复制用法、复制或下载 SVG。
+*@
+@inherits RuneComponent
+
+<div @attributes="Attrs.Merge(LayoutLayer)">
+    <IconGallery @bind-Value="selected" />
+    @if (Selected is { } item)
+    {
+        var svg = item.Svg(double.Parse(stroke!, System.Globalization.CultureInfo.InvariantCulture));
+        <Card Sx="Detail">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <div @attributes="Attrs.Merge(PreviewLayer)">
+                    <Icon Data="item.Icon" Size="64" StrokeWidth="@double.Parse(stroke!, System.Globalization.CultureInfo.InvariantCulture)" Label="@item.Name" />
+                </div>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    <Strong>@item.Name</Strong>
+                    <Small Tone="TextTone.Muted">@item.Icon.Name</Small>
+                </Flex>
+                <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                    <Small Tone="TextTone.Muted">线宽</Small>
+                    <ToggleGroup @bind-Value="stroke" Size="Size.Sm" Required="true" aria-label="线宽">
+                        @foreach (var width in Strokes)
+                        {
+                            <ToggleItem @key="width" Value="@width">@width</ToggleItem>
+                        }
+                    </ToggleGroup>
+                </Flex>
+                <Flex Gap="SpaceScale.Sm" Wrap="true">
+                    @* 复制由 JS 在点击当下写入剪贴板（data-rune-copy）；文字的“已复制”由这里切换 *@
+                    <Button Variant="ButtonVariant.Soft" Size="Size.Sm" Icon="@(copied == "svg" ? Lucide.Check : Lucide.FileCode)"
+                            data-rune-copy="@svg" data-rune-copy-on-click @onclick="@(() => FlashAsync("svg"))">@(copied == "svg" ? "已复制 SVG" : "复制 SVG")</Button>
+                    <LinkButton Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Size="Size.Sm" Icon="Lucide.Download"
+                                Href="@($"data:image/svg+xml;charset=utf-8,{Uri.EscapeDataString(svg)}")" download="@($"{item.Icon.Name}.svg")">下载 SVG</LinkButton>
+                    <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="Size.Sm" Icon="@(copied == "usage" ? Lucide.Check : Lucide.Copy)"
+                            data-rune-copy="@Usage(item)" data-rune-copy-on-click @onclick="@(() => FlashAsync("usage"))">@(copied == "usage" ? "已复制" : "复制用法")</Button>
+                </Flex>
+                <CodeBlock Lang="razor" Code="@Usage(item)" />
+            </Flex>
+        </Card>
+    }
+</div>
+
+@code {
+    static readonly string[] Strokes = ["1", "1.5", "2", "2.5"];
+    static readonly Attrs LayoutLayer = new() { Sx = Layout };
+    static readonly Attrs PreviewLayer = new() { Sx = Preview };
+
+    string? selected = "Rocket";
+    string? stroke = "2";
+    string? copied;
+    int copyRun;
+
+    IconEntry? Selected => IconGallery.All.FirstOrDefault(e => e.Name == selected);
+
+    static string Usage(IconEntry item) => $"<Icon Data=\"Lucide.{item.Name}\" />";
+
+    // 复制成功的提示：两秒后复原，期间又复制了就从头算
+    async Task FlashAsync(string what)
+    {
+        var run = ++copyRun;
+        copied = what;
+        await Task.Delay(2000);
+        if (run == copyRun) copied = null;
+    }
+
+    static Style Layout => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        Gap = Space.Lg,
+        AlignItems = AlignItems.Start,
+        GridTemplateColumns = "minmax(0, 1fr)",
+        [Breakpoints.Lg] = new() { GridTemplateColumns = "minmax(0, 1fr) 22rem" },
+    });
+
+    // 详情跟着页面滚动停在顶栏下：网格很长时也能看到选中的图标
+    static Style Detail => Css.Define(static () => new Style { Position = Position.Sticky, InsetBlockStart = $"calc({LayoutVars.StickyOffset} + {Space.Lg})" });
+
+    // 选中的图标放大，和左边网格的小图对照
+    static Style Preview => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        BlockSize = CssLength.Rem(9),
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.Fill,
+        Color = Colors.Text,
+    });
+}
