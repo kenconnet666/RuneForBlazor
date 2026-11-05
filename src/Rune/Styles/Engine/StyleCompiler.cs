@@ -16,7 +16,7 @@ internal sealed record CompiledStyle(string ClassName, string Css);
 /// <para>
 /// 缓存分两层：
 /// <list type="number">
-/// <item><description>按样式实例：结果挂在第一段样式上，按“后面跟着哪几段”区分。渲染时用的都是 <see cref="Css.Define"/> 定义的同一批实例，
+/// <item><description>按样式实例：结果挂在第一段样式上，按“后面跟着哪几段”区分。渲染时用的都是 <see cref="Css.Define{T}(Func{T})"/> 定义的同一批实例，
 /// 命中时不做任何计算；实例被回收（渲染里临时 new 的样式），缓存跟着回收，不会越积越多。</description></item>
 /// <item><description>按内容：实例缓存没命中时，展开声明、拼出规范文本再查。同样的内容只生成一次规则。</description></item>
 /// </list>

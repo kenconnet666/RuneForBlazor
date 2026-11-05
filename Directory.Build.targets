@@ -9,9 +9,8 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <!-- 对外发布的库：公开成员必须写文档注释（CS1591 视为错误），以及 NuGet 包的信息 -->
+  <!-- 对外发布的库：NuGet 包的信息。文档注释（GenerateDocumentationFile）写在各库的项目文件里：SDK 在导入本文件之前就按它算好了 XML 文档的路径 -->
   <PropertyGroup Condition="'$(IsLibrary)' == 'true'">
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>true</IsPackable>
     <Authors>kenconnet666</Authors>
     <Copyright>Copyright (c) 2026 kenconnet666</Copyright>

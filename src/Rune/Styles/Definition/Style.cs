@@ -13,7 +13,7 @@ namespace Rune.Styles;
 /// }
 /// </code>
 /// 只在对象初始化器里赋值，创建后不再修改；同一个实例可以被任意多个元素共用。
-/// 组件里的样式用 <see cref="Css.Define"/> 定义成静态属性，渲染时不要新建 Style（每次新建都要重新算类名）。
+/// 组件里的样式用 <see cref="Css.Define{T}(Func{T})"/> 定义成静态属性，渲染时不要新建 Style（每次新建都要重新算类名）。
 /// </summary>
 public sealed partial class Style
 {

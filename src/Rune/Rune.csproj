@@ -3,6 +3,8 @@
   <!-- 运行时：信号、组件基类、属性合并、样式引擎 -->
   <PropertyGroup>
     <IsLibrary>true</IsLibrary>
+    <!-- 公开成员必须写文档注释（CS1591 视为错误）；XML 文档也给文档站的 API 表用 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>Rune</RootNamespace>
     <Description>Blazor 组件库底座：信号式的响应式状态（[State] 生成器）、可逐层覆盖的属性合并、强类型的运行时样式与主题。</Description>
   </PropertyGroup>

@@ -3,6 +3,8 @@
   <!-- 组件库：主题 tokens 与组件 -->
   <PropertyGroup>
     <IsLibrary>true</IsLibrary>
+    <!-- 公开成员必须写文档注释（CS1591 视为错误）；XML 文档也给文档站的 API 表用 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>Rune.UI</RootNamespace>
     <Description>基于 Rune 的 Blazor 组件库：主题与 tokens、组件默认值与按部件的样式定制、组件。</Description>
   </PropertyGroup>

@@ -3,6 +3,8 @@
   <!-- Lucide 图标全集：每个图标一个按需创建的静态属性，WebAssembly 发布时裁剪未用到的 -->
   <PropertyGroup>
     <IsLibrary>true</IsLibrary>
+    <!-- 公开成员必须写文档注释（CS1591 视为错误）；XML 文档也给文档站的 API 表用 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>Rune.Icons</RootNamespace>
     <Description>Rune.UI 的 Lucide 图标全集：Lucide.Plus 等强类型静态属性，配合 Icon 组件使用；发布到 WebAssembly 时自动裁剪未用到的图标。</Description>
     <PackageTags>$(PackageTags);icons;lucide</PackageTags>
