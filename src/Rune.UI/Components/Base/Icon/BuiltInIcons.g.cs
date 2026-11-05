@@ -6,10 +6,12 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（31 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（50 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
+    /// <summary>Lucide 图标 <c>amphora</c>（pottery、artifact、artefact、vase、ceramics、clay、archaeology、museum）。</summary>
+    public static IconData Amphora => field ??= new("amphora", "<path d=\"M10 2v5.632c0 .424-.272.795-.653.982A6 6 0 0 0 6 14c.006 4 3 7 5 8\"/><path d=\"M10 5H8a2 2 0 0 0 0 4h.68\"/><path d=\"M14 2v5.632c0 .424.272.795.652.982A6 6 0 0 1 18 14c0 4-3 7-5 8\"/><path d=\"M14 5h2a2 2 0 0 1 0 4h-.68\"/><path d=\"M18 22H6\"/><path d=\"M9 2h6\"/>");
     /// <summary>Lucide 图标 <c>arrow-left</c>（direction、movement、horizontal、leftward、leftwards、west、navigation、preceding）。</summary>
     public static IconData ArrowLeft => field ??= new("arrow-left", "<path d=\"m12 19-7-7 7-7\"/><path d=\"M19 12H5\"/>");
     /// <summary>Lucide 图标 <c>arrow-right</c>（direction、movement、horizontal、rightward、rightwards、east、navigation、following）。</summary>
@@ -18,6 +20,8 @@ public static partial class BuiltInIcons
     public static IconData ArrowUpRight => field ??= new("arrow-up-right", "<path d=\"M7 7h10v10\"/><path d=\"M7 17 17 7\"/>");
     /// <summary>Lucide 图标 <c>asterisk</c>（symbol、mark、pointer、pencil、sign、alert、notification、indicator）。</summary>
     public static IconData Asterisk => field ??= new("asterisk", "<path d=\"M12 5v14\"/><path d=\"m18.065 8.496-12.125 7\"/><path d=\"m5.94 8.504 12.125 7\"/>");
+    /// <summary>Lucide 图标 <c>chart-no-axes-combined</c>（diagram、graph、visualization、data、analytics、analysis、statistics、presentation）。</summary>
+    public static IconData ChartNoAxesCombined => field ??= new("chart-no-axes-combined", "<path d=\"M12 16v5\"/><path d=\"M16 14.639V21\"/><path d=\"M20 10.656V21\"/><path d=\"m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15\"/><path d=\"M4 18.463V21\"/><path d=\"M8 14.656V21\"/>");
     /// <summary>Lucide 图标 <c>check</c>（checkmark、done、completed、finished、successful、confirmed、verified、validated）。</summary>
     public static IconData Check => field ??= new("check", "<path d=\"M20 6 9 17l-5-5\"/>");
     /// <summary>Lucide 图标 <c>chevron-down</c>（direction、movement、vertical、downward、downwards、south、descend、page down）。</summary>
@@ -34,12 +38,26 @@ public static partial class BuiltInIcons
     public static IconData CircleExclamationPoint => field ??= new("circle-exclamation-point", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"/><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"/>");
     /// <summary>Lucide 图标 <c>circle-x</c>（x、remove、delete、cancel、clear、close、discard、dismiss）。</summary>
     public static IconData CircleX => field ??= new("circle-x", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m15 9-6 6\"/><path d=\"m9 9 6 6\"/>");
+    /// <summary>Lucide 图标 <c>citrus</c>（lemon、orange、grapefruit、fruit）。</summary>
+    public static IconData Citrus => field ??= new("citrus", "<path d=\"M21.66 17.67a1.08 1.08 0 0 1-.04 1.6A12 12 0 0 1 4.73 2.38a1.1 1.1 0 0 1 1.61-.04z\"/><path d=\"M19.65 15.66A8 8 0 0 1 8.35 4.34\"/><path d=\"m14 10-5.5 5.5\"/><path d=\"M14 17.85V10H6.15\"/>");
+    /// <summary>Lucide 图标 <c>contrast</c>（display、accessibility）。</summary>
+    public static IconData Contrast => field ??= new("contrast", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 18a6 6 0 0 0 0-12v12z\"/>");
     /// <summary>Lucide 图标 <c>copy</c>（clone、duplicate、multiple）。</summary>
     public static IconData Copy => field ??= new("copy", "<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/>");
+    /// <summary>Lucide 图标 <c>dot</c>（interpunct、interpoint、middot、step、punctuation、period、full stop、end）。</summary>
+    public static IconData Dot => field ??= new("dot", "<circle cx=\"12\" cy=\"12\" r=\"1\"/>");
     /// <summary>Lucide 图标 <c>eye</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>
     public static IconData Eye => field ??= new("eye", "<path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>");
     /// <summary>Lucide 图标 <c>eye-off</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>
     public static IconData EyeOff => field ??= new("eye-off", "<path d=\"M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49\"/><path d=\"M14.084 14.158a3 3 0 0 1-4.242-4.242\"/><path d=\"M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143\"/><path d=\"m2 2 20 20\"/>");
+    /// <summary>Lucide 图标 <c>feather</c>（quill、plume、writing、author、literature、poetry、manuscript、bird）。</summary>
+    public static IconData Feather => field ??= new("feather", "<path d=\"M14.086 18.412A2 2 0 0112.67 19H5v-7.672a2 2 0 01.586-1.414L11.75 3.75a6 6 0 118.49 8.49z\"/><path d=\"M16 8 2 22\"/><path d=\"M17.488 15H9\"/>");
+    /// <summary>Lucide 图标 <c>flame</c>（heat、burn、light、glow、ignite、passion、ember、fire）。</summary>
+    public static IconData Flame => field ??= new("flame", "<path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\"/>");
+    /// <summary>Lucide 图标 <c>flower</c>（sustainability、nature、plant、spring）。</summary>
+    public static IconData Flower => field ??= new("flower", "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5\"/><path d=\"M12 7.5V9\"/><path d=\"M7.5 12H9\"/><path d=\"M16.5 12H15\"/><path d=\"M12 16.5V15\"/><path d=\"m8 8 1.88 1.88\"/><path d=\"M14.12 9.88 16 8\"/><path d=\"m8 16 1.88-1.88\"/><path d=\"M14.12 14.12 16 16\"/>");
+    /// <summary>Lucide 图标 <c>flower-2</c>（sustainability、nature、plant、spring）。</summary>
+    public static IconData Flower2 => field ??= new("flower-2", "<path d=\"M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1\"/><circle cx=\"12\" cy=\"8\" r=\"2\"/><path d=\"M12 10v12\"/><path d=\"M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z\"/><path d=\"M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z\"/>");
     /// <summary>Lucide 图标 <c>hash</c>（hashtag、number、pound）。</summary>
     public static IconData Hash => field ??= new("hash", "<line x1=\"4\" x2=\"20\" y1=\"9\" y2=\"9\"/><line x1=\"4\" x2=\"20\" y1=\"15\" y2=\"15\"/><line x1=\"10\" x2=\"8\" y1=\"3\" y2=\"21\"/><line x1=\"16\" x2=\"14\" y1=\"3\" y2=\"21\"/>");
     /// <summary>Lucide 图标 <c>inbox</c>（email）。</summary>
@@ -56,20 +74,40 @@ public static partial class BuiltInIcons
     public static IconData Minimize => field ??= new("minimize", "<path d=\"M8 3v3a2 2 0 0 1-2 2H3\"/><path d=\"M21 8h-3a2 2 0 0 1-2-2V3\"/><path d=\"M3 16h3a2 2 0 0 1 2 2v3\"/><path d=\"M16 21v-3a2 2 0 0 1 2-2h3\"/>");
     /// <summary>Lucide 图标 <c>minus</c>（minus、remove、delete、cancel、erase、subtract、reduce、clear）。</summary>
     public static IconData Minus => field ??= new("minus", "<path d=\"M5 12h14\"/>");
+    /// <summary>Lucide 图标 <c>monitor</c>（tv、computer、desktop、screen、display、external display、screen sharing、virtual machine）。</summary>
+    public static IconData Monitor => field ??= new("monitor", "<rect width=\"20\" height=\"14\" x=\"2\" y=\"3\" rx=\"2\"/><line x1=\"8\" x2=\"16\" y1=\"21\" y2=\"21\"/><line x1=\"12\" x2=\"12\" y1=\"17\" y2=\"21\"/>");
+    /// <summary>Lucide 图标 <c>moon</c>（dark、night）。</summary>
+    public static IconData Moon => field ??= new("moon", "<path d=\"M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401\"/>");
+    /// <summary>Lucide 图标 <c>moon-star</c>（dark、night、star）。</summary>
+    public static IconData MoonStar => field ??= new("moon-star", "<path d=\"M18 5h4\"/><path d=\"M20 3v4\"/><path d=\"M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401\"/>");
+    /// <summary>Lucide 图标 <c>palette</c>（colors、colours、theme、scheme、paint、watercolor、watercolour、artist）。</summary>
+    public static IconData Palette => field ??= new("palette", "<path d=\"M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z\"/><circle cx=\"13.5\" cy=\"6.5\" r=\".5\" fill=\"currentColor\"/><circle cx=\"17.5\" cy=\"10.5\" r=\".5\" fill=\"currentColor\"/><circle cx=\"6.5\" cy=\"12.5\" r=\".5\" fill=\"currentColor\"/><circle cx=\"8.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\"/>");
     /// <summary>Lucide 图标 <c>panel-left-close</c>（position、placement、left、left edge、leftmost、left side、horizontal、inline）。</summary>
     public static IconData PanelLeftClose => field ??= new("panel-left-close", "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M9 3v18\"/><path d=\"m16 15-3-3 3-3\"/>");
     /// <summary>Lucide 图标 <c>panel-left-open</c>（position、placement、left、left edge、leftmost、left side、horizontal、inline）。</summary>
     public static IconData PanelLeftOpen => field ??= new("panel-left-open", "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M9 3v18\"/><path d=\"m14 9 3 3-3 3\"/>");
+    /// <summary>Lucide 图标 <c>party-popper</c>（emoji、congratulations、celebration、party、tada、🎉、🎊、excitement）。</summary>
+    public static IconData PartyPopper => field ??= new("party-popper", "<path d=\"M5.8 11.3 2 22l10.7-3.79\"/><path d=\"M4 3h.01\"/><path d=\"M22 8h.01\"/><path d=\"M15 2h.01\"/><path d=\"M22 20h.01\"/><path d=\"m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10\"/><path d=\"m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17\"/><path d=\"m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7\"/><path d=\"M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z\"/>");
     /// <summary>Lucide 图标 <c>plus</c>（plus、add、new、create、+、increase、increment、extra）。</summary>
     public static IconData Plus => field ??= new("plus", "<path d=\"M5 12h14\"/><path d=\"M12 5v14\"/>");
+    /// <summary>Lucide 图标 <c>scroll-text</c>（paper、log、scripture、document、notes、parchment、list、long）。</summary>
+    public static IconData ScrollText => field ??= new("scroll-text", "<path d=\"M15 12h-5\"/><path d=\"M15 8h-5\"/><path d=\"M19 17V5a2 2 0 0 0-2-2H4\"/><path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\"/>");
     /// <summary>Lucide 图标 <c>search</c>（search、magnifier、scan、scanning、browsing、finding、find、lookup）。</summary>
     public static IconData Search => field ??= new("search", "<path d=\"m21 21-4.34-4.34\"/><circle cx=\"11\" cy=\"11\" r=\"8\"/>");
     /// <summary>Lucide 图标 <c>star</c>（starred、featured、favorite、favourite、save、wishlist、bookmark、highlight）。</summary>
     public static IconData Star => field ??= new("star", "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\"/>");
+    /// <summary>Lucide 图标 <c>sun</c>（brightness、weather、light、summer）。</summary>
+    public static IconData Sun => field ??= new("sun", "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2\"/><path d=\"M12 20v2\"/><path d=\"m4.93 4.93 1.41 1.41\"/><path d=\"m17.66 17.66 1.41 1.41\"/><path d=\"M2 12h2\"/><path d=\"M20 12h2\"/><path d=\"m6.34 17.66-1.41 1.41\"/><path d=\"m19.07 4.93-1.41 1.41\"/>");
+    /// <summary>Lucide 图标 <c>trees</c>（tree、forest、park、nature）。</summary>
+    public static IconData Trees => field ??= new("trees", "<path d=\"M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z\"/><path d=\"M7 16v6\"/><path d=\"M13 19v3\"/><path d=\"M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5\"/>");
     /// <summary>Lucide 图标 <c>triangle-exclamation-point</c>（alert、warning、danger、caution、notice、error、risk、concern）。</summary>
     public static IconData TriangleExclamationPoint => field ??= new("triangle-exclamation-point", "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/>");
     /// <summary>Lucide 图标 <c>user</c>（user、people、identity、individual、personal、person、account、contact）。</summary>
     public static IconData User => field ??= new("user", "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/>");
+    /// <summary>Lucide 图标 <c>waves-horizontal</c>（water、sea、sound、hertz、wavelength、vibrate、ocean、swimming）。</summary>
+    public static IconData WavesHorizontal => field ??= new("waves-horizontal", "<path d=\"M2 12q2.5 2 5 0t5 0 5 0 5 0\"/><path d=\"M2 19q2.5 2 5 0t5 0 5 0 5 0\"/><path d=\"M2 5q2.5 2 5 0t5 0 5 0 5 0\"/>");
     /// <summary>Lucide 图标 <c>x</c>（alphabet、character、text、font、typography、x、remove、delete）。</summary>
     public static IconData X => field ??= new("x", "<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>");
+    /// <summary>Lucide 图标 <c>zap</c>（flash、camera、lightning、electricity、energy、power、quick）。</summary>
+    public static IconData Zap => field ??= new("zap", "<path d=\"M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z\"/>");
 }

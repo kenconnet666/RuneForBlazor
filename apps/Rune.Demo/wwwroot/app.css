@@ -43,6 +43,6 @@ body { margin: 0; font-family: system-ui, sans-serif; }
 .demo-nav { display: flex; flex-direction: column; gap: 2px; padding: 16px; border-inline-end: 1px solid var(--rune-colors-border); }
 .demo-nav a { color: var(--rune-colors-text); text-decoration: none; padding: 4px 8px; border-radius: var(--rune-radii-sm); }
 .demo-nav a:hover { background: var(--rune-colors-fill-hover); }
-.demo-brand { font-weight: 600; margin-block-end: 8px; }
+.demo-brand { display: flex; align-items: center; justify-content: space-between; font-weight: 600; margin-block-end: 8px; }
 .demo-nav-group { margin-block-start: 12px; font-size: 12px; color: var(--rune-colors-text-muted); padding-inline: 8px; }
 .demo-main { max-width: 860px; padding: 24px; display: grid; gap: 16px; align-content: start; }

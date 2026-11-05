@@ -129,20 +129,29 @@ public enum ColorScheme
 /// <summary>把主题变成只设置变量的类，并登记到当前作用域（由 <see cref="RuneStyles"/> 输出）。</summary>
 public static class ThemeStyles
 {
-    static readonly ConcurrentDictionary<(Theme Light, Theme? Dark, ColorScheme Scheme), CompiledStyle> compiled = new();
+    /// <summary>
+    /// 页面上选中的主题写在根元素（html）的这个属性上（<c>data-theme="paper"</c>）：写了可选主题（choices）时，
+    /// 主题类按它取那一套的变量，由浏览器端的主题切换改写，不用重新渲染。
+    /// </summary>
+    public const string ChoiceAttribute = "data-theme";
+
+    static readonly ConcurrentDictionary<(Theme Light, Theme? Dark, ColorScheme Scheme, string Choices), CompiledStyle> compiled = new();
 
     /// <summary>
     /// 主题对应的类名。只能在 <see cref="RuneComponent"/> 的渲染中调用（要登记规则）。
     /// 跟随系统时生成两段：默认用亮色主题，<c>prefers-color-scheme: dark</c> 时用暗色主题。
+    /// 写了 <paramref name="choices"/> 时每套再生成一段 <c>:root[data-theme="名字"] .类</c>（按名字区分，名字要唯一）：
+    /// 根元素上写了哪套就用哪套，没写时同上。
     /// </summary>
-    public static string ClassFor(Theme light, Theme? dark = null, ColorScheme scheme = ColorScheme.System)
+    public static string ClassFor(Theme light, Theme? dark = null, ColorScheme scheme = ColorScheme.System, IReadOnlyList<Theme>? choices = null)
     {
-        var style = compiled.GetOrAdd((light, dark, scheme), static key => Compile(key.Light, key.Dark, key.Scheme));
+        var key = (light, dark, scheme, choices is null ? "" : string.Join(',', choices.Select(t => t.Name)));
+        var style = compiled.GetOrAdd(key, static (key, choices) => Compile(key.Light, key.Dark, key.Scheme, choices), choices);
         StyleRegistry.Register(style);
         return style.ClassName;
     }
 
-    static CompiledStyle Compile(Theme light, Theme? dark, ColorScheme scheme)
+    static CompiledStyle Compile(Theme light, Theme? dark, ColorScheme scheme, IReadOnlyList<Theme>? choices)
     {
         var (main, alternative) = (scheme, dark) switch
         {
@@ -151,23 +160,26 @@ public static class ThemeStyles
             _ => (light, null),
         };
         // 先用占位的类名拼出规则，按内容算出类名后再换上（类名按内容哈希：服务端、浏览器、所有请求同名）
-        const string placeholder = "{0}";
+        const string placeholder = ".{0}";
         var css = Rules(placeholder, main);
         if (alternative is not null) css += "@media (prefers-color-scheme: dark){" + Rules(placeholder, alternative) + "}";
+        // 选中的主题写在根元素上，选择器更具体，盖过上面两段
+        foreach (var choice in choices ?? [])
+            css += Rules($":root[{ChoiceAttribute}=\"{choice.Name}\"] {placeholder}", choice);
         var className = "rt" + StableHash.Of(css);
-        return new CompiledStyle(className, css.Replace(placeholder, className, StringComparison.Ordinal));
+        return new CompiledStyle(className, css.Replace("{0}", className, StringComparison.Ordinal));
     }
 
     // 一套主题的规则：变量与 color-scheme（按主题本身是亮是暗），再加各条件块（@media 包在外面）
-    static string Rules(string className, Theme theme)
+    static string Rules(string selector, Theme theme)
     {
         var css = new StringBuilder();
-        css.Append('.').Append(className).Append('{');
+        css.Append(selector).Append('{');
         Declarations(css, theme.Values);
         css.Append("color-scheme:").Append(theme.IsDark ? "dark" : "light").Append(";}");
         foreach (var (condition, values) in theme.ConditionalValues)
         {
-            css.Append(condition).Append("{.").Append(className).Append('{');
+            css.Append(condition).Append('{').Append(selector).Append('{');
             Declarations(css, values);
             css.Append("}}");
         }

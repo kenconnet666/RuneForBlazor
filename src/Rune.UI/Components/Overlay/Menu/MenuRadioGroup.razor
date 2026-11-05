@@ -1,0 +1,39 @@
+@*
+    一组单选菜单项（同 vue-tsx-pro 的 MenuRadioGroup）：同一时间只选中一项。
+    <MenuRadioGroup Label="排序" @bind-Value="sort">
+        <MenuRadioItem Value="name">名称</MenuRadioItem>
+        <MenuRadioItem Value="date">日期</MenuRadioItem>
+    </MenuRadioGroup>
+    未声明的属性落到分组（div，role="group"）上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div role="group" aria-labelledby="@(Label is null ? null : labelId)" @attributes="Attrs.Merge(null, Rest)">
+    @if (Label is not null)
+    {
+        <span id="@labelId" @attributes="Attrs.Merge(MenuStyles.Of(Config.Styles)[MenuPart.GroupLabel], PropsLabel)">@Label</span>
+    }
+    <CascadingValue Value="new MenuRadioGroupState(value.Value, value.SetAsync)">@ChildContent</CascadingValue>
+</div>
+
+@code {
+    readonly string labelId = UniqueId.Next("menu-group");
+
+    /// <summary>选中项的值（<c>@bind-Value</c>）。</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>选了另一项。</summary>
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    /// <summary>分组的标题；也是分组的名称。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>标题（span）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>MenuRadioItem。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    Bindable<string?> value { get => field ??= new(this, () => Value, () => ValueChanged); }
+}

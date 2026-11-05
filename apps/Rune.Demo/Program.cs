@@ -9,7 +9,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 // 服务端渲染与 Interactive Server 用这里的服务；WebAssembly 用 Rune.Demo.Client/Program.cs 里的同一套
-builder.Services.AddRuneUI();
+builder.Services.AddRuneUI(o => o.ThemeChoices = ThemeChoices.Builtin);
 builder.Services.AddScoped<CounterStore>();
 
 var app = builder.Build();

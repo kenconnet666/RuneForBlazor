@@ -49,6 +49,24 @@ public class ThemeTests : IDisposable
     }
 
     [Fact]
+    public void 可选主题按根元素的data_theme取用_写在跟随系统的两段之后()
+    {
+        var light = new Theme("light") { [ink] = "black" };
+        var dark = new Theme("dark", basedOn: light) { IsDark = true, [ink] = "white" };
+        var paper = new Theme("paper", basedOn: light) { [ink] = "brown" };
+
+        var className = ThemeStyles.ClassFor(light, dark, ColorScheme.System, [light, dark, paper]);
+
+        var rule = Assert.Single(registry.Rules);
+        var paperRule = $":root[data-theme=\"paper\"] .{className}{{--test-ink:brown;color-scheme:light;}}";
+        Assert.Contains(paperRule, rule);
+        Assert.True(rule.IndexOf(paperRule, StringComparison.Ordinal) > rule.IndexOf("@media (prefers-color-scheme: dark)", StringComparison.Ordinal));
+        // 同样的几套（按名字）复用同一个类
+        Assert.Equal(className, ThemeStyles.ClassFor(light, dark, ColorScheme.System, [light, dark, paper]));
+        Assert.NotEqual(className, ThemeStyles.ClassFor(light, dark));
+    }
+
+    [Fact]
     public void 固定暗色时只写暗色主题()
     {
         var light = new Theme("light") { [ink] = "black" };

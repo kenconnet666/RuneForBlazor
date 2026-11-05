@@ -5,7 +5,7 @@
 <RuneProvider>
 <div class="demo-shell">
     <nav class="demo-nav" aria-label="演示目录">
-        <a href="" class="demo-brand">Rune 演示</a>
+        <div class="demo-brand"><a href="">Rune 演示</a><ThemeSwitcher /></div>
         @foreach (var group in DemoCatalog.All.GroupBy(d => d.Group))
         {
             <div class="demo-nav-group">@group.Key</div>

@@ -26,7 +26,7 @@
 @code {
     UIConfig config = default!;
     Memo<(string? Class, string? Label, string Code, string Direction), Attrs> themeAttrs;
-    Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentDefaults? Defaults, ComponentStyles? Styles, bool? Ripple, Lang? Lang), UIConfig> built;
+    Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentDefaults? Defaults, ComponentStyles? Styles, bool? Ripple, Lang? Lang, ThemeChoices? Choices), UIConfig> built;
 
     /// <summary>主题（亮色）。</summary>
     [Parameter] public Theme? Theme { get; set; }
@@ -36,6 +36,13 @@
 
     /// <summary>亮暗模式。</summary>
     [Parameter] public ColorScheme? ColorScheme { get; set; }
+
+    /// <summary>
+    /// 用户可以选的几套主题（ThemeSwitcher 切换，记在浏览器里）：输出每套的变量，按根元素的 data-theme 取用；
+    /// 还没选过（或页面脚本没运行）时跟随系统，用它的 SystemLight、SystemDark。
+    /// 一般写在 <see cref="RuneUIOptions.ThemeChoices"/>（最外层的 Provider 用它）；这里写的只作用于这片区域。
+    /// </summary>
+    [Parameter] public ThemeChoices? Choices { get; set; }
 
     /// <summary>组件默认值，叠在外层的上面（同一组件按项合并）。</summary>
     [Parameter] public ComponentDefaults? Defaults { get; set; }
@@ -53,15 +60,20 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     // 最外层（没有上一层 Provider）套上应用级主题；嵌套的只在改了主题相关的参数时才套
-    bool AppliesTheme => !IsInsideProvider || Theme is not null || DarkTheme is not null || ColorScheme is not null;
+    bool AppliesTheme => !IsInsideProvider || Theme is not null || DarkTheme is not null || ColorScheme is not null || Choices is not null;
 
     // 有包裹元素：套主题，或者换了语言（lang、dir 写在包裹元素上）
     bool HasWrapper => AppliesTheme || Lang is not null;
 
     // 主题的类（只设变量）与名字、语言的 lang 与 dir；不变时是同一个对象
     Attrs ThemeAttrs => themeAttrs.Get(
-        (AppliesTheme ? ThemeStyles.ClassFor(config.Theme, config.DarkTheme, config.ColorScheme) : null, AppliesTheme ? ThemeLabel : null, config.Lang.Code, config.Lang.Direction),
+        (AppliesTheme ? ThemeClass : null, AppliesTheme ? ThemeLabel : null, config.Lang.Code, config.Lang.Direction),
         static k => new Attrs { Class = k.Class, ["data-rune-theme"] = k.Label, ["lang"] = k.Code, ["dir"] = k.Direction });
+
+    // 有可选主题时跟随系统的两套取它的，另输出每套主题按 data-theme 取用的变量
+    string ThemeClass => (Choices ?? (IsInsideProvider ? null : config.ThemeChoices)) is { } choices
+        ? ThemeStyles.ClassFor(choices.SystemLight, choices.SystemDark, Rune.Styles.ColorScheme.System, choices.Themes)
+        : ThemeStyles.ClassFor(config.Theme, config.DarkTheme, config.ColorScheme);
 
     // 不产生盒子、不影响布局；文字颜色、字体、字号、行高由里面的元素继承（同 vue-tsx-pro 的 Provider）
     static Style Themed => Css.Define(static () => new Style
@@ -88,8 +100,9 @@
     protected override void OnParametersSet()
     {
         // 输入没变时保留同一个配置对象：下面的组件拿到的级联值不变，不会被迫重新渲染
-        config = built.Get((Config, Theme, DarkTheme, ColorScheme, Defaults, Styles, Ripple, Lang), static k => k.Outer with
+        config = built.Get((Config, Theme, DarkTheme, ColorScheme, Defaults, Styles, Ripple, Lang, Choices), static k => k.Outer with
         {
+            ThemeChoices = k.Choices ?? k.Outer.ThemeChoices,
             Lang = k.Lang ?? k.Outer.Lang,
             Theme = k.Theme ?? k.Outer.Theme,
             DarkTheme = k.Dark ?? k.Outer.DarkTheme,

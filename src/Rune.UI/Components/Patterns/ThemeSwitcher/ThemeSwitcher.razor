@@ -1,0 +1,102 @@
+@*
+    主题切换（同 vue-tsx-pro 的 ThemeSwitcher）：图标按钮弹出单选菜单，列出“跟随系统”与各套可选主题（RuneProvider 的 Choices）。
+    AddRuneUI(o => o.ThemeChoices = ThemeChoices.Builtin)，head 里放 <ThemeBootScript />，页面里 <ThemeSwitcher />。
+    选中后记在浏览器里，新主题从按钮处圆形展开；切换、选中标记、按钮图标都在 JS 里（js/theme.js），没有往返，静态 SSR 也能用。
+    内置主题与跟随系统有默认的文字（语言包）和图标，其他主题用 Labels、Icons 补上（默认是主题名与调色板）。
+    未声明的属性落到菜单（role="menu"）上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<Menu data-rune-theme-switcher @attributes="Rest">
+    <Trigger Context="t">
+        @* 按钮的图标由 JS 换成选中项的图标；渲染时还不知道选了哪套，先画默认选择的 *@
+        <IconButton Icon="IconOf(Choices.Fallback)" Label="@Config.Lang.Patterns.ThemeLabel" PropsIcon="TriggerIconLayer"
+                    @attributes="Attrs.MergeProps(null, PropsTrigger, t)" />
+    </Trigger>
+    <ChildContent>
+        <MenuRadioGroup aria-label="@Config.Lang.Patterns.ThemeLabel">
+            @foreach (var name in Names)
+            {
+                <MenuRadioItem @key="name" Value="@name" Icon="IconOf(name)" PropsIcon="ChoiceIconLayer" data-rune-theme-choice="@name">@LabelOf(name)</MenuRadioItem>
+            }
+        </MenuRadioGroup>
+    </ChildContent>
+</Menu>
+
+@code {
+    static readonly Attrs TriggerIconLayer = new() { ["data-rune-theme-icon"] = true };
+    static readonly Attrs ChoiceIconLayer = new() { ["data-rune-choice-icon"] = true };
+
+    // 每套内置主题都有图标
+    static readonly Dictionary<string, IconData> DefaultIcons = new()
+    {
+        [ThemeChoices.System] = BuiltInIcons.Monitor,
+        ["light"] = BuiltInIcons.Sun,
+        ["dark"] = BuiltInIcons.Moon,
+        ["paper"] = BuiltInIcons.ScrollText,
+        ["midnight"] = BuiltInIcons.MoonStar,
+        ["high-contrast"] = BuiltInIcons.Contrast,
+        ["ocean"] = BuiltInIcons.WavesHorizontal,
+        ["forest"] = BuiltInIcons.Trees,
+        ["lemon"] = BuiltInIcons.Citrus,
+        ["sakura"] = BuiltInIcons.Flower2,
+        ["festive"] = BuiltInIcons.PartyPopper,
+        ["cyberpunk"] = BuiltInIcons.Zap,
+        ["big-screen"] = BuiltInIcons.ChartNoAxesCombined,
+        ["lavender"] = BuiltInIcons.Flower,
+        ["ember"] = BuiltInIcons.Flame,
+        ["mono"] = BuiltInIcons.Feather,
+        ["celadon"] = BuiltInIcons.Amphora,
+    };
+
+    /// <summary>可选的主题；不写时用 RuneUIOptions.ThemeChoices（或外层 RuneProvider 的 Choices）。</summary>
+    [Parameter] public ThemeChoices? Themes { get; set; }
+
+    /// <summary>各选项的文字（键是主题名或 system）；内置主题与跟随系统默认取语言包，其他默认是主题名。</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? Labels { get; set; }
+
+    /// <summary>各选项的图标；内置主题与跟随系统有默认图标，其他默认是调色板。</summary>
+    [Parameter] public IReadOnlyDictionary<string, IconData>? Icons { get; set; }
+
+    /// <summary>列出“跟随系统”，默认 true。</summary>
+    [Parameter] public bool System { get; set; } = true;
+
+    /// <summary>触发按钮（IconButton 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    ThemeChoices Choices => Themes ?? Config.ThemeChoices
+        ?? throw new InvalidOperationException("ThemeSwitcher 要知道可选的主题：在 AddRuneUI 里设置 ThemeChoices，或给它写 Themes");
+
+    IEnumerable<string> Names => System
+        ? Choices.Themes.Select(t => t.Name).Prepend(ThemeChoices.System)
+        : Choices.Themes.Select(t => t.Name);
+
+    IconData IconOf(string name) =>
+        Icons?.GetValueOrDefault(name) ?? DefaultIcons.GetValueOrDefault(name) ?? BuiltInIcons.Palette;
+
+    string LabelOf(string name) => Labels?.GetValueOrDefault(name) ?? BuiltInLabel(Config.Lang, name) ?? name;
+
+    // 内置主题在当前语言下的名字
+    static string? BuiltInLabel(Lang lang, string name) => name switch
+    {
+        ThemeChoices.System => lang.ThemeSystem,
+        "light" => lang.ThemeLight,
+        "dark" => lang.ThemeDark,
+        "paper" => lang.ThemePaper,
+        "midnight" => lang.ThemeMidnight,
+        "high-contrast" => lang.ThemeHighContrast,
+        "ocean" => lang.ThemeOcean,
+        "forest" => lang.ThemeForest,
+        "lemon" => lang.ThemeLemon,
+        "sakura" => lang.ThemeSakura,
+        "festive" => lang.ThemeFestive,
+        "cyberpunk" => lang.ThemeCyberpunk,
+        "big-screen" => lang.ThemeBigScreen,
+        "lavender" => lang.ThemeLavender,
+        "ember" => lang.ThemeEmber,
+        "mono" => lang.ThemeMono,
+        "celadon" => lang.ThemeCeladon,
+        _ => null,
+    };
+}

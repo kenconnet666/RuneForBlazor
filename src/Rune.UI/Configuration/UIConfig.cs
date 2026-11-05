@@ -23,6 +23,9 @@ public sealed record UIConfig(Theme Theme, Theme? DarkTheme, ColorScheme ColorSc
     /// </summary>
     public TextMatcher? TextMatcher { get; init; }
 
+    /// <summary>用户可以选的几套主题（RuneProvider 的 Choices）；ThemeSwitcher 列出它们。没有时为 null。</summary>
+    public ThemeChoices? ThemeChoices { get; init; }
+
     /// <summary>当前配置下的文字匹配：内置匹配（按 <see cref="Lang"/> 的语言）或 <see cref="TextMatcher"/> 任一命中。</summary>
     public bool Matches(string text, string query) =>
         TextMatching.For(Lang.Code)(text, query) || (TextMatcher?.Invoke(text, query) ?? false);
@@ -54,6 +57,12 @@ public sealed class RuneUIOptions
 
     /// <inheritdoc cref="UIConfig.TextMatcher"/>
     public TextMatcher? TextMatcher { get; set; }
+
+    /// <summary>
+    /// 用户可以选的几套主题（ThemeSwitcher 切换，记在浏览器里）：最外层的 RuneProvider 输出每套的变量，ThemeBootScript 按它防闪烁。
+    /// 写在这里而不是 RuneProvider 上：交互模式的根接不到布局里级联下来的配置，服务注册的配置三种渲染模式都拿得到。
+    /// </summary>
+    public ThemeChoices? ThemeChoices { get; set; }
 }
 
 /// <summary>注册组件库的服务。</summary>
@@ -70,7 +79,7 @@ public static class RuneUIServiceCollectionExtensions
         var options = new RuneUIOptions();
         configure?.Invoke(options);
         services.AddRune();
-        services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher });
+        services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher, ThemeChoices = options.ThemeChoices });
         services.AddScoped<ToastService>();
         return services;
     }

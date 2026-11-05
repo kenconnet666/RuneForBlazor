@@ -18,6 +18,9 @@
 //   data-rune-fullscreen="true|false"
 //                            应用外壳（AppShell）的全屏：变成 true 时请求浏览器全屏，false 时退出；用户自己离开浏览器全屏、
 //                            或没进浏览器全屏时按 Esc，发出冒泡的 rune-command（fullscreen-exit）
+//   data-rune-theme-switcher 主题切换的菜单：里面 data-rune-theme-choice="名字" 的项点了就切换主题（记在 localStorage、写根元素的 data-theme，
+//                            从触发按钮处圆形展开），选中项的 aria-checked 与触发按钮里 data-rune-theme-icon 的图标按当前选择同步
+//                            （配置是 ThemeBootScript 输出的 script#rune-theme-config）
 //   data-rune-light-dismiss  对话框：点遮罩关闭（原生的 closedby="any" 还没普及）
 //   data-rune-guard-close    对话框：要关闭时（Esc、点遮罩、data-rune-close）不直接关，发出冒泡的 rune-close-request
 //                            （Blazor 里是 @onrunecloserequest，带原因 escape / outside / close），由 C# 决定关不关（确认中、关闭前确认）
@@ -93,7 +96,7 @@
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
-// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、
+// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
@@ -114,6 +117,7 @@ import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from './js/tabs
 import { watchCollapse } from './js/collapse.js';
 import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle } from './js/resize.js';
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
+import { chooseTheme, installTheme, reapplyTheme, watchThemeSwitcher } from './js/theme.js';
 import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './js/fullscreen.js';
 import { announce, closeOnLink, closeOrRequest, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock, watchCloseWhen } from './js/overlays.js';
 import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from './js/hover-layers.js';
@@ -137,6 +141,9 @@ function install(blazor) {
   // 静态 SSR 页面之间的增强导航：带 data-navigation 的加载条跟着走（独立的 Server / WebAssembly 应用没有这两个事件）
   blazor.addEventListener?.('enhancednavigationstart', navigationStarted);
   blazor.addEventListener?.('enhancednavigationend', navigationEnded);
+  // 增强导航合并新页面时根元素的属性（data-theme、底色）可能被换掉：按记住的选择再写一次
+  blazor.addEventListener?.('enhancednavigationend', reapplyTheme);
+  installTheme();
 
   blazor.registerCustomEventType('runetoggle', {
     browserEventName: 'rune-toggle',
@@ -274,9 +281,10 @@ function syncWithin(root) {
     if (element.matches('[data-rune-hotkey-label]')) formatHotkeyLabel(element);
     if (element.matches('dialog[data-rune-close-when]')) watchCloseWhen(element);
     if (element.matches('[data-rune-fullscreen="true"]')) syncFullscreen(element);
+    if (element.matches('[data-rune-theme-switcher]')) watchThemeSwitcher(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar], [data-rune-hotkey-label], dialog[data-rune-close-when], [data-rune-fullscreen="true"]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar], [data-rune-hotkey-label], dialog[data-rune-close-when], [data-rune-fullscreen="true"], [data-rune-theme-switcher]').forEach(sync);
 }
 
 /** 头像的图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */
@@ -345,6 +353,7 @@ function onClick(event) {
   if (copier && !copier.matches(':disabled, [aria-busy="true"]')) copyFrom(copier);
 
   closeOnLink(target);
+  chooseTheme(target);
 
   const dismiss = target.closest('[data-rune-dismiss]');
   if (dismiss) {

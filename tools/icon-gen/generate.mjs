@@ -64,6 +64,26 @@ const BUILT_IN = [
   'minimize',
   'panel-left-close',
   'panel-left-open',
+  'dot',
+  // ThemeSwitcher：跟随系统与各套内置主题
+  'monitor',
+  'sun',
+  'moon',
+  'scroll-text',
+  'moon-star',
+  'contrast',
+  'waves-horizontal',
+  'trees',
+  'citrus',
+  'flower-2',
+  'party-popper',
+  'zap',
+  'chart-no-axes-combined',
+  'flower',
+  'flame',
+  'feather',
+  'amphora',
+  'palette',
 ];
 
 /** 文档注释里最多列几个关键词 */

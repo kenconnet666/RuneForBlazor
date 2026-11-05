@@ -13,6 +13,9 @@ public enum MenuPart
 
     /// <summary>分隔线（MenuSeparator）。</summary>
     Separator,
+
+    /// <summary>分组的标题（MenuRadioGroup 的 Label）。</summary>
+    GroupLabel,
 }
 
 /// <summary>菜单项的部件。</summary>
@@ -26,6 +29,9 @@ public enum MenuItemPart
 
     /// <summary>右侧的快捷键说明。</summary>
     Shortcut,
+
+    /// <summary>单选项起始边的选中标记（选中时显示，没选中时占着位置）。</summary>
+    Indicator,
 }
 
 /// <summary>菜单的样式（配方）。</summary>
@@ -37,6 +43,7 @@ public static class MenuStyles
         {
             MenuPart.Root => Sx.Of(FloatingStyles.Anchored, FloatingStyles.Surface, OverlayTransitions.Scale, FloatingStyles.ScrollPanel, Root),
             MenuPart.Content => Content,
+            MenuPart.GroupLabel => GroupLabel,
             _ => Separator,
         });
 
@@ -46,6 +53,7 @@ public static class MenuStyles
         {
             MenuItemPart.Root => Sx.Of(ItemRoot, SharedStyles.RippleHost, SharedStyles.InteractionColors, SharedStyles.ToneText(tone), SharedStyles.FocusRingInset),
             MenuItemPart.Icon => ItemIcon,
+            MenuItemPart.Indicator => Indicator,
             _ => Shortcut,
         });
 
@@ -91,6 +99,25 @@ public static class MenuStyles
         FontSize = CssLength.Em(0.85),
     });
 
+    // 单选的标记占一列，选没选中都对齐；按菜单项的 aria-checked 显示（JS 改了选中也跟着变）
+    static Style Indicator => Css.Define(static () => new Style
+    {
+        FlexShrink = 0,
+        Width = CssLength.Em(1),
+        Visibility = Visibility.Hidden,
+        [When.Parent(When.Attribute("[aria-checked=\"true\"]"))] = new() { Visibility = Visibility.Visible },
+    });
+
+    static Style GroupLabel => Css.Define(static () => new Style
+    {
+        Display = Display.Block,
+        PaddingBlock = Space.Xs,
+        PaddingInline = Space.Sm,
+        Color = Colors.TextMuted,
+        FontSize = FontSizes.Sm,
+        FontWeight = FontWeights.Semibold,
+    });
+
     static Style Separator => Css.Define(static () => new Style
     {
         Height = BorderWidths.Xs,
@@ -99,3 +126,8 @@ public static class MenuStyles
         BackgroundColor = Colors.Border,
     });
 }
+
+/// <summary>MenuRadioGroup 交给组内单选项的状态（级联值）。</summary>
+/// <param name="Value">选中项的值。</param>
+/// <param name="Select">选中某一项。</param>
+public sealed record MenuRadioGroupState(string? Value, Func<string?, Task> Select);
