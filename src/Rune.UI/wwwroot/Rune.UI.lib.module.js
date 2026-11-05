@@ -74,6 +74,8 @@
 //   data-rune-hovercard="id" 悬停卡片的触发元素：同提示（停留 data-delay、离开 data-close-delay），但焦点可以移进卡片，离开触发元素与卡片才隐藏
 //   data-indeterminate       勾选框的半选：原生的 indeterminate 只能用 JS 设置，按这个属性同步
 //   data-rune-focus="id"     点击时聚焦这个 id 的控件并滚到它（表单错误汇总里的链接）
+//   data-rune-toaster        通知区域：F8 跳进来；通知（data-rune-toast）里按 Esc、横向滑走时发出 rune-command（dismiss），焦点交给相邻的通知；
+//                            焦点进出区域时在区域上发出 rune-command（focus-enter / focus-leave，C# 暂停、继续计时）
 //   data-rune-leave-guard    有未保存的改动（LeaveConfirmation）：点了去本站别的页面的链接先不走，发出 rune-command（leave，带地址）由 C# 确认
 //   data-rune-invalid-submit 表单：提交没通过时（计数变了）焦点到错误汇总（data-rune-error-summary），没有汇总时到第一个出错的控件
 //   data-rune-spin           数字输入框：↑↓ 加减步长、Page Up / Down 加减大步长、Home / End 到最小 / 最大，改完发 change（C# 再校正）
@@ -102,11 +104,12 @@
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
-// leave（离开确认）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
+// leave（离开确认）、toast（通知区域）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusInvalid, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawIcon, startDismiss, startRipple } from './js/effects.js';
 import { guardLeave } from './js/leave.js';
+import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, onToasterFocusOut } from './js/toast.js';
 import { watchGrid, watchSize } from './js/layout.js';
 import { activeIndex, closeAfterPick, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
 import { watchIndicator } from './js/indicator.js';
@@ -214,6 +217,7 @@ function install(blazor) {
   document.addEventListener('pointerdown', grabSlider);
   document.addEventListener('pointerdown', grabResizeHandle);
   document.addEventListener('pointerdown', grabTab);
+  document.addEventListener('pointerdown', grabToast);
   document.addEventListener('dblclick', resetResizeHandle);
   document.addEventListener('auxclick', auxClickTabs);
   document.addEventListener('pointerdown', onHoverPointerDown);
@@ -349,6 +353,7 @@ function onClick(event) {
   scrollTabs(event);
   closeAfterPick(target);
   toggleFromShell(target);
+  clickToastClose(target);
 
   const refocus = target.closest('[data-rune-refocus]');
   if (refocus) document.getElementById(refocus.getAttribute('data-rune-refocus'))?.focus({ preventScroll: true });
@@ -408,6 +413,8 @@ function onKeyDown(event) {
     return;
   }
   onHoverEscape(event);
+  focusToaster(event);
+  keyToast(event);
   exitFullscreenOnEscape(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
@@ -430,6 +437,7 @@ function onFocusIn(event) {
   highlightFirstOnFocus(target);
   onOtpFocus(event);
   onHoverFocusIn(event);
+  onToasterFocusIn(event);
   // 列表自己获得焦点：还没有高亮项时高亮默认项（触发按钮、输入框做宿主时由打开下拉的一方决定）
   if (target.matches('[role="listbox"][data-rune-list]') && activeIndex(target, target) < 0) highlightDefault(target, target);
 }
@@ -437,4 +445,5 @@ function onFocusIn(event) {
 function onFocusOut(event) {
   onOtpFocus(event);
   onHoverFocusOut(event);
+  onToasterFocusOut(event);
 }

@@ -1,0 +1,60 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Grid MinItemWidth="CssLength.Rem(10)" Gap="SpaceScale.Md">
+        <Field Label="位置">
+            <Select Items="placements" @bind-Value="placement" />
+        </Field>
+        <Field Label="最多同时显示">
+            <NumberField @bind-Value="max" Min="1" Max="6" />
+        </Field>
+    </Grid>
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="stack">叠成一摞</Switch>
+        <Switch @bind-Value="progress">剩余时间条</Switch>
+    </Flex>
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <Button Icon="Lucide.BellRing" @onclick="Notify">发一条通知</Button>
+        <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral" @onclick="() => toaster.Dismiss()">全部关闭</Button>
+    </Flex>
+    <Toaster Controller="toaster" Placement="Placement" Stack="stack" Progress="progress" Max="@(max ?? 1)" />
+</Flex>
+
+@code {
+    static readonly ListboxOption[] placements =
+    [
+        new(nameof(ToastPlacement.TopStart), "左上"),
+        new(nameof(ToastPlacement.Top), "顶部居中"),
+        new(nameof(ToastPlacement.TopEnd), "右上"),
+        new(nameof(ToastPlacement.BottomStart), "左下"),
+        new(nameof(ToastPlacement.Bottom), "底部居中"),
+        new(nameof(ToastPlacement.BottomEnd), "右下"),
+    ];
+
+    static readonly (Tone Tone, string Title)[] samples =
+    [
+        (Tone.Success, "报表已导出"),
+        (Tone.Info, "林小满评论了你的文档"),
+        (Tone.Warning, "登录状态将在 5 分钟后过期"),
+        (Tone.Neutral, "已复制到剪贴板"),
+    ];
+
+    // 这个示例自己的通知与显示区域：位置、叠放这些设置不影响页面上别的示例
+    readonly ToastService toaster = new() { DefaultDuration = TimeSpan.FromSeconds(6) };
+    string? placement = nameof(ToastPlacement.TopEnd);
+    bool stack = true;
+    bool progress = true;
+    int? max = 3;
+    int count;
+
+    ToastPlacement Placement => Enum.Parse<ToastPlacement>(placement ?? nameof(ToastPlacement.TopEnd));
+
+    void Notify()
+    {
+        var (tone, title) = samples[count++ % samples.Length];
+        toaster.Show(new() { Tone = tone, Title = title, Description = $"第 {count} 条通知" });
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => toaster.Dispose();
+}

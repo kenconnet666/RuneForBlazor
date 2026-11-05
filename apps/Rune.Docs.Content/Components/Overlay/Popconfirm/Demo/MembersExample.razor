@@ -31,7 +31,7 @@
     }
     <Flex Justify="ContentJustify.End">
         <Popconfirm Title="清空回收站？" Description="回收站里的 12 个文件将被永久删除。" Tone="Tone.Danger" Icon="Lucide.Trash" ConfirmText="清空"
-                    Placement="Placement.TopEnd" OnConfirm="@(() => Toasts.Show("回收站已清空", Tone.Success))">
+                    Placement="Placement.TopEnd" OnConfirm="@(() => Toasts.Success("回收站已清空"))">
             <Trigger Context="t"><Button @attributes="t" Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Trash">清空回收站</Button></Trigger>
         </Popconfirm>
     </Flex>
@@ -54,11 +54,11 @@
         await Task.Delay(600);
         if (member.Name.Contains('周'))
         {
-            Toasts.Show("没有权限", Tone.Danger, "移出失败");
+            Toasts.Error("移出失败", new() { Description = "没有权限" });
             e.KeepOpen = true;
             return;
         }
         members = [.. members.Where(m => m.Id != member.Id)];
-        Toasts.Show($"已移出 {member.Name}", Tone.Success);
+        Toasts.Success($"已移出 {member.Name}");
     }
 }

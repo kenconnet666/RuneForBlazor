@@ -1,22 +1,69 @@
 @inherits RuneComponent
-@inject ToastService Toasts
 
-<Flex Gap="SpaceScale.Sm" Wrap="true">
-    <Button Tone="Tone.Success" @onclick="@(() => Toasts.Show("订单已保存。", Tone.Success))" data-testid="toast-success">成功</Button>
-    <Button Variant="ButtonVariant.Soft" @onclick="@(() => Toasts.Show("有 3 条新消息。", title: "收件箱"))">信息（带标题）</Button>
-    <Button Variant="ButtonVariant.Soft" Tone="Tone.Warning" @onclick="@(() => Toasts.Show("库存低于 10 件。", Tone.Warning))">警告</Button>
-    <Button Variant="ButtonVariant.Soft" Tone="Tone.Danger" @onclick="@(() => Toasts.Show("网络错误，保存失败。", Tone.Danger, "保存失败"))">错误（不自动消失）</Button>
-    <Button Variant="ButtonVariant.Surface" @onclick="FromBackground">两秒后从后台线程显示</Button>
-    <Button Variant="ButtonVariant.Ghost" @onclick="Toasts.Clear">全部清除</Button>
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        @foreach (var (tone, title, description) in messages)
+        {
+            <Button @key="tone" Variant="ButtonVariant.Soft" Tone="tone" Size="Size.Sm" data-testid="@($"toast-{tone.ToString().ToLowerInvariant()}")"
+                    @onclick="() => toaster.Show(new() { Tone = tone, Title = title, Description = description })">@title</Button>
+        }
+    </Flex>
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <Button Size="Size.Sm" Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.Trash" @onclick="Delete">删除（可撤销）</Button>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.Upload" @onclick="UploadAsync">上传（PromiseAsync）</Button>
+    </Flex>
+    <Toaster Controller="toaster" Placement="ToastPlacement.BottomEnd" />
 </Flex>
-<Paragraph Tone="TextTone.Muted" Size="Size.Sm">
-    列表放在信号里：Toaster 读了它，后台线程调用 Show 也会自动刷新。静态 SSR 下没有交互，按钮不起作用。
-</Paragraph>
 
 @code {
-    void FromBackground() => _ = Task.Run(async () =>
+    static readonly (Tone Tone, string Title, string Description)[] messages =
+    [
+        (Tone.Success, "已保存", "改动已同步到所有设备。"),
+        (Tone.Info, "有新版本", "刷新页面即可使用 2.4.0。"),
+        (Tone.Warning, "存储空间不足", "还剩 2 GB，请清理回收站。"),
+        (Tone.Danger, "发送失败", "对方的邮箱地址无效。"),
+    ];
+
+    // 应用里一般注入 ToastService（布局里放一个 Toaster）；这里只给这个示例用，自己 new 一个
+    readonly ToastService toaster = new();
+
+    void Delete()
     {
-        await Task.Delay(2000);
-        Toasts.Show("后台任务完成。", Tone.Info, "导出");
-    });
+        string? id = null;
+        id = toaster.Show(new()
+        {
+            Title = "已删除 3 个文件",
+            Action = @<Button Size="Size.Sm" Variant="ButtonVariant.Soft" @onclick="() => Undo(id!)">撤销</Button>,
+        });
+    }
+
+    void Undo(string id)
+    {
+        toaster.Dismiss(id);
+        toaster.Show(new() { Tone = Tone.Success, Title = "已恢复" });
+    }
+
+    async Task UploadAsync()
+    {
+        try
+        {
+            await toaster.PromiseAsync(UploadFileAsync(), new(
+                new() { Title = "正在上传 report.pdf" },
+                name => new() { Title = $"{name} 上传完成" },
+                error => new() { Title = "上传失败", Description = error.Message }));
+        }
+        catch (IOException)
+        {
+            // 失败已经显示在通知里
+        }
+    }
+
+    static async Task<string> UploadFileAsync()
+    {
+        await Task.Delay(1800);
+        return Random.Shared.NextDouble() > 0.3 ? "report.pdf" : throw new IOException("网络中断");
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => toaster.Dispose();
 }

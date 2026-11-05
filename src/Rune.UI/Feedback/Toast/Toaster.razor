@@ -1,30 +1,147 @@
 @*
-    消息提示的显示区域：页面角落的一列。放在交互区域里（通常是布局），每个页面一个：<Toaster />
-    调用 ToastService.Show 显示提示。每条是一个 Alert（浅色底加描边、带阴影），可以关闭。
-    区域是 aria-live="polite"，新提示礼貌播报；Danger 的提示是 role="alert"，立即播报。
+    通知的显示区域（同 vue-tsx-pro 的 Toaster）：放一个即可（通常在布局里），内容由 ToastService 给。
+    <Toaster />   <Toaster Placement="ToastPlacement.TopEnd" Max="5" Stack="true" Progress="true" />
+    <Toaster Controller="ownToasts" />   自己 new 一个 ToastService 交给它：设置、内容与页面上别的通知区域互不相干
+    每条通知就是 Alert（Surface 外观加阴影），图标、标题、正文、操作、关闭按钮都复用它；加载中用 Alert 的 Loading。
+    - 只显示最新的 Max 条，更早的先不显示，前面的关闭后补上（也只给显示出来的计时）；
+    - 指针在区域上、焦点在区域里时计时暂停；Progress 时自动关闭的通知底部有剩余时间条，暂停时一起停；
+    - Stack 时叠成一摞（同 Sonner）：只露出最新的一条，更早的缩小叠在后面，悬停或聚焦时展开；
+    - 无障碍：区域是带名称的 landmark（section），F8 跳到通知区域；焦点在一条通知里时 Esc 关闭它，焦点交给相邻的通知，
+      没有时回到进入区域之前的位置（JS 初始化器，data-rune-toaster）；列表 aria-live="polite"，重要的通知打断播报；
+    - 进场从边缘淡入，离场时高度收起；横向滑动超过宽度的 35% 就关闭（JS 初始化器）。
+    未声明的属性落到区域（section）上。
 *@
 @namespace Rune.UI
 @inherits UIComponent
-@inject ToastService Toasts
-@{ var parts = ToastStyles.Of(Config.Styles); }
+@inject ToastService Injected
+@{
+    var parts = ToastStyles.Of(Placement, Config.Styles);
+    var fromTop = ToastStyles.FromTop(Placement);
+    var visible = Toasts.Items.TakeLast(Max).ToList();
+    var stacked = Stack && !hovering && !focused;
+    // 深度只数还在显示的：正在离场的不占一层
+    var depth = visible.Count(t => !t.Closing);
+    var paused = Toasts.Paused;
+}
 
-<section aria-label="@(Label ?? Config.Lang.ToasterLabel)" aria-live="polite" @attributes="Attrs.Merge(parts[ToasterPart.Root], Rest)">
-    @foreach (var toast in Toasts.Items)
-    {
-        <Alert @key="toast.Id" Variant="AlertVariant.Surface" Tone="toast.Tone" Title="@toast.Title"
-               Live="@(toast.Tone == Tone.Danger ? AlertLive.Assertive : AlertLive.Off)"
-               CloseLabel="@CloseLabel" OnClose="() => Toasts.Dismiss(toast)"
-               @attributes="Attrs.MergeProps(parts[ToasterPart.Toast], PropsToast)">@toast.Message</Alert>
-    }
+<section tabindex="-1" aria-label="@(Label ?? Config.Lang.ToasterLabel)" data-rune-toaster data-expanded="@(Stack ? (!stacked).ToString().ToLowerInvariant() : null)"
+         @onpointerenter="() => SetHovering(true)" @onpointerleave="() => SetHovering(false)" @onrunecommand="OnRegionCommand"
+         @attributes="Attrs.Merge(parts[ToasterPart.Root], Rest)">
+    <ol aria-live="polite" @attributes="Attrs.Merge(parts[ToasterPart.List], PropsList)">
+        @foreach (var toast in visible)
+        {
+            var layer = toast.Closing ? depth : --depth;
+            <li @key="toast.Id" data-rune-toast data-closable="@(toast.Options.Closable && !toast.Closing ? true : null)" data-state="@(toast.Closing ? "closing" : "open")"
+                aria-live="@(toast.Options.Important ? "assertive" : null)" aria-atomic="@(toast.Options.Important ? "true" : null)"
+                @onrunecommand="e => OnCommand(toast, e)" @attributes="Attrs.Merge(parts[ToasterPart.Item], PropsItem, ItemManaged(toast, stacked ? layer : null, fromTop))">
+                <Collapse Open="!toast.Closing" PropsContent="GapLayer">
+                    <Alert Variant="AlertVariant.Surface" Tone="@(toast.Options.Tone ?? Tone.Neutral)" Icon="toast.Options.Icon" HideIcon="toast.Options.HideIcon"
+                           Loading="toast.Options.Loading" Title="@toast.Options.Title" Description="@Text(toast.Options.Description)" Action="toast.Options.Action"
+                           Live="AlertLive.Off" CloseLabel="@CloseLabel" OnClose="@(toast.Options.Closable ? EventCallback.Factory.Create(this, () => Toasts.Dismiss(toast.Id)) : default(EventCallback))"
+                           PropsClose="CloseMarker" @attributes="Attrs.MergeProps(parts[ToasterPart.Toast], PropsToast)" />
+                    @if (Progress && toast.Countdown is { } countdown)
+                    {
+                        <span @key="countdown.Id" aria-hidden="true" style="animation-duration:@((int)countdown.Duration.TotalMilliseconds)ms"
+                              @attributes="Attrs.Merge(parts[ToasterPart.Progress], PropsProgress, paused ? PausedLayer : null)"></span>
+                    }
+                </Collapse>
+            </li>
+        }
+    </ol>
 </section>
 
 @code {
-    /// <summary>区域的名称（读屏读出），不写时取语言包（UIConfig.Lang）的“通知”。</summary>
+    static readonly Attrs GapLayer = new() { Sx = ToastStyles.Gap };
+    static readonly Attrs PausedLayer = new() { Sx = ToastStyles.CountdownPaused };
+    // 关闭按钮带上标记：JS 在它被点之前记下关闭后焦点该去哪
+    static readonly Attrs CloseMarker = new() { ["data-rune-toast-close"] = true };
+
+    bool hovering;
+    bool focused;
+
+    /// <summary>通知的来源；不写时用注入的 ToastService（应用里的那一个）。示例、局部区域可以自己 new 一个交给它。</summary>
+    [Parameter] public ToastService? Controller { get; set; }
+
+    ToastService Toasts => Controller ?? Injected;
+
+    /// <summary>显示位置，默认右下（BottomEnd）。</summary>
+    [Parameter] public ToastPlacement Placement { get; set; }
+
+    /// <summary>最多同时显示几条，默认 3；更早的先不显示，前面的关闭后补上。</summary>
+    [Parameter] public int Max { get; set; } = 3;
+
+    /// <summary>叠成一摞：只露出最新的一条，更早的缩小叠在后面；悬停或聚焦时展开。默认 false（平铺）。</summary>
+    [Parameter] public bool Stack { get; set; }
+
+    /// <summary>在自动关闭的通知底部显示剩余时间条（暂停计时时一起停），默认 false。</summary>
+    [Parameter] public bool Progress { get; set; }
+
+    /// <summary>区域的名称（读屏读出），不写时取语言包的“通知”。</summary>
     [Parameter] public string? Label { get; set; }
 
-    /// <summary>关闭按钮的名称，不写时取语言包（UIConfig.Lang）的“关闭”。</summary>
+    /// <summary>关闭按钮的名称，不写时取语言包的“关闭”。</summary>
     [Parameter] public string? CloseLabel { get; set; }
 
-    /// <summary>每条提示的部件属性（交给 Alert）。</summary>
+    /// <summary>列表（ol）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>每一项（li）的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    /// <summary>每条通知（Alert）的部件属性。</summary>
     [Parameter] public Attrs? PropsToast { get; set; }
+
+    /// <summary>剩余时间条的部件属性。</summary>
+    [Parameter] public Attrs? PropsProgress { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => Toasts.Limit = Max;
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        Toasts.Limit = int.MaxValue;
+        Toasts.Resume();
+    }
+
+    static RenderFragment? Text(string? text) => text is null ? null : builder => builder.AddContent(0, text);
+
+    // JS 交来的命令：Esc、滑走时关闭这一条
+    void OnCommand(Toast toast, CommandEventArgs e)
+    {
+        if (e.Name == "dismiss" && toast.Options.Closable) Toasts.Dismiss(toast.Id);
+    }
+
+    void SetHovering(bool value)
+    {
+        hovering = value;
+        SyncPause();
+    }
+
+    // JS 在焦点进出区域时发来（区域里的元素之间移动不算）：暂停或继续计时；各条通知的 dismiss 冒泡上来，这里不管
+    void OnRegionCommand(CommandEventArgs e)
+    {
+        if (e.Name is not ("focus-enter" or "focus-leave")) return;
+        focused = e.Name == "focus-enter";
+        SyncPause();
+    }
+
+    void SyncPause()
+    {
+        if (hovering || focused) Toasts.Pause();
+        else Toasts.Resume();
+    }
+
+    // 叠放的一层：每深一层错开 0.75em、缩小 5%，第三层之后隐藏；位移与层叠顺序是行内的值
+    static Attrs? ItemManaged(Toast toast, int? depth, bool fromTop)
+    {
+        var closing = toast.Closing ? ToastStyles.ItemClosing : null;
+        if (depth is not { } d) return closing is null ? null : new Attrs { Sx = closing };
+        var offset = (fromTop ? 0.75 : -0.75) * d;
+        return new Attrs
+        {
+            Sx = Sx.Of(ToastStyles.Stacked, d > 0 ? ToastStyles.StackedBehind(fromTop) : null, d > 2 ? ToastStyles.StackedHidden : null, closing),
+            InlineStyle = FormattableString.Invariant($"translate:0 {offset}em;scale:{1 - d * 0.05};z-index:{100 - d}"),
+        };
+    }
 }

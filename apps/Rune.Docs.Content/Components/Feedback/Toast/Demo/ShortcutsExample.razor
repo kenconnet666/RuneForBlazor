@@ -1,0 +1,45 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        @* 连点几次也只有一条：同一个 Id 换掉原来的那条并重新计时 *@
+        <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Success" Icon="Lucide.Save"
+                @onclick="@(() => toaster.Success("草稿已保存", new() { Id = "draft" }))">保存草稿（连点试试）</Button>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Icon="Lucide.Download" @onclick="ExportAsync">导出（Loading → Success）</Button>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.RefreshCw" @onclick="SyncFailed">同步失败</Button>
+    </Flex>
+    <Small Tone="TextTone.Muted" aria-live="polite">@(log.Count > 0 ? string.Join("；", log) : "OnClose 的记录显示在这里")</Small>
+    <Toaster Controller="toaster" Placement="ToastPlacement.BottomEnd" />
+</Flex>
+
+@code {
+    readonly ToastService toaster = new();
+    List<string> log = [];
+
+    void Record(string line) => InvokeAsync(() => log = [line, .. log.Take(3)]);
+
+    static string Reason(ToastCloseReason reason) => reason == ToastCloseReason.Timeout ? "到时" : "手动";
+
+    // 导出：先放一条“进行中”，完成后用同一个 Id 换成结果
+    async Task ExportAsync()
+    {
+        toaster.Loading("正在导出 10 月对账单", new() { Id = "export" });
+        await Task.Delay(1500);
+        toaster.Success("对账单已导出", new()
+        {
+            Id = "export",
+            Description = "共 1,284 行，已保存到下载目录",
+            OnClose = reason => Record($"导出通知关闭：{Reason(reason)}"),
+        });
+    }
+
+    void SyncFailed() => toaster.Error("同步失败", new()
+    {
+        Id = "sync",
+        Description = "服务器暂时不可用，稍后会自动重试",
+        OnClose = reason => Record($"同步通知关闭：{Reason(reason)}"),
+    });
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => toaster.Dispose();
+}

@@ -1,0 +1,48 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.WifiOff" @onclick="Disconnect">模拟断网</Button>
+        <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Wifi" Disabled="offline is null" @onclick="Reconnect">恢复连接</Button>
+    </Flex>
+    <Toaster Controller="toaster" Placement="ToastPlacement.BottomStart" />
+</Flex>
+
+@code {
+    readonly ToastService toaster = new();
+    string? offline;
+
+    void Disconnect()
+    {
+        if (offline is not null) return;
+        offline = toaster.Show(new()
+        {
+            Tone = Tone.Warning,
+            Icon = Lucide.WifiOff,
+            Title = "网络已断开",
+            Description = "改动先保存在本机，恢复连接后自动同步。",
+            // 问题没解决前一直显示，也不能手动关掉
+            Duration = Timeout.InfiniteTimeSpan,
+            Closable = false,
+            Action = @<Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Warning" @onclick="Reconnect">重试</Button>,
+        });
+    }
+
+    void Reconnect()
+    {
+        if (offline is null) return;
+        // 同一条通知换成成功：计时按新的时长重新开始
+        toaster.Update(offline, _ => new()
+        {
+            Tone = Tone.Success,
+            Icon = Lucide.Wifi,
+            Title = "已重新连接",
+            Description = "离线期间的改动已同步。",
+            Duration = TimeSpan.FromSeconds(3),
+        });
+        offline = null;
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => toaster.Dispose();
+}

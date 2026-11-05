@@ -245,4 +245,25 @@ public class OverlayTests(DemoServer demo)
         await page.Keyboard.PressAsync("Escape");
         await Assertions.Expect(card).ToBeHiddenAsync();
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 通知_F8进入区域_Esc关闭焦点所在的一条(string mode)
+    {
+        var page = await demo.OpenAsync(mode, "toast");
+        await page.GetByTestId("toast-success").ClickAsync();
+        await page.GetByTestId("toast-info").ClickAsync();
+        var open = page.Locator("[data-rune-toast][data-state=open]");
+        await Assertions.Expect(open).ToHaveCountAsync(2);
+
+        await page.Keyboard.PressAsync("F8");
+        var region = page.Locator("[data-rune-toaster]").Filter(new() { Has = page.Locator("[data-rune-toast]") });
+        await Assertions.Expect(region).ToBeFocusedAsync();
+        // 区域里第一个可聚焦的是第一条的关闭按钮；Esc 关掉它，焦点交给剩下的那条
+        await page.Keyboard.PressAsync("Tab");
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(open).ToHaveCountAsync(1);
+        await Assertions.Expect(open.Locator("[data-part=close]")).ToBeFocusedAsync();
+    }
 }
