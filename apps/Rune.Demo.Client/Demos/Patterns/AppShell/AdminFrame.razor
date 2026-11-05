@@ -1,0 +1,128 @@
+@*
+    AppShell 的后台示例（整页，在 iframe 里打开）：同 vue-tsx-pro 文档站 AppShell 的 frames/Admin。
+    示例里不真的换页：链接只写锚点，当前项由 Active 指定；没有换路由，抽屉要自己关上。数据是虚构的。
+*@
+@attribute [DemoFrame("app-shell", "admin")]
+@inherits RuneComponent
+
+<AppShell @bind-SidebarOpen="navOpen">
+    <Brand><AppShellBrand Href="#overview" Icon="Lucide.Box">小满商城后台</AppShellBrand></Brand>
+    <Header>
+        <TextField Type="search" Icon="Lucide.Search" placeholder="搜索订单、客户" aria-label="搜索" Sx="Search" />
+        <IconButton Icon="Lucide.Bell" Label="通知" Sx="End" />
+        <Avatar Size="Size.Sm" Name="林小满" />
+    </Header>
+    <Sidebar>
+        <NavList aria-label="后台">
+            <NavSection Label="工作台">
+                @Item("overview")
+                @Item("orders")
+                @Item("products")
+                @Item("customers")
+            </NavSection>
+            <NavSection Label="分析">
+                @Item("reports")
+                <NavGroup Label="设置" Icon="Lucide.Settings">
+                    @Item("team")
+                    @Item("billing")
+                </NavGroup>
+            </NavSection>
+        </NavList>
+    </Sidebar>
+    <Aside>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <Strong>今日提醒</Strong>
+            <Small Tone="TextTone.Muted">3 笔订单超过 24 小时未发货</Small>
+            <Small Tone="TextTone.Muted">“云朵沙发”库存只剩 5 件</Small>
+        </Flex>
+    </Aside>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xl">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <H1 Size="Size.Xxl">@pages[current].Label</H1>
+                <Paragraph Tone="TextTone.Muted">宽于 64rem 时侧栏常驻，更窄时收进抽屉（顶栏最前面出现菜单按钮）；宽于 80rem 时显示右侧栏。</Paragraph>
+            </Flex>
+            <Grid MinItemWidth="CssLength.Rem(11)" Gap="SpaceScale.Md">
+                <Card><DemoStat Label="今日销售额" Text="48,210" Unit="元" Change="0.124" /></Card>
+                <Card><DemoStat Label="订单数" Text="326" Change="0.058" /></Card>
+                <Card><DemoStat Label="新客户" Text="41" Change="-0.032" /></Card>
+                <Card><DemoStat Label="退款率" Text="1.8%" Change="-0.2" InvertChange="true" /></Card>
+            </Grid>
+            <Card>
+                <Header><Strong>最近订单</Strong></Header>
+                <ChildContent>
+                    <Table aria-label="最近订单">
+                        <TableHead>
+                            <TableRow>
+                                <TableHeaderCell>订单号</TableHeaderCell>
+                                <TableHeaderCell>客户</TableHeaderCell>
+                                <TableHeaderCell>金额</TableHeaderCell>
+                                <TableHeaderCell>状态</TableHeaderCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            @foreach (var order in orders)
+                            {
+                                <TableRow @key="order.Id">
+                                    <TableCell>@order.Id</TableCell>
+                                    <TableCell>@order.Customer</TableCell>
+                                    <TableCell>@order.Amount</TableCell>
+                                    <TableCell><Badge Tone="order.Tone">@order.Status</Badge></TableCell>
+                                </TableRow>
+                            }
+                        </TableBody>
+                    </Table>
+                </ChildContent>
+            </Card>
+        </Flex>
+    </ChildContent>
+</AppShell>
+
+@code {
+    sealed record Page(string Label, IconData? Icon);
+    sealed record Order(string Id, string Customer, string Amount, Tone Tone, string Status);
+
+    static readonly Dictionary<string, Page> pages = new()
+    {
+        ["overview"] = new("概览", Lucide.House),
+        ["orders"] = new("订单", Lucide.ShoppingCart),
+        ["products"] = new("商品", Lucide.Package),
+        ["customers"] = new("客户", Lucide.Users),
+        ["reports"] = new("报表", Lucide.ChartLine),
+        ["team"] = new("团队成员", null),
+        ["billing"] = new("账单", null),
+    };
+
+    static readonly Order[] orders =
+    [
+        new("#10234", "林小满", "¥1,280.00", Tone.Success, "已发货"),
+        new("#10233", "周一航", "¥329.00", Tone.Warning, "待付款"),
+        new("#10232", "陈默", "¥4,299.00", Tone.Info, "备货中"),
+        new("#10231", "许悠", "¥659.00", Tone.Success, "已完成"),
+    ];
+
+    string current = "overview";
+    bool navOpen;
+
+    RenderFragment Item(string page) =>
+        @<NavItem Href="@($"#{page}")" Icon="pages[page].Icon" Active="current == page" @onclick="() => Go(page)">
+            <End>
+                @if (page == "orders")
+                {
+                    <Badge Radius="Radius.Full">12</Badge>
+                }
+            </End>
+            <ChildContent>@pages[page].Label</ChildContent>
+        </NavItem>;
+
+    void Go(string page)
+    {
+        current = page;
+        navOpen = false;
+    }
+
+    // 通知与头像靠顶栏的结束边
+    static Style End => Css.Define(static () => new Style { MarginInlineStart = CssLength.Auto });
+
+    static Style Search => Css.Define(static () => new Style { Width = CssLength.Rem(16) });
+}

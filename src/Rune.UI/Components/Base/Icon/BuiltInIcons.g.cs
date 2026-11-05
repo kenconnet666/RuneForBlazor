@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（26 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（31 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -48,8 +48,18 @@ public static partial class BuiltInIcons
     public static IconData Info => field ??= new("info", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>");
     /// <summary>Lucide 图标 <c>loader-circle</c>（loading、wait、busy、progress、spinner、spinning、throbber、circle）。</summary>
     public static IconData LoaderCircle => field ??= new("loader-circle", "<path d=\"M21 12a9 9 0 1 1-6.219-8.56\"/>");
+    /// <summary>Lucide 图标 <c>maximize</c>（fullscreen、expand、dashed）。</summary>
+    public static IconData Maximize => field ??= new("maximize", "<path d=\"M8 3H5a2 2 0 0 0-2 2v3\"/><path d=\"M21 8V5a2 2 0 0 0-2-2h-3\"/><path d=\"M3 16v3a2 2 0 0 0 2 2h3\"/><path d=\"M16 21h3a2 2 0 0 0 2-2v-3\"/>");
+    /// <summary>Lucide 图标 <c>menu</c>（bars、navigation、hamburger、options）。</summary>
+    public static IconData Menu => field ??= new("menu", "<path d=\"M4 5h16\"/><path d=\"M4 12h16\"/><path d=\"M4 19h16\"/>");
+    /// <summary>Lucide 图标 <c>minimize</c>（exit fullscreen、close、shrink）。</summary>
+    public static IconData Minimize => field ??= new("minimize", "<path d=\"M8 3v3a2 2 0 0 1-2 2H3\"/><path d=\"M21 8h-3a2 2 0 0 1-2-2V3\"/><path d=\"M3 16h3a2 2 0 0 1 2 2v3\"/><path d=\"M16 21v-3a2 2 0 0 1 2-2h3\"/>");
     /// <summary>Lucide 图标 <c>minus</c>（minus、remove、delete、cancel、erase、subtract、reduce、clear）。</summary>
     public static IconData Minus => field ??= new("minus", "<path d=\"M5 12h14\"/>");
+    /// <summary>Lucide 图标 <c>panel-left-close</c>（position、placement、left、left edge、leftmost、left side、horizontal、inline）。</summary>
+    public static IconData PanelLeftClose => field ??= new("panel-left-close", "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M9 3v18\"/><path d=\"m16 15-3-3 3-3\"/>");
+    /// <summary>Lucide 图标 <c>panel-left-open</c>（position、placement、left、left edge、leftmost、left side、horizontal、inline）。</summary>
+    public static IconData PanelLeftOpen => field ??= new("panel-left-open", "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M9 3v18\"/><path d=\"m14 9 3 3-3 3\"/>");
     /// <summary>Lucide 图标 <c>plus</c>（plus、add、new、create、+、increase、increment、extra）。</summary>
     public static IconData Plus => field ??= new("plus", "<path d=\"M5 12h14\"/><path d=\"M12 5v14\"/>");
     /// <summary>Lucide 图标 <c>search</c>（search、magnifier、scan、scanning、browsing、finding、find、lookup）。</summary>

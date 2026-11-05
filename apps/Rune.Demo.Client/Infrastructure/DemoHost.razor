@@ -1,26 +1,49 @@
 @*
     演示的宿主：按名字找到演示组件并渲染。它是交互模式的根（页面给它加 @rendermode），
     所以参数只能是能序列化的字符串，不能直接传组件类型；交互模式下新用到的样式由这里的 RuneStyles 输出。
+    写了 Frame 时只渲染那个整页示例。
 *@
 @inherits RuneComponent
 
 <RuneStyles />
 
-@* data-demo-interactive：端到端测试等它变成 true 再操作（交互模式接管之前点击不会触发 C# 的处理） *@
-<p data-demo-interactive="@(RendererInfo.IsInteractive ? "true" : "false")" @attributes="Attrs.Merge(DemoStyles.RenderInfo)">
-    运行在 @RendererInfo.Name · @(RendererInfo.IsInteractive ? "已交互" : "未交互（静态渲染或预渲染）")
-</p>
-
-@if (DemoCatalog.Find(Slug) is { } demo)
+@if (Frame is not null)
 {
-    <DynamicComponent Type="demo.Component" />
+    @* 整页示例占满整页：不加运行信息那一行，交互状态写在不占位的外层上 *@
+    <div data-demo-interactive="@Interactive" style="display:contents">
+        @if (DemoCatalog.FindFrame(Slug, Frame) is { } frame)
+        {
+            <DynamicComponent Type="frame" />
+        }
+        else
+        {
+            <p>没有名为 “@Slug/@Frame” 的整页示例。</p>
+        }
+    </div>
 }
 else
 {
-    <p>没有名为 “@Slug” 的演示。</p>
+    @* data-demo-interactive：端到端测试等它变成 true 再操作（交互模式接管之前点击不会触发 C# 的处理） *@
+    <p data-demo-interactive="@Interactive" @attributes="Attrs.Merge(DemoStyles.RenderInfo)">
+        运行在 @RendererInfo.Name · @(RendererInfo.IsInteractive ? "已交互" : "未交互（静态渲染或预渲染）")
+    </p>
+
+    @if (DemoCatalog.Find(Slug) is { } demo)
+    {
+        <DynamicComponent Type="demo.Component" />
+    }
+    else
+    {
+        <p>没有名为 “@Slug” 的演示。</p>
+    }
 }
 
 @code {
     /// <summary>演示的名字（地址里的那一段）。</summary>
     [Parameter, EditorRequired] public string Slug { get; set; } = "";
+
+    /// <summary>整页示例的名字：写了时只渲染这个示例（<see cref="DemoFrameAttribute"/>）。</summary>
+    [Parameter] public string? Frame { get; set; }
+
+    string Interactive => RendererInfo.IsInteractive ? "true" : "false";
 }

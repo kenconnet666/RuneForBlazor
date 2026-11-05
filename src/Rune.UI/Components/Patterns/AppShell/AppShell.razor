@@ -1,0 +1,245 @@
+@*
+    应用外壳（同 vue-tsx-pro 的 AppShell）：粘性顶栏、左侧栏（导航）、正文、右侧栏（本页目录），文档站与后台的整页骨架。
+    <AppShell>
+        <Brand><AppShellBrand Href="" Icon="Lucide.Boxes">采购管理平台</AppShellBrand></Brand>
+        <Header><CommandPalette … /></Header>
+        <Sidebar><NavList aria-label="文档">…</NavList></Sidebar>
+        <Aside><TableOfContents Items="headings" /></Aside>
+        <ChildContent>…</ChildContent>
+    </AppShell>
+    响应式（Breakpoints.Lg / Xl）：
+    - 64rem 以上显示左侧栏；更窄时收进从起始边滑出的 Drawer，顶栏最前面出现打开它的按钮（JS 直接打开，静态 SSR 也能用）。
+      抽屉里点了链接（换页）、或窗口变宽时自动关上（data-rune-close-on-link、data-rune-close-when）。
+    - 80rem 以上显示右侧栏；更窄时不显示（目录这类辅助内容）。
+    两侧栏粘在顶栏下面，内容多时各自滚动（ScrollArea）。顶栏半透明，滚动的正文从下面透出。
+    写了 Brand 时，侧栏常驻的宽度下品牌格与侧栏同宽，侧栏的竖线一直延伸到顶栏顶端，Header 的内容与正文的起始边对齐。
+    Nav：顶栏里品牌后面的导航；只有它时是顶部导航布局，和 Sidebar 一起时是混合布局（顶栏一级、侧栏二级）。Footer：正文下面的页脚。
+    SidebarCollapsible：侧栏底部有“收起侧栏”，收起后只剩图标栏（宽屏时；NavList 变紧凑、分组悬停弹出，品牌格只剩标志），@bind-SidebarCollapsed 记住。
+    全屏（Fullscreenable，默认开，手机宽度不显示）：进入后不显示顶栏和左侧栏，正文占满窗口，同时请求浏览器全屏；右上角留一个退出按钮，Esc 也退出。
+    @bind-Fullscreen 双向绑定；浏览器不让全屏时（iframe 没有 allow="fullscreen"）照样隐藏这两块。收起与全屏要交互模式，静态 SSR 时不显示这两个按钮。
+    自带 SkipLink（跳到正文）；顶栏的高度经 LayoutVars.StickyOffset 交给里面的标题，锚点跳转后不被顶栏挡住。
+    未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = AppShellStyles.Of(State, Config.Styles);
+    var lang = Config.Lang.Patterns;
+}
+
+<div @attributes="Attrs.Merge(parts[AppShellPart.Root], Rest, RootManaged)" @onrunecommand="OnCommandAsync">
+    @if (SkipLink)
+    {
+        <SkipLink Target="@mainId" />
+    }
+    <CascadingValue Value="AppShellContext.Of(Collapsed)">
+        <header @attributes="Attrs.Merge(parts[AppShellPart.Header], PropsHeader)">
+            @if (Sidebar is not null)
+            {
+                <IconButton Icon="BuiltInIcons.Menu" Label="@lang.NavigationOpen" @attributes="Attrs.MergeProps(parts[AppShellPart.MenuButton], PropsMenuButton, MenuManaged)" />
+            }
+            @if (Brand is not null)
+            {
+                <div @attributes="Attrs.Merge(parts[AppShellPart.Brand], PropsBrand)">@Brand</div>
+            }
+            @if (Nav is not null)
+            {
+                <div @attributes="Attrs.Merge(parts[AppShellPart.Nav], PropsNav)">@Nav</div>
+            }
+            <div @attributes="Attrs.Merge(parts[AppShellPart.HeaderContent], PropsHeaderContent)">
+                <div @attributes="Attrs.Merge(parts[AppShellPart.HeaderMain])">@Header</div>
+                @* 放在内容格里：和顶栏的工具同一个间距，顶栏自己的列间距是给品牌格对齐用的 *@
+                @if (Fullscreenable && CanInteract)
+                {
+                    <IconButton Icon="BuiltInIcons.Maximize" Label="@lang.FullscreenEnter" title="@lang.FullscreenEnter" @onclick="() => fullscreen.SetAsync(true)"
+                                @attributes="Attrs.MergeProps(parts[AppShellPart.FullscreenButton], PropsFullscreenButton)" />
+                }
+            </div>
+        </header>
+    </CascadingValue>
+    @if (fullscreen.Value)
+    {
+        <IconButton Icon="BuiltInIcons.Minimize" Label="@lang.FullscreenExit" title="@lang.FullscreenExit" @onclick="() => fullscreen.SetAsync(false)"
+                    @attributes="Attrs.MergeProps(parts[AppShellPart.FullscreenExit], PropsFullscreenExit)" />
+    }
+    <div @attributes="Attrs.Merge(parts[AppShellPart.Body], PropsBody)">
+        @if (Sidebar is not null)
+        {
+            <div @attributes="Attrs.Merge(parts[AppShellPart.Sidebar], PropsSidebar)">
+                <ScrollArea PropsViewport="RailViewportLayer" PropsContent="SidebarContentLayer" @attributes="Attrs.MergeProps(parts[AppShellPart.SidebarScroll], PropsSidebarScroll)">
+                    <CascadingValue Value="NavListContext.Of(Collapsed)">@Sidebar</CascadingValue>
+                </ScrollArea>
+                @if (SidebarCollapsible && CanInteract)
+                {
+                    <div @attributes="Attrs.Merge(parts[AppShellPart.CollapseBar])">
+                        <IconButton Icon="@(sidebarCollapsed.Value ? BuiltInIcons.PanelLeftOpen : BuiltInIcons.PanelLeftClose)" Size="UI.Size.Sm" PropsIcon="FlipLayer"
+                                    Label="@(sidebarCollapsed.Value ? lang.SidebarExpand : lang.SidebarCollapse)" @onclick="() => sidebarCollapsed.SetAsync(!sidebarCollapsed.Value)"
+                                    @attributes="Attrs.MergeProps(null, PropsCollapse)" />
+                    </div>
+                }
+            </div>
+        }
+        <div @attributes="Attrs.Merge(parts[AppShellPart.Column])">
+            <main @attributes="Attrs.Merge(parts[AppShellPart.Main], PropsMain, MainManaged)">@ChildContent</main>
+            @if (Footer is not null)
+            {
+                <footer @attributes="Attrs.Merge(parts[AppShellPart.Footer], PropsFooter)">@Footer</footer>
+            }
+        </div>
+        @if (Aside is not null)
+        {
+            <aside @attributes="Attrs.Merge(parts[AppShellPart.Aside], PropsAside)">
+                <ScrollArea PropsViewport="RailViewportLayer" PropsContent="AsideContentLayer" @attributes="Attrs.MergeProps(parts[AppShellPart.AsideScroll], PropsAsideScroll)">
+                    @Aside
+                </ScrollArea>
+            </aside>
+        }
+    </div>
+    @if (Sidebar is not null)
+    {
+        @* 窄屏时的导航抽屉：内容总是完整的（不紧凑） *@
+        <Drawer Id="@drawerId" Side="DrawerSide.Start" Title="@lang.Navigation" Open="sidebarOpen.Value" OpenChanged="sidebarOpen.SetAsync"
+                @attributes="Attrs.MergeProps(null, PropsDrawer, DrawerManaged)">
+            <CascadingValue Value="NavListContext.Expanded">@Sidebar</CascadingValue>
+        </Drawer>
+    }
+</div>
+
+@code {
+    static readonly Attrs RailViewportLayer = new() { Sx = AppShellStyles.RailViewport };
+    static readonly Attrs AsideContentLayer = new() { Sx = AppShellStyles.AsideContent };
+    static readonly Attrs FlipLayer = new() { [nameof(UI.Icon.FlipInRtl)] = true };
+    static readonly Attrs DrawerManaged = new()
+    {
+        ["data-rune-close-on-link"] = true,
+        ["data-rune-close-when"] = AppShellStyles.WideQuery,
+    };
+
+    readonly string mainId = UniqueId.Next("app-shell-main");
+    readonly string drawerId = UniqueId.Next("app-shell-drawer");
+    Attrs? menuManaged, mainManaged;
+
+    /// <summary>顶栏起始边的品牌（标志与产品名，一般是 AppShellBrand）：有侧栏时这一格与侧栏同宽，侧栏的竖线延伸到顶。</summary>
+    [Parameter] public RenderFragment? Brand { get; set; }
+
+    /// <summary>顶栏的内容：搜索、本页的页签、主题切换……（没写 Brand 时标志也放这里）。</summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>左侧栏：站点导航；窄屏时收进抽屉。</summary>
+    [Parameter] public RenderFragment? Sidebar { get; set; }
+
+    /// <summary>右侧栏：本页目录等辅助内容；较窄时不显示。</summary>
+    [Parameter] public RenderFragment? Aside { get; set; }
+
+    /// <summary>顶栏里品牌后面的导航：只有它时是顶部导航布局，和 Sidebar 一起时是混合布局（顶栏一级、侧栏二级）。</summary>
+    [Parameter] public RenderFragment? Nav { get; set; }
+
+    /// <summary>正文下面的页脚（版权、备案号、版本）。</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>正文。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>窄屏时的侧栏抽屉是否打开（<c>@bind-SidebarOpen</c>）。</summary>
+    [Parameter] public bool SidebarOpen { get; set; }
+
+    /// <summary>抽屉打开或关上了。</summary>
+    [Parameter] public EventCallback<bool> SidebarOpenChanged { get; set; }
+
+    /// <summary>侧栏底部有“收起侧栏”按钮：收起后只剩图标栏（NavList 变紧凑，分组的子项悬停弹出）。</summary>
+    [Parameter] public bool SidebarCollapsible { get; set; }
+
+    /// <summary>侧栏收起了（<c>@bind-SidebarCollapsed</c>，存起来记住各人的设置）。</summary>
+    [Parameter] public bool SidebarCollapsed { get; set; }
+
+    /// <summary>收起或展开了侧栏。</summary>
+    [Parameter] public EventCallback<bool> SidebarCollapsedChanged { get; set; }
+
+    /// <summary>顶栏结束边的全屏按钮，默认 true：进入后不显示顶栏和左侧栏，右上角留一个退出按钮。</summary>
+    [Parameter] public bool Fullscreenable { get; set; } = true;
+
+    /// <summary>全屏中（<c>@bind-Fullscreen</c>）。</summary>
+    [Parameter] public bool Fullscreen { get; set; }
+
+    /// <summary>进入或退出了全屏。</summary>
+    [Parameter] public EventCallback<bool> FullscreenChanged { get; set; }
+
+    /// <summary>页面最前面的“跳到正文”链接，默认 true。</summary>
+    [Parameter] public bool SkipLink { get; set; } = true;
+
+    /// <summary>顶栏（header）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>品牌格（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsBrand { get; set; }
+
+    /// <summary>顶栏里 Header 内容那一格（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeaderContent { get; set; }
+
+    /// <summary>顶栏里导航那一格（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsNav { get; set; }
+
+    /// <summary>顶栏下面的主体（侧栏、正文、右栏的栅格）的部件属性。</summary>
+    [Parameter] public Attrs? PropsBody { get; set; }
+
+    /// <summary>左侧栏（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSidebar { get; set; }
+
+    /// <summary>左侧栏里的滚动区域（ScrollArea 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSidebarScroll { get; set; }
+
+    /// <summary>正文（main）的部件属性。</summary>
+    [Parameter] public Attrs? PropsMain { get; set; }
+
+    /// <summary>页脚（footer）的部件属性。</summary>
+    [Parameter] public Attrs? PropsFooter { get; set; }
+
+    /// <summary>右侧栏（aside）的部件属性。</summary>
+    [Parameter] public Attrs? PropsAside { get; set; }
+
+    /// <summary>右侧栏里的滚动区域（ScrollArea 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsAsideScroll { get; set; }
+
+    /// <summary>“收起侧栏”按钮（IconButton 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCollapse { get; set; }
+
+    /// <summary>窄屏时打开侧栏的按钮（IconButton 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsMenuButton { get; set; }
+
+    /// <summary>全屏按钮（IconButton 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsFullscreenButton { get; set; }
+
+    /// <summary>全屏时右上角退出按钮（IconButton 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsFullscreenExit { get; set; }
+
+    /// <summary>窄屏时的侧栏抽屉（Drawer 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsDrawer { get; set; }
+
+    Bindable<bool> sidebarOpen { get => field ??= new(this, () => SidebarOpen, () => SidebarOpenChanged); }
+
+    Bindable<bool> sidebarCollapsed { get => field ??= new(this, () => SidebarCollapsed, () => SidebarCollapsedChanged); }
+
+    Bindable<bool> fullscreen { get => field ??= new(this, () => Fullscreen, () => FullscreenChanged); }
+
+    // 收起成图标栏（宽屏时；窄屏时侧栏在抽屉里，抽屉总是完整的，样式都在 Lg 断点以上）
+    bool Collapsed => Sidebar is not null && SidebarCollapsible && sidebarCollapsed.Value;
+
+    // 收起、全屏的状态在 C#：交互模式（含即将接管的预渲染）才有用
+    bool CanInteract => RendererInfo.IsInteractive || AssignedRenderMode is not null;
+
+    AppShellStyles.ShellState State => new(Brand is not null, Sidebar is not null, Aside is not null, Nav is not null, SidebarCollapsible, Collapsed, fullscreen.Value);
+
+    Attrs RootManaged => new() { ["data-rune-fullscreen"] = Fullscreenable || fullscreen.Value ? (fullscreen.Value ? "true" : "false") : null };
+
+    // 菜单按钮由 JS 直接打开抽屉（静态 SSR 也能用）
+    Attrs MenuManaged => menuManaged ??= new() { ["data-rune-open"] = drawerId, ["aria-haspopup"] = "dialog", ["aria-controls"] = drawerId };
+
+    // 正文由 SkipLink 聚焦
+    Attrs MainManaged => mainManaged ??= new() { Id = mainId, ["tabindex"] = -1 };
+
+    Attrs SidebarContentLayer => new() { Sx = AppShellStyles.SidebarContent(Collapsed) };
+
+    // 用户自己离开了浏览器全屏，或没进浏览器全屏时按了 Esc
+    Task OnCommandAsync(CommandEventArgs e) => e.Name == "fullscreen-exit" ? fullscreen.SetAsync(false) : Task.CompletedTask;
+
+}

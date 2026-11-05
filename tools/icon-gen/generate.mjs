@@ -59,6 +59,11 @@ const BUILT_IN = [
   'inbox',
   'star',
   'user',
+  'menu',
+  'maximize',
+  'minimize',
+  'panel-left-close',
+  'panel-left-open',
 ];
 
 /** 文档注释里最多列几个关键词 */

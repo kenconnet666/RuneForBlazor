@@ -1,0 +1,90 @@
+@*
+    AppShell 的混合布局示例（整页，在 iframe 里打开）：同 vue-tsx-pro 文档站 AppShell 的 frames/Mixed。
+    顶栏是一级导航，侧栏是当前模块的二级导航（可以收起成图标栏），底部是页脚。
+    顶栏的一级导航 vue-tsx-pro 用 NavBar（还没做），这里先用几个链接按钮代替。数据是虚构的。
+*@
+@attribute [DemoFrame("app-shell", "mixed")]
+@inherits RuneComponent
+
+<AppShell SidebarCollapsible="true" @bind-SidebarCollapsed="collapsed">
+    <Brand><AppShellBrand Href="#home" Icon="Lucide.Box">采购协同</AppShellBrand></Brand>
+    <Nav>
+        <nav aria-label="模块">
+            <Flex Gap="SpaceScale.Xs">
+                @foreach (var module in modules)
+                {
+                    <LinkButton Href="@module.Href" Icon="module.Icon" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="Size.Sm"
+                                aria-current="@(module.Href == "#purchase" ? "page" : null)">@module.Label</LinkButton>
+                }
+            </Flex>
+        </nav>
+    </Nav>
+    <Header><Avatar Size="Size.Sm" Name="林小满" /></Header>
+    <Sidebar>
+        <NavList aria-label="采购">
+            @foreach (var (page, side) in sidePages)
+            {
+                <NavItem @key="page" Href="@($"#{page}")" Icon="side.Icon" Active="current == page" Badge="@(page == "quote" ? 2 : 0)"
+                         @onclick="() => current = page">@side.Title</NavItem>
+            }
+        </NavList>
+    </Sidebar>
+    <Footer>
+        <Flex Justify="ContentJustify.Between" Wrap="true" Gap="SpaceScale.Sm">
+            <Small Tone="TextTone.Muted">© 2026 采购协同平台</Small>
+            <Small Tone="TextTone.Muted">版本 3.2.0</Small>
+        </Flex>
+    </Footer>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <H1>@(current == "home" ? "工作台" : sidePages[current].Title)</H1>
+            <Grid MinItemWidth="CssLength.Rem(10)" Gap="SpaceScale.Md">
+                @foreach (var stat in stats.GetValueOrDefault(current) ?? [])
+                {
+                    <Card @key="stat.Label"><DemoStat Label="@stat.Label" Text="@stat.Value" Unit="@stat.Unit" /></Card>
+                }
+            </Grid>
+            <Card>
+                <Paragraph>点左边的二级导航换页；侧栏底部的按钮把侧栏收成图标栏，二级导航只剩图标，悬停看名称；右上角的按钮进入全屏。</Paragraph>
+            </Card>
+        </Flex>
+    </ChildContent>
+</AppShell>
+
+@code {
+    sealed record SidePage(string Title, IconData Icon);
+    sealed record Stat(string Label, string Value, string? Unit = null);
+    sealed record Module(string Label, string Href, IconData Icon);
+
+    static readonly Dictionary<string, SidePage> sidePages = new()
+    {
+        ["po"] = new("采购单", Lucide.ReceiptText),
+        ["quote"] = new("询价比价", Lucide.Scale),
+        ["contract"] = new("合同", Lucide.FilePenLine),
+        ["suppliers"] = new("供应商", Lucide.Users),
+        ["logistics"] = new("到货跟踪", Lucide.Truck),
+    };
+
+    // 各页的几个指标：示例里页面只有标题与指标
+    static readonly Dictionary<string, Stat[]> stats = new()
+    {
+        ["home"] = [new("待我审批", "6"), new("本月采购额", "1,284,000", "元"), new("在途订单", "23")],
+        ["po"] = [new("草稿", "4"), new("审批中", "9"), new("已下单", "57")],
+        ["quote"] = [new("进行中的询价", "2"), new("已收报价", "11"), new("平均降幅", "6.8", "%")],
+        ["contract"] = [new("生效中", "38"), new("30 天内到期", "3"), new("待盖章", "1")],
+        ["suppliers"] = [new("合格供应商", "142"), new("考察中", "7"), new("本季新增", "5")],
+        ["logistics"] = [new("今日到货", "8"), new("延误", "2"), new("待验收", "5")],
+    };
+
+    // 顶栏的一级导航：各模块（示例里只有“采购”是做好的）
+    static readonly Module[] modules =
+    [
+        new("工作台", "#home", Lucide.House),
+        new("采购", "#purchase", Lucide.ShoppingCart),
+        new("报表", "#reports", Lucide.ChartColumn),
+        new("文档", "#docs", Lucide.FileText),
+    ];
+
+    string current = "home";
+    bool collapsed;
+}

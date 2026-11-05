@@ -19,9 +19,10 @@ public sealed record DemoEntry(string Slug, string Title, string Group, int Orde
 public static class DemoCatalog
 {
     static readonly Lazy<IReadOnlyList<DemoEntry>> entries = new(Scan);
+    static readonly Lazy<IReadOnlyDictionary<(string Slug, string Name), Type>> frames = new(ScanFrames);
 
     /// <summary>分组的显示顺序（按字符串排会把“布局”排到“基础”前面）；不在表里的分组排在最后。</summary>
-    static readonly string[] groupOrder = ["基础", "基础组件", "布局", "表单", "展示", "反馈", "浮层"];
+    static readonly string[] groupOrder = ["基础", "基础组件", "布局", "表单", "展示", "反馈", "浮层", "导航", "表格", "页面组合"];
 
     /// <summary>全部演示，按分组、排序、名字排好。</summary>
     public static IReadOnlyList<DemoEntry> All => entries.Value;
@@ -29,6 +30,17 @@ public static class DemoCatalog
     /// <summary>按地址里的名字找演示；找不到时返回 null。</summary>
     public static DemoEntry? Find(string? slug) =>
         All.FirstOrDefault(e => string.Equals(e.Slug, slug, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>按演示与名字找整页示例（<see cref="DemoFrameAttribute"/>）；找不到时返回 null。</summary>
+    public static Type? FindFrame(string? slug, string? name) =>
+        frames.Value.GetValueOrDefault(((slug ?? "").ToLowerInvariant(), (name ?? "").ToLowerInvariant()));
+
+    static IReadOnlyDictionary<(string Slug, string Name), Type> ScanFrames() =>
+        (from type in typeof(DemoCatalog).Assembly.GetTypes()
+         let frame = type.GetCustomAttribute<DemoFrameAttribute>()
+         where frame is not null && typeof(IComponent).IsAssignableFrom(type)
+         select (Key: (frame.Slug.ToLowerInvariant(), frame.Name.ToLowerInvariant()), type))
+        .ToDictionary(x => x.Key, x => x.type);
 
     static IReadOnlyList<DemoEntry> Scan()
     {

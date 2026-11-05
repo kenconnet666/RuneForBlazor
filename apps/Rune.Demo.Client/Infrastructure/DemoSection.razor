@@ -10,8 +10,18 @@
     {
         <Paragraph Sx="DescriptionStyle">@Description</Paragraph>
     }
-    <div @attributes="Attrs.Merge(Frame)">
-        <div data-demo-canvas @attributes="Attrs.Merge(Canvas)">@ChildContent</div>
+    <div @attributes="Attrs.Merge(FrameBorder)">
+        @if (Frame is not null)
+        {
+            @* 整页示例：iframe 贴满效果区，单独打开 /{模式}/frame/{演示}/{名字} *@
+            <div data-demo-canvas @attributes="Attrs.Merge(FramedCanvas)">
+                <iframe src="@FrameSrc" title="@Title" loading="lazy" allow="fullscreen" style="height:@FrameHeight" @attributes="Attrs.Merge(IFrame)"></iframe>
+            </div>
+        }
+        else
+        {
+            <div data-demo-canvas @attributes="Attrs.Merge(Canvas)">@ChildContent</div>
+        }
     </div>
 </section>
 
@@ -24,6 +34,24 @@
 
     /// <summary>说明文字。</summary>
     [Parameter] public RenderFragment? Description { get; set; }
+
+    /// <summary>整页示例的名字（<see cref="DemoFrameAttribute"/>）：写了时效果区是打开它的 iframe，不用 ChildContent。</summary>
+    [Parameter] public string? Frame { get; set; }
+
+    /// <summary>整页示例的高度（CSS 长度），默认 40rem。</summary>
+    [Parameter] public string FrameHeight { get; set; } = "40rem";
+
+    [Inject] NavigationManager Navigation { get; set; } = default!;
+
+    // 当前地址是 /{模式}/{演示}
+    string FrameSrc
+    {
+        get
+        {
+            var segments = Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0].Split('/');
+            return $"{segments[0]}/frame/{segments.ElementAtOrDefault(1)}/{Frame}";
+        }
+    }
 
     /// <summary>演示内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -38,7 +66,7 @@
 
     static Style DescriptionStyle => Css.Define(static () => new Style { Color = Colors.TextMuted });
 
-    static Style Frame => Css.Define(static () => new Style
+    static Style FrameBorder => Css.Define(static () => new Style
     {
         BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
@@ -58,4 +86,12 @@
         LineHeight = LineHeights.Normal,
         BackgroundColor = Colors.Surface,
     });
+
+    static Style FramedCanvasStyle => Css.Define(static () => new Style { Display = Display.Grid, BackgroundColor = Colors.Surface });
+
+    static readonly Attrs FramedCanvas = new() { Sx = FramedCanvasStyle };
+
+    static Style IFrameStyle => Css.Define(static () => new Style { Display = Display.Block, Width = Sizes.Full, BorderStyle = BorderStyle.None });
+
+    static readonly Attrs IFrame = new() { Sx = IFrameStyle };
 }

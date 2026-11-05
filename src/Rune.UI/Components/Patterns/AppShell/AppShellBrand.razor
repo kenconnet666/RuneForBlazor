@@ -1,0 +1,58 @@
+@*
+    外壳顶栏的品牌（同 vue-tsx-pro 的 AppShellBrand）：品牌色的标志（装饰，对读屏隐藏）与产品名，名字就是链接的名称，点了回首页。
+    放在 AppShell 的 Brand 里：<AppShellBrand Href="" Icon="Lucide.Boxes">采购管理平台</AppShellBrand>；自己的标志图写在 Logo 里。
+    侧栏收起成图标栏时只剩标志，产品名留给读屏。未声明的属性落到链接（a）上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@inject NavigationManager Navigation
+
+<a href="@NavLinks.Resolve(Navigation, Href)" @attributes="Attrs.Merge(RootLayer, Rest)">
+    @if (Logo is not null)
+    {
+        @Logo
+    }
+    else if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(MarkLayer, PropsIcon)" />
+    }
+    <span @attributes="Attrs.Merge(Shell?.Collapsed == true ? NameCollapsedLayer : null)">@ChildContent</span>
+</a>
+
+@code {
+    static readonly Attrs RootLayer = new() { Sx = Sx.Of(Root, SharedStyles.FocusRing) };
+    static readonly Attrs MarkLayer = new() { Sx = Mark };
+    static readonly Attrs NameCollapsedLayer = new() { Sx = AppShellStyles.BrandNameCollapsed };
+
+    /// <summary>点了去哪儿（相对 &lt;base href&gt;），一般是首页（空字符串）。</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    /// <summary>标志的图标（品牌色）。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>标志的图片等，写了时不画 Icon。</summary>
+    [Parameter] public RenderFragment? Logo { get; set; }
+
+    /// <summary>图标（Icon 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>产品名。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] AppShellContext? Shell { get; set; }
+
+    static Style Root => Css.Define(static () => new Style
+    {
+        Display = Display.InlineFlex,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Sm,
+        FlexShrink = 0,
+        Color = Colors.Text,
+        TextDecorationLine = TextDecorationLine.None,
+        FontWeight = FontWeights.Semibold,
+        FontSize = FontSizes.Lg,
+        BorderRadius = Radii.Sm,
+    });
+
+    static Style Mark => Css.Define(static () => new Style { Color = Tones.Accent.Text });
+}

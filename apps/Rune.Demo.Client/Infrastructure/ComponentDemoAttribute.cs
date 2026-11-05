@@ -22,3 +22,20 @@ public sealed class ComponentDemoAttribute(string slug, string title) : Attribut
     /// <summary>同组内的排序，小的在前。</summary>
     public int Order { get; init; }
 }
+
+/// <summary>
+/// 整页示例（同 vue-tsx-pro 文档站的 frames）：AppShell 这类按视口排版、占整页的组件单独渲染在 <c>/{模式}/frame/{演示}/{名字}</c>，
+/// 演示页的 DemoSection 写 <c>Frame="名字"</c> 用 iframe 打开它。
+/// <code>@attribute [DemoFrame("app-shell", "admin")]</code>
+/// </summary>
+/// <param name="slug">所属演示的名字。</param>
+/// <param name="name">示例的名字（演示内唯一）。</param>
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+public sealed class DemoFrameAttribute(string slug, string name) : Attribute
+{
+    /// <summary>所属演示的名字。</summary>
+    public string Slug { get; } = slug;
+
+    /// <summary>示例的名字。</summary>
+    public string Name { get; } = name;
+}

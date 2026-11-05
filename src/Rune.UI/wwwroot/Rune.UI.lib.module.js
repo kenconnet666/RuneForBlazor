@@ -12,6 +12,12 @@
 //                            定位并持续跟随，空间不够时翻转、贴着视口平移；data-offset 是距离，data-fit-height 时最大高度限制在视口剩下的空间里；
 //                            最终方向写到 data-side / data-align；里面的 data-rune-arrow 是箭头。定位好之后才可见，菜单聚焦第一项，
 //                            对话框类的浮层聚焦 autofocus 或第一个可聚焦元素
+//   data-rune-close-on-link  对话框：点了里面的链接（通常是换页）就关上（AppShell 窄屏时的导航抽屉）
+//   data-rune-close-when="(min-width: 64rem)"
+//                            对话框：媒体查询成立时关上（窗口变宽、侧栏常驻后导航抽屉没必要开着）
+//   data-rune-fullscreen="true|false"
+//                            应用外壳（AppShell）的全屏：变成 true 时请求浏览器全屏，false 时退出；用户自己离开浏览器全屏、
+//                            或没进浏览器全屏时按 Esc，发出冒泡的 rune-command（fullscreen-exit）
 //   data-rune-light-dismiss  对话框：点遮罩关闭（原生的 closedby="any" 还没普及）
 //   data-rune-guard-close    对话框：要关闭时（Esc、点遮罩、data-rune-close）不直接关，发出冒泡的 rune-close-request
 //                            （Blazor 里是 @onrunecloserequest，带原因 escape / outside / close），由 C# 决定关不关（确认中、关闭前确认）
@@ -87,7 +93,7 @@
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
-// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、
+// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
@@ -108,7 +114,8 @@ import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from './js/tabs
 import { watchCollapse } from './js/collapse.js';
 import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle } from './js/resize.js';
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
-import { announce, closeOrRequest, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock } from './js/overlays.js';
+import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './js/fullscreen.js';
+import { announce, closeOnLink, closeOrRequest, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock, watchCloseWhen } from './js/overlays.js';
 import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from './js/hover-layers.js';
 
 let installed = false;
@@ -222,6 +229,7 @@ function install(blazor) {
     if (target instanceof Element && target.hasAttribute('data-rune-count')) updateCount(target);
   });
   document.addEventListener('paste', sendPasteCommand);
+  document.addEventListener('fullscreenchange', onFullscreenChange);
   document.addEventListener('focusin', onFocusIn);
   document.addEventListener('focusout', onFocusOut);
   document.addEventListener('pointerover', onHoverPointerOver);
@@ -235,7 +243,7 @@ function install(blazor) {
     childList: true,
     attributes: true,
     attributeOldValue: true,
-    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query', 'aria-busy'],
+    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query', 'aria-busy', 'data-rune-fullscreen'],
   });
   syncWithin(document);
   // 装好了：端到端测试、对照工具等它出现再操作（脚本加载之前的点击没人处理）
@@ -264,9 +272,11 @@ function syncWithin(root) {
     if (element.matches('[data-rune-toc]')) watchToc(element);
     if (element.matches('[data-rune-loading-bar]')) watchLoadingBar(element);
     if (element.matches('[data-rune-hotkey-label]')) formatHotkeyLabel(element);
+    if (element.matches('dialog[data-rune-close-when]')) watchCloseWhen(element);
+    if (element.matches('[data-rune-fullscreen="true"]')) syncFullscreen(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar], [data-rune-hotkey-label]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar], [data-rune-hotkey-label], dialog[data-rune-close-when], [data-rune-fullscreen="true"]').forEach(sync);
 }
 
 /** 头像的图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */
@@ -282,6 +292,7 @@ function onMutations(mutations) {
       else if (mutation.attributeName === 'data-rune-autosize') autosize(mutation.target);
       else if (mutation.attributeName === 'data-rune-query') onQueryChanged(mutation.target);
       else if (mutation.attributeName === 'aria-busy') syncHideEmpty(mutation.target.closest('[role="listbox"]'));
+      else if (mutation.attributeName === 'data-rune-fullscreen') syncFullscreen(mutation.target);
       else if (mutation.attributeName === 'data-rune-copy-request') {
         if (mutation.target.hasAttribute('data-rune-copy-request')) copyFrom(mutation.target);
       } else if (mutation.attributeName === 'data-rune-draw') {
@@ -293,6 +304,7 @@ function onMutations(mutations) {
     for (const node of mutation.addedNodes) {
       if (node instanceof Element) syncWithin(node);
     }
+    if (mutation.removedNodes.length > 0) releaseFullscreen();
     if (!(mutation.target instanceof Element)) continue;
     // 列表重新渲染（虚拟滚动换了一批选项、选项变了）：高亮放回高亮项上
     if (mutation.addedNodes.length > 0) {
@@ -331,6 +343,8 @@ function onClick(event) {
 
   const copier = target.closest('[data-rune-copy-on-click]');
   if (copier && !copier.matches(':disabled, [aria-busy="true"]')) copyFrom(copier);
+
+  closeOnLink(target);
 
   const dismiss = target.closest('[data-rune-dismiss]');
   if (dismiss) {
@@ -371,6 +385,7 @@ function onKeyDown(event) {
     return;
   }
   onHoverEscape(event);
+  exitFullscreenOnEscape(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;

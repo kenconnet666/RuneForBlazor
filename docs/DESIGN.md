@@ -146,6 +146,12 @@
   指示条复用 indicator.js；链接按当前页解析（NavLinks.Resolve）。LoadingBar 的控制器只记状态（Status、Run），延迟显示、先快后慢地涨、走满淡出都在
   `js/loading-bar.js`，Server 模式不用每 300ms 往返；`Navigation` 时跟着 Blazor 的 enhancednavigationstart / end 走。SkipLink 复用 data-rune-focus
   （加了 data-focus-block="start"）。
+- **AppShell**：抽屉、全屏这类开关尽量放在 JS 里，静态 SSR 也能用：顶栏的菜单按钮写 `data-rune-open` 指向抽屉（DialogBase 加了 `Id` 参数），
+  抽屉写 `data-rune-close-on-link`（点了链接关上）与 `data-rune-close-when="(min-width: 64rem)"`（变宽关上）；全屏的状态在 C#，外壳上的
+  `data-rune-fullscreen` 变了时 `js/fullscreen.js` 请求或退出浏览器全屏，用户自己离开浏览器全屏、或没进去时按 Esc，发 rune-command（fullscreen-exit）。
+  收起、全屏要交互模式，静态渲染时不显示这两个按钮。顶栏高度经 `LayoutVars.StickyOffset`（`--rune-sticky-offset`）交给标题的 scroll-margin 与粘性侧栏。
+  注意：样式合并按“条件 + 属性”覆盖，后写的无条件 `display: none` 盖不住先写的断点里的 display，要隐藏写在断点里显示的元素时断点里也写 none。
+  演示站的整页示例：`[DemoFrame]` 组件渲染在 `/{模式}/frame/{演示}/{名字}`（FrameLayout，不套演示站外壳），DemoSection 写 `Frame` 用 iframe 打开。
 - **代码高亮在浏览器里做**（同 vue-tsx-pro 的 createShikiHighlighter）：CodeBlock 输出纯文本的 `code[data-rune-highlight]`，JS 初始化器（`js/highlight.js`）
   第一次遇到时加载 vendor 的 Shiki（JavaScript 正则引擎、CSS 变量主题，颜色指向 `--rune-code-colors-*`）上色，三种渲染模式一样，没有往返。
   JS 改过 code 的子节点，所以代码、语言、高亮开关、行设置变了时 code 用 @key 整个重建，不让 Blazor 在上面做差异更新。

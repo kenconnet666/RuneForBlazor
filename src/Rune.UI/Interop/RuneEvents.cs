@@ -21,7 +21,7 @@ public sealed class CommandEventArgs : EventArgs
 {
     /// <summary>
     /// 命令名：remove-last（Backspace，移除最后一个已选项）、clear（Esc，清空输入）、show-all（↑↓ 打开，显示全部选项）、
-    /// add（Enter，把输入加成标签）、paste（粘贴了多段文字）。
+    /// add（Enter，把输入加成标签）、paste（粘贴了多段文字）、fullscreen-exit（AppShell：离开了浏览器全屏或按了 Esc）。
     /// </summary>
     public string Name { get; set; } = "";
 

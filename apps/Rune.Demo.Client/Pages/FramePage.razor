@@ -1,0 +1,28 @@
+@*
+    整页示例：/{模式}/frame/{演示}/{名字}，不套演示站的外壳（FrameLayout），由演示页的 iframe 打开。
+*@
+@page "/{Mode}/frame/{Slug}/{Name}"
+@layout FrameLayout
+@inherits RuneComponent
+
+<PageTitle>@Slug / @Name</PageTitle>
+
+@if (DemoRenderModes.Of(Mode) is { } renderMode)
+{
+    <DemoHost Slug="@Slug" Frame="@Name" @rendermode="renderMode" />
+}
+else
+{
+    <DemoHost Slug="@Slug" Frame="@Name" />
+}
+
+@code {
+    /// <summary>渲染模式：static、server、wasm、auto。</summary>
+    [Parameter] public string Mode { get; set; } = DemoRenderModes.Default;
+
+    /// <summary>演示的名字。</summary>
+    [Parameter] public string Slug { get; set; } = "";
+
+    /// <summary>整页示例的名字。</summary>
+    [Parameter] public string Name { get; set; } = "";
+}

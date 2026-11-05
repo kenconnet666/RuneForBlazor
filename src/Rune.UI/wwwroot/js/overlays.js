@@ -132,3 +132,27 @@ export function moveInMenu(menu, event) {
     next.focus();
   }
 }
+
+// 点了里面的链接（通常是换页）就关上的对话框（data-rune-close-on-link：AppShell 窄屏时的导航抽屉）
+export function closeOnLink(target) {
+  const overlay = target.closest('a[href]')?.closest('[data-rune-close-on-link]');
+  if (overlay) closeOrRequest(overlay, 'close');
+}
+
+const closeWhenWatched = new WeakSet();
+
+// 媒体查询成立时关上的对话框（data-rune-close-when="(min-width: 64rem)"：窗口变宽、侧栏常驻后导航抽屉没必要再开着）
+export function watchCloseWhen(overlay) {
+  if (closeWhenWatched.has(overlay)) return;
+  closeWhenWatched.add(overlay);
+  const query = matchMedia(overlay.getAttribute('data-rune-close-when'));
+  const onChange = () => {
+    if (!overlay.isConnected) {
+      query.removeEventListener('change', onChange);
+      closeWhenWatched.delete(overlay);
+    } else if (query.matches) {
+      closeOrRequest(overlay, 'close');
+    }
+  };
+  query.addEventListener('change', onChange);
+}

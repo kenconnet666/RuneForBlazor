@@ -158,6 +158,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 - [ ] AppShell、AuthLayout、ActionBar、FilterBar、QueryTable、FormDialog、StepsForm、KanbanBoard、NotificationCenter、CommentThread、
       DataImport、DeadlineBadge、ThemeSwitcher（含主题偏好的保存）、SlideCaptcha、PeoplePicker、ConditionBuilder；ThemeCustomizer、ThemeThumbnail（主题定制页用）
+      （已做：AppShell、AppShellBrand（文档站的外壳，按“基础组件先做”提前）；还缺 vue 的 pageScrollbar（等 PageScrollbar），混合布局示例的 NavBar 先用链接按钮代替）
 
 ## 阶段 13：文档站
 
