@@ -7,6 +7,50 @@ public sealed class OverlayToggleEventArgs : EventArgs
 {
     /// <summary>浮层现在是否打开。</summary>
     public bool Open { get; set; }
+
+    /// <summary>
+    /// 原因：打开时是 trigger；用户关上时是 close（关闭按钮、data-rune-close）、escape、outside（点遮罩）；
+    /// C# 改了 Open 引起的开关没有（null）。
+    /// </summary>
+    public string? Reason { get; set; }
+}
+
+/// <summary>浮层开关的原因（同 vue-tsx-pro 的 OpenChangeReasons）：OnOpenChange、BeforeClose 拿到它。</summary>
+public enum OverlayChangeReason
+{
+    /// <summary>触发元素打开（或关上）。</summary>
+    Trigger,
+
+    /// <summary>关闭按钮、取消按钮（或写了 data-rune-close 的按钮）。</summary>
+    Close,
+
+    /// <summary>按了 Esc。</summary>
+    Escape,
+
+    /// <summary>点了遮罩。</summary>
+    Outside,
+
+    /// <summary>确认完成后关上。</summary>
+    Confirm,
+
+    /// <summary>代码调用（命令式对话框的 Open、Close）。</summary>
+    Imperative,
+}
+
+/// <summary>浮层开了或关了（OnOpenChange 的参数）；父级直接改 Open 引起的不报告。</summary>
+/// <param name="Open">现在是否打开。</param>
+/// <param name="Reason">原因。</param>
+public readonly record struct OverlayOpenChange(bool Open, OverlayChangeReason Reason)
+{
+    /// <summary>JS 报来的原因（trigger、close、escape、outside）；没有时按开关取 Trigger / Close。</summary>
+    public static OverlayChangeReason Parse(string? reason, bool open) => reason switch
+    {
+        "escape" => OverlayChangeReason.Escape,
+        "outside" => OverlayChangeReason.Outside,
+        "close" => OverlayChangeReason.Close,
+        "trigger" => OverlayChangeReason.Trigger,
+        _ => open ? OverlayChangeReason.Trigger : OverlayChangeReason.Close,
+    };
 }
 
 /// <summary>用户要关闭对话框（<c>@onrunecloserequest</c> 的参数）：带 <c>data-rune-guard-close</c> 的对话框不直接关，先问 C#。</summary>

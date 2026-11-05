@@ -1,0 +1,61 @@
+@*
+    条目列表的一条（li，同 vue-tsx-pro 的 ItemListItem）：起始边（Start）、标题与说明、结束边（End）；ChildContent 排在说明下面。
+    标题与说明放不下时换行；AlignStart 让起始边、结束边贴着第一行（多行内容、色点对齐标题）。未声明的属性落到 li 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = ItemListStyles.Of(new(Look ?? ItemListLook.Default, Start is not null, AlignStart), Config.Styles); }
+
+<li @attributes="Attrs.Merge(parts[ItemListPart.Item], Rest)">
+    @if (Start is not null)
+    {
+        <span @attributes="Attrs.Merge(parts[ItemListPart.Start])">@Start</span>
+    }
+    <span @attributes="Attrs.Merge(parts[ItemListPart.Body])">
+        @if (TitleContent is not null || Title is not null)
+        {
+            <span @attributes="Attrs.Merge(parts[ItemListPart.Title], PropsTitle)">@(TitleContent ?? (RenderFragment)(b => b.AddContent(0, Title)))</span>
+        }
+        @if (DescriptionContent is not null || Description is not null)
+        {
+            <span @attributes="Attrs.Merge(parts[ItemListPart.Description], PropsDescription)">@(DescriptionContent ?? (RenderFragment)(b => b.AddContent(0, Description)))</span>
+        }
+        @ChildContent
+    </span>
+    @* 没有结束边时也占着第三列：各条的内容一样宽 *@
+    <span @attributes="Attrs.Merge(End is null ? null : parts[ItemListPart.End])">@End</span>
+</li>
+
+@code {
+    /// <summary>起始边：图标、色点、头像、状态。</summary>
+    [Parameter] public RenderFragment? Start { get; set; }
+
+    /// <summary>标题（文字）：一句话。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>标题（任意内容，常是链接），盖过 <see cref="Title"/>。</summary>
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+
+    /// <summary>标题下的说明（次要文字）。</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>说明（任意内容），盖过 <see cref="Description"/>。</summary>
+    [Parameter] public RenderFragment? DescriptionContent { get; set; }
+
+    /// <summary>结束边：标记、数字、时间、操作。</summary>
+    [Parameter] public RenderFragment? End { get; set; }
+
+    /// <summary>起始边、结束边贴着第一行（默认垂直居中）。</summary>
+    [Parameter] public bool AlignStart { get; set; }
+
+    /// <summary>说明下面的更多内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    [CascadingParameter] ItemListLook? Look { get; set; }
+}

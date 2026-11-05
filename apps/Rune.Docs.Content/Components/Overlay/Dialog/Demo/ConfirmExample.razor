@@ -1,0 +1,46 @@
+@inherits RuneComponent
+@inject DialogService Dialogs
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <Button Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Trash" @onclick="() => open = true">删除项目</Button>
+        <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.LogOut" @onclick="SignOutAsync">退出登录（ConfirmAsync）</Button>
+        <Button Variant="ButtonVariant.Outline" Tone="Tone.Danger" Icon="Lucide.Undo2" @onclick="RejectAsync">驳回（填理由）</Button>
+    </Flex>
+    <Small Tone="TextTone.Muted">@(result ?? "还没有操作")</Small>
+    <AlertDialog @bind-Open="open" Tone="Tone.Danger" Title="删除项目“官网改版”？"
+                 Description="项目里的 48 个文件和全部评论会一起删除，无法恢复。" ConfirmText="删除" OnConfirm="RemoveAsync" />
+</Flex>
+
+@code {
+    bool open;
+    string? result;
+
+    // OnConfirm 执行期间确认按钮显示加载中，完成后才关闭
+    async Task RemoveAsync()
+    {
+        await Task.Delay(1000);
+        result = "项目“官网改版”已删除";
+    }
+
+    async Task SignOutAsync()
+    {
+        var ok = await Dialogs.ConfirmAsync(new() { Title = "退出登录？", Description = "未保存的草稿会保留在这台设备上。", ConfirmText = "退出" });
+        result = ok ? "已退出登录" : "取消了退出";
+    }
+
+    // 要填理由：得到填的理由，取消时是 null
+    async Task RejectAsync()
+    {
+        var reason = await Dialogs.ConfirmAsync(
+            new() { Title = "驳回“10 月差旅报销”？", Tone = Tone.Danger, ConfirmText = "驳回" },
+            new ConfirmReason("驳回理由")
+            {
+                Required = true,
+                Description = "申请人会在通知里看到这段理由",
+                Placeholder = "如：缺少 10 月 12 日的酒店发票",
+                MaxLength = 200,
+            });
+        result = reason is null ? "取消了驳回" : $"已驳回：{reason}";
+    }
+}

@@ -9,10 +9,22 @@
             <Example Id="dialog" Title="编辑表单" Demo="typeof(DialogExample)">
                 <Code>@@bind-Open</Code> 双向绑定；<Code>Title</Code> 与 <Code>Description</Code> 是对话框的名称与描述。写了 <Code>OnConfirm</Code> 页脚就有“取消 / 确认”：执行期间确认按钮加载中、关不掉，完成后关闭；<Code>KeepOpen</Code> 时对话框留着（校验没过、保存失败）。打开时焦点落在 autofocus 的元素上（没有就是第一个可聚焦的），关闭后回到打开它的按钮。
             </Example>
+            <Example Id="alert-dialog" Title="确认操作" Demo="typeof(ConfirmExample)">
+                <Code>AlertDialog</Code> 用于不可撤销的操作：role="alertdialog"，焦点先落在取消上，点遮罩不关闭。<Code>OnConfirm</Code> 执行期间确认按钮显示加载中，完成才关。
+                不想维护 Open 时用注入的 <Code>DialogService</Code> 的 <Code>ConfirmAsync</Code>，await 得到 true / false；
+                给了 <Code>ConfirmReason</Code> 时对话框里多一个多行输入框（驳回、作废要写理由），得到填的理由、取消时得到 null，必填没填时提示且不关闭。
+                <Code>ConfirmText</Code> / <Code>CancelText</Code> 改按钮文字，默认取语言包。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="long-content" Title="宽度与长内容" Demo="typeof(LongContentExample)">
                 <Code>Size</Code> 与 Container 同档（Xs–Xl），另有 Full 占满视口。内容长时只滚正文，标题与页脚一直看得见。这里用 <Code>Trigger</Code> 打开（不管 Open）：点击由 JS 直接打开，静态 SSR 也能用；页脚的按钮写 <Code>data-rune-close</Code> 点击后关闭。
+            </Example>
+            <Example Id="imperative" Title="命令式与关闭的原因" Demo="typeof(ImperativeExample)">
+                <Code>DialogService.Open(options)</Code> 不必在页面里放对话框、管 Open：从列表的一行、回调里直接弹出，关上后自动移除（布局里放一个 <Code>DialogHost</Code>）。
+                参数同 Dialog，正文写在 <Code>Content</Code>，拿到句柄：正文里的按钮可以 <Code>Update</Code> 标题、<Code>Close</Code> 关上。
+                <Code>await handle.Closed</Code> 得到关上的原因（确认是 Confirm）。<Code>OnOpenChange</Code> 报告原因：关闭按钮 Close、<Kbd>Esc</Kbd> Escape、
+                点遮罩 Outside、确认 Confirm、代码调用 Imperative；父级直接改 Open 时不报告。要在关闭前拦下用 <Code>BeforeClose</Code>，它也拿到原因。
             </Example>
             <Example Id="blocking" Title="进行中的任务" Demo="typeof(BlockingExample)">
                 <Code>Closable="false"</Code> 去掉右上角的关闭按钮，<Code>Dismissible="false"</Code> 让点遮罩不关闭——任务进行中别被误关；<Kbd>Esc</Kbd> 仍然可以关（浏览器的约定），关闭后 <Code>OpenChanged</Code> 收到 false，在那里收尾。
@@ -26,5 +38,5 @@
     ])">
         打开时焦点落在带 <Code>autofocus</Code> 的元素上，没有就是第一个可聚焦的元素。
     </KeyboardReference>
-    <ApiReference Types="[typeof(Dialog)]" />
+    <ApiReference Types="[typeof(Dialog), typeof(AlertDialog)]" />
 </DocPage>

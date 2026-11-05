@@ -13,7 +13,7 @@
 <dialog @attributes="Attrs.Merge(parts[DialogPart.Root], Rest, Managed)" @onrunetoggle="HandleToggle" @onrunecloserequest="OnCloseRequest">
     <div @attributes="Attrs.Merge(parts[DialogPart.Header], PropsHeader)">
         <H2 Size="UI.Size.Lg" id="@TitleId" @attributes="Attrs.MergeProps(parts[DialogPart.Title], PropsTitle)">@Title</H2>
-        @if (Closable)
+        @if (ShowClose)
         {
             @* 关闭就是请求关闭：没有 BeforeClose、不在确认中时 JS 直接关（静态 SSR 也能用），否则先问 C# *@
             <CloseButton Disabled="pending" data-rune-close @attributes="Attrs.MergeProps(parts[DialogPart.Close], PropsClose)" />
@@ -30,14 +30,14 @@
             @ChildContent
         }
     </ScrollArea>
-    @if (Footer is not null || OnConfirm.HasDelegate)
+    @if (Footer is not null || HasConfirm)
     {
         <div @attributes="Attrs.Merge(parts[DialogPart.Footer], PropsFooter)">
             @Footer
-            @if (OnConfirm.HasDelegate)
+            @if (HasConfirm)
             {
                 <Button Variant="ButtonVariant.Soft" Tone="UI.Tone.Neutral" Disabled="pending" data-rune-close
-                        @attributes="Attrs.MergeProps(null, PropsCancel)">@(CancelText ?? Config.Lang.Cancel)</Button>
+                        @attributes="Attrs.MergeProps(CancelDefaults, PropsCancel)">@(CancelText ?? Config.Lang.Cancel)</Button>
                 <Button Tone="Tone" Loading="pending" @onclick="ConfirmAsync"
                         @attributes="Attrs.MergeProps(null, PropsConfirm)">@(ConfirmText ?? Config.Lang.Confirm)</Button>
             }

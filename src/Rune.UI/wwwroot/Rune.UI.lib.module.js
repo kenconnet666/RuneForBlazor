@@ -133,7 +133,7 @@ import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
 import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './js/theme.js';
 import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './js/fullscreen.js';
-import { announce, clickSubMenuTrigger, closeOnLink, closeOrRequest, focusArrivedContent, hoverSubMenu, leaveSubMenu, moveInMenu, openContextMenu, openMenuFromTrigger, onPopoverToggle, open, requestClose, rootMenuOf, syncOpen, updateScrollLock, watchCloseWhen } from './js/overlays.js';
+import { announce, noteCloseReason, clickSubMenuTrigger, closeOnLink, closeOrRequest, focusArrivedContent, hoverSubMenu, leaveSubMenu, moveInMenu, openContextMenu, openMenuFromTrigger, onPopoverToggle, open, requestClose, rootMenuOf, syncOpen, updateScrollLock, watchCloseWhen } from './js/overlays.js';
 import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from './js/hover-layers.js';
 
 let installed = false;
@@ -161,7 +161,7 @@ function install(blazor) {
 
   blazor.registerCustomEventType('runetoggle', {
     browserEventName: 'rune-toggle',
-    createEventArgs: (event) => ({ open: event.detail.open }),
+    createEventArgs: (event) => ({ open: event.detail.open, reason: event.detail.reason ?? null }),
   });
   blazor.registerCustomEventType('runecopied', {
     browserEventName: 'rune-copied',
@@ -196,9 +196,12 @@ function install(blazor) {
   document.addEventListener('toggle', onPopoverToggle, true);
   // Esc：原生 dialog 先发 cancel（不冒泡，在捕获阶段接住）；要先问 C# 的对话框拦下来，改发关闭请求
   document.addEventListener('cancel', (event) => {
-    if (event.target instanceof HTMLDialogElement && event.target.matches('[data-rune-guard-close]')) {
+    if (!(event.target instanceof HTMLDialogElement)) return;
+    if (event.target.matches('[data-rune-guard-close]')) {
       event.preventDefault();
       requestClose(event.target, 'escape');
+    } else {
+      noteCloseReason(event.target, 'escape');
     }
   }, true);
   document.addEventListener('close', (event) => {

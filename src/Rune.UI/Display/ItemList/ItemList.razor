@@ -1,0 +1,40 @@
+@*
+    条目列表（ul，同 vue-tsx-pro 的 ItemList）：一行一条，起始边是图标、色点或头像，中间是标题与说明，结束边是标记、数字或操作。
+    待办、通知、我负责的任务、清单这类“界面里的列表”。参考 Ant Design 的 List.Item.Meta。
+    <ItemList Divided="true">
+        <ItemListItem Title="资料审核" Description="PO-2026-0187 · 官网改版">
+            <Start><StatusDot /></Start>
+            <End><Badge>今天</Badge></End>
+        </ItemListItem>
+    </ItemList>
+    Divided 在条目之间画线；Hoverable 悬停时着底色（整条可点时）；Inset 是条目两侧的内边距（放在弹出层、卡片正文里时与容器的内边距对齐）。
+    未声明的属性落到 ul 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<ul @attributes="Attrs.Merge(ItemListStyles.Of(new(ItemListLook.Default, false, false), Config.Styles)[ItemListPart.Root], Rest)">
+    <CascadingValue Value="Look">@ChildContent</CascadingValue>
+</ul>
+
+@code {
+    Memo<(bool, bool, ItemListDensity, SpaceScale?), ItemListLook> look;
+
+    /// <summary>条目之间画线。</summary>
+    [Parameter] public bool Divided { get; set; }
+
+    /// <summary>悬停时着底色：整条可点时。</summary>
+    [Parameter] public bool Hoverable { get; set; }
+
+    /// <summary>疏密，默认标准。</summary>
+    [Parameter] public ItemListDensity Density { get; set; }
+
+    /// <summary>条目两侧的内边距（与弹出层、卡片的内边距对齐）。</summary>
+    [Parameter] public SpaceScale? Inset { get; set; }
+
+    /// <summary>ItemListItem。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 外观不变时是同一个对象：级联值不变，条目不必重新渲染
+    ItemListLook Look => look.Get((Divided, Hoverable, Density, Inset), static k => new ItemListLook(k.Item1, k.Item2, k.Item3, k.Item4));
+}

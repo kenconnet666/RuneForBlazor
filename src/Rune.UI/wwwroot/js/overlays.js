@@ -8,12 +8,23 @@ import { TABBABLE } from './shared.js';
 // 否则在往返期间用户又切换过（打开后马上按 Esc）时，迟到的“打开”回响会把已经关掉的浮层重新打开，再报一次，最后停在打开
 const pendingEchoes = new WeakMap();
 
+// 用户关上浮层的原因（close 关闭按钮 / escape / outside 点遮罩）：关上时随 rune-toggle 报给 C#（onOpenChange 的原因）
+const closeReasons = new WeakMap();
+
+/** 记下接下来这次关闭的原因（原生 dialog 的 Esc 不经过 closeOrRequest，由 cancel 事件记下） */
+export function noteCloseReason(overlay, reason) {
+  closeReasons.set(overlay, reason);
+}
+
 export function announce(overlay, open) {
   if (overlay.hasAttribute('data-open')) {
     if (!pendingEchoes.has(overlay)) pendingEchoes.set(overlay, []);
     pendingEchoes.get(overlay).push(open);
   }
-  overlay.dispatchEvent(new CustomEvent('rune-toggle', { bubbles: true, detail: { open } }));
+  // 打开都算 trigger（C# 自己打开的会因状态相同而忽略）；关上时没记下原因的（C# 改 Open 引起的）不带原因
+  const reason = open ? 'trigger' : closeReasons.get(overlay) ?? null;
+  closeReasons.delete(overlay);
+  overlay.dispatchEvent(new CustomEvent('rune-toggle', { bubbles: true, detail: { open, reason } }));
 }
 
 
@@ -143,7 +154,10 @@ export function updateScrollLock() {
 // 要先问 C# 的对话框（data-rune-guard-close）发出关闭请求，其余直接关
 export function closeOrRequest(overlay, reason) {
   if (overlay.matches('[data-rune-guard-close]')) requestClose(overlay, reason);
-  else close(overlay);
+  else {
+    noteCloseReason(overlay, reason);
+    close(overlay);
+  }
 }
 
 export function requestClose(overlay, reason) {

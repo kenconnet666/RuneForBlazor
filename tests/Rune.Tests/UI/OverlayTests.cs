@@ -17,6 +17,8 @@ public class OverlayTests : BunitContext
 
     StyleRegistry Registry => Services.GetRequiredService<StyleRegistry>();
 
+    static CancellationToken Token => Xunit.TestContext.Current.CancellationToken;
+
     static RenderFragment<Attrs> TriggerButton(string text) => attrs => builder =>
     {
         builder.OpenElement(0, "button");
@@ -266,6 +268,88 @@ public class OverlayTests : BunitContext
         cut.Find("dialog").TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = false });
 
         Assert.False(open);
+    }
+
+    [Fact]
+    public async Task 对话框_开关报告原因_确认后的原因是Confirm()
+    {
+        var open = true;
+        var changes = new List<OverlayOpenChange>();
+        var cut = Render<Dialog>(p => p
+            .Add(x => x.Open, open)
+            .Add(x => x.OpenChanged, EventCallback.Factory.Create<bool>(this, value => open = value))
+            .Add(x => x.OnOpenChange, EventCallback.Factory.Create<OverlayOpenChange>(this, changes.Add))
+            .Add(x => x.OnConfirm, EventCallback.Factory.Create<ConfirmEventArgs>(this, () => { })));
+
+        await cut.InvokeAsync(() => cut.Find("dialog").TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = false, Reason = "escape" }));
+        Assert.Equal([new OverlayOpenChange(false, OverlayChangeReason.Escape)], changes);
+
+        cut.Render(p => p.Add(x => x.Open, true));
+        changes.Clear();
+        await cut.InvokeAsync(() => cut.FindAll("dialog button").Last().Click());
+        Assert.Equal([new OverlayOpenChange(false, OverlayChangeReason.Confirm)], changes);
+        Assert.False(open);
+    }
+
+    [Fact]
+    public void 确认对话框_alertdialog_取消先拿到焦点_没有关闭按钮_点遮罩不关()
+    {
+        var cut = Render<AlertDialog>(p => p.Add(x => x.Title, "删除这个项目？").Add(x => x.Open, true));
+
+        var dialog = cut.Find("dialog");
+        Assert.Equal("alertdialog", dialog.GetAttribute("role"));
+        Assert.False(dialog.HasAttribute("data-rune-light-dismiss"));
+        // 没写 OnConfirm 也有“取消 / 确认”，取消带 autofocus；标题行没有关闭按钮
+        var buttons = cut.FindAll("dialog button");
+        Assert.Equal(2, buttons.Count);
+        Assert.True(buttons[0].HasAttribute("autofocus"));
+    }
+
+    [Fact]
+    public async Task 命令式对话框_句柄改标题_关上得到原因()
+    {
+        var host = Render<DialogHost>();
+        var dialogs = Services.GetRequiredService<DialogService>();
+        var changes = new List<OverlayOpenChange>();
+
+        DialogHandle handle = null!;
+        await host.InvokeAsync(() => handle = dialogs.Open(new DialogOptions
+        {
+            Title = "发票 FP-1",
+            OnOpenChange = changes.Add,
+            Content = h => b => b.AddContent(0, $"正文 {h.Options.Title}"),
+        }));
+        host.WaitForAssertion(() => Assert.Equal("发票 FP-1", host.Find("dialog h2").TextContent));
+        Assert.Equal("true", host.Find("dialog").GetAttribute("data-open"));
+
+        await host.InvokeAsync(() => handle.Update(o => o with { Title = "发票 FP-1（已核对）" }));
+        host.WaitForAssertion(() => Assert.Equal("发票 FP-1（已核对）", host.Find("dialog h2").TextContent));
+
+        await host.InvokeAsync(handle.Close);
+        Assert.Equal(OverlayChangeReason.Imperative, await handle.Closed.WaitAsync(TimeSpan.FromSeconds(5), Token));
+        Assert.Equal([new OverlayOpenChange(true, OverlayChangeReason.Imperative), new OverlayOpenChange(false, OverlayChangeReason.Imperative)], changes);
+        host.WaitForAssertion(() => Assert.Empty(host.FindAll("dialog")), TimeSpan.FromSeconds(2));
+    }
+
+    [Fact]
+    public async Task 命令式确认_必填理由没填不关_填了得到理由()
+    {
+        var host = Render<DialogHost>();
+        var dialogs = Services.GetRequiredService<DialogService>();
+
+        Task<string?> asking = null!;
+        // 语句体：不要让 InvokeAsync 等着确认的结果
+        await host.InvokeAsync(() => { asking = dialogs.ConfirmAsync(new() { Title = "驳回？" }, new ConfirmReason("驳回理由") { Required = true }); });
+        host.WaitForAssertion(() => Assert.Equal("alertdialog", host.Find("dialog").GetAttribute("role")));
+
+        var confirm = () => host.FindAll("dialog button").Last();
+        await host.InvokeAsync(() => confirm().Click());
+        host.WaitForAssertion(() => Assert.Contains("必填", host.Markup));
+        Assert.False(asking.IsCompleted);
+
+        await host.InvokeAsync(() => host.Find("textarea").Change("缺少发票"));
+        await host.InvokeAsync(() => confirm().Click());
+        Assert.Equal("缺少发票", await asking.WaitAsync(TimeSpan.FromSeconds(5), Token));
     }
 
     [Fact]

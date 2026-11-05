@@ -89,7 +89,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [x] `tools/parity`：按上面“对照的做法”第 3 条实现；README 写用法；拿已完成的组件试一遍，修掉报告里的差异
       （按钮已对齐：亮暗主题、悬停聚焦按下一致；Badge、Kbd、Card 在各自页面对照时改）
 - [ ] 演示页改名对齐文档站的路由（typography → text、layout → flex / grid 等），示例按文档站补齐；已完成组件逐个过一遍对照报告
-      （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（开关的 loading 与轨道内容在阶段 6）、toggle-group、control-group、slider、rating（结构不同：每颗星都有填色层，视觉一致）、otp-field、listbox、skeleton（Avatar、Stat、DataTable 做好后补全）、popover（HoverCard 在阶段 8）、popconfirm、menu（已对齐）、flex（除了还没做的 Avatar、Descriptions、输入框）；card（已对齐）；缺的组件做到时补示例：Descriptions、Table、ButtonGroup、Avatar；toast（已对齐）；dialog（alert-dialog、imperative 在阶段 8）、drawer（detail 等表格与时间线，edit 的拖宽在阶段 6，imperative 在阶段 8）；旧的 form 页等 Form 对齐时换掉）
+      （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（开关的 loading 与轨道内容在阶段 6）、toggle-group、control-group、slider、rating（结构不同：每颗星都有填色层，视觉一致）、otp-field、listbox、skeleton（Avatar、Stat、DataTable 做好后补全）、popover（HoverCard 在阶段 8）、popconfirm、menu（已对齐）、flex（除了还没做的 Avatar、Descriptions、输入框）；card（已对齐）；缺的组件做到时补示例：Descriptions、Table、ButtonGroup、Avatar；toast（已对齐）；dialog（已对齐）、drawer（detail、imperative 的示例要 DataTable 与 Timeline，等它们做好；命令式抽屉 DialogService.Open(DrawerOptions) 已有）；旧的 form 页等 Form 对齐时换掉）
 - [x] 语言包：`UIConfig.Lang` 与 `RuneProvider` 的 `Lang`；`tools/lang-gen` 从 vue-tsx-pro 的语言包生成 zh-CN、en-US；已有组件里的文字（关闭、确定、取消、增加、减少……）改成取语言包
 - [x] 端到端测试项目 `tests/Rune.E2E`（Microsoft.Playwright，Chromium）：启动演示项目，覆盖已有的键盘与焦点逻辑（菜单、对话框、气泡确认、数字框方向键、表单错误汇总跳转）；进 CI
       （另有数字框按住连加、显示密码、清空回焦、复制、标签移除后的焦点；之后每个有键盘或焦点逻辑的组件都加用例）
@@ -132,10 +132,11 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
       （已做：Avatar、AvatarGroup、Indicator（演示里的缩写替身都换成了 Avatar）；Collapse（Collapsible 改用，收起可被页内查找）；FormValue（隐藏的表单值，5 个组件改用）；ScrollArea（按“基础组件先做、上层依托”提前做；Listbox、ListPopover、Menu、Dialog / Drawer 的正文已改用它，FloatingStyles 有 ScrollPanel / ScrollArea）、Separator、Descriptions（自适应栏数用容器查询；卡片、布局、宽度手柄示例的替代写法已换掉，布局页的控制条也换成了 ToggleGroup、头像换成 Avatar））
 - [ ] 展示：Accordion、Collapse、Avatar / AvatarGroup、Descriptions、Ellipsis、Image（预览接 Lightbox）、ItemList、Stat、AnimatedNumber、ValueChange、
       Timeline、Tree（勾选、懒加载、拖动排序）、VirtualList、Checklist、Marquee、ProportionBar、Gauge、Sortable、Watermark、FieldCompare
+      （已做：ItemList（组件先做，命令式对话框的示例用它；文档页随阶段 7 的展示组件补））
 
 ## 阶段 8：浮层与导航
 
-- [ ] 浮层：AlertDialog、ContextMenu（已做）、HoverCard、CommandPalette、Lightbox、Tour
+- [ ] 浮层：AlertDialog（已做，另有命令式的 DialogService：Open、ConfirmAsync）、ContextMenu（已做）、HoverCard、CommandPalette、Lightbox、Tour
       （已做：HoverCard（NavList 的紧凑分组要用，按“基础组件先做”提前）；CommandPalette（文档站的搜索））
 - [ ] 导航：Tabs（溢出、可关闭、拖动排序）、Breadcrumbs、Steps、NavList、NavMenu、NavBar、Pagination / Pager / PageSizeSelect / PageJump / PaginationBar、SkipLink、TableOfContents、Toolbar
       （已做：Toolbar、NavList / NavItem / NavGroup / NavSection（按“基础组件先做”提前；宽度手柄示例已换用）；Tabs（溢出滚动、可关闭、新建、拖动与 Alt + ←→ 排序；“全部标签页”菜单等 Menu 有单选项再补）；TableOfContents、Pager、SkipLink（文档站要用））

@@ -66,7 +66,7 @@
     }
 
     // 能不能关：没改过，或者确认放弃（取消、关闭按钮、Esc、点遮罩都走这里）
-    async Task<bool> MayCloseAsync(DialogCloseReason reason)
+    async Task<bool> MayCloseAsync(OverlayChangeReason reason)
     {
         if (!Dirty) return true;
         discard = new TaskCompletionSource<bool>();

@@ -2,25 +2,12 @@ using Microsoft.AspNetCore.Components;
 
 namespace Rune.UI;
 
-/// <summary>用户要关闭对话框的原因（<see cref="DialogBase.BeforeClose"/> 的参数）。</summary>
-public enum DialogCloseReason
-{
-    /// <summary>点了关闭按钮、取消按钮（或写了 data-rune-close 的按钮）。</summary>
-    Close,
-
-    /// <summary>按了 Esc。</summary>
-    Escape,
-
-    /// <summary>点了遮罩。</summary>
-    Outside,
-}
-
 /// <summary>对话框（Dialog）与抽屉（Drawer）的基类：参数、状态与渲染相同，只有样式不同。</summary>
 public abstract partial class DialogBase
 {
     readonly string autoId = UniqueId.Next("dialog");
     Memo<string, Attrs> triggerAttrs;
-    Memo<(string Id, bool Open, bool Described, bool Dismissible, bool Guarded, string? InlineStyle), Attrs> managed;
+    Memo<(string Id, bool Open, bool Described, bool Dismissible, bool Guarded, string? InlineStyle, string? Role), Attrs> managed;
     bool hasOpened;
     // 等确认的结果：这期间关不掉
     bool pending;
@@ -33,6 +20,9 @@ public abstract partial class DialogBase
 
     /// <summary>打开或关闭后（Esc、点遮罩、关闭按钮、确认、Trigger）。</summary>
     [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>用户（或确认）打开、关上了对话框，带原因：关闭按钮 Close、Esc Escape、点遮罩 Outside、确认 Confirm、Trigger 打开 Trigger；父级直接改 Open 时不报告。</summary>
+    [Parameter] public EventCallback<OverlayOpenChange> OnOpenChange { get; set; }
 
     /// <summary>触发元素：参数是要加在它上面的属性（点击时打开）。</summary>
     [Parameter] public RenderFragment<Attrs>? Trigger { get; set; }
@@ -59,7 +49,7 @@ public abstract partial class DialogBase
     /// 用户要关闭时（关闭按钮、取消、Esc、点遮罩）先问它：返回 false 就不关，如表单有未保存的改动时先确认。
     /// 确认按钮与父级把 Open 改成 false 不经过它。
     /// </summary>
-    [Parameter] public Func<DialogCloseReason, Task<bool>>? BeforeClose { get; set; }
+    [Parameter] public Func<OverlayChangeReason, Task<bool>>? BeforeClose { get; set; }
 
     /// <summary>
     /// 确认：写了就在页脚放“取消”与“确认”两个按钮。执行期间确认按钮加载中，取消、Esc、遮罩、关闭按钮暂不可用，完成后关闭；
@@ -129,9 +119,25 @@ public abstract partial class DialogBase
     /// <summary>子类放在 dialog 里、各部件之后的内容（抽屉的宽度调整手柄）。</summary>
     protected virtual RenderFragment? Edge => null;
 
-    Attrs Managed => managed.Get((DialogId, open.Value, Description is not null, Dismissible, BeforeClose is not null || pending, RootInlineStyle), static k => new Attrs
+    /// <summary>dialog 的角色：普通对话框不写（原生 dialog），确认对话框是 alertdialog。</summary>
+    protected virtual string? Role => null;
+
+    /// <summary>点遮罩关闭（确认对话框不关）。</summary>
+    protected virtual bool LightDismiss => Dismissible;
+
+    /// <summary>标题行显示关闭按钮（确认对话框不显示）。</summary>
+    protected virtual bool ShowClose => Closable;
+
+    /// <summary>页脚有“取消 / 确认”（确认对话框总有）。</summary>
+    protected virtual bool HasConfirm => OnConfirm.HasDelegate;
+
+    /// <summary>取消按钮的默认层：确认对话框打开时焦点先落在取消上（误按 Enter 不会执行破坏性操作）。</summary>
+    protected virtual Attrs? CancelDefaults => null;
+
+    Attrs Managed => managed.Get((DialogId, open.Value, Description is not null, LightDismiss, BeforeClose is not null || pending, RootInlineStyle, Role), static k => new Attrs
     {
         Id = k.Id,
+        Role = k.Role,
         InlineStyle = k.InlineStyle,
         AriaLabelledBy = $"{k.Id}-title",
         AriaDescribedBy = k.Described ? $"{k.Id}-description" : null,
@@ -141,25 +147,28 @@ public abstract partial class DialogBase
         ["data-rune-guard-close"] = k.Guarded ? true : null,
     });
 
-    Task HandleToggle(OverlayToggleEventArgs e)
+    async Task HandleToggle(OverlayToggleEventArgs e)
     {
         if (e.Open) hasOpened = true;
-        return e.Open == open.Value ? Task.CompletedTask : open.SetAsync(e.Open);
+        if (e.Open == open.Value) return;
+        await open.SetAsync(e.Open);
+        await OnOpenChange.InvokeAsync(new(e.Open, OverlayOpenChange.Parse(e.Reason, e.Open)));
     }
 
-    Task OnCloseRequest(CloseRequestEventArgs e) => RequestCloseAsync(e.Reason switch
-    {
-        "escape" => DialogCloseReason.Escape,
-        "outside" => DialogCloseReason.Outside,
-        _ => DialogCloseReason.Close,
-    });
+    Task OnCloseRequest(CloseRequestEventArgs e) => RequestCloseAsync(OverlayOpenChange.Parse(e.Reason, open: false));
 
     /// <summary>用户要关闭：确认中不关；有 BeforeClose 先问它，同意了才关（受控的 Open 变成 false，JS 关上原生 dialog）。</summary>
-    async Task RequestCloseAsync(DialogCloseReason reason)
+    async Task RequestCloseAsync(OverlayChangeReason reason)
     {
         if (pending) return;
         if (BeforeClose is not null && !await BeforeClose(reason)) return;
+        await CloseAsync(reason);
+    }
+
+    async Task CloseAsync(OverlayChangeReason reason)
+    {
         await open.SetAsync(false);
+        await OnOpenChange.InvokeAsync(new(false, reason));
     }
 
     async Task ConfirmAsync()
@@ -175,6 +184,6 @@ public abstract partial class DialogBase
         {
             pending = false;
         }
-        if (!args.KeepOpen) await open.SetAsync(false);
+        if (!args.KeepOpen) await CloseAsync(OverlayChangeReason.Confirm);
     }
 }

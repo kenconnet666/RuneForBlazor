@@ -81,6 +81,7 @@ public static class RuneUIServiceCollectionExtensions
         services.AddRune();
         services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher, ThemeChoices = options.ThemeChoices });
         services.AddScoped<ToastService>();
+        services.AddScoped<DialogService>();
         return services;
     }
 }

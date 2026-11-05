@@ -1,0 +1,96 @@
+@inherits RuneComponent
+@inject DialogService Dialogs
+
+@* 命令式对话框：不在页面里放 Dialog、不管 Open，点哪张发票就弹出哪张的详情；正文拿到句柄，
+   “标记已核对”改标题后关上。右边记下每次 OnOpenChange 的原因（关闭按钮、Esc、点遮罩、确认、代码调用） *@
+<Flex Gap="SpaceScale.Lg" Align="ItemAlign.Start" Wrap="true">
+    <Card Padding="SpaceScale.None" Sx="ListBox">
+        <ItemList Divided="true" Inset="SpaceScale.Md">
+            @foreach (var invoice in invoices)
+            {
+                <ItemListItem @key="invoice.No" Title="@invoice.Vendor" Description="@($"{invoice.No} · {invoice.Amount}")">
+                    <End>
+                        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                            @if (checkedInvoices.Contains(invoice.No))
+                            {
+                                <Badge Tone="Tone.Success">已核对</Badge>
+                            }
+                            <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" @onclick="() => Show(invoice)">查看</Button>
+                        </Flex>
+                    </End>
+                </ItemListItem>
+            }
+        </ItemList>
+    </Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Sx="LogBox">
+        <Small Tone="TextTone.Muted">OnOpenChange</Small>
+        @if (log.Count == 0)
+        {
+            <Small Tone="TextTone.Muted">（还没有）</Small>
+        }
+        @foreach (var line in log)
+        {
+            <Small>@line</Small>
+        }
+    </Flex>
+</Flex>
+
+@code {
+    sealed record Invoice(string No, string Vendor, string Amount, string Date);
+
+    static readonly Invoice[] invoices =
+    [
+        new("FP-20261021-031", "华辰精密", "¥48,210.00", "2026-10-21"),
+        new("FP-20261019-118", "启航塑胶", "¥12,860.00", "2026-10-19"),
+        new("FP-20261015-007", "远山钣金", "¥3,420.50", "2026-10-15"),
+    ];
+
+    static readonly Dictionary<OverlayChangeReason, string> reasonText = new()
+    {
+        [OverlayChangeReason.Trigger] = "触发器",
+        [OverlayChangeReason.Close] = "关闭按钮",
+        [OverlayChangeReason.Escape] = "Esc",
+        [OverlayChangeReason.Outside] = "点遮罩",
+        [OverlayChangeReason.Confirm] = "确认",
+        [OverlayChangeReason.Imperative] = "代码调用",
+    };
+
+    readonly HashSet<string> checkedInvoices = [];
+    List<string> log = [];
+
+    void Show(Invoice invoice) => Dialogs.Open(new DialogOptions
+    {
+        Title = $"发票 {invoice.No}",
+        Description = invoice.Vendor,
+        Size = DialogSize.Sm,
+        ConfirmText = "去付款",
+        OnConfirm = _ => Task.Delay(600),
+        OnOpenChange = change => InvokeAsync(() =>
+        {
+            log = [$"{(change.Open ? "打开" : "关上")} · {reasonText[change.Reason]}", .. log.Take(5)];
+            StateHasChanged();
+        }),
+        Content = handle => @<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Descriptions>
+                <DescriptionsItem Label="供应商" Value="@invoice.Vendor" />
+                <DescriptionsItem Label="金额" Value="@invoice.Amount" />
+                <DescriptionsItem Label="开票日期" Value="@invoice.Date" />
+            </Descriptions>
+            <Flex Gap="SpaceScale.Sm">
+                <Button Size="Size.Sm" Variant="ButtonVariant.Soft" @onclick="() => MarkCheckedAsync(invoice, handle)">标记已核对并关上</Button>
+            </Flex>
+        </Flex>,
+    });
+
+    async Task MarkCheckedAsync(Invoice invoice, DialogHandle handle)
+    {
+        checkedInvoices.Add(invoice.No);
+        handle.Update(o => o with { Title = $"发票 {invoice.No}（已核对）" });
+        await Task.Delay(800);
+        handle.Close();
+    }
+
+    static Style ListBox => Css.Define(static () => new Style { Flex = "1 1 18rem" });
+
+    static Style LogBox => Css.Define(static () => new Style { Flex = "0 1 10rem" });
+}

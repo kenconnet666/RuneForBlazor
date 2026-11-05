@@ -1,0 +1,79 @@
+@*
+    命令式浮层的显示处（同 vue-tsx-pro 的 useDetachedDialog）：渲染 DialogService 打开的对话框、抽屉与确认。
+    在布局里放一个：<DialogHost />（与 Toaster 并排）。关上后等离场过渡播完再移除。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@inject DialogService Injected
+
+@foreach (var entry in Service.Entries)
+{
+    switch (entry)
+    {
+        case DialogHandle { Options: DialogOptions dialog } handle:
+            <Dialog @key="handle" Open="handle.IsOpen" OpenChanged="keepControlled" Size="dialog.Size"
+                    Title="@dialog.Title" Description="@dialog.Description" Closable="dialog.Closable" Dismissible="dialog.Dismissible"
+                    ConfirmText="@dialog.ConfirmText" CancelText="@dialog.CancelText" Tone="dialog.Tone" BeforeClose="dialog.BeforeClose"
+                    OnConfirm="ConfirmOf(dialog)" OnOpenChange="change => Report(handle, change)" Footer="dialog.Footer">
+                @dialog.Content?.Invoke(handle)
+            </Dialog>
+            break;
+        case DialogHandle { Options: DrawerOptions drawer } handle:
+            <Drawer @key="handle" Open="handle.IsOpen" OpenChanged="keepControlled" Side="drawer.Side" Size="drawer.Size"
+                    Title="@drawer.Title" Description="@drawer.Description" Closable="drawer.Closable" Dismissible="drawer.Dismissible"
+                    ConfirmText="@drawer.ConfirmText" CancelText="@drawer.CancelText" Tone="drawer.Tone" BeforeClose="drawer.BeforeClose"
+                    OnConfirm="ConfirmOf(drawer)" OnOpenChange="change => Report(handle, change)" Footer="drawer.Footer">
+                @drawer.Content?.Invoke(handle)
+            </Drawer>
+            break;
+        case ConfirmRequest request:
+            var options = request.Options;
+            @* 要填理由时焦点先进输入框；没有理由时落在取消上（误按 Enter 不会执行） *@
+            <AlertDialog @key="request" Open="request.IsOpen" OpenChanged="keepControlled" Size="options.Size" FocusCancel="request.Reason is null"
+                         Title="@options.Title" Description="@options.Description" ConfirmText="@options.ConfirmText" CancelText="@options.CancelText"
+                         Tone="options.Tone" OnConfirm="args => ConfirmAsync(request, args)"
+                         OnOpenChange="change => { if (!change.Open) Service.CloseConfirm(request); }">
+                @options.Content
+                @if (request.Reason is { } reason)
+                {
+                    <Field Label="@reason.Label" Description="@reason.Description" Required="reason.Required"
+                           Error="@(request.Tried && request.Missing ? Config.Lang.FormRequired : null)">
+                        <Textarea @bind-Value="request.Text" placeholder="@reason.Placeholder" maxlength="@reason.MaxLength"
+                                  ShowCount="reason.MaxLength is not null" autofocus />
+                    </Field>
+                }
+            </AlertDialog>
+            break;
+    }
+}
+
+@code {
+    // 开关由句柄管：对话框报来的开关不改它（关上由 OnOpenChange 处理），只为让对话框处于受控模式
+    static readonly EventCallback<bool> keepControlled = EventCallback.Factory.Create<bool>(new object(), static () => { });
+
+    /// <summary>浮层的来源；不写时用注入的 DialogService（应用里的那一个）。</summary>
+    [Parameter] public DialogService? Controller { get; set; }
+
+    DialogService Service => Controller ?? Injected;
+
+    EventCallback<ConfirmEventArgs> ConfirmOf(OverlayOptions options) =>
+        options.OnConfirm is { } confirm ? EventCallback.Factory.Create(this, confirm) : default;
+
+    static void Report(DialogHandle handle, OverlayOpenChange change)
+    {
+        handle.Options.OnOpenChange?.Invoke(change);
+        if (!change.Open) handle.MarkClosed(change.Reason);
+    }
+
+    // 必填没填：点确认后才提示、不关闭；OnConfirm 返回 false 时也留着
+    static async Task ConfirmAsync(ConfirmRequest request, ConfirmEventArgs args)
+    {
+        request.Tried = true;
+        if (request.Missing || (request.Options.OnConfirm is { } confirm && !await confirm(request.Text.Trim())))
+        {
+            args.KeepOpen = true;
+            return;
+        }
+        request.Confirmed = true;
+    }
+}

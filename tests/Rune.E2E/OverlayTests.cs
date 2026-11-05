@@ -141,6 +141,28 @@ public class OverlayTests(DemoServer demo)
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
+    public async Task 命令式确认与对话框_焦点先在取消上_关上的原因报给CSharp(string mode)
+    {
+        var page = await demo.OpenAsync(mode, "dialog");
+
+        await page.GetByRole(AriaRole.Button, new() { Name = "退出登录（ConfirmAsync）" }).ClickAsync();
+        var alert = page.GetByRole(AriaRole.Alertdialog);
+        await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "取消" }).Last).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(alert).ToBeHiddenAsync();
+        await Assertions.Expect(page.GetByText("取消了退出", new() { Exact = true })).ToBeVisibleAsync();
+
+        await page.GetByRole(AriaRole.Button, new() { Name = "查看" }).First.ClickAsync();
+        var dialog = page.GetByRole(AriaRole.Dialog, new() { Name = "发票 FP-20261021-031" });
+        await Assertions.Expect(dialog).ToBeVisibleAsync();
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(dialog).ToBeHiddenAsync();
+        await Assertions.Expect(page.GetByText("关上 · Esc", new() { Exact = true })).ToBeVisibleAsync();
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
     public async Task 对话框打开时焦点在里面_Esc关闭后回到打开它的按钮(string mode)
     {
         var page = await demo.OpenAsync(mode, "dialog");
