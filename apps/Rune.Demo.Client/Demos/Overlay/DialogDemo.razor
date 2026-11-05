@@ -1,7 +1,6 @@
 @*
     对话框：示例与 vue-tsx-pro 文档站的 /components/dialog 对应。
-    alert-dialog（AlertDialog、useConfirm）与 imperative（useDialog）在阶段 8 做；部门的 Select 在阶段 5 做好前用 NativeSelect，
-    宽度的 ToggleGroup 在阶段 5 前用 NativeSelect，导入进度的 Progress 在阶段 6 前用原生 progress。
+    alert-dialog（AlertDialog、useConfirm）与 imperative（useDialog）在阶段 8 做。
 *@
 @attribute [ComponentDemo("dialog", "对话框", Group = "浮层", Order = 3)]
 @inherits RuneComponent
@@ -25,7 +24,7 @@
                         <TextField @bind-Value="draft.Name" autofocus />
                     </Field>
                     <Field Label="部门">
-                        <NativeSelect @bind-Value="draft.Department" Items="departments" />
+                        <Select Items="departments" @bind-Value="draft.Department" />
                     </Field>
                     <Field Label="简介" Description="显示在个人主页，最多 80 字。">
                         <Textarea @bind-Value="draft.Bio" Rows="3" />
@@ -40,8 +39,13 @@
     <Description><Code>Size</Code> 与 Container 同档（Xs–Xl），另有 Full 占满视口。内容长时只滚正文，标题与页脚一直看得见。这里用 <Code>Trigger</Code> 打开（不管 Open）：点击由 JS 直接打开，静态 SSR 也能用；页脚的按钮写 <Code>data-rune-close</Code> 点击后关闭。</Description>
     <ChildContent>
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
-            <NativeSelect @bind-Value="size" Items="sizes" Size="Size.Sm" aria-label="宽度" />
-            <Dialog Size="size" Title="用户协议" Description="更新于 2026 年 10 月 1 日">
+            <ToggleGroup @bind-Value="size" Required="true" Size="Size.Sm" aria-label="宽度">
+                @foreach (var value in sizes)
+                {
+                    <ToggleItem @key="value" Value="@value">@value</ToggleItem>
+                }
+            </ToggleGroup>
+            <Dialog Size="Enum.Parse<DialogSize>(size!, ignoreCase: true)" Title="用户协议" Description="更新于 2026 年 10 月 1 日">
                 <Trigger Context="t"><Button @attributes="t" Variant="ButtonVariant.Outline">阅读用户协议（Size="@size"）</Button></Trigger>
                 <ChildContent>
                     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
@@ -76,10 +80,8 @@
             <Dialog Open="importing" OpenChanged="ImportOpenChanged" Title="正在导入通讯录" Description="完成后自动关闭；可以随时取消，已导入的联系人会保留。"
                     Closable="false" Dismissible="false">
                 <ChildContent>
-                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
-                        <Flex Justify="ContentJustify.Between"><Small>导入进度</Small><Small Tone="TextTone.Muted">@imported / @Total</Small></Flex>
-                        <progress value="@imported" max="@Total" aria-label="导入进度" style="width: 100%"></progress>
-                    </Flex>
+                    <Progress Value="imported" Max="Total" Label="导入进度" ValueLabel="@($"{imported} / {Total}")"
+                              ValueText="@((value, max) => $"已导入 {value} / {max} 位")" />
                 </ChildContent>
                 <Footer>
                     <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral" @onclick="CancelImport">取消导入</Button>
@@ -100,7 +102,8 @@
     }
 
     static readonly string[] departments = ["设计中心", "研发部", "市场部", "财务部"];
-    static readonly DialogSize[] sizes = [DialogSize.Xs, DialogSize.Sm, DialogSize.Md, DialogSize.Lg, DialogSize.Full];
+    // 切换按钮的值是字符串：小写的档位名，同 vue
+    static readonly string[] sizes = ["xs", "sm", "md", "lg", "full"];
 
     static readonly (string Title, string Text)[] sections =
     [
@@ -119,7 +122,7 @@
     bool editing;
     string? nameError;
 
-    DialogSize size = DialogSize.Md;
+    string? size = "md";
     bool agreed;
 
     bool importing;

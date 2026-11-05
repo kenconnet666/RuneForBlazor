@@ -1,6 +1,6 @@
 @*
     文本框：示例与 vue-tsx-pro 文档站的 /components/text-field 一一对应。
-    “手机号、身份证号、银行卡号”（输入时自动分组的 Format）做好后补上；评论示例里的头像（Avatar）先用圆形色块占位。
+    “手机号、身份证号、银行卡号”（输入时自动分组的 Format）做好后补上。
 *@
 @attribute [ComponentDemo("text-field", "文本框", Group = "表单", Order = 1)]
 @inherits RuneComponent
@@ -75,7 +75,7 @@
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
             <Card>
                 <Flex Gap="SpaceScale.Md" Align="ItemAlign.Start">
-                    <span @attributes="Attrs.Merge(AvatarStandIn)" aria-hidden="true">林</span>
+                    <Avatar Name="林小满" Size="Size.Sm" />
                     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Grow="true">
                         <Field Label="发表评论" Description="随内容自动增高，最多 6 行后出现滚动条">
                             <Textarea @bind-Value="comment" Rows="2" MaxRows="6" maxlength="200" ShowCount="true" placeholder="说点什么…" data-testid="comment" />
@@ -125,18 +125,4 @@
     string? homepage = "github.com/linxiaoman";
     string bio = "喜欢做小而美的工具，周末在山里跑步。";
 
-    // 头像（Avatar）做好前的占位：小号圆形、浅色底
-    static Style AvatarStandIn => Css.Define(static () => new Style
-    {
-        Display = Display.InlineFlex,
-        AlignItems = AlignItems.Center,
-        JustifyContent = JustifyContent.Center,
-        Width = CssLength.Em(2),
-        Height = CssLength.Em(2),
-        FlexShrink = 0,
-        BorderRadius = Radii.Full,
-        BackgroundColor = Tones.Accent.Soft,
-        Color = Tones.Accent.Text,
-        FontSize = FontSizes.Sm,
-    });
 }
