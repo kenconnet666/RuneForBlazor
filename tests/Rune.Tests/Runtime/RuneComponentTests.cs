@@ -30,17 +30,33 @@ public class RuneComponentTests : BunitContext
     }
 
     [Fact]
-    public void 父级重新渲染时_内容片段可能读了普通字段_子组件照常重新渲染()
+    public void 父级重新渲染时_读了父级字段的内容片段是新实例_子组件照常重新渲染()
     {
         var host = Render<FragmentHost>();
         var children = host.FindComponents<FragmentChild>();
 
         host.Find("#plain").Click();
 
-        // 内容片段的输出取决于父级渲染时的状态（普通字段变了不会通知），不能按委托相等跳过
+        // 内容片段的输出取决于父级渲染时的状态（普通字段变了不会通知）：每次渲染新建的片段一律当作变了
         Assert.Equal(2, host.Instance.Renders);
-        Assert.All(children, child => Assert.Equal(2, child.RenderCount));
-        Assert.Contains("1", host.Find("#plain").TextContent);
+        Assert.Equal(2, children[1].RenderCount);
+        Assert.Equal(2, children[2].RenderCount);
+        Assert.Contains("普通字段 1", children[2].Markup);
+    }
+
+    [Fact]
+    public void 同一个内容片段实例_没有变_子组件跳过()
+    {
+        var host = Render<FragmentHost>();
+        var constant = host.FindComponents<FragmentChild>()[0];
+        var cascaded = host.FindComponent<CascadeChild>();
+
+        host.Find("#plain").Click();
+
+        // 只有常量的片段由编译器缓存成同一个委托；级联值通知时 Blazor 把上次的参数（同一个实例）再交一遍
+        Assert.Equal(1, constant.RenderCount);
+        Assert.Equal(1, cascaded.RenderCount);
+        Assert.Contains("固定：固定内容", cascaded.Markup);
     }
 
     [Fact]

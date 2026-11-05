@@ -5,6 +5,11 @@
 <FragmentChild>固定内容</FragmentChild>
 <FragmentChild>本地状态 @Local.Value</FragmentChild>
 <ListChild Items="items" />
+<FragmentChild>普通字段 @plainClicks</FragmentChild>
+@* 级联值：同一个 record 实例，宿主重新渲染时 Blazor 照样通知下级 *@
+<CascadingValue Value="context">
+    <CascadeChild>固定内容</CascadeChild>
+</CascadingValue>
 
 @code {
     int plainClicks;
@@ -12,6 +17,7 @@
     /// <summary>宿主自己的渲染次数（bUnit 的 RenderCount 会把子组件的渲染也算进来）。</summary>
     public int Renders { get; private set; }
     readonly List<int> items = [1];
+    readonly CascadeContext context = new("固定");
 
     /// <summary>只在子组件的内容里读取的状态。</summary>
     public State<int> Local { get; } = new(0);

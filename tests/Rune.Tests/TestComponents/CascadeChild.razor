@@ -1,0 +1,10 @@
+@* 读级联值、带子内容的组件：级联值通知时 Blazor 把上次的参数（同一个子内容实例）再交一遍 *@
+@inherits RuneComponent
+
+<div>@Context?.Name：@ChildContent</div>
+
+@code {
+    [CascadingParameter] public CascadeContext? Context { get; set; }
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

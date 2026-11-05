@@ -76,17 +76,16 @@
     static readonly Attrs VisuallyHiddenLayer = new() { Sx = SharedStyles.VisuallyHidden };
     static readonly Attrs ChevronLayer = new() { Sx = InputStyles.Chevron };
 
-    // 搜索框：占满头部、浅色底；不归外面的 Field 管（它的 id、标签、错误属于 Select 本身）
-    RenderFragment SearchHeader => searchHeader ??= @<CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
+    // 搜索框：占满头部、浅色底；不归外面的 Field 管（它的 id、标签、错误属于 Select 本身）。
+    // 每次现建：它读搜索词，缓存同一个实例会让列表跳过渲染、显示旧的搜索词
+    RenderFragment SearchHeader => @<CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
         <TextField Type="search" Icon="BuiltInIcons.Search" Variant="InputVariant.Soft" Immediate="true" Value="@SearchText" ValueChanged="SetSearchAsync"
                    @attributes="Attrs.MergeProps(SearchDefaults, PropsSearch, SearchManaged)" />
     </CascadingValue>;
-    RenderFragment? searchHeader;
 
-    // 自定义选项内容时，“新建”那一项仍按默认的样子画（它不是 Items 里的数据）
-    RenderFragment<ListOptionState<TItem>>? OptionContent => ChildContent is null ? null : optionContent ??= state =>
+    // 自定义选项内容时，“新建”那一项仍按默认的样子画（它不是 Items 里的数据）；同 SearchHeader，每次现建
+    RenderFragment<ListOptionState<TItem>>? OptionContent => ChildContent is null ? null : state =>
         ReferenceEquals(state.Option, Shown.Creation)
             ? @<text><Icon Data="state.Option.Icon" /><span>@state.Option.Label</span></text>
             : ChildContent(state);
-    RenderFragment<ListOptionState<TItem>>? optionContent;
 }
