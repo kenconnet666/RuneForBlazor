@@ -188,9 +188,12 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - 地图数据去找资源导出进来（阶段 11），来源与许可写进 NOTICE。
 - vue-tsx-pro 的可选模块（代码编辑器、流程图 diagram、三维与特效背景、xlsx）暂时不移植；不做移动端组件库。
 - NuGet 暂不发布，阶段 14 只做本地打包与安装试用。
+- 文档站部署到 Cloudflare Workers 的静态资源（免费额度），工作流只手动触发；令牌放仓库 secret CLOUDFLARE_API_TOKEN，由用户配置后自己运行。
+- 渲染模式测试台 Rune.Demo 保留，与文档站共用 Rune.Docs.Content 的页面。three、diagram、演练场继续不做。
 
 ## 待决
 
 （执行中遇到的停顿点记在这里：日期、项号、卡在哪、需要用户决定什么。）
 
-- 文档站（含 Server 模式）部署到哪里。
+- 2026-11-05：vue-tsx-pro 的 f1a6a09f（CodePreview 加 propsLayout，整页示例贴满效果区）只提交在本地，要不要推送由用户决定。
+
