@@ -1,5 +1,5 @@
 @*
-    进度：示例与 vue-tsx-pro 文档站的 /components/progress 对应。“加载遮罩”（LoadingOverlay）做好后补上。
+    进度与加载：示例与 vue-tsx-pro 文档站的 /components/progress 对应。
 *@
 @attribute [ComponentDemo("progress", "进度", Group = "反馈", Order = 3)]
 @inherits RuneComponent
@@ -108,6 +108,34 @@
     </ChildContent>
 </DemoSection>
 
+<DemoSection Id="overlay" Title="加载遮罩">
+    <Description><Code>LoadingOverlay</Code> 盖住一块区域，内容保留在下面，外层带 aria-busy；很快完成时不出现，出现后至少显示一会儿，淡入淡出。<Code>Blur</Code> 模糊下面的内容。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <Switch @bind-Value="blur">模糊下面的内容</Switch>
+            </Flex>
+            <LoadingOverlay Loading="saving" Blur="blur" Label="正在保存" data-testid="overlay">
+                <Card>
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                        <Grid MinItemWidth="@CssLength.Em(12)" Gap="SpaceScale.Md">
+                            <Field Label="项目名称">
+                                <TextField @bind-Value="projectName" Disabled="saving" />
+                            </Field>
+                            <Field Label="负责人">
+                                <TextField @bind-Value="owner" Disabled="saving" />
+                            </Field>
+                        </Grid>
+                        <Flex Justify="ContentJustify.End">
+                            <Button Loading="saving" @onclick="SaveAsync">保存</Button>
+                        </Flex>
+                    </Flex>
+                </Card>
+            </LoadingOverlay>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
 @code {
     static readonly (string Name, decimal Used, decimal Total, string Unit)[] quotas =
     [
@@ -131,6 +159,15 @@
     static readonly Attrs Over = new() { ["Tone"] = TextTone.Danger };
 
     int uploaded = 3;
+    bool saving, blur = true;
+    string? projectName = "vue-tsx-pro", owner = "林小满";
+
+    async Task SaveAsync()
+    {
+        saving = true;
+        await Task.Delay(1600);
+        saving = false;
+    }
 
     // 用量越接近上限越醒目：80% 以上警告，超出为危险
     static Tone ToneOf(decimal ratio) => ratio > 1 ? Tone.Danger : ratio >= 0.8m ? Tone.Warning : Tone.Accent;

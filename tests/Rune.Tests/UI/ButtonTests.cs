@@ -142,15 +142,17 @@ public class ButtonTests : BunitContext
     }
 
     [Fact]
-    public void 加载指示_Lucide图标旋转_有说明时播报()
+    public void 加载指示_Lucide图标旋转_有说明时外层播报()
     {
         var cut = Render<Spinner>(p => p.Add(x => x.Label, "加载中"));
 
+        // 说明放在外层 status 里的视觉隐藏文字中，图标本身是装饰
+        var root = cut.Find("span");
+        Assert.Equal("status", root.GetAttribute("role"));
+        Assert.Equal("加载中", root.TextContent.Trim());
         var svg = cut.Find("svg");
         Assert.Equal("loader-circle", svg.GetAttribute("data-icon"));
-        // Icon 有名称时默认 role="img"，加载指示让给 status
-        Assert.Equal("status", svg.GetAttribute("role"));
-        Assert.Equal("加载中", svg.GetAttribute("aria-label"));
+        Assert.Equal("true", svg.GetAttribute("aria-hidden"));
         Assert.Single(svg.ClassList);
         Assert.Contains(Registry.Rules, rule => rule.Contains("@keyframes rk") && rule.Contains("animation-name:rk"));
     }

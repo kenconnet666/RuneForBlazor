@@ -174,9 +174,11 @@
   外面包 Tooltip 说明原因。加载中只写 aria-busy，外观不变灰。这两种状态组件去掉使用方的点击处理，并带 `data-rune-inert`，
   JS 初始化器在捕获阶段拦下点击的默认动作（提交按钮不提交表单）。加载指示推迟 200ms 才出现（同 useDelayedLoading，CSS 过渡延迟实现，
   没有往返），很快完成的操作按钮不闪一下；vue-tsx-pro 还保证指示至少显示 500ms，CSS 做不到，这里没有。
-- **骨架的防闪烁用 `DelayedLoading`**（同 useDelayedLoading：200ms 后才显示，显示了至少 500ms）：骨架要整块换掉内容，只能由渲染决定，
+- **骨架、加载遮罩的防闪烁用 `DelayedLoading`**（同 useDelayedLoading：200ms 后才显示，显示了至少 500ms）：骨架要整块换掉内容，只能由渲染决定，
   所以在 C# 里计时，到点后 `InvokeAsync(StateHasChanged)`（Server 模式多一次推送）；第一次参数就在加载时立即显示，静态 SSR 只有这一次。
-  按钮的加载指示仍用上面的 CSS 延迟（不换内容，没有往返）。扫光（`ShimmerStyles.Wave`）画在 ::after 上用 transform 平移，各行的延迟写在行内样式上，光带继承。
+  按钮的加载指示仍用上面的 CSS 延迟（不换内容，没有往返）。加载遮罩一直在页面上，按 DelayedLoading 切换 `hidden`，淡入用 `@starting-style`、
+  淡出靠 `display` 的 `allow-discrete`，不需要离场计时器；外层的 aria-busy 按真实的 Loading 立即生效。
+- **Spinner 同 vue 的结构**：外层 span，有 Label 时是 role="status"，说明放在 VisuallyHidden 里，旋转的图标对读屏隐藏（role="status" 写在 svg 上读屏支持差）。扫光（`ShimmerStyles.Wave`）画在 ::after 上用 transform 平移，各行的延迟写在行内样式上，光带继承。
 - **可移除的标签、可关闭的提示条**（同 vue-tsx-pro 的 useDismissible）：移除按钮带 `data-rune-dismiss`，标签带 `data-rune-dismissible`。JS 初始化器先加
   `data-dismissing` 播放离场过渡，结束后发出 `rune-dismiss`（`@onrunedismiss`），组件再调用 OnRemove；标签被移除时焦点交给同组的下一个
   （没有就上一个）可聚焦元素，等 2 秒还在（使用方没移除）就去掉 `data-dismissing` 重新显示。没有往返也不用 C# 计时。

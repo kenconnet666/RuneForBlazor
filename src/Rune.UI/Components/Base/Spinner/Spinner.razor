@@ -1,12 +1,19 @@
 @*
-    加载指示：Lucide 的 loader-circle 匀速旋转。<Spinner Label="正在加载" />
-    单独使用时写 Label，读屏会播报（role="status"）；放在已经标了 aria-busy 的元素里（按钮的加载中）时不写，对读屏隐藏。
+    加载指示（span，同 vue-tsx-pro 的 Spinner）：Lucide 的 loader-circle 匀速旋转。<Spinner Label="正在加载" />
+    单独使用时写 Label：根元素是 role="status"，说明放在视觉隐藏的文字里，读屏会播报；
+    放在已经标了 aria-busy 的元素里（按钮的加载中）时不写，整个是装饰，对读屏隐藏。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 
-<Icon Data="BuiltInIcons.LoaderCircle" Label="@Label" Size="Size"
-      @attributes="Attrs.MergeProps(SpinnerStyles.Of(Config.Styles)[SpinnerPart.Root], Rest, Label is null ? null : statusRole)" />
+@{ var parts = SpinnerStyles.Of(Config.Styles); }
+<span @attributes="Attrs.Merge(parts[SpinnerPart.Root], Rest, Label is null ? null : statusRole)">
+    <Icon Data="BuiltInIcons.LoaderCircle" Size="Size" @attributes="Attrs.MergeProps(parts[SpinnerPart.Icon], PropsIcon)" />
+    @if (Label is not null)
+    {
+        <VisuallyHidden>@Label</VisuallyHidden>
+    }
+</span>
 
 @code {
     static readonly Attrs statusRole = new() { Role = "status" };
@@ -16,4 +23,7 @@
 
     /// <summary>字号档位；不写时跟着上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }
+
+    /// <summary>图标（旋转的 svg，交给 Icon 组件）的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
 }

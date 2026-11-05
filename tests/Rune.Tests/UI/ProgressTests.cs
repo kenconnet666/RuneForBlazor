@@ -57,4 +57,20 @@ public class ProgressTests : BunitContext
         Assert.Contains("--rune-status-dot-color:#ff6600", custom.Markup.Replace(" ", ""));
         Assert.Null(custom.Find("span").GetAttribute("data-tone"));
     }
+
+    [Fact]
+    public void 加载遮罩_一开始就在加载时立即盖上_开始加载时aria_busy立即生效而遮罩推迟出现()
+    {
+        var cut = Render<LoadingOverlay>(p => p.Add(x => x.Loading, true).Add(x => x.Label, "正在保存").AddChildContent("<p>表单</p>"));
+        Assert.Equal("true", cut.Find("div").GetAttribute("aria-busy"));
+        Assert.False(cut.Find("[data-part=overlay]").HasAttribute("hidden"));
+        Assert.Equal("正在保存", cut.Find("[role=status]").TextContent.Trim());
+
+        var later = Render<LoadingOverlay>(p => p.AddChildContent("<p>表单</p>"));
+        Assert.False(later.Find("div").HasAttribute("aria-busy"));
+        later.Render(p => p.Add(x => x.Loading, true));
+        Assert.Equal("true", later.Find("div").GetAttribute("aria-busy"));
+        Assert.True(later.Find("[data-part=overlay]").HasAttribute("hidden"));
+        later.WaitForAssertion(() => Assert.False(later.Find("[data-part=overlay]").HasAttribute("hidden")));
+    }
 }

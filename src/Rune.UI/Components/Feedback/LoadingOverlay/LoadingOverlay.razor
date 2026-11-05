@@ -1,0 +1,51 @@
+@*
+    加载遮罩（div，同 vue-tsx-pro 的 LoadingOverlay）：盖住一块区域（卡片、表单、图表），内容保留在下面，中间显示加载指示。
+    <LoadingOverlay Loading="saving" Label="正在保存">
+        <Form …>…</Form>
+    </LoadingOverlay>
+    外层带 aria-busy（立即生效）；遮罩防闪烁（DelayedLoading：很快完成时不出现，出现后至少显示一会儿），淡入淡出由 CSS 完成。
+    遮罩挡住指针操作；键盘仍可操作下面的内容，需要禁止时由内容自己处理（如输入框的 Disabled）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@{ var parts = LoadingOverlayStyles.Of(Blur, Config.Styles); }
+<div @attributes="Attrs.Merge(parts[LoadingOverlayPart.Root], Rest, Loading ? Busy : null)">
+    @ChildContent
+    @* 一直在页面上，不显示时用 hidden：进场、离场的淡入淡出都要有元素可过渡 *@
+    <div @attributes="Attrs.Merge(parts[LoadingOverlayPart.Overlay], PropsOverlay)" hidden="@(!indicator.Shown)">
+        <Spinner Label="@(Label ?? Config.Lang.Loading)" @attributes="Attrs.MergeProps(parts[LoadingOverlayPart.Spinner], PropsSpinner)" />
+    </div>
+</div>
+
+@code {
+    static readonly Attrs Busy = new() { ["aria-busy"] = "true" };
+
+    DelayedLoading? delayedLoading;
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+
+    /// <summary>加载中：盖上遮罩。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>读屏念的说明，默认取语言包（加载中）。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>遮罩下的内容模糊。</summary>
+    [Parameter] public bool Blur { get; set; }
+
+    /// <summary>遮罩的部件属性。</summary>
+    [Parameter] public Attrs? PropsOverlay { get; set; }
+
+    /// <summary>加载指示的部件属性（交给 Spinner 组件）。</summary>
+    [Parameter] public Attrs? PropsSpinner { get; set; }
+
+    /// <summary>被盖住的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => indicator.Update(Loading);
+
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => delayedLoading?.Dispose();
+}
