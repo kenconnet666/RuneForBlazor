@@ -7,7 +7,17 @@ namespace Rune.UI;
 /// 输入框外壳与按钮家族据此把 <see cref="AttachedStyles"/> 加到自己身上（同 vue-tsx-pro 的 AttachedContext）。
 /// </summary>
 /// <param name="Orientation">排列方向：决定去掉哪一侧的圆角。</param>
-public sealed record AttachedGroup(Orientation Orientation);
+public sealed record AttachedGroup(Orientation Orientation)
+{
+    /// <summary>横排的组。</summary>
+    public static readonly AttachedGroup Horizontal = new(Orientation.Horizontal);
+
+    /// <summary>竖排的组。</summary>
+    public static readonly AttachedGroup Vertical = new(Orientation.Vertical);
+
+    /// <summary>某个方向的组（共用实例）。</summary>
+    public static AttachedGroup Of(Orientation orientation) => orientation == Orientation.Vertical ? Vertical : Horizontal;
+}
 
 /// <summary>
 /// 组里相连的控件（同 vue-tsx-pro 的 attachedStyles）：去掉相邻一侧的圆角，边框叠在一起（不显得加粗）；

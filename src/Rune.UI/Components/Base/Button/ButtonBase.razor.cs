@@ -4,7 +4,7 @@ namespace Rune.UI;
 
 /// <summary>
 /// 按钮家族的基类：外观参数（样式、色调、尺寸、圆角）、加载中、图标与各部件属性。
-/// 外观按“组件上写的参数 &gt; 配置的默认值（<see cref="ButtonDefaults"/>）&gt; 各组件自己的默认值”决定。
+/// 外观按“组件上写的参数 &gt; 所在 ButtonGroup 写的 &gt; 配置的默认值（<see cref="ButtonDefaults"/>）&gt; 各组件自己的默认值”决定。
 /// </summary>
 public abstract partial class ButtonBase : UIComponent
 {
@@ -58,16 +58,22 @@ public abstract partial class ButtonBase : UIComponent
     {
         var defaults = Config.Defaults.Get<ButtonDefaults>();
         return new ButtonAppearance(
-            Variant ?? defaults?.Variant ?? DefaultVariant,
-            Tone ?? defaults?.Tone ?? DefaultTone,
-            Size ?? defaults?.Size,
-            Radius ?? defaults?.Radius ?? UI.Radius.Md,
+            EffectiveVariant,
+            // 组里的按钮外观要一致：不论有没有文字都按 Button 的默认色调（拆分按钮的两半同色）
+            Tone ?? GroupAppearance?.Tone ?? defaults?.Tone ?? (GroupAppearance is null ? DefaultTone : UI.Tone.Accent),
+            Size ?? GroupAppearance?.Size ?? defaults?.Size,
+            Radius ?? GroupAppearance?.Radius ?? defaults?.Radius ?? UI.Radius.Md,
             shape,
             Attached?.Orientation);
     }
 
+    ButtonVariant EffectiveVariant => Variant ?? GroupAppearance?.Variant ?? Config.Defaults.Get<ButtonDefaults>()?.Variant ?? DefaultVariant;
+
     /// <summary>所在的相连组（ControlGroup、ButtonGroup）：去掉相邻一侧的圆角、边框叠在一起。</summary>
     [CascadingParameter] AttachedGroup? Attached { get; set; }
+
+    /// <summary>所在的 ButtonGroup 写的外观：自己没写的项用它。</summary>
+    [CascadingParameter] ButtonGroupAppearance? GroupAppearance { get; set; }
 
     /// <summary>所在的 Form（提交中时它的提交按钮显示加载中）。</summary>
     [CascadingParameter] FormState? Form { get; set; }
@@ -82,7 +88,7 @@ public abstract partial class ButtonBase : UIComponent
     protected virtual bool IsBusy => false;
 
     /// <summary>是否出波纹：组件上写的 &gt; 配置；像链接的按钮（Link 样式）没有波纹。</summary>
-    protected bool RippleEnabled => (Ripple ?? Config.Ripple) && (Variant ?? Config.Defaults.Get<ButtonDefaults>()?.Variant ?? DefaultVariant) != ButtonVariant.Link;
+    protected bool RippleEnabled => (Ripple ?? Config.Ripple) && EffectiveVariant != ButtonVariant.Link;
 
     /// <summary>各部件的默认层。</summary>
     protected PartLayers<ButtonPart> Parts(ButtonShape shape) => ButtonStyles.Of(Appearance(shape), Config.Styles);

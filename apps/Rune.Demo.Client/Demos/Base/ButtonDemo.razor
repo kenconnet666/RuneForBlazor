@@ -1,4 +1,4 @@
-@* 按钮：示例与 vue-tsx-pro 文档站的 /components/button 一一对应（id、场景、顺序相同）。按钮组（group）等 ButtonGroup 做好后补上。 *@
+@* 按钮：示例与 vue-tsx-pro 文档站的 /components/button 一一对应（id、场景、顺序相同）。 *@
 @attribute [ComponentDemo("button", "按钮", Group = "基础组件", Order = 0)]
 @inherits RuneComponent
 
@@ -189,6 +189,57 @@
     </ChildContent>
 </DemoSection>
 
+<DemoSection Id="group" Title="按钮组">
+    <Description>ButtonGroup 把相关的按钮连成一条：拆分按钮、翻页、缩放、对齐方式。组上写的 <Code>Variant</Code>、<Code>Tone</Code>、<Code>Size</Code> 是组里按钮的默认值；<Code>Orientation.Vertical</Code> 竖排。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Toolbar Gap="SpaceScale.Sm" aria-label="编辑器工具栏">
+                <ButtonGroup Variant="ButtonVariant.Surface" Tone="Tone.Neutral" aria-label="撤销">
+                    <IconButton Icon="Lucide.Undo2" Label="撤销" />
+                    <IconButton Icon="Lucide.Redo2" Label="重做" />
+                </ButtonGroup>
+                <ButtonGroup Variant="ButtonVariant.Surface" Tone="Tone.Neutral" aria-label="字形">
+                    <IconButton Icon="Lucide.LetterB" Label="加粗" />
+                    <IconButton Icon="Lucide.Italic" Label="斜体" />
+                    <IconButton Icon="Lucide.Underline" Label="下划线" />
+                </ButtonGroup>
+                <ButtonGroup Variant="ButtonVariant.Surface" Tone="Tone.Neutral" aria-label="列表">
+                    <IconButton Icon="Lucide.List" Label="无序列表" />
+                    <IconButton Icon="Lucide.ListOrdered" Label="有序列表" />
+                </ButtonGroup>
+                <ButtonGroup Variant="ButtonVariant.Surface" Tone="Tone.Neutral" aria-label="对齐">
+                    <IconButton Icon="Lucide.TextAlignStart" Label="左对齐" />
+                    <IconButton Icon="Lucide.TextAlignCenter" Label="居中" />
+                    <IconButton Icon="Lucide.TextAlignEnd" Label="右对齐" />
+                </ButtonGroup>
+            </Toolbar>
+            <Flex Gap="SpaceScale.Lg" Wrap="true" Align="ItemAlign.Start">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+                    <ButtonGroup aria-label="合并" data-testid="split">
+                        <Button Icon="Lucide.GitMerge">合并请求</Button>
+                        <IconButton Variant="ButtonVariant.Solid" Icon="Lucide.ChevronDown" Label="更多合并方式" />
+                    </ButtonGroup>
+                    <ButtonGroup Variant="ButtonVariant.Outline" Tone="Tone.Neutral" aria-label="翻页">
+                        <IconButton Icon="Lucide.ChevronLeft" Label="上一页" @onclick="() => pageNo = Math.Max(1, pageNo - 1)" />
+                        <Button data-testid="page">第 @pageNo 页</Button>
+                        <IconButton Icon="Lucide.ChevronRight" Label="下一页" @onclick="() => pageNo++" />
+                    </ButtonGroup>
+                    <ButtonGroup Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Size="Size.Sm" aria-label="缩放">
+                        <IconButton Icon="Lucide.Minus" Label="缩小" @onclick="() => zoom = Math.Max(25, zoom - 25)" />
+                        <Button @onclick="() => zoom = 100">@zoom%</Button>
+                        <IconButton Icon="Lucide.Plus" Label="放大" @onclick="() => zoom = Math.Min(400, zoom + 25)" />
+                    </ButtonGroup>
+                </Flex>
+                <ButtonGroup Orientation="Orientation.Vertical" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" aria-label="导出">
+                    <Button>导出 PDF</Button>
+                    <Button>导出 Word</Button>
+                    <Button>导出 Markdown</Button>
+                </ButtonGroup>
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
 <DemoSection Id="disabled" Title="不可用">
     <Description>Disabled 是原生的不可用，按钮不能聚焦；需要说明原因时加 FocusableWhenDisabled，按钮仍能聚焦，悬停或聚焦时提示照常显示。</Description>
     <ChildContent>
@@ -263,6 +314,7 @@
     bool published, saving, submitting, deleting, refreshing, quick;
     string nickname = InitialNickname;
     string saved = "";
+    int pageNo = 3, zoom = 100;
 
     static async Task RunAsync(Action<bool> set, int milliseconds)
     {

@@ -1,0 +1,43 @@
+@*
+    按钮组（div，role="group"，同 vue-tsx-pro 的 ButtonGroup）：几个相关的按钮连成一条，共用外观。拆分按钮、翻页、缩放、对齐方式这类工具栏。
+    <ButtonGroup Variant="ButtonVariant.Outline" Tone="Tone.Neutral" aria-label="文字对齐">
+        <IconButton Icon="Lucide.TextAlignStart" Label="左对齐" />
+        <IconButton Icon="Lucide.TextAlignCenter" Label="居中" />
+    </ButtonGroup>
+    组里的按钮家族经级联值得知自己在组里（AttachedGroup）：去掉相邻一侧的圆角、边框叠在一起；
+    组上写的 Variant、Tone、Size、Radius 是组里按钮的默认值（ButtonGroupAppearance），按钮自己写的优先。
+    实底（Solid）的相邻按钮之间没有分隔，连成一条时用 Outline、Surface 更清楚。
+    只是排一排、不相连的按钮用 Flex；选中其中一项（单选、多选）用 ToggleGroup。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(ButtonGroupStyles.Of(Orientation, Config.Styles)[ButtonGroupPart.Root], Rest, Managed)">
+    <CascadingValue Value="AttachedGroup.Of(Orientation)">
+        <CascadingValue Value="Shared">@ChildContent</CascadingValue>
+    </CascadingValue>
+</div>
+
+@code {
+    static readonly Attrs Managed = new() { Role = "group" };
+
+    /// <summary>组里按钮的默认样式。</summary>
+    [Parameter] public ButtonVariant? Variant { get; set; }
+
+    /// <summary>组里按钮的默认色调。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>组里按钮的默认字号档位。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>组里按钮的默认圆角（两端的按钮用到）。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    /// <summary>排列方向，默认横排。</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>按钮。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    ButtonGroupAppearance Shared => new(Variant, Tone, Size, Radius);
+}

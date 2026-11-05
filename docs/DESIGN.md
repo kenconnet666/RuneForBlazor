@@ -273,7 +273,8 @@
   （`data-rune-indicator` 指出跟随哪一项，JS 量好位置写成 CSS 变量，样式里过渡；减少动态效果时直接到位）。
 - **ControlGroup 与相连**：组经级联的 `AttachedGroup` 告诉里面的输入框外壳与按钮“我在相连的组里”，它们在自己的配方里加上 `AttachedStyles`：
   去掉相邻一侧的圆角、负外边距叠住边框、聚焦的浮到上面。首尾按 `:nth-child(1 of :not([popover], [hidden], input[type=hidden], template))` 判断，
-  跳过选择框的弹层这类不占位置的兄弟元素。之后的 ButtonGroup 用同一套。
+  跳过选择框的弹层这类不占位置的兄弟元素。ButtonGroup 用同一套，另外级联 `ButtonGroupAppearance`：组上写的外观是组里按钮的默认值
+  （按钮自己写的 > 组上写的 > 配置的默认值 > 组件自己的），组里的图标按钮默认色调同 Button，拆分按钮两半同色。
 - **交给子组件的样式要经 `Attrs.MergeProps` 作为 Sx 交下去**：先 `Attrs.Merge` 合成类再交给子组件，元素上会有两个类，谁赢看规则插入的先后
   （Combobox 的展开按钮的箭头过渡就被按钮自己的过渡盖掉过）。
 - **外框的状态只看自己的输入元素**：`:has(> :is(input, select, textarea, [role=combobox]):disabled)`。最初写的 `:has(:disabled)` 会被数字框到了上限时不可用的步进按钮、

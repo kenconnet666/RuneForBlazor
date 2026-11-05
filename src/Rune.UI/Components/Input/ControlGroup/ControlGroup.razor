@@ -13,14 +13,11 @@
 
 <div @attributes="Attrs.Merge(ControlGroupStyles.Of(Orientation, Inline, Config.Styles)[ControlGroupPart.Root], Rest, Managed)">
     <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
-        <CascadingValue Value="Group" IsFixed="true">@ChildContent</CascadingValue>
+        <CascadingValue Value="AttachedGroup.Of(Orientation)">@ChildContent</CascadingValue>
     </CascadingValue>
 </div>
 
 @code {
-    static readonly AttachedGroup HorizontalGroup = new(Orientation.Horizontal);
-    static readonly AttachedGroup VerticalGroup = new(Orientation.Vertical);
-
     Memo<(string? Id, string? LabelledBy, string? DescribedBy), Attrs> managed;
 
     /// <summary>排列方向，默认横排。</summary>
@@ -35,7 +32,6 @@
     /// <summary>所在的 Field：组是它的控件（id、标签、说明）。</summary>
     [CascadingParameter] FieldContext? Field { get; set; }
 
-    AttachedGroup Group => Orientation == Orientation.Vertical ? VerticalGroup : HorizontalGroup;
 
     Attrs Managed => managed.Get(
         (Field?.ControlId, AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId, Field?.DescribedBy),

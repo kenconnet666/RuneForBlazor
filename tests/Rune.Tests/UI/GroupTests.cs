@@ -5,7 +5,7 @@ using Rune.UI;
 
 namespace Rune.Tests.UI;
 
-// 切换按钮组、复选框组、组合输入；不受控（bUnit 的 Bind 不会把新值传回组件），从 aria-pressed、checked 读值
+// 切换按钮组、复选框组、组合输入、按钮组；不受控（bUnit 的 Bind 不会把新值传回组件），从 aria-pressed、checked 读值
 public class GroupTests : BunitContext
 {
     public GroupTests()
@@ -158,5 +158,32 @@ public class GroupTests : BunitContext
         var input = cut.Find("input");
         Assert.NotEqual(group.Id, input.Id);
         Assert.False(input.HasAttribute("aria-describedby"));
+    }
+
+    // 组里第一个按钮的类：外观相同的按钮类相同
+    string ClassInGroup<TButton>(Action<ComponentParameterCollectionBuilder<ButtonGroup>> group, Action<ComponentParameterCollectionBuilder<TButton>> button)
+        where TButton : IComponent =>
+        Render<ButtonGroup>(p => { group(p); p.AddChildContent(button); }).Find("button").ClassName!;
+
+    [Fact]
+    public void 按钮组_组上的外观是默认值_按钮自己写的优先()
+    {
+        var cut = Render<ButtonGroup>(p => p.AddUnmatched("aria-label", "翻页").AddChildContent<Button>(b => b.AddChildContent("第 3 页")));
+        Assert.Equal("group", cut.Find("div").GetAttribute("role"));
+
+        Assert.Equal(
+            ClassInGroup<Button>(_ => { }, b => b.Add(x => x.Variant, ButtonVariant.Outline).Add(x => x.Tone, Tone.Neutral).AddChildContent("a")),
+            ClassInGroup<Button>(g => g.Add(x => x.Variant, ButtonVariant.Outline).Add(x => x.Tone, Tone.Neutral), b => b.AddChildContent("a")));
+        Assert.Equal(
+            ClassInGroup<IconButton>(_ => { }, b => b.Add(x => x.Variant, ButtonVariant.Solid).Add(x => x.Tone, Tone.Accent).Add(x => x.Label, "更多")),
+            ClassInGroup<IconButton>(g => g.Add(x => x.Variant, ButtonVariant.Outline).Add(x => x.Tone, Tone.Accent), b => b.Add(x => x.Variant, ButtonVariant.Solid).Add(x => x.Label, "更多")));
+    }
+
+    [Fact]
+    public void 按钮组里的图标按钮默认同Button的色调_拆分按钮两半同色()
+    {
+        Assert.Equal(
+            ClassInGroup<IconButton>(_ => { }, b => b.Add(x => x.Variant, ButtonVariant.Solid).Add(x => x.Tone, Tone.Accent).Add(x => x.Label, "更多")),
+            ClassInGroup<IconButton>(_ => { }, b => b.Add(x => x.Variant, ButtonVariant.Solid).Add(x => x.Label, "更多")));
     }
 }
