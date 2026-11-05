@@ -1,0 +1,46 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.None">
+    <Table>
+        <TableHead>
+            <TableRow>
+                <TableHeaderCell>订单</TableHeaderCell>
+                <TableHeaderCell>客户</TableHeaderCell>
+                <TableHeaderCell Align="TableAlign.End">金额</TableHeaderCell>
+                <TableHeaderCell>状态</TableHeaderCell>
+            </TableRow>
+        </TableHead>
+        <TableBody>
+            @foreach (var order in orders)
+            {
+                <TableRow @key="order.Id">
+                    <TableCell><Strong>@order.Id</Strong></TableCell>
+                    <TableCell>@order.Customer</TableCell>
+                    <TableCell Align="TableAlign.End"><TextSpan Tone="TextTone.Muted">@order.Amount</TextSpan></TableCell>
+                    <TableCell><StatusBadge Statuses="OrderStatuses" Value="order.Status" Radius="Radius.Full" /></TableCell>
+                </TableRow>
+            }
+        </TableBody>
+    </Table>
+</Card>
+
+@code {
+    // 状态写在一处：表格、筛选、详情里都是同一个名字与颜色
+    static readonly StatusMap<string> OrderStatuses = new()
+    {
+        ["pending"] = new("待付款", Tone.Warning),
+        ["packing"] = new("备货中", Tone.Info),
+        ["shipped"] = new("已发货", Tone.Success),
+        ["refunded"] = new("已退款", Tone.Danger),
+        ["cancelled"] = new("已取消", Tone.Neutral),
+    };
+
+    static readonly (string Id, string Customer, string Amount, string Status)[] orders =
+    [
+        ("#10234", "林小满", "¥1,280.00", "shipped"),
+        ("#10233", "周一航", "¥459.00", "packing"),
+        ("#10232", "陈默", "¥2,099.00", "pending"),
+        ("#10231", "吴悠", "¥89.00", "refunded"),
+        ("#10230", "赵晴", "¥320.00", "cancelled"),
+    ];
+}
