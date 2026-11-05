@@ -127,6 +127,9 @@
 - **ScrollArea 是滚动的基础组件**（同 vue-tsx-pro）：原生滚动、浮层滚动条。组件只渲染结构，滑块尺寸位置、显隐、拖动、点轨道翻页、滚轮转交、
   内容超出时视口可聚焦都在 JS（`js/scroll-area.js`），静态 SSR 一样。会滚动的部分都用它：列表框自己滚动时列表元素就是视口（PropsViewport），
   选项浮层与菜单是 FloatingStyles.ScrollPanel 里放 ScrollArea，对话框、抽屉的正文是 ScrollArea（Body + BodyContent）。
+- **Collapse 是展开收起的基础组件**（同 vue-tsx-pro）：grid-template-rows 0fr ↔ 1fr 做高度过渡；收起时组件渲染 inert，过渡结束后 JS（`js/collapse.js`）加
+  hidden="until-found"，页内查找命中时 beforematch 转成 rune-toggle 让 C# 展开。Collapsible 的内容区是 Collapse（收起后内容仍在页面里，Lazy 时第一次展开才渲染）。
+  注意：带内容片段参数的组件会随外层 CascadingValue 的通知重新渲染（ParameterChangeDetector 把 RenderFragment 一律当作变了）。
 - **JS 的组织**：入口 `Rune.UI.lib.module.js` 只负责安装（注册自定义事件、全局事件委托、DOM 变化监听）与分发，按职责分到 `wwwroot/js/` 的模块：
   overlays、floating、lists、tooltips、overflow、controls、effects、layout、shared，以及 roving、indicator、slider、move、rating、otp、scroll-area。模块用相对路径互相 import（浏览器原生 ES 模块，不打包）；
   入口顶部的注释是全部 data 属性约定的总表，新增约定写在那里。

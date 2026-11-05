@@ -4,6 +4,7 @@
         <Title>筛选条件</Title>
         <ChildContent>…</ChildContent>
     </Collapsible>
+    内容区是 Collapse：展开收起有高度过渡，收起后仍在页面里（inert），页内查找命中时自动展开。
     未声明的属性与 Sx 落到外层容器；按钮、内容区用 PropsTrigger、PropsContent 定制。
     每个部件三层合并：部件默认层 < 使用方的 < 组件管理的（见代码隐藏文件里的 *Managed）。
 *@
@@ -16,10 +17,7 @@
     <button type="button" @attributes="Attrs.Merge(parts[CollapsiblePart.Trigger], PropsTrigger, TriggerManaged)">
         @Title
     </button>
-    @if (open.Value)
-    {
-        <div @attributes="Attrs.Merge(parts[CollapsiblePart.Content], PropsContent, ContentManaged)">
-            @ChildContent
-        </div>
-    }
+    <Collapse Open="open.Value" OpenChanged="open.SetAsync" Lazy="Lazy" PropsContent="Attrs.Layer(parts[CollapsiblePart.Content], PropsContent)" @attributes="ContentManaged">
+        @ChildContent
+    </Collapse>
 </div>

@@ -77,4 +77,29 @@ public class CollapsibleTests : BunitContext
         Assert.NotEqual(plain.Find("button").ClassName, trigger.ClassName);
         Assert.Contains(Services.GetRequiredService<StyleRegistry>().Rules, rule => rule.Contains("crimson"));
     }
+
+    [Fact]
+    public void 内容在Collapse里_收起时仍在页面里且inert_展开时去掉()
+    {
+        var cut = Render<Collapsible>(p => p.Add(x => x.ChildContent, b => b.AddContent(0, "筛选条件")));
+        var region = cut.Find("[role=region]");
+        Assert.Equal(("closed", true), (region.GetAttribute("data-state"), region.HasAttribute("inert")));
+        Assert.Contains("筛选条件", region.TextContent);
+        Assert.True(region.HasAttribute("data-rune-collapse"));
+
+        cut.Find("button").Click();
+        region = cut.Find("[role=region]");
+        Assert.Equal(("open", false), (region.GetAttribute("data-state"), region.HasAttribute("inert")));
+    }
+
+    [Fact]
+    public void 页内查找命中收起的内容时_JS发的rune_toggle让它展开_Lazy时第一次展开才渲染()
+    {
+        var cut = Render<Collapse>(p => p.Add(x => x.Lazy, true).Add(x => x.ChildContent, b => b.AddContent(0, "很重的内容")));
+        Assert.DoesNotContain("很重的内容", cut.Markup);
+
+        cut.Find("[data-rune-collapse]").TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = true });
+        Assert.Equal("open", cut.Find("[data-rune-collapse]").GetAttribute("data-state"));
+        Assert.Contains("很重的内容", cut.Markup);
+    }
 }

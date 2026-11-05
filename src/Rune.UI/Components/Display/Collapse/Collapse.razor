@@ -1,0 +1,52 @@
+@*
+    展开收起的内容区（同 vue-tsx-pro 的 Collapse），带高度过渡。触发按钮另外写，或者用 Collapsible。
+    <Collapse @bind-Open="open">内容</Collapse>
+    高度过渡用 grid-template-rows 0fr ↔ 1fr（各浏览器都能动画；interpolate-size 只有 Chromium），减少动态效果时直接到位。
+    收起时 inert（不能 Tab 进去、读屏读不到）；收起的过渡结束后 JS 初始化器再加 hidden="until-found"（data-rune-collapse）：
+    页内查找、锚点命中收起的内容时浏览器自动展开，JS 发出 rune-toggle，这里把 Open 写回。
+    使用方写的属性落到外层；内容层（裁掉溢出、放内边距的地方）用 PropsContent。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = CollapseStyles.Of(Config.Styles);
+    var isOpen = open.Value;
+    if (isOpen) everOpened = true;
+}
+
+<div data-state="@(isOpen ? "open" : "closed")" inert="@(!isOpen)" @onrunetoggle="ExpandAsync" @onrunetoggle:stopPropagation
+     @attributes="Attrs.Merge(parts[CollapsePart.Root], Rest, isOpen ? OpenLayer : RootMarker)">
+    <div @attributes="Attrs.Merge(parts[CollapsePart.Content], PropsContent)">
+        @if (!Lazy || everOpened)
+        {
+            @ChildContent
+        }
+    </div>
+</div>
+
+@code {
+    static readonly Attrs RootMarker = new() { ["data-rune-collapse"] = true };
+    static readonly Attrs OpenLayer = new() { ["data-rune-collapse"] = true, Sx = CollapseStyles.Open };
+
+    bool everOpened;
+
+    /// <summary>是否展开（<c>@bind-Open</c>，也可以只给初始值）；页内查找命中收起的内容时自动展开并写回。</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>展开状态变了。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>第一次展开时才渲染内容，之后收起也保留（内容很重、多数人不会展开时用）。代价：还没展开过的内容页内查找找不到。</summary>
+    [Parameter] public bool Lazy { get; set; }
+
+    /// <summary>内容层的部件属性：外层负责高度过渡，内容层裁掉溢出。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
+
+    // 页内查找命中收起的内容：浏览器已经去掉 hidden，这里展开
+    Task ExpandAsync(OverlayToggleEventArgs e) => e.Open && !open.Value ? open.SetAsync(true) : Task.CompletedTask;
+}

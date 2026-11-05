@@ -13,7 +13,7 @@ public partial class Collapsible : UIComponent
     /// <summary>按钮上的标题。</summary>
     [Parameter] public RenderFragment? Title { get; set; }
 
-    /// <summary>展开后显示的内容；收起时不渲染。</summary>
+    /// <summary>内容；收起时仍在页面里（inert），页内查找能找到。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>外观；不写时取配置里的默认值（<see cref="CollapsibleDefaults"/>），再没有就是 <see cref="CollapsibleVariant.Plain"/>。</summary>
@@ -25,10 +25,13 @@ public partial class Collapsible : UIComponent
     /// <summary>展开状态变化（用户点击按钮）。给了它就由父级决定是否采纳。</summary>
     [Parameter] public EventCallback<bool> OpenChanged { get; set; }
 
+    /// <summary>第一次展开时才渲染内容（内容很重、多数人不会展开时用）；代价是还没展开过的内容页内查找找不到。</summary>
+    [Parameter] public bool Lazy { get; set; }
+
     /// <summary>按钮的部件属性（样式、aria、事件；展开状态与 id 由组件管理）。</summary>
     [Parameter] public Attrs? PropsTrigger { get; set; }
 
-    /// <summary>内容区的部件属性。</summary>
+    /// <summary>内容区（Collapse 的内容层，放内边距的那层）的部件属性。</summary>
     [Parameter] public Attrs? PropsContent { get; set; }
 
     Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }

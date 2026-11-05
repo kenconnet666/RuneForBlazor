@@ -65,8 +65,9 @@ public class RuneProviderTests : BunitContext
     [Fact]
     public void 参数没变时Provider给出同一个配置()
     {
-        var cut = Render<RuneProvider>(p => p.Add(x => x.Defaults, outline).AddChildContent<Collapsible>());
-        var child = cut.FindComponent<Collapsible>();
+        // 探针用没有内容片段参数的组件：内容片段一律当作变了（见 ParameterChangeDetector），带它的组件会随级联通知重新渲染
+        var cut = Render<RuneProvider>(p => p.Add(x => x.Defaults, outline).AddChildContent<Icon>(i => i.Add(x => x.Data, BuiltInIcons.Check)));
+        var child = cut.FindComponent<Icon>();
 
         cut.Render(p => p.Add(x => x.Defaults, outline));
 
