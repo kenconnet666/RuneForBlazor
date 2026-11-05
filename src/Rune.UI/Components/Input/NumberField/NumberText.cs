@@ -73,11 +73,17 @@ public static class NumberText
         _ => value,
     };
 
-    /// <summary>按格式与文化显示值（null 显示为空）。</summary>
+    /// <summary>
+    /// 默认的显示格式（同 vue-tsx-pro 按 Intl.NumberFormat 显示）：带千分位，小数照值本身的位数、不补尾随的 0（1,500.5）。
+    /// 不四舍五入：显示的文字会被原样解析回去，舍掉的位数会在改值时丢失。
+    /// </summary>
+    public const string DefaultFormat = "#,0.############################";
+
+    /// <summary>按格式与文化显示值（null 显示为空）；格式为 null 时用 <see cref="DefaultFormat"/>。</summary>
     public static string Format<T>(T value, string? format, CultureInfo culture) => value switch
     {
         null => "",
-        IFormattable formattable => formattable.ToString(format, culture),
+        IFormattable formattable => formattable.ToString(format ?? DefaultFormat, culture),
         _ => value.ToString() ?? "",
     };
 

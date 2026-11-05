@@ -68,7 +68,7 @@
     /// <summary>Page Up / Page Down 的步长，默认 Step × 10。</summary>
     [Parameter] public decimal? BigStep { get; set; }
 
-    /// <summary>显示的格式（.NET 的数字格式：N2、C2、P0），默认 G；按当前文化显示。</summary>
+    /// <summary>显示的格式（.NET 的数字格式：N2、C2、P0），默认带千分位、小数照值本身的位数（1,500.5）；按当前文化显示。</summary>
     [Parameter] public string? Format { get; set; }
 
     /// <summary>显示减少 / 增加按钮，默认是；只读时不显示。</summary>
