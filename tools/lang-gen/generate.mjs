@@ -1,6 +1,6 @@
 // 从 vue-tsx-pro 的语言包（packages/ui/src/config/lang）生成 Rune.UI 的语言包：
 //
-//   src/Rune.UI/Configuration/Lang.g.cs   Lang 记录（每条文案一个属性，带 lang.ts 里的中文说明）与 ZhCn、EnUs 两份内置语言；
+//   src/Rune.UI/Config/Lang/Lang.g.cs   Lang 记录（每条文案一个属性，带 lang.ts 里的中文说明）与 ZhCn、EnUs 两份内置语言；
 //                                          页面级组件自带的文案表（patterns、docs-kit 的 messages.ts）各生成一个记录，挂在 Lang 上（Lang.Patterns、Lang.DocsKit）
 //
 // 读法：lang.ts 的 Lang 接口给出字段的顺序、说明与类型（函数的参数类型）；zh-CN.ts、en-US.ts 由 Node 直接导入
@@ -17,7 +17,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 
 const repoRoot = resolve(import.meta.dirname, '../..');
-const outputPath = resolve(repoRoot, 'src/Rune.UI/Configuration/Lang.g.cs');
+const outputPath = resolve(repoRoot, 'src/Rune.UI/Config/Lang/Lang.g.cs');
 
 const { values: options } = parseArgs({
   options: {

@@ -19,7 +19,7 @@ import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
 const repoRoot = resolve(import.meta.dirname, '../..');
-const outputPath = resolve(repoRoot, 'src/Rune.UI/Theme/Themes.g.cs');
+const outputPath = resolve(repoRoot, 'src/Rune.UI/Config/Theme/Themes.g.cs');
 
 const { values } = parseArgs({
   options: {

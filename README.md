@@ -27,7 +27,7 @@ public sealed partial class CartStore
 | --- | --- |
 | `src/Rune` | 运行时：信号（`Reactivity/`）、组件基类与双向绑定（`Components/`）、属性合并（`Attrs/`）、样式引擎（`Styles/`：值类型、样式定义、编译引擎、生成的属性表各一个子目录） |
 | `src/Rune.Generators` | 源代码生成器：`[State]` 属性的实现与 RUNE 诊断（netstandard2.0） |
-| `src/Rune.UI` | 组件库：tokens、色调与内置主题（`Theme/`）、配置层与 `RuneProvider`（`Configuration/`）、配方与部件约定（`Parts/`）、组件（`Components/{分类}/{组件}/`，分类同 vue-tsx-pro 的文档分组，分类共用的代码放在分类这一层）、JS 初始化器（`wwwroot/`） |
+| `src/Rune.UI` | 组件库，目录同 vue-tsx-pro 的 `packages/ui/src`：组件按分类放在顶层（`Base/`、`Input/`、`Overlay/`……，每个组件一个文件夹，分类共用的代码放在分类这一层）、配置层与 `RuneProvider`、token 与内置主题、语言包（`Config/`）、配方与共用样式、数据与 DOM 工具（`Utils/`）、JS 初始化器（`wwwroot/`） |
 | `src/Rune.Icons` | Lucide 图标全集（`Lucide.Plus`……，首次访问时才创建，WebAssembly 发布时裁剪未用到的） |
 | `apps/Rune.Docs.Content` | 文档内容：指南页、组件页（`Components/{分类}/{组件}/`，一个示例一个文件，源码嵌进程序集显示在示例卡片里）、站点部件（示例卡片、API 表、目录） |
 | `apps/Rune.Docs`、`apps/Rune.Docs.Client` | 文档站：AppShell 外壳、搜索、本页目录；整站 WebAssembly（预渲染 HTML，可以导出成静态文件） |

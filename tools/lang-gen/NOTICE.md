@@ -1,7 +1,7 @@
 # 语言包的来源
 
 `generate.mjs` 读取 [vue-tsx-pro](https://github.com/kenconnet666/vue-tsx-pro) 的 `packages/ui/src/config/lang`（版本见 CI 的 `VUE_TSX_PRO_REF`），
-生成 `src/Rune.UI/Configuration/Lang.g.cs`：`Lang` 记录（每条文案一个属性，说明取自 lang.ts）与内置的简体中文、美国英语。
+生成 `src/Rune.UI/Config/Lang/Lang.g.cs`：`Lang` 记录（每条文案一个属性，说明取自 lang.ts）与内置的简体中文、美国英语。
 
 - 字段的顺序、说明与类型来自 `lang.ts` 的 `Lang` 接口；每种语言的值由 Node 直接导入 `zh-CN.ts`、`en-US.ts` 取得（Node 24 自带去掉 TS 类型；
   导入前去掉 zod 的语言包，表单校验文案不移植）。
