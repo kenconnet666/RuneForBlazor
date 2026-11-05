@@ -141,11 +141,11 @@ public static class TabsStyles
     /// <param name="Orientation">方向。</param>
     /// <param name="Size">字号档位。</param>
     /// <param name="Closable">标签可以关闭。</param>
-    public readonly record struct Appearance(TabsVariant Variant, Orientation Orientation, Size? Size, bool Closable);
+    public readonly record struct TabsAppearance(TabsVariant Variant, Orientation Orientation, Size? Size, bool Closable);
 
     /// <summary>某种外观、某套定制下各部件的默认层。</summary>
-    public static PartLayers<TabsPart> Of(Appearance a, ComponentStyles styles) =>
-        Recipe.Of("tabs", a, styles, static (Appearance a, TabsPart part) =>
+    public static PartLayers<TabsPart> Of(TabsAppearance a, ComponentStyles styles) =>
+        Recipe.Of("tabs", a, styles, static (TabsAppearance a, TabsPart part) =>
         {
             var vertical = a.Orientation == Orientation.Vertical;
             var line = a.Variant == TabsVariant.Line;
