@@ -70,7 +70,8 @@ public class ComboboxTests : BunitContext
         Assert.Equal("北京", cut.Find("input[role=combobox]").GetAttribute("value"));
         cut.Find("input[role=combobox]").Input("架构师");
         cut.Find("input[role=combobox]").Blur();
-        Assert.Null(cut.Find("input[type=hidden]").GetAttribute("value"));
+        // 没有选中值时不提交这个字段（同 vue-tsx-pro 的 FormValue）
+        Assert.Empty(cut.FindAll("input[type=hidden]"));
         Assert.Equal("架构师", cut.Find("input[role=combobox]").GetAttribute("value"));
 
         cut.Find("input[role=combobox]").TriggerEvent("onrunecommand", new CommandEventArgs { Name = "clear" });

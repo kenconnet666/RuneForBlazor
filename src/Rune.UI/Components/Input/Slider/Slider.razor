@@ -41,11 +41,6 @@
         if (mark.Label is null) continue;
         <span @key="mark.Value" aria-hidden="true" @attributes="Attrs.Merge(parts[SliderPart.MarkLabel], PropsMarkLabel?.Invoke(mark), MarkPosition(mark))">@mark.Label</span>
     }
-    @if (Name is not null)
-    {
-        @for (var i = 0; i < shown.Count; i++)
-        {
-            <input type="hidden" name="@Name" value="@Format(shown[i])" data-index="@i" disabled="@IsDisabled" />
-        }
-    }
+    @* 拖动时 JS 按顺序改这几个 input 的值（静态 SSR 下随表单提交的是拖到的值） *@
+    <FormValue Name="@Name" Value="shown" Disabled="IsDisabled" />
 </div>

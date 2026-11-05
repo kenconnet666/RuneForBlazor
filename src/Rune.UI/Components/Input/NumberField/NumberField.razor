@@ -48,10 +48,7 @@
                     Disabled="@(IsDisabled || AtLimit(current, Max, 1))" @onclick="() => StepAsync(1)"
                     @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsIncrement)" />
     }
-    @if (FormName is { } name)
-    {
-        <input type="hidden" name="@name" value="@current?.ToString(CultureInfo.InvariantCulture)" disabled="@IsDisabled" />
-    }
+    <FormValue Name="@FormName" Value="current" Disabled="IsDisabled" />
 </div>
 
 @code {

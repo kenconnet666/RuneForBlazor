@@ -76,8 +76,8 @@ function paint(root, values) {
     const value = Number(mark.dataset.value);
     mark.toggleAttribute('data-active', value >= low && value <= high);
   });
-  root.querySelectorAll(':scope > input[type="hidden"][data-index]').forEach((input) => {
-    const value = String(values[Number(input.dataset.index)]);
+  root.querySelectorAll(':scope > input[type="hidden"]').forEach((input, index) => {
+    const value = String(values[index]);
     if (input.value !== value) input.value = value;
   });
 }

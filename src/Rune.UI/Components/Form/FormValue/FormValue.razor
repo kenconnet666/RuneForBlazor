@@ -1,0 +1,58 @@
+@*
+    把不是原生输入元素的控件的值交给表单（同 vue-tsx-pro 的 FormValue）：渲染隐藏的 input（type="hidden"），随表单提交、被 FormData 读到。
+    Select、Combobox、TagsInput、NumberField、Slider 用它；列表时每个值一个 input（同名，服务端按多值读取）。
+    <FormValue Name="tags" Value="tags" />          →   <input type="hidden" name="tags" value="a">…
+    <FormValue Name="price" Value="19.90m" />      →   value="19.9"
+    值按规范文本提交（FormValue.Text）：数字是不带分组、不用科学计数法的十进制（不变量文化），日期时间是 ISO 8601。
+    没有 Name、值为 null、或控件不可用（同原生的不可用控件不随表单提交）时不渲染。
+*@
+@namespace Rune.UI
+@using System.Globalization
+@inherits RuneComponent
+
+@if (Name is not null && !Disabled)
+{
+    foreach (var text in Texts)
+    {
+        <input type="hidden" name="@Name" value="@text" />
+    }
+}
+
+@code {
+    static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
+
+    /// <summary>表单字段名；不写时不渲染。</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>值；列表（字符串以外的 IEnumerable）时每个值一个 input；null 时不渲染。</summary>
+    [Parameter] public object? Value { get; set; }
+
+    /// <summary>控件不可用：同原生的不可用控件，不随表单提交。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    IEnumerable<string> Texts => Value switch
+    {
+        null => [],
+        string text => [text],
+        System.Collections.IEnumerable items => items.Cast<object?>().Where(static item => item is not null).Select(static item => Text(item!)),
+        _ => [Text(Value)],
+    };
+
+    /// <summary>值 → 提交的文本：数字是十进制，日期时间是 ISO 8601，布尔是 true / false，其余按不变量文化。</summary>
+    public static string Text(object value) => value switch
+    {
+        string text => text,
+        bool flag => flag ? "true" : "false",
+        // 去掉末尾的 0（19.90 → 19.9），同 vue-tsx-pro 的 numericText
+        decimal number => number.ToString("0.############################", Invariant),
+        // 不用科学计数法：能放进 decimal 的按十进制写
+        double number when double.IsFinite(number) && Math.Abs(number) < 7.9e28 => Text((decimal)number),
+        float number when float.IsFinite(number) && Math.Abs(number) < 7.9e28f => Text((decimal)number),
+        DateTime time => time.ToString("O", Invariant),
+        DateTimeOffset time => time.ToString("O", Invariant),
+        DateOnly date => date.ToString("yyyy-MM-dd", Invariant),
+        TimeOnly time => time.ToString("HH:mm:ss", Invariant),
+        IFormattable formattable => formattable.ToString(null, Invariant),
+        _ => value.ToString() ?? "",
+    };
+}

@@ -112,7 +112,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
       （已做：NumberRangeField（NumberField 补了 Scale）；OtpField（格子由 JS 按输入框画；不写 maxlength，粘贴带分隔的码不丢位）；Rating（填充纯 CSS、悬停预览在 JS）；Slider 按 vue-tsx-pro 重写（范围、刻度、竖向、只读、OnValueCommit，拖动与键盘在 JS），NumberRange 之后 NumberRangeField 共用）
 - [ ] Cascader、Transfer、Mentions、FileDrop / Upload（拖放、进度、列表）
 - [ ] TreeSelect（依赖阶段 7 的 Tree）、PeoplePicker（阶段 12）、ConditionBuilder（阶段 12）
-- [ ] 表单：FormSection、FormErrorSummary 独立成组件、FormValue（只读展示）、Form 的离开前确认
+- [ ] 表单：FormSection、FormErrorSummary 独立成组件、Form 的离开前确认
 
 ## 阶段 6：基础与反馈补齐
 
@@ -124,7 +124,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 ## 阶段 7：布局与展示
 
 - [ ] 布局：Container、Separator、ScrollArea、Splitter / ResizeHandle、Affix、BackTop、AsideLayout、Prose、PageScrollbar、ViewportFill
-      （已做：ScrollArea（按“基础组件先做、上层依托”提前做；Listbox、ListPopover、Menu、Dialog / Drawer 的正文已改用它，FloatingStyles 有 ScrollPanel / ScrollArea）、Separator）
+      （已做：FormValue（隐藏的表单值，5 个组件改用）；ScrollArea（按“基础组件先做、上层依托”提前做；Listbox、ListPopover、Menu、Dialog / Drawer 的正文已改用它，FloatingStyles 有 ScrollPanel / ScrollArea）、Separator）
 - [ ] 展示：Accordion、Collapse、Avatar / AvatarGroup、Descriptions、Ellipsis、Image（预览接 Lightbox）、ItemList、Stat、AnimatedNumber、ValueChange、
       Timeline、Tree（勾选、懒加载、拖动排序）、VirtualList、Checklist、Marquee、ProportionBar、Gauge、Sortable、Watermark、FieldCompare
 
