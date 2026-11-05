@@ -20,7 +20,7 @@ public abstract partial class DialogBase
 {
     readonly string dialogId = UniqueId.Next("dialog");
     Attrs? triggerAttrs;
-    Memo<(bool Open, bool Described, bool Dismissible, bool Guarded), Attrs> managed;
+    Memo<(bool Open, bool Described, bool Dismissible, bool Guarded, string? InlineStyle), Attrs> managed;
     bool hasOpened;
     // 等确认的结果：这期间关不掉
     bool pending;
@@ -118,9 +118,16 @@ public abstract partial class DialogBase
 
     // dialog 上由组件管理的属性：data-open 交给 JS 同步原生状态（showModal / close）；
     // 有 BeforeClose 或确认中时 data-rune-guard-close：Esc、遮罩、关闭按钮不直接关，先问 C#
-    Attrs Managed => managed.Get((open.Value, Description is not null, Dismissible, BeforeClose is not null || pending), dialogId, static (k, id) => new Attrs
+    /// <summary>子类给 dialog 元素的行内样式（拖动后的抽屉宽度）；没有时为 null。</summary>
+    protected virtual string? RootInlineStyle => null;
+
+    /// <summary>子类放在 dialog 里、各部件之后的内容（抽屉的宽度调整手柄）。</summary>
+    protected virtual RenderFragment? Edge => null;
+
+    Attrs Managed => managed.Get((open.Value, Description is not null, Dismissible, BeforeClose is not null || pending, RootInlineStyle), dialogId, static (k, id) => new Attrs
     {
         Id = id,
+        InlineStyle = k.InlineStyle,
         AriaLabelledBy = $"{id}-title",
         AriaDescribedBy = k.Described ? $"{id}-description" : null,
         ["data-rune-overlay"] = true,

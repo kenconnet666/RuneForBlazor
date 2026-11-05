@@ -121,7 +121,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [ ] 反馈：Banner、Empty（已做）、Result、Progress（线形、环形）、LoadingBar、LoadingOverlay
       （已做：Progress（条形、环形、目标、不确定进度）；演示页的“加载遮罩”等 LoadingOverlay）
 - [ ] 补齐已有组件：Toast（标题与说明、操作、进度、位置、最多条数与堆叠、悬停暂停、important）、Alert（description 与额外内容分开、关闭时淡出）、
-      Card（loading 骨架、装饰效果 tilt / spotlight / beam）、Switch（loading、开关内的文字）、Menu（勾选项、单选项、子菜单、分组标题、说明）、Drawer（可拖动宽度）
+      Card（loading 骨架、装饰效果 tilt / spotlight / beam）、Switch（loading、开关内的文字）、Menu（勾选项、单选项、子菜单、分组标题、说明）、Drawer（可拖动宽度，已做）
 
 ## 阶段 7：布局与展示
 

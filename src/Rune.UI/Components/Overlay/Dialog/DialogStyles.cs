@@ -68,8 +68,11 @@ public sealed record DrawerDefaults : IComponentDefaults<DrawerDefaults>
     /// <summary>宽度档位（左右两侧）。</summary>
     public ContainerSize? Size { get; init; }
 
+    /// <summary>左右两侧时可以拖动调整宽度。</summary>
+    public bool? Resizable { get; init; }
+
     /// <inheritdoc/>
-    public DrawerDefaults Over(DrawerDefaults outer) => new() { Size = Size ?? outer.Size };
+    public DrawerDefaults Over(DrawerDefaults outer) => new() { Size = Size ?? outer.Size, Resizable = Resizable ?? outer.Resizable };
 }
 
 /// <summary>对话框与抽屉的样式（同 vue-tsx-pro 的 dialogRecipe、drawerRecipe 与 modalPartStyles）。</summary>
@@ -83,18 +86,24 @@ public static class DialogStyles
             _ => Inner(part),
         });
 
-    /// <summary>抽屉（贴着视口一侧滑入）的部件默认层。</summary>
-    public static PartLayers<DialogPart> Drawer(DrawerSide side, ContainerSize size, ComponentStyles styles) =>
-        Recipe.Of("drawer", (side, size), styles, static ((DrawerSide Side, ContainerSize Size) a, DialogPart part) => part switch
+    /// <summary>
+    /// 抽屉（贴着视口一侧滑入）的部件默认层。<paramref name="size"/> 为 null 时宽度来自行内样式（拖动后记住的宽度）；
+    /// 能拖动时正文与页脚保持最小宽度：拖窄时内容被裁掉，不挤成一列。
+    /// </summary>
+    public static PartLayers<DialogPart> Drawer(DrawerSide side, ContainerSize? size, bool resizable, ComponentStyles styles) =>
+        Recipe.Of("drawer", (side, size, resizable), styles, static ((DrawerSide Side, ContainerSize? Size, bool Resizable) a, DialogPart part) => part switch
         {
             DialogPart.Root => Sx.Of(
                 Surface,
                 DrawerRoot,
                 SideOf(a.Side),
-                a.Side is DrawerSide.Start or DrawerSide.End ? DrawerSizeOf(a.Size) : null,
+                a.Side is DrawerSide.Start or DrawerSide.End && a.Size is { } size ? DrawerSizeOf(size) : null,
                 OverlayTransitions.Backdrop),
+            DialogPart.Body or DialogPart.Footer when a.Resizable => Sx.Of([.. Inner(part), KeepWidth]),
             _ => Inner(part),
         });
+
+    static Style KeepWidth => Css.Define(static () => new Style { MinWidth = "min(20rem, 100vw - 3rem)" });
 
     static Sx Inner(DialogPart part) => part switch
     {

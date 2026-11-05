@@ -48,6 +48,8 @@
 //   data-rune-scroll-area    滚动区域：浮层滚动条的大小与位置、显示与淡出、拖动、点轨道翻页、滚轮转交；内容超出时视口可聚焦（data-focusable）
 //   data-rune-collapse       折叠内容区：收起的过渡结束后加 hidden="until-found"，页内查找命中时发 rune-toggle（open: true）让 C# 展开
 //   data-rune-avatar-image   头像的图片：加载完写 data-state="loaded"（显示出来），失败写 "error"（藏起来，露出后备内容）；插入时已经加载完的照样标
+//   data-rune-resize         宽度调整手柄（role="separator"）：拖动、方向键、双击回到 data-default，当场改父元素的宽（横向手柄是高），
+//                            结束时发出冒泡的 rune-resize（size）；没给宽度时按父元素量出 aria-valuenow
 //   data-rune-overflow       一行标签（Select 的 MaxTagCount 按宽度）：量出放得下几个 data-rune-overflow-item，其余写 data-overflow-hidden
 //                            （CSS 藏起来但仍可测量），data-rune-overflow-rest（“+N”）的文字取自 data-rune-more 里的第 N 项
 //   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
@@ -78,7 +80,7 @@
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、tooltips（提示）、overflow（标签收起）、
-// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、
+// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
@@ -92,6 +94,7 @@ import { onOtpFocus, onOtpInput, watchOtp } from './js/otp.js';
 import { endRatingPreview, pickRating, previewRating } from './js/rating.js';
 import { watchScrollArea } from './js/scroll-area.js';
 import { watchCollapse } from './js/collapse.js';
+import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle } from './js/resize.js';
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
 import { announce, closeOrRequest, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock } from './js/overlays.js';
 import { hideTooltip, hideTooltipOf, onPointerOut, onPointerOver, scheduleTooltip, shownTooltip, tooltipOf } from './js/tooltips.js';
@@ -128,6 +131,10 @@ function install(blazor) {
     browserEventName: 'rune-close-request',
     createEventArgs: (event) => ({ reason: event.detail.reason }),
   });
+  blazor.registerCustomEventType('runeresize', {
+    browserEventName: 'rune-resize',
+    createEventArgs: (event) => ({ size: event.detail.size }),
+  });
   blazor.registerCustomEventType('runeslide', {
     browserEventName: 'rune-slide',
     createEventArgs: (event) => ({ index: event.detail.index, value: event.detail.value, commit: event.detail.commit, seq: event.detail.seq }),
@@ -163,6 +170,8 @@ function install(blazor) {
   document.addEventListener('pointerdown', focusOnShell);
   document.addEventListener('pointerdown', keepFocusOnListHost);
   document.addEventListener('pointerdown', grabSlider);
+  document.addEventListener('pointerdown', grabResizeHandle);
+  document.addEventListener('dblclick', resetResizeHandle);
   document.addEventListener('pointerdown', (event) => hideTooltipOf(event.target));
   document.addEventListener('pointermove', highlightUnderPointer);
   document.addEventListener('change', (event) => {
@@ -226,10 +235,11 @@ function syncWithin(root) {
     if (element.matches('[data-rune-otp]')) watchOtp(element);
     if (element.matches('[data-rune-scroll-area]')) watchScrollArea(element);
     if (element.matches('[data-rune-collapse]')) watchCollapse(element);
+    if (element.matches('[data-rune-resize]')) watchResizeHandle(element);
     if (element.matches('img[data-rune-avatar-image]') && element.complete) markAvatarImage(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], img[data-rune-avatar-image]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image]').forEach(sync);
 }
 
 /** 头像的图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */
@@ -333,6 +343,7 @@ function onKeyDown(event) {
   if (event.target instanceof Element && event.target.matches('[data-rune-list]')) moveInList(event.target, event);
   moveRoving(event);
   keySlider(event);
+  keyResizeHandle(event);
   // 列表没用掉的按键再转成命令（Enter 选中了高亮项时不再加标签）
   if (event.key === 'Backspace' || event.key === 'Escape' || event.key === 'Enter') sendKeyCommand(event);
 }

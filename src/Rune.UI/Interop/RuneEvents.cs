@@ -45,6 +45,13 @@ public sealed class SlideEventArgs : EventArgs
     public long Seq { get; set; }
 }
 
+/// <summary>宽度调整手柄（<c>data-rune-resize</c>）调整完一次（松开、按键、双击）：<c>@onruneresize</c> 的参数。</summary>
+public sealed class ResizeEventArgs : EventArgs
+{
+    /// <summary>新的宽度（横向手柄时是高度），px，已经夹在最小、最大之间。</summary>
+    public double Size { get; set; }
+}
+
 /// <summary>复制按钮写完剪贴板（<c>@onrunecopied</c> 的参数）。</summary>
 public sealed class CopiedEventArgs : EventArgs
 {
@@ -60,6 +67,7 @@ public sealed class CopiedEventArgs : EventArgs
 /// <item><c>@onrunecloserequest</c>：用户要关闭对话框（Esc、点遮罩、关闭按钮），对话框带 <c>data-rune-guard-close</c> 时由 C# 决定关不关。</item>
 /// <item><c>@onrunecommand</c>：键盘、粘贴转成的命令（<c>data-rune-backspace</c>、<c>data-rune-escape</c>、<c>data-rune-enter</c>、<c>data-rune-paste</c>，见 JS 初始化器顶部的约定）。</item>
 /// <item><c>@onrunedismiss</c>：可移除的元素（标签）离场动画结束，该从列表里拿掉了（<c>data-rune-dismiss</c> 的按钮触发）。</item>
+/// <item><c>@onruneresize</c>：宽度调整手柄调整完一次（拖动中由 JS 当场改父元素的尺寸，松开时才交给 C#）。</item>
 /// <item><c>@onruneslide</c>：滑块（<c>data-rune-slider</c>）的值变了，拖动中每变一次发一次，松开或按键时带 commit。</item>
 /// </list>
 /// </summary>
@@ -68,5 +76,6 @@ public sealed class CopiedEventArgs : EventArgs
 [EventHandler("onrunecloserequest", typeof(CloseRequestEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onrunecommand", typeof(CommandEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onrunecopied", typeof(CopiedEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
+[EventHandler("onruneresize", typeof(ResizeEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onruneslide", typeof(SlideEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 public static class EventHandlers;

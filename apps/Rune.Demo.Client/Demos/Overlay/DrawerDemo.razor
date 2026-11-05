@@ -1,6 +1,6 @@
 @*
     抽屉：示例与 vue-tsx-pro 文档站的 /components/drawer 对应。
-    detail（DataTable、Descriptions、Timeline）与 imperative（useDrawer）在后面的阶段补；edit 的拖动调宽在阶段 6 做，
+    detail（DataTable、Descriptions、Timeline）与 imperative（useDrawer）在后面的阶段补；edit 拖宽后的宽度 vue 记在浏览器里（usePersistentState），这里先记在页面里，
     这里的“放弃改动？”用页面自己的 Dialog 代替 useConfirm（阶段 8）。筛选里的 Select、CheckboxGroup、NumberRangeField、
     DateRangePicker 做好前用 NativeSelect、Checkbox、两个 NumberField 代替，日期范围先不放。
 *@
@@ -8,7 +8,7 @@
 @inherits RuneComponent
 
 <DemoSection Id="edit" Title="编辑：关闭前确认">
-    <Description><Code>OnConfirm</Code> 是保存：执行期间按钮加载中、关不掉。<Code>BeforeClose</Code> 在取消、关闭按钮、<Kbd>Esc</Kbd>、点遮罩时先问一次，返回 false 不关——有未保存的改动时确认。</Description>
+    <Description>靠正文的一边可以拖宽、拖到几乎关上（<Code>@@bind-Width</Code> 记住宽度），聚焦手柄后按 ← / → 也行，双击回到打开时的宽度；<Code>Resizable="false"</Code> 关掉。<Code>OnConfirm</Code> 是保存：执行期间按钮加载中、关不掉。<Code>BeforeClose</Code> 在取消、关闭按钮、<Kbd>Esc</Kbd>、点遮罩时先问一次，返回 false 不关——有未保存的改动时确认。</Description>
     <ChildContent>
         <Card>
             <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
@@ -18,7 +18,7 @@
                 </Flex>
                 <Button Variant="ButtonVariant.Soft" Icon="Lucide.Pencil" @onclick="EditProject">编辑</Button>
             </Flex>
-            <Drawer @bind-Open="editing" Title="编辑项目" Description="改了没保存时关闭会先确认" BeforeClose="MayCloseAsync"
+            <Drawer @bind-Open="editing" @bind-Width="editWidth" Title="编辑项目" Description="改了没保存时关闭会先确认" BeforeClose="MayCloseAsync"
                     ConfirmText="保存" OnConfirm="SaveProjectAsync" PropsConfirm="@(Dirty ? null : disabledButton)" data-testid="edit-drawer">
                 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
                     <Field Label="项目名称" Required="true">
@@ -99,6 +99,7 @@
 </DemoSection>
 
 @code {
+    double? editWidth = 560;
     sealed record Project(string Name, string Note);
 
     sealed class ProjectDraft

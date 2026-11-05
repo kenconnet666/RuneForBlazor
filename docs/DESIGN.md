@@ -132,6 +132,8 @@
   注意：带内容片段参数的组件会随外层 CascadingValue 的通知重新渲染（ParameterChangeDetector 把 RenderFragment 一律当作变了）。
 - **Avatar**：图片盖在后备内容（首字母）上，加载状态由 JS 按 load / error 写在图片自己的 data-state 上（换图时图片按地址重建、状态重置），
   加载失败的图片藏起来、露出首字母；没有往返，静态 SSR 一样。AvatarGroup 的“超过 Max 折叠成 +N”在 Blazor 里没法截取子内容，改为 Items 加每项的模板。
+- **ResizeHandle**：拖动、方向键、双击都在 JS（`js/resize.js`）当场改父元素的宽（横向是高），并去掉按档位给的最大宽度；一次操作结束才发 rune-resize
+  交给 C#（拖动中 C# 不渲染，就不会有晚到的渲染把宽度拉回）。Drawer 左右两侧默认可拖宽（`@bind-Width`，DialogBase 的 Edge / RootInlineStyle 钩子）。
 - **JS 的组织**：入口 `Rune.UI.lib.module.js` 只负责安装（注册自定义事件、全局事件委托、DOM 变化监听）与分发，按职责分到 `wwwroot/js/` 的模块：
   overlays、floating、lists、tooltips、overflow、controls、effects、layout、shared，以及 roving、indicator、slider、move、rating、otp、scroll-area。模块用相对路径互相 import（浏览器原生 ES 模块，不打包）；
   入口顶部的注释是全部 data 属性约定的总表，新增约定写在那里。

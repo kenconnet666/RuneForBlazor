@@ -1,0 +1,62 @@
+@*
+    宽度调整手柄（同 vue-tsx-pro 的 ResizeHandle）：所在元素结束边（Edge=Start 时是起始边，如从结束边滑入的抽屉）的一条细线（role="separator"），
+    悬停、聚焦时显示。拖动或聚焦后用 ← / →（WCAG 2.5.7 拖动的替代操作）调整，从右到左排版下方向自动镜像；双击回到 DefaultWidth。
+    宽度从父元素量起，所以要放在要调整的那个元素里（它需要 position: relative 或 fixed）。
+    Orientation.Horizontal 时是一条横线，贴着父元素的下边（Start 时是上边），调整的是高度，Width 等参数这时都指高度。
+    <aside style="position: relative; width: @(width)px">…<ResizeHandle @bind-Width="width" MinWidth="160" aria-label="调整侧栏宽度" /></aside>
+    拖动、按键都在 JS 初始化器里当场改父元素的尺寸（data-rune-resize，不等往返、不会被晚到的渲染拉回），
+    一次操作结束（松开、按键、双击）才把宽度交给 C#：父元素按 Width 渲染出的尺寸与拖到的一致。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<span @attributes="Attrs.Merge(ResizeHandleStyles.Of(Orientation, Edge, Config.Styles)[ResizeHandlePart.Root], Rest, Managed)"></span>
+
+@code {
+    Memo<(double? Width, double Min, double? Max, double? Default, double Step, ResizeEdge Edge, Orientation Orientation), Attrs> managed;
+
+    /// <summary>当前宽度（px，<c>@bind-Width</c>）；没有时 JS 量父元素的实际宽度。</summary>
+    [Parameter] public double? Width { get; set; }
+
+    /// <summary>调整了宽度（已经夹在最小、最大之间）。</summary>
+    [Parameter] public EventCallback<double?> WidthChanged { get; set; }
+
+    /// <summary>最小宽度（px），默认 64。</summary>
+    [Parameter] public double MinWidth { get; set; } = 64;
+
+    /// <summary>最大宽度（px）；不写时不限。</summary>
+    [Parameter] public double? MaxWidth { get; set; }
+
+    /// <summary>双击回到的宽度（px）；不写时双击不做什么。</summary>
+    [Parameter] public double? DefaultWidth { get; set; }
+
+    /// <summary>键盘每按一次调整多少（px），默认 16。</summary>
+    [Parameter] public double Step { get; set; } = 16;
+
+    /// <summary>手柄在父元素的哪一边，默认结束边；Start 时往起始方向拖是变宽（从结束边滑入的抽屉）；横向时 Start 是上边。</summary>
+    [Parameter] public ResizeEdge Edge { get; set; }
+
+    /// <summary>Vertical（默认）：竖线，调整宽度；Horizontal：横线，调整高度。</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
+
+    static string Number(double value) => Math.Round(value).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    // 分隔条的角色与取值、交给 JS 的规则；没给宽度时 aria-valuenow 由 JS 按父元素量出
+    Attrs Managed => managed.Get((Width, MinWidth, MaxWidth, DefaultWidth, Step, Edge, Orientation), this, static (k, owner) => new Attrs
+    {
+        Role = "separator",
+        ["tabindex"] = "0",
+        ["aria-orientation"] = k.Orientation == Orientation.Horizontal ? "horizontal" : "vertical",
+        ["aria-valuenow"] = k.Width is { } w ? Number(w) : null,
+        ["aria-valuemin"] = Number(k.Min),
+        ["aria-valuemax"] = k.Max is { } max ? Number(max) : null,
+        ["data-rune-resize"] = true,
+        ["data-default"] = k.Default is { } d ? Number(d) : null,
+        ["data-step"] = Number(k.Step),
+        ["data-edge"] = k.Edge == ResizeEdge.Start ? "start" : "end",
+        ["onruneresize"] = EventCallback.Factory.Create<ResizeEventArgs>(owner, owner.ResizedAsync),
+    });
+
+    // 尺寸已经由 JS 改好，这里只通知使用方（夹在范围内，不信任客户端）
+    Task ResizedAsync(ResizeEventArgs e) => WidthChanged.InvokeAsync(Math.Clamp(e.Size, MinWidth, MaxWidth ?? double.MaxValue));
+}
