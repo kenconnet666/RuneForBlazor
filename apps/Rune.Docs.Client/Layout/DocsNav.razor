@@ -1,0 +1,26 @@
+@*
+    站点导航（侧栏）：按文档目录分组列出所有页面。
+    独立成没有参数的组件：外壳每次换页都会重新渲染，传给它的内容片段一律算“变了”，侧栏一百多项会跟着重来一遍；
+    拆出来以后外壳重新渲染时这里直接跳过，当前页的高亮由各个 NavItem 自己跟着地址更新。
+*@
+@inherits RuneComponent
+
+<NavList aria-label="文档">
+    @foreach (var section in DocsCatalog.Sections)
+    {
+        <NavSection @key="section.Category" Label="@section.Label">
+            @foreach (var entry in section.Pages)
+            {
+                <NavItem @key="entry.Path" Href="@entry.Path.TrimStart('/')">@entry.Meta.Title</NavItem>
+            }
+        </NavSection>
+    }
+    @* 手机宽度顶栏放不下：外部链接只在顶栏或抽屉里出现一处 *@
+    <NavSection Label="链接" Sx="NarrowOnly">
+        <NavItem Href="@DocsLayout.Repository" target="_blank" Icon="DocsKitIcons.Github">GitHub</NavItem>
+    </NavSection>
+</NavList>
+
+@code {
+    static Style NarrowOnly => Css.Define(static () => new Style { Display = Display.Block, [Breakpoints.Md] = new() { Display = Display.None } });
+}

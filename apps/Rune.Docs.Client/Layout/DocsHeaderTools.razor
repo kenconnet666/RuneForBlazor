@@ -1,0 +1,33 @@
+@*
+    顶栏结束边的工具：搜索、主题切换、仓库链接。同 DocsNav，独立成没有参数的组件，换页时不跟着外壳重新渲染。
+*@
+@inherits RuneComponent
+@inject NavigationManager Navigation
+
+<div @attributes="Attrs.Merge(ToolsLayer)">
+    <CommandPalette TItem="DocEntry" Items="DocsCatalog.All" ToOption="SearchOption" OnAction="Go" />
+    <ThemeSwitcher />
+    <IconLinkButton Href="@DocsLayout.Repository" External="true" Icon="DocsKitIcons.Github" Label="GitHub 仓库" Sx="WideOnly" />
+</div>
+
+@code {
+    static readonly Attrs ToolsLayer = new() { Sx = Tools };
+
+    // 搜索面板的选项：每个页面一项，按侧栏分组
+    static ListboxOption SearchOption(DocEntry entry) =>
+        new(entry.Path, entry.Meta.Title) { Description = entry.Meta.Description, Group = DocsCatalog.LabelOf(entry.Meta.Category) };
+
+    void Go(DocEntry entry) => Navigation.NavigateTo(entry.Path.TrimStart('/'));
+
+    // 搜索与各个按钮靠顶栏的结束边
+    static Style Tools => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Md,
+        MarginInlineStart = CssLength.Auto,
+    });
+
+    // 手机宽度顶栏放不下：外部链接只在顶栏或抽屉里出现一处
+    static Style WideOnly => Css.Define(static () => new Style { Display = Display.None, [Breakpoints.Md] = new() { Display = Display.InlineFlex } });
+}

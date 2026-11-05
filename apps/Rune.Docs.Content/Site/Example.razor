@@ -21,7 +21,8 @@
         }
         else
         {
-            <DynamicComponent Type="Demo" />
+            @* 站内换页后排队渲染：卡片外框先出来 *@
+            <Queued><DynamicComponent Type="Demo" /></Queued>
         }
     </CodePreview>
 </section>

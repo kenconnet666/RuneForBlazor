@@ -169,7 +169,9 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
       （已做：docs-kit 的 CodePreview、CodeGroup、DocArticle / DocSection、PropsTable（含 ApiProp、ComponentApi 数据）、TextTable、ColorSwatch、DocsKitIcons.Github，
       统一放在 Rune.UI 里；文档站 Rune.Docs：演示迁成文档页（一个示例一个文件、按 vue-tsx-pro 分两列），API 表从类型与 XML 文档生成，
       首页、快速开始 / 写样式 / 主题定制三篇指南、搜索、本页目录、上一篇 / 下一篇。还缺：演练场（暂不做）、主题定制页（等 ThemeCustomizer）、
-      图标库页、键盘说明表（KeyboardReference）、靠后示例的延后渲染）。
+      图标库页、键盘说明表（KeyboardReference））。
+      换页性能（已做）：外壳的侧栏、顶栏工具、本页目录拆成没有参数的组件；站内换页后示例与 API 表排队渲染（RenderQueue / Queued），
+      骨架先出来；XML 文档注释按成员位置建索引、用到才解析；组件库层面见阶段 14 的性能项
       部署已准备好没发布：tools/docs-export 导出静态站点（57 页，WebAssembly 接管），.github/workflows/docs.yml 手动触发，
       wrangler 部署到 Cloudflare Workers 的静态资源（令牌放在仓库 secret CLOUDFLARE_API_TOKEN）
 
@@ -178,6 +180,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [ ] 端到端测试覆盖全部有键盘、焦点、拖动逻辑的组件；axe-core 无障碍检查跑全部示例（亮、暗主题）
 - [ ] 截图基线进 CI（Chromium，亮、暗主题），变化时人工确认
 - [ ] 性能：大列表、表格的渲染与内存基准；WebAssembly 的裁剪与懒加载程序集验证
+      （已做：参数比较认同一个内容片段实例与 Attrs（级联值通知时带子内容的组件不再白白重新渲染）；交互模式下每次渲染新登记的样式合成一个 style 元素）
 - [ ] 打包：四个包的说明、图标与许可、版本号；`dotnet new` 模板（可选）；发布说明。是否发布、发到哪由用户决定
 
 ---

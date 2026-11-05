@@ -19,14 +19,17 @@
             {
                 <Paragraph Tone="TextTone.Muted">@api.Description</Paragraph>
             }
-            @foreach (var (kind, label) in Kinds)
-            {
-                var props = api.Props.Where(p => p.Kind == kind).ToList();
-                if (props.Count == 0) continue;
-                <div @key="kind" @attributes="Attrs.Merge(TableLayer)">
-                    <PropsTable Props="props"><Caption>@label</Caption></PropsTable>
-                </div>
-            }
+            @* 表格多（上百个单元格）：站内换页后排在示例后面渲染 *@
+            <Queued>
+                @foreach (var (kind, label) in Kinds)
+                {
+                    var props = api.Props.Where(p => p.Kind == kind).ToList();
+                    if (props.Count == 0) continue;
+                    <div @key="kind" @attributes="Attrs.Merge(TableLayer)">
+                        <PropsTable Props="props"><Caption>@label</Caption></PropsTable>
+                    </div>
+                }
+            </Queued>
         </Flex>
     }
 </Flex>

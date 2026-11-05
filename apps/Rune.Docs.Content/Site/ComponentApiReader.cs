@@ -16,7 +16,7 @@ namespace Rune.Docs.Site;
 public static partial class ComponentApiReader
 {
     static readonly ConcurrentDictionary<Type, ComponentApi> cache = new();
-    static readonly Lazy<IReadOnlyDictionary<string, XElement>> docs = new(LoadDocs);
+    static readonly Lazy<DocsIndex> docs = new(LoadDocs);
     // NullabilityInfoContext 内部有不加锁的缓存：并发渲染的页面（Server 的多个线路）各用各的
     [ThreadStatic] static NullabilityInfoContext? nullability;
 
@@ -163,7 +163,7 @@ public static partial class ComponentApiReader
 
     static string Summary(string id)
     {
-        if (!docs.Value.TryGetValue(id, out var member) || member.Element("summary") is not { } summary) return "";
+        if (docs.Value.Find(id)?.Element("summary") is not { } summary) return "";
         return Whitespace().Replace(TextOf(summary), " ").Trim();
     }
 
@@ -187,14 +187,43 @@ public static partial class ComponentApiReader
         return parts.Length >= 2 && cref.StartsWith("T:", StringComparison.Ordinal) is false ? $"{parts[^2]}.{parts[^1]}" : parts[^1];
     }
 
-    static IReadOnlyDictionary<string, XElement> LoadDocs()
+    static DocsIndex LoadDocs()
     {
         using var stream = typeof(ComponentApiReader).Assembly.GetManifestResourceStream("api/Rune.UI.xml");
-        if (stream is null) return new Dictionary<string, XElement>();
-        return XDocument.Load(stream).Descendants("member")
-            .Where(m => m.Attribute("name") is not null)
-            .GroupBy(m => m.Attribute("name")!.Value)
-            .ToDictionary(g => g.Key, g => g.First());
+        if (stream is null) return new DocsIndex("");
+        using var reader = new StreamReader(stream);
+        return new DocsIndex(reader.ReadToEnd());
+    }
+
+    /// <summary>
+    /// XML 文档注释的索引：只记下每个成员在原文里的位置，用到时才解析那一段。
+    /// 整份建成 XDocument（三千多个成员）在 WebAssembly 里要大半秒，第一个有 API 表的页面会因此卡住。
+    /// </summary>
+    sealed class DocsIndex
+    {
+        const string Open = "<member name=\"";
+        const string Close = "</member>";
+        readonly string text;
+        readonly Dictionary<string, (int Start, int Length)> members = [];
+
+        public DocsIndex(string text)
+        {
+            this.text = text;
+            for (var at = text.IndexOf(Open, StringComparison.Ordinal); at >= 0; at = text.IndexOf(Open, at + 1, StringComparison.Ordinal))
+            {
+                var nameStart = at + Open.Length;
+                var nameEnd = text.IndexOf('"', nameStart);
+                if (nameEnd < 0) break;
+                var end = text.IndexOf(Close, nameEnd, StringComparison.Ordinal);
+                if (end < 0) break;
+                // 同名的取第一个（同 XML 里的先后）
+                members.TryAdd(text[nameStart..nameEnd], (at, end + Close.Length - at));
+            }
+        }
+
+        /// <summary>成员的 member 元素；没有文档时为 null。</summary>
+        public XElement? Find(string id) =>
+            members.TryGetValue(id, out var range) ? XElement.Parse(text.Substring(range.Start, range.Length)) : null;
     }
 
     [GeneratedRegex(@"\s+")]
