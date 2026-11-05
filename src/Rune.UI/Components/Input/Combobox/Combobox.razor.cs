@@ -100,7 +100,7 @@ public partial class Combobox<TItem>
     /// </summary>
     protected virtual bool TextIsValue => false;
 
-    Bindable<string?> inputValue { get => field ??= new(() => InputValue, () => InputValueChanged); }
+    Bindable<string?> inputValue { get => field ??= new(this, () => InputValue, () => InputValueChanged); }
 
     OptionSource<TItem> options { get => field ??= new(() => InvokeAsync(StateHasChanged)); }
 

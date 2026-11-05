@@ -28,6 +28,7 @@ public abstract class RuneComponent : IComponent, IHandleEvent, IHandleAfterRend
     bool hasPendingQueuedRender;
     bool hasCalledOnAfterRender;
     volatile bool disposed;
+    List<IRenderListener>? renderListeners;
 
     /// <summary>创建组件。</summary>
     protected RuneComponent()
@@ -122,6 +123,9 @@ public abstract class RuneComponent : IComponent, IHandleEvent, IHandleAfterRend
             }
         }
     }
+
+    /// <summary>每批渲染完通知它（<see cref="Bindable{T}"/> 创建时登记）。</summary>
+    internal void ListenToRenders(IRenderListener listener) => (renderListeners ??= []).Add(listener);
 
     /// <summary>在渲染器的同步上下文上执行。</summary>
     protected Task InvokeAsync(Action work) => renderHandle.Dispatcher.InvokeAsync(work);
@@ -231,6 +235,12 @@ public abstract class RuneComponent : IComponent, IHandleEvent, IHandleAfterRend
 
     Task IHandleAfterRender.OnAfterRenderAsync()
     {
+        if (renderListeners is not null)
+        {
+            var again = false;
+            foreach (var listener in renderListeners) again |= listener.AfterRender();
+            if (again) StateHasChanged();
+        }
         var firstRender = !hasCalledOnAfterRender;
         hasCalledOnAfterRender = true;
         OnAfterRender(firstRender);

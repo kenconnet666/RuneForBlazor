@@ -102,7 +102,7 @@ public abstract partial class DialogBase
     /// <summary>页脚的部件属性。</summary>
     [Parameter] public Attrs? PropsFooter { get; set; }
 
-    Bindable<bool> open { get => field ??= new(() => Open, () => OpenChanged); }
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
 
     /// <summary>各部件的默认层（对话框居中，抽屉贴边）。</summary>
     protected abstract PartLayers<DialogPart> Parts { get; }

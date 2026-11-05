@@ -70,7 +70,7 @@ public partial class Slider<TValue>
     /// <summary>刻度文字的部件属性，按刻度计算。</summary>
     [Parameter] public Func<SliderMark<TValue>, Attrs?>? PropsMarkLabel { get; set; }
 
-    Bindable<NumberRange<TValue>> range { get => field ??= new(() => Range ?? default, () => RangeChanged); }
+    Bindable<NumberRange<TValue>> range { get => field ??= new(this, () => Range ?? default, () => RangeChanged); }
 
     // 范围选择：给了 Range（初始值或绑定）
     bool IsRange => Range is not null || RangeChanged.HasDelegate;

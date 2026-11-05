@@ -31,7 +31,7 @@ public partial class Collapsible : UIComponent
     /// <summary>内容区的部件属性。</summary>
     [Parameter] public Attrs? PropsContent { get; set; }
 
-    Bindable<bool> open { get => field ??= new(() => Open, () => OpenChanged); }
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
 
     /// <summary>各部件的默认层：外观取参数、配置的默认值、组件默认值，定制取配置。</summary>
     PartLayers<CollapsiblePart> Parts => CollapsibleStyles.Of(

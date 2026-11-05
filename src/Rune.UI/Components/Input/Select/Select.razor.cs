@@ -124,9 +124,9 @@ public partial class Select<TItem>
     [Parameter] public Attrs? PropsSearch { get; set; }
 
     // 没给 Values 时用同一个空数组：每次新建的空列表会被当成父级换了值
-    Bindable<IReadOnlyList<string>> values { get => field ??= new(() => Values ?? Array.Empty<string>(), () => ValuesChanged); }
+    Bindable<IReadOnlyList<string>> values { get => field ??= new(this, () => Values ?? Array.Empty<string>(), () => ValuesChanged); }
 
-    Bindable<string?> search { get => field ??= new(() => Search, () => SearchChanged); }
+    Bindable<string?> search { get => field ??= new(this, () => Search, () => SearchChanged); }
 
     bool Multiple => SelectionMode == SelectionMode.Multiple;
 

@@ -53,7 +53,7 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     // 没给 Values 时用同一个空数组：每次新建的空列表会被当成父级换了值
-    Bindable<IReadOnlyList<string>> values { get => field ??= new(() => Values ?? Array.Empty<string>(), () => ValuesChanged); }
+    Bindable<IReadOnlyList<string>> values { get => field ??= new(this, () => Values ?? Array.Empty<string>(), () => ValuesChanged); }
 
     bool Multiple => SelectionMode == SelectionMode.Multiple;
 

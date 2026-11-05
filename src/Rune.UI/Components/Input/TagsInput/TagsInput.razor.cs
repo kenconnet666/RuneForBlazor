@@ -87,7 +87,7 @@ public partial class TagsInput<TItem>
     /// <summary>建议列表的部件属性（交给 ListboxView）。</summary>
     [Parameter] public Attrs? PropsListbox { get; set; }
 
-    Bindable<string?> inputValue { get => field ??= new(() => InputValue, () => InputValueChanged); }
+    Bindable<string?> inputValue { get => field ??= new(this, () => InputValue, () => InputValueChanged); }
 
     OptionSource<TItem> options { get => field ??= new(() => InvokeAsync(StateHasChanged)); }
 

@@ -53,7 +53,7 @@ public abstract class FormControl<TValue> : UIComponent
     /// <summary>所在的 Field。</summary>
     [CascadingParameter] protected FieldContext? Field { get; set; }
 
-    Bindable<TValue> value { get => field ??= new(() => Value, () => ValueChanged); }
+    Bindable<TValue> value { get => field ??= new(this, () => Value, () => ValueChanged); }
 
     /// <summary>当前值（受控时是父级给的，非受控时是组件自己的）。</summary>
     protected TValue CurrentValue => value.Value;
