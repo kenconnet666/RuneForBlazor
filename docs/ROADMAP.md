@@ -109,7 +109,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [x] TagsInput、SelectedTags、ToggleGroup、ControlGroup、CheckboxGroup（Checkbox 的 items）
       （输入组件的外观参数收进 InputControl；相连的样式 AttachedStyles 之后 ButtonGroup 共用；JS 补了漫游焦点、滑块；Field 的说明可以带格式（DescriptionContent）；标签增删时其余标签平移补位的动画（vue-tsx-pro 的 useLayoutAnimation）待做通用的 FLIP 时补）
 - [ ] Slider 的范围（两个滑块）、刻度、竖向；Rating；OtpField；NumberRangeField；ColorField；CharacterCount（Textarea 的字数统计与清空）
-      （已做：OtpField（格子由 JS 按输入框画；不写 maxlength，粘贴带分隔的码不丢位）；Rating（填充纯 CSS、悬停预览在 JS）；Slider 按 vue-tsx-pro 重写（范围、刻度、竖向、只读、OnValueCommit，拖动与键盘在 JS），NumberRange 之后 NumberRangeField 共用）
+      （已做：NumberRangeField（NumberField 补了 Scale）；OtpField（格子由 JS 按输入框画；不写 maxlength，粘贴带分隔的码不丢位）；Rating（填充纯 CSS、悬停预览在 JS）；Slider 按 vue-tsx-pro 重写（范围、刻度、竖向、只读、OnValueCommit，拖动与键盘在 JS），NumberRange 之后 NumberRangeField 共用）
 - [ ] Cascader、Transfer、Mentions、FileDrop / Upload（拖放、进度、列表）
 - [ ] TreeSelect（依赖阶段 7 的 Tree）、PeoplePicker（阶段 12）、ConditionBuilder（阶段 12）
 - [ ] 表单：FormSection、FormErrorSummary 独立成组件、FormValue（只读展示）、Form 的离开前确认

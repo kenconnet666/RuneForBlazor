@@ -6,6 +6,8 @@
     Min、Max、Step 写成 decimal（同 Blazor 的 InputNumber，值的类型不限）。输入时是普通文本，失去焦点或回车时解析、夹到 Min–Max、
     对齐到 Step 后写回（decimal 计算，没有浮点误差），解析不了时恢复原值；认全角数字与当前文化的千分位。
     ↑ / ↓ 加减 Step，Page Up / Page Down 加减 BigStep，Home / End 到 Min / Max（JS 初始化器处理，没有往返）。
+    值以元保存、按万元输入时写 Scale="10000" 配 Suffix 万元：显示与编辑都按缩放后的单位，写回时乘回去（decimal，不丢精度）；
+    Min、Max、Step 仍按值本身的单位（同 vue-tsx-pro 的 format.scale）。
     写了 name 时原生表单提交的是十进制文本（不带千分位与货币符号）：name 落在一个隐藏的 input 上，不是显示格式的输入框。
 *@
 @namespace Rune.UI
@@ -53,7 +55,7 @@
 </div>
 
 @code {
-    Memo<(Attrs Control, TValue Value, decimal? Min, decimal? Max, decimal Step, decimal? BigStep, string? Format, CultureInfo Culture), Attrs> inputManaged;
+    Memo<(Attrs Control, TValue Value, decimal? Min, decimal? Max, decimal Step, decimal? BigStep, string? Format, decimal Scale, CultureInfo Culture), Attrs> inputManaged;
     // 解析不了、或夹到范围后与原值相同时，输入框里的文字要恢复成当前值；值没变 Blazor 不会更新 DOM，换一个 key 重建 input
     int version;
 
@@ -114,6 +116,9 @@
     /// <summary>后缀的部件属性（指向输入框的 label）。</summary>
     [Parameter] public Attrs? PropsSuffix { get; set; }
 
+    /// <summary>显示与输入的单位是值的几分之一：值是元、按万元输入写 10000；默认 1。Min、Max、Step 仍按值的单位。</summary>
+    [Parameter] public decimal Scale { get; set; } = 1;
+
     bool ShowStepper => Stepper && !IsReadOnly;
 
     Memo<string, Attrs> refocusInput;
@@ -131,23 +136,25 @@
     static bool AtLimit(decimal? current, decimal? bound, int direction) =>
         current is { } value && bound is { } limit && (direction < 0 ? value <= limit : value >= limit);
 
-    // input 上由组件管理的属性：表单状态、显示的文字、spinbutton 的 aria 值，以及给 JS 处理方向键的范围与步长（不变量格式）
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Min, Max, Step, BigStep, Format, CultureInfo.CurrentCulture), this,
+    // input 上由组件管理的属性：表单状态、显示的文字、spinbutton 的 aria 值，以及给 JS 处理方向键的范围与步长（不变量格式）。
+    // 有缩放时这些都按显示的单位：JS 按输入框里的文字加减、夹取，C# 写回时再乘回去
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Min, Max, Step, BigStep, Format, Scale, CultureInfo.CurrentCulture), this,
         static (k, owner) =>
         {
             var invariant = CultureInfo.InvariantCulture;
-            var value = NumberText.ToDecimal(k.Value);
+            var shown = NumberText.ToDecimal(k.Value) / k.Scale;
+            var text = k.Scale == 1 ? NumberText.Format(k.Value, k.Format, k.Culture) : NumberText.Format(shown, k.Format, k.Culture);
             return Attrs.Merge(k.Control, new Attrs
             {
                 Role = "spinbutton",
-                ["value"] = NumberText.Format(k.Value, k.Format, k.Culture),
-                ["aria-valuenow"] = value?.ToString(invariant),
-                ["aria-valuetext"] = value is null ? null : NumberText.Format(k.Value, k.Format, k.Culture),
-                ["aria-valuemin"] = k.Min?.ToString(invariant),
-                ["aria-valuemax"] = k.Max?.ToString(invariant),
+                ["value"] = text,
+                ["aria-valuenow"] = shown?.ToString(invariant),
+                ["aria-valuetext"] = shown is null ? null : text,
+                ["aria-valuemin"] = (k.Min / k.Scale)?.ToString(invariant),
+                ["aria-valuemax"] = (k.Max / k.Scale)?.ToString(invariant),
                 ["data-rune-spin"] = true,
-                ["data-step"] = k.Step.ToString(invariant),
-                ["data-big-step"] = k.BigStep?.ToString(invariant),
+                ["data-step"] = (k.Step / k.Scale).ToString(invariant),
+                ["data-big-step"] = (k.BigStep / k.Scale)?.ToString(invariant),
                 ["data-decimal"] = k.Culture.NumberFormat.NumberDecimalSeparator,
                 ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.CommitAsync(e.Value as string)),
             });
@@ -161,7 +168,7 @@
             version++;
             return;
         }
-        await ApplyAsync(parsed);
+        await ApplyAsync(parsed * Scale);
     }
 
     // 空着时从 Min（没有就是 0）开始

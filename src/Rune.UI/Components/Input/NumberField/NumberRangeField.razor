@@ -1,0 +1,105 @@
+@*
+    数值区间（div role="group"，同 vue-tsx-pro 的 NumberRangeField）：两个 NumberField，最小到最大。金额范围、数量区间的录入与筛选。
+    <Field Label="预期收益"><NumberRangeField @bind-Value="saving" Scale="10000" Min="0"><Suffix>万元</Suffix></NumberRangeField></Field>
+    值是 NumberRange（低, 高）；端点用可空类型时任一端可以空着（“10 万元以上”）。两端都填了、低比高大时自动对调，不用报错。
+    Min、Max、Step、Format、Scale、Prefix、Suffix 与外观（Variant、Size、Radius）两端共用，同 NumberField。
+    在 Field 里时：标签点了聚焦第一个框，组以标签为名称、关联说明与错误；两个框各自念“最小值”“最大值”。
+    写了 Name（[低的名字, 高的名字]）时两端各用一个隐藏的 input 随表单提交。
+*@
+@namespace Rune.UI
+@typeparam TValue
+@inherits InputControl<NumberRange<TValue>>
+@{ var parts = NumberRangeFieldStyles.Of(Size, Config.Styles); }
+
+<div @attributes="Attrs.Merge(parts[NumberRangeFieldPart.Root], Rest, RootManaged)">
+    @* 两个框不拿 Field 的 id 与说明（组拿）：第一个框的 id 由这里给，点标签聚焦它 *@
+    <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
+        <NumberField TValue="TValue" Value="CurrentValue.Low" ValueChanged="SetLowAsync" @attributes="Attrs.MergeProps(parts[NumberRangeFieldPart.Field], PropsStart, EndManaged(0))"
+                     Min="Min" Max="Max" Step="Step" Format="@Format" Scale="Scale" Prefix="Prefix" Suffix="Suffix" Stepper="false"
+                     Variant="Variant" Size="Size" Radius="Radius" Disabled="IsDisabled" ReadOnly="IsReadOnly" Invalid="IsInvalid" Required="IsRequired" />
+        <span aria-hidden="true" @attributes="Attrs.Merge(parts[NumberRangeFieldPart.Separator], PropsSeparator)">@(Separator ?? DefaultSeparator)</span>
+        <NumberField TValue="TValue" Value="CurrentValue.High" ValueChanged="SetHighAsync" @attributes="Attrs.MergeProps(parts[NumberRangeFieldPart.Field], PropsEnd, EndManaged(1))"
+                     Min="Min" Max="Max" Step="Step" Format="@Format" Scale="Scale" Prefix="Prefix" Suffix="Suffix" Stepper="false"
+                     Variant="Variant" Size="Size" Radius="Radius" Disabled="IsDisabled" ReadOnly="IsReadOnly" Invalid="IsInvalid" />
+    </CascadingValue>
+</div>
+
+@code {
+    static readonly RenderFragment DefaultSeparator = builder => builder.AddContent(0, "–");
+
+    Memo<(string? LabelledBy, string? DescribedBy, bool Disabled, bool Invalid), Attrs> rootManaged;
+
+    /// <summary>两端共同的最小值。</summary>
+    [Parameter] public decimal? Min { get; set; }
+
+    /// <summary>两端共同的最大值。</summary>
+    [Parameter] public decimal? Max { get; set; }
+
+    /// <summary>步长，同 NumberField，默认 1。</summary>
+    [Parameter] public decimal Step { get; set; } = 1;
+
+    /// <summary>显示格式，同 NumberField。</summary>
+    [Parameter] public string? Format { get; set; }
+
+    /// <summary>缩放，同 NumberField（值是元、按万元输入写 10000）。</summary>
+    [Parameter] public decimal Scale { get; set; } = 1;
+
+    /// <summary>框里文字前的内容。</summary>
+    [Parameter] public RenderFragment? Prefix { get; set; }
+
+    /// <summary>框里文字后的单位。</summary>
+    [Parameter] public RenderFragment? Suffix { get; set; }
+
+    /// <summary>两个框的占位文字，默认取语言包（最小值、最大值）。</summary>
+    [Parameter] public IReadOnlyList<string>? Placeholder { get; set; }
+
+    /// <summary>两端中间的内容，默认“–”。</summary>
+    [Parameter] public RenderFragment? Separator { get; set; }
+
+    /// <summary>表单提交时两端的 name。</summary>
+    [Parameter] public IReadOnlyList<string>? Name { get; set; }
+
+    /// <summary>低端那个框的部件属性。</summary>
+    [Parameter] public Attrs? PropsStart { get; set; }
+
+    /// <summary>高端那个框的部件属性。</summary>
+    [Parameter] public Attrs? PropsEnd { get; set; }
+
+    /// <summary>中间分隔的部件属性。</summary>
+    [Parameter] public Attrs? PropsSeparator { get; set; }
+
+    // 组：Field 的标签与说明（写了 aria-label 时不再 labelledby）；id 在第一个框上
+    Attrs RootManaged => rootManaged.Get(
+        (AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId, Field?.DescribedBy, IsDisabled, IsInvalid),
+        static k => new Attrs
+        {
+            Role = "group",
+            AriaLabelledBy = k.LabelledBy,
+            AriaDescribedBy = k.DescribedBy,
+            ["data-disabled"] = k.Disabled ? true : null,
+            ["data-invalid"] = k.Invalid ? true : null,
+        });
+
+    // 一端的框：id（第一个拿 Field 的，点标签聚焦它）、名称、占位、提交的 name
+    Attrs EndManaged(int index)
+    {
+        var label = index == 0 ? Config.Lang.SliderMin : Config.Lang.SliderMax;
+        return new Attrs
+        {
+            Id = index == 0 ? ControlId : $"{ControlId}-end",
+            ["aria-label"] = label,
+            ["placeholder"] = Placeholder is { Count: 2 } placeholders ? placeholders[index] : label,
+            ["name"] = Name is { Count: 2 } names ? names[index] : null,
+        };
+    }
+
+    Task SetLowAsync(TValue value) => SetAsync(CurrentValue with { Low = value });
+
+    Task SetHighAsync(TValue value) => SetAsync(CurrentValue with { High = value });
+
+    // 两端都有值且低比高大时对调
+    Task SetAsync(NumberRange<TValue> next) =>
+        SetValueAsync(NumberText.ToDecimal(next.Low) is { } low && NumberText.ToDecimal(next.High) is { } high && low > high
+            ? new NumberRange<TValue>(next.High, next.Low)
+            : next);
+}

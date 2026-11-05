@@ -62,12 +62,26 @@
 </DemoSection>
 
 <DemoSection Id="units" Title="单位与缩放">
-    <Description>Suffix、Prefix 把单位放进输入框。只读时不显示加减按钮。</Description>
+    <Description><Code>Suffix</Code>、<Code>Prefix</Code> 把单位放进输入框。值以元保存、按万元输入时写 <Code>Scale="10000"</Code>：显示与编辑都是万元，写回时乘回元（decimal，不丢精度）；<Code>Min</Code>、<Code>Max</Code>、<Code>Step</Code> 仍按值本身的单位。只读时不显示加减按钮。</Description>
     <ChildContent>
-        <Grid MinItemWidth="@("14em")" Gap="SpaceScale.Lg">
-            <Field Label="预算"><NumberField @bind-Value="budget" Min="0" Step="1000"><Prefix>¥</Prefix><Suffix>元</Suffix></NumberField></Field>
-            <Field Label="容量"><NumberField @bind-Value="capacity" Min="0"><Suffix>GB</Suffix></NumberField></Field>
-            <Field Label="只读"><NumberField Value="42" ReadOnly="true"><Suffix>件</Suffix></NumberField></Field>
+        <Grid MinItemWidth="@CssLength.Em(16)" Gap="SpaceScale.Lg">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Field Label="年度预算" Description="值是元，按万元输入；步长 100 元">
+                    <NumberField @bind-Value="budget" Scale="10000" Format="#,0.##" Step="100" Min="0" data-testid="budget"><Prefix>¥</Prefix><Suffix>万元</Suffix></NumberField>
+                </Field>
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">保存的值：<Code data-testid="budget-value">@(budget is { } b ? $"{b} 元" : "null")</Code></TextSpan>
+            </Flex>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Field Label="运费目标">
+                    <NumberField @bind-Value="freight" Step="0.01m" Min="0" Format="0.00" Stepper="false"><Suffix>元/单</Suffix></NumberField>
+                </Field>
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">每千单：<Code>@(freight is { } f ? $"{f * 1000:#,0.##}元" : "—")</Code></TextSpan>
+            </Flex>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Field Label="门店数量"><NumberField @bind-Value="stores" Min="0"><Suffix>家</Suffix></NumberField></Field>
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">只读时不显示加减按钮：</TextSpan>
+                <NumberField Value="stores" ReadOnly="true" aria-label="门店数量（只读）"><Suffix>家</Suffix></NumberField>
+            </Flex>
         </Grid>
     </ChildContent>
 </DemoSection>
@@ -114,11 +128,46 @@
     </ChildContent>
 </DemoSection>
 
+<DemoSection Id="range" Title="数值区间">
+    <Description><Code>NumberRangeField</Code> 是两个数字框，值是 <Code>NumberRange</Code>（低, 高），端点用可空类型时任一端可以空着（“20 家以上”）。两端都填了、低比高大时自动对调，不用报错。Min、Max、Step、Format、Scale、Prefix、Suffix 与外观两端共用；放进 Field 时点标签聚焦第一个框，两个框各念“最小值”“最大值”。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@CssLength.Rem(16)" Gap="SpaceScale.Lg">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <Field Label="预期收益量级" Description="填 50 和 10 试试：失焦后自动对调">
+                    <NumberRangeField @bind-Value="saving" Scale="10000" Format="#,0.##" Min="0" data-testid="saving"><Suffix>万元</Suffix></NumberRangeField>
+                </Field>
+                <Small Tone="TextTone.Muted">保存的值：<Code data-testid="saving-value">@RangeText(saving, " 元")</Code></Small>
+            </Flex>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <Field Label="门店数量" Description="只填起：20 家以上">
+                    <NumberRangeField @bind-Value="storeRange" Min="0"><Suffix>家</Suffix><Separator>至</Separator></NumberRangeField>
+                </Field>
+                <Small Tone="TextTone.Muted">值：<Code>@RangeText(storeRange, "")</Code></Small>
+            </Flex>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <Field Label="单价" Description="筛选栏里常用：浅底、小号、胶囊形">
+                    <NumberRangeField @bind-Value="priceRange" Min="0" Variant="InputVariant.Soft" Size="Size.Sm" Radius="Radius.Full"><Prefix>$</Prefix></NumberRangeField>
+                </Field>
+                <Small Tone="TextTone.Muted">值：<Code>@RangeText(priceRange, "")</Code></Small>
+            </Flex>
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
 @code {
     static readonly Size[] sizes = [Size.Sm, Size.Md, Size.Lg];
 
+    NumberRange<decimal?> saving = new(100000, 500000);
+    NumberRange<int?> storeRange = new(20, null);
+    NumberRange<decimal?> priceRange = new(null, 1200);
+    decimal? freight = 12.5m;
+    int? stores = 40;
+
+    static string RangeText<T>(NumberRange<T> range, string unit) =>
+        $"{(range.Low is { } low ? $"{low}{unit}" : "不限")} ～ {(range.High is { } high ? $"{high}{unit}" : "不限")}";
+
     int? quantity = 2, rating, shared = 12, count = 3;
-    decimal? weight = 1.5m, discount = 0.85m, temperature = -4, price = 0.1m, total, budget = 50000, capacity = 256, unitPrice = 12345.6m;
+    decimal? weight = 1.5m, discount = 0.85m, temperature = -4, price = 0.1m, total, budget = 155353.2m, unitPrice = 12345.6m;
     long views = 9_007_199_254_740_993;
     double floating = 0.1;
     string? submitted;
