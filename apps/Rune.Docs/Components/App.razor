@@ -1,0 +1,24 @@
+@*
+    文档站的页面骨架：整站是 WebAssembly 的交互根（Routes 与 HeadOutlet 加 @rendermode），服务端只做预渲染。
+    head 里的 ThemeBootScript 在页面显示前按记住的选择设好主题。
+*@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <ImportMap />
+    <ThemeBootScript />
+    <HeadOutlet @rendermode="InteractiveWebAssembly" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveWebAssembly" />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>

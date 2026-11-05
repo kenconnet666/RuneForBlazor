@@ -1,0 +1,25 @@
+@*
+    指南页的一节：Rune.UI 的 DocSection（带锚点的 H2），并把标题登记进本页目录（DocHeadings）。
+    <GuideSection Id="install" Title="安装">…</GuideSection>
+*@
+@inherits RuneComponent
+@inject DocHeadings Headings
+
+<DocSection Id="@Id" Title="@Title">@ChildContent</DocSection>
+
+@code {
+    /// <summary>标题的 id：锚点，也进本页目录。</summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+
+    /// <summary>标题。</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => Headings.Add(this, new(Id, Title));
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => Headings.Remove(this);
+}

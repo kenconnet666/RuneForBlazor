@@ -1,0 +1,138 @@
+@*
+    文档站的外壳（同 vue-tsx-pro 文档站的 App）：AppShell 的顶栏（站点名、搜索、主题切换、仓库链接、全屏）、左侧的站点导航、右侧的本页目录，
+    正文是当前路由的页面，末尾是上一篇 / 下一篇。导航、搜索、翻页都取文档目录（DocsCatalog），顺序一致。
+*@
+@inherits RuneLayoutComponent
+@inject NavigationManager Navigation
+@inject DocHeadings Headings
+
+<RuneProvider>
+    <AppShell PropsMain="MainLayer">
+        <Brand><AppShellBrand Href="" Icon="Lucide.Boxes">Rune</AppShellBrand></Brand>
+        <Header>
+            <div @attributes="Attrs.Merge(ToolsLayer)">
+                <CommandPalette TItem="DocEntry" Items="DocsCatalog.All" ToOption="SearchOption" OnAction="Go" />
+                <ThemeSwitcher />
+                <IconLinkButton Href="@Repository" External="true" Icon="DocsKitIcons.Github" Label="GitHub 仓库" Sx="WideOnly" />
+            </div>
+        </Header>
+        <Sidebar>
+            <NavList aria-label="文档">
+                @foreach (var section in DocsCatalog.Sections)
+                {
+                    <NavSection @key="section.Category" Label="@section.Label">
+                        @foreach (var entry in section.Pages)
+                        {
+                            <NavItem @key="entry.Path" Href="@entry.Path.TrimStart('/')">@entry.Meta.Title</NavItem>
+                        }
+                    </NavSection>
+                }
+                @* 手机宽度顶栏放不下：外部链接只在顶栏或抽屉里出现一处 *@
+                <NavSection Label="链接" Sx="NarrowOnly">
+                    <NavItem Href="@Repository" target="_blank" Icon="DocsKitIcons.Github">GitHub</NavItem>
+                </NavSection>
+            </NavList>
+        </Sidebar>
+        <Aside>
+            @if (!IsHome)
+            {
+                <TableOfContents Items="Headings.All" />
+            }
+        </Aside>
+        <ChildContent>
+            <div @attributes="Attrs.Merge(PageLayer)">
+                @* 按地址换 key：每次换页重新播放进场动画 *@
+                <div @key="Path" @attributes="Attrs.Merge(EnterLayer)">@Body</div>
+                @if (!IsHome && Neighbors() is var (previous, next))
+                {
+                    <Container Size="@(Path.StartsWith("components/", StringComparison.Ordinal) ? ContainerSize.Xl : ContainerSize.Md)" Padding="SpaceScale.None">
+                        <Pager Previous="previous" Next="next" Sx="PagerStyle" />
+                    </Container>
+                }
+            </div>
+        </ChildContent>
+    </AppShell>
+    <Toaster />
+</RuneProvider>
+
+@code {
+    const string Repository = "https://github.com/kenconnet666/RuneForBlazor";
+
+    static readonly Attrs MainLayer = new() { Sx = Main };
+    static readonly Attrs ToolsLayer = new() { Sx = Tools };
+    static readonly Attrs PageLayer = new() { Sx = Page };
+    static readonly Attrs EnterLayer = new() { Sx = Enter };
+
+    string Path => Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0].TrimEnd('/');
+
+    bool IsHome => Path.Length == 0;
+
+    // 搜索面板的选项：每个页面一项，按侧栏分组
+    static ListboxOption SearchOption(DocEntry entry) =>
+        new(entry.Path, entry.Meta.Title) { Description = entry.Meta.Description, Group = DocsCatalog.LabelOf(entry.Meta.Category) };
+
+    void Go(DocEntry entry) => Navigation.NavigateTo(entry.Path.TrimStart('/'));
+
+    // 上一篇 / 下一篇：侧栏顺序
+    (PagerLink? Previous, PagerLink? Next) Neighbors()
+    {
+        var all = DocsCatalog.All;
+        var index = all.ToList().FindIndex(p => p.Path.Trim('/') == Path);
+        if (index < 0) return (null, null);
+        static PagerLink Link(DocEntry entry) => new(entry.Path.TrimStart('/'), entry.Meta.Title);
+        return (index > 0 ? Link(all[index - 1]) : null, index < all.Count - 1 ? Link(all[index + 1]) : null);
+    }
+
+    void OnHeadingsChanged() => InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc/>
+    protected override void OnInitialized()
+    {
+        Headings.Changed += OnHeadingsChanged;
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    void OnLocationChanged(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        Headings.Changed -= OnHeadingsChanged;
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
+    // 搜索与各个按钮靠顶栏的结束边
+    static Style Tools => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Md,
+        MarginInlineStart = CssLength.Auto,
+    });
+
+    // 标题离顶栏远一点，页底留出空白，不贴着窗口下沿
+    static Style Main => Css.Define(static () => new Style { PaddingBlockStart = CssLength.Rem(2.5), PaddingBlockEnd = CssLength.Rem(4) });
+
+    static Style Page => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Xl });
+
+    // 换页时新页面轻轻浮上来；时长取主题 token，“减少动态效果”时为 0
+    static Style Enter => Css.Define(static () => new Style
+    {
+        Keyframes = PageEnter,
+        AnimationDuration = Durations.Md,
+        AnimationTimingFunction = Easings.Enter,
+    });
+
+    static Keyframes PageEnter => Css.Define(static () => new Keyframes
+    {
+        ["from"] = new() { Opacity = 0, Transform = "translateY(6px)" },
+        ["to"] = new() { Opacity = 1, Transform = "none" },
+    });
+
+    static Style PagerStyle => Css.Define(static () => new Style { MarginBlockStart = Space.Xl });
+
+    // 手机宽度顶栏放不下：外部链接只在顶栏或抽屉里出现一处
+    static Style WideOnly => Css.Define(static () => new Style { Display = Display.None, [Breakpoints.Md] = new() { Display = Display.InlineFlex } });
+
+    static Style NarrowOnly => Css.Define(static () => new Style { Display = Display.Block, [Breakpoints.Md] = new() { Display = Display.None } });
+}

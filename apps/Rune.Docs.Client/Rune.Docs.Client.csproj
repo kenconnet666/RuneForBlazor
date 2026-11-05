@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!-- 文档站的 WebAssembly 端：路由、站点外壳（AppShell）与首页；页面内容在 Rune.Docs.Content。
+       整站在浏览器里运行（预渲染出 HTML，WebAssembly 接管），可以导出成静态文件部署 -->
+  <PropertyGroup>
+    <RootNamespace>Rune.Docs.Client</RootNamespace>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <ProjectReference Include="..\Rune.Docs.Content\Rune.Docs.Content.csproj" />
+    <ProjectReference Include="..\..\src\Rune\Rune.csproj" />
+    <ProjectReference Include="..\..\src\Rune.UI\Rune.UI.csproj" />
+    <ProjectReference Include="..\..\src\Rune.Icons\Rune.Icons.csproj" />
+    <ProjectReference Include="..\..\src\Rune.Generators\Rune.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Rune.CodeFixes\Rune.CodeFixes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

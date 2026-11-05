@@ -1,0 +1,156 @@
+@page "/guide/getting-started"
+@attribute [DocMeta("Getting Started 快速开始", "引用组件库、注册服务、放好样式与主题，写第一个页面；静态 SSR、Server、WebAssembly 都一样。", DocCategory.Guide, Order = 1)]
+@inherits DocPageBase
+
+<DocPage Meta="Meta">
+    <GuideSection Id="install" Title="引用">
+        <Paragraph>
+            组件库分三个包：<Code>Rune</Code>（运行时：信号、组件基类、属性合并、样式引擎）、<Code>Rune.UI</Code>（组件、主题与语言包）、
+            <Code>Rune.Icons</Code>（Lucide 图标全集，WebAssembly 发布时裁掉没用到的）。还没有发布到 NuGet：先克隆仓库，用项目引用。
+        </Paragraph>
+        <CodeBlock Code="@install" Lang="xml" />
+        <Paragraph>Blazor Web App 的服务端项目与 WebAssembly 项目都要引用（同一个页面可能在任一边运行）。</Paragraph>
+    </GuideSection>
+
+    <GuideSection Id="services" Title="注册服务">
+        <Paragraph>
+            在 <Code>Program.cs</Code> 里注册组件库与应用级配置。服务端与 WebAssembly 项目各写一次，配置要一致：
+            交互模式的根接不到布局里级联下来的值，服务注册的配置三种渲染模式都拿得到。
+        </Paragraph>
+        <CodeBlock Code="@services" Lang="csharp" />
+        <TextTable Head="@optionHead" Rows="@options" />
+    </GuideSection>
+
+    <GuideSection Id="app" Title="页面骨架">
+        <Paragraph>
+            <Code>App.razor</Code> 的 head 里放 <Code>RuneStyles</Code>（服务端渲染时用到的样式规则）与 <Code>ThemeBootScript</Code>
+            （页面显示前按记住的选择设好主题，用了主题切换时才需要）；布局里套一个 <Code>RuneProvider</Code>（应用级的主题），
+            用消息提示时在交互区域里放一个 <Code>Toaster</Code>。
+        </Paragraph>
+        <CodeBlock Code="@app" Lang="razor" Title="App.razor" />
+        <CodeBlock Code="@layoutCode" Lang="razor" Title="MainLayout.razor" />
+        <Paragraph>
+            每个交互根（带 <Code>@@rendermode</Code> 的页面或组件）里再放一个 <Code>RuneStyles</Code>：交互模式下新用到的样式由它输出。
+            布局继承 <Code>RuneLayoutComponent</Code> 时，布局自己也能用 <Code>Sx</Code>。
+        </Paragraph>
+    </GuideSection>
+
+    <GuideSection Id="imports" Title="命名空间">
+        <CodeBlock Code="@imports" Lang="razor" Title="_Imports.razor" />
+    </GuideSection>
+
+    <GuideSection Id="first-page" Title="第一个页面">
+        <Paragraph>
+            组件继承 <Code>RuneComponent</Code>：字段改了就重新渲染，双向绑定照常用 <Code>@@bind-Xxx</Code>。
+            下面这个表单在静态 SSR 下也能提交（原生表单），在 Server、WebAssembly 下校验即时生效。
+        </Paragraph>
+        <CodeBlock Code="@firstPage" Lang="razor" Title="Pages/Invite.razor" />
+    </GuideSection>
+
+    <GuideSection Id="render-modes" Title="渲染模式">
+        <Paragraph>
+            同一套组件在静态 SSR、Interactive Server、WebAssembly、Auto 下都能用。浮层的开关、列表的键盘、滚动条、复制、主题切换这些
+            只关乎界面的交互由组件库的 JS 初始化器在浏览器里完成：静态 SSR 也能用，Server 模式不用每次按键往返。
+            要 C# 处理的事（校验、提交、数据）照常走 Blazor 的事件。
+        </Paragraph>
+        <TextTable Head="@modeHead" Rows="@modes" />
+    </GuideSection>
+
+    <GuideSection Id="next" Title="接下来">
+        <Flex Gap="SpaceScale.Sm" Wrap="true">
+            <LinkButton Href="guide/styling" Variant="ButtonVariant.Soft" IconEnd="Lucide.ArrowRight">写样式</LinkButton>
+            <LinkButton Href="guide/theming" Variant="ButtonVariant.Soft" IconEnd="Lucide.ArrowRight">主题定制</LinkButton>
+            <LinkButton Href="components/button" Variant="ButtonVariant.Soft" IconEnd="Lucide.ArrowRight">看组件</LinkButton>
+        </Flex>
+    </GuideSection>
+</DocPage>
+
+@code {
+    const string install = """
+        <ItemGroup>
+          <ProjectReference Include="..\RuneForBlazor\src\Rune.UI\Rune.UI.csproj" />
+          <ProjectReference Include="..\RuneForBlazor\src\Rune.Icons\Rune.Icons.csproj" />
+        </ItemGroup>
+        """;
+
+    const string services = """
+        using Rune.UI;
+
+        builder.Services.AddRuneUI(o =>
+        {
+            o.ThemeChoices = ThemeChoices.Builtin;   // 用户可以切换的主题（不切换时不写）
+            o.Lang = Lang.ZhCn;                       // 组件里的文案与地区信息
+            o.Defaults = new() { new ButtonDefaults { Size = Size.Sm } };
+        });
+        """;
+
+    static readonly string[] optionHead = ["选项", "默认值", "含义"];
+
+    static readonly string[][] options =
+    [
+        ["`Theme`、`DarkTheme`", "`Themes.Light`、`Themes.Dark`", "应用的亮色、暗色主题"],
+        ["`ColorScheme`", "`ColorScheme.System`", "亮暗：跟随系统、只用亮色、只用暗色"],
+        ["`ThemeChoices`", "无", "用户可以切换的几套主题（ThemeSwitcher 列出它们）"],
+        ["`Lang`", "`Lang.ZhCn`", "语言包：组件里的文案、日期与数字的格式"],
+        ["`Defaults`", "空", "组件的默认值（所有按钮小一号、所有折叠面板描边）"],
+        ["`Styles`", "空", "按部件追加的样式（所有对话框的标题用强调色）"],
+        ["`Ripple`", "`true`", "按钮、菜单项按下时的波纹"],
+    ];
+
+    const string app = """
+        <head>
+            …
+            <ThemeBootScript />
+            <RuneStyles />
+            <HeadOutlet />
+        </head>
+        """;
+
+    const string layoutCode = """
+        @inherits RuneLayoutComponent
+
+        <RuneProvider>
+            @Body
+            <Toaster />
+        </RuneProvider>
+        """;
+
+    const string imports = """
+        @using Rune
+        @using Rune.Styles
+        @using Rune.UI
+        @using Rune.Icons
+        """;
+
+    const string firstPage = """
+        @page "/invite"
+        @inherits RuneComponent
+
+        <Form Model="invite" OnValidSubmit="SendAsync">
+            <Field Label="邮箱" Required="true">
+                <TextField @bind-Value="invite.Email" Type="email" Icon="Lucide.Mail" />
+            </Field>
+            <Field Label="角色">
+                <Select @bind-Value="invite.Role" Items="roles" />
+            </Field>
+            <Button Type="submit" Icon="Lucide.Send">发送邀请</Button>
+        </Form>
+
+        @code {
+            static readonly string[] roles = ["成员", "管理员"];
+            readonly Invite invite = new();
+
+            Task SendAsync() => …;
+        }
+        """;
+
+    static readonly string[] modeHead = ["模式", "说明"];
+
+    static readonly string[][] modes =
+    [
+        ["静态 SSR", "服务端输出 HTML，没有常驻连接；浮层、键盘、复制、主题切换照样能用（JS 初始化器）"],
+        ["Interactive Server", "C# 在服务端运行，事件经 SignalR 往返；只关乎界面的交互不往返"],
+        ["WebAssembly", "C# 在浏览器里运行；预渲染时先输出 HTML，下载完再接管"],
+        ["Auto", "先用 Server，WebAssembly 下载好后换过去"],
+    ];
+}

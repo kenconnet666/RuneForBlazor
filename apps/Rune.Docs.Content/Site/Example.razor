@@ -6,6 +6,7 @@
 *@
 @inherits RuneComponent
 @inject NavigationManager Navigation
+@inject DocHeadings Headings
 
 <section @attributes="Attrs.Merge(SectionLayer)">
     <H2 id="@Id" Size="Size.Xl" Anchor="true">@Title</H2>
@@ -65,6 +66,12 @@
             return $"{prefix}frame/{frame.Page}/{frame.Name}";
         }
     }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => Headings.Add(this, new(Id, Title));
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => Headings.Remove(this);
 
     static Style Section => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Md, MinWidth = 0 });
 

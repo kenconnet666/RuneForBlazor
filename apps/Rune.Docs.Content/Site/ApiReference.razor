@@ -4,6 +4,7 @@
     <ApiReference Types="[typeof(Button), typeof(IconButton)]" />
 *@
 @inherits RuneComponent
+@inject DocHeadings Headings
 
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
     <H2 id="api" Size="Size.Xl" Anchor="true">API</H2>
@@ -46,6 +47,17 @@
     [Parameter, EditorRequired] public IReadOnlyList<Type> Types { get; set; } = [];
 
     IEnumerable<ComponentApi> Apis => Types.Select(ComponentApiReader.Read);
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        Headings.Add(this, new("api", "API"), DocHeadings.Last);
+        if (Types.Count > 1)
+            foreach (var api in Apis) Headings.Add(this, new($"api-{Slug(api.Component)}", api.Component, 3), DocHeadings.Last);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => Headings.Remove(this);
 
     static string Slug(string name) => new([.. name.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant)]);
 

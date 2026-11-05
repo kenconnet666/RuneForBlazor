@@ -1,0 +1,100 @@
+@page "/guide/theming"
+@attribute [DocMeta("Theming 主题定制", "16 套内置主题，让用户切换并记住，写自己的主题，局部换主题，语言包。", DocCategory.Guide, Order = 3)]
+@inherits DocPageBase
+
+<DocPage Meta="Meta">
+    <GuideSection Id="builtin" Title="内置主题">
+        <Paragraph>
+            主题是一组 token 的取值。内置 16 套（同 vue-tsx-pro）：亮色、暗色、纸张、午夜、高对比，以及海洋、森林、柠檬、樱花等风格主题，
+            对比度逐对检查过。应用默认跟随系统用亮色或暗色；在 <Code>AddRuneUI</Code> 里换。
+        </Paragraph>
+        <CodeBlock Code="@builtin" Lang="csharp" />
+    </GuideSection>
+
+    <GuideSection Id="switcher" Title="让用户切换">
+        <Paragraph>
+            <Code>ThemeChoices</Code> 列出用户可以选的主题；<Code>ThemeSwitcher</Code> 是图标按钮加单选菜单（“跟随系统”与各套主题），
+            选中后记在浏览器的 localStorage 里，新主题从按钮处圆形展开。head 里的 <Code>ThemeBootScript</Code>
+            在页面显示前按记住的选择设好，不闪一下默认主题。切换全在浏览器里，没有往返，静态 SSR 也能用。
+        </Paragraph>
+        <CodeBlock Code="@switcher" Lang="razor" />
+        <Paragraph>本站右上角就是它。可选的主题越多，页面带的变量越多（每套约十几 KB，压缩前）：只列用得上的几套。</Paragraph>
+    </GuideSection>
+
+    <GuideSection Id="custom" Title="写自己的主题">
+        <Paragraph>
+            基于一套内置主题，只写不同的 token。名字要唯一（切换时按名字区分）；暗色主题写 <Code>IsDark = true</Code>，
+            浏览器的原生控件、滚动条按暗色画。
+        </Paragraph>
+        <CodeBlock Code="@custom" Lang="csharp" />
+    </GuideSection>
+
+    <GuideSection Id="scoped" Title="局部换主题">
+        <Paragraph>
+            嵌套的 <Code>RuneProvider</Code> 只改写了的部分：一块区域固定用暗色、换一套主题、换语言或组件默认值。
+            主题以 CSS 变量作用在包裹元素里面，包裹元素不产生盒子，不影响布局。
+        </Paragraph>
+        <CodeBlock Code="@scoped" Lang="razor" />
+    </GuideSection>
+
+    <GuideSection Id="lang" Title="语言包">
+        <Paragraph>
+            组件里的文案（关闭、清空、共 N 条）、日期与数字的格式来自语言包：内置简体中文与美国英语。只改几条用 <Code>with</Code>。
+        </Paragraph>
+        <CodeBlock Code="@lang" Lang="csharp" />
+    </GuideSection>
+</DocPage>
+
+@code {
+    const string builtin = """
+        builder.Services.AddRuneUI(o =>
+        {
+            o.Theme = Themes.Paper;           // 亮色时用纸张
+            o.DarkTheme = Themes.Midnight;    // 暗色时用午夜
+            o.ColorScheme = ColorScheme.System;
+        });
+        """;
+
+    const string switcher = """
+        @* Program.cs：builder.Services.AddRuneUI(o => o.ThemeChoices = ThemeChoices.Builtin); *@
+        @* App.razor 的 head *@
+        <ThemeBootScript />
+
+        @* 顶栏 *@
+        <ThemeSwitcher />
+
+        @* 只列几套：new ThemeChoices([Themes.Light, Themes.Dark, Themes.Paper]) *@
+        """;
+
+    const string custom = """
+        public static class BrandThemes
+        {
+            public static Theme Ocean => Css.Define(static () => new Theme("brand-ocean", basedOn: Themes.Light)
+            {
+                [Tones.Accent.Solid] = "#0a7ea4",
+                [Tones.Accent.Text] = "#086a8a",
+                [Radii.Md] = "0.5em",
+            });
+        }
+
+        builder.Services.AddRuneUI(o => o.ThemeChoices = new([Themes.Light, Themes.Dark, BrandThemes.Ocean]));
+        """;
+
+    const string scoped = """
+        <RuneProvider ColorScheme="ColorScheme.Dark">
+            <Card>这块一直是暗色</Card>
+        </RuneProvider>
+
+        <RuneProvider Theme="Themes.Paper" Lang="Lang.EnUs">
+            <Pagination … />
+        </RuneProvider>
+        """;
+
+    const string lang = """
+        builder.Services.AddRuneUI(o => o.Lang = Lang.ZhCn with
+        {
+            Close = "关掉",
+            SearchPlaceholder = "搜索商品",
+        });
+        """;
+}

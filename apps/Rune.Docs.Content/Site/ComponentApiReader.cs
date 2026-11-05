@@ -61,7 +61,7 @@ public static partial class ComponentApiReader
     {
         var depth = 0;
         for (var t = type; t is not null && t != declaring; t = t.BaseType) depth++;
-        return -depth;
+        return depth;
     }
 
     static ApiProp PropOf(PropertyInfo property, object? instance, HashSet<string> names)
@@ -126,6 +126,8 @@ public static partial class ComponentApiReader
     {
         if (Nullable.GetUnderlyingType(type) is { } inner) return TypeName(inner) + "?";
         if (type.IsArray) return TypeName(type.GetElementType()!) + "[]";
+        // 枚举的 TypeCode 是它的底层类型（int）：先按名字
+        if (type.IsEnum) return type.Name;
         var keyword = Type.GetTypeCode(type) switch
         {
             TypeCode.Boolean => "bool",

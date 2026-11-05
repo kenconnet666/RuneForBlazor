@@ -1,0 +1,5 @@
+/* 文档站的全局样式：其余都在组件的样式里 */
+body { margin: 0; }
+
+/* 换页后焦点移到标题（FocusOnNavigate，读屏从这里接着读）：它不是可操作的元素，不画焦点框 */
+[tabindex="-1"]:focus { outline: none; }

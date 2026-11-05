@@ -29,7 +29,9 @@ public sealed partial class CartStore
 | `src/Rune.Generators` | 源代码生成器：`[State]` 属性的实现与 RUNE 诊断（netstandard2.0） |
 | `src/Rune.UI` | 组件库：tokens、色调与内置主题（`Theme/`）、配置层与 `RuneProvider`（`Configuration/`）、配方与部件约定（`Parts/`）、组件（`Components/{分类}/{组件}/`，分类同 vue-tsx-pro 的文档分组，分类共用的代码放在分类这一层）、JS 初始化器（`wwwroot/`） |
 | `src/Rune.Icons` | Lucide 图标全集（`Lucide.Plus`……，首次访问时才创建，WebAssembly 发布时裁剪未用到的） |
-| `apps/Rune.Demo`、`apps/Rune.Demo.Client` | 演示项目：开发组件时实际运行、观察。每个演示都能以静态 SSR、Server、WebAssembly、Auto 打开（`/server/collapsible`），新增演示只要在 `Demos/{分类}/` 放一个带 `[ComponentDemo]` 的组件。文档站等组件库成熟后用自己的组件来做 |
+| `apps/Rune.Docs.Content` | 文档内容：指南页、组件页（`Components/{分类}/{组件}/`，一个示例一个文件，源码嵌进程序集显示在示例卡片里）、站点部件（示例卡片、API 表、目录） |
+| `apps/Rune.Docs`、`apps/Rune.Docs.Client` | 文档站：AppShell 外壳、搜索、本页目录；整站 WebAssembly（预渲染 HTML，可以导出成静态文件） |
+| `apps/Rune.Demo`、`apps/Rune.Demo.Client` | 渲染模式测试台：文档内容的每一页都能以静态 SSR、Server、WebAssembly、Auto 打开（`/server/collapsible`），端到端测试与对照工具用它 |
 | `tests/Rune.Tests` | 运行时、组件（bUnit）、生成器、并发的测试 |
 | `tests/Rune.E2E` | 端到端测试：启动演示项目，用 Playwright 的 Chromium 在静态 SSR、Server、WebAssembly 下验证键盘、焦点与 JS 初始化器的行为（第一次运行时下载 Chromium） |
 | `tools/css-gen` | 从 vue-tsx-pro 的 CSS 数据生成 `Style` 的属性表与关键字常量（带中文说明） |
@@ -38,7 +40,7 @@ public sealed partial class CartStore
 | `tools/lang-gen` | 从 vue-tsx-pro 的语言包生成 `Lang`（简体中文、美国英语，插值文案翻译成 C# 的 lambda）；CI 校验 |
 | `tools/parity` | 与 vue-tsx-pro 文档站逐个部件对比计算后的样式（亮、暗主题、悬停聚焦按下），本地跑，见其 README |
 
-依赖方向：`Rune.UI → Rune`，`apps → Rune.UI + Rune`；生成器以分析器方式引用。包版本统一在 `Directory.Packages.props`。
+依赖方向：`Rune.UI → Rune`，`apps → Rune.UI + Rune`（文档站与测试台都引用 `Rune.Docs.Content`）；生成器以分析器方式引用。包版本统一在 `Directory.Packages.props`。
 
 ## 使用
 
@@ -67,7 +69,8 @@ builder.Services.AddRuneUI(o => o.Defaults = new() { new CollapsibleDefaults { V
 ```bash
 dotnet build RuneForBlazor.slnx
 dotnet test --project tests/Rune.Tests/Rune.Tests.csproj
-dotnet watch --project apps/Rune.Demo    # 演示项目，保存后热重载
+dotnet watch --project apps/Rune.Docs    # 文档站（http://localhost:5310），保存后热重载
+dotnet watch --project apps/Rune.Demo    # 渲染模式测试台
 node tools/css-gen/generate.mjs           # 重新生成 Style 属性表
 node tools/css-gen/generate.mjs --check   # 只检查是否与数据源一致
 ```

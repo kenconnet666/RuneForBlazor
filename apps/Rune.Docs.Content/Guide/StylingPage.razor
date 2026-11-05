@@ -1,0 +1,120 @@
+@page "/guide/styling"
+@attribute [DocMeta("Styling 写样式", "Css.Define 与 Sx，主题 token，状态、断点与容器查询，随值变化的 CssVar，按部件定制组件。", DocCategory.Guide, Order = 2)]
+@inherits DocPageBase
+
+<DocPage Meta="Meta">
+    <GuideSection Id="define" Title="定义样式">
+        <Paragraph>
+            样式写在 C# 里：<Code>Css.Define</Code> 定义成静态属性，编译成原子化的类（一条声明一个类，相同的声明全站共用），
+            按内容算类名，服务端、浏览器、每个请求都一样。组件的 <Code>Sx</Code> 参数接收它；普通元素用 <Code>Attrs.Merge</Code>。
+        </Paragraph>
+        <CodeBlock Code="@define" Lang="razor" />
+        <Paragraph>
+            不要在渲染里新建 <Code>Style</Code>（每次都要重新算类名）：分析器 RUNE004、RUNE005 会提示。关键字用常量（<Code>Display.Flex</Code>），
+            能写成类型化的值时 RUNE006 会提示（<Code>"10%"</Code> 写成 <Code>CssLength.Percent(10)</Code>）。
+        </Paragraph>
+    </GuideSection>
+
+    <GuideSection Id="tokens" Title="主题 token">
+        <Paragraph>颜色、间距、字号、圆角、阴影、时长都取主题的 token（CSS 变量）：换主题、暗色时不用改样式。</Paragraph>
+        <TextTable Head="@tokenHead" Rows="@tokens" />
+    </GuideSection>
+
+    <GuideSection Id="states" Title="状态、断点与容器查询">
+        <Paragraph>
+            条件写成索引：悬停、聚焦、展开这些状态（<Code>When</Code>），伪元素（<Code>Pseudo</Code>），视口断点（<Code>Breakpoints</Code>，移动优先），
+            容器查询（<Code>Containers</Code>），减少动态效果、强制颜色（<Code>Media</Code>）。状态跟着 DOM 走（aria-expanded、data-state），
+            不用为每个状态写一个类。
+        </Paragraph>
+        <CodeBlock Code="@states" Lang="csharp" />
+        <Paragraph>
+            同一个属性写了几个断点时，除最后一档外用 <Code>Breakpoints.LgOnly</Code> 这类只在一档的条件：样式不按宽度给媒体查询排序。
+        </Paragraph>
+    </GuideSection>
+
+    <GuideSection Id="dynamic" Title="随值变化的样式">
+        <Paragraph>
+            一直在变的值（进度、拖动的宽度、用户选的颜色）不要写进样式（每个值多一条规则）：用 <Code>CssVar</Code>，
+            样式里引用变量，值写在元素的行内样式上。
+        </Paragraph>
+        <CodeBlock Code="@dynamic" Lang="razor" />
+    </GuideSection>
+
+    <GuideSection Id="customize" Title="定制组件">
+        <Paragraph>
+            组件由几个部件组成（按钮的根、图标、内容层……），每个部件的属性分三层合并：部件的默认层、使用方的、组件管理的（名称、状态）。
+            改一处用部件属性（<Code>PropsXxx</Code>），改一片区域或整个应用用 <Code>RuneProvider</Code> 的 <Code>Styles</Code> 与 <Code>Defaults</Code>。
+        </Paragraph>
+        <CodeBlock Code="@customize" Lang="razor" />
+        <Paragraph>
+            使用方写的类、样式、属性与组件管理的合并，不会覆盖组件的状态与无障碍属性；事件处理叠在一起都会执行。
+        </Paragraph>
+    </GuideSection>
+</DocPage>
+
+@code {
+    const string define = """
+        <Card Sx="Panel">…</Card>
+        <div @attributes="Attrs.Merge(new() { Sx = Panel })">…</div>
+
+        @code {
+            static Style Panel => Css.Define(static () => new Style
+            {
+                Display = Display.Flex,
+                Gap = Space.Md,
+                Padding = Space.Lg,
+                BorderRadius = Radii.Lg,
+                BackgroundColor = Colors.Surface,
+            });
+        }
+        """;
+
+    static readonly string[] tokenHead = ["类", "例子", "用途"];
+
+    static readonly string[][] tokens =
+    [
+        ["`Colors`", "`Colors.Text`、`Colors.Surface`、`Colors.Border`", "文字、背景、表面、描边"],
+        ["`Tones`", "`Tones.Accent.Solid`、`Tones.Danger.Soft`", "色调：品牌、信息、成功、警告、危险，各有实底、浅底、文字色"],
+        ["`Space`", "`Space.Sm`、`Space.Lg`", "间距（em，随字号缩放）"],
+        ["`FontSizes`、`FontWeights`、`LineHeights`", "`FontSizes.Sm`", "文字"],
+        ["`Radii`、`Shadows`、`BorderWidths`", "`Radii.Md`", "圆角、阴影、描边宽度"],
+        ["`Durations`、`Easings`", "`Durations.Md`、`Easings.Standard`", "动效（减少动态效果时时长为 0）"],
+    ];
+
+    const string states = """
+        static Style Row => Css.Define(static () => new Style
+        {
+            Color = Colors.TextMuted,
+            [When.Hover] = new() { Color = Colors.Text },
+            [When.Expanded] = new() { Color = Tones.Accent.Text },
+            [Pseudo.Before] = new() { Content = "\"\"", Width = Space.Xs },
+            [Breakpoints.Md] = new() { PaddingInline = Space.Lg },
+            [Containers.MinWidth(CssLength.Rem(30))] = new() { Display = Display.Grid },
+            [Media.ReducedMotion] = new() { Transition = Transition.None },
+        });
+        """;
+
+    const string dynamic = """
+        <div @attributes="Attrs.Merge(new() { Sx = Fill, Vars = [FillWidth.Set(CssLength.Percent(percent))] })"></div>
+
+        @code {
+            static readonly CssVar<CssLength> FillWidth = CssVar.Length("upload-fill");
+            static Style Fill => Css.Define(static () => new Style { Width = FillWidth });
+
+            double percent = 40;
+        }
+        """;
+
+    const string customize = """
+        @* 一处：部件属性 *@
+        <Collapsible PropsTrigger="@(new() { Sx = AccentWhenExpanded })">…</Collapsible>
+
+        @* 一片区域：所有折叠面板描边、按钮用强调色 *@
+        <RuneProvider Defaults="@defaults" Styles="@styles">…</RuneProvider>
+
+        @code {
+            static readonly ComponentDefaults defaults = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } };
+            static readonly ComponentStyles styles = new() { { CollapsiblePart.Trigger, AccentText } };
+        }
+        """;
+}

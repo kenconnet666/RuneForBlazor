@@ -1,0 +1,12 @@
+@* 首页的示例：状态就是普通字段，改了就重新渲染 *@
+@inherits RuneComponent
+
+<Flex Align="ItemAlign.Center" Gap="SpaceScale.Md">
+    <IconButton Icon="Lucide.Minus" Variant="ButtonVariant.Surface" Label="减少" @onclick="() => count--" />
+    <TextSpan>@count</TextSpan>
+    <IconButton Icon="Lucide.Plus" Variant="ButtonVariant.Surface" Label="增加" @onclick="() => count++" />
+</Flex>
+
+@code {
+    int count = 3;
+}
