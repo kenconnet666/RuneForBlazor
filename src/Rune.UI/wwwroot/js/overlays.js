@@ -4,7 +4,15 @@ import { anchorFloating, releaseFloating } from './floating.js';
 import { listPopoverClosed, listPopoverOpened, syncTriggerExpanded, typeahead } from './lists.js';
 import { TABBABLE } from './shared.js';
 
+// 受控浮层（data-open）报给 C# 但还没渲染回来的开关状态，按先后排队。渲染回来的 data-open 是这些旧状态的回响时不再照着开关：
+// 否则在往返期间用户又切换过（打开后马上按 Esc）时，迟到的“打开”回响会把已经关掉的浮层重新打开，再报一次，最后停在打开
+const pendingEchoes = new WeakMap();
+
 export function announce(overlay, open) {
+  if (overlay.hasAttribute('data-open')) {
+    if (!pendingEchoes.has(overlay)) pendingEchoes.set(overlay, []);
+    pendingEchoes.get(overlay).push(open);
+  }
   overlay.dispatchEvent(new CustomEvent('rune-toggle', { bubbles: true, detail: { open } }));
 }
 
@@ -32,8 +40,19 @@ function close(overlay) {
 }
 
 export function syncOpen(overlay) {
-  if (overlay.dataset.open === 'true') open(overlay);
-  else if (overlay.dataset.open === 'false') close(overlay);
+  const state = overlay.dataset.open;
+  if (state !== 'true' && state !== 'false') return;
+  const echoes = pendingEchoes.get(overlay);
+  if (echoes?.length) {
+    // 是排在最前的那次回响：后面还有没回来的（C# 还没追上用户）就先不动；不是回响（C# 自己改的）就清空队列、照办
+    if (echoes.shift() === (state === 'true')) {
+      if (echoes.length > 0) return;
+    } else {
+      echoes.length = 0;
+    }
+  }
+  if (state === 'true') open(overlay);
+  else close(overlay);
 }
 
 export function onPopoverToggle(event) {
