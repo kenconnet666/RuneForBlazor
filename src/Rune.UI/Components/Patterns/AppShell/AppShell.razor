@@ -12,6 +12,7 @@
       抽屉里点了链接（换页）、或窗口变宽时自动关上（data-rune-close-on-link、data-rune-close-when）。
     - 80rem 以上显示右侧栏；更窄时不显示（目录这类辅助内容）。
     两侧栏粘在顶栏下面，内容多时各自滚动（ScrollArea）。顶栏半透明，滚动的正文从下面透出。
+    整页与两侧栏都是浮层滚动条（PageScrollbar、ScrollArea）：不占宽度，滚动时出现；PageScrollbar="false" 时用浏览器原生的。
     写了 Brand 时，侧栏常驻的宽度下品牌格与侧栏同宽，侧栏的竖线一直延伸到顶栏顶端，Header 的内容与正文的起始边对齐。
     Nav：顶栏里品牌后面的导航；只有它时是顶部导航布局，和 Sidebar 一起时是混合布局（顶栏一级、侧栏二级）。Footer：正文下面的页脚。
     SidebarCollapsible：侧栏底部有“收起侧栏”，收起后只剩图标栏（宽屏时；NavList 变紧凑、分组悬停弹出，品牌格只剩标志），@bind-SidebarCollapsed 记住。
@@ -31,6 +32,10 @@
     @if (SkipLink)
     {
         <SkipLink Target="@mainId" />
+    }
+    @if (PageScrollbar)
+    {
+        <PageScrollbar />
     }
     <CascadingValue Value="AppShellContext.Of(Collapsed)">
         <header @attributes="Attrs.Merge(parts[AppShellPart.Header], PropsHeader)">
@@ -166,6 +171,9 @@
 
     /// <summary>页面最前面的“跳到正文”链接，默认 true。</summary>
     [Parameter] public bool SkipLink { get; set; } = true;
+
+    /// <summary>整页用浮层滚动条（PageScrollbar：不占宽度，滚动时出现），默认 true。</summary>
+    [Parameter] public bool PageScrollbar { get; set; } = true;
 
     /// <summary>顶栏（header）的部件属性。</summary>
     [Parameter] public Attrs? PropsHeader { get; set; }

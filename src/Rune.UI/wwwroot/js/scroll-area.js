@@ -2,6 +2,8 @@
 // 这里管滚动条的一切：按视口的尺寸与滚动位置写滑块的大小与位置（行内样式，不经过渲染），滚动、悬停时显示（轨道的 data-state），
 // 停下后淡出；拖动滑块、点轨道的空白处翻一页、滚轮落在滚动条上时转交给视口；内容超出时视口进 Tab 顺序（data-focusable）。
 // 组件只渲染结构：视口是 [data-rune-scroll-viewport]，轨道是 [data-rune-scrollbar]（data-axis 为 x / y），滑块是轨道的第一个子元素。
+// 整页的浮层滚动条（data-rune-page-scrollbar，PageScrollbar）是同一套：视口是 document.scrollingElement，滚动事件在 window 上，
+// 轨道本身就是指针移入时显示的范围（窗口边缘）。
 
 import { startMove } from './move.js';
 
@@ -19,15 +21,34 @@ export function watchScrollArea(root) {
   const content = viewport?.firstElementChild;
   if (!viewport || !content) return;
   watched.add(root);
+  attach(root, viewport, content, viewport, [...root.querySelectorAll(':scope > [data-rune-scrollbar]')]);
+}
 
+let page = null;
+
+/** 开始管理整页的浮层滚动条（插入时调用）：同一时间只有一条，换了元素（增强导航）时先拆掉旧的 */
+export function watchPageScrollbar(track) {
+  if (page?.track === track) return;
+  page?.detach();
+  page = { track, detach: attach(track, document.scrollingElement, document.body, window, [track]) };
+}
+
+/**
+ * 管理一组滚动条。root：指针移入时显示的范围；viewport：滚动的元素；content：内容（尺寸变化时重新量）；
+ * scroller：发出 scroll 事件的对象（整页时是 window）；tracks：轨道。返回拆除函数（摘掉挂在 window 上的监听）。
+ */
+function attach(root, viewport, content, scroller, tracks) {
   const visibility = root.dataset.visibility ?? 'hover';
   const hideDelay = Number(root.dataset.hideDelay ?? 600);
-  const bars = [...root.querySelectorAll(':scope > [data-rune-scrollbar]')].map((track) => ({
+  const bars = tracks.map((track) => ({
     track,
     thumb: track.firstElementChild,
     axis: track.dataset.axis,
     overflowing: false,
   }));
+  // 整页：模态框打开锁住滚动时（overflow: hidden）不显示
+  const locked = () =>
+    scroller === window && [document.documentElement, document.body].some((element) => getComputedStyle(element).overflowY === 'hidden');
   let active = false;
   let hovering = false;
   let dragging = false;
@@ -46,12 +67,13 @@ export function watchScrollArea(root) {
   function paint() {
     // 看不见的（收起的折叠面板里）不量：在这种子树里读尺寸，浏览器每次都要为它单独排一遍版；显示出来时 ResizeObserver 会再通知
     if (viewport.checkVisibility?.() === false) return;
+    const scrollLocked = locked();
     for (const bar of bars) {
       const { view, size, position } = measure(bar.axis);
       const track = trackLength(bar);
       const length = thumbLength(view, size, track);
       const offset = size > view ? (position / (size - view)) * (track - length) : 0;
-      bar.overflowing = size > view + 1;
+      bar.overflowing = !scrollLocked && size > view + 1;
       if (bar.axis === 'y') {
         bar.thumb.style.height = `${length}px`;
         bar.thumb.style.transform = `translateY(${offset}px)`;
@@ -102,10 +124,13 @@ export function watchScrollArea(root) {
     });
   };
 
-  viewport.addEventListener('scroll', () => {
+  const onScroll = () => {
     paint();
     show();
-  }, { passive: true });
+  };
+  scroller.addEventListener('scroll', onScroll, { passive: true });
+  // 整页：视口就是窗口，窗口变了大小要重新量（html 元素的尺寸跟着内容走，ResizeObserver 看不到）
+  if (scroller === window) window.addEventListener('resize', paintLater);
   root.addEventListener('pointerenter', () => {
     hovering = true;
     if (visibility !== 'hover') return;
@@ -117,8 +142,9 @@ export function watchScrollArea(root) {
     hovering = false;
     scheduleHide();
   });
-  new ResizeObserver(paintLater).observe(viewport);
-  new ResizeObserver(paintLater).observe(content);
+  const observer = new ResizeObserver(paintLater);
+  observer.observe(viewport);
+  observer.observe(content);
 
   for (const bar of bars) {
     // 点在轨道的空白处：朝那一侧翻一页
@@ -128,8 +154,8 @@ export function watchScrollArea(root) {
       const { view } = measure(bar.axis);
       const rtl = sign(bar.axis) === -1;
       const before = bar.axis === 'y' ? event.clientY < rect.top : rtl ? event.clientX > rect.right : event.clientX < rect.left;
-      const page = (before ? -1 : 1) * view * 0.9;
-      viewport.scrollBy(bar.axis === 'y' ? { top: page } : { left: sign(bar.axis) * page });
+      const pageSize = (before ? -1 : 1) * view * 0.9;
+      viewport.scrollBy(bar.axis === 'y' ? { top: pageSize } : { left: sign(bar.axis) * pageSize });
     });
     // 拖动滑块：位移按“可滚动距离 / 滑块可移动距离”换算成滚动距离
     bar.thumb.addEventListener('pointerdown', (event) => {
@@ -161,4 +187,10 @@ export function watchScrollArea(root) {
   }
 
   paintLater();
+
+  return () => {
+    scroller.removeEventListener('scroll', onScroll);
+    if (scroller === window) window.removeEventListener('resize', paintLater);
+    observer.disconnect();
+  };
 }

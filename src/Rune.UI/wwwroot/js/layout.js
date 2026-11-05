@@ -24,3 +24,20 @@ function clampGridSpans(grid) {
     item.style.gridColumn = tracks > 0 && tracks < span ? `span ${tracks} / span ${tracks}` : '';
   }
 }
+
+// 尺寸观察（data-rune-observe-size）：内容宽度变了（取整后）就发出冒泡的 rune-resize（size 是宽度，px），
+// 交给 C# 按宽度排版（每行放几个）。只在变了时发，避免小数抖动反复往返。
+const reportedWidths = new WeakMap();
+const sizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver((entries) => {
+  for (const { target, contentRect } of entries) {
+    const width = Math.round(contentRect.width);
+    if (width === 0 || reportedWidths.get(target) === width) continue;
+    reportedWidths.set(target, width);
+    target.dispatchEvent(new CustomEvent('rune-resize', { bubbles: true, detail: { size: width } }));
+  }
+});
+
+/** 开始观察一个元素的宽度（插入时调用；重复调用无副作用） */
+export function watchSize(element) {
+  sizeObserver?.observe(element);
+}

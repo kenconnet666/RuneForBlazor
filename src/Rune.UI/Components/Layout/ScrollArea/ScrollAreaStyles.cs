@@ -90,6 +90,15 @@ public static class ScrollAreaStyles
     /// <summary>滑块在轨道里的方向。</summary>
     internal static Attrs ThumbOn(bool vertical) => vertical ? thumbY : thumbX;
 
+    /// <summary>整页滚动条（PageScrollbar）的轨道：固定在视口的结束边，盖在粘性顶栏之上。</summary>
+    internal static readonly Attrs PageTrack = new() { Sx = Sx.Of(Track, TrackY, Fixed) };
+
+    /// <summary>整页滚动条的滑块。</summary>
+    internal static readonly Attrs PageThumb = new() { Sx = Sx.Of(Thumb, ThumbY) };
+
+    // 隐藏时仍接收指针：指针移到窗口边缘就显示出来（同 vue-tsx-pro 的 hiddenReveal）
+    static Style Fixed => Css.Define(static () => new Style { Position = Position.Fixed, ZIndex = 20, PointerEvents = PointerEvents.Auto });
+
     // flex 纵向：使用方只给 max-height 时视口也能被限制住（视口 min-height: 0 可以收缩）
     static Style Root => Css.Define(static () => new Style
     {

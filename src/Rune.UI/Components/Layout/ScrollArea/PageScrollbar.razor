@@ -1,0 +1,28 @@
+@*
+    整页的浮层滚动条（同 vue-tsx-pro 的 PageScrollbar）：页面照常由窗口滚动（前进后退恢复位置、粘性定位、锚点跳转都不变），
+    只隐藏页面的原生滚动条，换成固定在视口结束边、半透明的浮层滚动条，和 ScrollArea 的一样：滚动时出现，停下后淡出，不占宽度；
+    指针移到窗口边缘时显示，可以拖动、点轨道翻页。AppShell 默认带着它。
+    <PageScrollbar />            放在应用里任意位置，渲染期间生效
+    隐藏原生滚动条的样式是它输出的一个 style 元素：服务端渲染的 HTML 里就有，交互接管前后宽度不变，组件移除时随之失效。
+    模态框锁住页面滚动时（overflow: hidden）不显示。滚动条的位置、显示与拖动在 JS 初始化器里（data-rune-page-scrollbar）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@HideNative
+<div aria-hidden="true" data-rune-page-scrollbar data-rune-scrollbar data-axis="y" data-visibility="hover"
+     data-hide-delay="@HideDelay.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+     @attributes="Attrs.Merge(ScrollAreaStyles.PageTrack, Rest)">
+    <div @attributes="Attrs.Merge(ScrollAreaStyles.PageThumb, PropsThumb)"></div>
+</div>
+
+@code {
+    // 写成 style 元素而不是交互后给 html 加类：首屏就隐藏，原生滚动条占的宽度不会在接管时消失、让内容跳一下
+    static readonly MarkupString HideNative = new("<style>html{scrollbar-width:none}html::-webkit-scrollbar{display:none}</style>");
+
+    /// <summary>停止滚动后多久淡出（毫秒），默认 800。</summary>
+    [Parameter] public int HideDelay { get; set; } = 800;
+
+    /// <summary>滑块的部件属性（大小与位置由 JS 写在行内样式上）。未声明的属性落到轨道上。</summary>
+    [Parameter] public Attrs? PropsThumb { get; set; }
+}

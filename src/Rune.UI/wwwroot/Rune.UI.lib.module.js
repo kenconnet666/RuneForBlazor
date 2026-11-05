@@ -56,6 +56,7 @@
 //   data-rune-rating         评分：指针移到某个分数（label[data-score]）上时给各颗星写行内的 --rune-rating-fill 预览，移出或点了之后去掉
 //   data-rune-otp            验证码输入框：输入时先过滤（data-charset、data-length），再按输入框的值画各格的 data-char 与当前格的 data-active
 //   data-rune-scroll-area    滚动区域：浮层滚动条的大小与位置、显示与淡出、拖动、点轨道翻页、滚轮转交；内容超出时视口可聚焦（data-focusable）
+//   data-rune-page-scrollbar 整页的浮层滚动条（PageScrollbar）：同上，视口是整个窗口
 //   data-rune-collapse       折叠内容区：收起的过渡结束后加 hidden="until-found"，页内查找命中时发 rune-toggle（open: true）让 C# 展开
 //   data-rune-avatar-image   头像的图片：加载完写 data-state="loaded"（显示出来），失败写 "error"（藏起来，露出后备内容）；插入时已经加载完的照样标
 //   data-rune-resize         宽度调整手柄（role="separator"）：拖动、方向键、双击回到 data-default，当场改父元素的宽（横向手柄是高），
@@ -81,6 +82,7 @@
 //   data-rune-copy="文字"     复制按钮：点击时（data-rune-copy-on-click）或 data-rune-copy-request 变了时把文字写入剪贴板，
 //                            成功后按钮的 data-state 变成 copied（data-rune-copy-timeout 毫秒后复原）、播报 data-rune-copied-text，
 //                            发出冒泡的 rune-copied（Blazor 里是 @onrunecopied）
+//   data-rune-observe-size   宽度变了（取整后）发出冒泡的 rune-resize（Blazor 里是 @onruneresize，size 是宽度）：C# 按宽度排版（虚拟网格每行几个）
 //   data-rune-grid-span="n"  网格里跨 n 列的项：网格实际的列比 n 少时（按宽度自动换列的网格变窄）改成跨当前的列数
 //   data-rune-control        输入框的外壳：点在空白处（内边距、图标、前后缀）时聚焦里面的输入元素；
 //                            框里不在 Tab 顺序里的按钮（数字框的加减）按下时不抢走输入框的焦点
@@ -105,14 +107,14 @@
 import { autosize, focusInvalid, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawIcon, startDismiss, startRipple } from './js/effects.js';
 import { guardLeave } from './js/leave.js';
-import { watchGrid } from './js/layout.js';
+import { watchGrid, watchSize } from './js/layout.js';
 import { activeIndex, closeAfterPick, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
 import { watchIndicator } from './js/indicator.js';
 import { scheduleOverflow, watchOverflow } from './js/overflow.js';
 import { moveRoving, noteRovingFocus, watchRoving } from './js/roving.js';
 import { onOtpFocus, onOtpInput, watchOtp } from './js/otp.js';
 import { endRatingPreview, pickRating, previewRating } from './js/rating.js';
-import { watchScrollArea } from './js/scroll-area.js';
+import { watchPageScrollbar, watchScrollArea } from './js/scroll-area.js';
 import { highlightCode } from './js/highlight.js';
 import { watchToc } from './js/toc.js';
 import { navigationEnded, navigationStarted, watchLoadingBar } from './js/loading-bar.js';
@@ -270,6 +272,7 @@ function syncWithin(root) {
     if (element.matches('input[data-indeterminate="true"]')) syncIndeterminate(element);
     if (element.matches('svg[data-rune-draw="true"]')) drawIcon(element);
     if (element.matches('[data-rune-grid-span]')) watchGrid(element.parentElement);
+    if (element.matches('[data-rune-observe-size]')) watchSize(element);
     if (element.matches('textarea[data-rune-autosize]')) autosize(element);
     if (element.matches('[data-rune-overflow]')) watchOverflow(element);
     if (element.matches('[data-rune-roving]')) watchRoving(element);
@@ -277,6 +280,7 @@ function syncWithin(root) {
     if (element.matches('[data-rune-slider]')) watchSlider(element);
     if (element.matches('[data-rune-otp]')) watchOtp(element);
     if (element.matches('[data-rune-scroll-area]')) watchScrollArea(element);
+    if (element.matches('[data-rune-page-scrollbar]')) watchPageScrollbar(element);
     if (element.matches('[data-rune-collapse]')) watchCollapse(element);
     if (element.matches('[data-rune-resize]')) watchResizeHandle(element);
     if (element.matches('img[data-rune-avatar-image]') && element.complete) markAvatarImage(element);
@@ -291,7 +295,7 @@ function syncWithin(root) {
     if (element.matches('[data-rune-token-value]')) fillTokenValue(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar], [data-rune-hotkey-label], dialog[data-rune-close-when], [data-rune-fullscreen="true"], [data-rune-theme-switcher], [data-rune-token-value]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], [data-rune-observe-size], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-page-scrollbar], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar], [data-rune-hotkey-label], dialog[data-rune-close-when], [data-rune-fullscreen="true"], [data-rune-theme-switcher], [data-rune-token-value]').forEach(sync);
 }
 
 /** 头像的图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */

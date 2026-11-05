@@ -49,7 +49,7 @@ public sealed class SlideEventArgs : EventArgs
 /// <summary>宽度调整手柄（<c>data-rune-resize</c>）调整完一次（松开、按键、双击）：<c>@onruneresize</c> 的参数。</summary>
 public sealed class ResizeEventArgs : EventArgs
 {
-    /// <summary>新的宽度（横向手柄时是高度），px，已经夹在最小、最大之间。</summary>
+    /// <summary>新的宽度（横向手柄时是高度），px，已经夹在最小、最大之间；data-rune-observe-size 时是元素内容的宽度（取整）。</summary>
     public double Size { get; set; }
 }
 
