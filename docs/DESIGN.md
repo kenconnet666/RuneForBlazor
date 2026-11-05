@@ -134,6 +134,9 @@
   加载失败的图片藏起来、露出首字母；没有往返，静态 SSR 一样。AvatarGroup 的“超过 Max 折叠成 +N”在 Blazor 里没法截取子内容，改为 Items 加每项的模板。
   状态色分两层（同 vue 的 statusToneBorderStyles / statusToneStyles）：`SharedStyles.StatusBordered` 留出边框位置，`StatusColors` 只给颜色；
   标记、角标、提示条两层都用，头像只用颜色层（没有边框）。
+- **ColorField 与 ColorValue**：vue 用 culori 解析任意 CSS 颜色；这里 `ColorValue`（Rune.UI/Data）解析 hex、rgb、hsl、hwb、oklab、oklch、148 个颜色名
+  （从 culori 的 named.js 生成）与 transparent，单元测试的期望值由 culori 算出。文字框边输边记草稿（oninput，实时标无效），change（失焦、回车）时
+  规范成 #hex 写回或恢复；色块里的颜色经 CSS 变量写在元素上，没有值时露出棋盘格（SwatchStyles，之后的 ColorSwatch 共用）。
 - **Descriptions**：项是子组件 DescriptionsItem（Value 文字 / 子内容任意内容），经级联值拿外观与部件属性。vue 的 columns="auto" 用 ResizeObserver 量宽度算栏数，
   这里写 MinItemWidth（同 Grid）后改用容器查询：每多一栏一条 `@container (min-width: calc(k * 宽度))`，跨栏同理封顶；静态 SSR 也对、不需要往返。
 - **ResizeHandle**：拖动、方向键、双击都在 JS（`js/resize.js`）当场改父元素的宽（横向是高），并去掉按档位给的最大宽度；一次操作结束才发 rune-resize
