@@ -68,7 +68,7 @@
     };
 
     RenderFragment Trigger(PartLayers<AccordionPart> parts, bool open, bool off, string state) =>
-        @<button type="button" id="@triggerId" disabled="@off" aria-expanded="@(open ? "true" : "false")" aria-controls="@contentId" data-accordion-trigger data-state="@state"
+        @<button type="button" id="@triggerId" disabled="@off" aria-expanded="@(open ? "true" : "false")" aria-controls="@contentId" data-accordion-trigger data-state="@state" data-rune-ripple="@(Config.Ripple && !off ? true : null)"
                  @onclick="ToggleAsync" @attributes="Attrs.Merge(parts[AccordionPart.Trigger], PropsTrigger)">
             <span>@(TitleContent ?? (RenderFragment)(b => b.AddContent(0, Title)))</span>
             <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(parts[AccordionPart.Chevron], PropsChevron)" />

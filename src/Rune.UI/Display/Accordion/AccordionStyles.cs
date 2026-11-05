@@ -34,7 +34,8 @@ public static class AccordionStyles
             AccordionPart.Root => Root,
             AccordionPart.Item => Item,
             AccordionPart.Heading => Heading,
-            AccordionPart.Trigger => Sx.Of(SharedStyles.ButtonReset, SharedStyles.FocusRing, Trigger, s.Disabled ? TriggerDisabled : null),
+            // 同 vue 的 ButtonBase：去默认外观、焦点环、波纹、交互状态的颜色过渡
+            AccordionPart.Trigger => Sx.Of(SharedStyles.ButtonReset, SharedStyles.FocusRing, SharedStyles.RippleHost, SharedStyles.InteractionColors, Trigger, s.Disabled ? TriggerDisabled : null),
             AccordionPart.Chevron => Sx.Of(Chevron, s.Open ? ChevronOpen : null),
             _ => Content,
         });
@@ -65,7 +66,6 @@ public static class AccordionStyles
         Color = Colors.Text,
         FontWeight = FontWeights.Semibold,
         TextAlign = TextAlign.Start,
-        Transition = $"background-color {Durations.Sm} {Easings.Standard}",
         [When.Hover] = new() { BackgroundColor = Colors.Fill },
     });
 
@@ -80,7 +80,7 @@ public static class AccordionStyles
     {
         FlexShrink = 0,
         Color = Colors.TextMuted,
-        Transition = $"rotate {Durations.Md} {Easings.Standard}",
+        Transition = $"rotate {Durations.Sm} {Easings.Standard}",
     });
 
     static Style ChevronOpen => Css.Define(static () => new Style { Rotate = CssValue.Deg(180) });
