@@ -36,6 +36,10 @@
 //   data-rune-popover="id"   输入框做列表宿主时它的弹层（输入框不能做 popovertarget）：输入时打开，↑↓ 打开并发 show-all 命令
 //   data-rune-hide-empty     这样的弹层只在输入过、且有建议（或正在加载，aria-busy）时显示（Autocomplete）
 //   输入法组合期间           列表宿主输入框（data-rune-list 含 text）的 input 事件拦下，组合结束补发一次：不拿拼音字母去过滤
+//   data-rune-roving="horizontal|vertical|both"
+//                            漫游焦点：整组一个 Tab 位置，方向键、Home / End 在组内移动（项是 data-rune-roving-items，默认 button），
+//                            tabindex 由 JS 写；可加 noloop（到两端不循环）
+//   data-rune-indicator="选择器" 跟着当前项（父元素里匹配选择器的项）走的指示条：选中变化时滑过去，尺寸变化时直接对齐；data-axis 是方向
 //   data-rune-overflow       一行标签（Select 的 MaxTagCount 按宽度）：量出放得下几个 data-rune-overflow-item，其余写 data-overflow-hidden
 //                            （CSS 藏起来但仍可测量），data-rune-overflow-rest（“+N”）的文字取自 data-rune-more 里的第 N 项
 //   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
@@ -66,13 +70,16 @@
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、tooltips（提示）、overflow（标签收起）、
+// roving（漫游焦点）、indicator（跟随当前项的指示条）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawIcon, startDismiss, startRipple } from './js/effects.js';
 import { watchGrid } from './js/layout.js';
 import { activeIndex, closeAfterPick, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
+import { watchIndicator } from './js/indicator.js';
 import { scheduleOverflow, watchOverflow } from './js/overflow.js';
+import { moveRoving, noteRovingFocus, watchRoving } from './js/roving.js';
 import { announce, closeOrRequest, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock } from './js/overlays.js';
 import { hideTooltip, hideTooltipOf, onPointerOut, onPointerOver, scheduleTooltip, shownTooltip, tooltipOf } from './js/tooltips.js';
 
@@ -188,9 +195,11 @@ function syncWithin(root) {
     if (element.matches('[data-rune-grid-span]')) watchGrid(element.parentElement);
     if (element.matches('textarea[data-rune-autosize]')) autosize(element);
     if (element.matches('[data-rune-overflow]')) watchOverflow(element);
+    if (element.matches('[data-rune-roving]')) watchRoving(element);
+    if (element.matches('[data-rune-indicator]')) watchIndicator(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator]').forEach(sync);
 }
 
 function onMutations(mutations) {
@@ -285,6 +294,7 @@ function onKeyDown(event) {
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
   if (menu) moveInMenu(menu, event);
   if (event.target instanceof Element && event.target.matches('[data-rune-list]')) moveInList(event.target, event);
+  moveRoving(event);
   // 列表没用掉的按键再转成命令（Enter 选中了高亮项时不再加标签）
   if (event.key === 'Backspace' || event.key === 'Escape' || event.key === 'Enter') sendKeyCommand(event);
 }
@@ -292,6 +302,7 @@ function onKeyDown(event) {
 function onFocusIn(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
+  noteRovingFocus(event);
   // 只在键盘聚焦时显示；点击聚焦（按钮被按下）时不显示
   if (target.matches('[data-rune-tooltip]:focus-visible')) {
     const tooltip = tooltipOf(target);

@@ -10,10 +10,10 @@
 *@
 @namespace Rune.UI
 @typeparam TValue
-@inherits FormControl<TValue>
+@inherits InputControl<TValue>
 @using System.Globalization
 @{
-    var parts = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config), Config.Styles);
+    var parts = InputStyles.Of(Appearance, Config.Styles);
     var current = NumberText.ToDecimal(CurrentValue);
 }
 
@@ -75,9 +75,6 @@
     /// <summary>显示减少 / 增加按钮，默认是；只读时不显示。</summary>
     [Parameter] public bool Stepper { get; set; } = true;
 
-    /// <summary>样式，默认表面色加描边。</summary>
-    [Parameter] public InputVariant? Variant { get; set; }
-
     /// <summary>前置图标。</summary>
     [Parameter] public IconData? Icon { get; set; }
 
@@ -89,12 +86,6 @@
 
     /// <summary>增加按钮的部件属性（交给 IconButton）。</summary>
     [Parameter] public Attrs? PropsIncrement { get; set; }
-
-    /// <summary>字号档位；不写时继承上下文字号。</summary>
-    [Parameter] public Size? Size { get; set; }
-
-    /// <summary>圆角，默认中圆角。</summary>
-    [Parameter] public Radius? Radius { get; set; }
 
     /// <summary>数字前的内容（币种符号）。</summary>
     [Parameter] public RenderFragment? Prefix { get; set; }

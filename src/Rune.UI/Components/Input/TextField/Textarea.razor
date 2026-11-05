@@ -4,8 +4,8 @@
     Fixed 时固定为 Rows 行，可以拖动右下角改变高度。值在失去焦点时更新。
 *@
 @namespace Rune.UI
-@inherits FormControl<string?>
-@{ var parts = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config) with { Multiline = true, Rows = Rows, MaxRows = MaxRows, Fixed = Fixed }, Config.Styles); }
+@inherits InputControl<string?>
+@{ var parts = InputStyles.Of(Appearance with { Multiline = true, Rows = Rows, MaxRows = MaxRows, Fixed = Fixed }, Config.Styles); }
 
 <div @attributes="Attrs.Merge(parts[InputPart.Root], RootUserAttrs, ShellAttrs)">
     <textarea rows="@Rows" @attributes="Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged)"></textarea>
@@ -58,15 +58,6 @@
 
     /// <summary>不随内容增高，固定为 Rows 行（可以拖动右下角改变高度）。</summary>
     [Parameter] public bool Fixed { get; set; }
-
-    /// <summary>样式，默认表面色加描边。</summary>
-    [Parameter] public InputVariant? Variant { get; set; }
-
-    /// <summary>字号档位；不写时继承上下文字号。</summary>
-    [Parameter] public Size? Size { get; set; }
-
-    /// <summary>圆角，默认中圆角。</summary>
-    [Parameter] public Radius? Radius { get; set; }
 
     // textarea 上由组件管理的属性：表单状态、值与自动增高的标记。
     // 值变了换一个新的 data-rune-autosize：JS 看到属性变化就重新量高度（使用方改值时也跟着变）

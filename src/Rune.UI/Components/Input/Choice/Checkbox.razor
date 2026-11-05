@@ -1,12 +1,13 @@
 @*
     勾选框：<Checkbox @bind-Value="agreed">我已阅读并同意</Checkbox>
     半选（表格的“全选”在部分选中时）：Indeterminate="true"，由使用方根据子项计算。原生 input，键盘、表单、读屏都是原生的。
+    在 CheckboxGroup 里时写 GroupValue（这一项的值）：勾选状态、name、不可用、只读、校验未通过都来自组，不用 Value。
 *@
 @namespace Rune.UI
 @inherits FormControl<bool>
 @{ var parts = ChoiceStyles.Of(new ChoiceAppearance(ChoiceKind.Checkbox, Size, Tone, IsReadOnly), Config.Styles); }
 
-<label data-state="@(Indeterminate ? "indeterminate" : CurrentValue ? "checked" : "unchecked")" data-disabled="@(IsDisabled ? "true" : null)"
+<label data-state="@(Indeterminate ? "indeterminate" : IsChecked ? "checked" : "unchecked")" data-disabled="@(IsDisabled ? "true" : null)"
        data-readonly="@(IsReadOnly ? "true" : null)" @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
     <span @attributes="Attrs.Merge(parts[ChoicePart.Control], PropsControl)">
         <input type="checkbox" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputUserAttrs, InputManaged)" @onclick:preventDefault="IsReadOnly" />
@@ -26,7 +27,21 @@
 
 @code {
     readonly string descriptionId = UniqueId.Next("checkbox-description");
-    Memo<(Attrs Control, bool Checked, bool Indeterminate, string? DescribedBy), Attrs> inputManaged;
+    Memo<(Attrs Control, bool Checked, bool Indeterminate, string? DescribedBy, string? Name), Attrs> inputManaged;
+
+    /// <summary>在 CheckboxGroup 里时这一项的值。</summary>
+    [Parameter] public string? GroupValue { get; set; }
+
+    /// <summary>所在的复选框组。</summary>
+    [CascadingParameter] CheckboxGroupState? Group { get; set; }
+
+    // 在组里（写了 GroupValue）：勾选与否、name、状态来自组
+    CheckboxGroupState? InGroup => GroupValue is null ? null : Group;
+
+    bool IsChecked => InGroup is { } group ? group.Checked.Contains(GroupValue!) : CurrentValue;
+
+    /// <inheritdoc/>
+    protected override InheritedControlState? InheritedState => InGroup?.State;
 
     /// <summary>半选：显示横线，读屏读作“部分选中”。点击后浏览器清除半选，由使用方重新计算。</summary>
     [Parameter] public bool Indeterminate { get; set; }
@@ -53,7 +68,7 @@
     [Parameter] public Attrs? PropsIndicator { get; set; }
 
     // input 上由组件管理的属性：表单状态、勾选、半选（原生的 indeterminate 只能用 JS 设置，JS 初始化器按 data-indeterminate 同步）
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Indeterminate, DescribedBy), this,
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, IsChecked, Indeterminate, DescribedBy, InGroup?.Name), this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
         {
             AriaDescribedBy = k.DescribedBy,
@@ -61,7 +76,9 @@
             ["data-indeterminate"] = k.Indeterminate ? "true" : "false",
             // 用户点击勾上时 JS 初始化器把对勾一笔画出（初次渲染、外部改值不画）
             ["data-rune-check-draw"] = true,
-            ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync(e.Value is true)),
+            ["name"] = k.Name,
+            ["value"] = owner.InGroup is null ? null : owner.GroupValue,
+            ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.InGroup is { } group ? group.Toggle(owner.GroupValue!) : owner.SetValueAsync(e.Value is true)),
         }));
 
     // 自己的说明与所在 Field 的说明、错误一起关联

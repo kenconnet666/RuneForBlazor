@@ -21,6 +21,8 @@
 - **线程安全**：Server 下后台任务会在别的线程写共享状态。早期实现“先读值后订阅”，在压力测试里几乎每次都丢通知、约 10% 的派生值永久过期。
   现在每个信号带版本号：读取时记版本，订阅新依赖之后再退订旧依赖（没有空窗），最后核对版本，变过就补一次（`Subscriptions`）。`Derived` 用两把锁（重算锁、状态锁）加 epoch 防止重算期间的通知被吞。
 - **依赖收集不能跨 await**：收集帧放在线程上；渲染与派生计算都是同步的，跨线程结束帧直接报错。
+- **只收集自己渲染时读到的**：交给别的组件的子内容（`<CascadingValue>` 里的内容）是那个组件渲染时执行的；框架组件不收集，读到的信号谁也不订阅。
+  要在本组件的渲染里读（放在最外层、或先读到局部变量）。CheckboxGroup 把要级联的状态嵌在挡住 Field 的 CascadingValue 里，非受控时勾选了组不重新渲染（bUnit 发现）。
 - **共享状态放 scoped 服务**：静态的 `[State]` 报 RUNE001（Server 下会被所有用户共享）。
 
 ## 3. 组件基类（`src/Rune/Components`）
@@ -194,6 +196,9 @@
   在校验未通过的组里也标红），选中的颜色来自外层的 `--rune-tone-fill` / `--rune-tone-on-fill`（状态色用文字色，保证与表面的对比）。
   半选的填充只给复选框：一组单选都没选时浏览器把每个 radio 都算作 :indeterminate。用户点击勾上时 JS 初始化器把对勾一笔画出（`data-rune-check-draw`）。
 - 文本框默认 change 时更新（失去焦点、回车），`Immediate` 才每次输入都更新：Server 模式下每次按键一次往返。
+- **随输入改值的 input 经 `ValueElement` 渲染**（TextField、Slider、Combobox、TagsInput）：Blazor 只对 `@bind` 生成的处理器登记 `SetUpdatesAttributeName("value")`，
+  登记了，派发事件时先把渲染树里的 value 换成浏览器里的当前值；我们用 Attrs 展开 value 与 oninput、写不了 @bind，不登记时处理上一个按键后渲染出的
+  旧值与旧树比出差异、写回浏览器，盖掉之后打的字（Server 模式下快速输入“Blazor,”只加进了“B”，E2E 偶发，脚本快速派发 input 复现）。
 - **NumberField 的值类型不加约束**（同 Blazor 的 InputNumber）：Razor 给泛型组件生成 `@bind` 代码时处理不了 `TValue?`（可空的值类型参数），
   会生成引用 `global::TValue` 的代码编译失败。所以 TValue 本身可以是 `int?`，Min / Max / Step 写成 decimal，计算都在 decimal 里（没有浮点误差），
   再按值的类型转回去。方向键在 JS 初始化器里处理（按输入框里现在的文字算，没有往返），改完发 change，C# 再夹到范围、对齐步长。
@@ -229,6 +234,17 @@
 - **TagsInput**：分隔符在 C# 里按输入拆（输入框本来就逐字交给 C#）；Enter（列表没用掉时）、退格（输入框空时）、粘贴多段（JS 按 `data-rune-delimiters` 判断）
   由 JS 转成 `rune-command`（add、remove-last、paste 带文字）。输入时 JS 立刻清掉旧的高亮、因输入打开的弹层也不高亮已选项：
   过滤结果渲染出来之前按 Enter，不能选中上一批结果里的项（Server 模式下打字快时真的会发生，多选时还会把已选的取消掉）。
+- **输入组件的外观参数在 `InputControl<TValue>`**：Variant、Size、Radius 与所在的相连组（`AttachedGroup`）合成 `InputAppearance`，各输入框不再各写一遍。
+- **一组控件**（RadioGroup、CheckboxGroup、ToggleGroup）：根元素的属性由 `FormControl.GroupAttrs` 给（id、role、Field 的标签与说明、方向与状态；
+  使用方写了 aria-label 就不再 aria-labelledby，后者会盖过前者）。radiogroup 才支持 aria-required / aria-invalid / aria-readonly，group 只写 data-*。
+  组挡住外面 Field 的级联（Field 的 id、说明属于组），把不可用、只读、校验未通过经 `InheritedState` 交给里面的控件。
+  CheckboxGroup、RadioGroup 的 Items 同 Select（ListboxOption、字符串，或任意数据加 ToOption）。
+- **ToggleGroup**：项是按钮家族（ToggleItem 继承 ButtonBase），按下时 aria-pressed。整组一个 Tab 位置、组内方向键移动是 JS 的漫游焦点
+  （`data-rune-roving`，ToggleGroup、之后的 Tabs、Toolbar 共用；tabindex 只由 JS 写，组件不渲染）。单选时选中项的底色是一个滑块
+  （`data-rune-indicator` 指出跟随哪一项，JS 量好位置写成 CSS 变量，样式里过渡；减少动态效果时直接到位）。
+- **ControlGroup 与相连**：组经级联的 `AttachedGroup` 告诉里面的输入框外壳与按钮“我在相连的组里”，它们在自己的配方里加上 `AttachedStyles`：
+  去掉相邻一侧的圆角、负外边距叠住边框、聚焦的浮到上面。首尾按 `:nth-child(1 of :not([popover], [hidden], input[type=hidden], template))` 判断，
+  跳过选择框的弹层这类不占位置的兄弟元素。之后的 ButtonGroup 用同一套。
 - **交给子组件的样式要经 `Attrs.MergeProps` 作为 Sx 交下去**：先 `Attrs.Merge` 合成类再交给子组件，元素上会有两个类，谁赢看规则插入的先后
   （Combobox 的展开按钮的箭头过渡就被按钮自己的过渡盖掉过）。
 - **外框的状态只看自己的输入元素**：`:has(> :is(input, select, textarea, [role=combobox]):disabled)`。最初写的 `:has(:disabled)` 会被数字框到了上限时不可用的步进按钮、

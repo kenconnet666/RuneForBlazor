@@ -5,9 +5,9 @@
     Type="password" 时有显示 / 隐藏密码的按钮（JS 初始化器切换，没有往返）；Clearable 有内容时显示清空按钮。
 *@
 @namespace Rune.UI
-@inherits FormControl<string?>
+@inherits InputControl<string?>
 @{
-    var parts = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config), Config.Styles);
+    var parts = InputStyles.Of(Appearance, Config.Styles);
     var editable = !IsDisabled && !IsReadOnly;
 }
 
@@ -20,7 +20,7 @@
     {
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsPrefix)">@Prefix</label>
     }
-    <input type="@Type" @attributes="Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged)" />
+    @ValueElement.Input(Type, Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged))
     @if (Suffix is not null)
     {
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsSuffix)">@Suffix</label>
@@ -51,15 +51,6 @@
 
     /// <summary>input 的 type：text（默认）、email、password、search、url、tel。</summary>
     [Parameter] public string Type { get; set; } = "text";
-
-    /// <summary>样式，默认表面色加描边。</summary>
-    [Parameter] public InputVariant? Variant { get; set; }
-
-    /// <summary>字号档位，高度与内边距随之缩放；不写时继承上下文字号。</summary>
-    [Parameter] public Size? Size { get; set; }
-
-    /// <summary>圆角，默认中圆角；搜索框常用 Full（胶囊形）。</summary>
-    [Parameter] public Radius? Radius { get; set; }
 
     /// <summary>每次输入都更新值；默认失去焦点或回车时更新。</summary>
     [Parameter] public bool? Immediate { get; set; }

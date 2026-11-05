@@ -6,6 +6,7 @@
             <Radio Value="@("pickup")">自提</Radio>
         </RadioGroup>
     </Field>
+    选项来自数据时写 Items（与 ToOption）：<RadioGroup Items="periods" @bind-Value="period" Orientation="Orientation.Horizontal" />
     同一组的原生 radio 共用一个 name：Tab 只停在选中项，方向键在组内移动并选中，都是浏览器的原生行为。
     组以所在 Field 的标签为名称（aria-labelledby），不在 Field 里时写 aria-label。
 *@
@@ -15,12 +16,26 @@
 @inherits FormControl<TValue>
 
 <CascadingValue Value="this">
-    <div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Config.Styles)[ChoicePart.Group], Rest, GroupAttrs)">@ChildContent</div>
+    <div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Config.Styles)[ChoicePart.Group], Rest, RootAttrs)">
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            foreach (var item in Items)
+            {
+                var option = ListState.OptionOf(item, ToOption);
+                <Radio @key="option.Value" Value="item" Disabled="option.Disabled" Description="@option.Description">@option.Label</Radio>
+            }
+        }
+    </div>
 </CascadingValue>
 
 @code {
     readonly string autoName = UniqueId.Next("radio-group");
-    Memo<(string Id, string? LabelledBy, string? DescribedBy, bool Invalid, bool Required, bool Disabled, bool ReadOnly), Attrs> groupAttrs;
+    // 校验未通过时各项的圆圈跟着标红（ChoiceStyles 里 When.Inside 的祖先标记）
+    static readonly Attrs MarkerAttrs = new() { ["class"] = ChoiceStyles.GroupMarker.ClassName };
 
     /// <summary>原生 radio 的 name：同组共用（表单提交时的字段名）；不写时自动生成。</summary>
     [Parameter] public string? Name { get; set; }
@@ -34,8 +49,19 @@
     /// <summary>字号档位；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }
 
-    /// <summary>单选项（Radio）。</summary>
+    /// <summary>
+    /// 各项（写了 ChildContent 时不用）：值就是这里的每一项，文字、说明、不可用取自 ToOption；
+    /// 是字符串或 ListboxOption 时可以不写 ToOption（同 Select 的 Items）。
+    /// </summary>
+    [Parameter] public IEnumerable<TValue> Items { get; set; } = [];
+
+    /// <summary>数据 → 选项（文字、说明、不可用）。</summary>
+    [Parameter] public Func<TValue, ListboxOption>? ToOption { get; set; }
+
+    /// <summary>单选项（Radio）；不写时按 Items 生成。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    Attrs RootAttrs => GroupAttrs("radiogroup", Orientation, MarkerAttrs);
 
     /// <summary>同组 radio 共用的 name。</summary>
     internal string GroupName => Name ?? autoName;
@@ -51,20 +77,4 @@
 
     /// <summary>选中一个值。</summary>
     internal Task SelectAsync(TValue value) => IsReadOnly ? Task.CompletedTask : SetValueAsync(value);
-
-    // 组上的状态都用 aria（div 没有原生的 disabled、required）
-    Attrs GroupAttrs => groupAttrs.Get(
-        (ControlId, Field?.LabelId, Field?.DescribedBy, IsInvalid, IsRequired, IsDisabled, IsReadOnly),
-        static k => new Attrs
-        {
-            Id = k.Id,
-            Role = "radiogroup",
-            ["class"] = ChoiceStyles.GroupMarker.ClassName,
-            AriaLabelledBy = k.LabelledBy,
-            AriaDescribedBy = k.DescribedBy,
-            ["aria-invalid"] = k.Invalid ? "true" : null,
-            ["aria-required"] = k.Required ? "true" : null,
-            AriaDisabled = k.Disabled ? true : null,
-            ["aria-readonly"] = k.ReadOnly ? "true" : null,
-        });
 }

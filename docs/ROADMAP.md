@@ -89,7 +89,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [x] `tools/parity`：按上面“对照的做法”第 3 条实现；README 写用法；拿已完成的组件试一遍，修掉报告里的差异
       （按钮已对齐：亮暗主题、悬停聚焦按下一致；Badge、Kbd、Card 在各自页面对照时改）
 - [ ] 演示页改名对齐文档站的路由（typography → text、layout → flex / grid 等），示例按文档站补齐；已完成组件逐个过一遍对照报告
-      （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（radio 已对齐，CheckboxGroup、items、开关的 loading 与轨道内容待做）、listbox、skeleton（Avatar、Stat、DataTable 做好后补全）、popover（HoverCard 在阶段 8）、popconfirm、menu（只有 actions，其余示例随阶段 6 的菜单补齐）、flex（除了还没做的 ToggleGroup、Avatar、Descriptions、输入框）；card 差 effects 示例；缺的组件做到时补示例：Descriptions、Table、Select、ButtonGroup、Avatar、ToggleGroup；toast 的完整功能在阶段 6；dialog（alert-dialog、imperative 在阶段 8）、drawer（detail 等表格与时间线，edit 的拖宽在阶段 6，imperative 在阶段 8）；旧的 form 页等 Form 对齐时换掉）
+      （已对齐：button、icon-button、icon、text、badge、alert、text-field（除了 Format）、number-field（NumberRangeField 待做）、checkbox（开关的 loading 与轨道内容在阶段 6）、toggle-group、control-group、listbox、skeleton（Avatar、Stat、DataTable 做好后补全）、popover（HoverCard 在阶段 8）、popconfirm、menu（只有 actions，其余示例随阶段 6 的菜单补齐）、flex（除了还没做的 Avatar、Descriptions、输入框）；card 差 effects 示例；缺的组件做到时补示例：Descriptions、Table、ButtonGroup、Avatar；toast 的完整功能在阶段 6；dialog（alert-dialog、imperative 在阶段 8）、drawer（detail 等表格与时间线，edit 的拖宽在阶段 6，imperative 在阶段 8）；旧的 form 页等 Form 对齐时换掉）
 - [x] 语言包：`UIConfig.Lang` 与 `RuneProvider` 的 `Lang`；`tools/lang-gen` 从 vue-tsx-pro 的语言包生成 zh-CN、en-US；已有组件里的文字（关闭、确定、取消、增加、减少……）改成取语言包
 - [x] 端到端测试项目 `tests/Rune.E2E`（Microsoft.Playwright，Chromium）：启动演示项目，覆盖已有的键盘与焦点逻辑（菜单、对话框、气泡确认、数字框方向键、表单错误汇总跳转）；进 CI
       （另有数字框按住连加、显示密码、清空回焦、复制、标签移除后的焦点；之后每个有键盘或焦点逻辑的组件都加用例）
@@ -98,7 +98,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [x] 骨架与扫光：Skeleton、SkeletonText、`ShimmerStyles`（同 `utils/style/shimmer.ts`）；延迟显示加载态（同 `useDelayedLoading`）
       （`DelayedLoading`；Card、Listbox 的 Loading 用上了；骨架屏页的 layouts 差 Stat，table 示例等 DataTable）
 - [ ] JS 初始化器按需补的能力（用到时再加，每项写进 DESIGN 第 8 节）：尺寸变化（ResizeObserver → data 属性或事件）、拖动（指针捕获）、复制到剪贴板、滚动到可见、宽度与触发元素一致的浮层
-      （已有：复制到剪贴板、滚动到可见（列表高亮）、浮层定位换成 Floating UI（12 种位置、箭头、shift、`data-fit-height` / `data-match-width`）、提示的悬停意图；尺寸变化、拖动在 Splitter、Slider 用到时做）
+      （已有：复制到剪贴板、滚动到可见（列表高亮）、漫游焦点（data-rune-roving）、跟随选中项的滑块（data-rune-indicator）、浮层定位换成 Floating UI（12 种位置、箭头、shift、`data-fit-height` / `data-match-width`）、提示的悬停意图；尺寸变化、拖动在 Splitter、Slider 用到时做）
 - [x] 虚拟滚动：包一层 Blazor 的 `Virtualize`，与列表状态配合（VirtualList、DataTable、长下拉要用）
       （Listbox 超过 100 项且在交互模式下用 Virtualize；JS 的高亮改成按序号，看不见的选项由 `data-rune-options` 给出；VirtualList 组件在阶段 7 做）
 
@@ -106,8 +106,8 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 
 - [ ] Select（单选、多选、可搜索、清空、远程选项、已选标签“+N”）、Combobox、Autocomplete、ListPopover
       （已做：Select、Combobox、Autocomplete、ListPopover、SelectedTags（按数量、按宽度收起）、选项数据 OptionSource（远程、过滤、已选项文字）、文字匹配 UIConfig.Matches）
-- [ ] TagsInput、SelectedTags、ToggleGroup、ControlGroup、CheckboxGroup（Checkbox 的 items）
-      （已做：TagsInput、SelectedTags；标签增删时其余标签平移补位的动画（vue-tsx-pro 的 useLayoutAnimation）待做通用的 FLIP 时补）
+- [x] TagsInput、SelectedTags、ToggleGroup、ControlGroup、CheckboxGroup（Checkbox 的 items）
+      （输入组件的外观参数收进 InputControl；相连的样式 AttachedStyles 之后 ButtonGroup 共用；JS 补了漫游焦点、滑块；Field 的说明可以带格式（DescriptionContent）；标签增删时其余标签平移补位的动画（vue-tsx-pro 的 useLayoutAnimation）待做通用的 FLIP 时补）
 - [ ] Slider 的范围（两个滑块）、刻度、竖向；Rating；OtpField；NumberRangeField；ColorField；CharacterCount（Textarea 的字数统计与清空）
 - [ ] Cascader、Transfer、Mentions、FileDrop / Upload（拖放、进度、列表）
 - [ ] TreeSelect（依赖阶段 7 的 Tree）、PeoplePicker（阶段 12）、ConditionBuilder（阶段 12）

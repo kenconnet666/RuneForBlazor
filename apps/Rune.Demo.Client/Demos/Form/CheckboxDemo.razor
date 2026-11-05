@@ -1,29 +1,37 @@
 @*
     复选框、开关与单选：示例与 vue-tsx-pro 文档站的 /components/checkbox 对应。
-    CheckboxGroup（一组绑一个列表）、items（选项来自数据）、开关的 loading 与轨道里的图标在阶段 5、6 做，做好后补齐这几个示例。
+    开关的 loading 与轨道里的图标在阶段 6 做，做好后补齐那个示例。
 *@
 @attribute [ComponentDemo("checkbox", "复选框与开关", Group = "表单", Order = 3)]
 @inherits RuneComponent
 
 <DemoSection Id="checkbox" Title="复选框">
-    <Description>单个复选框绑 Value；全选框部分勾选时写 Indeterminate，读屏念“部分选中”。放进 Field 时以标签为名称，并关联说明与错误。</Description>
+    <Description>单个复选框绑 <Code>Value</Code>；一组用 CheckboxGroup 绑值的列表，<Code>Name</Code> 随表单提交。全选框部分勾选时写 <Code>Indeterminate</Code>，读屏念“部分选中”。放进 Field 时组以标签为名称，并关联说明与错误。</Description>
     <ChildContent>
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
             <Card Padding="SpaceScale.Sm">
                 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
                     @* 全选：部分勾选时 Indeterminate，读屏念“部分选中” *@
                     <Checkbox Value="AllGranted" Indeterminate="SomeGranted" ValueChanged="ToggleAll" data-testid="all">订单管理员（全部权限）</Checkbox>
-                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Sx="Indented" role="group" aria-label="权限">
+                    <CheckboxGroup TItem="string" @bind-Value="granted" aria-label="权限" Sx="Indented" data-testid="permissions">
                         @foreach (var (value, label) in permissions)
                         {
-                            <Checkbox @key="value" Value="granted.Contains(value)" ValueChanged="on => Toggle(value, on)">@label</Checkbox>
+                            <Checkbox @key="value" GroupValue="@value">@label</Checkbox>
                         }
-                    </Flex>
+                    </CheckboxGroup>
                 </Flex>
             </Card>
+            <Field Label="通知方式" Description="至少选一种" Error="@(channels.Count > 0 ? null : "请至少选一种")">
+                <CheckboxGroup TItem="string" @bind-Value="channels" Name="channels" Orientation="Orientation.Horizontal">
+                    <Checkbox GroupValue="email">邮件</Checkbox>
+                    <Checkbox GroupValue="sms">短信</Checkbox>
+                    <Checkbox GroupValue="push">App 推送</Checkbox>
+                    <Checkbox GroupValue="phone" Disabled="true">电话（企业版）</Checkbox>
+                </CheckboxGroup>
+            </Field>
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
                 <Checkbox @bind-Value="agreed" Tone="Tone.Success">我已阅读并同意《服务条款》</Checkbox>
-                <Small Tone="TextTone.Muted">已授予：@(granted.Count == 0 ? "无" : string.Join("、", permissions.Where(p => granted.Contains(p.Value)).Select(p => p.Value)))</Small>
+                <Small Tone="TextTone.Muted" data-testid="granted">已授予：@(granted.Count == 0 ? "无" : string.Join("、", granted))</Small>
             </Flex>
         </Flex>
     </ChildContent>
@@ -78,10 +86,17 @@
 </DemoSection>
 
 <DemoSection Id="validation" Title="必选与出错">
-    <Description>提交时才检查：Field 的 Required 标出必填，Error 让控件标红并把错误作为说明念出；单个复选框（同意条款）同样包在 Field 里显示错误。</Description>
+    <Description>提交时才检查：Field 的 <Code>Required</Code> 标出必填，<Code>Error</Code> 让整组标红并把错误作为说明念出；单个复选框（同意条款）同样包在 Field 里显示错误。<Code>Orientation.Horizontal</Code> 让一组横排。</Description>
     <ChildContent>
         <form novalidate @onsubmit="Submit" @onsubmit:preventDefault>
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg" Align="ItemAlign.Start">
+                <Field Label="通知方式" Required="true" Error="@(submitted && requiredChannels.Count == 0 ? "至少选一种通知方式" : null)">
+                    <CheckboxGroup TItem="string" @bind-Value="requiredChannels" Orientation="Orientation.Horizontal">
+                        <Checkbox GroupValue="email">邮件</Checkbox>
+                        <Checkbox GroupValue="sms">短信</Checkbox>
+                        <Checkbox GroupValue="inbox">站内信</Checkbox>
+                    </CheckboxGroup>
+                </Field>
                 <Field Error="@(submitted && !termsAccepted ? "请先同意服务条款" : null)">
                     <Checkbox @bind-Value="termsAccepted" Required="true">我已阅读并同意服务条款</Checkbox>
                 </Field>
@@ -97,7 +112,54 @@
     </ChildContent>
 </DemoSection>
 
+<DemoSection Id="items" Title="选项来自数据">
+    <Description><Code>CheckboxGroup</Code>、<Code>RadioGroup</Code> 的 <Code>Items</Code> 同 Select：ListboxOption（值、文字、说明、不可用）、字符串，或任意数据加 <Code>ToOption</Code>，选项来自字典、接口时不用一个个写。<Code>Description</Code> 显示在文字下方，经 aria-describedby 关联；单独的 <Code>Checkbox</Code>、<Code>Radio</Code> 也能写。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Field Label="套餐">
+                @* 任意数据：ToOption 取出文字与说明 *@
+                <RadioGroup Items="plans" @bind-Value="plan" ToOption="@(item => new ListboxOption(item.Id, item.Name, Description: PlanDescription(item)))" />
+            </Field>
+            <Field Label="通知方式">
+                <DescriptionContent>已选：<Code>@(notifyBy.Count > 0 ? string.Join("、", notifyBy) : "（无）")</Code></DescriptionContent>
+                <ChildContent>
+                    <CheckboxGroup Items="notifyOptions" @bind-Value="notifyBy" data-testid="notify-by" />
+                </ChildContent>
+            </Field>
+            <Field Label="横排的字符串选项">
+                <RadioGroup Items="periods" @bind-Value="period" Orientation="Orientation.Horizontal" />
+            </Field>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
 @code {
+    sealed record Plan(string Id, string Name, string Price, int? Seats);
+
+    static readonly Plan[] plans =
+    [
+        new("team", "团队版", "¥49 / 人 / 月", 50),
+        new("business", "企业版", "¥99 / 人 / 月", 500),
+        new("enterprise", "私有部署", "按需报价", null),
+    ];
+
+    static readonly ListboxOption[] notifyOptions =
+    [
+        new("email", "邮件", Description: "每天 9:00 汇总一封"),
+        new("app", "站内信", Description: "实时推送，登录后可见"),
+        new("sms", "短信", Description: "只发紧急的待办（需要绑定手机号）", Disabled: true),
+    ];
+
+    static readonly string[] periods = ["按日", "按周", "按月"];
+
+    static string PlanDescription(Plan plan) => $"{plan.Price}，{(plan.Seats is { } seats ? $"最多 {seats} 人" : "人数不限")}";
+
+    Plan plan = plans[1];
+    IReadOnlyList<string> notifyBy = ["email", "app"];
+    string? period = "按周";
+    IReadOnlyList<string> channels = ["email"];
+    IReadOnlyList<string> requiredChannels = [];
+
     static readonly (string Value, string Label)[] permissions =
     [
         ("orders:read", "查看订单"),
@@ -113,7 +175,7 @@
         ("pickup", "门店自提", "今天 15:00 后可取", "免运费"),
     ];
 
-    readonly HashSet<string> granted = ["orders:read", "reports"];
+    IReadOnlyList<string> granted = ["orders:read", "reports"];
     bool agreed, notify = true, digest, dark = true, sync, termsAccepted, submitted, saved;
     string shipping = "express";
     string? invoice;
@@ -122,22 +184,12 @@
 
     bool SomeGranted => granted.Count > 0 && !AllGranted;
 
-    void ToggleAll(bool _)
-    {
-        if (AllGranted) granted.Clear();
-        else granted.UnionWith(permissions.Select(p => p.Value));
-    }
-
-    void Toggle(string value, bool on)
-    {
-        if (on) granted.Add(value);
-        else granted.Remove(value);
-    }
+    void ToggleAll(bool _) => granted = AllGranted ? [] : [.. permissions.Select(p => p.Value)];
 
     void Submit()
     {
         submitted = true;
-        saved = termsAccepted;
+        saved = termsAccepted && requiredChannels.Count > 0;
     }
 
     // 一行设置：标题与说明在起始边，开关在结束边

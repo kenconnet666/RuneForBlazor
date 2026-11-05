@@ -53,6 +53,9 @@
     /// <summary>说明（标签下面、控件后面的小字）。</summary>
     [Parameter] public string? Description { get; set; }
 
+    /// <summary>带格式的说明（如含 Code、链接）；写了时代替 Description。</summary>
+    [Parameter] public RenderFragment? DescriptionContent { get; set; }
+
     /// <summary>错误信息；不写时取表单里这个字段的校验结果。</summary>
     [Parameter] public string? Error { get; set; }
 
@@ -103,15 +106,17 @@
     // 控件与说明、错误：标签在上方时直接排在外层里，在起始边时放进第二列的容器
     RenderFragment Content(IReadOnlyList<string> errors) => @<text>
         <CascadingValue Value="ContextFor(errors.Count > 0)">@ChildContent</CascadingValue>
-        @if (Description is not null)
+        @if (HasDescription)
         {
-            <span id="@descriptionId" @attributes="Attrs.Merge(FieldStyles.Of(Appearance, Config.Styles)[FieldPart.Description], PropsDescription)">@Description</span>
+            <span id="@descriptionId" @attributes="Attrs.Merge(FieldStyles.Of(Appearance, Config.Styles)[FieldPart.Description], PropsDescription)">@if (DescriptionContent is not null) { @DescriptionContent } else { @Description }</span>
         }
         @if (errors.Count > 0)
         {
             <span id="@errorId" @attributes="Attrs.Merge(FieldStyles.Of(Appearance, Config.Styles)[FieldPart.Error], PropsError)"><Icon Data="BuiltInIcons.CircleExclamationPoint" Sx="FieldStyles.ErrorIcon" />@string.Join("；", errors)</span>
         }
     </text>;
+
+    bool HasDescription => Description is not null || DescriptionContent is not null;
 
     FieldAppearance Appearance => new(LabelPlacement ?? Form?.LabelPlacement ?? FieldLabelPlacement.Top, LabelAlign ?? FieldLabelAlign.End, LabelHidden, Label is not null, Disabled);
     Memo<CssLength, Attrs> layoutAttrs;
@@ -130,11 +135,11 @@
 
     FieldContext ContextFor(bool invalid)
     {
-        var describedBy = (Description, invalid) switch
+        var describedBy = (HasDescription, invalid) switch
         {
-            (not null, true) => $"{descriptionId} {errorId}",
-            (not null, false) => descriptionId,
-            (null, true) => errorId,
+            (true, true) => $"{descriptionId} {errorId}",
+            (true, false) => descriptionId,
+            (false, true) => errorId,
             _ => null,
         };
         return context.Get((Label is not null, describedBy, invalid, Required, Disabled, ReadOnly), this,

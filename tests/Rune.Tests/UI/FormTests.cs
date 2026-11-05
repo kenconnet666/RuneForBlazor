@@ -68,6 +68,20 @@ public class FormTests : BunitContext
     }
 
     [Fact]
+    public void 字段_带格式的说明代替文字说明_同样关联到控件()
+    {
+        var cut = Render<Field>(p => p
+            .Add(x => x.Description, "不显示")
+            .Add(x => x.DescriptionContent, b => b.AddMarkupContent(0, "已选：<code>email</code>"))
+            .AddChildContent<TextField>());
+
+        var description = cut.Find("[data-part=description]");
+        Assert.Equal("email", description.QuerySelector("code")!.TextContent);
+        Assert.DoesNotContain("不显示", description.TextContent);
+        Assert.Equal(description.Id, cut.Find("input").GetAttribute("aria-describedby"));
+    }
+
+    [Fact]
     public void 表单校验未通过_字段显示错误_控件标为aria_invalid()
     {
         var model = new Model();

@@ -242,3 +242,10 @@ public static class ChoiceStyles
         RowGap = Space.Xs,
     });
 }
+
+/// <summary>复选框组交给组里各个复选框的状态（经级联值）：每次渲染一个新实例，勾选变了时各项跟着重新渲染。</summary>
+/// <param name="Checked">已勾选的值。</param>
+/// <param name="Name">表单提交时各项共用的 name。</param>
+/// <param name="State">整组的不可用、只读、校验未通过。</param>
+/// <param name="Toggle">勾选或取消一个值。</param>
+public sealed record CheckboxGroupState(IReadOnlyList<string> Checked, string? Name, InheritedControlState State, Func<string, Task> Toggle);

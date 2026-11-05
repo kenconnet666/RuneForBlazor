@@ -1,0 +1,56 @@
+@*
+    切换按钮组里的一项（button，aria-pressed 表示是否按下）：<ToggleItem Value="bold" Icon="Lucide.Bold" aria-label="加粗" />。
+    外观同按钮家族：没按下是幽灵按钮，按下时强调色（多选时是 surface 底；单选时底色由组的滑块画）；尺寸跟随组。只有图标时写 aria-label。
+*@
+@namespace Rune.UI
+@inherits ButtonBase
+@{
+    var pressed = Group?.Selected.Contains(Value) == true;
+    var off = Disabled || Group?.Disabled == true;
+    var parts = ButtonStyles.Of(new ButtonAppearance(
+        pressed && Group?.Sliding != true ? ButtonVariant.Surface : ButtonVariant.Ghost,
+        pressed ? UI.Tone.Accent : UI.Tone.Neutral,
+        Group?.Size ?? Size,
+        Radius ?? UI.Radius.Sm,
+        ChildContent is null ? ButtonShape.Square : ButtonShape.Normal), Config.Styles);
+}
+
+<button type="button" aria-pressed="@(pressed ? "true" : "false")" data-state="@(pressed ? "on" : "off")"
+        @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!off), Managed(off, pressed))">
+    @RenderInner(parts, ChildContent)
+</button>
+
+@code {
+    Memo<(bool Disabled, bool Ripple, bool ReadOnlyIdle), Attrs> managed;
+
+    /// <summary>这一项的值。</summary>
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+
+    /// <summary>不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>文字；只有图标时不写，改写 aria-label。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] ToggleGroupState? Group { get; set; }
+
+    /// <inheritdoc/>
+    protected override ButtonVariant DefaultVariant => ButtonVariant.Ghost;
+
+    /// <inheritdoc/>
+    protected override Tone DefaultTone => UI.Tone.Neutral;
+
+    // 状态（同按钮家族）、波纹（只读时不出）、点击切换；只读又没按下的项不像能点
+    Attrs Managed(bool off, bool pressed) => managed.Get(
+        (off, RippleEnabled && Group?.ReadOnly != true && (Group?.Ripple ?? true), Group?.ReadOnly == true && !pressed),
+        this,
+        static (k, owner) => Attrs.Merge(
+            StateAttrs(k.Disabled, focusable: false, loading: false, k.Ripple),
+            new Attrs
+            {
+                Sx = k.ReadOnlyIdle ? ToggleGroupStyles.ReadOnlyItem : (Sx?)null,
+                ["onclick"] = EventCallback.Factory.Create(owner, owner.ToggleAsync),
+            }));
+
+    Task ToggleAsync() => Group?.Toggle(Value) ?? Task.CompletedTask;
+}

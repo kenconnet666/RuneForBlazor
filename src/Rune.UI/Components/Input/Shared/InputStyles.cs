@@ -63,6 +63,7 @@ public sealed record InputDefaults : IComponentDefaults<InputDefaults>
 /// <param name="Fixed">多行时固定高度，可以拖动改变。</param>
 /// <param name="Picker">下拉选择（Select）：整个外壳都能点开（指针），在 ControlGroup 里也按内容宽。</param>
 /// <param name="Wrap">框里排着多个标签（TagsInput）：放不下时换行，输入框至少留出几个字的宽度。</param>
+/// <param name="Attached">在相连的组（ControlGroup）里的排列方向：去掉相邻一侧的圆角；横排时分掉剩余宽度（选择框除外）。</param>
 public readonly record struct InputAppearance(
     InputVariant Variant,
     Size? Size,
@@ -73,7 +74,8 @@ public readonly record struct InputAppearance(
     int? MaxRows = null,
     bool Fixed = false,
     bool Picker = false,
-    bool Wrap = false)
+    bool Wrap = false,
+    Orientation? Attached = null)
 {
     /// <summary>外观：组件上写的 &gt; 配置的默认值（<see cref="InputDefaults"/>）&gt; 表面色、中圆角。</summary>
     public static InputAppearance Resolve(InputVariant? variant, Size? size, Radius? radius, bool readOnly, UIConfig config)
@@ -100,10 +102,12 @@ public static class InputStyles
                 a.Variant == InputVariant.Soft ? Soft : null,
                 a.ReadOnly ? ReadOnlyRoot : null,
                 StateRoot,
+                a.Attached == Orientation.Horizontal ? AttachedGrow : null,
                 a.Picker ? (a.ReadOnly ? PickerReadOnlyRoot : PickerRoot) : null,
                 a.Wrap ? WrapRoot : null,
                 a.Multiline ? MultilineRoot : null,
                 ScaleStyles.Radius(a.Radius),
+                AttachedStyles.Of(a.Attached),
                 a.Size is { } size ? ScaleStyles.FontSize(size) : null),
             InputPart.Input => a.Multiline
                 ? Sx.Of(
@@ -176,6 +180,9 @@ public static class InputStyles
         },
         [disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
     });
+
+    // 在横排的 ControlGroup 里：输入框分掉剩余宽度（选择框按内容宽，PickerRoot 排在后面盖过它）
+    static Style AttachedGrow => Css.Define(static () => new Style { FlexGrow = 1 });
 
     // 标签多了换行；行与行之间留出间距
     static Style WrapRoot => Css.Define(static () => new Style { FlexWrap = FlexWrap.Wrap, RowGap = Space.Xs, PaddingBlock = Space.Xs });

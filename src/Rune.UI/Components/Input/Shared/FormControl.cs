@@ -19,6 +19,7 @@ public abstract class FormControl<TValue> : UIComponent
 {
     readonly string ownId = UniqueId.Next("control");
     Memo<(string Id, string? DescribedBy, bool Invalid, bool Required, bool Disabled, bool ReadOnly), Attrs> controlAttrs;
+    Memo<(string Id, string Role, string? LabelledBy, string? DescribedBy, Orientation Orientation, bool Invalid, bool Required, bool Disabled, bool ReadOnly, Attrs? Extra), Attrs> groupAttrs;
     Memo<IReadOnlyDictionary<string, object>?, Attrs> inputUserAttrs;
     Memo<Sx?, Attrs> rootUserAttrs;
     EditContext? subscribedContext;
@@ -61,16 +62,22 @@ public abstract class FormControl<TValue> : UIComponent
     protected string ControlId => AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string s ? s : Field?.ControlId ?? ownId;
 
     /// <summary>当前生效的状态（控件上写的 &gt; Field &gt; 表单）。</summary>
-    protected bool IsDisabled => Disabled ?? Field?.Disabled ?? false;
+    protected bool IsDisabled => Disabled ?? InheritedState?.Disabled ?? Field?.Disabled ?? false;
 
     /// <inheritdoc cref="IsDisabled"/>
-    protected bool IsReadOnly => ReadOnly ?? Field?.ReadOnly ?? false;
+    protected bool IsReadOnly => ReadOnly ?? InheritedState?.ReadOnly ?? Field?.ReadOnly ?? false;
 
     /// <inheritdoc cref="IsDisabled"/>
     protected bool IsRequired => Required ?? Field?.Required ?? false;
 
     /// <inheritdoc cref="IsDisabled"/>
-    protected bool IsInvalid => Invalid ?? (Field?.Invalid == true || HasValidationMessages());
+    protected bool IsInvalid => Invalid ?? (InheritedState?.Invalid == true || Field?.Invalid == true || HasValidationMessages());
+
+    /// <summary>
+    /// 所在的组（CheckboxGroup）交下来的不可用、只读、校验未通过；不在组里时为 null。组挡住了外面 Field 的级联（Field 的 id、说明属于组），
+    /// 组里的控件按这里的状态。
+    /// </summary>
+    protected virtual InheritedControlState? InheritedState => null;
 
     /// <summary>
     /// 控件主元素（input）上由组件管理的属性：id、aria-describedby、aria-invalid、aria-required、disabled、readonly；输入不变时是同一个对象。
@@ -86,6 +93,36 @@ public abstract class FormControl<TValue> : UIComponent
             ["aria-required"] = k.Required ? "true" : null,
             ["disabled"] = k.Disabled ? true : null,
             ["readonly"] = k.ReadOnly ? true : null,
+        });
+
+    /// <summary>
+    /// 一组控件（RadioGroup、CheckboxGroup、ToggleGroup）的根元素上由组件管理的属性：id、role、所在 Field 的标签与说明
+    /// （使用方写了 aria-label 时不再 aria-labelledby，后者会盖过前者）、方向与状态。
+    /// div 没有原生的 disabled、required：radiogroup 用 aria-invalid / aria-required / aria-readonly，group 不支持这几个，只写 data-*。
+    /// </summary>
+    /// <param name="role"><c>radiogroup</c> 或 <c>group</c>。</param>
+    /// <param name="orientation">排列方向，写在 data-orientation 上（role="group" 不允许 aria-orientation）。</param>
+    /// <param name="extra">组件自己的固定属性（漫游焦点、样式标记），一起缓存；传静态实例。</param>
+    protected Attrs GroupAttrs(string role, Orientation orientation, Attrs? extra = null) => groupAttrs.Get(
+        (ControlId, role, AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId, Field?.DescribedBy,
+            orientation, IsInvalid, IsRequired, IsDisabled, IsReadOnly, extra),
+        static k =>
+        {
+            var radio = k.Role == "radiogroup";
+            return Attrs.Merge(k.Extra, new Attrs
+            {
+                Id = k.Id,
+                Role = k.Role,
+                AriaLabelledBy = k.LabelledBy,
+                AriaDescribedBy = k.DescribedBy,
+                ["aria-invalid"] = radio && k.Invalid ? "true" : null,
+                ["aria-required"] = radio && k.Required ? "true" : null,
+                ["aria-readonly"] = radio && k.ReadOnly ? "true" : null,
+                AriaDisabled = k.Disabled ? true : null,
+                ["data-orientation"] = k.Orientation == Orientation.Vertical ? "vertical" : "horizontal",
+                ["data-disabled"] = k.Disabled ? true : null,
+                ["data-readonly"] = k.ReadOnly ? true : null,
+            });
         });
 
     /// <summary>
@@ -146,3 +183,9 @@ public abstract class FormControl<TValue> : UIComponent
 
     void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) => StateHasChanged();
 }
+
+/// <summary>组交给组里控件的状态（见 <see cref="FormControl{TValue}.InheritedState"/>）。</summary>
+/// <param name="Disabled">整组不可用。</param>
+/// <param name="ReadOnly">整组只读。</param>
+/// <param name="Invalid">整组校验未通过（如“至少选一项”）。</param>
+public readonly record struct InheritedControlState(bool Disabled, bool ReadOnly, bool Invalid);

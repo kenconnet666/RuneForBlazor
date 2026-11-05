@@ -1,0 +1,68 @@
+@*
+    一组复选框（role="group"，同 vue-tsx-pro 的 CheckboxGroup）：值是勾选项的值的列表。
+    <Field Label="通知渠道">
+        <CheckboxGroup TItem="string" @bind-Value="channels" Name="channels">
+            <Checkbox GroupValue="email">邮件</Checkbox>
+            <Checkbox GroupValue="sms">短信</Checkbox>
+        </CheckboxGroup>
+    </Field>
+    <CheckboxGroup Items="channelOptions" @bind-Value="channels" />      按 Items 生成（值、文字、说明、不可用）
+    组以所在 Field 的标签为名称（aria-labelledby）、关联说明与错误；里面的复选框不再拿 Field 的 id，沿用组的不可用、只读、校验未通过。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits FormControl<IReadOnlyList<string>>
+
+@* State 要在本组件的渲染里读（放在最外层）：嵌在别的 CascadingValue 的子内容里时由框架组件执行，读不到依赖，非受控时勾选变了组不会重新渲染 *@
+<div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Config.Styles)[ChoicePart.Group], Rest, RootAttrs)">
+    <CascadingValue Value="State">
+        <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+            else
+            {
+                foreach (var entry in Entries)
+                {
+                    var option = entry.Option;
+                    <Checkbox @key="option.Value" GroupValue="@option.Value" Disabled="@(option.Disabled ? true : null)" Description="@option.Description">@option.Label</Checkbox>
+                }
+            }
+        </CascadingValue>
+    </CascadingValue>
+</div>
+
+@code {
+    Memo<(IEnumerable<TItem> Items, Func<TItem, ListboxOption>? ToOption), IReadOnlyList<ListEntry<TItem>>> entries;
+
+    /// <summary>各项：ListboxOption（值、文字、说明、不可用）、字符串，或任意数据加 ToOption；写了 ChildContent 时不用。</summary>
+    [Parameter] public IEnumerable<TItem> Items { get; set; } = [];
+
+    /// <summary>数据 → 选项；Items 是 ListboxOption 或字符串时可以不写。</summary>
+    [Parameter] public Func<TItem, ListboxOption>? ToOption { get; set; }
+
+    /// <summary>表单提交时各项共用的 name。</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>排列方向，默认竖排。</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
+
+    /// <summary>复选框（写了 GroupValue 的 Checkbox）；不写时按 Items 生成。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    IReadOnlyList<string> Checked => CurrentValue ?? [];
+
+    IReadOnlyList<ListEntry<TItem>> Entries => entries.Get((Items, ToOption), static k => ListState.Entries(k.Items, k.ToOption));
+
+    // 交给各项：每次渲染一个新实例，勾选变了时各项跟着重新渲染
+    Attrs RootAttrs => GroupAttrs("group", Orientation);
+
+    CheckboxGroupState State => new(Checked, Name, new(IsDisabled, IsReadOnly, IsInvalid), ToggleAsync);
+
+    Task ToggleAsync(string value)
+    {
+        if (IsDisabled || IsReadOnly) return Task.CompletedTask;
+        return SetValueAsync(ListState.Toggle(Checked, value, SelectionMode.Multiple, required: false) ?? Checked);
+    }
+}

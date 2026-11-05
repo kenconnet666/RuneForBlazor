@@ -12,9 +12,9 @@
 *@
 @namespace Rune.UI
 @typeparam TItem
-@inherits FormControl<IReadOnlyList<string>>
+@inherits InputControl<IReadOnlyList<string>>
 @{
-    var shell = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config) with { Wrap = true }, Config.Styles);
+    var shell = InputStyles.Of(Appearance with { Wrap = true }, Config.Styles);
     var tags = Tags;
     var labels = options.Chosen(AllEntries, tags);
 }
@@ -32,7 +32,7 @@
         <Tag @key="tag" Variant="StatusVariant.Surface" OnRemove="@(Editable ? EventCallback.Factory.Create(this, () => RemoveAsync(tag)) : default)"
              @attributes="Attrs.MergeProps(null, PropsTag?.Invoke(tag))">@label</Tag>
     }
-    <input @attributes="Attrs.Merge(shell[InputPart.Input], InputUserAttrs, InputManaged)" />
+    @ValueElement.Input(null, Attrs.Merge(shell[InputPart.Input], InputUserAttrs, InputManaged))
     @if (Clearable && tags.Count > 0 && Editable)
     {
         <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="ClearAsync" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusInput)" />

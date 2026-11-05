@@ -10,7 +10,7 @@
 @{ var parts = SliderStyles.Of(Size, Tone, Config.Styles); }
 
 <div @attributes="Attrs.Merge(parts[SliderPart.Root], RootUserAttrs)">
-    <input type="range" @attributes="Attrs.Merge(parts[SliderPart.Input], InputUserAttrs, InputManaged)" />
+    @ValueElement.Input("range", Attrs.Merge(parts[SliderPart.Input], InputUserAttrs, InputManaged))
     @if (ShowValue)
     {
         <output for="@ControlId" @attributes="Attrs.Merge(parts[SliderPart.Value], PropsValue)">@TextOf(CurrentValue)</output>

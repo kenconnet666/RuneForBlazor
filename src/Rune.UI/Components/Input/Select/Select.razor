@@ -18,9 +18,9 @@
 *@
 @namespace Rune.UI
 @typeparam TItem
-@inherits FormControl<string?>
+@inherits InputControl<string?>
 @{
-    var shell = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config) with { Picker = true }, Config.Styles);
+    var shell = InputStyles.Of(Appearance with { Picker = true }, Config.Styles);
     var parts = SelectStyles.Of(Config.Styles);
     var values = Selected;
     var chosen = Chosen(values);

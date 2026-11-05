@@ -78,15 +78,6 @@ public partial class Select<TItem>
     /// <summary>表单提交时的 name：用隐藏的 input（多选时每个值一个）。</summary>
     [Parameter] public string? Name { get; set; }
 
-    /// <summary>样式，默认表面色加描边。</summary>
-    [Parameter] public InputVariant? Variant { get; set; }
-
-    /// <summary>字号档位，高度与内边距随之缩放；不写时继承上下文字号。</summary>
-    [Parameter] public Size? Size { get; set; }
-
-    /// <summary>圆角，默认中圆角。</summary>
-    [Parameter] public Radius? Radius { get; set; }
-
     /// <summary>前置图标。</summary>
     [Parameter] public IconData? Icon { get; set; }
 

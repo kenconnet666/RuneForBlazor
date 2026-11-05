@@ -1,0 +1,76 @@
+@*
+    切换按钮组（同 vue-tsx-pro 的 ToggleGroup）：ToggleGroup（role="group"）> ToggleItem（带 aria-pressed 的 button）。
+    单选像分段控件（视图切换、对齐方式），多选像格式按钮（加粗、斜体）。整组一个 Tab 位置，组内方向键移动（JS 初始化器的漫游焦点）。
+    <ToggleGroup @bind-Value="view" aria-label="视图" Required="true">
+        <ToggleItem Value="list" Icon="Lucide.List" aria-label="列表" />
+        <ToggleItem Value="grid" Icon="Lucide.LayoutGrid" aria-label="网格" />
+    </ToggleGroup>
+    <ToggleGroup SelectionMode="SelectionMode.Multiple" @bind-Values="marks" aria-label="格式">…</ToggleGroup>
+    单选时选中项的底色是一个滑块（data-rune-indicator），切换时滑过去，减少动态效果时直接到位。
+    放进 Field 时以标签为名称（aria-labelledby），沿用 Field 的不可用、只读、必填。
+*@
+@namespace Rune.UI
+@inherits FormControl<string?>
+@{ var parts = ToggleGroupStyles.Of(Orientation, Config.Styles); }
+
+<CascadingValue Value="State">
+    <div @attributes="Attrs.Merge(parts[ToggleGroupPart.Root], Rest, RootAttrs)">
+        @if (!Multiple && Selected.Count > 0)
+        {
+            <span @attributes="Attrs.Merge(parts[ToggleGroupPart.Indicator], PropsIndicator, IndicatorManaged)"></span>
+        }
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    static readonly Attrs RovingHorizontal = new() { ["data-rune-roving"] = "horizontal" };
+    static readonly Attrs RovingVertical = new() { ["data-rune-roving"] = "vertical" };
+    static readonly Attrs IndicatorManaged = new() { AriaHidden = true, ["data-rune-indicator"] = "[aria-pressed=\"true\"]", ["data-axis"] = "both" };
+
+    /// <summary>单选（默认，值是 Value）或多选（值是 Values）。</summary>
+    [Parameter] public SelectionMode SelectionMode { get; set; }
+
+    /// <summary>多选时按下的项（<c>@bind-Values</c>）。</summary>
+    [Parameter] public IReadOnlyList<string>? Values { get; set; }
+
+    /// <summary>多选时按下的项变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> ValuesChanged { get; set; }
+
+    /// <summary>方向，默认横排（左右键移动）；竖排时上下键移动。</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>字号档位，按钮随之缩放。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>按下时的波纹；不写时沿用配置。</summary>
+    [Parameter] public bool? Ripple { get; set; }
+
+    /// <summary>单选时选中项下面的滑块的部件属性。</summary>
+    [Parameter] public Attrs? PropsIndicator { get; set; }
+
+    /// <summary>各项（ToggleItem）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 没给 Values 时用同一个空数组：每次新建的空列表会被当成父级换了值
+    Bindable<IReadOnlyList<string>> values { get => field ??= new(() => Values ?? Array.Empty<string>(), () => ValuesChanged); }
+
+    bool Multiple => SelectionMode == SelectionMode.Multiple;
+
+    IReadOnlyList<string> Selected => Multiple ? values.Value : CurrentValue is { } value ? [value] : [];
+
+    // 交给 JS 的漫游焦点：方向键跟随排列方向
+    Attrs RootAttrs => GroupAttrs("group", Orientation, Orientation == Orientation.Vertical ? RovingVertical : RovingHorizontal);
+
+    // 交给各项：每次渲染一个新实例，选中变了时项跟着重新渲染
+    ToggleGroupState State => new(Selected, Size, IsDisabled, IsReadOnly, Ripple, !Multiple, ToggleAsync);
+
+    // 切换一项：只读时不变；必填（分段控件）时最后一项不能弹起
+    async Task ToggleAsync(string value)
+    {
+        if (IsReadOnly || IsDisabled) return;
+        if (ListState.Toggle(Selected, value, SelectionMode, IsRequired) is not { } next) return;
+        if (Multiple) await values.SetAsync(next);
+        else await SetValueAsync(next.Count == 0 ? null : next[0]);
+    }
+}

@@ -1,0 +1,43 @@
+@*
+    组合输入（div，role="group"，同 vue-tsx-pro 的 ControlGroup）：输入框、选择框、按钮连成一条，共用边框：币种 + 金额、协议 + 域名、搜索框 + 搜索按钮。
+    <ControlGroup aria-label="金额">
+        <Select Items="currencies" @bind-Value="currency" aria-label="币种" />
+        <NumberField @bind-Value="amount" aria-label="金额" />
+    </ControlGroup>
+    里面的输入框外壳与按钮家族经级联值（AttachedGroup）得知自己在组里：去掉相邻一侧的圆角、边框叠在一起，聚焦的那个浮到上面，焦点环完整。
+    输入框默认占满剩余宽度，选择框、按钮按内容宽。只有文字的前后缀（单位、https://）用输入框自己的 Prefix / Suffix，不必拆成两个控件。
+    放在 Field 里时组是 Field 的控件：标签、说明经 aria-labelledby / aria-describedby 关联到组；里面的控件不再拿 Field 的 id（会重复），各自写 aria-label。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(ControlGroupStyles.Of(Orientation, Inline, Config.Styles)[ControlGroupPart.Root], Rest, Managed)">
+    <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
+        <CascadingValue Value="Group" IsFixed="true">@ChildContent</CascadingValue>
+    </CascadingValue>
+</div>
+
+@code {
+    static readonly AttachedGroup HorizontalGroup = new(Orientation.Horizontal);
+    static readonly AttachedGroup VerticalGroup = new(Orientation.Vertical);
+
+    Memo<(string? Id, string? LabelledBy, string? DescribedBy), Attrs> managed;
+
+    /// <summary>排列方向，默认横排。</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>不占满一行（行内排列）；默认占满。</summary>
+    [Parameter] public bool Inline { get; set; }
+
+    /// <summary>输入框、选择框、按钮。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>所在的 Field：组是它的控件（id、标签、说明）。</summary>
+    [CascadingParameter] FieldContext? Field { get; set; }
+
+    AttachedGroup Group => Orientation == Orientation.Vertical ? VerticalGroup : HorizontalGroup;
+
+    Attrs Managed => managed.Get(
+        (Field?.ControlId, AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId, Field?.DescribedBy),
+        static k => new Attrs { Id = k.Id, Role = "group", AriaLabelledBy = k.LabelledBy, AriaDescribedBy = k.DescribedBy });
+}

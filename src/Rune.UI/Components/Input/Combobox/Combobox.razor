@@ -15,9 +15,9 @@
 *@
 @namespace Rune.UI
 @typeparam TItem
-@inherits FormControl<string?>
+@inherits InputControl<string?>
 @{
-    var shell = InputStyles.Of(InputAppearance.Resolve(Variant, Size, Radius, IsReadOnly, Config), Config.Styles);
+    var shell = InputStyles.Of(Appearance, Config.Styles);
     var entries = ShownEntries;
 }
 
@@ -26,7 +26,7 @@
     {
         <Icon Data="Icon" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsIcon)" />
     }
-    <input @attributes="Attrs.Merge(shell[InputPart.Input], InputUserAttrs, InputManaged)" />
+    @ValueElement.Input(null, Attrs.Merge(shell[InputPart.Input], InputUserAttrs, InputManaged))
     @if (Clearable && Text.Length > 0 && Editable)
     {
         <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="ClearAsync" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusInput)" />

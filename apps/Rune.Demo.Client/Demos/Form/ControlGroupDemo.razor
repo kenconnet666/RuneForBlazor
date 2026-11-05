@@ -1,0 +1,84 @@
+@*
+    组合输入：示例与 vue-tsx-pro 文档站的 /components/control-group 对应。
+*@
+@attribute [ComponentDemo("control-group", "组合输入", Group = "表单", Order = 10)]
+@inherits RuneComponent
+
+<DemoSection Id="amount" Title="币种与金额">
+    <Description>组里的输入框与按钮去掉相邻一侧的圆角、边框叠在一起，聚焦的那个浮到上面，焦点环完整。输入框分掉剩余宽度，选择框与按钮按内容宽。每个控件写自己的 <Code>aria-label</Code>，组的名称写在 <Code>ControlGroup</Code> 上（role="group"）；放进 <Code>Field</Code> 时组接 Field 的标签与说明（经 aria-labelledby / aria-describedby）。只有文字的单位、币种符号用输入框自己的 <Code>Prefix</Code> / <Code>Suffix</Code>，不必拆成两个控件。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Field Label="合同金额" Description="按当天中间价换算成人民币">
+                <ControlGroup aria-label="合同金额" data-testid="amount-group">
+                    <Select Items="currencies" @bind-Value="currency" aria-label="币种" />
+                    <NumberField @bind-Value="amount" Min="0" aria-label="金额" />
+                    <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" @onclick="Convert">换算</Button>
+                </ControlGroup>
+            </Field>
+            <Small Tone="TextTone.Muted" aria-live="polite">@(result ?? "点“换算”看人民币金额")</Small>
+            <Field Label="单价区间">
+                <ControlGroup aria-label="单价区间">
+                    <NumberField Value="10m" aria-label="最低单价"><Prefix>¥</Prefix></NumberField>
+                    <NumberField Value="80m" aria-label="最高单价"><Prefix>¥</Prefix></NumberField>
+                    <Select Items="units" Value="piece" aria-label="计价单位" />
+                </ControlGroup>
+            </Field>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="search" Title="搜索框、地址与竖排">
+    <Description>搜索放在 <Code>&lt;form role="search"&gt;</Code> 里，回车与按钮都能提交。复制按钮这类图标按钮同样相连。<Code>Orientation.Vertical</Code> 上下相连，适合分成几行填写的地址。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <form role="search" @onsubmit="Search" @onsubmit:preventDefault>
+                <ControlGroup aria-label="搜索任务">
+                    <Select Items="scopes" @bind-Value="scope" aria-label="搜索范围" />
+                    <TextField @bind-Value="keyword" Icon="Lucide.Search" placeholder="任务名称、编号或负责人" aria-label="关键词" />
+                    <Button Type="submit">搜索</Button>
+                </ControlGroup>
+            </form>
+            @if (searched is not null)
+            {
+                <Small Tone="TextTone.Muted" aria-live="polite">@searched</Small>
+            }
+            <Field Label="回调地址">
+                <ControlGroup aria-label="回调地址">
+                    <Select Items="protocols" @bind-Value="protocol" aria-label="协议" />
+                    <TextField @bind-Value="host" aria-label="域名" />
+                    <CopyButton Value="@($"{protocol}{host}")" Variant="ButtonVariant.Outline" aria-label="复制地址" />
+                </ControlGroup>
+            </Field>
+            <Field Label="收货地址" Description="Orientation.Vertical：上下相连">
+                <ControlGroup Orientation="Orientation.Vertical" aria-label="收货地址">
+                    <TextField Value="浙江省杭州市西湖区" aria-label="省市区" />
+                    <TextField Value="文三路 90 号 3 幢 501" aria-label="详细地址" />
+                </ControlGroup>
+            </Field>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly Dictionary<string, decimal> rates = new() { ["CNY"] = 1m, ["USD"] = 7.12m, ["EUR"] = 7.71m, ["JPY"] = 0.047m };
+    static readonly string[] currencies = [.. rates.Keys];
+    static readonly ListboxOption[] units = [new("piece", "每件"), new("kg", "每千克")];
+    static readonly ListboxOption[] scopes = [new("all", "全部"), new("title", "标题"), new("owner", "负责人")];
+    static readonly string[] protocols = ["https://", "http://"];
+
+    string? currency = "USD";
+    decimal? amount = 1200;
+    string? result;
+
+    string? scope = "all";
+    string? keyword = "";
+    string? searched;
+    string? protocol = "https://";
+    string? host = "hooks.example.com";
+
+    void Convert() => result = $"≈ {(amount ?? 0) * rates[currency ?? "CNY"]:#,0.##} 元";
+
+    void Search() => searched = string.IsNullOrEmpty(keyword)
+        ? null
+        : $"在“{scopes.First(s => s.Value == scope).Label}”里搜索：{keyword}";
+}

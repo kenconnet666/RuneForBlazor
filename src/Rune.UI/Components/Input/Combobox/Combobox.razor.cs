@@ -67,15 +67,6 @@ public partial class Combobox<TItem>
     /// <summary>表单提交时的 name：用隐藏的 input 提交 Value。</summary>
     [Parameter] public string? Name { get; set; }
 
-    /// <summary>样式，默认表面色加描边。</summary>
-    [Parameter] public InputVariant? Variant { get; set; }
-
-    /// <summary>字号档位；不写时继承上下文字号。</summary>
-    [Parameter] public Size? Size { get; set; }
-
-    /// <summary>圆角，默认中圆角。</summary>
-    [Parameter] public Radius? Radius { get; set; }
-
     /// <summary>前置图标。</summary>
     [Parameter] public IconData? Icon { get; set; }
 

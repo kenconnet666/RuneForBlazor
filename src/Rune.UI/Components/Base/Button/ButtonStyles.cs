@@ -87,7 +87,8 @@ public sealed record ButtonDefaults : IComponentDefaults<ButtonDefaults>
 /// <param name="Size">字号档位；null 时继承上下文字号。</param>
 /// <param name="Radius">圆角。</param>
 /// <param name="Shape">形状。</param>
-public readonly record struct ButtonAppearance(ButtonVariant Variant, Tone Tone, Size? Size, Radius Radius, ButtonShape Shape);
+/// <param name="Attached">在相连的组（ControlGroup、ButtonGroup）里的排列方向：去掉相邻一侧的圆角。</param>
+public readonly record struct ButtonAppearance(ButtonVariant Variant, Tone Tone, Size? Size, Radius Radius, ButtonShape Shape, Orientation? Attached = null);
 
 /// <summary>按钮家族的样式（配方）。每种样式写成以色调为参数的函数，只写一遍。</summary>
 public static class ButtonStyles
@@ -102,6 +103,7 @@ public static class ButtonStyles
                 SharedStyles.InteractionColors,
                 Variant(a.Variant, a.Tone),
                 ScaleStyles.Radius(a.Radius),
+                AttachedStyles.Of(a.Attached),
                 a.Size is { } size ? ScaleStyles.FontSize(size) : null,
                 a.Shape switch
                 {

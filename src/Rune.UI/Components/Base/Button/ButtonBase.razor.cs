@@ -62,8 +62,12 @@ public abstract partial class ButtonBase : UIComponent
             Tone ?? defaults?.Tone ?? DefaultTone,
             Size ?? defaults?.Size,
             Radius ?? defaults?.Radius ?? UI.Radius.Md,
-            shape);
+            shape,
+            Attached?.Orientation);
     }
+
+    /// <summary>所在的相连组（ControlGroup、ButtonGroup）：去掉相邻一侧的圆角、边框叠在一起。</summary>
+    [CascadingParameter] AttachedGroup? Attached { get; set; }
 
     /// <summary>所在的 Form（提交中时它的提交按钮显示加载中）。</summary>
     [CascadingParameter] FormState? Form { get; set; }
