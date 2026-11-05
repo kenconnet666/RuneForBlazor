@@ -1,0 +1,326 @@
+// 列表：类型搜索、高亮与键盘（data-rune-list）、选项弹出层（Select）的开关与焦点、搜索词变化后的高亮与播报。
+
+import { speak } from './shared.js';
+
+
+// 每个菜单、列表各有一个输入缓冲（同 vue-tsx-pro 的 createTypeahead）
+const typeaheadQueries = new WeakMap();
+
+/**
+ * 类型搜索（WAI-ARIA 的 type-ahead）：在菜单、列表里直接按字母，跳到以它开头的项。
+ * 连续输入拼成一个词（“ex” 跳到 Export）；停顿 500 毫秒后重新开始；反复按同一个字母在以它开头的项之间轮换。
+ * labels 是各项的文字，current 是当前项的序号（没有时 -1）；返回该落到的项的序号，不是可打印字符或没有匹配时 -1。
+ */
+export function typeahead(owner, key, labels, current) {
+  const state = typeaheadQueries.get(owner) ?? { query: '', timer: 0 };
+  // 只认单个可打印字符；空格开头时不算（空格是激活键）
+  if (!/^.$/su.test(key) || (key === ' ' && !state.query)) return -1;
+  typeaheadQueries.set(owner, state);
+  clearTimeout(state.timer);
+  state.timer = setTimeout(() => (state.query = ''), 500);
+  state.query += key.toLocaleLowerCase();
+
+  const normalized = labels.map((label) => label.trim().toLocaleLowerCase());
+  // 同一个字母反复按：从下一项开始找以它开头的，轮换
+  const first = state.query.slice(0, key.length);
+  const repeated = state.query === first.repeat(state.query.length / first.length);
+  const search = repeated ? first : state.query;
+  const start = repeated ? current + 1 : Math.max(current, 0);
+  for (let offset = 0; offset < normalized.length; offset++) {
+    const index = (start + offset) % normalized.length;
+    if (normalized[index].startsWith(search)) return index;
+  }
+  return -1;
+}
+
+// 高亮按序号记在宿主的 data-rune-active 上（选项的 id 是 `{列表 id}-{序号}`，aria-activedescendant 照此拼出），
+// 渲染出来的那一项另写 data-highlighted 给样式用。虚拟滚动的列表里看不见的选项不在 DOM 里：C# 把各项的文字、
+// 不可用写在列表的 data-rune-options 上，键盘照样能移到任何一项；目标还没渲染时先按比例估算着滚过去，
+// 渲染出来后（DOM 变化时同步一次）再精确地滚进可见范围。
+
+// 一次按键移动几项；first / last 到头尾
+const listMoves = { ArrowDown: 1, ArrowUp: -1, PageDown: 10, PageUp: -10, Home: 'first', End: 'last' };
+
+// data-rune-options 解析一次：值没变时直接用
+const optionTables = new WeakMap();
+
+// 高亮项还没渲染、等着滚进可见范围的宿主
+const pendingScroll = new WeakSet();
+
+/** 宿主控制的列表：宿主本身是 listbox，或经 aria-controls 指向它。 */
+function listOf(host) {
+  if (host.getAttribute('role') === 'listbox') return host;
+  const id = host.getAttribute('aria-controls');
+  return id ? document.getElementById(id) : null;
+}
+
+/** 列表的键盘宿主（焦点所在、写 aria-activedescendant 的元素）：有几个时（触发按钮与搜索框）取有焦点的那个。 */
+export function hostOf(list) {
+  if (list.hasAttribute('data-rune-list')) return list;
+  const active = document.activeElement;
+  if (active?.matches('[data-rune-list]') && listOf(active) === list) return active;
+  return list.id ? document.querySelector(`[data-rune-list][aria-controls="${CSS.escape(list.id)}"]`) : null;
+}
+
+/** 各选项的文字与是否不可用，按序号排列：虚拟滚动的列表取 data-rune-options，否则从 DOM 读。 */
+function optionTable(list) {
+  const json = list.getAttribute('data-rune-options');
+  if (!json) {
+    return [...list.querySelectorAll('[role="option"]')].map((option) => ({
+      label: option.dataset.label ?? option.textContent,
+      disabled: option.getAttribute('aria-disabled') === 'true',
+    }));
+  }
+  const cached = optionTables.get(list);
+  if (cached?.json === json) return cached.table;
+  const { labels, disabled } = JSON.parse(json);
+  const off = new Set(disabled);
+  const table = labels.map((label, index) => ({ label, disabled: off.has(index) }));
+  optionTables.set(list, { json, table });
+  return table;
+}
+
+function optionAt(list, index) {
+  return index < 0 ? null : document.getElementById(`${list.id}-${index}`);
+}
+
+function indexOfOption(option) {
+  return Number(option.getAttribute('aria-posinset')) - 1;
+}
+
+/** 高亮项的序号；没有、或选项变少后已经不在了时 -1。 */
+export function activeIndex(host, list) {
+  const index = Number(host.getAttribute('data-rune-active') ?? -1);
+  return index >= 0 && index < optionTable(list).length ? index : -1;
+}
+
+/** 高亮一项（-1 取消）；scroll 时滚进可见范围（键盘移动；指针移过的本来就看得见）。 */
+function highlight(host, list, index, scroll) {
+  if (index < 0) {
+    host.removeAttribute('data-rune-active');
+    host.removeAttribute('aria-activedescendant');
+  } else {
+    host.setAttribute('data-rune-active', String(index));
+    host.setAttribute('aria-activedescendant', `${list.id}-${index}`);
+  }
+  if (scroll && index >= 0) pendingScroll.add(host);
+  syncHighlight(host, list);
+}
+
+/** 把 data-highlighted 放到高亮项上（它刚渲染出来时也调用），等着滚动的话滚进可见范围。 */
+export function syncHighlight(host, list) {
+  const index = activeIndex(host, list);
+  const option = optionAt(list, index);
+  for (const other of list.querySelectorAll('[role="option"][data-highlighted]')) {
+    if (other !== option) other.removeAttribute('data-highlighted');
+  }
+  option?.setAttribute('data-highlighted', '');
+  if (!pendingScroll.has(host)) return;
+  if (index < 0) {
+    pendingScroll.delete(host);
+  } else if (option) {
+    pendingScroll.delete(host);
+    scrollOptionIntoView(list, option, index);
+  } else {
+    estimateScroll(list, index);
+  }
+}
+
+function scrollOptionIntoView(list, option, index) {
+  // 第一项上面是组名时连组名一起滚进来：组名不被挡住
+  const label = index === 0 && option.previousElementSibling?.id?.startsWith(`${list.id}-group-`) ? option.previousElementSibling : null;
+  (label ?? option).scrollIntoView({ block: 'nearest' });
+  if (label) option.scrollIntoView({ block: 'nearest' });
+}
+
+// 高亮项还没渲染（虚拟滚动）：按它在全部选项里的位置估算着滚过去，让虚拟滚动把它附近的选项渲染出来
+function estimateScroll(list, index) {
+  const scroller = scrollParent(list);
+  if (!scroller) return;
+  const size = optionTable(list).length;
+  scroller.scrollTop = (index / size) * scroller.scrollHeight - scroller.clientHeight / 2;
+}
+
+function scrollParent(element) {
+  for (let node = element; node; node = node.parentElement) {
+    const overflow = getComputedStyle(node).overflowY;
+    if ((overflow === 'auto' || overflow === 'scroll') && node.scrollHeight > node.clientHeight) return node;
+  }
+  return null;
+}
+
+/** 列表获得焦点、下拉打开时：高亮第一个已选的可用项，没有就第一个可用项。 */
+export function highlightDefault(host, list) {
+  const table = optionTable(list);
+  // 虚拟滚动时已选项可能没渲染：C# 把它的序号写在 data-rune-selected 上
+  const attribute = list.getAttribute('data-rune-selected');
+  const selected = attribute !== null
+    ? Number(attribute)
+    : [...list.querySelectorAll('[role="option"][aria-selected="true"]')].map(indexOfOption).find((index) => !table[index]?.disabled) ?? -1;
+  highlight(host, list, selected >= 0 ? selected : table.findIndex((option) => !option.disabled), true);
+}
+
+export function moveInList(host, event) {
+  if (event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+  if (host.getAttribute('aria-disabled') === 'true') return;
+  const list = listOf(host);
+  if (!list) return;
+  const flags = (host.getAttribute('data-rune-list') ?? '').split(' ');
+  const table = optionTable(list);
+  // 可用项的序号：方向键、类型搜索都跳过不可用的项
+  const usable = table.flatMap((option, index) => (option.disabled ? [] : [index]));
+  const panel = host.popoverTargetElement;
+  if (panel && !panel.matches(':popover-open')) {
+    keyOnClosedTrigger(host, panel, list, event, flags, usable.map((index) => table[index].label), usable);
+    return;
+  }
+  if (event.key === 'Tab') {
+    // 弹层里不用 Tab 切换：关掉，焦点照常移到下一个
+    list.closest('[popover]')?.hidePopover();
+    return;
+  }
+  const current = usable.indexOf(activeIndex(host, list));
+  const step = listMoves[event.key];
+  // 输入框里 Home / End 移动光标
+  if (step !== undefined && !(flags.includes('text') && typeof step === 'string')) {
+    event.preventDefault();
+    if (usable.length === 0) return;
+    let next;
+    if (step === 'first') next = 0;
+    else if (step === 'last') next = usable.length - 1;
+    else if (current < 0) next = step > 0 ? 0 : usable.length - 1;
+    else next = Math.min(Math.max(current + step, 0), usable.length - 1);
+    highlight(host, list, usable[next], true);
+    return;
+  }
+  if (event.key === 'Enter' || (event.key === ' ' && flags.includes('space'))) {
+    const option = optionAt(list, activeIndex(host, list));
+    // 没有高亮项时 Enter 照常（提交表单），空格不滚动页面
+    if (option || event.key === ' ') event.preventDefault();
+    if (option && option.getAttribute('aria-disabled') !== 'true') option.click();
+    return;
+  }
+  if (!flags.includes('typeahead')) return;
+  const match = typeahead(list, event.key, usable.map((index) => table[index].label), current);
+  if (match < 0) return;
+  event.preventDefault();
+  highlight(host, list, usable[match], true);
+}
+
+// 焦点留在宿主上（列表、触发按钮、输入框）：按下选项不把焦点移走
+export function keepFocusOnListHost(event) {
+  if (event.target instanceof Element && event.target.closest('[role="listbox"] [role="option"]')) event.preventDefault();
+}
+
+export function highlightUnderPointer(event) {
+  const option = event.target instanceof Element ? event.target.closest('[role="option"]') : null;
+  if (!option || option.hasAttribute('data-highlighted') || option.getAttribute('aria-disabled') === 'true') return;
+  const list = option.closest('[role="listbox"]');
+  const host = list && hostOf(list);
+  if (host) highlight(host, list, indexOfOption(option), false);
+}
+
+// 触发按钮（popovertarget 指向弹层的列表宿主）打开弹层；焦点一直在触发按钮上（可搜索时在弹层里的搜索框上），
+// 高亮经 aria-activedescendant 告诉读屏。选中由 C# 处理（点击选项），这里只管开关、高亮与焦点。
+
+// 用 ↑ 打开的触发按钮：打开后高亮最后一项
+const highlightLastOnOpen = new WeakSet();
+
+// 按下时弹层开着的外壳：按下已经把弹层当作点在外面关掉了（popover="auto"），松开后的点击不要再打开
+export const pressedWhileOpen = new WeakSet();
+
+/** 弹层的触发按钮（列表宿主）。 */
+function listTriggerOf(panel) {
+  return panel.id ? document.querySelector(`[data-rune-list][popovertarget="${CSS.escape(panel.id)}"]`) : null;
+}
+
+/** 关闭时在触发按钮上按键：↓ / Enter / 空格打开，↑ 打开并高亮最后一项；单选时按字母直接选中以它开头的项（同原生 select）。 */
+function keyOnClosedTrigger(host, panel, list, event, flags, labels, usable) {
+  if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    panel.showPopover();
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    highlightLastOnOpen.add(host);
+    panel.showPopover();
+  } else if (flags.includes('typeahead') && list.getAttribute('aria-multiselectable') !== 'true') {
+    const selected = list.querySelector('[role="option"][aria-selected="true"]');
+    const match = typeahead(list, event.key, labels, selected ? usable.indexOf(indexOfOption(selected)) : -1);
+    if (match < 0) return;
+    event.preventDefault();
+    const option = optionAt(list, usable[match]);
+    if (option && option.getAttribute('aria-selected') !== 'true') option.click();
+  }
+}
+
+/** 定位好、焦点移进去之后：在当前宿主（搜索框或触发按钮）上高亮已选的项（没有就第一项），用 ↑ 打开时是最后一项。 */
+export function listPopoverOpened(panel) {
+  const trigger = listTriggerOf(panel);
+  const list = panel.querySelector('[role="listbox"]');
+  if (!trigger || !list || !panel.matches(':popover-open')) return;
+  const host = hostOf(list) ?? trigger;
+  if (!highlightLastOnOpen.delete(trigger)) {
+    highlightDefault(host, list);
+    return;
+  }
+  const table = optionTable(list);
+  highlight(host, list, table.findLastIndex((option) => !option.disabled), true);
+}
+
+/** 关闭后：清掉高亮；焦点在弹层里（搜索框，关上后落到 body）时还给触发按钮。 */
+export function listPopoverClosed(panel) {
+  const trigger = listTriggerOf(panel);
+  const list = panel.querySelector('[role="listbox"]');
+  if (!trigger || !list) return;
+  highlightLastOnOpen.delete(trigger);
+  for (const host of [trigger, ...panel.querySelectorAll('[data-rune-list]')]) highlight(host, list, -1, false);
+  const active = document.activeElement;
+  if (!active || active === document.body || panel.contains(active)) trigger.focus();
+}
+
+/** 触发按钮的 aria-expanded、外壳的 data-state 跟着弹层（C# 收到 rune-toggle 后写的是同样的值；静态 SSR 只有这里写）。 */
+export function syncTriggerExpanded(panel, opened) {
+  const trigger = listTriggerOf(panel);
+  if (!trigger) return;
+  trigger.setAttribute('aria-expanded', String(opened));
+  trigger.closest('[data-rune-control]')?.setAttribute('data-state', opened ? 'open' : 'closed');
+}
+
+/** 单选列表在弹层里选中了一项（点击，或 Enter 转成的点击）：关闭弹层。 */
+export function closeAfterPick(target) {
+  const option = target.closest('[role="option"]:not([aria-disabled="true"])');
+  const list = option?.closest('[role="listbox"]');
+  if (!list || list.getAttribute('aria-multiselectable') === 'true') return;
+  const panel = list.closest('[popover]');
+  if (panel?.matches(':popover-open')) panel.hidePopover();
+}
+
+/** 点在下拉外壳的空白处（含已选标签的文字）：与点触发按钮一样切换打开。 */
+export function toggleFromShell(target) {
+  const shell = target.closest('[data-rune-control]');
+  const trigger = shell?.querySelector(':scope > button[role="combobox"][popovertarget]');
+  if (!trigger || trigger.disabled || target.closest('button, a, input')) return;
+  if (pressedWhileOpen.has(shell)) return;
+  trigger.click();
+}
+
+// 搜索词变了（C# 渲染了过滤后的选项）：有词时高亮第一个匹配项，清空时回到默认项；停顿后播报结果数
+const resultTimers = new WeakMap();
+
+const RESULT_ANNOUNCE_DELAY = 500;
+
+export function onQueryChanged(list) {
+  if (!list.closest('[popover]')?.matches(':popover-open')) return;
+  const host = hostOf(list);
+  const query = list.getAttribute('data-rune-query') ?? '';
+  if (host) {
+    if (query) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
+    else highlightDefault(host, list);
+  }
+  clearTimeout(resultTimers.get(list));
+  if (!query) return;
+  resultTimers.set(list, setTimeout(() => {
+    const results = list.getAttribute('data-rune-results');
+    if (results) speak(results);
+  }, RESULT_ANNOUNCE_DELAY));
+}

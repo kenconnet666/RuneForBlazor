@@ -114,7 +114,11 @@
 - **不让下面的组件白白重新渲染**：Provider 的参数没变时给出同一个配置对象；配置是 record，级联参数与普通参数一样比较，没变就跳过。
 - **共用的交互样式**：`SharedStyles.InteractionColors`（悬停、按下时颜色与阴影的过渡）、焦点环、视觉隐藏、色调文字色、波纹宿主；浮层进出场是 `OverlayTransitions`。
 
-## 8. 浮层（`src/Rune.UI/Components/Overlay`、`wwwroot/Rune.UI.lib.module.js`）
+## 8. 浮层（`src/Rune.UI/Components/Overlay`、`wwwroot/Rune.UI.lib.module.js` 与 `wwwroot/js/`）
+
+- **JS 的组织**：入口 `Rune.UI.lib.module.js` 只负责安装（注册自定义事件、全局事件委托、DOM 变化监听）与分发，按职责分到 `wwwroot/js/` 的模块：
+  overlays、floating、lists、tooltips、overflow、controls、effects、layout、shared。模块用相对路径互相 import（浏览器原生 ES 模块，不打包）；
+  入口顶部的注释是全部 data 属性约定的总表，新增约定写在那里。
 
 - **尽量用浏览器原生**：弹出层是 `popover="auto"`（顶层、点外面与 Esc 关闭、同时只开一个、`popovertarget` 打开），对话框与抽屉是模态 `<dialog>`
   （焦点圈在里面、Esc 关闭、关闭后焦点还给触发元素），进出场用 `@starting-style` 加 display / overlay 的离散过渡（`When.Starting`），关闭动画不需要 JS 等待。
