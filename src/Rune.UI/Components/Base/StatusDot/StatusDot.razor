@@ -1,0 +1,38 @@
+@*
+    状态色点（span，同 vue-tsx-pro 的 StatusDot）：一个小圆点标出状态或类别（未读、新到、退回、图例），比 Badge 更轻。
+    <StatusDot Tone="Tone.Danger" />                         装饰：对读屏隐藏，含义写在旁边的文字里
+    <StatusDot Tone="Tone.Accent" Label="未读" />             点本身就是信息：读屏念 Label
+    色调与 Badge 同名（Neutral 是次要文字色）；Color 给任意 CSS 颜色（图表的系列色）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<span data-tone="@(Color is null ? Tone.ToString().ToLowerInvariant() : null)"
+      @attributes="Attrs.Merge(StatusDotStyles.Of(Size, Color is null ? Tone : null, Config.Styles)[StatusDotPart.Root], Rest, Managed)"></span>
+
+@code {
+    static readonly Attrs Decorative = new() { AriaHidden = true };
+
+    Memo<(string? Label, string? Color), Attrs> managed;
+
+    /// <summary>色调，默认品牌色。</summary>
+    [Parameter] public Tone Tone { get; set; } = Tone.Accent;
+
+    /// <summary>任意 CSS 颜色；写了时不看 Tone。</summary>
+    [Parameter] public CssColor? Color { get; set; }
+
+    /// <summary>大小，默认 Sm（列表、通知）；Md 用于图例。</summary>
+    [Parameter] public StatusDotSize Size { get; set; }
+
+    /// <summary>读屏念的含义；不写时色点只是装饰（aria-hidden）。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    // 有含义时是一张图，否则对读屏隐藏；任意颜色经变量写在元素上（类不随颜色变）
+    Attrs Managed => Label is null && Color is null ? Decorative : managed.Get((Label, Color?.ToString()), static k => new Attrs
+    {
+        Role = k.Label is null ? null : "img",
+        ["aria-label"] = k.Label,
+        AriaHidden = k.Label is null ? true : null,
+        Vars = k.Color is null ? [] : [StatusDotStyles.CustomColor.Set(k.Color)],
+    });
+}

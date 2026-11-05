@@ -1,0 +1,176 @@
+@*
+    进度（role="progressbar"，同 vue-tsx-pro 的 Progress）：条形（默认）或环形。有 Value 时显示完成比例；没有（null）时是不确定进度，循环动画。
+    名称写 Label（条形显示在上方、环形显示在下方）或 aria-label（读屏要知道是什么的进度）。
+    条形有 Label 时右侧默认显示数值，环形中间显示数值（按语言格式化的百分比，ValueLabel 可以换成自己的文字）。
+    Target 是目标值：条上画一条竖线、环上画一道刻度，读屏念成“60%，目标 80%”。
+    <Progress Value="uploaded" Max="total" Label="上传" ValueLabel="@($"{uploaded} / {total}")" />
+    <Progress Value="60" aria-label="上传进度" />                只有进度条
+    <Progress aria-label="正在加载" />                            不确定进度
+    <Progress Shape="ProgressShape.Circle" Value="72" Target="80" Label="本月销售完成率" />
+    使用方写的属性落在 progressbar 上；有标签时外层用 PropsRoot。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using System.Globalization
+@{
+    var defaults = Config.Defaults.Get<ProgressDefaults>();
+    var tone = Tone ?? defaults?.Tone ?? UI.Tone.Accent;
+    var size = Size ?? defaults?.Size;
+    var radius = Radius ?? defaults?.Radius ?? UI.Radius.Full;
+    var determinate = Value is not null;
+    var parts = ProgressStyles.Of(new ProgressAppearance(Shape, tone, !determinate), Config.Styles);
+    var clamped = Math.Clamp(Value ?? 0, 0, Math.Max(Max, 0));
+    var percent = PercentOf(clamped);
+    double? targetPercent = Target is { } target ? PercentOf(Math.Clamp(target, 0, Math.Max(Max, 0))) : null;
+    var circle = Shape == ProgressShape.Circle;
+    var showValue = determinate && (ShowValueLabel ?? (circle || Label is not null || ValueLabel is not null));
+    var header = !circle && (Label is not null || showValue);
+    var wrapped = header || (circle && Label is not null);
+    var shownValue = ValueLabel ?? PercentText(percent);
+    var spoken = determinate ? ValueText?.Invoke(clamped, Max) ?? PercentText(percent) : null;
+    var progressbar = new Attrs
+    {
+        Role = "progressbar",
+        ["aria-valuemin"] = "0",
+        ["aria-valuemax"] = Max.ToString(CultureInfo.InvariantCulture),
+        ["aria-valuenow"] = determinate ? clamped.ToString(CultureInfo.InvariantCulture) : null,
+        ["aria-valuetext"] = spoken is not null && targetPercent is { } t ? $"{spoken}，{Config.Lang.ProgressTarget(PercentText(t))}" : spoken,
+        AriaLabelledBy = Label is not null ? labelId : null,
+        ["data-state"] = !determinate ? "indeterminate" : clamped >= Max ? "complete" : "loading",
+        Sx = !wrapped && size is { } barSize ? Sx.Of(ScaleStyles.FontSize(barSize)) : null,
+    };
+}
+
+@if (wrapped)
+{
+    <div @attributes="Attrs.Merge(parts[ProgressPart.Root], PropsRoot, size is { } s ? new Attrs { Sx = ScaleStyles.FontSize(s) } : null)">
+        @if (circle)
+        {
+            @Ring(parts, progressbar, determinate, percent, targetPercent, radius, showValue, shownValue)
+            <TextSpan Tone="TextTone.Muted" id="@labelId" @attributes="Attrs.MergeProps(parts[ProgressPart.Label], PropsLabel)">@Label</TextSpan>
+        }
+        else
+        {
+            <div @attributes="Attrs.Merge(parts[ProgressPart.Header], PropsHeader)">
+                @if (Label is not null)
+                {
+                    <TextSpan id="@labelId" @attributes="Attrs.MergeProps(parts[ProgressPart.Label], PropsLabel)">@Label</TextSpan>
+                }
+                @if (showValue)
+                {
+                    @* 读屏从进度条的 aria-valuetext 得知数值，这里不重复念 *@
+                    <TextSpan Tone="TextTone.Muted" aria-hidden="true" @attributes="Attrs.MergeProps(parts[ProgressPart.ValueLabel], PropsValueLabel)">@shownValue</TextSpan>
+                }
+            </div>
+            @Bar(parts, progressbar, determinate, percent, targetPercent, radius)
+        }
+    </div>
+}
+else if (circle)
+{
+    @Ring(parts, progressbar, determinate, percent, targetPercent, radius, showValue, shownValue)
+}
+else
+{
+    @Bar(parts, progressbar, determinate, percent, targetPercent, radius)
+}
+
+@code {
+    // 环形的几何：viewBox 100 × 100，线宽 10
+    const double RingStroke = 10;
+    const double RingRadius = 45;
+    static readonly double Circumference = 2 * Math.PI * RingRadius;
+
+    readonly string labelId = UniqueId.Next("progress-label");
+
+    /// <summary>当前值；不写（null）时为不确定进度。</summary>
+    [Parameter] public decimal? Value { get; set; }
+
+    /// <summary>最大值，默认 100。</summary>
+    [Parameter] public decimal Max { get; set; } = 100;
+
+    /// <summary>形状，默认条形。</summary>
+    [Parameter] public ProgressShape Shape { get; set; }
+
+    /// <summary>目标值（与 Value 同一单位）：条上画竖线、环上画刻度，读屏念在进度后面。</summary>
+    [Parameter] public decimal? Target { get; set; }
+
+    /// <summary>色调，默认品牌色。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>字号档位：进度条的粗细、环的直径随之缩放；不写时继承。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认全圆。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    /// <summary>读屏念的取值文字，如 <c>(value, max) => $"已上传 {value} / {max} 个文件"</c>；默认是百分比。</summary>
+    [Parameter] public Func<decimal, decimal, string>? ValueText { get; set; }
+
+    /// <summary>标签：同时是进度条的名称（aria-labelledby），不用再写 aria-label。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>显示数值；有 Label 或 ValueLabel 时（环形总是）默认显示，不确定进度时不显示。</summary>
+    [Parameter] public bool? ShowValueLabel { get; set; }
+
+    /// <summary>数值文字，替换默认的百分比：<c>"38.6 / 50 GB"</c>（只是显示，读屏念的是 ValueText）。</summary>
+    [Parameter] public string? ValueLabel { get; set; }
+
+    /// <summary>条形进度（着色部分）的部件属性。</summary>
+    [Parameter] public Attrs? PropsIndicator { get; set; }
+
+    /// <summary>外层（标签行与进度条）的部件属性；只在有标签时渲染。</summary>
+    [Parameter] public Attrs? PropsRoot { get; set; }
+
+    /// <summary>标签行的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>标签的部件属性（交给 TextSpan）。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>数值文字的部件属性（交给 TextSpan，可以改 Tone）。</summary>
+    [Parameter] public Attrs? PropsValueLabel { get; set; }
+
+    double PercentOf(decimal value) => Max <= 0 ? 0 : (double)Math.Clamp(value / Max * 100, 0, 100);
+
+    static string PercentText(double percent) => (percent / 100).ToString("P0", CultureInfo.CurrentCulture);
+
+    static string Number(double value) => Math.Round(value, 3).ToString(CultureInfo.InvariantCulture);
+
+    static CssLength PercentLength(double percent) => $"{Number(percent)}%";
+
+    RenderFragment Bar(PartLayers<ProgressPart> parts, Attrs progressbar, bool determinate, double percent, double? targetPercent, Radius radius) =>
+        @<div @attributes="Attrs.Merge(parts[ProgressPart.Track], Rest, Attrs.Layer(progressbar, new Attrs { Sx = ScaleStyles.Radius(radius) }))">
+            <div @attributes="Attrs.Merge(parts[ProgressPart.Indicator], PropsIndicator, determinate ? new Attrs { Vars = [ProgressStyles.Value.Set(PercentLength(percent))] } : null)"></div>
+            @if (targetPercent is { } target)
+            {
+                <div aria-hidden="true" @attributes="Attrs.Merge(parts[ProgressPart.Target], null, new Attrs { Vars = [ProgressStyles.TargetAt.Set(PercentLength(target))] })"></div>
+            }
+        </div>;
+
+    RenderFragment Ring(PartLayers<ProgressPart> parts, Attrs progressbar, bool determinate, double percent, double? targetPercent, Radius radius, bool showValue, string shownValue)
+    {
+        // 目标刻度：从轨道外缘到内缘的一道线，按比例转到对应角度（SVG 整体转了 -90°，0 在正上方）
+        var angle = (targetPercent ?? 0) / 100 * 2 * Math.PI;
+        string X(double distance) => Number(50 + distance * Math.Cos(angle));
+        string Y(double distance) => Number(50 + distance * Math.Sin(angle));
+        var outer = RingRadius + RingStroke / 2 + 2;
+        var inner = RingRadius - RingStroke / 2 - 2;
+        var offset = determinate ? Circumference * (1 - percent / 100) : Circumference * 0.75;
+        return @<div @attributes="Attrs.Merge(parts[ProgressPart.Circle], Rest, progressbar)">
+            <svg viewBox="0 0 100 100" aria-hidden="true" @attributes="Attrs.Merge(parts[ProgressPart.CircleSvg])">
+                <circle cx="50" cy="50" r="@Number(RingRadius)" stroke-width="@Number(RingStroke)" @attributes="Attrs.Merge(parts[ProgressPart.CircleTrack])" />
+                <circle cx="50" cy="50" r="@Number(RingRadius)" stroke-width="@Number(RingStroke)" stroke-linecap="@(radius == UI.Radius.None ? "butt" : "round")"
+                        stroke-dasharray="@Number(Circumference)" stroke-dashoffset="@Number(offset)" @attributes="Attrs.Merge(parts[ProgressPart.CircleIndicator])" />
+                @if (targetPercent is not null)
+                {
+                    <line x1="@X(outer)" y1="@Y(outer)" x2="@X(inner)" y2="@Y(inner)" stroke-width="2.5" @attributes="Attrs.Merge(parts[ProgressPart.CircleTarget])" />
+                }
+            </svg>
+            @if (showValue)
+            {
+                <TextSpan aria-hidden="true" @attributes="Attrs.MergeProps(parts[ProgressPart.ValueLabel], PropsValueLabel)">@shownValue</TextSpan>
+            }
+        </div>;
+    }
+}

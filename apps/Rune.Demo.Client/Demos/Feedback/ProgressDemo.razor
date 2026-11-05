@@ -1,0 +1,137 @@
+@*
+    进度：示例与 vue-tsx-pro 文档站的 /components/progress 对应。“加载遮罩”（LoadingOverlay）做好后补上。
+*@
+@attribute [ComponentDemo("progress", "进度", Group = "反馈", Order = 3)]
+@inherits RuneComponent
+
+<DemoSection Id="progress" Title="进度条">
+    <Description><Code>Value</Code> 与 <Code>Max</Code>（默认 100）算完成比例，超出时夹住；<Code>Tone</Code> 表示状态。<Code>Label</Code> 显示在上方，同时是进度条的名称；右侧默认是按语言格式化的百分比，<Code>ValueLabel</Code> 换成自己的文字（只是显示），读屏念的用 <Code>ValueText</Code> 改，<Code>ShowValueLabel="false"</Code> 不显示。</Description>
+    <ChildContent>
+        <Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <Strong>套餐用量</Strong>
+                @foreach (var (name, used, total, unit) in quotas)
+                {
+                    <Progress @key="name" Value="used" Max="total" Tone="ToneOf(used / total)" Label="@name"
+                              ValueLabel="@($"{used:#,0.#} / {total:#,0} {unit}")" ValueText="@((value, max) => $"{value} / {max} {unit}")"
+                              PropsValueLabel="@(used > total ? Over : null)" data-testid="@name" />
+                }
+                <Progress Value="64" Label="资料完善度" />
+                @* 只要标签、不要右侧的数值 *@
+                <Progress Value="3" Max="5" Label="新手任务" ShowValueLabel="false" Tone="Tone.Success" />
+            </Flex>
+        </Card>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="shapes" Title="粗细与不确定进度">
+    <Description><Code>Size</Code> 跟字号档位缩放粗细，<Code>Radius</Code> 改圆角；不写 <Code>Value</Code> 是不确定进度，循环滑动，减少动态效果时变慢。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            @foreach (var size in sizes)
+            {
+                <Flex @key="size" Align="ItemAlign.Center" Gap="SpaceScale.Md">
+                    <Small Tone="TextTone.Muted">@size.ToString().ToLowerInvariant()</Small>
+                    <Progress Value="62" Size="size" Radius="@(size == Size.Lg ? Radius.Sm : Radius.Full)" aria-label="@($"粗细 {size.ToString().ToLowerInvariant()}")" />
+                </Flex>
+            }
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <Spinner Size="Size.Sm" />
+                    <TextSpan Size="Size.Sm">正在连接服务器…（不确定进度：不写 Value）</TextSpan>
+                </Flex>
+                <Progress aria-label="正在连接服务器" />
+            </Flex>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between">
+                    <TextSpan Size="Size.Sm">已上传 @uploaded / 8 个文件</TextSpan>
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Disabled="uploaded >= 8" @onclick="() => uploaded++">再传一个</Button>
+                </Flex>
+                <Progress Value="uploaded" Max="8" Tone="@(uploaded >= 8 ? Tone.Success : Tone.Accent)" aria-label="上传进度"
+                          ValueText="@((value, _) => $"已上传 {value} 个文件，共 8 个")" data-testid="upload" />
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="rings" Title="环形与目标">
+    <Description><Code>ProgressShape.Circle</Code> 是环形：中间显示数值，<Code>Label</Code> 在下方，直径随 <Code>Size</Code> 缩放，适合仪表盘与卡片里的完成率；不写 <Code>Value</Code> 时一段弧一直转。<Code>Target</Code> 是目标值：条上画一条竖线、环上画一道刻度，读屏念成“60%，目标 80%”。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Grid MinItemWidth="@CssLength.Rem(9)" Gap="SpaceScale.Md">
+                @foreach (var (name, done, target, tone) in plants)
+                {
+                    <Card @key="name">
+                        <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                            <Progress Shape="ProgressShape.Circle" Size="Size.Lg" Value="done" Target="target" Tone="tone" Label="@($"{name} 产量完成率")" />
+                            <Small Tone="TextTone.Muted">目标 @target%</Small>
+                        </Flex>
+                    </Card>
+                }
+            </Grid>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <Progress Value="6.4m" Max="10" Target="8" Label="年度产量（万件）" ValueLabel="6.4 / 10" data-testid="yearly" />
+                <Progress Value="92" Target="85" Tone="Tone.Success" Label="交付准时率" />
+            </Flex>
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md">
+                <Progress Shape="ProgressShape.Circle" Size="Size.Sm" aria-label="正在同步" />
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">不确定进度：弧线一直转</TextSpan>
+                <Progress Shape="ProgressShape.Circle" Value="100" Size="Size.Sm" Tone="Tone.Success" aria-label="已完成" />
+            </Flex>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="spinner" Title="旋转指示">
+    <Description><Code>Spinner</Code> 默认跟随所在文字的大小与颜色，旁边有文字时是装饰；单独出现时写 <Code>Label</Code>（role="status"）。按钮的加载用 Button 的 <Code>Loading</Code>。</Description>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Lg" Wrap="true">
+                @foreach (var size in spinnerSizes)
+                {
+                    <Spinner @key="size" Size="size" />
+                }
+                <TextSpan Tone="TextTone.Accent"><Spinner /> 跟随文字颜色</TextSpan>
+                <TextSpan Tone="TextTone.Success" Size="Size.Sm"><Spinner /> 同步中</TextSpan>
+            </Flex>
+            <Card>
+                <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+                    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                        @* 单独出现、旁边没有文字时写 Label：role="status"，读屏会念出来 *@
+                        <Spinner Label="正在生成报表" />
+                        <Small Tone="TextTone.Muted">正在生成报表，大约需要 30 秒</Small>
+                    </Flex>
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Ghost">取消</Button>
+                </Flex>
+            </Card>
+        </Flex>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    static readonly (string Name, decimal Used, decimal Total, string Unit)[] quotas =
+    [
+        ("存储空间", 38.6m, 50, "GB"),
+        ("本月流量", 912, 1000, "GB"),
+        ("团队成员", 7, 20, "人"),
+        ("API 调用", 120_000, 100_000, "次"),
+    ];
+
+    static readonly (string Name, decimal Done, decimal Target, Tone Tone)[] plants =
+    [
+        ("一车间", 86, 80, Tone.Success),
+        ("二车间", 64, 80, Tone.Warning),
+        ("三车间", 38, 75, Tone.Danger),
+    ];
+
+    static readonly Size[] sizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg];
+    static readonly Size[] spinnerSizes = [Size.Xs, Size.Sm, Size.Md, Size.Lg, Size.Xl];
+
+    // 超出用量时数值标红（交给 TextSpan 的 Tone 参数）
+    static readonly Attrs Over = new() { ["Tone"] = TextTone.Danger };
+
+    int uploaded = 3;
+
+    // 用量越接近上限越醒目：80% 以上警告，超出为危险
+    static Tone ToneOf(decimal ratio) => ratio > 1 ? Tone.Danger : ratio >= 0.8m ? Tone.Warning : Tone.Accent;
+}
