@@ -1,0 +1,77 @@
+@*
+    滚动区域（同 vue-tsx-pro 的 ScrollArea，参考 Radix）：浮层滚动条。滚动仍是浏览器原生的（触控板惯性、键盘、页内查找、无障碍都不变），
+    只把原生滚动条藏起来，换成半透明、绝对定位浮在内容上的滚动条：出现、消失都不占位，不改变布局尺寸。
+    <ScrollArea Sx="panel">…</ScrollArea>                                    高度（或最大高度）由使用方给
+    <ScrollArea Axis="ScrollAxis.Both" Visibility="ScrollbarVisibility.Always">…</ScrollArea>
+    滑块的大小与位置、显示与淡出、拖动滑块、点轨道翻页、滚轮转交给视口都在 JS 初始化器里（data-rune-scroll-area），没有往返，静态 SSR 也一样。
+    滚动条对读屏隐藏（滚动由视口本身承担）；内容超出时视口可以用 Tab 聚焦（键盘滚动）。
+    使用方写的属性落在外层（决定尺寸的那一层）；视口的属性（role、aria-label……）用 PropsViewport：列表框、菜单就是视口本身。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = ScrollAreaStyles.Of(Axis, Config.Styles); }
+
+<div @attributes="Attrs.Merge(parts[ScrollAreaPart.Root], Rest, RootManaged)">
+    <div @attributes="Attrs.Merge(parts[ScrollAreaPart.Viewport], PropsViewport, ViewportMarker)">
+        <div @attributes="Attrs.Merge(parts[ScrollAreaPart.Content], PropsContent)">@ChildContent</div>
+    </div>
+    @if (Axis != ScrollAxis.X)
+    {
+        @Bar(parts, vertical: true)
+    }
+    @if (Axis != ScrollAxis.Y)
+    {
+        @Bar(parts, vertical: false)
+    }
+</div>
+
+@code {
+    static readonly Attrs ViewportMarker = new() { ["data-rune-scroll-viewport"] = true };
+
+    Memo<(ScrollbarVisibility Visibility, int HideDelay, bool Focusable), Attrs> rootManaged;
+
+    /// <summary>可以滚动的方向，默认纵向。</summary>
+    [Parameter] public ScrollAxis Axis { get; set; }
+
+    /// <summary>滚动条什么时候显示，默认指针在上方或正在滚动时。</summary>
+    [Parameter] public ScrollbarVisibility Visibility { get; set; }
+
+    /// <summary>停止滚动、指针离开后多久淡出（毫秒），默认 600。</summary>
+    [Parameter] public int HideDelay { get; set; } = 600;
+
+    /// <summary>
+    /// 内容超出时视口可以用 Tab 聚焦（键盘滚动），默认 true。视口本身另有角色并自己管焦点（列表框、菜单），
+    /// 或焦点在别处、由那里控制滚动时关掉。
+    /// </summary>
+    [Parameter] public bool Focusable { get; set; } = true;
+
+    /// <summary>视口（真正滚动的元素）的部件属性。</summary>
+    [Parameter] public Attrs? PropsViewport { get; set; }
+
+    /// <summary>内容层的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>滚动条轨道的部件属性，两个方向都用它（data-axis 区分 x、y）。</summary>
+    [Parameter] public Attrs? PropsScrollbar { get; set; }
+
+    /// <summary>滑块的部件属性；大小与位置由 JS 写在行内样式上。</summary>
+    [Parameter] public Attrs? PropsThumb { get; set; }
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 交给 JS 的显示方式与是否让视口进 Tab 顺序
+    Attrs RootManaged => rootManaged.Get((Visibility, HideDelay, Focusable), static k => new Attrs
+    {
+        ["data-rune-scroll-area"] = true,
+        ["data-visibility"] = k.Visibility switch { ScrollbarVisibility.Scroll => "scroll", ScrollbarVisibility.Always => "always", _ => "hover" },
+        ["data-hide-delay"] = k.HideDelay.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        ["data-focusable"] = k.Focusable ? true : null,
+    });
+
+    RenderFragment Bar(PartLayers<ScrollAreaPart> parts, bool vertical) =>
+        @<div aria-hidden="true" data-rune-scrollbar data-axis="@(vertical ? "y" : "x")"
+              @attributes="Attrs.Merge(parts[ScrollAreaPart.Scrollbar], PropsScrollbar, ScrollAreaStyles.Bar(vertical, Axis == ScrollAxis.Both))">
+            <div @attributes="Attrs.Merge(parts[ScrollAreaPart.Thumb], PropsThumb, ScrollAreaStyles.ThumbOn(vertical))"></div>
+        </div>;
+}

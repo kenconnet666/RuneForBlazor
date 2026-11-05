@@ -127,6 +127,24 @@ public static class FloatingStyles
     /// <summary>箭头元素的默认层。</summary>
     internal static readonly Attrs ArrowLayer = new() { Sx = Arrow };
 
+    /// <summary>
+    /// 内容会滚动的浮层（选项列表、菜单）：打开时是竖向 flex、裁掉溢出，里面放 ScrollArea（<see cref="ScrollArea"/>）撑满，
+    /// 滚动条是浮层的；关闭时仍由浏览器隐藏（只在 :popover-open 时改 display）。去掉原生 popover 的内边距：滚动条贴着浮层边缘，内边距由里面的内容层给。
+    /// </summary>
+    public static Style ScrollPanel => Css.Define(static () => new Style
+    {
+        FlexDirection = FlexDirection.Column,
+        Overflow = Overflow.Hidden,
+        Padding = 0,
+        [When.PopoverOpen] = new() { Display = Display.Flex },
+    });
+
+    /// <summary>ScrollPanel 里的滚动区域：占满剩下的高度（最大高度由 JS 按视口剩下的空间写在浮层上）。</summary>
+    public static Style ScrollArea => Css.Define(static () => new Style { FlexGrow = 1, MinHeight = 0 });
+
+    /// <summary>滚动区域的视口：滚到头时滚动不传给页面。</summary>
+    internal static readonly Attrs ContainedViewport = new() { Sx = Css.Define(static () => new Style { OverscrollBehavior = OverscrollBehavior.Contain }) };
+
     /// <summary>有箭头的浮层：原生 popover 默认 overflow: auto 会把伸出去的箭头裁掉。</summary>
     public static Style WithArrow => Css.Define(static () => new Style { Overflow = Overflow.Visible });
 }

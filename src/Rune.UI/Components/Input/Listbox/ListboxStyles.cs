@@ -51,11 +51,10 @@ public static class ListboxStyles
         OutlineStyle = OutlineStyle.None,
     });
 
-    // 自己是滚动容器时：限制高度，滚动不传给页面
+    // 自己滚动时（列表是 ScrollArea 的视口）：限制高度，滚动不传给页面
     static Style Scroll => Css.Define(static () => new Style
     {
         MaxHeight = CssLength.Em(20),
-        OverflowY = Overflow.Auto,
         OverscrollBehavior = OverscrollBehavior.Contain,
     });
 

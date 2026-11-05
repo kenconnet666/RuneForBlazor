@@ -28,21 +28,14 @@ public static class ListPopoverStyles
                 FloatingStyles.Surface,
                 size is { } s ? ScaleStyles.FontSize(s) : null,
                 OverlayTransitions.Scale,
+                FloatingStyles.ScrollPanel,
                 Panel),
             ListPopoverPart.Header => Header,
-            _ => Body,
+            _ => FloatingStyles.ScrollArea,
         });
 
-    // 打开时是竖向 flex、裁掉溢出：头部固定，下面那层滚动（最大高度由 JS 按视口剩下的空间写在浮层上）；
-    // 关闭时仍由浏览器隐藏（只在 :popover-open 时改 display）。去掉原生 popover 的内边距，滚动条贴着浮层边缘
-    static Style Panel => Css.Define(static () => new Style
-    {
-        FlexDirection = FlexDirection.Column,
-        MaxWidth = "calc(100vw - 2em)",
-        Padding = 0,
-        Overflow = Overflow.Hidden,
-        [When.PopoverOpen] = new() { Display = Display.Flex },
-    });
+    // 头部固定，下面的滚动区域撑满（FloatingStyles.ScrollPanel）
+    static Style Panel => Css.Define(static () => new Style { MaxWidth = "calc(100vw - 2em)" });
 
     static Style Header => Css.Define(static () => new Style
     {
@@ -53,12 +46,4 @@ public static class ListPopoverStyles
         BorderBlockEndColor = Colors.BorderMuted,
     });
 
-    // 阶段 7 有 ScrollArea（浮层滚动条）后换成它
-    static Style Body => Css.Define(static () => new Style
-    {
-        FlexGrow = 1,
-        MinHeight = 0,
-        OverflowY = Overflow.Auto,
-        OverscrollBehavior = OverscrollBehavior.Contain,
-    });
 }

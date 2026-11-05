@@ -1,0 +1,208 @@
+@*
+    滚动区域：示例与 vue-tsx-pro 文档站的 /components/scroll-area 对应。收件箱的头像暂用缩写的替身（Avatar 随后做）。
+*@
+@attribute [ComponentDemo("scroll-area", "滚动区域", Group = "布局", Order = 2)]
+@inherits RuneComponent
+
+<DemoSection Id="vertical" Title="纵向滚动">
+    <Description>高度（或最大高度）由 <Code>Sx</Code> 给。视口可以用 Tab 聚焦、用方向键滚动，名称写在 <Code>PropsViewport</Code> 上；滚动条对读屏隐藏。</Description>
+    <ChildContent>
+        <Card Padding="SpaceScale.None">
+            <ScrollArea Sx="InboxArea" PropsViewport="InboxViewport" data-testid="inbox">
+                <FlexList Direction="LayoutDirection.Column">
+                    @foreach (var message in messages)
+                    {
+                        <li @key="message.Id">
+                            <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Sx="Item">
+                                <span aria-hidden="true" @attributes="Attrs.Merge(Initials)">@message.Sender[..1]</span>
+                                <Flex Direction="LayoutDirection.Column" Grow="true" Sx="Shrinkable">
+                                    <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                                        <Strong>@message.Sender</Strong>
+                                        <Small Tone="TextTone.Muted">@message.Time</Small>
+                                    </Flex>
+                                    <TextSpan Size="Size.Sm" Tone="TextTone.Muted" Truncate="true">@message.Subject</TextSpan>
+                                </Flex>
+                            </Flex>
+                        </li>
+                    }
+                </FlexList>
+            </ScrollArea>
+        </Card>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="horizontal" Title="横向滚动">
+    <Description><Code>ScrollAxis.X</Code> 横向滚动，纵向超出的裁掉。滚动条浮在内容上，底部留出一点空，免得盖住卡片。</Description>
+    <ChildContent>
+        <ScrollArea Axis="ScrollAxis.X" Visibility="ScrollbarVisibility.Always" PropsViewport="PlaylistViewport">
+            <FlexList Gap="SpaceScale.Md" Sx="Padded">
+                @foreach (var (name, count, hue) in playlists)
+                {
+                    <li @key="name" @attributes="Attrs.Merge(PlaylistItem)">
+                        <Card Padding="SpaceScale.Sm">
+                            <div style="@Cover(hue)" @attributes="Attrs.Merge(CoverShape)"></div>
+                            <Flex Direction="LayoutDirection.Column">
+                                <Strong>@name</Strong>
+                                <Small Tone="TextTone.Muted">@count 首</Small>
+                            </Flex>
+                        </Card>
+                    </li>
+                }
+            </FlexList>
+        </ScrollArea>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="both" Title="两个方向">
+    <Description><Code>ScrollAxis.Both</Code>：宽表格、电子表格。表头和行号用 position: sticky 固定，在原生滚动里照常生效。</Description>
+    <ChildContent>
+        <Card Padding="SpaceScale.None">
+            <ScrollArea Axis="ScrollAxis.Both" Sx="SheetArea" PropsViewport="SheetViewport">
+                <table @attributes="Attrs.Merge(SheetTable)">
+                    <thead>
+                        <tr>
+                            <th @attributes="Attrs.Merge(CornerCell)"><VisuallyHidden>行号</VisuallyHidden></th>
+                            @foreach (var column in columns)
+                            {
+                                <th @key="column" scope="col" @attributes="Attrs.Merge(HeadCell)">@column</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in rows)
+                        {
+                            <tr @key="row">
+                                <th scope="row" @attributes="Attrs.Merge(RowHeadCell)">@row</th>
+                                @for (var index = 0; index < columns.Length; index++)
+                                {
+                                    <td @attributes="Attrs.Merge(Cell)">@CellValue(row, index).ToString("0.00")</td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </ScrollArea>
+        </Card>
+    </ChildContent>
+</DemoSection>
+
+<DemoSection Id="types" Title="什么时候显示滚动条">
+    <Description><Code>Visibility</Code> 三种显示时机；淡出前的停留时间是 <Code>HideDelay</Code>。整页的滚动条用 PageScrollbar（随 AppShell 做）。</Description>
+    <ChildContent>
+        <Grid MinItemWidth="@CssLength.Rem(10)" Gap="SpaceScale.Md">
+            @foreach (var (visibility, name, description) in visibilities)
+            {
+                <Card @key="name" Padding="SpaceScale.Sm">
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                        <Code>Visibility.@name</Code>
+                        <Small Tone="TextTone.Muted">@description</Small>
+                        <ScrollArea Visibility="visibility" Sx="TypeArea" PropsViewport="@(new Attrs { ["aria-label"] = name })">
+                            <Paragraph Size="Size.Sm" Sx="TypeContent">@Text@Text</Paragraph>
+                        </ScrollArea>
+                    </Flex>
+                </Card>
+            }
+        </Grid>
+    </ChildContent>
+</DemoSection>
+
+@code {
+    sealed record Message(int Id, string Sender, string Subject, string Time);
+
+    static readonly string[] senders = ["林小满", "周一航", "陈默", "许悠", "王晴", "赵浩然", "孙思远", "李雨桐"];
+    static readonly string[] subjects =
+    [
+        "首页改版的设计稿更新了，麻烦看一下",
+        "下周一的评审会改到下午三点",
+        "发票已经寄出，单号见附件",
+        "接口文档补好了，有问题随时找我",
+        "团建报名今天截止",
+        "服务器续费提醒",
+    ];
+    static readonly Message[] messages = [.. Enumerable.Range(0, 24).Select(i =>
+        new Message(i, senders[i % senders.Length], subjects[i % subjects.Length], $"{18 - i / 3:00}:{i * 17 % 60:00}"))];
+
+    static readonly (string Name, int Count, int Hue)[] playlists =
+    [
+        ("通勤路上", 32, 210), ("深夜写代码", 48, 265), ("周末早午餐", 21, 30), ("跑步节拍", 40, 0),
+        ("雨天爵士", 27, 230), ("专注白噪音", 12, 160), ("九十年代华语", 55, 340), ("电影原声", 36, 290),
+    ];
+
+    static readonly string[] columns = [.. Enumerable.Range(0, 14).Select(i => ((char)('A' + i)).ToString())];
+    static readonly int[] rows = [.. Enumerable.Range(1, 30)];
+
+    static readonly (ScrollbarVisibility Visibility, string Name, string Description)[] visibilities =
+    [
+        (ScrollbarVisibility.Hover, "Hover", "指针在上面或正在滚动时显示（默认）"),
+        (ScrollbarVisibility.Scroll, "Scroll", "只在滚动时显示，停下后淡出"),
+        (ScrollbarVisibility.Always, "Always", "内容超出时一直显示"),
+    ];
+
+    const string Text = "滚动仍是浏览器原生的：触控板惯性、键盘、页内搜索、读屏都不变。只是把原生滚动条藏起来，换成半透明、浮在内容上方的滚动条，出现和消失都不占位，内容不会因此左右跳动。滚动条可以拖动，点击轨道翻一页。";
+
+    static readonly Attrs InboxViewport = new() { ["aria-label"] = "收件箱" };
+    static readonly Attrs PlaylistViewport = new() { ["aria-label"] = "推荐歌单" };
+    static readonly Attrs SheetViewport = new() { ["aria-label"] = "销售明细表" };
+
+    static double CellValue(int row, int column) => (row * 7919 + column * 104_729) % 100_000 / 100.0;
+
+    // 封面色由每张歌单的色相决定
+    static string Cover(int hue) => $"background-image:linear-gradient(135deg, oklch(70% 0.14 {hue}), oklch(45% 0.12 {hue + 40}))";
+
+    static readonly Attrs Initials = new() { Sx = DemoStyles.Initials };
+    static readonly Attrs PlaylistItem = new() { Sx = PlaylistItemStyle };
+    static readonly Attrs CoverShape = new() { Sx = CoverStyle };
+    static readonly Attrs SheetTable = new() { Sx = TableStyle };
+    static readonly Attrs HeadCell = new() { Sx = Sx.Of(CellStyle, HeadStyle) };
+    static readonly Attrs RowHeadCell = new() { Sx = Sx.Of(CellStyle, HeadStyle, RowHeadStyle) };
+    static readonly Attrs CornerCell = new() { Sx = Sx.Of(CellStyle, HeadStyle, RowHeadStyle, CornerStyle) };
+    static readonly Attrs Cell = new() { Sx = CellStyle };
+
+    static Style InboxArea => Css.Define(static () => new Style { Height = CssLength.Rem(20) });
+
+    static Style Item => Css.Define(static () => new Style { PaddingBlock = Space.Sm, PaddingInline = Space.Md });
+
+    static Style Shrinkable => Css.Define(static () => new Style { MinWidth = 0 });
+
+    static Style Padded => Css.Define(static () => new Style { PaddingBlockEnd = Space.Md });
+
+    static Style PlaylistItemStyle => Css.Define(static () => new Style { FlexShrink = 0, Width = CssLength.Rem(9) });
+
+    static Style CoverStyle => Css.Define(static () => new Style { AspectRatio = "1", MarginBlockEnd = Space.Sm, BorderRadius = Radii.Md });
+
+    static Style SheetArea => Css.Define(static () => new Style { Height = CssLength.Rem(18) });
+
+    static Style TableStyle => Css.Define(static () => new Style { BorderCollapse = BorderCollapse.Collapse, FontSize = FontSizes.Sm, FontVariantNumeric = FontVariantNumeric.TabularNums });
+
+    static Style CellStyle => Css.Define(static () => new Style
+    {
+        MinWidth = CssLength.Rem(5.5),
+        PaddingBlock = Space.Xs,
+        PaddingInline = Space.Sm,
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = Colors.BorderMuted,
+        TextAlign = TextAlign.End,
+        WhiteSpace = WhiteSpace.Nowrap,
+    });
+
+    // 表头与行号固定：滚动时一直看得到
+    static Style HeadStyle => Css.Define(static () => new Style
+    {
+        Position = Position.Sticky,
+        Top = 0,
+        ZIndex = 1,
+        BackgroundColor = Colors.Fill,
+        Color = Colors.TextMuted,
+        TextAlign = TextAlign.Center,
+        FontWeight = FontWeights.Medium,
+    });
+
+    static Style RowHeadStyle => Css.Define(static () => new Style { Position = Position.Sticky, InsetInlineStart = 0, MinWidth = CssLength.Rem(3) });
+
+    static Style CornerStyle => Css.Define(static () => new Style { ZIndex = 2 });
+
+    static Style TypeArea => Css.Define(static () => new Style { Height = CssLength.Rem(9) });
+
+    static Style TypeContent => Css.Define(static () => new Style { PaddingInlineEnd = Space.Md });
+}

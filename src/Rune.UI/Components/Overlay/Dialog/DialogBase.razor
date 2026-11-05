@@ -23,12 +23,13 @@
     {
         <Paragraph id="@DescriptionId" @attributes="Attrs.MergeProps(parts[DialogPart.Description], PropsDescription)">@Description</Paragraph>
     }
-    <div @attributes="Attrs.Merge(parts[DialogPart.Body], PropsBody)">
+    @* 正文：内容长时只滚这里（浮层滚动条），标题与页脚固定 *@
+    <ScrollArea PropsViewport="FloatingStyles.ContainedViewport" PropsContent="parts[DialogPart.BodyContent]" @attributes="Attrs.MergeProps(parts[DialogPart.Body], PropsBody)">
         @if (ShouldRenderContent)
         {
             @ChildContent
         }
-    </div>
+    </ScrollArea>
     @if (Footer is not null || OnConfirm.HasDelegate)
     {
         <div @attributes="Attrs.Merge(parts[DialogPart.Footer], PropsFooter)">

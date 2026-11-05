@@ -8,6 +8,9 @@ public enum MenuPart
     /// <summary>浮层（popover 元素，role="menu"）。</summary>
     Root,
 
+    /// <summary>菜单项的容器（滚动区域的内容层）。</summary>
+    Content,
+
     /// <summary>分隔线（MenuSeparator）。</summary>
     Separator,
 }
@@ -32,7 +35,8 @@ public static class MenuStyles
     public static PartLayers<MenuPart> Of(ComponentStyles styles) =>
         Recipe.Of("menu", styles, static (MenuPart part) => part switch
         {
-            MenuPart.Root => Sx.Of(FloatingStyles.Anchored, FloatingStyles.Surface, OverlayTransitions.Scale, Root),
+            MenuPart.Root => Sx.Of(FloatingStyles.Anchored, FloatingStyles.Surface, OverlayTransitions.Scale, FloatingStyles.ScrollPanel, Root),
+            MenuPart.Content => Content,
             _ => Separator,
         });
 
@@ -45,15 +49,15 @@ public static class MenuStyles
             _ => Shortcut,
         });
 
-    // 菜单项多时在菜单里滚动（最大高度由 JS 按视口剩下的空间写）
+    // 菜单项多时在里面的滚动区域里滚动（最大高度由 JS 按视口剩下的空间写在浮层上）
     static Style Root => Css.Define(static () => new Style
     {
         MinWidth = CssLength.Em(12),
         MaxWidth = "calc(100vw - 2em)",
-        Padding = Space.Xs,
         LineHeight = LineHeights.Normal,
-        OverflowY = Overflow.Auto,
     });
+
+    static Style Content => Css.Define(static () => new Style { Padding = Space.Xs });
 
     // 键盘焦点与悬停用同一种高亮：菜单里焦点就是“当前项”
     static Style ItemRoot => Css.Define(static () => new Style

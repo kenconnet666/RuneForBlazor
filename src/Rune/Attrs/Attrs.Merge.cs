@@ -54,6 +54,25 @@ public sealed partial class Attrs
         return new Attrs { values = merged };
     }
 
+    /// <summary>
+    /// 把几层合成一层、不合成类（样式留在 <see cref="Sx"/> 上）：交给子组件的 Props 参数、由子组件再合并到它的元素上时用
+    /// （列表框是 ScrollArea 的视口：<c>PropsViewport="Attrs.Layer(parts[ListboxPart.Root], Rest, managed)"</c>）。
+    /// 展开到组件上用 <see cref="MergeProps"/>（样式成了 Sx 参数），合并到元素上用 <see cref="Merge"/>。
+    /// </summary>
+    public static Attrs Layer(Attrs? defaults, Attrs? user = null, Attrs? managed = null)
+    {
+        var styles = CollectStyles(defaults, user, managed);
+        var merged = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        MergeInto(merged, defaults);
+        MergeInto(merged, user);
+        MergeInto(merged, managed);
+        return new Attrs
+        {
+            Sx = styles.Count == 0 ? null : styles as Sx ?? Sx.Create([.. styles]),
+            values = merged.Count == 0 ? null : merged,
+        };
+    }
+
     /// <summary>去掉某些属性（不可用、加载中时去掉使用方的点击处理）。</summary>
     public Attrs Without(params ReadOnlySpan<string> names)
     {

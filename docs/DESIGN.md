@@ -43,6 +43,9 @@
 `Attrs.Merge(默认层, 使用方, 受管层)`：
 
 - 样式（`Sx`）按层叠加成一个类；class、style 依次拼接；其他属性后面的层覆盖前面的。
+- 三种合并的去处：`Merge` 合并到**元素**上（合成类）；`MergeProps` 展开到**组件**上（样式成了 Sx 参数）；`Layer` 交给子组件的
+  **Props 参数**、由子组件再合并到它的元素上（样式留在 Attrs.Sx）。把 MergeProps 的结果交给 Props 参数时样式会变成一个叫 Sx 的属性、整个丢掉
+  （列表框改成 ScrollArea 的视口时 E2E 发现虚拟滚动失效）。
 - **事件**：两层都执行，按层的顺序。不能简单包一层 lambda——Blazor 事件后重新渲染的是处理器所属的组件（委托的 Target），包出来的 lambda 不属于任何组件。合并时让每个处理器经它自己的接收者执行（`EventHandlerMerger`），参数类型取自原处理器（Blazor 按它解析事件数据）。
 - vue-tsx-pro 的“使用方调用 preventDefault 就跳过组件自己的处理”搬不过来：Server 模式下处理器在服务端执行，浏览器的默认行为早已发生。需要接管行为时用受控参数（给 `XxxChanged`）。
 - 性能：探测时每次合并都展开声明、拼规范文本，1000 个元素约 3.5 ms、5 MB 一次渲染；按样式实例缓存后约 0.24 ms、226 KB。只有默认层样式时返回缓存的同一个对象，不分配。
@@ -121,8 +124,11 @@
 
 ## 8. 浮层（`src/Rune.UI/Components/Overlay`、`wwwroot/Rune.UI.lib.module.js` 与 `wwwroot/js/`）
 
+- **ScrollArea 是滚动的基础组件**（同 vue-tsx-pro）：原生滚动、浮层滚动条。组件只渲染结构，滑块尺寸位置、显隐、拖动、点轨道翻页、滚轮转交、
+  内容超出时视口可聚焦都在 JS（`js/scroll-area.js`），静态 SSR 一样。会滚动的部分都用它：列表框自己滚动时列表元素就是视口（PropsViewport），
+  选项浮层与菜单是 FloatingStyles.ScrollPanel 里放 ScrollArea，对话框、抽屉的正文是 ScrollArea（Body + BodyContent）。
 - **JS 的组织**：入口 `Rune.UI.lib.module.js` 只负责安装（注册自定义事件、全局事件委托、DOM 变化监听）与分发，按职责分到 `wwwroot/js/` 的模块：
-  overlays、floating、lists、tooltips、overflow、controls、effects、layout、shared。模块用相对路径互相 import（浏览器原生 ES 模块，不打包）；
+  overlays、floating、lists、tooltips、overflow、controls、effects、layout、shared，以及 roving、indicator、slider、move、rating、otp、scroll-area。模块用相对路径互相 import（浏览器原生 ES 模块，不打包）；
   入口顶部的注释是全部 data 属性约定的总表，新增约定写在那里。
 
 - **尽量用浏览器原生**：弹出层是 `popover="auto"`（顶层、点外面与 Esc 关闭、同时只开一个、`popovertarget` 打开），对话框与抽屉是模态 `<dialog>`

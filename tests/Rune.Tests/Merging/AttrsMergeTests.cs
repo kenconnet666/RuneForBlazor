@@ -30,6 +30,24 @@ public class AttrsMergeTests : IDisposable
     }
 
     [Fact]
+    public void Layer把几层合成一层_样式留在Sx上_再合并到元素上时照常生效()
+    {
+        var red = new Style { Color = "red" };
+        var wide = new Style { Width = CssLength.Percent(100) };
+        var layer = Attrs.Layer(new() { Sx = red, Title = "默认" }, new() { Sx = wide, Id = "user" });
+
+        Assert.Equal([red, wide], layer.Sx!);
+        Assert.DoesNotContain(ToDictionary(layer).Keys, key => key.Equals("Sx", StringComparison.OrdinalIgnoreCase));
+
+        // 子组件把它当作使用方的一层合并到元素上：样式进了类，属性都在
+        var merged = ToDictionary(Attrs.Merge(new() { Sx = new Style { Display = Display.Flex } }, layer));
+        Assert.Equal(("user", "默认"), (merged["id"], merged["title"]));
+        var rules = string.Concat(registry.Rules).Replace(" ", "");
+        Assert.Contains("color:red", rules);
+        Assert.Contains("width:100%", rules);
+    }
+
+    [Fact]
     public void aria的布尔值写成字符串()
     {
         var merged = ToDictionary(Attrs.Merge(new() { AriaExpanded = false, Hidden = true }));

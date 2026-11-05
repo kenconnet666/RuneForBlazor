@@ -45,6 +45,7 @@
 //                            data-big-step / data-orientation 是取值规则，data-values（C# 认定的值）与 data-ack（C# 处理到的序号）由 C# 写
 //   data-rune-rating         评分：指针移到某个分数（label[data-score]）上时给各颗星写行内的 --rune-rating-fill 预览，移出或点了之后去掉
 //   data-rune-otp            验证码输入框：输入时先过滤（data-charset、data-length），再按输入框的值画各格的 data-char 与当前格的 data-active
+//   data-rune-scroll-area    滚动区域：浮层滚动条的大小与位置、显示与淡出、拖动、点轨道翻页、滚轮转交；内容超出时视口可聚焦（data-focusable）
 //   data-rune-overflow       一行标签（Select 的 MaxTagCount 按宽度）：量出放得下几个 data-rune-overflow-item，其余写 data-overflow-hidden
 //                            （CSS 藏起来但仍可测量），data-rune-overflow-rest（“+N”）的文字取自 data-rune-more 里的第 N 项
 //   data-rune-tooltip="id"   提示的触发元素：指针停留 data-delay 毫秒后显示这个 id 的提示（刚关掉一个时直接显示），离开 100ms 后隐藏
@@ -75,7 +76,7 @@
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、tooltips（提示）、overflow（标签收起）、
-// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、
+// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、
 // controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
@@ -87,6 +88,7 @@ import { scheduleOverflow, watchOverflow } from './js/overflow.js';
 import { moveRoving, noteRovingFocus, watchRoving } from './js/roving.js';
 import { onOtpFocus, onOtpInput, watchOtp } from './js/otp.js';
 import { endRatingPreview, pickRating, previewRating } from './js/rating.js';
+import { watchScrollArea } from './js/scroll-area.js';
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
 import { announce, closeOrRequest, moveInMenu, onPopoverToggle, open, requestClose, syncOpen, updateScrollLock } from './js/overlays.js';
 import { hideTooltip, hideTooltipOf, onPointerOut, onPointerOver, scheduleTooltip, shownTooltip, tooltipOf } from './js/tooltips.js';
@@ -216,9 +218,10 @@ function syncWithin(root) {
     if (element.matches('[data-rune-indicator]')) watchIndicator(element);
     if (element.matches('[data-rune-slider]')) watchSlider(element);
     if (element.matches('[data-rune-otp]')) watchOtp(element);
+    if (element.matches('[data-rune-scroll-area]')) watchScrollArea(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp]').forEach(sync);
+  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area]').forEach(sync);
 }
 
 function onMutations(mutations) {

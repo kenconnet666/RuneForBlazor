@@ -15,10 +15,11 @@
     {
         <div @attributes="Attrs.Merge(parts[ListPopoverPart.Header])">@Header</div>
     }
-    <div @attributes="Attrs.Merge(parts[ListPopoverPart.Body])">
+    @* 正文是浮层滚动条的滚动区域：它的视口是滚动容器，选项多时按它虚拟滚动；焦点在宿主上，视口不进 Tab 顺序 *@
+    <ScrollArea Focusable="false" PropsViewport="FloatingStyles.ContainedViewport" @attributes="Attrs.MergeProps(parts[ListPopoverPart.Body])">
         <ListboxView TItem="TItem" Id="@ListId" Entries="Entries" Selected="Selected" Multiple="Multiple" Loading="Loading" OnPick="OnPick"
                      ChildContent="ChildContent" Empty="Empty" EmptyText="@EmptyText" @attributes="Attrs.MergeProps(null, PropsListbox, ListManaged)" />
-    </div>
+    </ScrollArea>
 </div>
 
 @code {

@@ -42,8 +42,11 @@ public enum DialogPart
     /// <summary>标题下的说明（交给 Paragraph）。</summary>
     Description,
 
-    /// <summary>正文：内容长时只滚这里，标题与页脚固定。</summary>
+    /// <summary>正文（交给 ScrollArea）：内容长时只滚这里，标题与页脚固定。</summary>
     Body,
+
+    /// <summary>正文里包着内容的一层（滚动区域的内容层）：内边距。</summary>
+    BodyContent,
 
     /// <summary>页脚：操作按钮，靠结束边排列。</summary>
     Footer,
@@ -100,6 +103,7 @@ public static class DialogStyles
         DialogPart.Close => Close,
         DialogPart.Description => Description,
         DialogPart.Body => Body,
+        DialogPart.BodyContent => BodyContent,
         _ => Footer,
     };
 
@@ -175,15 +179,9 @@ public static class DialogStyles
         Color = Colors.TextMuted,
     });
 
-    static Style Body => Css.Define(static () => new Style
-    {
-        FlexGrow = 1,
-        MinHeight = 0,
-        OverflowY = Overflow.Auto,
-        OverscrollBehavior = OverscrollBehavior.Contain,
-        PaddingBlock = Space.Lg,
-        PaddingInline = Space.Xl,
-    });
+    static Style Body => Css.Define(static () => new Style { FlexGrow = 1, MinHeight = 0 });
+
+    static Style BodyContent => Css.Define(static () => new Style { PaddingBlock = Space.Lg, PaddingInline = Space.Xl });
 
     static Style Footer => Css.Define(static () => new Style
     {

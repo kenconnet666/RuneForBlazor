@@ -4,6 +4,7 @@
     只管画：选了哪些（Selected）、点了哪一项之后怎么改值（OnPick）由使用方决定；列表的名称、键盘宿主（tabindex、data-rune-list）
     等属性由使用方写在 @attributes 上。选项的 id 是 {Id}-{序号}，JS 初始化器按序号移动高亮（见 ListboxInterop）。
     Loading：选项换成骨架行（很快返回时不显示，见 DelayedLoading），列表带 aria-busy。
+    自己滚动时（OwnScroll）列表元素就是 ScrollArea 的视口：焦点与 aria-activedescendant 仍在它上面，滚动条换成浮层的。
     选项多时（交互模式下超过 VirtualThreshold 个）虚拟滚动：只渲染看得见的几十行（Blazor 的 Virtualize，滚动容器是最近的可滚动祖先），
     全部选项的文字与不可用写在列表的 data-rune-options 上，键盘照样能移到任何一项。静态 SSR 没法按滚动加载，全部渲染。
 *@
@@ -16,7 +17,18 @@
     var rows = Rows;
 }
 
-<div @attributes="Attrs.Merge(parts[ListboxPart.Root], Rest, RootManaged)">
+@if (OwnScroll)
+{
+    <ScrollArea Focusable="false" PropsViewport="Attrs.Layer(parts[ListboxPart.Root], Rest, RootManaged)">@Body(parts, rows)</ScrollArea>
+}
+else
+{
+    <div @attributes="Attrs.Merge(parts[ListboxPart.Root], Rest, RootManaged)">@Body(parts, rows)</div>
+}
+
+@code {
+    // 列表里的内容：骨架、空状态，或选项（多时虚拟滚动）
+    RenderFragment Body(PartLayers<ListboxPart> parts, ListRow[] rows) => @<text>
     @if (indicator.Shown)
     {
         for (var row = 0; row < SkeletonRows; row++)
@@ -43,7 +55,8 @@
             @RenderRow(row, parts)
         }
     }
-</div>
+    </text>;
+}
 
 @code {
     static readonly Attrs LabelLayer = new() { Sx = ItemStyles.Label };
