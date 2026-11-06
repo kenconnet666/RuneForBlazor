@@ -26,7 +26,10 @@
   升级：`dotnet tool update csharp-ls`（改的是 dotnet-tools.json）。
 - 语言服务器加载了源生成器就会锁住它的 DLL：启动脚本先把 Rune.Generators、Rune.CodeFixes 的输出拷到 `bin/ls/`，经环境变量 `RuneLanguageServer` 让它加载副本，
   正式构建照常写 `bin/`。生成器改了以后语言服务器里还是旧的，重开会话才更新。
-- 新加的 `.razor` 组件语言服务器要重开才认识（报“找不到类型”，实际编译没问题）。
+- csharp-ls 只监视 `.cs / .cshtml / .csproj / .sln / .slnx`，新建、修改 `.razor` 它都不知道（组件生成的类型认不出、参数是旧的）；
+  通知它“所属 `.csproj` 变了”时它会重新加载解决方案。所以启动脚本是一层很薄的代理：自己监视 `src/ apps/ tests/` 下的 `.razor`，
+  变了（防抖 1.5 秒）就在客户端的消息之间插一条 `workspace/didChangeWatchedFiles`（所属项目的 `.csproj`，Changed），约半分钟后新组件就认得了，不用重开。
+  实测过：只发 `.razor` 的创建通知、打开 `.razor` 文档都没用，`--features razor-support` 也只管 `.cshtml`。
 
 ## 常用命令
 
