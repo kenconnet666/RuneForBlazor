@@ -68,9 +68,6 @@ else
     /// <summary>字号档位：图标随之缩放；不写时继承。</summary>
     [Parameter] public Size? Size { get; set; }
 
-    /// <summary>表单提交时的 name；不写时自动生成（同组的 radio 共用）。</summary>
-    [Parameter] public string? Name { get; set; }
-
     /// <summary>每颗星的部件属性。</summary>
     [Parameter] public Attrs? PropsStar { get; set; }
 
@@ -114,7 +111,7 @@ else
     // 一个分数：visually hidden 的 radio 盖在整颗（或半颗）上；data-score 给 JS 预览
     RenderFragment Radio(double score, string half) =>
         @<label data-score="@Format(score)" @attributes="Attrs.Merge(RatingStyles.HitArea(half))">
-            <input type="radio" name="@(Name ?? autoName)" value="@Format(score)" checked="@(CurrentValue == score)" disabled="@IsDisabled"
+            <input type="radio" name="@(FieldName ?? autoName)" value="@Format(score)" checked="@(CurrentValue == score)" disabled="@IsDisabled"
                    data-half="@half" aria-label="@Config.Lang.RatingStar(score)" @onclick="() => PickAsync(score)"
                    @attributes="Attrs.Merge(SharedStyles.VisuallyHidden)" />
         </label>;

@@ -29,7 +29,7 @@
 @code {
     static readonly Attrs ChevronLayer = new() { Sx = NativeSelectStyles.Chevron };
 
-    Memo<(Attrs Control, int Index), Attrs> selectManaged;
+    Memo<(Attrs Control, int Index, string? Name), Attrs> selectManaged;
 
     /// <summary>选项。</summary>
     [Parameter, EditorRequired] public IReadOnlyList<TValue> Items { get; set; } = [];
@@ -54,8 +54,10 @@
         }
     }
 
-    Attrs SelectManaged => selectManaged.Get((ControlAttrs, SelectedIndex), this, static (k, owner) => Attrs.Merge(k.Control, new Attrs
+    // 提交的是选项的序号，绑不回模型的值：只用使用方写的 Name，不按字段生成
+    Attrs SelectManaged => selectManaged.Get((ControlAttrs, SelectedIndex, Name), this, static (k, owner) => Attrs.Merge(k.Control, new Attrs
     {
+        ["name"] = k.Name,
         ["value"] = k.Index < 0 ? "" : k.Index.ToString(System.Globalization.CultureInfo.InvariantCulture),
         ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync(
             int.TryParse(e.Value as string, out var index) && index >= 0 && index < owner.Items.Count ? owner.Items[index] : default!)),

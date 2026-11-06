@@ -37,9 +37,6 @@
     // 校验未通过时各项的圆圈跟着标红（ChoiceStyles 里 When.Inside 的祖先标记）
     static readonly Attrs MarkerAttrs = new() { ["class"] = ChoiceStyles.GroupMarker.ClassName };
 
-    /// <summary>原生 radio 的 name：同组共用（表单提交时的字段名）；不写时自动生成。</summary>
-    [Parameter] public string? Name { get; set; }
-
     /// <summary>排列方向，默认竖排。</summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
 
@@ -64,7 +61,7 @@
     Attrs RootAttrs => GroupAttrs("radiogroup", Orientation, MarkerAttrs);
 
     /// <summary>同组 radio 共用的 name。</summary>
-    internal string GroupName => Name ?? autoName;
+    internal string GroupName => FieldName ?? autoName;
 
     /// <summary>这个值是否选中。</summary>
     internal bool IsSelected(TValue value) => EqualityComparer<TValue>.Default.Equals(CurrentValue, value);

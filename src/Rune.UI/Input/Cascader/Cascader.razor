@@ -55,7 +55,7 @@
         <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="() => SetValueAsync(null)" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusTrigger)" />
     }
     <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsChevron, ChevronLayer)" />
-    <FormValue Name="@Name" Value="keys" Disabled="IsDisabled" />
+    <FormValue Name="@FieldName" Value="keys" Disabled="IsDisabled" />
 </div>
 <div @attributes="Attrs.Merge(ListPopoverStyles.Of(Size, Config.Styles)[ListPopoverPart.Root], PropsPopover, PanelManaged)">
     @if (Searchable)

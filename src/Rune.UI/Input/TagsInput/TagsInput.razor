@@ -37,7 +37,7 @@
     {
         <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="ClearAsync" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusInput)" />
     }
-    <FormValue Name="@Name" Value="tags" Disabled="IsDisabled" />
+    <FormValue Name="@FieldName" Value="tags" Disabled="IsDisabled" />
 </div>
 @if (HasSuggestions)
 {

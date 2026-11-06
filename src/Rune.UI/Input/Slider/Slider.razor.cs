@@ -45,9 +45,6 @@ public partial class Slider<TValue>
     /// <summary>读屏念的取值文字（aria-valuetext），如 <c>v => $"{v}%"</c>；不写时念数字。</summary>
     [Parameter] public Func<TValue, string>? ValueText { get; set; }
 
-    /// <summary>表单字段名：给了就带隐藏的 input（范围时两个同名），随表单提交。</summary>
-    [Parameter] public string? Name { get; set; }
-
     /// <summary>范围（<c>@bind-Range</c>）：给了就是范围选择，两个滑块，Value 不再使用。</summary>
     [Parameter] public NumberRange<TValue>? Range { get; set; }
 

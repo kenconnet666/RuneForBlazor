@@ -29,7 +29,7 @@
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsPrefix)">@Prefix</label>
     }
     <input @key="version" @ref="Element" type="text" inputmode="decimal" autocomplete="off"
-           @attributes="Attrs.Merge(parts[InputPart.Input], VisibleUserAttrs, InputManaged)" />
+           @attributes="Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged)" />
     @if (Suffix is not null)
     {
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsSuffix)">@Suffix</label>
@@ -48,7 +48,7 @@
                     Disabled="@(IsDisabled || AtLimit(current, Max, 1))" @onclick="() => StepAsync(1)"
                     @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsIncrement)" />
     }
-    <FormValue Name="@FormName" Value="current" Disabled="IsDisabled" />
+    <FormValue Name="@FieldName" Value="current" Disabled="IsDisabled" />
 </div>
 
 @code {
@@ -119,16 +119,10 @@
     bool ShowStepper => Stepper && !IsReadOnly;
 
     Memo<string, Attrs> refocusInput;
-    Memo<IReadOnlyDictionary<string, object>?, Attrs> visibleUserAttrs;
 
     // 清空后焦点回到输入框
     Attrs RefocusInput => refocusInput.Get(ControlId, static id => new Attrs { ["data-rune-refocus"] = id });
 
-    // 表单提交用的字段名：落在隐藏的 input 上（提交十进制文本），显示的输入框不带它
-    string? FormName => AdditionalAttributes?.TryGetValue("name", out var name) == true ? name as string : null;
-
-    Attrs VisibleUserAttrs => visibleUserAttrs.Get(AdditionalAttributes, static attributes =>
-        Attrs.From(attributes, null) is var all && attributes?.ContainsKey("name") == true ? all.Without("name") : all);
 
     static bool AtLimit(decimal? current, decimal? bound, int direction) =>
         current is { } value && bound is { } limit && (direction < 0 ? value <= limit : value >= limit);

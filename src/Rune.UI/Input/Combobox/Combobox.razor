@@ -36,7 +36,7 @@
         <IconButton Icon="BuiltInIcons.ChevronDown" Label="@Config.Lang.ComboboxToggle" Radius="UI.Radius.Full" Disabled="!Editable" @onclick="ShowAll"
                     @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsChevron, ToggleManaged)" />
     }
-    <FormValue Name="@Name" Value="SubmittedValue" Disabled="IsDisabled" />
+    <FormValue Name="@FieldName" Value="SubmittedValue" Disabled="IsDisabled" />
 </div>
 <ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@ShellId" ListId="@ListId" Placement="Placement" Open="Open" HideEmpty="@(HideEmpty || TextIsValue)" OnToggle="ToggledAsync" Size="Size"
              LabelledBy="@(AriaLabel is null ? Field?.LabelId : null)" Label="@AriaLabel" Query="@query" Results="@Results(entries.Count)"

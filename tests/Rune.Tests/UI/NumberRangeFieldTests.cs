@@ -31,7 +31,7 @@ public class NumberRangeFieldTests : BunitContext
     [Fact]
     public void 区间_一端可以空着_低比高大时对调_两个框各念最小值最大值()
     {
-        var cut = Render<NumberRangeField<int?>>(p => p.Add(x => x.Value, new NumberRange<int?>(20, null)).Add(x => x.Name, ["from", "to"]));
+        var cut = Render<NumberRangeField<int?>>(p => p.Add(x => x.Value, new NumberRange<int?>(20, null)).Add(x => x.Names, ["from", "to"]));
 
         var inputs = cut.FindAll("input[role=spinbutton]");
         Assert.Equal(["最小值", "最大值"], inputs.Select(i => i.GetAttribute("aria-label")));

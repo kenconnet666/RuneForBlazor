@@ -42,5 +42,5 @@
         <span @key="mark.Value" aria-hidden="true" @attributes="Attrs.Merge(parts[SliderPart.MarkLabel], PropsMarkLabel?.Invoke(mark), MarkPosition(mark))">@mark.Label</span>
     }
     @* 拖动时 JS 按顺序改这几个 input 的值（静态 SSR 下随表单提交的是拖到的值） *@
-    <FormValue Name="@Name" Value="shown" Disabled="IsDisabled" />
+    <FormValue Name="@FieldName" Value="shown" Disabled="IsDisabled" />
 </div>

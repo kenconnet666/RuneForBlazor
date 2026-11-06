@@ -26,7 +26,7 @@
             <span aria-hidden="true" @attributes="Attrs.Merge(parts[OtpFieldPart.Separator], PropsSeparator)"></span>
         }
     }
-    @ValueElement.Input(Mask ? "password" : "text", Attrs.Merge(parts[OtpFieldPart.Input], InputUserAttrs, InputManaged), CaptureElement)
+    @ValueElement.Input(Mask ? "password" : "text", Attrs.Merge(parts[OtpFieldPart.Input], NamedInputUserAttrs, InputManaged), CaptureElement)
 </div>
 
 @code {

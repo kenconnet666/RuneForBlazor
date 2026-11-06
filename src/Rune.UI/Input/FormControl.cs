@@ -25,6 +25,8 @@ public abstract class FormControl<TValue> : UIComponent
     EditContext? subscribedContext;
     Expression<Func<TValue>>? identifiedExpression;
     FieldIdentifier? fieldIdentifier;
+    (bool Done, string? Name) formattedName;
+    Memo<(IReadOnlyDictionary<string, object>? Attributes, string? Name), Attrs> namedInputUserAttrs;
 
     /// <summary>值（<c>@bind-Value</c>）。</summary>
     [Parameter] public TValue Value { get; set; } = default!;
@@ -34,6 +36,13 @@ public abstract class FormControl<TValue> : UIComponent
 
     /// <summary>绑定的字段（<c>@bind-Value</c> 自动给出）：用它在表单里找到这个字段的校验状态。</summary>
     [Parameter] public Expression<Func<TValue>>? ValueExpression { get; set; }
+
+    /// <summary>
+    /// 表单提交时的名字（原生的输入元素、隐藏的 FormValue 用）；写成 <c>name="…"</c> 也是它（Razor 按参数名匹配时不区分大小写）。
+    /// 不写时，在服务端渲染的 EditForm 里按 <c>@bind-Value</c> 的字段生成（同 Blazor 的 InputBase：<c>() =&gt; Model.Email</c> → <c>Model.Email</c>），
+    /// 静态 SSR 下 <c>[SupplyParameterFromForm]</c> 按它把值绑回模型。
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
 
     /// <summary>不可用；不写时取所在 Field、Form、FormSection 的。</summary>
     [Parameter] public bool? Disabled { get; set; }
@@ -71,6 +80,10 @@ public abstract class FormControl<TValue> : UIComponent
 
     /// <summary>交给 <see cref="ValueElement"/> 的元素引用回调：记进 <see cref="Element"/>。</summary>
     protected Action<ElementReference> CaptureElement => field ??= element => Element = element;
+
+    /// <summary>实际提交用的名字：<see cref="Name"/>，或按绑定的字段生成的（EditForm 要求生成时，见 <see cref="EditContext.ShouldUseFieldIdentifiers"/>）。</summary>
+    protected string? FieldName => Name ?? (EditContext is { ShouldUseFieldIdentifiers: true } ? FormattedName : null);
+
 
     /// <summary>当前值（受控时是父级给的，非受控时是组件自己的）。</summary>
     protected TValue CurrentValue => value.Value;
@@ -148,6 +161,13 @@ public abstract class FormControl<TValue> : UIComponent
     /// </summary>
     protected Attrs InputUserAttrs => inputUserAttrs.Get(AdditionalAttributes, static attributes => Attrs.From(attributes, null));
 
+    /// <summary>
+    /// <see cref="InputUserAttrs"/> 加上提交用的 name（<see cref="FieldName"/>）：给值就在原生元素上的控件（input、textarea、select）。
+    /// 值交给隐藏的 FormValue 的控件（Select、NumberField……）把名字给 FormValue，看得见的元素上用 InputUserAttrs。
+    /// </summary>
+    protected Attrs NamedInputUserAttrs => namedInputUserAttrs.Get((AdditionalAttributes, FieldName), static k =>
+        k.Name is null ? Attrs.From(k.Attributes, null) : Attrs.Merge(Attrs.From(k.Attributes, null), new Attrs { ["name"] = k.Name }));
+
     /// <summary>外壳上由组件管理的标记：点在外壳的空白处（内边距、图标、前后缀）时 JS 初始化器把焦点交给里面的输入元素。</summary>
     protected static readonly Attrs ShellAttrs = new() { ["data-rune-control"] = true };
 
@@ -190,8 +210,20 @@ public abstract class FormControl<TValue> : UIComponent
             {
                 identifiedExpression = ValueExpression;
                 fieldIdentifier = Microsoft.AspNetCore.Components.Forms.FieldIdentifier.Create(ValueExpression);
+                formattedName = default;
             }
             return fieldIdentifier;
+        }
+    }
+
+    // 按字段生成的名字：表达式变了（FieldIdentifier 里重置）才重新拼
+    string? FormattedName
+    {
+        get
+        {
+            if (FieldIdentifier is null) return null;
+            if (!formattedName.Done) formattedName = (true, FieldNames.Format(ValueExpression!));
+            return formattedName.Name;
         }
     }
 

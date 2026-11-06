@@ -116,6 +116,8 @@
   `RuneProvider` 在一片区域里叠加修改。级联值不能跨渲染模式边界，交互区域里需要局部修改时在里面再放一个 Provider。
 - **语言包**：`Lang`（同 vue-tsx-pro 的 Lang，由 `tools/lang-gen` 生成）放在 `UIConfig.Lang`，`AddRuneUI` 设应用级的、`RuneProvider` 的 `Lang` 在一片区域里换；
   组件里的文案参数（CloseLabel、ClearLabel……）不写时取语言包。Provider 的包裹元素写上 `lang` 与 `dir`。改几条用 `Lang.ZhCn with { … }`。
+  `RuneUIOptions.Languages` 写了几套时按界面文化选（同 ASP.NET Core 的本地化：RequestLocalization 设好 CurrentUICulture）：UIConfig 改成 scoped，
+  每个请求 / 电路第一次用到时按当时的文化取（`Lang.Match`：代码完全相同 → 语言相同 → 父文化），同一作用域里是同一个对象。
   vue-tsx-pro 的 toLocaleString 翻译成 `LangFormat.Number`：取不到文化数据时（WebAssembly 按需加载）用不变文化，不抛异常。
 - **默认值**：每个组件一个 record（`CollapsibleDefaults`），属性可空，`Over` 定义叠加规则；组件上写的参数 > 最近的 Provider > 应用级 > 组件自己的默认值。
 - **按部件定制样式**：用组件的部件枚举（`CollapsiblePart.Trigger`）指定，写错编译不过；追加在组件样式之后、使用方的 Sx 之前，`Part.Of` 统一处理，组件不用为此写代码。
@@ -248,6 +250,8 @@
   面板带 `data-rune-hover-panel="tooltip|card"`（两组各自“同时只开一个”）。卡片停留 700ms 打开、离开 300ms 关闭，焦点移进卡片不关，
   离开触发元素与卡片才关；开关经 rune-toggle 告诉 C#（第一次打开才渲染内容），但不是 data-rune-overlay（打开时焦点不移进去）。
   卡片在交互渲染后才输出：预渲染的 HTML 里触发元素在 `<p>` 里时 `<div>` 会把段落截断（同 vue 的 useMounted）。
+- **命令式对话框**：`DialogService.Open(options)` 的正文是 `RenderFragment<DialogHandle>`，`Open<TComponent>(options, parameters)` 的正文是一个组件
+  （同 DynamicComponent 的参数字典）；DialogHost 把句柄级联给正文，组件里 `[CascadingParameter] DialogHandle` 拿到它，`Close(结果)` 关上并交回，调用处 `await handle.ResultAsync<T>()`。
 - **消息提示**：`ToastService`（scoped）把列表放在 `State` 里，`Toaster` 读到它就随变化重新渲染，后台线程调用也安全；每条是一个 Alert。
   Toaster 要放在交互区域里（同一个电路 / WebAssembly 实例才拿得到同一个服务）。
 
@@ -257,6 +261,9 @@
   改值后 `NotifyFieldChanged`（DataAnnotations、FluentValidation 等照常工作），这个字段有错误时控件标 `aria-invalid`。单独使用时就是普通的受控 / 非受控控件。
 - **Field**：标签、说明、错误信息，经级联的 `FieldContext` 把控件 id、aria-describedby、必填 / 不可用 / 只读交给控件（控件上显式写的优先）。
   控件把绑定的字段报给 Field（`FieldRegistration` 是信号，报上来后 Field 自动重新渲染），Field 显示表单里这个字段的错误。
+  Field 不写 Label 时取这个字段上的 `[Display(Name)]` / `[DisplayName]`（同 Blazor 的 DisplayName 组件；框架的组件要 For 表达式，Field 拿到的是 FieldIdentifier，所以按属性自己读）。
+- **聚焦**：控件与按钮公开 `Element` 与 `FocusAsync()`（同 InputBase.Element）：输入框、触发按钮、勾选框、第一个滑块；包了一层的（NumberRangeField、Mentions）转给里面的；
+  一组控件没有单一主元素，是 null。用的是 Blazor 自带的 `ElementReference.FocusAsync`，静态渲染时什么也不做。
 - **必填用 aria-required**：原生 `required` 会在提交前拦下表单、弹浏览器自己的气泡，EditForm 根本收不到提交（实测发现）。校验统一交给表单。
 - **使用方的属性落在 input 上**（placeholder、name、autocomplete……），Sx 落在外框上：外框是看得见的盒子，input 是语义上的控件。
 - **输入框共用一个外壳配方**（`InputStyles`，scope 为 input，同 vue-tsx-pro 的 inputRecipe）：部件 Root / Input / Icon / Affix / Button，
@@ -278,6 +285,11 @@
   再按值的类型转回去。方向键在 JS 初始化器里处理（按输入框里现在的文字算，没有往返），改完发 change，C# 再夹到范围、对齐步长。
 - **FormValue**：不是原生输入元素的控件（Select、Combobox、TagsInput、NumberField、Slider）把值交给表单的隐藏 input，同 vue-tsx-pro：
   数字按不带分组、不用科学计数法的十进制，日期时间按 ISO；没有 name、值为 null 或不可用时不渲染。
+- **提交的名字**：每个控件一个 `Name` 参数（在 FormControl 上；写成 `name="…"` 也落到它上面，Razor 按参数名匹配不区分大小写），原生元素与隐藏的 FormValue 都用它。
+  没写时，`EditContext.ShouldUseFieldIdentifiers` 为真（EditForm 在服务端渲染时设的）就按 `@bind-Value` 的字段生成（`() => Model.Lines[1].Sku` → `Model.Lines[1].Sku`，
+  同 Blazor 的 InputBase.NameAttributeValue；框架的 HtmlFieldPrefix 不公开，嵌套的 Editor<T> 前缀不认）。静态 SSR 下 `[SupplyParameterFromForm]` 按它绑回模型（测试台 `/static/form-post`）。
+  勾选框、开关勾上时提交 `true`（同 InputCheckbox）；NativeSelect 提交的是选项序号，绑不回模型的值，只用使用方写的 Name。
+- **解析不了的输入**：NumberField、ColorField 失焦时恢复原值（同 vue-tsx-pro），不会留下无效的文字，所以不需要 InputBase 那种“无法转换”的校验错误。
 - **数字框**：写了 name 时提交的是隐藏 input 里的十进制文本（不带千分位与货币符号）；加减按钮按下时不抢输入框的焦点、按住连续加减（JS 初始化器的 `data-rune-repeat`），Clearable 清空成 null。
 - **单选、原生下拉用原生元素**：键盘、读屏、手机上的系统选择器都是原生的。NativeSelect 按位置对应值（任何类型）。
 - **Slider 不用原生 range**（同 vue-tsx-pro）：原生的做不了两个滑块、刻度，外观也只能靠浏览器各自的伪元素。滑块是 role="slider" 的 div，
@@ -358,6 +370,8 @@
 - **端到端测试**（`tests/Rune.E2E`）：测试程序启动构建好的 Rune.Demo（另一个进程、真实的 Kestrel、Development 环境），用 Playwright 的 Chromium 打开 `/{模式}/{演示}`。
   先等 `html[data-rune-ready]`（JS 初始化器装好了），交互模式再等演示宿主的 `data-demo-interactive=true`（之前的点击不会触发 C# 的处理）。CI 只在 Linux 上跑。
 
+- **可裁剪**：三个库都是 `IsTrimmable`（同时打开裁剪分析器，警告即错误）。不用反射能做到的改掉了（组件默认值的叠加走非泛型接口、主题配置的 JSON 用 Utf8JsonWriter 手写）；
+  剩下的反射（组件参数、表单模型的属性、record 判断、事件处理器的合并）放在具名方法上，写明为什么裁剪后仍然安全。
 - 库专属的设置（文档注释检查、打包信息）在 `Directory.Build.targets`：props 在项目文件之前导入，那时项目里的 `IsLibrary` 还没有值。版本号例外，写在 props（SDK 更早算版本）。
 - CI 在 Linux 上打包三个库，检查生成器在 Rune 包里、Lucide 许可证在 Rune.Icons 包里，并把包作为产物留存；发布到哪里（CD）待定。
 

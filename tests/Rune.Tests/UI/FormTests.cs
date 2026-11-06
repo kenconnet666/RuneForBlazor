@@ -25,6 +25,56 @@ public class FormTests : BunitContext
         public string? Note { get; set; }
     }
 
+    sealed class Order
+    {
+        public string? Email { get; set; }
+        public bool Agreed { get; set; }
+        public int Quantity { get; set; }
+        public List<Line> Lines { get; } = [new(), new()];
+    }
+
+    sealed class Line
+    {
+        public string? Sku { get; set; }
+    }
+
+    [Fact]
+    public void 服务端渲染的表单里按字段生成name_写了Name以它为准()
+    {
+        var order = new Order();
+        var index = 1;
+        var context = new EditContext(order) { ShouldUseFieldIdentifiers = true };
+        var cut = Render<CascadingValue<EditContext>>(p => p
+            .Add(x => x.Value, context)
+            .AddChildContent<TextField>(text => text.Add(x => x.ValueExpression, () => order.Email))
+            .AddChildContent<Checkbox>(box => box.Add(x => x.ValueExpression, () => order.Agreed))
+            .AddChildContent<NumberField<int>>(number => number.Add(x => x.ValueExpression, () => order.Quantity).Add(x => x.Value, 3))
+            .AddChildContent<TextField>(text => text.Add(x => x.ValueExpression, () => order.Lines[index].Sku))
+            .AddChildContent<TextField>(text => text.Add(x => x.ValueExpression, () => order.Email).Add(x => x.Name, "contact")));
+
+        var inputs = cut.FindAll("input:not([type=hidden])");
+        Assert.Equal("order.Email", inputs[0].GetAttribute("name"));
+        // 勾选框勾上时提交 true（同 InputCheckbox），绑得回 bool
+        Assert.Equal("order.Agreed", inputs[1].GetAttribute("name"));
+        Assert.Equal("true", inputs[1].GetAttribute("value"));
+        // 数字框：看得见的输入框不带 name，提交的是隐藏框里的十进制文本
+        Assert.Null(inputs[2].GetAttribute("name"));
+        Assert.Equal("3", cut.Find("input[type=hidden][name='order.Quantity']").GetAttribute("value"));
+        Assert.Equal("order.Lines[1].Sku", inputs[3].GetAttribute("name"));
+        Assert.Equal("contact", inputs[4].GetAttribute("name"));
+    }
+
+    [Fact]
+    public void 交互的WebAssembly表单不生成name()
+    {
+        var order = new Order();
+        var context = new EditContext(order) { ShouldUseFieldIdentifiers = false };
+        var cut = Render<CascadingValue<EditContext>>(p => p
+            .Add(x => x.Value, context)
+            .AddChildContent<TextField>(text => text.Add(x => x.ValueExpression, () => order.Email)));
+        Assert.Null(cut.Find("input").GetAttribute("name"));
+    }
+
     [Fact]
     public void 字段不写标签时取Display或DisplayName_写了标签以它为准()
     {

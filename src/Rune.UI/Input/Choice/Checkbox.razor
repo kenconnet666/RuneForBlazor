@@ -68,7 +68,7 @@
     [Parameter] public Attrs? PropsIndicator { get; set; }
 
     // input 上由组件管理的属性：表单状态、勾选、半选（原生的 indeterminate 只能用 JS 设置，JS 初始化器按 data-indeterminate 同步）
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, IsChecked, Indeterminate, DescribedBy, InGroup?.Name), this,
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, IsChecked, Indeterminate, DescribedBy, InGroup is { } group ? group.Name : FieldName), this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
         {
             AriaDescribedBy = k.DescribedBy,
@@ -77,7 +77,8 @@
             // 用户点击勾上时 JS 初始化器把对勾一笔画出（初次渲染、外部改值不画）
             ["data-rune-check-draw"] = true,
             ["name"] = k.Name,
-            ["value"] = owner.InGroup is null ? null : owner.GroupValue,
+            // 在组里提交这一项的值；单独用时勾上提交 true（同 Blazor 的 InputCheckbox），绑得回 bool
+            ["value"] = owner.InGroup is null ? "true" : owner.GroupValue,
             ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.InGroup is { } group ? group.Toggle(owner.GroupValue!) : owner.SetValueAsync(e.Value is true)),
         }));
 

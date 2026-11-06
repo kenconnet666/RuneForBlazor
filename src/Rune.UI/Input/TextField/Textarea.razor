@@ -8,7 +8,7 @@
 @{ var parts = InputStyles.Of(Appearance with { Multiline = true, Rows = Rows, MaxRows = MaxRows, Fixed = Fixed }, Config.Styles); }
 
 <div @attributes="Attrs.Merge(parts[InputPart.Root], RootUserAttrs, ShellAttrs)">
-    <textarea rows="@Rows" @ref="Element" @attributes="Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged)"></textarea>
+    <textarea rows="@Rows" @ref="Element" @attributes="Attrs.Merge(parts[InputPart.Input], NamedInputUserAttrs, InputManaged)"></textarea>
     @if (Clearable && !IsDisabled && !IsReadOnly && !string.IsNullOrEmpty(CurrentValue))
     {
         <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="() => SetValueAsync(string.Empty)"

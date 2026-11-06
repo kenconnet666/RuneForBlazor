@@ -75,9 +75,6 @@ public partial class Select<TItem>
     /// <summary>多选时触发框里最多显示几个标签，其余收进“+N”；<see cref="TagLimit.Responsive"/> 时排成一行、按宽度放。</summary>
     [Parameter] public TagLimit? MaxTagCount { get; set; }
 
-    /// <summary>表单提交时的 name：用隐藏的 input（多选时每个值一个）。</summary>
-    [Parameter] public string? Name { get; set; }
-
     /// <summary>前置图标。</summary>
     [Parameter] public IconData? Icon { get; set; }
 

@@ -41,9 +41,9 @@
                 被依赖的字段填过时才提示。
             </Example>
             <Example Id="native" Title="原生提交" Demo="typeof(NativeExample)">
-                不用 Form 也可以：Select、NumberField、Slider、TagsInput 写了 <Code>Name</Code>（NumberField 是 <Code>name</Code>）就带着隐藏的 input（FormValue），
-                原生表单直接提交；数字按规范的十进制文本提交（decimal 不丢精度），多值同名多个。静态 SSR 下配 <Code>FormName</Code> 与
-                <Code>[SupplyParameterFromForm]</Code> 接收。
+                不用 Form 也可以：Select、NumberField、Slider、TagsInput 写了 <Code>Name</Code>（写成 <Code>name</Code> 也一样）就带着隐藏的 input（FormValue），
+                原生表单直接提交；数字按规范的十进制文本提交（decimal 不丢精度），多值同名多个。在 Form 里不用写 Name：服务端渲染时按
+                <Code>@@bind-Value</Code> 的字段生成（同 Blazor 的 InputBase），静态 SSR 下配 <Code>FormName</Code> 与 <Code>[SupplyParameterFromForm]</Code> 就能回发。
             </Example>
         </ExampleColumn>
     </Examples>

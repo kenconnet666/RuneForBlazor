@@ -42,9 +42,6 @@
     /// <summary>数据 → 选项；Items 是 ListboxOption 或字符串时可以不写。</summary>
     [Parameter] public Func<TItem, ListboxOption>? ToOption { get; set; }
 
-    /// <summary>表单提交时各项共用的 name。</summary>
-    [Parameter] public string? Name { get; set; }
-
     /// <summary>排列方向，默认竖排。</summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
 
@@ -58,7 +55,7 @@
     // 交给各项：每次渲染一个新实例，勾选变了时各项跟着重新渲染
     Attrs RootAttrs => GroupAttrs("group", Orientation);
 
-    CheckboxGroupState State => new(Checked, Name, new(IsDisabled, IsReadOnly, IsInvalid), ToggleAsync);
+    CheckboxGroupState State => new(Checked, FieldName, new(IsDisabled, IsReadOnly, IsInvalid), ToggleAsync);
 
     Task ToggleAsync(string value)
     {

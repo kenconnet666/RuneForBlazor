@@ -64,9 +64,6 @@ public partial class Combobox<TItem>
     /// <summary>有内容时显示清空按钮。</summary>
     [Parameter] public bool Clearable { get; set; }
 
-    /// <summary>表单提交时的 name：用隐藏的 input 提交 Value。</summary>
-    [Parameter] public string? Name { get; set; }
-
     /// <summary>前置图标。</summary>
     [Parameter] public IconData? Icon { get; set; }
 

@@ -64,7 +64,7 @@
         <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="ClearAsync" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusTrigger)" />
     }
     <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsChevron, ChevronLayer)" />
-    <FormValue Name="@Name" Value="values" Disabled="IsDisabled" />
+    <FormValue Name="@FieldName" Value="values" Disabled="IsDisabled" />
 </div>
 <ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@ShellId" ListId="@ListId" Placement="Placement" Open="Open" OnToggle="ToggledAsync" Size="Size"
              LabelledBy="@(AriaLabel is null ? Field?.LabelId : null)" Label="@AriaLabel" Header="@(WithSearch ? SearchHeader : null)"

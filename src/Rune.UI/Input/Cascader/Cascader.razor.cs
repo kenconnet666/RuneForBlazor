@@ -79,9 +79,6 @@ public partial class Cascader<TItem>
     /// <summary>清空按钮的名称，默认取语言包。</summary>
     [Parameter] public string? ClearLabel { get; set; }
 
-    /// <summary>表单提交时的 name（用隐藏的 input，路径上每一级一个）。</summary>
-    [Parameter] public string? Name { get; set; }
-
     /// <summary>外壳起始边的图标。</summary>
     [Parameter] public IconData? Icon { get; set; }
 

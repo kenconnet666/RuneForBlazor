@@ -61,8 +61,8 @@
     /// <summary>两端中间的内容，默认“–”。</summary>
     [Parameter] public RenderFragment? Separator { get; set; }
 
-    /// <summary>表单提交时两端的 name。</summary>
-    [Parameter] public IReadOnlyList<string>? Name { get; set; }
+    /// <summary>表单提交时两端的 name（起点、终点各一个）。</summary>
+    [Parameter] public IReadOnlyList<string>? Names { get; set; }
 
     /// <summary>低端那个框的部件属性。</summary>
     [Parameter] public Attrs? PropsStart { get; set; }
@@ -94,7 +94,7 @@
             Id = index == 0 ? ControlId : $"{ControlId}-end",
             ["aria-label"] = label,
             ["placeholder"] = Placeholder is { Count: 2 } placeholders ? placeholders[index] : label,
-            ["name"] = Name is { Count: 2 } names ? names[index] : null,
+            ["name"] = Names is { Count: 2 } names ? names[index] : null,
         };
     }
 

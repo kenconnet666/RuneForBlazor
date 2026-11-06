@@ -1,0 +1,53 @@
+@*
+    静态 SSR 的表单回发：控件按 @bind-Value 的字段生成 name（同 Blazor 的 InputBase），提交后 [SupplyParameterFromForm] 把值绑回模型，
+    在服务端校验，错误显示在字段与错误汇总里；通过时显示提交的值。端到端测试用。
+*@
+@page "/static/form-post"
+@using System.ComponentModel.DataAnnotations
+@inherits RuneComponent
+
+<PageTitle>静态 SSR 表单</PageTitle>
+<h1>静态 SSR 表单</h1>
+
+<Form Model="Model" FormName="order" OnValidSubmit="() => submitted = true">
+    <Field><TextField @bind-Value="Model!.Email" /></Field>
+    <Field><NumberField @bind-Value="Model!.Quantity" Min="1" Max="99" /></Field>
+    <Field><Select Items="cities" @bind-Value="Model!.City" /></Field>
+    <Checkbox @bind-Value="Model!.Agreed">同意服务条款</Checkbox>
+    <Button Type="submit">提交</Button>
+</Form>
+
+@if (submitted)
+{
+    <p data-testid="result">@Model!.Email · @Model.Quantity · @Model.City · @Model.Agreed</p>
+}
+
+@code {
+    static readonly string[] cities = ["北京", "上海", "深圳"];
+
+    bool submitted;
+
+    [SupplyParameterFromForm(FormName = "order")] Order? Model { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnInitialized() => Model ??= new();
+
+    /// <summary>订单（表单回发时由 Blazor 的表单映射创建并填值，所以是公开的类型）。</summary>
+    public sealed class Order
+    {
+        /// <summary>邮箱。</summary>
+        [Required(ErrorMessage = "请填写邮箱"), EmailAddress(ErrorMessage = "邮箱格式不对"), Display(Name = "邮箱")]
+        public string? Email { get; set; }
+
+        /// <summary>数量。</summary>
+        [Display(Name = "数量")]
+        public int Quantity { get; set; } = 2;
+
+        /// <summary>城市。</summary>
+        [Display(Name = "城市")]
+        public string? City { get; set; } = "上海";
+
+        /// <summary>同意服务条款。</summary>
+        public bool Agreed { get; set; }
+    }
+}

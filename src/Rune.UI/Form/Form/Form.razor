@@ -17,7 +17,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @{ var parts = FormStyles.Of(Config.Styles); }
 
-<EditForm EditContext="context" OnSubmit="HandleSubmitAsync" FormName="@FormName" data-disabled="@(Disabled ? true : null)" data-readonly="@(ReadOnly ? true : null)"
+<EditForm EditContext="context" OnSubmit="HandleSubmitAsync" FormName="@FormName" Enhance="Enhance" data-disabled="@(Disabled ? true : null)" data-readonly="@(ReadOnly ? true : null)"
           data-rune-invalid-submit="@(invalidSubmits > 0 ? invalidSubmits : null)"
           @attributes="Attrs.Merge(parts[FormPart.Root], Rest)">
     @if (DataAnnotations)
@@ -66,6 +66,9 @@
 
     /// <summary>静态 SSR 下提交表单时的名字（Blazor 的 FormName）；交互模式不需要。</summary>
     [Parameter] public string? FormName { get; set; }
+
+    /// <summary>静态 SSR 下用增强导航提交（Blazor 的 EditForm.Enhance）：只更新页面里变了的部分，不整页刷新。</summary>
+    [Parameter] public bool Enhance { get; set; }
 
     /// <summary>里面的 Field 的标签位置：上方（默认）或起始边（标签一列、控件一列）。</summary>
     [Parameter] public FieldLabelPlacement? LabelPlacement { get; set; }

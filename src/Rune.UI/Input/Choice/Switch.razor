@@ -9,7 +9,7 @@
 <label data-state="@(CurrentValue ? "checked" : "unchecked")" data-disabled="@(IsDisabled ? "true" : null)"
        data-readonly="@(IsReadOnly ? "true" : null)" @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
     <span @attributes="Attrs.Merge(parts[ChoicePart.Control], PropsControl)">
-        <input type="checkbox" role="switch" @ref="Element" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputUserAttrs, InputManaged)" @onclick:preventDefault="IsReadOnly" />
+        <input type="checkbox" role="switch" @ref="Element" @attributes="Attrs.Merge(parts[ChoicePart.Input], NamedInputUserAttrs, InputManaged)" @onclick:preventDefault="IsReadOnly" />
         @* 滑块紧跟在 input 后面：按 input 的勾选状态（相邻兄弟选择器）移到另一端 *@
         <span @attributes="Attrs.Merge(parts[ChoicePart.Indicator], PropsThumb)"></span>
     </span>
@@ -44,6 +44,8 @@
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
         {
             ["checked"] = k.Checked,
+            // 勾上时提交 true（同 Blazor 的 InputCheckbox），绑得回 bool
+            ["value"] = "true",
             ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync(e.Value is true)),
         }));
 }
