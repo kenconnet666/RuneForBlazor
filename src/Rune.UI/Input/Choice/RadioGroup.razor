@@ -14,6 +14,7 @@
 @typeparam TValue
 @attribute [CascadingTypeParameter(nameof(TValue))]
 @inherits FormControl<TValue>
+@implements IRadioGroup<TValue>
 
 <CascadingValue Value="this">
     <div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Config.Styles)[ChoicePart.Group], Rest, RootAttrs)">
@@ -60,18 +61,13 @@
 
     Attrs RootAttrs => GroupAttrs("radiogroup", Orientation, MarkerAttrs);
 
-    /// <summary>同组 radio 共用的 name。</summary>
-    internal string GroupName => FieldName ?? autoName;
+    string IRadioGroup<TValue>.GroupName => FieldName ?? autoName;
 
-    /// <summary>这个值是否选中。</summary>
-    internal bool IsSelected(TValue value) => EqualityComparer<TValue>.Default.Equals(CurrentValue, value);
+    bool IRadioGroup<TValue>.IsSelected(TValue value) => EqualityComparer<TValue>.Default.Equals(CurrentValue, value);
 
-    /// <summary>整组不可用。</summary>
-    internal bool GroupDisabled => IsDisabled;
+    bool IRadioGroup<TValue>.GroupDisabled => IsDisabled;
 
-    /// <summary>整组只读：能聚焦，选中项不能改。</summary>
-    internal bool GroupReadOnly => IsReadOnly;
+    bool IRadioGroup<TValue>.GroupReadOnly => IsReadOnly;
 
-    /// <summary>选中一个值。</summary>
-    internal Task SelectAsync(TValue value) => IsReadOnly ? Task.CompletedTask : SetValueAsync(value);
+    Task IRadioGroup<TValue>.SelectAsync(TValue value) => IsReadOnly ? Task.CompletedTask : SetValueAsync(value);
 }

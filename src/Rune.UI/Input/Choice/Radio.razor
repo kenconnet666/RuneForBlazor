@@ -37,7 +37,7 @@
     Memo<(string? Name, bool Checked, bool Disabled, string? DescribedBy), Attrs> managed;
 
     /// <summary>所在的单选组。</summary>
-    [CascadingParameter] RadioGroup<TValue>? Group { get; set; }
+    [CascadingParameter] IRadioGroup<TValue>? Group { get; set; }
 
     /// <summary>这一项的值。</summary>
     [Parameter, EditorRequired] public TValue Value { get; set; } = default!;

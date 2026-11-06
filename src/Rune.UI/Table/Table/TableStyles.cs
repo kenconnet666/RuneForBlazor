@@ -131,12 +131,7 @@ public static class TableStyles
     public static PartLayers<TablePart> Of(TableAppearance a, ComponentStyles styles) =>
         Recipe.Of("table", a, styles, static (TableAppearance a, TablePart part) =>
         {
-            var padding = a.Density switch
-            {
-                TableDensity.Compact => CompactPadding,
-                TableDensity.Comfortable => ComfortablePadding,
-                _ => StandardPadding,
-            };
+            var padding = PaddingOf(a.Density);
             return part switch
             {
                 TablePart.Root => Sx.Of(Root, a.Variant == TableVariant.Ghost ? GhostRoot : SurfaceRoot),
@@ -151,7 +146,7 @@ public static class TableStyles
             };
         });
 
-    /// <summary>对齐（单元格、列标题共用；之后的 DataTable 也用）。</summary>
+    /// <summary>对齐（单元格、列标题共用，DataTable 也用）。</summary>
     internal static Style AlignOf(TableAlign align) => align switch
     {
         TableAlign.Center => AlignCenter,
@@ -174,7 +169,7 @@ public static class TableStyles
     // contain: inline-size：宽表格不撑宽外层的 grid / flex 容器，放不下的在这里横向滚动
     static Style Root => Css.Define(static () => new Style { MinWidth = 0, Contain = Contain.InlineSize });
 
-    static Style SurfaceRoot => Css.Define(static () => new Style
+    internal static Style SurfaceRoot => Css.Define(static () => new Style
     {
         BorderWidth = BorderWidths.Xs,
         BorderStyle = BorderStyle.Solid,
@@ -183,7 +178,7 @@ public static class TableStyles
         BackgroundColor = Colors.Surface,
     });
 
-    static Style GhostRoot => Css.Define(static () => new Style { BackgroundColor = Colors.Background });
+    internal static Style GhostRoot => Css.Define(static () => new Style { BackgroundColor = Colors.Background });
 
     // 列宽按内容分配：DataTable 为虚拟滚动与列宽拖动用固定布局，静态表格不需要
     static Style Table => Css.Define(static () => new Style
@@ -196,7 +191,7 @@ public static class TableStyles
         LineHeight = LineHeights.Normal,
     });
 
-    static Style CompactTable => Css.Define(static () => new Style { FontSize = FontSizes.Sm });
+    internal static Style CompactTable => Css.Define(static () => new Style { FontSize = FontSizes.Sm });
 
     static Style Caption => Css.Define(static () => new Style
     {
@@ -208,13 +203,13 @@ public static class TableStyles
         TextAlign = TextAlign.Start,
     });
 
-    static Style SurfaceRow => Css.Define(static () => new Style
+    internal static Style SurfaceRow => Css.Define(static () => new Style
     {
         BackgroundColor = Colors.Surface,
         [When.Hover] = new() { BackgroundColor = Colors.FillHover },
     });
 
-    static Style GhostRow => Css.Define(static () => new Style
+    internal static Style GhostRow => Css.Define(static () => new Style
     {
         BackgroundColor = Colors.Background,
         [When.Hover] = new() { BackgroundColor = Colors.FillHover },
@@ -222,7 +217,7 @@ public static class TableStyles
 
     static Style StripedRow => Css.Define(static () => new Style { [new Condition(":nth-child(even)")] = new() { BackgroundColor = Colors.Fill } });
 
-    static Style HeaderCell => Css.Define(static () => new Style
+    internal static Style HeaderCell => Css.Define(static () => new Style
     {
         Position = Position.Relative,
         BoxSizing = BoxSizing.BorderBox,
@@ -244,7 +239,7 @@ public static class TableStyles
     static Style RowHeader => Css.Define(static () => new Style { FontWeight = FontWeights.Medium, TextAlign = TextAlign.Start });
 
     // 数字等宽：金额、数量、日期上下对齐（文字不受影响）
-    static Style Cell => Css.Define(static () => new Style
+    internal static Style Cell => Css.Define(static () => new Style
     {
         BoxSizing = BoxSizing.BorderBox,
         FontVariantNumeric = FontVariantNumeric.TabularNums,
@@ -268,6 +263,14 @@ public static class TableStyles
         BorderTopColor = Colors.Border,
         BorderBottomWidth = 0,
     });
+
+    /// <summary>单元格的上下内边距（按密度；DataTable 也用）。</summary>
+    internal static Style PaddingOf(TableDensity density) => density switch
+    {
+        TableDensity.Compact => CompactPadding,
+        TableDensity.Comfortable => ComfortablePadding,
+        _ => StandardPadding,
+    };
 
     // 单元格的上下内边距按密度
     static Style CompactPadding => Css.Define(static () => new Style { PaddingBlock = Space.Xs });
