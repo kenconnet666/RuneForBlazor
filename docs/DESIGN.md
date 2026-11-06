@@ -429,3 +429,25 @@
 
 - 组件库样式预生成静态 CSS（减少内联 `<style>`）是优化，不改 API。
 - 主题对象由 `Css.Define` 定义，热重载改主题值后，应用级配置（DI 单例）仍拿着旧主题，要重启；Provider 上直接传的主题会更新。
+
+## 13. 表格的查询契约（`src/Rune.UI/Table/Query`）
+
+同 vue-tsx-pro 的 `use-table-query.ts`、`columns.ts` 的排序部分。服务端分页的列表（DataTable 的 `ItemsProvider`、阶段 6 的 QueryTable）用它；
+组件库不引用任何 ORM，线上的格式与 EasyQuerySharp 的 `TableRequest.Parse` 一一对应，后端一行就能解析。
+
+- **类型**（纯数据，不依赖 Rune 的其他部分）：
+  - `ColumnSort(Key, SortDirection)`，排序是几列（前面的优先）；`ColumnSort.Format` / `Parse` 是线上的写法 `-amount,name`（减号是倒序，同 JSON:API）。
+  - `TablePage<TRow>(Rows, Total)`：一页结果。
+  - `TableQuery<TFilters>`：页码（从 1 开始）、每页条数、排序、表头筛选（列 key → 选中的值；关键字筛选是一个值）、
+    已知的总数（只翻页、换排序或条数时是上一次的总数，服务端可以不再数行数；条件变了、“查询”、刷新时为 null）、已应用的筛选条件 `TFilters`。
+    vue 的第二个类型参数 Params（当前页签这类筛选条件之外的值）在这里并进 `TFilters`：C# 的 record 本来就能多放几个属性，少一个类型参数。
+- **线上的格式**（`TableQuery.ToParameters(keywordColumns)`，同 vue 的 `tableParams`）：`page`、`pageSize`；有排序时 `sort`；已知总数时 `total`；
+  表头筛选里多选的列写成 `filter.列=值`（可重复），关键字的列写成 `search.列=关键字`；`TFilters` 的公开属性按名字（首字母小写，同 JSON）平铺，
+  空值（null、空字符串、空集合）不写，集合写成重复的参数，区间（`Start` / `End` 两个属性的值）写成两个同名参数（空的一端是空字符串）。
+  值的文字按不变区域：数字不用科学计数法、日期是 ISO 8601、布尔是 true / false、枚举是名字的首字母小写。
+  `page`、`pageSize`、`sort`、`total` 与 `filter.`、`search.` 开头的名字留给这里，筛选条件的属性不要用。
+- **状态**（`TableQueryState<TRow, TFilters>`，同 vue 的 `useTableQuery`，不是组件，同 `RemoteItems` 的写法）：页码、条数、排序、表头筛选可读写，
+  改了就请求（改条数、排序、表头筛选回到第一页）；`SearchAsync(filters)` 应用新的筛选条件、回到第一页、条件没变也重新请求并重新数总数；
+  `RefreshAsync()` 按当前条件重新请求；只采用最后一次的结果，被顶掉的请求取消；删掉数据后当前页空了退到最后一页。
+  给 `NavigationManager` 时页码、条数、排序、筛选条件同步到地址的查询参数（刷新、分享链接、后退回来还是这些条件），写法同线上的格式。
+- 预渲染时取的数交给交互后的渲染（`[PersistentState]`）在阶段 8 的全栈示例里定：状态对象由使用方持有，组件库只给可序列化的 `TablePage`。
