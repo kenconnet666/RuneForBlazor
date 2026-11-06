@@ -17,7 +17,8 @@
   之后会话里有 `LSP` 工具（定义、引用、悬停、文档与工作区符号），编辑 `.cs` 后推送诊断。查符号、调用链、改名前的影响面优先用它，文本搜索用 Grep。
 - 语言服务器是 `dotnet-tools.json` 固定版本的 csharp-ls（Roslyn），加载 `RuneForBlazor.slnx`，约 20 秒加载完。`.razor` 不在它的支持范围（它的 Razor 支持只认 `.cshtml`），
   但组件经 Razor 源生成器成为类型，`.cs` 里对组件的引用照样能解析；`.razor` 里的语义查询仍用 Rider 的 MCP。
-- 启动脚本 `.claude/marketplace/rune-csharp-lsp/start.mjs` 按 DOTNET_ROOT → `~/.dotnet` → PATH 找装着 global.json 所要 SDK 的 dotnet（本机 PATH 上的 dotnet 没有 10.x）。
+- 启动脚本经 `tools/dotnet.mjs` 按 DOTNET_ROOT → `~/.dotnet` → PATH 找装着 global.json 所要 SDK 的 dotnet（本机 PATH 上的 dotnet 没有 10.x）。
+  `.claude/launch.json` 也经它启动：`docs`（文档站，5310）、`bench`（测试台，5300），在 Claude Code 的浏览器面板里打开。
   升级：`dotnet tool update csharp-ls`（改的是 dotnet-tools.json）。
 
 ## 常用命令
