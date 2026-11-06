@@ -135,7 +135,7 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
   - [x] 泛型推断核对过：只有 RadioGroup → Radio 需要 `[CascadingTypeParameter]`（已有），其他泛型组件靠数据传项；必填参数的 `[EditorRequired]` 已齐；
   - [x] `RuneUIOptions.Languages`：按请求 / 电路的 `CurrentUICulture` 选语言包；
   - [x] 三个库 `IsTrimmable`，裁剪分析 0 警告（能不用反射的改掉了，剩下的写明理由）。
-- [ ] R.4 代码走查（单独提交）：过长或职责混杂的文件（`Rune.UI.lib.module.js` 490 行、`lists.js`、`overlays.js`、`Cascader.razor.cs`、`ToastService.cs`）、重复的样式片段与死代码；
+- [ ] R.4 代码走查（单独提交）：过长或职责混杂的文件（`js/runtime.js`（原 `Rune.UI.lib.module.js` 的主体）、`lists.js`、`overlays.js`、`Cascader.razor.cs`、`ToastService.cs`）、重复的样式片段与死代码；
   入口顶部的 data 属性总表与实际用到的核对一遍。
 
 完成标准：上面各项做完；文档与代码一致；CI 连续绿。

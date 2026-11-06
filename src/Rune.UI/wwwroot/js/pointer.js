@@ -8,7 +8,8 @@
 
 import { reducedMotion } from './shared.js';
 
-const SELECTOR = '[data-rune-pointer]';
+/** 插入时登记的元素（不在文档里了的在下一帧去掉）：每帧只走它们，不在整个文档里找；一个都没有时指针移动什么也不做 */
+const elements = new Set();
 /** 每个元素的弹簧状态：当前值、速度、目标 */
 const springs = new WeakMap();
 let pointer = null;
@@ -18,13 +19,18 @@ let lastTime = 0;
 /** pointermove：记下指针位置，下一帧更新 */
 export function trackPointer(event) {
   pointer = { x: event.clientX, y: event.clientY };
-  schedule();
+  if (elements.size > 0) schedule();
+}
+
+/** 带 data-rune-pointer 的元素插进来了 */
+export function watchPointer(element) {
+  elements.add(element);
 }
 
 /** 指针离开窗口：所有效果淡出 */
 export function releasePointer() {
   pointer = null;
-  schedule();
+  if (elements.size > 0) schedule();
 }
 
 function schedule() {
@@ -39,7 +45,11 @@ function step(now) {
   const dt = Math.min((now - lastTime) / 1000, 1 / 30);
   lastTime = now;
   let moving = false;
-  for (const element of document.querySelectorAll(SELECTOR)) {
+  for (const element of elements) {
+    if (!element.isConnected) {
+      elements.delete(element);
+      continue;
+    }
     if (advance(element, dt)) moving = true;
   }
   if (moving) {

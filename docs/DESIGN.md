@@ -186,9 +186,16 @@
   这里写 MinItemWidth（同 Grid）后改用容器查询：每多一栏一条 `@container (min-width: calc(k * 宽度))`，跨栏同理封顶；静态 SSR 也对、不需要往返。
 - **ResizeHandle**：拖动、方向键、双击都在 JS（`js/resize.js`）当场改父元素的宽（横向是高），并去掉按档位给的最大宽度；一次操作结束才发 rune-resize
   交给 C#（拖动中 C# 不渲染，就不会有晚到的渲染把宽度拉回）。Drawer 左右两侧默认可拖宽（`@bind-Width`，DialogBase 的 Edge / RootInlineStyle 钩子）。
-- **JS 的组织**：入口 `Rune.UI.lib.module.js` 只负责安装（注册自定义事件、全局事件委托、DOM 变化监听）与分发，按职责分到 `wwwroot/js/` 的模块：
-  overlays、floating、lists、tooltips、overflow、controls、effects、layout、shared，以及 roving、indicator、slider、move、rating、otp、scroll-area。模块用相对路径互相 import（浏览器原生 ES 模块，不打包）；
+- **JS 的组织**：入口 `Rune.UI.lib.module.js` 只注册自定义事件；主体 `js/runtime.js`（全局事件委托、DOM 变化监听）在入口执行时就开始在后台加载，
+  按职责分到 `wwwroot/js/` 的模块：overlays、floating、lists、tooltips、overflow、controls、effects、layout、shared，以及 roving、indicator、slider、move、rating、otp、scroll-area 等。
+  模块用相对路径互相 import（浏览器原生 ES 模块，不打包）。入口不静态导入任何模块：Blazor 启动前要等初始化器连同它的静态导入加载完，
+  几十个模块挡在启动的关键路径上（本机 HTTP/1.1 约 0.7 秒）。但事件委托的**顺序**要保持排在 Blazor 之前（输入时先清旧高亮、
+  C# 渲染出新结果再高亮第一项；WebAssembly 下 C# 在事件里同步渲染，真实事件的两个监听器之间会跑微任务）：入口启动时同步在 document 上
+  为每种事件占位（`SLOTS`），主体 `install(blazor, on)` 经 `on` 把处理函数挂进去；新的事件类型要先在 `SLOTS` 里占位。
   入口顶部的注释是全部 data 属性约定的总表，新增约定写在那里。
+- **DOM 变化的处理**（`js/runtime.js` 的 onMutations）：Blazor 先插父元素、再逐个插子元素，一棵新子树的每个节点各有一条记录；
+  只从这一批里最外层的新节点往下找要处理的元素，列表、标签行等按元素去重后每批只处理一次（Select 文档页经增强导航进入时，
+  逐条处理要做约 2800 次 querySelectorAll、10 万次 matches）。
 
 - **尽量用浏览器原生**：弹出层是 `popover="auto"`（顶层、点外面与 Esc 关闭、同时只开一个、`popovertarget` 打开），对话框与抽屉是模态 `<dialog>`
   （焦点圈在里面、Esc 关闭、关闭后焦点还给触发元素），进出场用 `@starting-style` 加 display / overlay 的离散过渡（`When.Starting`），关闭动画不需要 JS 等待。

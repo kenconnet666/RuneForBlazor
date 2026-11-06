@@ -142,69 +142,84 @@
 //
 // 模态对话框打开时锁定页面滚动。
 //
-// 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
+// 这个文件（入口）注册自定义事件，js/runtime.js 挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框）、menus（菜单的键盘、子菜单、右键菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄、分栏的分隔条）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
 // leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、tween（会滚动的数字）、affix（固钉与回到顶部）、watermark（水印）、sortable（拖动排序）、lightbox（图片预览的平移缩放）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格、尺寸观察、占满到窗口底边、截断的文字、跑马灯的时长）、shared（共用的小工具）。
+//
+// 加载：Blazor 启动前要等初始化器（连同它静态导入的模块）加载完。这个入口不静态导入任何模块：
+// 主体（js/runtime.js 与它导入的几十个模块）在入口执行时就开始在后台加载，不挡 Blazor 启动。
+// 启动后同步做两件要赶在交互组件之前的事：注册自定义事件（渲染出 @onrunetoggle 这类处理器之前就要认得事件名）；
+// 在 document 上为每种事件占好位置（下面的 SLOTS），主体到了再把处理函数挂进去。占位决定了处理顺序排在 Blazor 自己的事件委托之前：
+// 有的处理依赖这一点（输入时先清掉旧的高亮，C# 渲染出新结果后再高亮第一项）。WebAssembly 下 C# 在事件里同步渲染，
+// 真实的输入事件在两个监听器之间会跑一次微任务（DOM 变化的回调），顺序反了结果就错。
 
-import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from './js/controls.js';
-import { blockInert, copyFrom, drawCheckOnChange, drawIcon, startDismiss, startRipple } from './js/effects.js';
-import { createFilePreviews, onFileDragEnter, onFileDragLeave, onFileDrop, pasteFiles, releaseDetachedPreviews, releaseFilePreviews } from './js/files.js';
-import { guardLeave } from './js/leave.js';
-import { clickCascader, keyCascader, onCascaderFocusIn } from './js/cascader.js';
-import { keyMentions, onMentionsClick, onMentionsCompositionEnd, onMentionsFocusOut, onMentionsInput, onMentionsKeyUp, pickMention } from './js/mentions.js';
-import { releasePointer, trackPointer } from './js/pointer.js';
-import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, onToasterFocusOut } from './js/toast.js';
-import { watchEllipsis, watchGrid, watchMarquee, watchSize, watchViewportFill } from './js/layout.js';
-import { onTweenValueChanged, watchTween } from './js/tween.js';
-import { clickBackTop, watchAffix, watchBackTop } from './js/affix.js';
-import { drawWatermark } from './js/watermark.js';
-import { blurSortable, grabSortable, keySortable } from './js/sortable.js';
-import { showLightboxImage, watchLightbox } from './js/lightbox.js';
-import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
-import { watchIndicator } from './js/indicator.js';
-import { scheduleOverflow, watchOverflow } from './js/overflow.js';
-import { moveRoving, noteRovingFocus, watchRoving } from './js/roving.js';
-import { onOtpFocus, onOtpInput, watchOtp } from './js/otp.js';
-import { endRatingPreview, pickRating, previewRating } from './js/rating.js';
-import { watchPageScrollbar, watchScrollArea } from './js/scroll-area.js';
-import { highlightCode } from './js/highlight.js';
-import { watchToc } from './js/toc.js';
-import { navigationEnded, navigationStarted, watchLoadingBar } from './js/loading-bar.js';
-import { formatHotkeyLabel, hotkeyTarget } from './js/hotkeys.js';
-import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from './js/tabs.js';
-import { watchCollapse } from './js/collapse.js';
-import { grabResizeHandle, grabSplitter, keyResizeHandle, keySplitter, resetResizeHandle, resetSplitter, watchResizeHandle } from './js/resize.js';
-import { grabSlider, keySlider, watchSlider } from './js/slider.js';
-import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './js/theme.js';
-import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './js/fullscreen.js';
-import { closeOnLink, closeOrRequest, focusArrivedContent, onDialogCancel, onDialogClose, onPopoverToggle, open, syncOpen, watchCloseWhen } from './js/overlays.js';
-import { clickSubMenuTrigger, hoverSubMenu, leaveSubMenu, moveInMenu, openContextMenu, openMenuFromTrigger, rootMenuOf } from './js/menus.js';
-import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from './js/hover-layers.js';
+const runtime = import('./js/runtime.js');
+let started = false;
 
-let installed = false;
+// document 上的事件委托：[事件, 是否捕获]。主体要挂新的事件时在这里加上（没占位的会报错）
+const SLOTS = [
+  ['toggle', true], ['cancel', true], ['close', true], ['load', true], ['error', true],
+  ['click', true], ['click', false], ['dblclick', false], ['auxclick', false], ['contextmenu', false],
+  ['keydown', false], ['keyup', false], ['input', true], ['input', false], ['change', true], ['change', false],
+  ['compositionend', false], ['paste', false], ['focusin', false], ['focusout', false], ['fullscreenchange', false],
+  ['pointerdown', false], ['pointermove', false], ['pointerover', false], ['pointerout', false],
+  ['dragenter', false], ['dragleave', false], ['drop', false],
+];
+const slots = new Map();
 
 /** Blazor Web App 的初始化入口。 */
 export function afterWebStarted(blazor) {
-  install(blazor);
+  start(blazor);
 }
 
 /** 独立的 Blazor Server / WebAssembly 应用的初始化入口。 */
 export function afterStarted(blazor) {
-  install(blazor);
+  start(blazor);
 }
 
-function install(blazor) {
-  if (installed) return;
-  installed = true;
+function start(blazor) {
+  if (started) return;
+  started = true;
+  registerEvents(blazor);
+  for (const [type, capture] of SLOTS) slots.set(`${type} ${capture}`, listen(type, capture));
+  runtime.then((module) => module.install(blazor, on));
+}
 
-  // 静态 SSR 页面之间的增强导航：带 data-navigation 的加载条跟着走（独立的 Server / WebAssembly 应用没有这两个事件）
-  blazor.addEventListener?.('enhancednavigationstart', navigationStarted);
-  blazor.addEventListener?.('enhancednavigationend', navigationEnded);
-  // 增强导航合并新页面时根元素的属性（data-theme、底色）可能被换掉：按记住的选择再写一次
-  blazor.addEventListener?.('enhancednavigationend', reapplyTheme);
-  installTheme();
+/** 在 document 上占一个位置：之后挂上的处理函数按挂上的顺序执行，同原生的几个监听器 */
+function listen(type, capture) {
+  const handlers = [];
+  document.addEventListener(type, (event) => {
+    if (handlers.length === 0) return;
+    // 调了 stopImmediatePropagation 的，后面的处理函数不再执行（输入法组合期间拦下 input）
+    let stopped = false;
+    const stop = event.stopImmediatePropagation;
+    event.stopImmediatePropagation = () => {
+      stopped = true;
+      stop.call(event);
+    };
+    for (const handler of handlers) {
+      // 一个出错不影响其他的（同各自独立的监听器）
+      try {
+        handler(event);
+      } catch (error) {
+        reportError(error);
+      }
+      if (stopped) break;
+    }
+  }, capture);
+  return handlers;
+}
 
+/** 主体挂处理函数：document 上的这种事件（是否捕获） */
+function on(type, handler, capture = false) {
+  const handlers = slots.get(`${type} ${capture}`);
+  if (!handlers) throw new Error(`Rune.UI：document 上的 ${type}（${capture ? '捕获' : '冒泡'}）没有占位，加到入口的 SLOTS 里`);
+  handlers.push(handler);
+}
+
+/** Blazor 里的自定义事件（@onrunetoggle 等）：浏览器事件名与交给 C# 的参数 */
+function registerEvents(blazor) {
   blazor.registerCustomEventType('runetoggle', {
     browserEventName: 'rune-toggle',
     createEventArgs: (event) => ({ open: event.detail.open, reason: event.detail.reason ?? null }),
@@ -237,295 +252,4 @@ function install(blazor) {
     browserEventName: 'rune-command',
     createEventArgs: (event) => ({ name: event.detail.name, text: event.detail.text ?? null }),
   });
-
-  // 原生的 toggle（popover）与 close（dialog）不冒泡：在捕获阶段接住，转发成冒泡的 rune-toggle
-  document.addEventListener('toggle', onPopoverToggle, true);
-  // 对话框的 cancel（Esc）与 close 也不冒泡
-  document.addEventListener('cancel', onDialogCancel, true);
-  document.addEventListener('close', onDialogClose, true);
-
-  // 捕获阶段：要赶在 Blazor 的链接拦截之前（它会把 #id 按 <base href> 解析成别的页面并跳过去）
-  document.addEventListener('click', onFocusLink, true);
-  // 离开确认：同样要赶在 Blazor 的链接拦截之前
-  document.addEventListener('click', guardLeave, true);
-  // 加载中、可聚焦的不可用按钮：拦下点击的默认动作（提交表单、跟随链接）；使用方的点击处理组件已经去掉
-  document.addEventListener('click', blockInert, true);
-  document.addEventListener('click', onClick);
-  document.addEventListener('keydown', onKeyDown);
-  document.addEventListener('pointerdown', startRipple);
-  document.addEventListener('pointerdown', focusOnShell);
-  document.addEventListener('pointerdown', keepFocusOnListHost);
-  document.addEventListener('pointerdown', grabSlider);
-  document.addEventListener('pointerdown', grabResizeHandle);
-  document.addEventListener('pointerdown', grabSplitter);
-  document.addEventListener('pointerdown', grabSortable);
-  document.addEventListener('pointerdown', grabTab);
-  document.addEventListener('pointerdown', grabToast);
-  document.addEventListener('dragenter', onFileDragEnter);
-  document.addEventListener('dragleave', onFileDragLeave);
-  document.addEventListener('drop', onFileDrop);
-  document.addEventListener('dblclick', resetResizeHandle);
-  document.addEventListener('dblclick', resetSplitter);
-  document.addEventListener('dblclick', doubleClickOption);
-  document.addEventListener('auxclick', auxClickTabs);
-  document.addEventListener('pointerdown', onHoverPointerDown);
-  document.addEventListener('pointermove', highlightUnderPointer);
-  document.addEventListener('pointermove', trackPointer, { passive: true });
-  document.documentElement.addEventListener('pointerleave', releasePointer);
-  document.addEventListener('change', drawCheckOnChange);
-  // 图片（头像、Image、预览的大图）：load / error 不冒泡，在捕获阶段接住
-  document.addEventListener('load', (event) => {
-    markImage(event.target);
-    showLightboxImage(event.target);
-  }, true);
-  document.addEventListener('error', (event) => markImage(event.target), true);
-  // 输入法组合期间的 input 不交给 C#（不拿拼音字母去过滤），组合结束补发一次
-  document.addEventListener('input', holdComposingInput, true);
-  // 验证码：赶在 Blazor 读值之前过滤
-  document.addEventListener('input', onOtpInput, true);
-  // 分组显示的输入框（手机号、身份证号）：同样赶在 Blazor 读值之前重排
-  document.addEventListener('input', formatInput, true);
-  document.addEventListener('compositionend', (event) => {
-    releaseComposedInput(event);
-    onMentionsCompositionEnd(event);
-  });
-  document.addEventListener('keyup', onMentionsKeyUp);
-  document.addEventListener('input', (event) => {
-    onHostInput(event);
-    onMentionsInput(event);
-    const target = event.target;
-    if (target instanceof HTMLTextAreaElement && target.hasAttribute('data-rune-autosize')) autosize(target);
-    if (target instanceof Element && target.hasAttribute('data-rune-count')) updateCount(target);
-  });
-  document.addEventListener('paste', sendPasteCommand);
-  document.addEventListener('paste', pasteFiles);
-  // 图片墙选到的图片：赶在 InputFile 之前建本地地址
-  document.addEventListener('change', createFilePreviews, true);
-  document.addEventListener('fullscreenchange', onFullscreenChange);
-  document.addEventListener('focusin', onFocusIn);
-  document.addEventListener('focusout', onFocusOut);
-  document.addEventListener('pointerover', onHoverPointerOver);
-  document.addEventListener('pointerover', hoverSubMenu);
-  document.addEventListener('pointerout', leaveSubMenu);
-  document.addEventListener('contextmenu', openContextMenu);
-  document.addEventListener('pointerover', previewRating);
-  document.addEventListener('pointerout', onHoverPointerOut);
-  document.addEventListener('pointerout', endRatingPreview);
-
-  // 组件改属性（data-open、data-indeterminate），这里同步原生状态；新插入的元素（第一次渲染就带着状态）一并处理
-  new MutationObserver(onMutations).observe(document.documentElement, {
-    subtree: true,
-    childList: true,
-    attributes: true,
-    attributeOldValue: true,
-    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query', 'aria-busy', 'data-rune-fullscreen', 'data-rune-invalid-submit', 'data-value', 'data-rune-watermark', 'data-rune-upload-previews'],
-  });
-  syncWithin(document);
-  // 装好了：端到端测试、对照工具等它出现再操作（脚本加载之前的点击没人处理）
-  document.documentElement.setAttribute('data-rune-ready', '');
-}
-
-// 插入时（第一次渲染就带着状态）要处理的元素：选择器与处理函数，一处登记
-const watched = [
-  ['[data-rune-overlay][data-open="true"]', syncOpen],
-  ['input[data-indeterminate="true"]', syncIndeterminate],
-  ['svg[data-rune-draw="true"]', drawIcon],
-  ['[data-rune-grid-span]', (element) => watchGrid(element.parentElement)],
-  ['[data-rune-observe-size]', watchSize],
-  ['textarea[data-rune-autosize]', autosize],
-  ['[data-rune-overflow]', watchOverflow],
-  ['[data-rune-roving]', watchRoving],
-  ['[data-rune-indicator]', watchIndicator],
-  ['[data-rune-slider]', watchSlider],
-  ['[data-rune-otp]', watchOtp],
-  ['[data-rune-scroll-area]', watchScrollArea],
-  ['[data-rune-page-scrollbar]', watchPageScrollbar],
-  ['[data-rune-collapse]', watchCollapse],
-  ['[data-rune-resize]', watchResizeHandle],
-  ['img[data-rune-image]', (image) => image.complete && markImage(image)],
-  ['[data-rune-lightbox-viewport]', watchLightbox],
-  ['img[data-rune-lightbox-image]', (image) => image.complete && showLightboxImage(image)],
-  ['code[data-rune-highlight]', highlightCode],
-  ['[data-rune-tabs]', watchTabs],
-  ['[data-rune-toc]', watchToc],
-  ['[data-rune-loading-bar]', watchLoadingBar],
-  ['[data-rune-hotkey-label]', formatHotkeyLabel],
-  ['dialog[data-rune-close-when]', watchCloseWhen],
-  ['[data-rune-fullscreen="true"]', syncFullscreen],
-  ['[data-rune-theme-switcher]', watchThemeSwitcher],
-  ['[data-rune-token-value]', fillTokenValue],
-  ['[data-rune-tween]', watchTween],
-  ['[data-rune-viewport-fill]', watchViewportFill],
-  ['[data-rune-affix]', watchAffix],
-  ['[data-rune-back-top]', watchBackTop],
-  ['[data-rune-ellipsis-text]', watchEllipsis],
-  ['[data-rune-marquee]', watchMarquee],
-  ['[data-rune-watermark]', drawWatermark],
-];
-const anyWatched = watched.map(([selector]) => selector).join(', ');
-
-/** 同步一个元素（含自身）里所有带状态属性的元素 */
-function syncWithin(root) {
-  const sync = (element) => {
-    for (const [selector, handle] of watched) if (element.matches(selector)) handle(element);
-  };
-  if (root instanceof Element) sync(root);
-  root.querySelectorAll(anyWatched).forEach(sync);
-}
-
-/** 图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */
-function markImage(image) {
-  if (!(image instanceof HTMLImageElement) || !image.hasAttribute('data-rune-image')) return;
-  image.dataset.state = image.complete && image.naturalWidth > 0 ? 'loaded' : 'error';
-}
-
-function onMutations(mutations) {
-  for (const mutation of mutations) {
-    if (mutation.type === 'attributes') {
-      if (mutation.attributeName === 'data-indeterminate') syncIndeterminate(mutation.target);
-      else if (mutation.attributeName === 'data-rune-autosize') autosize(mutation.target);
-      else if (mutation.attributeName === 'data-rune-query') onQueryChanged(mutation.target);
-      else if (mutation.attributeName === 'aria-busy') syncHideEmpty(mutation.target.closest('[role="listbox"]'));
-      else if (mutation.attributeName === 'data-rune-fullscreen') syncFullscreen(mutation.target);
-      else if (mutation.attributeName === 'data-rune-watermark') drawWatermark(mutation.target);
-      else if (mutation.attributeName === 'data-rune-upload-previews') releaseFilePreviews(mutation.target);
-      else if (mutation.attributeName === 'data-value') { if (mutation.target.hasAttribute('data-rune-tween')) onTweenValueChanged(mutation.target); }
-      else if (mutation.attributeName === 'data-rune-invalid-submit') { if (mutation.target.hasAttribute('data-rune-invalid-submit')) focusInvalid(mutation.target); }
-      else if (mutation.attributeName === 'data-rune-copy-request') {
-        if (mutation.target.hasAttribute('data-rune-copy-request')) copyFrom(mutation.target);
-      } else if (mutation.attributeName === 'data-rune-draw') {
-        if (mutation.target.getAttribute('data-rune-draw') === 'true' && mutation.oldValue !== 'true') drawIcon(mutation.target);
-      }
-      else if (mutation.target.matches('[data-rune-overlay]')) syncOpen(mutation.target);
-      continue;
-    }
-    for (const node of mutation.addedNodes) {
-      if (!(node instanceof Element)) continue;
-      syncWithin(node);
-      focusArrivedContent(node);
-    }
-    if (mutation.removedNodes.length > 0) {
-      releaseFullscreen();
-      releaseDetachedPreviews();
-    }
-    if (!(mutation.target instanceof Element)) continue;
-    // 列表重新渲染（虚拟滚动换了一批选项、选项变了）：高亮放回高亮项上
-    if (mutation.addedNodes.length > 0) {
-      const list = mutation.target.closest('[role="listbox"]');
-      const host = list && hostOf(list);
-      if (host?.hasAttribute('data-rune-active')) syncHighlight(host, list);
-      if (list) onOptionsChanged(list);
-    }
-    // 一行标签里加减了标签（或“+N”的文字变了）：重新量
-    const row = mutation.target.closest('[data-rune-overflow]');
-    if (row) scheduleOverflow(row);
-  }
-}
-
-function onClick(event) {
-  const target = event.target;
-  if (!(target instanceof Element)) return;
-
-  pickRating(event);
-  scrollTabs(event);
-  closeAfterPick(target);
-  clickCascader(target);
-  pickMention(target);
-  onMentionsClick(target);
-  toggleFromShell(target);
-  clickToastClose(target);
-
-  refocusFrom(target);
-  toggleReveal(target);
-  clickBackTop(target);
-
-  const copier = target.closest('[data-rune-copy-on-click]');
-  if (copier && !copier.matches(':disabled, [aria-busy="true"]')) copyFrom(copier);
-
-  closeOnLink(target);
-  chooseTheme(target);
-
-  const dismiss = target.closest('[data-rune-dismiss]');
-  if (dismiss) {
-    startDismiss(dismiss);
-    return;
-  }
-
-  const opener = target.closest('[data-rune-open]');
-  if (opener) {
-    const overlay = document.getElementById(opener.getAttribute('data-rune-open'));
-    if (overlay) open(overlay);
-    return;
-  }
-
-  // 子菜单项：打开子菜单；选了菜单项（不可用、不关菜单的除外）：关闭整串菜单；点了关闭按钮：关闭所在的浮层
-  const item = target.closest('[role^="menuitem"]:not([aria-disabled="true"]), [data-rune-close]');
-  if (item) {
-    if (item.matches('[aria-haspopup="menu"][popovertarget]')) clickSubMenuTrigger(event, item);
-    if (item.matches('[aria-haspopup="menu"], [data-rune-keep-open]')) return;
-    const overlay = item.matches('[role^="menuitem"]') ? rootMenuOf(item) : item.closest('[data-rune-overlay]');
-    if (overlay) closeOrRequest(overlay, 'close');
-    return;
-  }
-
-  // 点在对话框的遮罩上：事件目标是 dialog 本身，位置在它的边框之外
-  if (target instanceof HTMLDialogElement && target.matches('[data-rune-light-dismiss][open]')) {
-    const rect = target.getBoundingClientRect();
-    const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-    if (!inside && event.detail > 0) closeOrRequest(target, 'outside');
-  }
-}
-
-function onKeyDown(event) {
-  // 打开浮层的快捷键（命令面板的 Mod+K）：已经开着时关上
-  const hotkeyed = hotkeyTarget(event);
-  if (hotkeyed?.matches('[role^="menuitem"]')) {
-    hotkeyed.click();
-    return;
-  }
-  if (hotkeyed) {
-    if (hotkeyed.open) closeOrRequest(hotkeyed, 'escape');
-    else open(hotkeyed);
-    return;
-  }
-  onHoverEscape(event);
-  focusToaster(event);
-  keyToast(event);
-  exitFullscreenOnEscape(event);
-  if (event.key === 'Enter' || event.key === ' ') startRipple(event);
-  if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
-  if (keyCascader(event) || keyMentions(event) || keySortable(event)) return;
-  const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
-  if (menu) moveInMenu(menu, event);
-  else openMenuFromTrigger(event);
-  // 提及的文本框也是列表宿主（高亮跟着它），但键盘只在列表打开时由 mentions.js 处理
-  if (event.target instanceof Element && event.target.matches('[data-rune-list]:not([data-rune-mentions])')) moveInList(event.target, event);
-  moveRoving(event);
-  keySlider(event);
-  keyResizeHandle(event);
-  keySplitter(event);
-  keyTabs(event);
-  // 列表没用掉的按键再转成命令（Enter 选中了高亮项时不再加标签）
-  if (event.key === 'Backspace' || event.key === 'Escape' || event.key === 'Enter') sendKeyCommand(event);
-}
-
-function onFocusIn(event) {
-  const target = event.target;
-  if (!(target instanceof Element)) return;
-  noteRovingFocus(event);
-  highlightFirstOnFocus(target);
-  onCascaderFocusIn(event);
-  onOtpFocus(event);
-  onHoverFocusIn(event);
-  onToasterFocusIn(event);
-  // 列表自己获得焦点：还没有高亮项时高亮默认项（触发按钮、输入框做宿主时由打开下拉的一方决定）
-  if (target.matches('[role="listbox"][data-rune-list]') && activeIndex(target, target) < 0) highlightDefault(target, target);
-}
-
-function onFocusOut(event) {
-  blurSortable(event);
-  onOtpFocus(event);
-  onMentionsFocusOut(event);
-  onHoverFocusOut(event);
-  onToasterFocusOut(event);
 }
