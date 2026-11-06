@@ -121,7 +121,7 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
     表尾的行标题保留 table/rowHeader；Card 加了 skeleton 部件。新增 vue 的 `ButtonBase`（无外观的按钮，原来的按钮基类改名 `ButtonCore`），Menu 的示例与 ButtonBase 页照 vue 写；
     Field 不写 Required 时看 `[Required]`（同 vue 的 form.Field 按 schema 标必填）；对照工具不比关键帧名、跳过看不见的元素；
   - [ ] 剩下的差异（menu、tabs 已经 0 差异）：transfer 的 members、progress、card 的 effects、dialog 的进出场（这边用独立的 scale 属性，vue 用 transform，视觉一致）；
-    等别的组件的：form-section / form 的 admission（AsideLayout）、skeleton（Stat）；checkbox 的 switch 在 Switch 补齐后已对齐；
+    form-section 的 admission（AsideLayout）、skeleton（Stat）、checkbox 的 switch（Switch 补齐）已在提供它们的组件做好后对齐；
     内容不同造成的宽度差（code、toast、loading-bar、button-base 的文字）与 rating（每颗星多一层填色，DESIGN 里写过）不处理；
   - [x] HANDOFF 的路径与“下一步”。
 - [~] R.3 Blazor 化的 API 纠正（按“Blazor 化的约定”）：
@@ -152,14 +152,16 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 
 ## 阶段 2：布局与展示
 
-- [ ] 布局：Affix、BackTop、AsideLayout（FormSection 的 AdmissionExample 换用）、Prose、Splitter（JS 初始化器补尺寸变化：ResizeObserver）、ViewportFill
-- [ ] 展示：Ellipsis、Stat、AnimatedNumber、ValueChange、ProportionBar、Timeline（操作人、折叠、字段差异）、Checklist、Marquee、Watermark、FieldCompare；
-  Sparkline、Gauge 先做成独立的小 SVG，阶段 6 的底座做好后改用
+- [x] AsideLayout（FormSection 的 AdmissionExample 已换用）
+- [ ] 布局：Affix、BackTop、Prose、Splitter（JS 初始化器补尺寸变化：ResizeObserver）、ViewportFill
+- [x] Stat / StatGroup、AnimatedNumber（过渡在 JS 里逐帧改文字节点）、`NumberFormat`（同 vue 的 NumericFormat，decimal 格式化）、ValueChange、
+  Timeline（操作人、收起旧的、查看详情、交替、进行中）；Skeleton 的 layouts 已换用 Stat
+- [ ] 展示：Ellipsis、ProportionBar、Checklist、Marquee、Watermark；Sparkline、Gauge 先做成独立的小 SVG，阶段 6 的底座做好后改用。
+  FieldCompare 建在表格的列定义（类型推断、按列格式化、ColumnTable）上，移到阶段 4
 - [ ] Sortable：拖动排序的通用能力（单容器与多容器、落点插入线、键盘），Tree、Upload、Tabs、KanbanBoard 共用
 - [ ] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动），紧接着 TreeSelect、TreeTransfer（Transfer 的树形）
 - [ ] Image 与 Lightbox（缩放、旋转、拖动），接着补 Upload 的图片墙（`ListType`：方形缩略图、点开预览、Ctrl + V 粘贴图片）
 - [ ] VirtualList 补齐：随页面滚动、横向、骨架行、跳到第几项、可见范围变化的回调
-- 示例缺口：Skeleton 的 layouts 换用 Stat；Drawer 的 detail 示例换用 Timeline
 
 ## 阶段 3：浮层与导航
 
@@ -174,7 +176,9 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 - [ ] DataTable / DataTableView：列用子组件声明（`PropertyColumn` 按表达式取值，标题取 `[Display]`，排序键取属性路径；`TemplateColumn` 自定义内容），也可以给列定义列表；
   数据给 `Items`（内存里排序、筛选、分页）或 `ItemsProvider`（服务端）；排序、表头筛选、选择、展开、固定列、列宽拖动、网格方向键与单元格编辑（行校验）、行拖动、虚拟滚动、骨架行、密度
 - [ ] ColumnHeaderActions、ColumnResizer、ColumnSettings、SelectionBar、ColumnTable、TreeDataTable、PivotTable、CSV 导出（vue 的 `csv.ts`；xlsx 不做）
-- 示例缺口：Skeleton 的 table 示例、Table 的 column-table 示例、Drawer 的 imperative 示例、Badge 的表格状态示例换用 DataTable
+- [ ] FieldCompare（字段写法同列定义；列表布局用已有的 ValueChange），接着 Timeline 的 change-log 示例换用它
+- 示例缺口：Skeleton 的 table 示例、Table 的 column-table 示例、Drawer 的 imperative 与 detail 示例（detail 用 DataTable、Timeline、DeadlineBadge）、
+  Badge 的表格状态示例换用 DataTable
 
 ## 阶段 5：日期（`Rune.UI.Dates`）
 

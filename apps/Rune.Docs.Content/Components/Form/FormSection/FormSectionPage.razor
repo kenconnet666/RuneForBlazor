@@ -8,7 +8,7 @@
         <ExampleColumn Wide="true">
             <Example Id="admission" Title="长表单分组与目录" Demo="typeof(AdmissionExample)">
                 <Code>Columns</Code> 是最多几列，每列不窄于 <Code>MinColumnWidth</Code>，容器窄时自动减少列数，不用断点；跨整行用
-                <Code>GridItem FullRow="true"</Code>。给了 <Code>id</Code> 就能当锚点：旁边放一个 TableOfContents 做分节导航，跳过来时让开粘性顶栏。
+                <Code>GridItem FullRow="true"</Code>。给了 <Code>id</Code> 就能当锚点：用 AsideLayout 把 TableOfContents 放在侧栏做分节导航，跳过来时让开粘性顶栏。
                 语义是以标题为名称的 group，标题是 h2–h6（<Code>HeadingLevel</Code>，默认 h3），读屏能按标题跳转。
             </Example>
         </ExampleColumn>

@@ -1,0 +1,61 @@
+@*
+    一个值的变化（span，同 vue-tsx-pro 的 ValueChange）：原值划掉、箭头、新值。放在表格单元格、时间线、审批意见里。
+    <ValueChange Before="¥1,200" After="¥1,350" />
+    <ValueChange After="新建时只有新值" />
+    读屏：原值是 del、新值是 ins，两者之间有“改为”（画面上是箭头）。要放组件时用 BeforeContent / AfterContent。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<span @attributes="Attrs.Merge(RootLayer, Rest)">
+    @if (BeforeContent is not null || Before is not null)
+    {
+        <del @attributes="Attrs.Merge(BeforeLayer, PropsBefore)">@(BeforeContent ?? (RenderFragment)(b => b.AddContent(0, Before)))</del>
+        <Icon Data="BuiltInIcons.ArrowRight" @attributes="Attrs.MergeProps(ArrowLayer, PropsArrow)" />
+        <VisuallyHidden>@Config.Lang.FieldCompareTo</VisuallyHidden>
+    }
+    <ins @attributes="Attrs.Merge(AfterLayer, PropsAfter)">@(AfterContent ?? (RenderFragment)(b => b.AddContent(0, After)))</ins>
+</span>
+
+@code {
+    static readonly Attrs RootLayer = new() { Sx = RootStyle };
+    static readonly Attrs BeforeLayer = new() { Sx = BeforeStyle };
+    static readonly Attrs ArrowLayer = new() { Sx = ArrowStyle };
+    static readonly Attrs AfterLayer = new() { Sx = AfterStyle };
+
+    /// <summary>原值；没有（新建）时只显示新值。</summary>
+    [Parameter] public string? Before { get; set; }
+
+    /// <summary>带格式的原值：代替 Before 显示。</summary>
+    [Parameter] public RenderFragment? BeforeContent { get; set; }
+
+    /// <summary>新值。</summary>
+    [Parameter] public string? After { get; set; }
+
+    /// <summary>带格式的新值：代替 After 显示。</summary>
+    [Parameter] public RenderFragment? AfterContent { get; set; }
+
+    /// <summary>原值（del）的部件属性。</summary>
+    [Parameter] public Attrs? PropsBefore { get; set; }
+
+    /// <summary>箭头（交给 Icon）的部件属性。</summary>
+    [Parameter] public Attrs? PropsArrow { get; set; }
+
+    /// <summary>新值（ins）的部件属性。</summary>
+    [Parameter] public Attrs? PropsAfter { get; set; }
+
+    static Style RootStyle => Css.Define(static () => new Style
+    {
+        Display = Display.InlineFlex,
+        FlexWrap = FlexWrap.Wrap,
+        AlignItems = AlignItems.Baseline,
+        ColumnGap = Space.Xs,
+        MinWidth = 0,
+    });
+
+    static Style BeforeStyle => Css.Define(static () => new Style { Color = Colors.TextMuted, TextDecorationLine = TextDecorationLine.LineThrough });
+
+    static Style ArrowStyle => Css.Define(static () => new Style { AlignSelf = AlignSelf.Center, Color = Colors.TextMuted, FlexShrink = 0 });
+
+    static Style AfterStyle => Css.Define(static () => new Style { TextDecorationLine = TextDecorationLine.None, Color = Colors.Text, FontWeight = FontWeights.Medium });
+}

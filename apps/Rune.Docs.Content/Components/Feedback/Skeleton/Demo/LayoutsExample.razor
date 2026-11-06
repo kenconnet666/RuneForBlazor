@@ -60,13 +60,18 @@
             }
         </Card>
 
-        @* 看板：Card 自带 loading（骨架、aria-busy、淡入都由组件管） *@
-        <Card Loading="layoutsLoading">
-            <Header><TextSpan Weight="Weight.Semibold">本周摘要</TextSpan></Header>
-            <ChildContent>
-                <Paragraph Tone="TextTone.Muted">新签客户 12 家，续约率 94%，两笔大单进入法务审核。</Paragraph>
-            </ChildContent>
-        </Card>
+        @* 看板：Stat、Card 自带 loading（骨架、aria-busy、淡入都由组件管） *@
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Card>
+                <Stat Label="本月营收" Value="128.6m" Unit="万元" Change="0.084m" ChangeLabel="较上月" Loading="layoutsLoading" />
+            </Card>
+            <Card Loading="layoutsLoading">
+                <Header><TextSpan Weight="Weight.Semibold">本周摘要</TextSpan></Header>
+                <ChildContent>
+                    <Paragraph Tone="TextTone.Muted">新签客户 12 家，续约率 94%，两笔大单进入法务审核。</Paragraph>
+                </ChildContent>
+            </Card>
+        </Flex>
 
         @* 表单：标签加输入框，一个字段一档 *@
         <Card>

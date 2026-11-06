@@ -1,8 +1,9 @@
 @* 供应商准入申请：长表单按主题分成几组，每组最多两列（容器窄时自动单列）；分组带 id，旁边的目录跳到各组 *@
 @inherits RuneComponent
 
-<div @attributes="Attrs.Merge(Container)">
-    <div @attributes="Attrs.Merge(Layout)">
+<AsideLayout AsideLabel="申请表目录" AsideWidth="@("12rem")">
+    <Aside><TableOfContents Items="sections" /></Aside>
+    <ChildContent>
         <form @onsubmit:preventDefault="true">
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xl">
                 <FormSection id="admission-basic" Title="企业信息" Columns="2" MinColumnWidth="CssLength.Em(16)">
@@ -77,9 +78,8 @@
                 </Flex>
             </Flex>
         </form>
-        <TableOfContents Items="sections" @attributes="Attrs.Merge(Aside)" />
-    </div>
-</div>
+    </ChildContent>
+</AsideLayout>
 
 @code {
     static readonly HeadingEntry[] sections =
@@ -107,21 +107,4 @@
     string? bank = "某银行上海浦东支行";
     string? account = "6222 0210 0100 1234 567";
     string? term = "60";
-
-    // 同 AsideLayout（路线图阶段 2 做成组件）：容器够宽（56rem）时目录在右边一列、粘在顶栏下面；窄了叠成一列，目录在后
-    static readonly Condition Wide = Containers.MinWidth(CssLength.Rem(56));
-
-    static Style Container => Css.Define(static () => new Style { ContainerType = ContainerType.InlineSize, MinWidth = 0 });
-
-    static Style Layout => Css.Define(static () => new Style
-    {
-        Display = Display.Grid,
-        Gap = Space.Xl,
-        [Wide] = new() { GridTemplateColumns = "minmax(0, 1fr) 12rem", AlignItems = AlignItems.Start },
-    });
-
-    static Style Aside => Css.Define(static () => new Style
-    {
-        [Wide] = new() { Position = Position.Sticky, InsetBlockStart = LayoutVars.StickyOffset },
-    });
 }

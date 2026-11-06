@@ -1,5 +1,5 @@
 @* 报价单的操作记录：新的在前，每项有操作人（头像或首字母）与时间，改了哪些字段列在项里，完整的字段对比收在“查看详情”里。
-   记录多，只显示最新的 4 条，其余在“展开其余 N 条”后面。（字段对比等 FieldCompare 做好后换用它） *@
+   记录多，只显示最新的 4 条，其余在“展开其余 N 条”后面。（完整的字段对比等阶段 4 的 FieldCompare 做好后换用它） *@
 @inherits RuneComponent
 
 <Card>
@@ -36,7 +36,16 @@
     // 一次修改：项里列改了的字段，详情里是全部字段
     static TimelineItem Change(TimelineItem item, Quote before, Quote after) => item with
     {
-        DescriptionContent = @<span>@string.Join("；", Fields(before, after).Where(f => f.Before != f.After).Select(f => $"{f.Name} {f.Before} → {f.After}"))</span>,
+        DescriptionContent =
+            @<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                @foreach (var field in Fields(before, after).Where(f => f.Before != f.After))
+                {
+                    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Baseline" Wrap="true">
+                        <Small Tone="TextTone.Muted">@field.Name</Small>
+                        <ValueChange Before="@field.Before" After="@field.After" />
+                    </Flex>
+                }
+            </Flex>,
         Details =
             @<Descriptions Columns="1">
                 @foreach (var field in Fields(before, after))
