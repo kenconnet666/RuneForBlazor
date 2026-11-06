@@ -3,6 +3,7 @@
 
 import { anchorFloating } from './floating.js';
 import { typeahead } from './lists.js';
+import { isRtl } from './shared.js';
 
 const MENU = '[role="menu"][data-rune-overlay]';
 const SUBMENU_TRIGGER = '[role="menuitem"][aria-haspopup="menu"][popovertarget]';
@@ -21,7 +22,6 @@ let subOpenTimer = 0;
 let stopGrace = null;
 
 const subMenuOf = (trigger) => document.getElementById(trigger.getAttribute('popovertarget'));
-const isRtl = (element) => getComputedStyle(element).direction === 'rtl';
 const hide = (menu) => {
   if (menu?.matches(':popover-open')) menu.hidePopover();
 };

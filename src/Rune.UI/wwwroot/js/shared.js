@@ -30,6 +30,9 @@ let speakTimer;
 export const TABBABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
 
 /** 把按键交给 C#：发出冒泡的 rune-command（Blazor 里是 @onrunecommand），带命令名与可选的文字（粘贴的内容）。 */
+/** 元素按从右到左排版（左右方向键要对调） */
+export const isRtl = (element) => getComputedStyle(element).direction === 'rtl';
+
 export function sendCommand(target, name, text = null) {
   target.dispatchEvent(new CustomEvent('rune-command', { bubbles: true, detail: { name, text } }));
 }
