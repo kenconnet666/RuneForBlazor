@@ -1,0 +1,22 @@
+@*
+    正文里的有序列表（ol，同 vue-tsx-pro 的 OrderedList）：编号；start、reversed 这些原生属性照常可用。未声明的属性落到 ol 上。
+    <OrderedList start="4"><ListItem>写第一个页面</ListItem></OrderedList>
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<ol @attributes="Attrs.Merge(ListStyles.Of(Gap, Size, ListKind.Number), Rest)">
+    @* 里面的项不沿用外层 List 的图标 *@
+    <CascadingValue Value="ListMarker.None" IsFixed="true">@ChildContent</CascadingValue>
+</ol>
+
+@code {
+    /// <summary>字号档位；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>项与项之间的间距档位，默认 Xs。</summary>
+    [Parameter] public SpaceScale Gap { get; set; } = SpaceScale.Xs;
+
+    /// <summary>列表项（ListItem）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

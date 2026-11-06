@@ -1,0 +1,25 @@
+@*
+    只在交互渲染时显示的内容（同 vue-tsx-pro 的 ClientOnly）：静态 SSR 与预渲染时画 Fallback（默认什么都不画），交互模式接管后才画内容。
+    给只有浏览器里才对的东西用：按量出来的尺寸排版、依赖当前时刻或本机设置的显示，免得预渲染的 HTML 与交互渲染的结果对不上。
+    <ClientOnly><Fallback><Skeleton Height="12rem" /></Fallback><ChildContent><SalesMap Data="sales" /></ChildContent></ClientOnly>
+    就是 <c>RendererInfo.IsInteractive</c> 的组件写法；组件里自己判断时直接用它。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@if (RendererInfo.IsInteractive)
+{
+    @ChildContent
+}
+else
+{
+    @Fallback
+}
+
+@code {
+    /// <summary>交互渲染时才显示的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>静态 SSR 与预渲染时先画的占位（骨架屏一类），默认什么都不画。</summary>
+    [Parameter] public RenderFragment? Fallback { get; set; }
+}

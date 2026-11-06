@@ -1,0 +1,41 @@
+@*
+    列表项（li，同 vue-tsx-pro 的 ListItem）：在带图标的 List 里图标在前、文字在后；Icon 逐项覆盖 List 的图标。未声明的属性落到 li 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@if (ShownIcon is { } icon)
+{
+    <li @attributes="Attrs.Merge(IconItemLayer, Rest)">
+        <Icon Data="icon" @attributes="Attrs.MergeProps(IconLayer, Marker?.PropsIcon, PropsIcon)" />
+        <div @attributes="Attrs.Merge(ContentLayer, PropsContent)">@ChildContent</div>
+    </li>
+}
+else
+{
+    <li @attributes="Attrs.Merge(ItemLayer, Rest)">@ChildContent</li>
+}
+
+@code {
+    static readonly Attrs ItemLayer = new() { Sx = ListStyles.Item };
+    static readonly Attrs IconItemLayer = new() { Sx = ListStyles.IconItem };
+    static readonly Attrs IconLayer = new() { Sx = ListStyles.Icon };
+    static readonly Attrs ContentLayer = new() { Sx = ListStyles.Content };
+
+    /// <summary>这一项的图标，覆盖 List 的 Icon（在有序列表里不用）。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>图标的部件属性，与 List 的 PropsIcon 合并（这里的在后）。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>带图标时包着文字的内容层（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>所在列表给的图标。</summary>
+    [CascadingParameter] ListMarker? Marker { get; set; }
+
+    IconData? ShownIcon => Icon ?? Marker?.Icon;
+}

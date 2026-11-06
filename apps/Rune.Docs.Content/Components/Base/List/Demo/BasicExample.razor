@@ -1,0 +1,25 @@
+@* 正文里的列表：无序（圆点）、有序（编号，start 等原生属性照常用）、嵌套 *@
+@inherits RuneComponent
+
+<Grid MinItemWidth="CssLength.Rem(16)" Gap="SpaceScale.Lg">
+    <List>
+        <ListItem>支持亮色、暗色与纸张主题</ListItem>
+        <ListItem>
+            组件按需引入，发布时裁剪掉没用到的
+            <List>
+                <ListItem>图标按需创建</ListItem>
+                <ListItem>日期、图表在单独的程序集</ListItem>
+            </List>
+        </ListItem>
+        <ListItem>键盘、读屏都可用</ListItem>
+    </List>
+    <OrderedList>
+        <ListItem>安装 <Code>Rune.UI</Code></ListItem>
+        <ListItem>在 Program.cs 里加上 <Code>AddRuneUI()</Code></ListItem>
+        <ListItem><Strong>RuneProvider</Strong> 选好主题与语言</ListItem>
+    </OrderedList>
+    <OrderedList start="4" Gap="SpaceScale.Sm">
+        <ListItem>写第一个页面（接着上一列，从 4 开始）</ListItem>
+        <ListItem>跑起 dotnet watch，改代码立即看到效果</ListItem>
+    </OrderedList>
+</Grid>

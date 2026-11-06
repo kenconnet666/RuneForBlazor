@@ -1,0 +1,35 @@
+@* 功能清单：图标代替圆点；ListItem 可以逐项换图标与颜色。Size、Gap 调字号与间距 *@
+@inherits RuneComponent
+
+<Grid MinItemWidth="CssLength.Rem(14)" Gap="SpaceScale.Md">
+    @foreach (var (name, price, features) in plans)
+    {
+        <Card @key="name">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <Flex Direction="LayoutDirection.Column">
+                    <Strong Size="Size.Lg">@name</Strong>
+                    <TextSpan Tone="TextTone.Muted" Size="Size.Sm">@price</TextSpan>
+                </Flex>
+                <List Icon="Lucide.Check" PropsIcon="Success" Gap="SpaceScale.Sm" Size="Size.Sm">
+                    @foreach (var (feature, included) in features)
+                    {
+                        <ListItem @key="feature" Icon="@(included ? null : Lucide.Minus)" PropsIcon="@(included ? null : Muted)">
+                            <TextSpan Tone="@(included ? null : TextTone.Muted)">@feature</TextSpan>
+                        </ListItem>
+                    }
+                </List>
+            </Flex>
+        </Card>
+    }
+</Grid>
+
+@code {
+    static readonly Attrs Success = new() { ["Tone"] = TextTone.Success };
+    static readonly Attrs Muted = new() { ["Tone"] = TextTone.Muted };
+
+    static readonly (string Name, string Price, (string Feature, bool Included)[] Features)[] plans =
+    [
+        ("专业版", "¥39 / 月", [("不限项目数", true), ("100 GB 存储", true), ("版本历史 30 天", true), ("单点登录", false)]),
+        ("团队版", "¥99 / 人 / 月", [("专业版的全部功能", true), ("共享空间与权限", true), ("版本历史 1 年", true), ("单点登录", true)]),
+    ];
+}

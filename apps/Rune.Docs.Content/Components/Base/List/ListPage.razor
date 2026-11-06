@@ -1,0 +1,22 @@
+@page "/components/list"
+@attribute [DocMeta("List 列表", "正文里的列表：圆点、编号、嵌套，或用图标代替圆点做功能清单。界面结构上的列表（导航、步骤）不用它。", DocCategory.Base, Order = 3)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Base.List.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="无序、有序与嵌套" Demo="typeof(BasicExample)">
+                <Code>List</Code> 是圆点，<Code>OrderedList</Code> 是编号，<Code>start</Code>、<Code>reversed</Code> 这些原生属性照常可用；嵌套的列表紧贴上一项。
+                <Code>Gap</Code> 改项与项之间的间距。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="icons" Title="图标代替圆点" Demo="typeof(FeaturesExample)">
+                <Code>Icon</Code> 让每项前面画一个图标（功能清单的对勾），<Code>PropsIcon</Code> 改颜色；<Code>ListItem</Code> 的 <Code>Icon</Code> 逐项覆盖。
+                图标是装饰，读屏照常念“列表，几项”。<Code>Size</Code> 是字号档位。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(List), typeof(OrderedList), typeof(ListItem)]" />
+</DocPage>

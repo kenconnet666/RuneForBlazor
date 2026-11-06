@@ -1,0 +1,40 @@
+@*
+    正文里的无序列表（ul，同 vue-tsx-pro 的 List）：圆点，或用 Icon 代替圆点（功能清单的对勾）。
+    <List>
+        <ListItem>安装依赖</ListItem>
+        <ListItem>配置<OrderedList><ListItem>…</ListItem></OrderedList></ListItem>
+    </List>
+    <List Icon="Lucide.Check" PropsIcon="@(new() { ["Tone"] = TextTone.Success })"><ListItem>不限项目</ListItem></List>
+    图标是装饰（aria-hidden），读屏照常念“列表，几项”。界面结构上的列表（导航、分页、步骤）不要圆点，不用它。未声明的属性落到 ul 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<ul @attributes="Attrs.Merge(ListStyles.Of(Gap, Size, Icon is null ? ListKind.Bullet : ListKind.Icon), Rest, Icon is null ? null : ListRole)">
+    <CascadingValue Value="Marker" IsFixed="false">@ChildContent</CascadingValue>
+</ul>
+
+@code {
+    // 去掉圆点后 Safari 不再把它当列表念：显式写上 role
+    static readonly Attrs ListRole = new() { Role = "list" };
+
+    Memo<(IconData? Icon, Attrs? PropsIcon), ListMarker> marker;
+
+    /// <summary>用图标代替圆点；ListItem 的 Icon 可以逐项覆盖。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>各项图标的部件属性（Tone 改颜色）；ListItem 的 PropsIcon 会合并进来。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>字号档位；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>项与项之间的间距档位（同 Flex、Grid 的 Gap），默认 Xs；每项是一段话时用 Md。</summary>
+    [Parameter] public SpaceScale Gap { get; set; } = SpaceScale.Xs;
+
+    /// <summary>列表项（ListItem）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 图标与部件属性不变时是同一个对象：里面的项不白白重新渲染
+    ListMarker Marker => marker.Get((Icon, PropsIcon), static k => k.Icon is null && k.PropsIcon is null ? ListMarker.None : new ListMarker(k.Icon, k.PropsIcon));
+}
