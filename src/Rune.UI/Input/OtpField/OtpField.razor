@@ -6,11 +6,14 @@
     （autocomplete="one-time-code"）、整段粘贴、退格、选中都是原生的，读屏看到的是一个输入框；输入时只留数字（或字母数字），填满时调用 OnComplete。
     格子里的字（data-char）与当前格（data-active）由 JS 初始化器按输入框的当前值当场画（data-rune-otp），不等往返，静态 SSR 也一样；
     使用方写的属性（name、aria-label……）落在 input 上，Sx 落在格子的容器上。
+    格子的外壳（描边、底色、圆角、悬停、焦点环）用输入框的配方（同 vue-tsx-pro：Variant、Radius 与 InputDefaults 跟其他输入框一样），格子自己只管大小与字。
 *@
 @namespace Rune.UI
-@inherits FormControl<string?>
+@inherits InputControl<string?>
 @{
     var parts = OtpFieldStyles.Of(Size, Config.Styles);
+    // 字号设在格子的容器上（格子的 em 跟着它）；格子不在相连组里排
+    var shell = InputStyles.Of(Appearance with { Size = null, Attached = null }, Config.Styles)[InputPart.Root];
     var ends = GroupEnds;
     var chars = Text;
 }
@@ -20,7 +23,7 @@
     {
         var shown = index < chars.Length ? (Mask ? "•" : chars[index].ToString()) : "";
         <div aria-hidden="true" data-index="@index" data-char="@shown" data-state="@(shown.Length > 0 ? "filled" : "empty")"
-             @attributes="Attrs.Merge(parts[OtpFieldPart.Slot], PropsSlot)"></div>
+             @attributes="Attrs.Merge(shell, parts[OtpFieldPart.Slot], PropsSlot)"></div>
         @if (ends.Contains(index))
         {
             <span aria-hidden="true" @attributes="Attrs.Merge(parts[OtpFieldPart.Separator], PropsSeparator)"></span>
@@ -49,9 +52,6 @@
 
     /// <summary>填满时调用（输入、粘贴、自动填充都算）。</summary>
     [Parameter] public EventCallback<string> OnComplete { get; set; }
-
-    /// <summary>字号档位：格子随之缩放；不写时继承。</summary>
-    [Parameter] public Size? Size { get; set; }
 
     /// <summary>每一格的部件属性。</summary>
     [Parameter] public Attrs? PropsSlot { get; set; }

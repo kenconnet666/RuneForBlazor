@@ -37,6 +37,23 @@ public class OtpFieldTests : BunitContext
     }
 
     [Fact]
+    public void 格子用输入框的配方_样式与圆角跟输入框的默认值走()
+    {
+        var registry = Services.GetRequiredService<Rune.Styles.StyleRegistry>();
+        var components = new ComponentConfigs { new ComponentConfig<InputDefaults, InputPart> { Defaults = new() { Variant = InputVariant.Soft } } };
+
+        var cut = Render<RuneProvider>(p => p
+            .Add(x => x.Components, components)
+            .AddChildContent<OtpField>(otp => otp.Add(x => x.Length, 4).Add(x => x.Radius, Radius.Full)));
+
+        var slot = cut.Find("[data-index]");
+        var rules = string.Concat(registry.Rules.Where(rule => slot.ClassList.Any(c => rule.Contains($".{c}{{") || rule.Contains($".{c}:"))));
+        Assert.Contains("background-color:var(--rune-colors-fill)", rules);
+        Assert.Contains("border-radius:var(--rune-radii-full)", rules);
+        Assert.Contains("width:2.5em", rules);
+    }
+
+    [Fact]
     public void 字母数字转大写_分组之间有分隔_遮罩显示圆点()
     {
         var cut = Render<OtpField>(p => p.Add(x => x.Value, "").Add(x => x.Length, 6).Add(x => x.Charset, OtpCharset.Alphanumeric).Add(x => x.Groups, [3, 3]));

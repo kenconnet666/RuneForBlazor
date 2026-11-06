@@ -119,7 +119,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 
 - [x] 0.1 公开面收口（同 vue 0.11 不再导出组件内部的样式表）：组件的样式类改 internal，外观定制只走 `Components` 入口与部件属性；
   使用方自建组件要用的共用件（`SharedStyles`、`ScaleStyles`、`ShimmerStyles` 等）、部件枚举与默认值类型照常公开；测试与基准经 `InternalsVisibleTo`
-- [ ] 0.2 OtpField 的格子用输入框的配方（有 variant、radius，同 vue）
+- [x] 0.2 OtpField 的格子用输入框的配方（有 variant、radius，同 vue）
 - [ ] 0.3 对照工具跑全部页面（亮、暗），改掉改造后的差异；之前留下的：transfer 的 members、progress、card 的 effects
   （dialog 的进出场用独立的 scale 属性、内容不同造成的宽度差、rating 的填色层不处理，DESIGN 写过）
 - [ ] 0.5 跟进 vue 0.12（它的 ROADMAP 阶段 24，按它的进度逐批跟）：部件补齐（内部节点补 `PropsXxx` 与 `data-part`，部件多却没有配方的改配方，

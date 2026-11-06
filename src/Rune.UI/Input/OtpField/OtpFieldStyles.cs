@@ -29,7 +29,7 @@ public enum OtpCharset
 }
 
 /// <summary>
-/// 验证码输入框的样式（配方，同 vue-tsx-pro 的 otpFieldStyles）。格子里的字是 <c>::before</c> 的 <c>content: attr(data-char)</c>：
+/// 验证码输入框的样式（配方，同 vue-tsx-pro 的 otpFieldStyles；格子的外壳来自 <see cref="InputStyles"/>）。格子里的字是 <c>::before</c> 的 <c>content: attr(data-char)</c>：
 /// 输入时 JS 按输入框的当前值改 data-char 与当前格的 data-active，不等往返；空的当前格里闪烁的光标是 <c>::after</c>。
 /// </summary>
 public static class OtpFieldStyles
@@ -76,37 +76,30 @@ public static class OtpFieldStyles
         [Pseudo.Selection] = new() { BackgroundColor = CssColors.Transparent },
     });
 
+    // 格子的大小与字：外壳的描边、底色、圆角、悬停与焦点环来自输入框的配方（排在前面，这里盖过它的排版与内边距）
     static Style Slot => Css.Define(static () => new Style
     {
-        BoxSizing = BoxSizing.BorderBox,
         Position = Position.Relative,
         Display = Display.Grid,
         PlaceItems = PlaceItems.Center,
         Width = CssLength.Em(2.5),
         Height = $"max(2.75em, {Sizes.MinTarget})",
-        BorderWidth = BorderWidths.Xs,
-        BorderStyle = BorderStyle.Solid,
-        BorderColor = Colors.Border,
-        BorderRadius = Radii.Md,
-        BackgroundColor = Colors.Surface,
-        Color = Colors.Text,
+        PaddingInline = 0,
         FontSize = CssLength.Em(1.15),
         FontWeight = FontWeights.Semibold,
         FontVariantNumeric = FontVariantNumeric.TabularNums,
-        Transition = $"border-color {Durations.Sm} {Easings.Standard}",
         // 字与光标叠在同一格里
         [Pseudo.Before] = new() { Content = "attr(data-char)", GridArea = "1 / 1" },
-        [When.Inside(When.Attribute("[data-invalid]"), RootMarker)] = new() { BorderColor = Tones.Danger.Solid },
-        [When.Inside(When.Attribute("[data-disabled]"), RootMarker)] = new() { Opacity = Opacities.Disabled },
-        // 当前格：同输入框聚焦时的强调描边与焦点环
-        [When.Attribute("[data-active]")] = new()
+        // 校验未通过、不可用：输入框的配方按外壳里的 input 判断，格子里没有 input，按容器上的状态
+        [When.Inside(When.Attribute("[data-invalid]"), RootMarker)] = new()
         {
-            BorderColor = Tones.Accent.Solid,
-            OutlineWidth = BorderWidths.Sm,
-            OutlineStyle = OutlineStyle.Solid,
-            OutlineColor = Tones.Accent.Border,
-            OutlineOffset = 0,
+            BorderColor = Tones.Danger.Solid,
+            OutlineColor = Tones.Danger.Solid,
+            [When.Hover] = new() { BorderColor = Tones.Danger.Solid },
         },
+        [When.Inside(When.Attribute("[data-disabled]"), RootMarker)] = new() { Opacity = Opacities.Disabled },
+        // 当前格：画出输入框聚焦时的焦点环（焦点在盖着的 input 上，格子自己没有 :focus-within）
+        [When.Attribute("[data-active]")] = new() { OutlineStyle = OutlineStyle.Solid },
         // 空的当前格里闪烁的光标；减少动态效果时常亮
         [When.Attribute("""[data-active][data-char=""]""")] = new()
         {

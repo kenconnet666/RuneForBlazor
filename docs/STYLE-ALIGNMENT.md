@@ -80,7 +80,7 @@ builder.Services.AddRuneUI(o => o.Components = new()
 - 弹出面板：Popover、HoverCard、Menu 本来就共用 `FloatingStyles.Anchored` + `Surface`。
 - 焦点环的 `virtual`（当前项常亮）：Rune 的 Cascader 用 CSS 条件（`[data-highlighted]:where(:focus *)`）画，不经状态往返；只有它一处用，
   按“第三次才抽象”的约定先不抽共用件。`inset` 早就有（`SharedStyles.FocusRingInset`）。
-- 还没做：OtpField 的格子改用输入框的外观（会改外观、要加 Variant / Radius 参数），放到下一批。
+- OtpField 的格子用输入框的配方（同 vue 71d7fb5d）：OtpField 改继承 `InputControl`，有了 Variant、Radius 与 `InputDefaults`；格子叠在外壳的样式上，只管大小与字，当前格只打开外壳的焦点环；校验未通过、不可用按容器上的状态（输入框的配方按外壳里的 input 判断，格子里没有）。
 - 遮罩的颜色 token（vue 9d5af3f3）：`Colors.Scrim`（图片上的深色遮罩）、`ScrimStrong`（看图背景）、`OnScrim`（遮罩上的文字）；
   Upload 的进度遮罩、Lightbox 的背景与按钮改用它们（取值不变）。不同：Upload 图片墙右上角的小按钮仍用半透明的表面色底（vue 改成 `OnScrim` 的白底，
   但按钮的文字是主题的文字色，深色主题里白底浅字看不清；Rune 原来就用表面色，深浅主题都看得清）。
