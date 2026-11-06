@@ -20,4 +20,12 @@
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
+
+  <!--
+    本地构建不把提交号写进 InformationalVersion：否则每次提交后 AssemblyInfo 都变，所有项目都要重新编译，
+    源生成器重新编译后还要拷进 bin，而语言服务器（csharp-ls）加载着它、文件被锁，构建失败。CI 上照常带上提交号
+  -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' != 'true'">
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
 </Project>
