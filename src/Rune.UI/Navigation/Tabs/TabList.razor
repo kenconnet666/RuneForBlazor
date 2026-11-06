@@ -1,6 +1,7 @@
 @*
     标签列表（role="tablist"，放在 Tabs 里）：方向键在标签之间移动。横排放不下时在列表里滚动，两边出现滚动按钮（只给指针用），
     切到滚在外面的标签时把它滚进来；OnAdd 在末尾放“新建标签页”按钮。这些都在 JS 初始化器里（data-rune-tabs），没有往返。
+    ShowAllMenu 在右边放“全部标签页”菜单（标签多、放不下时一眼找到并切过去），按显示的顺序列出标签的文字（Tab 的 Text）。
     写了 OnReorder 时标签能拖动排序（键盘：Alt + ←→，念出新位置），参数是新的顺序，使用方按它重排（Tab 要写 @key）。
     未声明的属性落到 role="tablist" 的 div 上；aria-label 是这组标签的名称。
 *@
@@ -24,6 +25,23 @@ else
         @List(parts)
         <IconButton Icon="BuiltInIcons.ChevronRight" Label="@Config.Lang.TabScrollNext" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
                     PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(parts[TabsPart.BarButton], null, ScrollForward)" />
+        @if (ShowAllMenu)
+        {
+            <Menu Placement="Placement.BottomEnd">
+                <Trigger Context="t">
+                    <IconButton Icon="BuiltInIcons.ChevronDown" Label="@Config.Lang.TabList" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
+                                @attributes="Attrs.MergeProps(parts[TabsPart.BarButton], null, t)" />
+                </Trigger>
+                <ChildContent>
+                    <MenuRadioGroup Label="@Config.Lang.TabList" Value="@Tabs.Value" ValueChanged="SelectFromMenu">
+                        @foreach (var value in Tabs.Registry.Tabs)
+                        {
+                            <MenuRadioItem @key="value" Value="@value">@Tabs.Registry.Label(value)</MenuRadioItem>
+                        }
+                    </MenuRadioGroup>
+                </ChildContent>
+            </Menu>
+        }
         @if (OnAdd.HasDelegate)
         {
             <IconButton Icon="BuiltInIcons.Plus" Label="@Config.Lang.TabAdd" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
@@ -46,6 +64,9 @@ else
     /// <summary>列表末尾的“新建标签页”按钮：点了调用。</summary>
     [Parameter] public EventCallback OnAdd { get; set; }
 
+    /// <summary>右边放“全部标签页”的菜单：标签多、放不下时一眼找到并切过去。</summary>
+    [Parameter] public bool ShowAllMenu { get; set; }
+
     /// <summary>
     /// 拖动标签（或在标签上按 Alt + ←→）改变顺序：参数是新的顺序（各标签的 Value），使用方按它重排；不写时不能拖。
     /// </summary>
@@ -66,6 +87,14 @@ else
     [CascadingParameter] TabsState? State { get; set; }
 
     TabsState Tabs => State ?? throw new InvalidOperationException("TabList 要放在 Tabs 里。");
+
+    Task SelectFromMenu(string? value) => value is null ? Task.CompletedTask : Tabs.Select(value);
+
+    Task ReorderAsync(ReorderEventArgs e)
+    {
+        Tabs.Registry.Reorder(e.Values);
+        return OnReorder.InvokeAsync(e.Values);
+    }
 
     RenderFragment List(PartLayers<TabsPart> parts) =>
         @<div @attributes="Attrs.Merge(parts[TabsPart.List], Rest, Managed)">
@@ -89,6 +118,6 @@ else
         // 可以拖动排序；念出新位置用的句子（标签文字、位置、总数先用占位，JS 换掉）
         ["data-reorderable"] = k.Reorderable ? true : null,
         ["data-moved-template"] = k.Reorderable ? owner.Config.Lang.TabMoved("{label}", 900001, 900002) : null,
-        ["onrunereorder"] = k.Reorderable ? EventCallback.Factory.Create<ReorderEventArgs>(owner, e => owner.OnReorder.InvokeAsync(e.Values)) : null,
+        ["onrunereorder"] = k.Reorderable ? EventCallback.Factory.Create<ReorderEventArgs>(owner, owner.ReorderAsync) : null,
     });
 }

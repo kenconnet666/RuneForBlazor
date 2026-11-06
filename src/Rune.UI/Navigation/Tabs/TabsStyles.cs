@@ -90,12 +90,13 @@ public sealed record TabsState(
     static string Safe(string value) => string.Concat(value.Select(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' ? c : '_'));
 }
 
-/// <summary>Tabs 的登记表：各标签按渲染顺序登记，各面板登记自己（只当导航用的标签没有面板，不写 aria-controls）。</summary>
+/// <summary>Tabs 的登记表：各标签按渲染顺序登记（带文字，“全部标签页”菜单用），各面板登记自己（只当导航用的标签没有面板，不写 aria-controls）。</summary>
 /// <param name="baseId">标签、面板 id 的前缀。</param>
 /// <param name="changed">登记变了（第一个标签、面板的有无）：Tabs 重新渲染。</param>
 public sealed class TabsRegistry(string baseId, Action changed)
 {
     readonly List<string> tabs = [];
+    readonly Dictionary<string, string> labels = [];
     readonly HashSet<string> panels = [];
 
     /// <summary>id 的前缀。</summary>
@@ -107,12 +108,24 @@ public sealed class TabsRegistry(string baseId, Action changed)
     /// <summary>这个标签有没有面板。</summary>
     public bool HasPanel(string value) => panels.Contains(value);
 
-    /// <summary>登记标签。</summary>
-    public void AddTab(string value)
+    /// <summary>标签的文字（没登记过时是值本身）。</summary>
+    public string Label(string value) => labels.GetValueOrDefault(value, value);
+
+    /// <summary>登记标签（已经登记过时只更新文字）。</summary>
+    public void AddTab(string value, string label)
     {
+        labels[value] = label;
         if (tabs.Contains(value)) return;
         tabs.Add(value);
         if (tabs.Count == 1) changed();
+    }
+
+    /// <summary>拖动排序后按新的顺序排（“全部标签页”菜单跟着显示的顺序）；不在新顺序里的排在最后。</summary>
+    public void Reorder(IReadOnlyList<string> values)
+    {
+        var ordered = values.Where(tabs.Contains).Concat(tabs.Where(t => !values.Contains(t))).ToList();
+        tabs.Clear();
+        tabs.AddRange(ordered);
     }
 
     /// <summary>注销标签；返回它原来的位置（关掉当前标签时按它选旁边的）。</summary>
@@ -120,6 +133,7 @@ public sealed class TabsRegistry(string baseId, Action changed)
     {
         var index = tabs.IndexOf(value);
         if (index >= 0) tabs.RemoveAt(index);
+        labels.Remove(value);
         return index;
     }
 

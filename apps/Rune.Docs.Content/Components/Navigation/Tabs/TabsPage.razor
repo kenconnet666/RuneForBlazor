@@ -7,7 +7,7 @@
     <Examples>
         <ExampleColumn>
             <Example Id="workspace" Title="多页签：关闭、新建、拖动" Demo="typeof(WorkspaceExample)">
-                <Code>Tab</Code> 写了 <Code>OnClose</Code> 就有关闭按钮（不进 Tab 顺序，焦点在标签上时按 Delete，鼠标中键也关）；关掉的是当前标签时选它后面的一个，焦点跟过去。<Code>TabList</Code> 的 <Code>OnAdd</Code> 在标签栏末尾放“新建标签页”，<Code>OnReorder</Code> 让标签能拖动排序（键盘：Alt + ← →），参数是新的顺序。放不下时列表横向滚动，两端出现滚动按钮，切到的标签自己滚进来。
+                <Code>Tab</Code> 写了 <Code>OnClose</Code> 就有关闭按钮（不进 Tab 顺序，焦点在标签上时按 Delete，鼠标中键也关）；关掉的是当前标签时选它后面的一个，焦点跟过去。<Code>TabList</Code> 的 <Code>OnAdd</Code> 在标签栏末尾放“新建标签页”，<Code>OnReorder</Code> 让标签能拖动排序（键盘：Alt + ← →），参数是新的顺序；<Code>ShowAllMenu</Code> 在右边放“全部标签页”的菜单。放不下时列表横向滚动，两端出现滚动按钮，切到的标签自己滚进来。
             </Example>
         </ExampleColumn>
         <ExampleColumn>

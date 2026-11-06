@@ -41,6 +41,37 @@ public class TabsTests : BunitContext
     };
 
     [Fact]
+    public void 全部标签页菜单_按顺序列出标签文字_选了切过去()
+    {
+        string? value = "a";
+        var cut = Render<Tabs>(p => p
+            .Add(x => x.Value, value)
+            .Add(x => x.ValueChanged, EventCallback.Factory.Create<string?>(this, v => value = v))
+            .Add(x => x.ChildContent, (RenderFragment)(builder =>
+            {
+                builder.OpenComponent<TabList>(0);
+                builder.AddAttribute(1, nameof(TabList.ShowAllMenu), true);
+                builder.AddAttribute(2, nameof(TabList.ChildContent), (RenderFragment)(list =>
+                {
+                    foreach (var (tab, text) in new[] { ("a", "订单"), ("b", "客户") })
+                    {
+                        list.OpenComponent<Tab>(0);
+                        list.SetKey(tab);
+                        list.AddAttribute(1, nameof(Tab.Value), tab);
+                        list.AddAttribute(2, nameof(Tab.Text), text);
+                        list.CloseComponent();
+                    }
+                }));
+                builder.CloseComponent();
+            })));
+
+        cut.WaitForAssertion(() => Assert.Equal(["订单", "客户"], cut.FindAll("[role=menuitemradio]").Select(i => i.TextContent.Trim())));
+        Assert.Equal("true", cut.FindAll("[role=menuitemradio]")[0].GetAttribute("aria-checked"));
+        cut.FindAll("[role=menuitemradio]")[1].Click();
+        Assert.Equal("b", value);
+    }
+
+    [Fact]
     public void 不写值时选中第一个_标签与面板互相引用_其余面板隐藏()
     {
         var cut = Render<Tabs>(p => p.Add(x => x.ChildContent, Content(["a", "b"])));

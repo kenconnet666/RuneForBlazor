@@ -2,7 +2,7 @@
 
 <Card Padding="SpaceScale.Sm">
     <Tabs @bind-Value="currentPage">
-        <TabList aria-label="打开的页面" OnAdd="AddPage" OnReorder="Reorder" data-testid="pages">
+        <TabList aria-label="打开的页面" ShowAllMenu="true" OnAdd="AddPage" OnReorder="Reorder" data-testid="pages">
             @foreach (var item in pages)
             {
                 <Tab @key="item.Id" Value="@item.Id" Text="@item.Title" OnClose="@(item.Pinned ? default : EventCallback.Factory.Create(this, () => Close(item)))">@item.Title</Tab>

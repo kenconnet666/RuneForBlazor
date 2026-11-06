@@ -59,10 +59,9 @@ else
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
-        if (registered == Value) return;
-        if (registered is not null) Tabs.Registry.RemoveTab(registered);
+        if (registered is not null && registered != Value) Tabs.Registry.RemoveTab(registered);
         registered = Value;
-        Tabs.Registry.AddTab(Value);
+        Tabs.Registry.AddTab(Value, Label);
     }
 
     /// <inheritdoc/>
