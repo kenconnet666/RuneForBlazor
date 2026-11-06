@@ -1,0 +1,6 @@
+{
+  "name": "rune-csharp-lsp",
+  "version": "1.0.0",
+  "description": "C# 原生 LSP：编辑后推送诊断，并提供 LSP 工具（定义、引用、悬停、符号）。语言服务器是仓库 dotnet-tools.json 固定的 csharp-ls（Roslyn），加载 RuneForBlazor.slnx；.razor 组件经源生成器成为类型，.cs 里对它们的引用照样解析",
+  "author": { "name": "RuneForBlazor" }
+}

@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "rune-for-blazor": {
+      "source": {
+        "source": "directory",
+        "path": "./.claude/marketplace"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "rune-csharp-lsp@rune-for-blazor": true
+  }
+}

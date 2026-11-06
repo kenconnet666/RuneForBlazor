@@ -11,3 +11,6 @@ artifacts/
 
 # 生成工具临时安装的 npm 包
 node_modules/
+
+# Claude Code 的本机设置（项目共享的是 .claude/settings.json）
+.claude/settings.local.json

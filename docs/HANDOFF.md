@@ -11,6 +11,15 @@
 - 回复与注释用中文；代码、标识符、commit message 用英文；提交末尾加 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。
 - 密钥只在用户环境变量 / GitHub secrets 里，不写进任何文件。
 
+## C# 的 LSP（Claude Code）
+
+- 项目级插件：`.claude/settings.json` 登记仓库内的本地插件市场 `.claude/marketplace`，启用 `rune-csharp-lsp`；第一次打开项目时 Claude Code 会问是否信任它。
+  之后会话里有 `LSP` 工具（定义、引用、悬停、文档与工作区符号），编辑 `.cs` 后推送诊断。查符号、调用链、改名前的影响面优先用它，文本搜索用 Grep。
+- 语言服务器是 `dotnet-tools.json` 固定版本的 csharp-ls（Roslyn），加载 `RuneForBlazor.slnx`，约 20 秒加载完。`.razor` 不在它的支持范围（它的 Razor 支持只认 `.cshtml`），
+  但组件经 Razor 源生成器成为类型，`.cs` 里对组件的引用照样能解析；`.razor` 里的语义查询仍用 Rider 的 MCP。
+- 启动脚本 `.claude/marketplace/rune-csharp-lsp/start.mjs` 按 DOTNET_ROOT → `~/.dotnet` → PATH 找装着 global.json 所要 SDK 的 dotnet（本机 PATH 上的 dotnet 没有 10.x）。
+  升级：`dotnet tool update csharp-ls`（改的是 dotnet-tools.json）。
+
 ## 常用命令
 
 ```bash
