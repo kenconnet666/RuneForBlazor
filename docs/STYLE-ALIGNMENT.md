@@ -112,7 +112,7 @@ vue 那边合并用快进、不 squash，提交号不变；CI 的 `VUE_TSX_PRO_R
   surface / surfaceRaised 改白色，surfaceMuted 取页面与 fill 的中间，surfaceTranslucent 跟着页面；几套主题的图表系列色调深到 3:1。
   纸张、高对比、深色不动。开机脚本的底色取主题的 Background，自动跟着变。端到端测试里色块的期望值改成 `#ffffff`。
 - 组件库只用系统字体栈、不带 web 字体（vue 的决定）：Rune 本来就是。
-- 文档站的字体切换（vue 758c20b9）：顶栏主题按钮旁的字体按钮，系统字体（默认）、更纱黑体等宽、霞鹜文楷等宽（npm 包 rune-ui-font），
+- 文档站的字体切换（vue 758c20b9）：顶栏主题按钮旁的字体按钮，系统字体（默认）、等距更纱黑体 SC、霞鹜文楷等宽（npm 包 rune-ui-font），
   选中才加载。Rune 没有前端打包，字体 CSS 从 jsDelivr 按版本取（`apps/Rune.Docs/wwwroot/fonts.js`）；vue 换主题的 fonts，
   Rune 在 app.css 里按 `data-docs-font` 覆盖最外层 Provider 的字体变量（不分层，盖过主题），示例里自带主题的嵌套 Provider 不动。
 - 示例画布改用页面底色（vue d82f6eff）：卡片、浮层的表面色在它上面才分得出层级。

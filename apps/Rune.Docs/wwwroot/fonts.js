@@ -1,5 +1,5 @@
 // 文档站的字体（同 vue-tsx-pro 文档站）：默认系统字体（主题的字体栈：苹方、微软雅黑……），顶栏的字体按钮可以换成
-// 更纱黑体等宽、霞鹜文楷等宽（npm 包 rune-ui-font，按字切成小片）。选择记在 localStorage；网页字体选到时才从 CDN 加载，
+// 等距更纱黑体 SC、霞鹜文楷等宽（npm 包 rune-ui-font，按字切成小片）。选择记在 localStorage；网页字体选到时才从 CDN 加载，
 // 到之前先用系统字体。字体变量的覆盖在 app.css（按根元素的 data-docs-font）。
 // head 里同步加载：页面显示前就按记住的选择设好，不闪一下系统字体的排版；示例的 iframe 跟着 storage 事件一起换。
 window.docsFonts = (() => {
@@ -21,7 +21,7 @@ window.docsFonts = (() => {
       return;
     }
     root.dataset.docsFont = name;
-    const href = `https://cdn.jsdelivr.net/npm/rune-ui-font@0.2.0/${sheets[name]}`;
+    const href = `https://cdn.jsdelivr.net/npm/rune-ui-font@0.2.1/${sheets[name]}`;
     if (!document.querySelector(`link[href="${href}"]`)) {
       document.head.append(Object.assign(document.createElement('link'), { rel: 'stylesheet', href }));
     }
