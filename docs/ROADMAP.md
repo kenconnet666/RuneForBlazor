@@ -144,7 +144,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 
 ## 阶段 3：表格
 
-- [ ] 查询的契约（先写 DESIGN 一节）：`TableQuery`（页码、每页条数、多列排序、列筛选、筛选栏的条件树）是纯数据类型、不依赖任何 ORM，
+- [x] 查询的契约（DESIGN §13；`TableQuery`、`TableQueryState`）：`TableQuery`（页码、每页条数、多列排序、列筛选、筛选栏的条件树）是纯数据类型、不依赖任何 ORM，
   能与查询字符串互转（刷新、分享链接保持状态）。对照 vue-tsx-pro 的 `use-table-query.ts`、easy-query TS 的 `parseTableRequest` 与 EasyQuerySharp 的 `FilterBy` / `SortBy`，
   让 EasyQuerySharp 一侧不经转换就能消费
 - [ ] DataTable / DataTableView：列用子组件声明（`PropertyColumn` 按表达式取值，标题取 `[Display]`，排序键取属性路径；`TemplateColumn` 自定义内容），也可以给列定义列表；

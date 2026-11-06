@@ -22,7 +22,10 @@ public sealed record TableQueryOptions<TFilters>
     /// <summary>关键字筛选的列（表头筛选写成 <c>search.列</c>）：同 <see cref="TableQuery{TFilters}.ToParameters"/>。</summary>
     public IReadOnlyList<string> KeywordColumns { get; init; } = [];
 
-    /// <summary>给了时页码（page）、条数（pageSize）、排序（sort）同步到地址的查询参数：刷新、分享链接、后退回来还是这些条件。</summary>
+    /// <summary>
+    /// 给了时页码（page）、条数（pageSize）、排序（sort）、筛选条件（写法同 <see cref="TableQuery{TFilters}.ToParameters"/>）同步到地址的查询参数：
+    /// 刷新、分享链接、后退回来还是这些条件。页码、条数、排序由这里读回；筛选条件由页面用 <c>[SupplyParameterFromQuery]</c> 读出来，作为 <see cref="Filters"/> 交给这里。
+    /// </summary>
     public NavigationManager? Navigation { get; init; }
 }
 
@@ -215,7 +218,7 @@ public sealed class TableQueryState<TRow, [DynamicallyAccessedMembers(Dynamicall
         await changed();
     }
 
-    // 地址栏：page、pageSize、sort（与默认值相同时不写）
+    // 地址栏：page、pageSize、sort 与默认值相同时不写；筛选条件的空值不写
     void ReadUrl()
     {
         if (options.Navigation is not { } navigation) return;
@@ -232,12 +235,15 @@ public sealed class TableQueryState<TRow, [DynamicallyAccessedMembers(Dynamicall
     void WriteUrl()
     {
         if (options.Navigation is not { } navigation) return;
-        var target = navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        var parameters = new Dictionary<string, object?>
         {
             ["page"] = page == 1 ? null : page,
             ["pageSize"] = pageSize == options.PageSize ? null : pageSize,
             ["sort"] = sorts.SequenceEqual(options.Sorts) ? null : ColumnSort.Format(sorts),
-        });
+        };
+        foreach (var name in TableQuery<TFilters>.FilterParameterNames) parameters[name] = null;
+        foreach (var group in Query.FilterParameters().GroupBy(static p => p.Key)) parameters[group.Key] = group.Select(static p => p.Value).ToArray();
+        var target = navigation.GetUriWithQueryParameters(parameters);
         if (target != navigation.Uri) navigation.NavigateTo(target, replace: true);
     }
 }

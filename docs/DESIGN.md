@@ -449,5 +449,7 @@
 - **状态**（`TableQueryState<TRow, TFilters>`，同 vue 的 `useTableQuery`，不是组件，同 `RemoteItems` 的写法）：页码、条数、排序、表头筛选可读写，
   改了就请求（改条数、排序、表头筛选回到第一页）；`SearchAsync(filters)` 应用新的筛选条件、回到第一页、条件没变也重新请求并重新数总数；
   `RefreshAsync()` 按当前条件重新请求；只采用最后一次的结果，被顶掉的请求取消；删掉数据后当前页空了退到最后一页。
-  给 `NavigationManager` 时页码、条数、排序、筛选条件同步到地址的查询参数（刷新、分享链接、后退回来还是这些条件），写法同线上的格式。
+  给 `NavigationManager` 时页码、条数、排序、筛选条件同步到地址的查询参数（刷新、分享链接、后退回来还是这些条件），写法同线上的格式；
+  页码、条数、排序由状态读回，筛选条件由页面用 `[SupplyParameterFromQuery]` 读出来作为初始的 `Filters`（vue 用 useQueryStates 的编解码器，
+  Blazor 自带按名字、按类型从地址取值，不另造一套）。
 - 预渲染时取的数交给交互后的渲染（`[PersistentState]`）在阶段 8 的全栈示例里定：状态对象由使用方持有，组件库只给可序列化的 `TablePage`。

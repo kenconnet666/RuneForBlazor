@@ -100,13 +100,24 @@ public sealed record TableQuery<[DynamicallyAccessedMembers(DynamicallyAccessedM
             if (keyword.Contains(key)) yield return new($"search.{key}", kept[0]);
             else foreach (var value in kept) yield return new($"filter.{key}", value);
         }
+        foreach (var parameter in FilterParameters()) yield return parameter;
+    }
+
+    /// <summary>筛选条件平铺成的参数（<see cref="ToParameters"/> 的最后一部分）。</summary>
+    internal IEnumerable<KeyValuePair<string, string>> FilterParameters()
+    {
         if (Filters is null) yield break;
-        foreach (var property in typeof(TFilters).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        foreach (var property in FilterProperties)
         {
-            if (property.GetIndexParameters().Length > 0) continue;
             foreach (var value in FilterValues(property.GetValue(Filters))) yield return new(ParameterName(property.Name), value);
         }
     }
+
+    /// <summary>筛选条件可能写出的参数名：同步到地址时，没有值的要从地址里去掉。</summary>
+    internal static IEnumerable<string> FilterParameterNames => FilterProperties.Select(static property => ParameterName(property.Name));
+
+    static IEnumerable<PropertyInfo> FilterProperties =>
+        typeof(TFilters).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(static property => property.GetIndexParameters().Length == 0);
 
     /// <summary>写成查询串（不带开头的 ?），值按地址栏编码。</summary>
     public string ToQueryString(IEnumerable<string>? keywordColumns = null) =>

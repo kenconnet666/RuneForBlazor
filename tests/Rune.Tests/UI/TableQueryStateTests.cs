@@ -97,7 +97,7 @@ public class TableQueryStateTests : BunitContext
     }
 
     [Fact]
-    public async Task 页码条数排序从地址读出并写回_默认值不写()
+    public async Task 页码条数排序从地址读出并写回_筛选条件写进地址_默认值空值不写()
     {
         var navigation = Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo("orders?page=3&sort=-amount&tab=x");
@@ -111,6 +111,11 @@ public class TableQueryStateTests : BunitContext
         Assert.EndsWith("orders?sort=-amount&tab=x&pageSize=20", navigation.Uri);
 
         state.Sort = null;
+        Assert.EndsWith("orders?tab=x&pageSize=20", navigation.Uri);
+
+        await state.SearchAsync(new("泵 A"));
+        Assert.EndsWith("orders?tab=x&pageSize=20&keyword=%E6%B3%B5%20A", navigation.Uri);
+        await state.SearchAsync(new());
         Assert.EndsWith("orders?tab=x&pageSize=20", navigation.Uri);
     }
 }
