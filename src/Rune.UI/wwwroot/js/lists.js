@@ -353,9 +353,9 @@ export function syncHideEmpty(list) {
   else if (!wanted && panel.matches(':popover-open')) panel.hidePopover();
 }
 
-/** 单选列表在弹层里选中了一项（点击，或 Enter 转成的点击）：关闭弹层。 */
+/** 单选列表在弹层里选中了一项（点击，或 Enter 转成的点击）：关闭弹层；有下一级的项（级联选择）只是展开，不关。 */
 export function closeAfterPick(target) {
-  const option = target.closest('[role="option"]:not([aria-disabled="true"])');
+  const option = target.closest('[role="option"]:not([aria-disabled="true"]):not([aria-haspopup])');
   const list = option?.closest('[role="listbox"]');
   if (!list || list.getAttribute('aria-multiselectable') === 'true') return;
   const panel = list.closest('[popover]');

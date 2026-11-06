@@ -1,0 +1,37 @@
+@page "/components/cascader"
+@attribute [DocMeta("Cascader 级联选择", "一列一列往下选（省 / 市 / 区、产品大类 / 小类），触发框里显示整条路径。要在一棵树里勾选多个用 TreeSelect。", DocCategory.Input, Order = 6)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.Cascader.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="region" Title="省市区" Demo="typeof(RegionExample)">
+                数据形状不限，<Code>GetKey</Code>、<Code>GetLabel</Code>、<Code>GetChildren</Code> 读出层级。<Code>@@bind-Value</Code>
+                是从第一级到选中节点的 key 路径，key 只要在同级里唯一。默认只能选到叶子，点有下一级的项只是展开。
+                <Code>Searchable</Code> 时输入就换成一列匹配的完整路径（按已加载的节点）；<Code>ShowAllLevels</Code> 关掉时只显示最后一级。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="change-on-select" Title="选到任意一级" Demo="typeof(CategoryExample)">
+                <Code>ChangeOnSelect</Code> 时点任何一级都选中它（弹出层不关，可以继续往下选），
+                <Code>IsNodeDisabled</Code> 的项不能选也不能进入，<Code>Separator</Code> 换路径分隔。
+            </Example>
+            <Example Id="lazy" Title="按级取回" Demo="typeof(LazyExample)">
+                <Code>HasChildren</Code> 声明有下一级，进入时 <Code>LoadChildren</Code> 取回来放进数据里，期间那一列显示转圈、带 aria-busy。
+                编辑页把已选的那一枝放进初始数据（随表单返回），触发框一开始就显示得出文字；没放的级按 key 显示，打开时沿着已选的路径逐级取回来。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("↓ / Enter / Space", "关闭时：打开，焦点到已选的那一列（可搜索时在搜索框里）"),
+        ("↓ / ↑ / Home / End", "在一列里移动；有下一级的项跟着显示下一列"),
+        ("→", "进入下一级（懒加载的先取回来）；从右到左排版时是 ←"),
+        ("←", "回到上一级；从右到左排版时是 →"),
+        ("Enter", "选中高亮的项：叶子选中后关闭；ChangeOnSelect 时有下一级的也选中并进入下一级"),
+        ("Esc / Tab", "关闭，焦点回到触发按钮"),
+    ])">
+        每一级是一列 listbox（名称是上一级的文字），焦点在列上，高亮项经 aria-activedescendant 告诉读屏。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(Cascader<>)]" />
+</DocPage>

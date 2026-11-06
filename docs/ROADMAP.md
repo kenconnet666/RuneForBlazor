@@ -112,6 +112,7 @@ vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `
 - [x] Slider 的范围（两个滑块）、刻度、竖向；Rating；OtpField；NumberRangeField；ColorField；CharacterCount（Textarea 的字数统计与清空）
       （已做：ColorField（颜色解析 ColorValue，期望值对照 culori；ColorSwatch 在 vue 的 docs-kit，可选模块不做）；CharacterCount（阶段 3 已做）；NumberRangeField（NumberField 补了 Scale）；OtpField（格子由 JS 按输入框画；不写 maxlength，粘贴带分隔的码不丢位）；Rating（填充纯 CSS、悬停预览在 JS）；Slider 按 vue-tsx-pro 重写（范围、刻度、竖向、只读、OnValueCommit，拖动与键盘在 JS），NumberRange 之后 NumberRangeField 共用）
 - [ ] Cascader、Transfer、Mentions、FileDrop / Upload（拖放、进度、列表）
+      （已做：Cascader（列里的键盘用 data-rune-list，列之间与进入后的聚焦在 cascader.js））
 - [ ] TreeSelect（依赖阶段 7 的 Tree）、PeoplePicker（阶段 12）、ConditionBuilder（阶段 12）
 - [x] 表单：FormSection、FormErrorSummary 独立成组件、Form 的离开前确认
       （已做：字段布局 FieldLayout 由 Form、FormSection 层叠给 Field 与控件；提交没通过时焦点到错误汇总或第一个出错的控件；LeaveConfirmation 点链接由 JS 拦（交互岛的增强导航 NavigationLock 拦不到）；Form 文档的 7 个示例与 FormSection 页按 vue 重写，分步示例的步骤条等阶段 8 的 Steps）

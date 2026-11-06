@@ -1,0 +1,35 @@
+@* 物料分类：选到哪一级都行（ChangeOnSelect），停用的分类不能选；路径用“›”分隔 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="物料分类" Description="大类、小类都能选：报表按哪一级汇总就选到哪一级">
+        <Cascader Items="categories" GetKey="(c, _) => c.Id" GetLabel="c => c.Name" GetChildren="c => c.Children"
+                  IsNodeDisabled="c => c.Retired" @bind-Value="category" ChangeOnSelect="true" Separator=" › " Clearable="true" />
+    </Field>
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">汇总到第</Small>
+        <Badge Size="Size.Xs" Variant="StatusVariant.Soft">@(category?.Count ?? 0)</Badge>
+        <Small Tone="TextTone.Muted">级</Small>
+    </Flex>
+</Flex>
+
+@code {
+    sealed record Category(string Id, string Name, Category[]? Children = null, bool Retired = false);
+
+    static readonly Category[] categories =
+    [
+        new("mech", "机械件",
+        [
+            new("bearing", "轴承", [new("deep-groove", "深沟球轴承"), new("tapered", "圆锥滚子轴承")]),
+            new("fastener", "紧固件", [new("bolt", "螺栓")]),
+            new("casting", "铸件（停用）", Retired: true),
+        ]),
+        new("elec", "电子件",
+        [
+            new("connector", "连接器"),
+            new("sensor", "传感器", [new("temp", "温度传感器")]),
+        ]),
+    ];
+
+    IReadOnlyList<string>? category = ["mech", "bearing"];
+}

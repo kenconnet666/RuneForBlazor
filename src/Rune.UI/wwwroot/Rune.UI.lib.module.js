@@ -28,6 +28,8 @@
 //   role="menu"              菜单：方向键、Home / End、类型搜索移动焦点；打开时聚焦第一项（触发按钮上按 ↑ 打开时聚焦最后一项，↓ 也能打开）；
 //                            选了菜单项就关闭整串菜单（data-rune-keep-open 的不关）；data-rune-hotkey 的菜单项按下快捷键时点击它；
 //                            子菜单项（aria-haspopup="menu"）点击、→ 打开并聚焦第一项，指针停留打开、斜着移向子菜单不误关（安全三角），子菜单里 ← 关闭
+//   data-rune-cascader       级联选择的弹层：每一列是 data-rune-list 的列表；→ 进入下一级（发 rune-command enter，下一列渲染出来后聚焦）、
+//                            ← 回到上一级，有下一级的项上 Enter 先点再进入，高亮移动后发 highlight（C# 换下一列）；触发按钮上 ↓ 打开
 //   data-rune-context-menu   右键菜单的区域：右键、Shift+F10、菜单键时从指针位置（键盘时从焦点元素的左下角）弹出里面的菜单，关闭后焦点回到原处
 //   data-rune-list="space typeahead"
 //                            列表的键盘宿主：role="listbox" 本身，或 aria-controls 指向列表的触发按钮、输入框。焦点留在宿主上，
@@ -110,11 +112,12 @@
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
-// leave（离开确认）、toast（通知区域）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
+// leave（离开确认）、cascader（级联选择的列）、toast（通知区域）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawIcon, startDismiss, startRipple } from './js/effects.js';
 import { guardLeave } from './js/leave.js';
+import { clickCascader, keyCascader, onCascaderFocusIn } from './js/cascader.js';
 import { releasePointer, trackPointer } from './js/pointer.js';
 import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, onToasterFocusOut } from './js/toast.js';
 import { watchGrid, watchSize } from './js/layout.js';
@@ -369,6 +372,7 @@ function onClick(event) {
   pickRating(event);
   scrollTabs(event);
   closeAfterPick(target);
+  clickCascader(target);
   toggleFromShell(target);
   clickToastClose(target);
 
@@ -441,6 +445,7 @@ function onKeyDown(event) {
   exitFullscreenOnEscape(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
+  if (keyCascader(event)) return;
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
   if (menu) moveInMenu(menu, event);
   else openMenuFromTrigger(event);
@@ -458,6 +463,7 @@ function onFocusIn(event) {
   if (!(target instanceof Element)) return;
   noteRovingFocus(event);
   highlightFirstOnFocus(target);
+  onCascaderFocusIn(event);
   onOtpFocus(event);
   onHoverFocusIn(event);
   onToasterFocusIn(event);

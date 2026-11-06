@@ -1,0 +1,163 @@
+@*
+    级联选择（同 vue-tsx-pro 的 Cascader）：一列一列往下选（省 / 市 / 区、产品大类 / 小类 / 型号），触发框里显示整条路径“浙江 / 杭州 / 西湖区”。
+    <Cascader Items="regions" GetKey="(r, _) => r.Code" GetLabel="r => r.Name" GetChildren="r => r.Children" @bind-Value="path" />
+    <Cascader … ChangeOnSelect="true" />                                       每一级都能选（选到市也行）
+    <Cascader … HasChildren="r => !r.Leaf" LoadChildren="LoadNextAsync" />     展开时远程取下一级
+    <Cascader … Searchable="true" />                                            按整条路径搜索（在已加载的节点里）
+
+    值是从第一级到选中节点的 key 路径，key 只要在同级里唯一；没有选择时 null。默认只能选到叶子：点有下一级的项只是展开；
+    ChangeOnSelect 时点任何一级都选中它（并展开下一级）。
+    弹出层里每一级是一列 listbox，焦点在列上、高亮项经 aria-activedescendant：↑↓ 移动（有下一级的跟着显示下一列），→ 进入下一级
+    （懒加载的先取回来），← 回到上一级，Enter 选中（叶子选中后关闭），Esc 关闭并把焦点还给触发按钮；从右到左排版时左右键对调。
+    列里的移动、类型搜索与列之间的切换在 JS 里（data-rune-list、data-rune-cascader），高亮变了才告诉 C#。
+    Searchable：输入后换成一列匹配的完整路径，只列能选的（默认是叶子），↑↓、Enter 在搜索框里操作。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits InputControl<IReadOnlyList<string>?>
+@{
+    var shell = InputStyles.Of(Appearance with { Picker = true }, Config.Styles);
+    var select = SelectStyles.Of(Config.Styles);
+    var parts = CascaderStyles.Of(Config.Styles);
+    var keys = CurrentValue ?? [];
+    var hits = Hits;
+}
+
+<div @attributes="Attrs.Merge(shell[InputPart.Root], RootUserAttrs, ShellManaged)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsIcon)" />
+    }
+    <button @attributes="Attrs.Merge(select[SelectPart.Trigger], InputUserAttrs, TriggerManaged)">
+        <span @attributes="Attrs.Merge(select[SelectPart.Value], PropsValue)">
+            @if (keys.Count == 0)
+            {
+                <span @attributes="Attrs.Merge(select[SelectPart.Placeholder])">@(Placeholder ?? Config.Lang.SelectPlaceholder)</span>
+            }
+            else
+            {
+                var nodes = NodesAlong(keys);
+                // 还没加载的那几级按 key 显示
+                var labels = keys.Select((key, index) => index < nodes.Count ? GetLabel(nodes[index]) : key).ToList();
+                if (RenderValue is not null)
+                {
+                    @RenderValue(new CascaderValue<TItem>(labels, [.. keys.Select((_, index) => index < nodes.Count ? nodes[index] : default)]))
+                }
+                else
+                {
+                    @(ShowAllLevels ? string.Join(Separator, labels) : labels[^1])
+                }
+            }
+        </span>
+    </button>
+    @if (Clearable && keys.Count > 0 && !Locked)
+    {
+        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="() => SetValueAsync(null)" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusTrigger)" />
+    }
+    <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsChevron, ChevronLayer)" />
+    <FormValue Name="@Name" Value="keys" Disabled="IsDisabled" />
+</div>
+<div @attributes="Attrs.Merge(ListPopoverStyles.Of(Size, Config.Styles)[ListPopoverPart.Root], PropsPopover, PanelManaged)">
+    @if (Searchable)
+    {
+        <div @attributes="Attrs.Merge(ListPopoverStyles.Of(Size, Config.Styles)[ListPopoverPart.Header])">
+            <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
+                <TextField Type="search" Icon="BuiltInIcons.Search" Variant="InputVariant.Soft" Immediate="true" Value="@search" ValueChanged="SetSearch"
+                           @attributes="Attrs.MergeProps(SearchDefaults, PropsSearch, SearchManaged(hits is not null))" />
+            </CascadingValue>
+        </div>
+    }
+    @if (open)
+    {
+        <ScrollArea Axis="ScrollAxis.X" Focusable="false" PropsContent="ColumnsContent" @attributes="Attrs.MergeProps(parts[CascaderPart.Columns])">
+            @if (hits is not null)
+            {
+                @Results(parts, hits)
+            }
+            else
+            {
+                var columns = Columns;
+                for (var level = 0; level < columns.Count; level++)
+                {
+                    @Column(parts, level, columns[level].Parent, columns[level].Items, level == Math.Max(path.Count - 1, 0))
+                }
+            }
+        </ScrollArea>
+    }
+</div>
+
+@code {
+    /// <summary>一列选项。</summary>
+    RenderFragment Column(PartLayers<CascaderPart> parts, int level, TItem? parent, IReadOnlyList<TItem> items, bool initial) => __builder =>
+    {
+        var active = level < path.Count ? IndexOf(items, path[level]) : -1;
+        var chosen = CurrentValue ?? [];
+        // 这一列在已选路径上：前面各级都与已选的一致
+        var onChosenPath = path.Take(level).Select((key, index) => index < chosen.Count && chosen[index] == key).All(same => same);
+        var busy = parent is not null && loading.Contains(parent);
+        <ScrollArea @key="level" Focusable="false" PropsViewport="ColumnViewport(parts, level, parent, active, busy, initial)" @attributes="Attrs.MergeProps(parts[CascaderPart.Column])">
+            @if (busy && items.Count == 0)
+            {
+                <div @attributes="Attrs.Merge(parts[CascaderPart.Empty])"><Spinner Label="@Config.Lang.Loading" /></div>
+            }
+            @for (var index = 0; index < items.Count; index++)
+            {
+                var node = items[index];
+                var key = GetKey(node, index);
+                var off = Off(node);
+                var branch = Expandable(node);
+                var selected = onChosenPath && level < chosen.Count && chosen[level] == key;
+                var at = index;
+                <div @key="key" id="@($"{ColumnId(level)}-{index}")" role="option" aria-selected="@(selected ? "true" : "false")"
+                     aria-disabled="@(off ? "true" : null)" aria-haspopup="@(branch ? "listbox" : null)"
+                     aria-expanded="@(branch ? (at == active && Columns.Count > level + 1 ? "true" : "false") : null)"
+                     data-active="@(at == active ? "true" : null)" data-state="@(selected ? "checked" : "unchecked")"
+                     @attributes="Attrs.Merge(parts[CascaderPart.Option])" @onclick="() => ClickAsync(level, node, key)">
+                    <span @attributes="Attrs.Merge(parts[CascaderPart.Label])">@GetLabel(node)</span>
+                    @if (branch)
+                    {
+                        if (loading.Contains(node))
+                        {
+                            <Spinner Size="UI.Size.Sm" />
+                        }
+                        else
+                        {
+                            <Icon Data="BuiltInIcons.ChevronRight" FlipInRtl="true" @attributes="Attrs.MergeProps(parts[CascaderPart.Chevron])" />
+                        }
+                    }
+                    else if (selected)
+                    {
+                        <Icon Data="BuiltInIcons.Check" @attributes="Attrs.MergeProps(parts[CascaderPart.Check])" />
+                    }
+                </div>
+            }
+        </ScrollArea>
+    };
+
+    /// <summary>搜索结果：一列完整路径。</summary>
+    RenderFragment Results(PartLayers<CascaderPart> parts, IReadOnlyList<PathHit> hits) => __builder =>
+    {
+        var chosen = string.Join('\u0000', CurrentValue ?? []);
+        <ScrollArea Focusable="false" PropsViewport="ResultsViewport(parts)" @attributes="Attrs.MergeProps(parts[CascaderPart.Results])">
+            @if (hits.Count == 0)
+            {
+                <div @attributes="Attrs.Merge(parts[CascaderPart.Empty])">@Config.Lang.SelectNoMatch</div>
+            }
+            @for (var index = 0; index < hits.Count; index++)
+            {
+                var hit = hits[index];
+                var id = string.Join('\u0000', hit.Keys);
+                var selected = id == chosen;
+                <div @key="id" id="@($"{ColumnId(0)}-{index}")" role="option" aria-selected="@(selected ? "true" : "false")"
+                     aria-disabled="@(hit.Disabled ? "true" : null)" @attributes="Attrs.Merge(parts[CascaderPart.Option])"
+                     @onclick="() => PickHitAsync(hit)">
+                    <span @attributes="Attrs.Merge(parts[CascaderPart.Label])">@hit.Label</span>
+                    @if (selected)
+                    {
+                        <Icon Data="BuiltInIcons.Check" @attributes="Attrs.MergeProps(parts[CascaderPart.Check])" />
+                    }
+                </div>
+            }
+        </ScrollArea>
+    };
+}

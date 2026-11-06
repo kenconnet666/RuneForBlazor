@@ -1,0 +1,50 @@
+@* 组织架构按级取回：进入一个部门时才请求它的下级（模拟 600 ms 的接口）。
+   编辑页把已选的那一枝放进初始数据（后端随表单一起返回），触发框一开始就显示得出文字 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="所属部门" Description="展开时才请求下级">
+        <Cascader Items="units" GetKey="(u, _) => u.Id" GetLabel="u => u.Name" GetChildren="u => u.Children" HasChildren="u => u.HasChildren"
+                  LoadChildren="LoadAsync" @bind-Value="unit" />
+    </Field>
+    <Small Tone="TextTone.Muted">已请求 @requests 次</Small>
+</Flex>
+
+@code {
+    sealed class Unit(string id, string name, bool hasChildren, List<Unit>? children = null)
+    {
+        public string Id { get; } = id;
+        public string Name { get; } = name;
+        /// <summary>后端标记的“有下级”：还没取回来时据此显示箭头。</summary>
+        public bool HasChildren { get; } = hasChildren;
+        public List<Unit>? Children { get; set; } = children;
+    }
+
+    // 模拟后端：每个部门的下级
+    static readonly Dictionary<string, (string Id, string Name, bool HasChildren)[]> server = new()
+    {
+        ["hq"] = [("rd", "研发中心", true), ("mfg", "制造中心", true)],
+        ["rd"] = [("rd-fe", "前端组", false), ("rd-be", "后端组", false)],
+        ["mfg"] = [("mfg-1", "一车间", false), ("mfg-2", "二车间", false)],
+    };
+
+    // 已选的那一枝（总部、制造中心的下级）随表单返回；研发中心进入时再取
+    readonly List<Unit> units =
+    [
+        new("hq", "集团总部", true,
+        [
+            new("rd", "研发中心", true),
+            new("mfg", "制造中心", true, [new("mfg-1", "一车间", false), new("mfg-2", "二车间", false)]),
+        ]),
+    ];
+
+    IReadOnlyList<string>? unit = ["hq", "mfg", "mfg-2"];
+    int requests;
+
+    async Task LoadAsync(Unit item)
+    {
+        requests++;
+        await Task.Delay(600);
+        item.Children = [.. server.GetValueOrDefault(item.Id, []).Select(u => new Unit(u.Id, u.Name, u.HasChildren))];
+    }
+}
