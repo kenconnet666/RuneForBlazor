@@ -30,6 +30,14 @@ export function copyFrom(button) {
 const copyTimers = new WeakMap();
 
 /** 图标描线：每一笔的长度统一成 1，虚线从 0 画到 1（时长、缓动取主题；减少动态效果时直接画好） */
+/** 用户点击勾上了复选框（data-rune-check-draw）：后面的对勾一笔画出（初次渲染、外部改值不经过 change，不画） */
+export function drawCheckOnChange(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement) || !target.checked || !target.hasAttribute('data-rune-check-draw')) return;
+  const check = target.nextElementSibling;
+  if (check instanceof SVGSVGElement) drawIcon(check);
+}
+
 export function drawIcon(svg) {
   if (reducedMotion.matches) return;
   const style = getComputedStyle(svg);

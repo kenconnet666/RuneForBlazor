@@ -115,18 +115,18 @@
 //
 // 模块内部的结构标记（含义见各模块开头的注释）：scroll-area 的 data-rune-scroll-viewport / -scrollbar，tabs 的 data-rune-tab-scroll / -tab-close，
 // cascader 的 data-rune-cascader-trigger / -search / -column，mentions 的 data-rune-mentions-panel，hover-layers 的 data-rune-hover-panel，
-// floating 的 data-rune-submenu，highlight 的 data-rune-code-text，toast 的 data-rune-toast-close，theme 的 data-rune-choice-icon，
+// floating、menus 的 data-rune-submenu，highlight 的 data-rune-code-text，toast 的 data-rune-toast-close，theme 的 data-rune-choice-icon，
 // shared 的 data-rune-announcer（共用的播报区）；分组输入框另有 data-rune-format-upper（转大写）。
 //
 // 模态对话框打开时锁定页面滚动。
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
-// overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
+// overlays（浮层开关、对话框）、menus（菜单的键盘、子菜单、右键菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
 // leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
-import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
-import { blockInert, copyFrom, drawIcon, startDismiss, startRipple } from './js/effects.js';
+import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from './js/controls.js';
+import { blockInert, copyFrom, drawCheckOnChange, drawIcon, startDismiss, startRipple } from './js/effects.js';
 import { onFileDragEnter, onFileDragLeave, onFileDrop } from './js/files.js';
 import { guardLeave } from './js/leave.js';
 import { clickCascader, keyCascader, onCascaderFocusIn } from './js/cascader.js';
@@ -134,7 +134,7 @@ import { keyMentions, onMentionsClick, onMentionsCompositionEnd, onMentionsFocus
 import { releasePointer, trackPointer } from './js/pointer.js';
 import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, onToasterFocusOut } from './js/toast.js';
 import { watchGrid, watchSize } from './js/layout.js';
-import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
+import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
 import { watchIndicator } from './js/indicator.js';
 import { scheduleOverflow, watchOverflow } from './js/overflow.js';
 import { moveRoving, noteRovingFocus, watchRoving } from './js/roving.js';
@@ -151,7 +151,8 @@ import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
 import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './js/theme.js';
 import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './js/fullscreen.js';
-import { announce, noteCloseReason, clickSubMenuTrigger, closeOnLink, closeOrRequest, focusArrivedContent, hoverSubMenu, leaveSubMenu, moveInMenu, openContextMenu, openMenuFromTrigger, onPopoverToggle, open, requestClose, rootMenuOf, syncOpen, updateScrollLock, watchCloseWhen } from './js/overlays.js';
+import { closeOnLink, closeOrRequest, focusArrivedContent, onDialogCancel, onDialogClose, onPopoverToggle, open, syncOpen, watchCloseWhen } from './js/overlays.js';
+import { clickSubMenuTrigger, hoverSubMenu, leaveSubMenu, moveInMenu, openContextMenu, openMenuFromTrigger, rootMenuOf } from './js/menus.js';
 import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from './js/hover-layers.js';
 
 let installed = false;
@@ -212,22 +213,9 @@ function install(blazor) {
 
   // 原生的 toggle（popover）与 close（dialog）不冒泡：在捕获阶段接住，转发成冒泡的 rune-toggle
   document.addEventListener('toggle', onPopoverToggle, true);
-  // Esc：原生 dialog 先发 cancel（不冒泡，在捕获阶段接住）；要先问 C# 的对话框拦下来，改发关闭请求
-  document.addEventListener('cancel', (event) => {
-    if (!(event.target instanceof HTMLDialogElement)) return;
-    if (event.target.matches('[data-rune-guard-close]')) {
-      event.preventDefault();
-      requestClose(event.target, 'escape');
-    } else {
-      noteCloseReason(event.target, 'escape');
-    }
-  }, true);
-  document.addEventListener('close', (event) => {
-    if (event.target instanceof HTMLDialogElement && event.target.matches('[data-rune-overlay]')) {
-      updateScrollLock();
-      announce(event.target, false);
-    }
-  }, true);
+  // 对话框的 cancel（Esc）与 close 也不冒泡
+  document.addEventListener('cancel', onDialogCancel, true);
+  document.addEventListener('close', onDialogClose, true);
 
   // 捕获阶段：要赶在 Blazor 的链接拦截之前（它会把 #id 按 <base href> 解析成别的页面并跳过去）
   document.addEventListener('click', onFocusLink, true);
@@ -254,26 +242,18 @@ function install(blazor) {
   document.addEventListener('pointermove', highlightUnderPointer);
   document.addEventListener('pointermove', trackPointer, { passive: true });
   document.documentElement.addEventListener('pointerleave', releasePointer);
-  document.addEventListener('change', (event) => {
-    const target = event.target;
-    if (target instanceof HTMLInputElement && target.checked && target.hasAttribute('data-rune-check-draw')) {
-      const check = target.nextElementSibling;
-      if (check instanceof SVGSVGElement) drawIcon(check);
-    }
-  });
+  document.addEventListener('change', drawCheckOnChange);
   // 头像的图片：load / error 不冒泡，在捕获阶段接住
   document.addEventListener('load', (event) => markAvatarImage(event.target), true);
   document.addEventListener('error', (event) => markAvatarImage(event.target), true);
   // 输入法组合期间的 input 不交给 C#（不拿拼音字母去过滤），组合结束补发一次
-  document.addEventListener('input', (event) => {
-    if (event.isComposing && event.target instanceof Element && event.target.matches('input[data-rune-list~="text"]')) event.stopImmediatePropagation();
-  }, true);
+  document.addEventListener('input', holdComposingInput, true);
   // 验证码：赶在 Blazor 读值之前过滤
   document.addEventListener('input', onOtpInput, true);
   // 分组显示的输入框（手机号、身份证号）：同样赶在 Blazor 读值之前重排
   document.addEventListener('input', formatInput, true);
   document.addEventListener('compositionend', (event) => {
-    if (event.target instanceof Element && event.target.matches('input[data-rune-list~="text"]')) event.target.dispatchEvent(new Event('input', { bubbles: true }));
+    releaseComposedInput(event);
     onMentionsCompositionEnd(event);
   });
   document.addEventListener('keyup', onMentionsKeyUp);
@@ -309,37 +289,43 @@ function install(blazor) {
   document.documentElement.setAttribute('data-rune-ready', '');
 }
 
+// 插入时（第一次渲染就带着状态）要处理的元素：选择器与处理函数，一处登记
+const watched = [
+  ['[data-rune-overlay][data-open="true"]', syncOpen],
+  ['input[data-indeterminate="true"]', syncIndeterminate],
+  ['svg[data-rune-draw="true"]', drawIcon],
+  ['[data-rune-grid-span]', (element) => watchGrid(element.parentElement)],
+  ['[data-rune-observe-size]', watchSize],
+  ['textarea[data-rune-autosize]', autosize],
+  ['[data-rune-overflow]', watchOverflow],
+  ['[data-rune-roving]', watchRoving],
+  ['[data-rune-indicator]', watchIndicator],
+  ['[data-rune-slider]', watchSlider],
+  ['[data-rune-otp]', watchOtp],
+  ['[data-rune-scroll-area]', watchScrollArea],
+  ['[data-rune-page-scrollbar]', watchPageScrollbar],
+  ['[data-rune-collapse]', watchCollapse],
+  ['[data-rune-resize]', watchResizeHandle],
+  ['img[data-rune-avatar-image]', (image) => image.complete && markAvatarImage(image)],
+  ['code[data-rune-highlight]', highlightCode],
+  ['[data-rune-tabs]', watchTabs],
+  ['[data-rune-toc]', watchToc],
+  ['[data-rune-loading-bar]', watchLoadingBar],
+  ['[data-rune-hotkey-label]', formatHotkeyLabel],
+  ['dialog[data-rune-close-when]', watchCloseWhen],
+  ['[data-rune-fullscreen="true"]', syncFullscreen],
+  ['[data-rune-theme-switcher]', watchThemeSwitcher],
+  ['[data-rune-token-value]', fillTokenValue],
+];
+const anyWatched = watched.map(([selector]) => selector).join(', ');
+
 /** 同步一个元素（含自身）里所有带状态属性的元素 */
 function syncWithin(root) {
   const sync = (element) => {
-    if (element.matches('[data-rune-overlay][data-open="true"]')) syncOpen(element);
-    if (element.matches('input[data-indeterminate="true"]')) syncIndeterminate(element);
-    if (element.matches('svg[data-rune-draw="true"]')) drawIcon(element);
-    if (element.matches('[data-rune-grid-span]')) watchGrid(element.parentElement);
-    if (element.matches('[data-rune-observe-size]')) watchSize(element);
-    if (element.matches('textarea[data-rune-autosize]')) autosize(element);
-    if (element.matches('[data-rune-overflow]')) watchOverflow(element);
-    if (element.matches('[data-rune-roving]')) watchRoving(element);
-    if (element.matches('[data-rune-indicator]')) watchIndicator(element);
-    if (element.matches('[data-rune-slider]')) watchSlider(element);
-    if (element.matches('[data-rune-otp]')) watchOtp(element);
-    if (element.matches('[data-rune-scroll-area]')) watchScrollArea(element);
-    if (element.matches('[data-rune-page-scrollbar]')) watchPageScrollbar(element);
-    if (element.matches('[data-rune-collapse]')) watchCollapse(element);
-    if (element.matches('[data-rune-resize]')) watchResizeHandle(element);
-    if (element.matches('img[data-rune-avatar-image]') && element.complete) markAvatarImage(element);
-    if (element.matches('code[data-rune-highlight]')) highlightCode(element);
-    if (element.matches('[data-rune-tabs]')) watchTabs(element);
-    if (element.matches('[data-rune-toc]')) watchToc(element);
-    if (element.matches('[data-rune-loading-bar]')) watchLoadingBar(element);
-    if (element.matches('[data-rune-hotkey-label]')) formatHotkeyLabel(element);
-    if (element.matches('dialog[data-rune-close-when]')) watchCloseWhen(element);
-    if (element.matches('[data-rune-fullscreen="true"]')) syncFullscreen(element);
-    if (element.matches('[data-rune-theme-switcher]')) watchThemeSwitcher(element);
-    if (element.matches('[data-rune-token-value]')) fillTokenValue(element);
+    for (const [selector, handle] of watched) if (element.matches(selector)) handle(element);
   };
   if (root instanceof Element) sync(root);
-  root.querySelectorAll('[data-rune-overlay][data-open="true"], input[data-indeterminate="true"], svg[data-rune-draw="true"], [data-rune-grid-span], [data-rune-observe-size], textarea[data-rune-autosize], [data-rune-overflow], [data-rune-roving], [data-rune-indicator], [data-rune-slider], [data-rune-otp], [data-rune-scroll-area], [data-rune-page-scrollbar], [data-rune-collapse], [data-rune-resize], img[data-rune-avatar-image], code[data-rune-highlight], [data-rune-tabs], [data-rune-toc], [data-rune-loading-bar], [data-rune-hotkey-label], dialog[data-rune-close-when], [data-rune-fullscreen="true"], [data-rune-theme-switcher], [data-rune-token-value]').forEach(sync);
+  root.querySelectorAll(anyWatched).forEach(sync);
 }
 
 /** 头像的图片加载完或失败了：写在它自己的 data-state 上（换图时图片按地址重建，状态跟着重置） */
@@ -398,18 +384,8 @@ function onClick(event) {
   toggleFromShell(target);
   clickToastClose(target);
 
-  const refocus = target.closest('[data-rune-refocus]');
-  if (refocus) document.getElementById(refocus.getAttribute('data-rune-refocus'))?.focus({ preventScroll: true });
-
-  const reveal = target.closest('[data-rune-reveal]');
-  if (reveal && !reveal.matches(':disabled')) {
-    const input = document.getElementById(reveal.getAttribute('data-rune-reveal'));
-    if (input instanceof HTMLInputElement) {
-      const shown = input.type === 'password';
-      input.type = shown ? 'text' : 'password';
-      reveal.setAttribute('aria-pressed', String(shown));
-    }
-  }
+  refocusFrom(target);
+  toggleReveal(target);
 
   const copier = target.closest('[data-rune-copy-on-click]');
   if (copier && !copier.matches(':disabled, [aria-busy="true"]')) copyFrom(copier);
@@ -447,7 +423,6 @@ function onClick(event) {
     if (!inside && event.detail > 0) closeOrRequest(target, 'outside');
   }
 }
-
 
 function onKeyDown(event) {
   // 打开浮层的快捷键（命令面板的 Mod+K）：已经开着时关上

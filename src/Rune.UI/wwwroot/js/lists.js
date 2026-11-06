@@ -316,6 +316,18 @@ export function syncTriggerExpanded(panel, opened) {
   listTriggerOf(panel)?.closest('[data-rune-control]')?.setAttribute('data-state', opened ? 'open' : 'closed');
 }
 
+const COMPOSING_HOST = 'input[data-rune-list~="text"]';
+
+/** 输入法组合期间搜索框（data-rune-list 含 text）的 input 不交给 C#：不拿拼音字母去过滤（捕获阶段，赶在 Blazor 之前） */
+export function holdComposingInput(event) {
+  if (event.isComposing && event.target instanceof Element && event.target.matches(COMPOSING_HOST)) event.stopImmediatePropagation();
+}
+
+/** 组合结束：补发一次 input，C# 按最终的文字过滤 */
+export function releaseComposedInput(event) {
+  if (event.target instanceof Element && event.target.matches(COMPOSING_HOST)) event.target.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 /**
  * 在输入框宿主（data-rune-popover）里输入：打开弹层。data-rune-hide-empty 的弹层（Autocomplete）先记下“输入过”，
  * 等 C# 渲染出建议后由 syncHideEmpty 决定显示不显示（没有建议时不弹出）。

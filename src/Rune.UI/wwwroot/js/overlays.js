@@ -1,7 +1,8 @@
-// 浮层的开关（popover、dialog）、对话框的关闭请求与锁定滚动、菜单的键盘、子菜单（悬停打开与安全三角）、右键菜单。
+// 浮层的开关（popover、dialog）、打开后的焦点、对话框的关闭请求与锁定滚动。菜单的键盘、子菜单、右键菜单在 menus.js。
 
 import { anchorFloating, releaseFloating } from './floating.js';
-import { listPopoverClosed, listPopoverOpened, syncTriggerExpanded, typeahead } from './lists.js';
+import { listPopoverClosed, listPopoverOpened, syncTriggerExpanded } from './lists.js';
+import { menuFocusTarget, openedByHover, restoreContextFocus } from './menus.js';
 import { TABBABLE } from './shared.js';
 
 // 受控浮层（data-open）报给 C# 但还没渲染回来的开关状态，按先后排队。渲染回来的 data-open 是这些旧状态的回响时不再照着开关：
@@ -12,11 +13,11 @@ const pendingEchoes = new WeakMap();
 const closeReasons = new WeakMap();
 
 /** 记下接下来这次关闭的原因（原生 dialog 的 Esc 不经过 closeOrRequest，由 cancel 事件记下） */
-export function noteCloseReason(overlay, reason) {
+function noteCloseReason(overlay, reason) {
   closeReasons.set(overlay, reason);
 }
 
-export function announce(overlay, open) {
+function announce(overlay, open) {
   if (overlay.hasAttribute('data-open')) {
     if (!pendingEchoes.has(overlay)) pendingEchoes.set(overlay, []);
     pendingEchoes.get(overlay).push(open);
@@ -89,30 +90,14 @@ export function onPopoverToggle(event) {
 
 // 打开时还没有可聚焦内容的浮层（Server 模式下第一次打开时内容由 C# 随后渲染）：内容插进来时再聚焦一次
 const awaitingFocus = new WeakSet();
-// 由触发按钮上的 ↑ 打开的菜单：聚焦最后一项
-const focusLast = new WeakSet();
-
-/** 菜单的触发按钮上按 ↓ / ↑：打开菜单并聚焦第一项 / 最后一项（Enter、空格由原生的 popovertarget 打开） */
-export function openMenuFromTrigger(event) {
-  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-  const id = event.target instanceof Element ? event.target.getAttribute('popovertarget') : null;
-  const menu = id ? document.getElementById(id) : null;
-  if (!menu?.matches('[role="menu"][data-rune-overlay]') || menu.matches(':popover-open')) return;
-  event.preventDefault();
-  if (event.key === 'ArrowUp') focusLast.add(menu);
-  menu.showPopover({ source: event.target });
-}
-
 // 打开、定位好之后（之前不可见、聚焦不了）焦点移进去：菜单到第一项，对话框类的到 autofocus 或第一个可聚焦元素
 function focusInto(overlay) {
   awaitingFocus.delete(overlay);
   // 指针停留打开的子菜单：焦点留在原处
-  if (hoverOpened.delete(overlay)) return;
+  if (openedByHover(overlay)) return;
   if (!overlay.matches(':popover-open') || overlay.contains(document.activeElement)) return;
-  const last = focusLast.has(overlay);
-  focusLast.delete(overlay);
   const target = overlay.matches('[role="menu"]')
-    ? menuItems(overlay).at(last ? -1 : 0)
+    ? menuFocusTarget(overlay)
     : overlay.querySelector('[autofocus]') ?? overlay.querySelector(TABBABLE);
   if (target) target.focus();
   else awaitingFocus.add(overlay);
@@ -135,7 +120,7 @@ let restoreScroll = null;
 
 // 模态对话框打开时锁定页面滚动（关掉最后一个时恢复，同 vue-tsx-pro 的 lockScroll）：去掉滚动条后在结束边补上等宽的内边距，
 // 页面内容不左右跳。不用 scrollbar-gutter: stable：它留出的槽在视口里，贴着结束边的抽屉会和视口边缘隔着一条
-export function updateScrollLock() {
+function updateScrollLock() {
   const locked = document.querySelector('dialog[data-rune-overlay]:modal') !== null;
   if (locked === (restoreScroll !== null)) return;
   const root = document.documentElement;
@@ -160,189 +145,28 @@ export function closeOrRequest(overlay, reason) {
   }
 }
 
-export function requestClose(overlay, reason) {
+function requestClose(overlay, reason) {
   overlay.dispatchEvent(new CustomEvent('rune-close-request', { bubbles: true, detail: { reason } }));
 }
 
-/** 菜单自己的可用项：不含子菜单里的 */
-function menuItems(menu) {
-  return [...menu.querySelectorAll('[role^="menuitem"]:not([aria-disabled="true"])')]
-    .filter((item) => item.parentElement?.closest('[role="menu"]') === menu);
-}
-
-/** 一串菜单最外层的那个（子菜单在父菜单的 DOM 里）：执行了一项、按 Tab 时关它，整串一起关 */
-export function rootMenuOf(element) {
-  const MENU = '[role="menu"][data-rune-overlay]';
-  let menu = element.closest(MENU);
-  for (let outer = menu?.parentElement?.closest(MENU); outer; outer = outer.parentElement?.closest(MENU)) menu = outer;
-  return menu;
-}
-
-const SUBMENU_TRIGGER = '[role="menuitem"][aria-haspopup="menu"][popovertarget]';
-/** 指针停在子菜单项上多久后打开（毫秒） */
-const SUBMENU_OPEN_DELAY = 100;
-/** 指针离开后，在安全三角里最多保持多久（毫秒） */
-const SUBMENU_GRACE = 400;
-// 指针停留打开的子菜单：不把焦点移进去
-const hoverOpened = new WeakSet();
-let subOpenTimer = 0;
-let stopGrace = null;
-
-const subMenuOf = (trigger) => document.getElementById(trigger.getAttribute('popovertarget'));
-const isRtl = (element) => getComputedStyle(element).direction === 'rtl';
-
-/** 子菜单项被点击（Enter、空格）：打开并聚焦第一项；已经开着（指针打开的）时直接把焦点移进去。原生的 popovertarget 会切换，拦下它 */
-export function clickSubMenuTrigger(event, trigger) {
-  event.preventDefault();
-  openSubMenu(trigger);
-}
-
-function openSubMenu(trigger) {
-  const sub = subMenuOf(trigger);
-  if (!sub) return;
-  if (sub.matches(':popover-open')) menuItems(sub)[0]?.focus();
-  else sub.showPopover({ source: trigger });
-}
-
-/** 指针移到子菜单项上：停一会儿打开（不移焦点） */
-export function hoverSubMenu(event) {
-  if (event.pointerType === 'touch' || !(event.target instanceof Element)) return;
-  const trigger = event.target.closest(SUBMENU_TRIGGER);
-  if (!trigger || (event.relatedTarget instanceof Node && trigger.contains(event.relatedTarget))) return;
-  stopGrace?.();
-  clearTimeout(subOpenTimer);
-  subOpenTimer = setTimeout(() => {
-    const sub = subMenuOf(trigger);
-    if (!trigger.isConnected || !sub || sub.matches(':popover-open')) return;
-    hoverOpened.add(sub);
-    sub.showPopover({ source: trigger });
-  }, SUBMENU_OPEN_DELAY);
-}
-
-/** 指针离开子菜单项：朝子菜单移动（在离开点与子菜单近边组成的三角形里）时保持打开，否则关闭 */
-export function leaveSubMenu(event) {
-  if (!(event.target instanceof Element)) return;
-  const trigger = event.target.closest(SUBMENU_TRIGGER);
-  if (!trigger || (event.relatedTarget instanceof Node && trigger.contains(event.relatedTarget))) return;
-  clearTimeout(subOpenTimer);
-  const sub = subMenuOf(trigger);
-  if (!sub?.matches(':popover-open')) return;
-  stopGrace?.();
-  const rect = sub.getBoundingClientRect();
-  const edge = rect.left >= event.clientX ? rect.left : rect.right;
-  const start = [event.clientX, event.clientY];
-  const closeSub = () => {
-    stopGrace?.();
-    if (sub.matches(':popover-open')) sub.hidePopover();
-  };
-  const onMove = (move) => {
-    if (move.target instanceof Node && (sub.contains(move.target) || trigger.contains(move.target))) {
-      stopGrace?.();
-      return;
-    }
-    if (!inTriangle([move.clientX, move.clientY], start, [edge, rect.top], [edge, rect.bottom])) closeSub();
-  };
-  const timer = setTimeout(closeSub, SUBMENU_GRACE);
-  document.addEventListener('pointermove', onMove);
-  stopGrace = () => {
-    clearTimeout(timer);
-    document.removeEventListener('pointermove', onMove);
-    stopGrace = null;
-  };
-}
-
-/** 点 p 是否在三角形 abc 里（三条边的同侧判断） */
-function inTriangle(p, a, b, c) {
-  const side = (from, to) => (p[0] - to[0]) * (from[1] - to[1]) - (from[0] - to[0]) * (p[1] - to[1]);
-  const d1 = side(a, b);
-  const d2 = side(b, c);
-  const d3 = side(c, a);
-  return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
-}
-
-// 右键菜单打开前焦点所在的元素：关闭后还给它
-const contextOrigins = new WeakMap();
-
-/** 右键（Shift+F10、菜单键）：在区域（data-rune-context-menu）里从指针位置弹出它的菜单 */
-export function openContextMenu(event) {
-  const target = event.target;
-  if (!(target instanceof Element)) return;
-  const region = target.closest('[data-rune-context-menu]');
-  // 菜单渲染在区域里：在菜单上右键不再打开
-  if (!region || region.hasAttribute('data-disabled') || target.closest('[role="menu"]')) return;
-  const menu = region.querySelector(':scope > [role="menu"][data-rune-overlay]');
-  if (!menu) return;
-  event.preventDefault();
-  if (!menu.matches(':popover-open')) contextOrigins.set(menu, document.activeElement instanceof HTMLElement ? document.activeElement : null);
-  // 键盘打开时没有指针坐标：从获得焦点的元素左下角弹出
-  let { clientX: x, clientY: y } = event;
-  if (x === 0 && y === 0) {
-    const rect = target.getBoundingClientRect();
-    x = rect.left;
-    y = rect.bottom;
-  }
-  menu.dataset.pointX = String(x);
-  menu.dataset.pointY = String(y);
-  // 已经开着时换到新的位置
-  if (menu.matches(':popover-open')) anchorFloating(menu);
-  else menu.showPopover();
-}
-
-function restoreContextFocus(overlay) {
-  const origin = contextOrigins.get(overlay);
-  if (!origin) return;
-  contextOrigins.delete(overlay);
-  const active = document.activeElement;
-  if (!active || active === document.body || overlay.contains(active)) origin.focus();
-}
-
-export function moveInMenu(menu, event) {
-  const items = menuItems(menu);
-  if (items.length === 0) return;
-  const index = items.indexOf(document.activeElement);
-  let next;
-  switch (event.key) {
-    case 'ArrowDown':
-      next = items[(index + 1) % items.length];
-      break;
-    case 'ArrowUp':
-      next = items[(index - 1 + items.length) % items.length];
-      break;
-    case 'Home':
-      next = items[0];
-      break;
-    case 'End':
-      next = items[items.length - 1];
-      break;
-    case 'Tab':
-      // 菜单里不用 Tab 切换：关掉整串菜单，焦点回到触发按钮（原生 popover 关闭时的行为）
-      close(rootMenuOf(menu));
-      return;
-    case 'ArrowRight':
-    case 'ArrowLeft': {
-      // 往书写方向前进：打开子菜单；后退：关掉所在的子菜单，回到打开它的那一项
-      const forward = (event.key === 'ArrowRight') !== isRtl(menu);
-      const active = document.activeElement;
-      if (forward && active?.matches(SUBMENU_TRIGGER) && items.includes(active)) {
-        event.preventDefault();
-        openSubMenu(active);
-      } else if (!forward && menu.hasAttribute('data-rune-submenu')) {
-        event.preventDefault();
-        close(menu);
-        document.querySelector(`[popovertarget="${CSS.escape(menu.id)}"]`)?.focus();
-      }
-      return;
-    }
-    default:
-      if (!event.ctrlKey && !event.metaKey && !event.altKey) {
-        const match = typeahead(menu, event.key, items.map((item) => item.textContent), index);
-        if (match >= 0) next = items[match];
-      }
-  }
-  if (next) {
+/** 对话框上按了 Esc（原生先发不冒泡的 cancel，在捕获阶段接住）：要先问 C# 的拦下来改发关闭请求，其余记下原因照常关 */
+export function onDialogCancel(event) {
+  const dialog = event.target;
+  if (!(dialog instanceof HTMLDialogElement)) return;
+  if (dialog.matches('[data-rune-guard-close]')) {
     event.preventDefault();
-    next.focus();
+    requestClose(dialog, 'escape');
+  } else {
+    noteCloseReason(dialog, 'escape');
   }
+}
+
+/** 对话框关上了（原生 close 不冒泡，在捕获阶段接住）：解除滚动锁定，报给 C# */
+export function onDialogClose(event) {
+  const dialog = event.target;
+  if (!(dialog instanceof HTMLDialogElement) || !dialog.matches('[data-rune-overlay]')) return;
+  updateScrollLock();
+  announce(dialog, false);
 }
 
 // 点了里面的链接（通常是换页）就关上的对话框（data-rune-close-on-link：AppShell 窄屏时的导航抽屉）

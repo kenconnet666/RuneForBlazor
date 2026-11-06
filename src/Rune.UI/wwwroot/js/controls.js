@@ -1,7 +1,24 @@
-// 输入框一类：数字框的按键加减、点外壳聚焦、字数计数、按住连续点击、多行自动增高、半选、键盘命令、跳到字段的链接。
+// 输入框一类：数字框的按键加减、点外壳聚焦、字数计数、按住连续点击、多行自动增高、半选、键盘命令、跳到字段的链接、清空后回到输入框、显示密码。
 
 import { popoverOfHost, pressedWhileOpen } from './lists.js';
 import { reducedMotion, sendCommand } from './shared.js';
+
+/** 点了 data-rune-refocus 的按钮（清空）：焦点交给它指向的输入框 */
+export function refocusFrom(target) {
+  const button = target.closest('[data-rune-refocus]');
+  if (button) document.getElementById(button.getAttribute('data-rune-refocus'))?.focus({ preventScroll: true });
+}
+
+/** 点了显示密码按钮（data-rune-reveal）：切换输入框的 type 与按钮的 aria-pressed */
+export function toggleReveal(target) {
+  const button = target.closest('[data-rune-reveal]');
+  if (!button || button.matches(':disabled')) return;
+  const input = document.getElementById(button.getAttribute('data-rune-reveal'));
+  if (!(input instanceof HTMLInputElement)) return;
+  const shown = input.type === 'password';
+  input.type = shown ? 'text' : 'password';
+  button.setAttribute('aria-pressed', String(shown));
+}
 
 export function syncIndeterminate(input) {
   input.indeterminate = input.dataset.indeterminate === 'true';

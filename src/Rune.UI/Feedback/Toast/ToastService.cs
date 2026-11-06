@@ -79,8 +79,11 @@ public sealed record ToastPromiseMessages<T>(ToastOptions Loading, Func<T, Toast
 /// 只给显示出来的（最新的 <see cref="Limit"/> 条）计时，没轮到的等它出现再开始。
 /// 列表放在信号里，Toaster 读到它就会在变化时重新渲染；后台线程里调用也安全。每个用户（Server 的每个电路、WebAssembly 的每个页面）一份（scoped）。
 /// </summary>
-public sealed class ToastService : IDisposable
+/// <param name="time">计时用的时钟（测试里换成假的）；不给时用系统时钟。</param>
+public sealed class ToastService(TimeProvider? time = null) : IDisposable
 {
+    readonly TimeProvider time = time ?? TimeProvider.System;
+
     /// <summary>离场过渡（高度收起、淡出）的时间：之后从列表里移除。</summary>
     static readonly TimeSpan ExitDuration = TimeSpan.FromMilliseconds(300);
 
@@ -93,11 +96,11 @@ public sealed class ToastService : IDisposable
     long countdowns;
     int limit = int.MaxValue;
 
-    // 一条通知的计时：剩余时间、本段开始的时刻、正在等待的取消源（停着时为 null）
+    // 一条通知的计时：剩余时间、本段开始的时间戳（单调时钟，不受改系统时间影响）、正在等待的取消源（停着时为 null）
     sealed class Countdown(TimeSpan remaining)
     {
         public TimeSpan Remaining = remaining;
-        public DateTime StartedAt;
+        public long StartedAt;
         public CancellationTokenSource? Running;
     }
 
@@ -276,7 +279,7 @@ public sealed class ToastService : IDisposable
     {
         var running = CancellationTokenSource.CreateLinkedTokenSource(disposed.Token);
         timer.Running = running;
-        timer.StartedAt = DateTime.UtcNow;
+        timer.StartedAt = time.GetTimestamp();
         _ = ExpireAsync(id, timer.Remaining, running.Token);
     }
 
@@ -288,7 +291,7 @@ public sealed class ToastService : IDisposable
         {
             running.Cancel();
             timer.Running = null;
-            timer.Remaining -= DateTime.UtcNow - timer.StartedAt;
+            timer.Remaining -= time.GetElapsedTime(timer.StartedAt);
         }
         if (forget) timers.Remove(id);
     }
@@ -297,7 +300,7 @@ public sealed class ToastService : IDisposable
     {
         try
         {
-            await Task.Delay(remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero, token);
+            await Task.Delay(remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero, time, token);
         }
         catch (OperationCanceledException)
         {
@@ -331,7 +334,7 @@ public sealed class ToastService : IDisposable
     {
         try
         {
-            await Task.Delay(ExitDuration, disposed.Token);
+            await Task.Delay(ExitDuration, time, disposed.Token);
         }
         catch (OperationCanceledException)
         {
