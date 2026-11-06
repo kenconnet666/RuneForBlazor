@@ -73,12 +73,15 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 
 - R.1 完成（CI 恢复全绿：测试类继承 `E2ETest`，结束时关掉自己开的浏览器上下文）；R.2、R.3 大部分完成，剩下的见 ROADMAP。
 - 阶段 1 完成：List / OrderedList / ListItem、ClientOnly、Can（AuthorizeView）、ButtonBase、Banner、Result、Empty 页、Switch 补齐、FileDrop、Upload（列表模式）。
-- 单元测试 456 个全过；端到端在 CI 上跑。
+- 阶段 2 做到 Image / Lightbox 与 Upload 的图片墙（剩 Tree、VirtualList 补齐）。
+- 2026-11-06 起路线图暂停：先做性能（`docs/PERFORMANCE.md`，基准 `tests/Rune.Benchmarks`），之后按 vue-tsx-pro 的样式体系改造逐阶段跟进
+  （`docs/STYLE-ALIGNMENT.md`，那边每完成一个阶段会发消息来）。
+- 单元测试 496 个全过；端到端在 CI 上跑。
 
-## 下一步（按路线图）
+## 下一步
 
-1. R.4 代码走查（单独提交）；R.2 剩下的差异随提供那个组件的阶段补。
-2. 阶段 2：布局与展示（AsideLayout、Stat、Sortable、Tree、Image / Lightbox 与 Upload 的图片墙、VirtualList 补齐……），然后阶段 3 → 9。
+1. 等 vue-tsx-pro 样式改造各阶段的通知，按 STYLE-ALIGNMENT.md 跟进；PERFORMANCE.md 的待议项随之取舍。
+2. 用户说恢复路线图后：阶段 2 剩下的 Tree（含 TreeSelect、TreeTransfer）、VirtualList 补齐，然后阶段 3 → 9；R.4 代码走查（单独提交）。
 
 ## 移植时的约定（踩过的坑）
 
