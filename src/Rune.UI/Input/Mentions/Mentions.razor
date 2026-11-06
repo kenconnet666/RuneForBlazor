@@ -1,0 +1,164 @@
+@*
+    提及（同 vue-tsx-pro 的 Mentions）：多行文本框里输入 @ 弹出人员（或岗位、群组）列表，选中后写成“@名字 ”。留言、审批意见里通知相关的人。
+    <Field Label="留言"><Mentions Items="people" @bind-Value="text" @bind-Mentioned="notified" /></Field>
+    <Mentions TItem="User" Load="SearchUsersAsync" ToOption="u => new(u.Id, u.Name)" @bind-Value="text" />   远程搜索
+    值仍是文字；Mentioned 是文字里提到的选项的值（工号、岗位编号），随文字增删——删掉“@名字”就不再算提及。显示提及过的文字用 MentionText。
+    - 弹出：@ 在开头或前面不是字母数字（邮箱里的 @ 不算），@ 与光标之间没有空白；列表贴在 @ 的位置。
+    - 过滤：本地按显示文字包含 @ 后面的文字；给 Load 时按它远程搜索（同 Select）。
+    - 键盘：↑↓ 移动、Enter 或 Tab 选中、Esc 关闭（这个 @ 不再弹出，直到重新输入）；焦点一直在文本框里。中文输入法组合期间不弹出。
+    弹出、键盘与写入名字都在 JS 里（data-rune-mentions），@ 后面的文字经 rune-command 交给 C# 过滤。外壳与自动增高同 Textarea，
+    未声明的属性落到 textarea 上。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits UIComponent
+
+<Textarea Value="@Value" ValueChanged="SetTextAsync" @attributes="Attrs.MergeProps(null, Rest, TextareaManaged)" />
+<ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@TextareaId" ListId="@ListId" OnToggle="Toggled" Size="Size" Label="@Config.Lang.MentionsList"
+             Query="@query" Results="@(open ? OptionSource<TItem>.Results(Config.Lang, query.Length > 0 ? query : Prefix, Shown.Count) : null)"
+             Entries="Shown" Loading="@(Loading || options.Loading)" OnPick="Pick" ChildContent="ChildContent" Empty="Empty"
+             EmptyText="@(options.Failed ? Config.Lang.ListLoadFailed : Empty is null ? Config.Lang.MentionsEmpty : null)"
+             PropsPopover="@Attrs.Layer(PanelLayer, PropsPopover, PanelManaged)" PropsListbox="PropsListbox" />
+
+@code {
+    static readonly Attrs PanelLayer = new() { Sx = MentionStyles.Panel };
+
+    readonly string ownId = UniqueId.Next("mentions");
+    // 见过的选项（远程搜索换掉 Items 之后，已提及的人仍能认出来）
+    readonly Dictionary<string, ListboxOption> known = [];
+    string query = "";
+    bool open;
+    string? computedFor;
+
+    /// <summary>文字（<c>@bind-Value</c>）。</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>文字变了。</summary>
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    /// <summary>文字里提到的选项的值（<c>@bind-Mentioned</c>），随文字更新。</summary>
+    [Parameter] public IReadOnlyList<string>? Mentioned { get; set; }
+
+    /// <summary>提到的人变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> MentionedChanged { get; set; }
+
+    /// <summary>可以提及的人（ListboxOption、字符串，或任意数据加 ToOption）；有 Load 时是第一次结果之前的选项。</summary>
+    [Parameter] public IEnumerable<TItem> Items { get; set; } = [];
+
+    /// <summary>数据 → 选项；Items 是 ListboxOption 或字符串时可以不写。</summary>
+    [Parameter] public Func<TItem, ListboxOption>? ToOption { get; set; }
+
+    /// <summary>远程搜索：按 @ 后面的文字调用，停下 300 ms 后请求，只采用最后一次。</summary>
+    [Parameter] public OptionsLoader<TItem>? Load { get; set; }
+
+    /// <summary>触发的字符，默认 @。</summary>
+    [Parameter] public string Prefix { get; set; } = "@";
+
+    /// <summary>过滤：默认按显示文字包含 @ 后面的文字（见 UIConfig.Matches）。</summary>
+    [Parameter] public Func<TItem, string, bool>? Filter { get; set; }
+
+    /// <summary>不过滤（由调用方按 OnQuery 换 Items）。</summary>
+    [Parameter] public bool LocalFilter { get; set; } = true;
+
+    /// <summary>@ 后面的文字变了（自己换 Items 时用）。</summary>
+    [Parameter] public EventCallback<string> OnQuery { get; set; }
+
+    /// <summary>正在取选项。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>字号档位（文本框与列表一起）。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>自定义选项内容（头像、部门）。</summary>
+    [Parameter] public RenderFragment<ListOptionState<TItem>>? ChildContent { get; set; }
+
+    /// <summary>没有匹配的人时列表里显示的内容，默认取语言包。</summary>
+    [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <summary>弹出层的部件属性。</summary>
+    [Parameter] public Attrs? PropsPopover { get; set; }
+
+    /// <summary>列表的部件属性。</summary>
+    [Parameter] public Attrs? PropsListbox { get; set; }
+
+    [CascadingParameter] FieldContext? Field { get; set; }
+
+    OptionSource<TItem> options { get => field ??= new(() => InvokeAsync(StateHasChanged)); }
+
+    // 文本框的 id：在 Field 里时用 Field 给的（标签的 for 指向它）
+    string TextareaId => AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string s ? s : Field?.ControlId ?? ownId;
+
+    string PopoverId => $"{TextareaId}-mentions";
+
+    string ListId => $"{TextareaId}-mentions-list";
+
+    IReadOnlyList<ListEntry<TItem>> All => options.All(Items, ToOption);
+
+    IReadOnlyList<ListEntry<TItem>> Shown => Load is null && LocalFilter ? options.Filter(All, query, Filter, Config) : All;
+
+    // 文本框：交给 JS 的约定（触发字符、弹层、列表）与 combobox 的无障碍属性
+    Attrs TextareaManaged => new()
+    {
+        Id = TextareaId,
+        ["Size"] = Size,
+        ["aria-autocomplete"] = "list",
+        ["aria-controls"] = ListId,
+        ["data-rune-mentions"] = Prefix,
+        ["data-rune-popover"] = PopoverId,
+        ["onrunecommand"] = EventCallback.Factory.Create<CommandEventArgs>(this, CommandAsync),
+    };
+
+    // 弹层贴着 @ 的位置（JS 按 data-caret-anchor 量光标）；选中后由 JS 把名字写进文本框
+    Attrs PanelManaged => new()
+    {
+        ["data-caret-anchor"] = TextareaId,
+        ["data-rune-mentions-panel"] = TextareaId,
+    };
+
+    /// <inheritdoc/>
+    protected override async Task OnParametersSetAsync()
+    {
+        foreach (var entry in All) known[entry.Option.Value] = entry.Option;
+        await SyncMentionedAsync(Value);
+    }
+
+    async Task SetTextAsync(string? text)
+    {
+        await ValueChanged.InvokeAsync(text);
+        await SyncMentionedAsync(text);
+    }
+
+    // 文字里提到的人：随文字与见过的选项更新
+    async Task SyncMentionedAsync(string? text)
+    {
+        if (computedFor == text && known.Count > 0) return;
+        computedFor = text;
+        var next = MentionSegments.Values(text, known.Values, Prefix);
+        if (!next.SequenceEqual(Mentioned ?? [])) await MentionedChanged.InvokeAsync(next);
+    }
+
+    // 选中了一项：记下它（远程结果换掉之后也认得出）；写名字由 JS 完成
+    void Pick(string value)
+    {
+        if (All.FirstOrDefault(e => e.Option.Value == value) is { } entry) known[value] = entry.Option;
+        computedFor = null;
+    }
+
+    // JS 交来 @ 后面的文字
+    async Task CommandAsync(CommandEventArgs e)
+    {
+        if (e.Name != "mention-query") return;
+        query = e.Text ?? "";
+        options.Request(Load, query, debounce: true);
+        await OnQuery.InvokeAsync(query);
+    }
+
+    void Toggled(OverlayToggleEventArgs e)
+    {
+        open = e.Open;
+        if (!open) options.Cancel();
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => options.Dispose();
+}

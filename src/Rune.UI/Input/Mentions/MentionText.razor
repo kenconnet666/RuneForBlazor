@@ -1,0 +1,45 @@
+@*
+    带提及的文字（span，同 vue-tsx-pro 的 MentionText）：“@名字”高亮，换行照常（pre-wrap）。
+    <MentionText Text="@comment" Options="people" />
+    要做成链接、悬停卡片时用 ChildContent 自己渲染一个提及。未声明的属性落到 span 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<span @attributes="Attrs.Merge(TextLayer, Rest)">
+    @foreach (var segment in MentionSegments.Of(Text, Options, Prefix))
+    {
+        if (segment.Mention is null)
+        {
+            @segment.Text
+        }
+        else if (ChildContent is not null)
+        {
+            @ChildContent(segment)
+        }
+        else
+        {
+            <span @attributes="Attrs.Merge(MentionLayer, PropsMention)">@segment.Text</span>
+        }
+    }
+</span>
+
+@code {
+    static readonly Attrs TextLayer = new() { Sx = MentionStyles.Text };
+    static readonly Attrs MentionLayer = new() { Sx = MentionStyles.Mention };
+
+    /// <summary>文字。</summary>
+    [Parameter, EditorRequired] public string? Text { get; set; }
+
+    /// <summary>能被提及的选项：“@显示文字”高亮。</summary>
+    [Parameter, EditorRequired] public IEnumerable<ListboxOption> Options { get; set; } = [];
+
+    /// <summary>触发的字符，默认 @。</summary>
+    [Parameter] public string Prefix { get; set; } = "@";
+
+    /// <summary>提及的部件属性。</summary>
+    [Parameter] public Attrs? PropsMention { get; set; }
+
+    /// <summary>自己渲染一个提及（链接到个人页、HoverCard）；不写时是高亮的文字。</summary>
+    [Parameter] public RenderFragment<MentionSegment>? ChildContent { get; set; }
+}

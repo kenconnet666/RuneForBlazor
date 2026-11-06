@@ -1,0 +1,42 @@
+@* 全公司的人太多，按 @ 后面的文字远程搜索（Load，停下 300 ms 后请求，只采用最后一次）；
+   选项自己渲染（ChildContent）：头像、姓名与部门。数据是任意结构，用 ToOption 映射成选项 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="留言" Description="@($"共 {employees.Length} 人；试试输入 @林 或 @E001")">
+        <Mentions TItem="Employee" Load="SearchAsync" ToOption="e => new(e.Id, e.Name, Description: e.Department)" @bind-Value="text" @bind-Mentioned="mentioned" Rows="2">
+            <ChildContent>
+                <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+                    <Avatar Name="@context.Item.Name" Size="Size.Xs" />
+                    <TextSpan>@context.Item.Name</TextSpan>
+                    <Small Tone="TextTone.Muted">@context.Item.Department · @context.Item.Id</Small>
+                </Flex>
+            </ChildContent>
+        </Mentions>
+    </Field>
+    <Small Tone="TextTone.Muted">提及的工号：@(mentioned.Count == 0 ? "无" : string.Join("、", mentioned))</Small>
+</Flex>
+
+@code {
+    sealed record Employee(string Id, string Name, string Department);
+
+    static readonly string[] surnames = "王 李 张 刘 陈 杨 黄 赵 周 吴 徐 孙 马 朱 胡 郭 何 林 罗 高".Split(' ');
+    static readonly string[] givenNames = ["小满", "一航", "思远", "可欣", "子墨", "雨桐", "浩然", "静怡", "宇轩", "梦洁"];
+    static readonly string[] departments = ["采购部", "财务部", "质量部", "工程部", "财务部"];
+
+    static readonly Employee[] employees =
+    [
+        .. surnames.SelectMany((surname, row) => givenNames.Select((given, column) =>
+            new Employee($"E{row * 10 + column + 1:D4}", surname + given, departments[(row + column) % departments.Length]))),
+    ];
+
+    string? text;
+    IReadOnlyList<string> mentioned = [];
+
+    /// <summary>模拟接口：按姓名或工号搜索，最多 20 条，延迟 400 ms。</summary>
+    static async Task<IEnumerable<Employee>> SearchAsync(string query, CancellationToken cancellation)
+    {
+        await Task.Delay(400, cancellation);
+        return employees.Where(e => e.Name.Contains(query) || e.Id.Contains(query)).Take(20);
+    }
+}

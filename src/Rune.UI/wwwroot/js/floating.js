@@ -3,6 +3,8 @@
 // 同 vue-tsx-pro 的 utils/dom/floating：Floating UI 计算位置（offset、flip、shift，可选 arrow 与 size），autoUpdate 在滚动、缩放、
 // 锚点变化时重新定位。库第一次打开浮层时才加载（wwwroot/vendor，随 Rune.UI 分发）。第一次算好位置之前浮层不可见，不会在默认位置闪一下。
 
+import { caretRect } from './caret.js';
+
 let floatingUi = null;
 
 const loadFloatingUi = () => (floatingUi ??= import('../vendor/floating-ui.dom.mjs'));
@@ -26,6 +28,14 @@ const ARROW_ROTATION = { top: 45, right: 135, bottom: 225, left: -45 };
  * 或触发元素（popovertarget、data-rune-tooltip、data-rune-hovercard 指向它）。
  */
 function floatingAnchorOf(overlay) {
+  // 跟着文本框里的光标（@ 提及）：data-caret-anchor 是文本框的 id，位置是它的 data-mention-at（没有时是光标）
+  const caretFor = overlay.dataset.caretAnchor && document.getElementById(overlay.dataset.caretAnchor);
+  if (caretFor) {
+    return {
+      getBoundingClientRect: () => caretRect(caretFor, Number(caretFor.dataset.mentionAt ?? caretFor.selectionStart)),
+      contextElement: caretFor,
+    };
+  }
   if (overlay.dataset.pointX !== undefined) {
     const x = Number(overlay.dataset.pointX);
     const y = Number(overlay.dataset.pointY);

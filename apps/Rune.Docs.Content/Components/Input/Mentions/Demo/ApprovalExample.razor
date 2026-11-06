@@ -1,0 +1,41 @@
+@* 审批意见里 @ 相关的人：输入 @ 弹出人员（按部门分组、带岗位说明），接着输入按名字过滤，Enter 或 Tab 选中；
+   Mentioned 是文字里提到的人的工号——删掉“@名字”就不再通知他。下面的预览用 MentionText 高亮提及 *@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Field Label="审批意见" Description="输入 @@ 提及需要知会的人，提交后会通知他们">
+            <Mentions TItem="ListboxOption" Items="people" @bind-Value="opinion" @bind-Mentioned="notified" Rows="3" MaxRows="8" />
+        </Field>
+        <Flex Gap="SpaceScale.Xs" Wrap="true" Align="ItemAlign.Center">
+            <Small Tone="TextTone.Muted">将通知：</Small>
+            @if (notified.Count == 0)
+            {
+                <Small Tone="TextTone.Muted">还没有提及任何人</Small>
+            }
+            @foreach (var value in notified)
+            {
+                <Tag @key="value" Size="Size.Sm">@people.First(p => p.Value == value).Label（@value）</Tag>
+            }
+        </Flex>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Small Tone="TextTone.Muted">预览</Small>
+            <MentionText Text="@opinion" Options="people" />
+        </Flex>
+    </Flex>
+</Card>
+
+@code {
+    static readonly ListboxOption[] people =
+    [
+        new("E1024", "周宁", Description: "采购专员", Group: "采购部"),
+        new("E1031", "陆川", Description: "采购经理", Group: "采购部"),
+        new("E2007", "方圆", Description: "财务分析师", Group: "财务部"),
+        new("E2015", "韩笑", Description: "财务部负责人", Group: "财务部"),
+        new("E3002", "林小满", Description: "质量工程师", Group: "质量部"),
+        new("E3009", "吴悠", Description: "供应商质量", Group: "质量部"),
+    ];
+
+    string? opinion = "同意按 V3 报价执行，@方圆 请把测算表更新到最新版本，";
+    IReadOnlyList<string> notified = [];
+}
