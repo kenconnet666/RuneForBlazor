@@ -1,5 +1,3 @@
-using System.Collections;
-
 namespace Rune.UI;
 
 /// <summary>一个组件的默认值（外观档位等），每个组件一个 record，属性都可空（null 表示不改）。</summary>
@@ -20,21 +18,18 @@ public interface IComponentDefaults
 }
 
 /// <summary>
-/// 各组件的默认值：组件上没写的参数取这里的值。
-/// <code>
-/// o.Defaults = new() { new CardDefaults { Variant = CardVariant.Outline } };
-/// </code>
-/// 只在创建时添加，之后不再修改（同一个实例会被缓存引用）。
+/// 合成好的组件默认值（由 <see cref="ComponentConfigs"/> 的各项拆出，组件经 <see cref="UIConfig.Defaults"/> 读取）：组件上没写的参数取这里的值。
+/// 配置写在 <see cref="ComponentConfigs"/>（<c>new ComponentConfig&lt;CardDefaults, CardPart&gt; { Defaults = … }</c>），这里只读。
 /// </summary>
-public sealed class ComponentDefaults : IEnumerable
+public sealed class ComponentDefaults
 {
     readonly Dictionary<Type, object> byComponent = [];
 
     /// <summary>空的默认值。</summary>
     public static readonly ComponentDefaults Empty = new();
 
-    /// <summary>添加一个组件的默认值（集合初始化器用）；同一组件写两次时后者叠在前者上。</summary>
-    public void Add<T>(T defaults) where T : class, IComponentDefaults<T> =>
+    /// <summary>添加一个组件的默认值；同一组件写两次时后者叠在前者上。</summary>
+    internal void Add<T>(T defaults) where T : class, IComponentDefaults<T> =>
         byComponent[typeof(T)] = Get<T>() is { } earlier ? defaults.Over(earlier) : defaults;
 
     /// <summary>某个组件的默认值；没有设置时返回 null。</summary>
@@ -54,6 +49,4 @@ public sealed class ComponentDefaults : IEnumerable
 
     // 内外两层是同一个 IComponentDefaults<T> 类型
     static object Over(object inner, object outer) => ((IComponentDefaults)inner).Over(outer);
-
-    IEnumerator IEnumerable.GetEnumerator() => byComponent.Values.GetEnumerator();
 }

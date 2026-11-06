@@ -29,7 +29,10 @@ public enum SliderPart
 /// <param name="Labelled">有带文字的刻度。</param>
 /// <param name="Tone">已选范围与滑块描边的色调。</param>
 /// <param name="Size">字号档位；null 时继承。</param>
-public readonly record struct SliderAppearance(Orientation Orientation, bool Labelled, Tone Tone, Size? Size);
+public readonly record struct SliderAppearance(Orientation Orientation, bool Labelled, Tone Tone, Size? Size) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Orientation, Tone, Size];
+}
 
 /// <summary>
 /// 滑块的样式（配方，同 vue-tsx-pro 的 sliderStyles）。位置一直在变：外层的 <see cref="Start"/>、<see cref="End"/>

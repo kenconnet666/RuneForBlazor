@@ -50,7 +50,10 @@ public enum FieldLabelAlign
 /// <param name="LabelHidden">视觉上隐藏标签。</param>
 /// <param name="HasLabel">有标签（没有时起始边布局里控件仍放在第二列）。</param>
 /// <param name="Disabled">不可用：标签变淡。</param>
-public readonly record struct FieldAppearance(FieldLabelPlacement Placement, FieldLabelAlign Align, bool LabelHidden, bool HasLabel, bool Disabled);
+public readonly record struct FieldAppearance(FieldLabelPlacement Placement, FieldLabelAlign Align, bool LabelHidden, bool HasLabel, bool Disabled) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Placement, Align];
+}
 
 /// <summary>表单字段的样式（同 vue-tsx-pro 的 fieldStyles 与 labelStyles）。</summary>
 public static class FieldStyles

@@ -1,8 +1,8 @@
 @*
-    在一片区域里修改组件库的配置：主题、亮暗模式、语言、组件默认值、按部件的样式定制，没写的沿用外层。
+    在一片区域里修改组件库的配置：主题、亮暗模式、语言、组件的定制（默认值、按部件与按档位取值的样式），没写的沿用外层。
     放在应用根部（布局里）时套上应用级的主题；嵌套时只改写了的部分。
     <RuneProvider ColorScheme="ColorScheme.Dark"
-                  Defaults="@(new() { new CardDefaults { Variant = CardVariant.Outline } })">
+                  Components="@(new() { new ComponentConfig<CardDefaults, CardPart> { Defaults = new() { Variant = CardVariant.Outline } } })">
         …
     </RuneProvider>
     主题以 CSS 变量作用在包裹元素（display: contents）里面，不影响布局；包裹元素上还写了语言的 lang 与 dir（同 vue-tsx-pro）。
@@ -26,7 +26,7 @@
 @code {
     UIConfig config = default!;
     Memo<(string? Class, string? Label, string Code, string Direction), Attrs> themeAttrs;
-    Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentDefaults? Defaults, ComponentStyles? Styles, bool? Ripple, Lang? Lang, ThemeChoices? Choices), UIConfig> built;
+    Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentConfigs? Components, bool? Ripple, Lang? Lang, ThemeChoices? Choices), UIConfig> built;
 
     /// <summary>主题（亮色）。</summary>
     [Parameter] public Theme? Theme { get; set; }
@@ -44,11 +44,8 @@
     /// </summary>
     [Parameter] public ThemeChoices? Choices { get; set; }
 
-    /// <summary>组件默认值，叠在外层的上面（同一组件按项合并）。</summary>
-    [Parameter] public ComponentDefaults? Defaults { get; set; }
-
-    /// <summary>按部件的样式定制，排在外层的后面。</summary>
-    [Parameter] public ComponentStyles? Styles { get; set; }
+    /// <summary>组件的定制，叠在外层的上面：默认值按项合并、内层优先，样式排在外层之后。</summary>
+    [Parameter] public ComponentConfigs? Components { get; set; }
 
     /// <summary>按钮、菜单项按下时的波纹。</summary>
     [Parameter] public bool? Ripple { get; set; }
@@ -100,15 +97,14 @@
     protected override void OnParametersSet()
     {
         // 输入没变时保留同一个配置对象：下面的组件拿到的级联值不变，不会被迫重新渲染
-        config = built.Get((Config, Theme, DarkTheme, ColorScheme, Defaults, Styles, Ripple, Lang, Choices), static k => k.Outer with
+        config = built.Get((Config, Theme, DarkTheme, ColorScheme, Components, Ripple, Lang, Choices), static k => k.Outer with
         {
             ThemeChoices = k.Choices ?? k.Outer.ThemeChoices,
             Lang = k.Lang ?? k.Outer.Lang,
             Theme = k.Theme ?? k.Outer.Theme,
             DarkTheme = k.Dark ?? k.Outer.DarkTheme,
             ColorScheme = k.Scheme ?? k.Outer.ColorScheme,
-            Defaults = k.Defaults is null ? k.Outer.Defaults : k.Outer.Defaults.Then(k.Defaults),
-            Styles = k.Styles is null ? k.Outer.Styles : k.Outer.Styles.Then(k.Styles),
+            Components = k.Components is null ? k.Outer.Components : k.Outer.Components.Then(k.Components),
             Ripple = k.Ripple ?? k.Outer.Ripple,
         });
     }

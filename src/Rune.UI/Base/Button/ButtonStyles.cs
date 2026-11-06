@@ -88,7 +88,10 @@ public sealed record ButtonDefaults : IComponentDefaults<ButtonDefaults>
 /// <param name="Radius">圆角。</param>
 /// <param name="Shape">形状。</param>
 /// <param name="Attached">在相连的组（ControlGroup、ButtonGroup）里的排列方向：去掉相邻一侧的圆角。</param>
-public readonly record struct ButtonAppearance(ButtonVariant Variant, Tone Tone, Size? Size, Radius Radius, ButtonShape Shape, Orientation? Attached = null);
+public readonly record struct ButtonAppearance(ButtonVariant Variant, Tone Tone, Size? Size, Radius Radius, ButtonShape Shape, Orientation? Attached = null) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Variant, Tone, Size, Radius, Shape, Attached];
+}
 
 /// <summary>按钮家族的样式（配方）。每种样式写成以色调为参数的函数，只写一遍。</summary>
 public static class ButtonStyles

@@ -45,7 +45,10 @@ public enum ChoiceKind
 /// <param name="Size">字号档位（方框、圆、开关随之缩放）；null 时继承上下文字号。</param>
 /// <param name="Tone">选中时的色调。</param>
 /// <param name="ReadOnly">只读：外观照常（看得清选了什么），只是不像能点。</param>
-public readonly record struct ChoiceAppearance(ChoiceKind Kind, Size? Size, Tone Tone, bool ReadOnly = false);
+public readonly record struct ChoiceAppearance(ChoiceKind Kind, Size? Size, Tone Tone, bool ReadOnly = false) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Kind, Size, Tone];
+}
 
 /// <summary>
 /// 勾选类控件的样式（同 vue-tsx-pro 的 choiceRecipe）。选中、半选、不可用、校验未通过都按原生 input 的状态用 CSS 变化（:checked、:indeterminate、

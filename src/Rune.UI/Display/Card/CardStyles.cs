@@ -89,8 +89,10 @@ public sealed record CardDefaults : IComponentDefaults<CardDefaults>
 /// <param name="Radius">圆角。</param>
 /// <param name="HasExtra">有页头结束边的内容：页头排成一行、两端对齐。</param>
 /// <param name="Effect">装饰效果。</param>
-public readonly record struct CardAppearance(CardVariant Variant, SpaceScale Padding, Radius Radius, bool HasExtra = false, CardEffect? Effect = null)
+public readonly record struct CardAppearance(CardVariant Variant, SpaceScale Padding, Radius Radius, bool HasExtra = false, CardEffect? Effect = null) : IAppearance
 {
+    IEnumerable<Enum?> IAppearance.Variants => [Variant, Padding, Radius, Effect];
+
     /// <summary>外观：组件上写的 &gt; 配置的默认值（<see cref="CardDefaults"/>）&gt; 表面色、Lg 内边距、大圆角。</summary>
     public static CardAppearance Resolve(CardVariant? variant, SpaceScale? padding, Radius? radius, bool hasExtra, CardEffect? effect, UIConfig config)
     {

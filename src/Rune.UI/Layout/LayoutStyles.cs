@@ -113,7 +113,10 @@ public readonly record struct FlexAppearance(
     SpaceScale? ColumnGap = null,
     bool Inline = false,
     bool Grow = false,
-    bool List = false);
+    bool List = false) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Direction, Align, Justify, Gap, RowGap, ColumnGap];
+}
 
 /// <summary>Grid 的外观：交给 <see cref="LayoutStyles.Grid"/> 的档位组合。</summary>
 /// <param name="Columns">等宽列数。</param>
@@ -134,7 +137,10 @@ public readonly record struct GridAppearance(
     ItemAlign? Align = null,
     ItemAlign? Justify = null,
     GridFlow? Flow = null,
-    bool List = false);
+    bool List = false) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Gap, RowGap, ColumnGap, Align, Justify, Flow];
+}
 
 /// <summary>容器的最大宽度档位，对应主题 sizes 的容器宽度（rem，跟随浏览器字号）。</summary>
 public enum ContainerSize

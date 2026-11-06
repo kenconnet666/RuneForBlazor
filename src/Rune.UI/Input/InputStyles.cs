@@ -75,8 +75,10 @@ public readonly record struct InputAppearance(
     bool Fixed = false,
     bool Picker = false,
     bool Wrap = false,
-    Orientation? Attached = null)
+    Orientation? Attached = null) : IAppearance
 {
+    IEnumerable<Enum?> IAppearance.Variants => [Variant, Size, Radius, Attached];
+
     /// <summary>外观：组件上写的 &gt; 配置的默认值（<see cref="InputDefaults"/>）&gt; 表面色、中圆角。</summary>
     public static InputAppearance Resolve(InputVariant? variant, Size? size, Radius? radius, bool readOnly, UIConfig config)
     {

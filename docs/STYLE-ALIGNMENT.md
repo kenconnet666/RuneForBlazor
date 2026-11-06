@@ -12,7 +12,7 @@ vue-tsx-pro 在做一轮样式体系的联合改造（架构、整理、API、�
 | -------- | --------- | -------- |
 | 阶段 0 护栏：性能原型、截图基线、计算样式快照 | 有 `tools/parity`（按部件配对、比两边的计算样式）、BenchmarkDotNet 基准（`tests/Rune.Benchmarks`，2026-11-06 新建）；没有自身的前后快照 | parity 加一个只截 Rune 的快照模式：记下全部示例每个元素的计算样式（含 `:hover`、`:focus-visible`），阶段 1–3 前后逐项比对 |
 | 阶段 1 引擎：按合并来源分段输出、`@layer vtp.s{k}` | **已跟进**（见第 3 节）。之前 `Attrs.Merge` 把默认层、配置定制、使用方、受管几层合成一个类 | **照搬规则，换实现位置**：`Attrs.Merge` 按层分段编译，段 k 的规则进 `@layer rune.s{k}`，后段带上它改到的属性族在前面合并后的完整结果（语义与现在逐字一致）；`RuneStyles` 在第一块前写层顺序声明，SSR 的 head 同。属性族（简写与长属性）表由 `tools/css-gen` 从同一份数据生成。Rune 没有绑定、热更新改写、小程序这些模块，改动比 vue 小 |
-| 阶段 2：配置合一 `components: { Button: { defaults, styles, variants } }` | 两处：`UIConfig.Defaults`（每个组件一个 `XxxDefaults` record，类型安全）与 `UIConfig.Styles`（`ComponentStyles`，按部件枚举追加样式）；没有按档位的 variants | **待拍板**：方案见第 3 节“阶段 2” |
+| 阶段 2：配置合一 `components: { Button: { defaults, styles, variants } }` | **已跟进**（见第 3 节）。之前两处：`UIConfig.Defaults`（每个组件一个 `XxxDefaults` record，类型安全）与 `UIConfig.Styles`（`ComponentStyles`，按部件枚举追加样式）；没有按档位的 variants | 合成 `Components` 一个入口、补上按档位取值的定制；旧的 `Defaults` / `Styles` 直接换掉 |
 | 阶段 2：组件侧一个钩子 `useComponent(recipe, props)` | 各组件自己 `XxxStyles.Of(appearance, Config.Styles)` + `Config.Defaults.Get<XxxDefaults>()` | 在 `UIComponent` 上加一个取配方的方法（默认值、档位、部件层一次算好，按实例记忆），组件改用它 |
 | 阶段 2：size、radius、tone 进配方档位 | 多数配方的键已含这些档位（`IconStyles.Of(size, tone, …)`），定制排在组件样式之后；个别组件在配方之外再叠 `ScaleStyles.Radius` | 逐个核对，叠在配方外的移进配方 |
 | 阶段 2：每个内部节点都是部件、`data-scope` 用实际组件名 | 约 90 个组件走 `Recipe.Of`（有 `data-scope` / `data-part`、可定制）；阶段 2 后半新做的组件（Image、Lightbox、Sortable、Stat、Watermark、Splitter……）用的是内部静态 `Attrs`，没有部件标记、定制不到 | 这些组件补成配方（vue 那边同样在补）；`data-scope` 跟着 vue 的改名走（parity 按它配对） |
@@ -42,8 +42,8 @@ vue-tsx-pro 在做一轮样式体系的联合改造（架构、整理、API、�
 - 按钮家族的部件：Rune 的 `ButtonPart` 本来就有 Content、Icon、IconEnd、Spinner，都带 `data-part`、可定制，不用改。
 - `Tone` 不改名：Rune 的 `Tone` 就是 vue 的 `StatusTone`（6 个状态色），文字色调早就叫 `TextTone`；改成 `StatusTone` 只换说法、全库都要改。
 
-待拍板（改公共 API 的形状）：**组件定制合成一个入口**。vue 的动机是两处配置、名字对不上静默失效（Tab / Tabs）、没有按档位的定制；
-C# 里名字对不上编译不过，所以真正新增的是“按档位取值的定制”。方案：
+组件定制合成一个入口（改公共 API 的形状，用户拍板：合成新入口）。vue 的动机是两处配置、名字对不上静默失效（Tab / Tabs）、没有按档位的定制；
+C# 里名字对不上编译不过，所以真正新增的是“按档位取值的定制”：
 
 ```csharp
 builder.Services.AddRuneUI(o => o.Components = new()
@@ -57,11 +57,13 @@ builder.Services.AddRuneUI(o => o.Components = new()
 });
 ```
 
-- 入口里拆回现有的两层机制（同 vue 的 `splitComponents`）：`Defaults` 进 `ComponentDefaults`，`Styles` 进 `ComponentStyles`，`Variants` 进新的“档位取值 → 部件 → 样式”表；
-  合并、分段（定制在自己的一层）都不变。`RuneProvider` 同样加 `Components`。
-- 按档位的定制要先补基础层：`Recipe.Of` 要知道这一组件当前的档位取值。Rune 的档位多是 `ButtonAppearance` 这类记录，通用代码读不出来，
-  做法是档位类型实现一个小接口（交出它的枚举取值），`Part.Of` 按取值把对应的定制排在部件定制之后。只有带档位的组件要改（约 14 个）。
-- 要定的两件事：(1) 合成一个入口，还是保持两处、只补 `Variants`；(2) 合成时旧的 `Defaults` / `Styles` 直接换掉（没发布过，推荐），还是标废弃留一个版本。
+- 入口在添加时拆回现有的两层机制（同 vue 的 `splitComponents`）：`Defaults` 进 `ComponentDefaults`，`Styles` 进 `ComponentStyles`，
+  `Variants` 进 `ComponentStyles` 里新的“档位取值 → 部件 → 样式”表；合并、分段（定制在自己的一段）都不变。`AddRuneUI` 与 `RuneProvider` 都是 `Components`。
+- 基础层先补：`Recipe.Of` 读出组件当时的档位取值。档位记录（`ButtonAppearance` 这类，20 个）实现 `IAppearance` 交出枚举取值，元组、单个枚举的键直接读；
+  只在配置里有按档位的定制时才读，`Part.Of` 把取到的定制排在按部件的定制之后。
+- 与 vue 不同：旧的 `Defaults` / `Styles` 直接换掉、不留旧名（没发布过）；`UIConfig.Defaults` / `Styles` 留作只读的合成结果，给组件与配方取值。
+- 验证：bUnit 测试（按档位的定制只作用于取这个值的按钮，排在按部件的定制之后、同在 `rune.s1`）；Provider 页加“按档位取值定制样式”示例；
+  计算样式快照与改动前比对。
 
 还没跟进：
 

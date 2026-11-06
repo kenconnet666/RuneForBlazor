@@ -43,7 +43,8 @@
     <GuideSection Id="customize" Title="定制组件">
         <Paragraph>
             组件由几个部件组成（按钮的根、图标、内容层……），每个部件的属性分三层合并：部件的默认层、使用方的、组件管理的（名称、状态）。
-            改一处用部件属性（<Code>PropsXxx</Code>），改一片区域或整个应用用 <Code>RuneProvider</Code> 的 <Code>Styles</Code> 与 <Code>Defaults</Code>。
+            改一处用部件属性（<Code>PropsXxx</Code>），改一片区域或整个应用用 <Code>RuneProvider</Code>（或 <Code>AddRuneUI</Code>）的 <Code>Components</Code>：
+            每个组件一项，写默认值（<Code>Defaults</Code>）、按部件追加的样式（<Code>Styles</Code>）、某个档位取值时追加的样式（<Code>Variants</Code>）。
         </Paragraph>
         <CodeBlock Code="@customize" Lang="razor" />
         <Paragraph>
@@ -114,12 +115,22 @@
         @* 一处：部件属性 *@
         <AccordionItem Value="ship" Title="多久发货？" PropsTrigger="@(new() { Sx = AccentWhenExpanded })">…</AccordionItem>
 
-        @* 一片区域：所有卡片描边、页头用强调色 *@
-        <RuneProvider Defaults="@defaults" Styles="@styles">…</RuneProvider>
+        @* 一片区域：所有卡片描边、页头用强调色，描边按钮用虚线 *@
+        <RuneProvider Components="@components">…</RuneProvider>
 
         @code {
-            static readonly ComponentDefaults defaults = new() { new CardDefaults { Variant = CardVariant.Outline } };
-            static readonly ComponentStyles styles = new() { { CardPart.Header, AccentText } };
+            static readonly ComponentConfigs components = new()
+            {
+                new ComponentConfig<CardDefaults, CardPart>
+                {
+                    Defaults = new() { Variant = CardVariant.Outline },
+                    Styles = { [CardPart.Header] = AccentText },
+                },
+                new ComponentConfig<ButtonDefaults, ButtonPart>
+                {
+                    Variants = { [ButtonVariant.Outline] = { [ButtonPart.Root] = Dashed } },
+                },
+            };
         }
         """;
 }

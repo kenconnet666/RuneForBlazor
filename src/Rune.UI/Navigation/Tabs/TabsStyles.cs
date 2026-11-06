@@ -159,7 +159,10 @@ public static class TabsStyles
     /// <param name="Orientation">方向。</param>
     /// <param name="Size">字号档位。</param>
     /// <param name="Closable">标签可以关闭。</param>
-    public readonly record struct TabsAppearance(TabsVariant Variant, Orientation Orientation, Size? Size, bool Closable);
+    public readonly record struct TabsAppearance(TabsVariant Variant, Orientation Orientation, Size? Size, bool Closable) : IAppearance
+    {
+        IEnumerable<Enum?> IAppearance.Variants => [Variant, Orientation, Size];
+    }
 
     /// <summary>某种外观、某套定制下各部件的默认层。</summary>
     public static PartLayers<TabsPart> Of(TabsAppearance a, ComponentStyles styles) =>

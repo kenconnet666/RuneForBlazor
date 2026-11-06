@@ -47,14 +47,14 @@ public sealed partial class CartStore
 
 ```csharp
 // Program.cs（服务端与 WebAssembly 项目各一次，配置要一致）
-builder.Services.AddRuneUI(o => o.Defaults = new() { new CollapsibleDefaults { Variant = CollapsibleVariant.Outline } });
+builder.Services.AddRuneUI(o => o.Components = new() { new ComponentConfig<CardDefaults, CardPart> { Defaults = new() { Variant = CardVariant.Outline } } });
 ```
 
 ```razor
 @* App.razor 的 head：服务端渲染时用到的样式规则（含主题） *@
 <RuneStyles />
 
-@* 布局：套上应用级主题；局部可以再嵌套 RuneProvider 修改主题、默认值、样式定制 *@
+@* 布局：套上应用级主题；局部可以再嵌套 RuneProvider 修改主题、组件的定制（Components） *@
 <RuneProvider>@Body</RuneProvider>
 ```
 

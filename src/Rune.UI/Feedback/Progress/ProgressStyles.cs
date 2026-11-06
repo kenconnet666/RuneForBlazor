@@ -57,7 +57,10 @@ public enum ProgressShape
 /// <param name="Tone">色调。</param>
 /// <param name="Indeterminate">不确定进度（没有值）。</param>
 /// <param name="Radius">轨道的圆角，默认圆形。</param>
-public readonly record struct ProgressAppearance(ProgressShape Shape, Tone Tone, bool Indeterminate, Radius Radius = Radius.Full);
+public readonly record struct ProgressAppearance(ProgressShape Shape, Tone Tone, bool Indeterminate, Radius Radius = Radius.Full) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Shape, Tone, Radius];
+}
 
 /// <summary>进度的默认值（<see cref="ComponentDefaults"/> 里设置）。</summary>
 public sealed record ProgressDefaults : IComponentDefaults<ProgressDefaults>

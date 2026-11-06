@@ -113,8 +113,10 @@ public sealed record TableDefaults : IComponentDefaults<TableDefaults>
 /// <param name="Density">密度。</param>
 /// <param name="Variant">样式。</param>
 /// <param name="Striped">斑马纹。</param>
-public sealed record TableAppearance(TableDensity Density, TableVariant Variant, bool Striped)
+public sealed record TableAppearance(TableDensity Density, TableVariant Variant, bool Striped) : IAppearance
 {
+    IEnumerable<Enum?> IAppearance.Variants => [Density, Variant];
+
     /// <summary>不在 Table 里单独用行与单元格时的外观。</summary>
     public static readonly TableAppearance Standalone = new(TableDensity.Standard, TableVariant.Surface, false);
 }

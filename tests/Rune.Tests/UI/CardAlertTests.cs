@@ -57,7 +57,7 @@ public class CardAlertTests : BunitContext
     [Fact]
     public void 卡片的默认值可以配置()
     {
-        Services.AddRuneUI(o => o.Defaults = new() { new CardDefaults { Variant = CardVariant.Elevated } });
+        Services.AddRuneUI(o => o.Components = new() { new ComponentConfig<CardDefaults, CardPart> { Defaults = new() { Variant = CardVariant.Elevated } } });
 
         var cut = Render<Card>(p => p.AddChildContent("正文"));
 

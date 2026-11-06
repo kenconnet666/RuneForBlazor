@@ -9,7 +9,9 @@ public class RuneProviderTests : BunitContext
 {
     static Style Bold => Css.Define(static () => new Style { FontWeight = 700 });
 
-    static readonly ComponentDefaults outline = new() { new CardDefaults { Variant = CardVariant.Outline } };
+    static Style Dashed => Css.Define(static () => new Style { BorderStyle = BorderStyle.Dashed });
+
+    static readonly ComponentConfigs outline = new() { new ComponentConfig<CardDefaults, CardPart> { Defaults = new() { Variant = CardVariant.Outline } } };
 
     public RuneProviderTests() => Services.AddRuneUI();
 
@@ -30,7 +32,7 @@ public class RuneProviderTests : BunitContext
     public void 默认值作用于没写参数的组件_组件上写的优先()
     {
         var cut = Render<RuneProvider>(p => p
-            .Add(x => x.Defaults, outline)
+            .Add(x => x.Components, outline)
             .AddChildContent<Card>(c => c.AddChildContent("取默认值"))
             .AddChildContent<Card>(c => c.AddChildContent("显式 Elevated").Add(x => x.Variant, CardVariant.Elevated)));
 
@@ -42,20 +44,20 @@ public class RuneProviderTests : BunitContext
     [Fact]
     public void 嵌套的Provider按项叠加_内层优先()
     {
-        var outer = new ComponentDefaults { new CardDefaults { Variant = CardVariant.Outline } };
-        var inner = new ComponentDefaults { new CardDefaults() };
+        var outer = new ComponentConfigs { new ComponentConfig<CardDefaults, CardPart> { Defaults = new() { Variant = CardVariant.Outline } } };
+        var inner = new ComponentConfigs { new ComponentConfig<CardDefaults, CardPart> { Defaults = new() { Radius = Radius.Sm } } };
 
-        var merged = outer.Then(inner).Get<CardDefaults>();
+        var merged = new UIConfig(Themes.Light, null, ColorScheme.Light, outer.Then(inner)).Defaults.Get<CardDefaults>();
 
-        Assert.Equal(CardVariant.Outline, merged?.Variant);
+        Assert.Equal((CardVariant.Outline, Radius.Sm), (merged?.Variant, merged?.Radius));
     }
 
     [Fact]
     public void 按部件定制的样式排在组件样式之后()
     {
-        var styles = new ComponentStyles { { CardPart.Header, Bold } };
+        var components = new ComponentConfigs { new ComponentConfig<CardPart> { Styles = { [CardPart.Header] = Bold } } };
         var cut = Render<RuneProvider>(p => p
-            .Add(x => x.Styles, styles)
+            .Add(x => x.Components, components)
             .AddChildContent<Card>(c => c.Add(x => x.Header, b => b.AddContent(0, "标题"))));
 
         // 组件自己的一段、定制的一段：定制在后面的层，盖过组件的
@@ -65,13 +67,41 @@ public class RuneProviderTests : BunitContext
     }
 
     [Fact]
+    public void 按档位取值的定制只作用于取这个值的组件_排在按部件的定制之后()
+    {
+        var components = new ComponentConfigs
+        {
+            new ComponentConfig<ButtonDefaults, ButtonPart>
+            {
+                Styles = { [ButtonPart.Root] = Bold },
+                Variants = { [ButtonVariant.Outline] = { [ButtonPart.Root] = Dashed } },
+            },
+        };
+        var cut = Render<RuneProvider>(p => p
+            .Add(x => x.Components, components)
+            .AddChildContent<Button>(b => b.Add(x => x.Variant, ButtonVariant.Outline).AddChildContent("描边"))
+            .AddChildContent<Button>(b => b.Add(x => x.Variant, ButtonVariant.Soft).AddChildContent("浅色")));
+
+        var buttons = cut.FindAll("button");
+        string CustomizedRule(int index) => Assert.Single(Registry.Rules, rule => rule.StartsWith("@layer rune.s1{") && rule.Contains($".{buttons[index].ClassList.Last()}{{"));
+        Assert.Contains("border-style:dashed", CustomizedRule(0));
+        Assert.Contains("font-weight:700", CustomizedRule(0));
+        Assert.DoesNotContain("dashed", CustomizedRule(1));
+        Assert.Contains("font-weight:700", CustomizedRule(1));
+    }
+
+    [Fact]
+    public void 共用的空配置不能往里添加() =>
+        Assert.Throws<InvalidOperationException>(() => ComponentConfigs.Empty.Add(new ComponentConfig<CardPart>()));
+
+    [Fact]
     public void 参数没变时Provider给出同一个配置()
     {
         // 探针用没有内容片段参数的组件：只看配置对象本身有没有换
-        var cut = Render<RuneProvider>(p => p.Add(x => x.Defaults, outline).AddChildContent<Icon>(i => i.Add(x => x.Data, BuiltInIcons.Check)));
+        var cut = Render<RuneProvider>(p => p.Add(x => x.Components, outline).AddChildContent<Icon>(i => i.Add(x => x.Data, BuiltInIcons.Check)));
         var child = cut.FindComponent<Icon>();
 
-        cut.Render(p => p.Add(x => x.Defaults, outline));
+        cut.Render(p => p.Add(x => x.Components, outline));
 
         // 配置没变：子组件的参数（级联的配置）没变，跳过渲染
         Assert.Equal(1, child.RenderCount);

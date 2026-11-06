@@ -78,8 +78,10 @@ public sealed record AlertDefaults : IComponentDefaults<AlertDefaults>
 /// <param name="Tone">色调。</param>
 /// <param name="Size">字号档位；null 时继承上下文。</param>
 /// <param name="Radius">圆角。</param>
-public readonly record struct AlertAppearance(AlertVariant Variant, Tone Tone, Size? Size, Radius Radius)
+public readonly record struct AlertAppearance(AlertVariant Variant, Tone Tone, Size? Size, Radius Radius) : IAppearance
 {
+    IEnumerable<Enum?> IAppearance.Variants => [Variant, Tone, Size, Radius];
+
     /// <summary>外观：组件上写的 &gt; 配置的默认值（<see cref="AlertDefaults"/>）&gt; 浅色底、提示色、中圆角。</summary>
     public static AlertAppearance Resolve(AlertVariant? variant, Tone? tone, Size? size, Radius? radius, UIConfig config)
     {

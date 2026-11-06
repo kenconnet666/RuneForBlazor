@@ -46,7 +46,10 @@ public enum IndicatorOverlap
 /// <param name="Placement">位置。</param>
 /// <param name="Overlap">被标记元素的形状。</param>
 /// <param name="Tone">色调。</param>
-public readonly record struct IndicatorAppearance(bool Dot, IndicatorPlacement Placement, IndicatorOverlap Overlap, Tone Tone);
+public readonly record struct IndicatorAppearance(bool Dot, IndicatorPlacement Placement, IndicatorOverlap Overlap, Tone Tone) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Placement, Overlap, Tone];
+}
 
 /// <summary>角标的默认值（<see cref="ComponentDefaults"/> 里设置）。</summary>
 public sealed record IndicatorDefaults : IComponentDefaults<IndicatorDefaults>

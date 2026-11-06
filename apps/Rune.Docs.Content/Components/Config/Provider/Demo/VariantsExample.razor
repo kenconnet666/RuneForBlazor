@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+<p>这片区域只给描边按钮（ButtonVariant.Outline）追加虚线边框，别的外观不受影响：组件当时取这个档位值才追加。</p>
+<RuneProvider Components="@dashedOutline">
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <Button Variant="ButtonVariant.Outline" data-testid="outline-button">描边按钮</Button>
+        <Button Variant="ButtonVariant.Soft" data-testid="soft-button">浅色按钮</Button>
+    </Flex>
+</RuneProvider>
+
+@code {
+    readonly ComponentConfigs dashedOutline = new()
+    {
+        new ComponentConfig<ButtonDefaults, ButtonPart>
+        {
+            Variants = { [ButtonVariant.Outline] = { [ButtonPart.Root] = Dashed } },
+        },
+    };
+
+    static Style Dashed => Css.Define(static () => new Style { BorderStyle = BorderStyle.Dashed });
+}

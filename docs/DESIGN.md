@@ -135,8 +135,14 @@
   vue-tsx-pro 的 toLocaleString 翻译成 `LangFormat.Number`：取不到文化数据时（WebAssembly 按需加载）用不变文化，不抛异常。
   数字、金额的格式（`NumberFormat`，同 vue 的 NumericFormat）按语言包的语言、用 decimal 算；WebAssembly 默认只按浏览器语言加载一片 ICU 数据，
   语言包的语言与浏览器不同时（英文浏览器看中文界面）取不到那个文化，所以 WebAssembly 应用要写 `BlazorWebAssemblyLoadAllGlobalizationData`（文档站、测试台都写了）。
-- **默认值**：每个组件一个 record（`CollapsibleDefaults`），属性可空，`Over` 定义叠加规则；组件上写的参数 > 最近的 Provider > 应用级 > 组件自己的默认值。
-- **按部件定制样式**：用组件的部件枚举（`CollapsiblePart.Trigger`）指定，写错编译不过；追加在组件样式之后、使用方的 Sx 之前，`Part.Of` 统一处理，组件不用为此写代码。
+- **组件的定制一个入口**（`AddRuneUI` 与 `RuneProvider` 的 `Components`，同 vue-tsx-pro 的 `components: { Button: { defaults, styles, variants } }`）：
+  每个组件一项 `ComponentConfig<TDefaults, TPart>`（没有默认值的组件用 `ComponentConfig<TPart>`），写默认值、按部件追加的样式、某个档位取值时追加的样式；
+  组件、部件、档位都是类型，写错编译不过。添加时拆进两张表（同 vue 的 splitComponents）：`ComponentDefaults` 给组件取默认值，`ComponentStyles` 给配方取样式；
+  Provider 嵌套时内层叠在外层上面（默认值按项合并、内层优先，样式排在外层之后）。
+- **默认值**：每个组件一个 record（`CardDefaults`），属性可空，`Over` 定义叠加规则；组件上写的参数 > 最近的 Provider > 应用级 > 组件自己的默认值。
+- **按部件、按档位定制样式**：部件用组件的部件枚举（`CardPart.Header`），档位用档位的枚举值（`ButtonVariant.Outline`）。配方的键是档位记录时，
+  记录实现 `IAppearance` 交出它的枚举取值，元组、单个枚举的键直接读；有按档位的定制时才去读。追加在组件样式之后、使用方的 Sx 之前，按部件的在前、
+  按档位的在后，同在定制那一段（`rune.s1`）；`Part.Of` 统一处理，组件不用为此写代码。
 - **不让下面的组件白白重新渲染**：Provider 的参数没变时给出同一个配置对象；配置是 record，级联参数与普通参数一样比较，没变就跳过。
 - **共用的交互样式**：`SharedStyles.InteractionColors`（悬停、按下时颜色与阴影的过渡）、焦点环、视觉隐藏、色调文字色、波纹宿主；浮层进出场是 `OverlayTransitions`。
 

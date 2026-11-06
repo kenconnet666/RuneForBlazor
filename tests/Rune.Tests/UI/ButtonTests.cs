@@ -141,7 +141,7 @@ public class ButtonTests : BunitContext
     public void 配置的默认值作用于没写参数的按钮()
     {
         var cut = Render<RuneProvider>(p => p
-            .Add(x => x.Defaults, new ComponentDefaults { new ButtonDefaults { Variant = ButtonVariant.Outline, Tone = Tone.Neutral } })
+            .Add(x => x.Components, new ComponentConfigs { new ComponentConfig<ButtonDefaults, ButtonPart> { Defaults = new() { Variant = ButtonVariant.Outline, Tone = Tone.Neutral } } })
             .AddChildContent<Button>(b => b.AddChildContent("取消")));
 
         var className = cut.Find("button").ClassName;

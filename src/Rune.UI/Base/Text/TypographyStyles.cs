@@ -125,7 +125,10 @@ public readonly record struct TypographyAppearance(
     bool Truncate = false,
     int? LineClamp = null,
     bool Numeric = false,
-    bool Mono = false);
+    bool Mono = false) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Kind, Size, Weight, Tone, Align, Wrap];
+}
 
 /// <summary>文字类组件（TextSpan、Paragraph、Strong、Em、Small、H1–H6、Kbd、VisuallyHidden）的样式（配方）：每个选项一段样式，按外观组合缓存。</summary>
 public static class TypographyStyles

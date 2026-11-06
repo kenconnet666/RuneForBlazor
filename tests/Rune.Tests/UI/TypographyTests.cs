@@ -103,7 +103,7 @@ public class TypographyTests : BunitContext
     [Fact]
     public void 站内链接没有新窗口属性_下划线按默认值配置()
     {
-        Services.AddRuneUI(o => o.Defaults = new() { new LinkDefaults { Underline = LinkUnderline.Hover } });
+        Services.AddRuneUI(o => o.Components = new() { new ComponentConfig<LinkDefaults, LinkPart> { Defaults = new() { Underline = LinkUnderline.Hover } } });
 
         var cut = Render<TextLink>(p => p.Add(x => x.Href, "/orders").AddChildContent("查看订单"));
 

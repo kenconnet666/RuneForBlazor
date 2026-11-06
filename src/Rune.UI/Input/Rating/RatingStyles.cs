@@ -19,7 +19,10 @@ public enum RatingPart
 /// <param name="Tone">选中的颜色。</param>
 /// <param name="Size">字号档位；null 时继承。</param>
 /// <param name="ReadOnly">只读（不可点，悬停不放大）。</param>
-public readonly record struct RatingAppearance(Tone Tone, Size? Size, bool ReadOnly);
+public readonly record struct RatingAppearance(Tone Tone, Size? Size, bool ReadOnly) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Tone, Size];
+}
 
 /// <summary>
 /// 评分的样式（配方，同 vue-tsx-pro 的 ratingStyles）。每颗星是空心图标打底，填色的一层按 <see cref="Fill"/> 裁出：

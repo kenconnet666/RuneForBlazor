@@ -62,8 +62,10 @@ public sealed record BadgeDefaults : IComponentDefaults<BadgeDefaults>
 /// <param name="Size">字号档位；null 时比上下文字号小一号（0.85em）。</param>
 /// <param name="Radius">圆角。</param>
 /// <param name="Kind">Badge 还是 Tag（可移除的标签结束边内边距变小、离场时淡出缩小）。</param>
-public readonly record struct BadgeAppearance(StatusVariant Variant, Tone Tone, Size Size, Radius Radius, BadgeKind Kind = BadgeKind.Badge)
+public readonly record struct BadgeAppearance(StatusVariant Variant, Tone Tone, Size Size, Radius Radius, BadgeKind Kind = BadgeKind.Badge) : IAppearance
 {
+    IEnumerable<Enum?> IAppearance.Variants => [Variant, Tone, Size, Radius, Kind];
+
     /// <summary>外观：组件上写的 &gt; 配置的默认值（<see cref="BadgeDefaults"/>）&gt; 浅色底、中性、胶囊形。</summary>
     public static BadgeAppearance Resolve(StatusVariant? variant, Tone? tone, Size? size, Radius? radius, UIConfig config, BadgeKind kind = BadgeKind.Badge)
     {

@@ -52,7 +52,10 @@ public sealed record ItemListLook(bool Divided = false, bool Hoverable = false, 
 /// <param name="Look">列表给的外观。</param>
 /// <param name="HasStart">有起始边。</param>
 /// <param name="AlignStart">起始边、结束边贴着第一行。</param>
-public readonly record struct ItemListAppearance(ItemListLook Look, bool HasStart, bool AlignStart);
+public readonly record struct ItemListAppearance(ItemListLook Look, bool HasStart, bool AlignStart) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Look.Density, Look.Inset];
+}
 
 /// <summary>条目列表的样式（配方，同 vue-tsx-pro 的 itemListStyles）。</summary>
 public static class ItemListStyles

@@ -4,17 +4,22 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库的配置：主题、组件默认值、按部件的样式定制。应用级的来自 <see cref="RuneUIServiceCollectionExtensions.AddRuneUI"/>，
+/// 组件库的配置：主题、组件的定制（默认值、按部件与按档位取值的样式）。应用级的来自 <see cref="RuneUIServiceCollectionExtensions.AddRuneUI"/>，
 /// <see cref="RuneProvider"/> 在其中一片区域里叠加修改。组件经 <see cref="UIComponent.Config"/> 读取。
 /// </summary>
 /// <param name="Theme">主题（亮色）。</param>
 /// <param name="DarkTheme">暗色主题；为 null 时始终用 <paramref name="Theme"/>。</param>
 /// <param name="ColorScheme">亮暗模式。</param>
-/// <param name="Defaults">组件默认值。</param>
-/// <param name="Styles">按部件的样式定制。</param>
+/// <param name="Components">组件的定制（<see cref="ComponentConfigs"/>）。</param>
 /// <param name="Ripple">可点击的组件（按钮、菜单项）按下时的波纹，默认开启；组件的 Ripple 参数可以单独覆盖。</param>
-public sealed record UIConfig(Theme Theme, Theme? DarkTheme, ColorScheme ColorScheme, ComponentDefaults Defaults, ComponentStyles Styles, bool Ripple = true)
+public sealed record UIConfig(Theme Theme, Theme? DarkTheme, ColorScheme ColorScheme, ComponentConfigs Components, bool Ripple = true)
 {
+    /// <summary>组件默认值（由 <see cref="Components"/> 合成）：组件上没写的参数取这里的值。</summary>
+    public ComponentDefaults Defaults => Components.Defaults;
+
+    /// <summary>样式定制（由 <see cref="Components"/> 合成）：配方据此在组件的样式之后追加。</summary>
+    public ComponentStyles Styles => Components.Styles;
+
     /// <summary>语言：组件里的文案（关闭、清空、共 N 条）与地区信息，默认简体中文。</summary>
     public Lang Lang { get; init; } = Lang.ZhCn;
 
@@ -43,11 +48,8 @@ public sealed class RuneUIOptions
     /// <summary>亮暗模式，默认跟随系统。</summary>
     public ColorScheme ColorScheme { get; set; } = ColorScheme.System;
 
-    /// <summary>组件默认值。</summary>
-    public ComponentDefaults Defaults { get; set; } = ComponentDefaults.Empty;
-
-    /// <summary>按部件的样式定制。</summary>
-    public ComponentStyles Styles { get; set; } = ComponentStyles.Empty;
+    /// <summary>组件的定制：默认值、按部件与按档位取值的样式，每个组件一项（见 <see cref="ComponentConfigs"/>）。</summary>
+    public ComponentConfigs Components { get; set; } = ComponentConfigs.Empty;
 
     /// <summary>可点击的组件按下时的波纹，默认开启。</summary>
     public bool Ripple { get; set; } = true;
@@ -78,7 +80,7 @@ public static class RuneUIServiceCollectionExtensions
     /// <summary>
     /// 注册组件库（含 Rune 运行时）与应用级配置。服务端项目与 WebAssembly 项目各调用一次，配置要一致：
     /// <code>
-    /// builder.Services.AddRuneUI(o => o.Defaults = new() { new CardDefaults { Variant = CardVariant.Outline } });
+    /// builder.Services.AddRuneUI(o => o.Components = new() { new ComponentConfig&lt;CardDefaults, CardPart&gt; { Defaults = new() { Variant = CardVariant.Outline } } });
     /// </code>
     /// </summary>
     public static IServiceCollection AddRuneUI(this IServiceCollection services, Action<RuneUIOptions>? configure = null)
@@ -86,7 +88,7 @@ public static class RuneUIServiceCollectionExtensions
         var options = new RuneUIOptions();
         configure?.Invoke(options);
         services.AddRune();
-        var config = new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher, ThemeChoices = options.ThemeChoices };
+        var config = new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Components, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher, ThemeChoices = options.ThemeChoices };
         if (options.Languages is { Count: > 0 } languages)
         {
             // 文化随请求变：每个作用域（请求、电路）第一次用到时按当时的界面文化选一次，同一作用域里一直是同一个对象

@@ -24,9 +24,10 @@ public static class Part
     /// <param name="part">部件。</param>
     /// <param name="sx">组件自己的样式。</param>
     /// <param name="styles">配置里的按部件定制，排在组件样式之后。</param>
-    public static Attrs Of<TPart>(string scope, TPart part, Sx sx, ComponentStyles styles) where TPart : struct, Enum
+    /// <param name="variants">组件当时的档位取值：配置里这些取值的定制排在按部件的定制之后。</param>
+    public static Attrs Of<TPart>(string scope, TPart part, Sx sx, ComponentStyles styles, IReadOnlyCollection<Enum>? variants = null) where TPart : struct, Enum
     {
-        var customized = styles.Of(part);
+        var customized = variants is null ? styles.Of(part) : styles.Of(part, variants);
         return new Attrs
         {
             // 配置的定制单独一段（一个类、一层）：组件的档位与定制相加而不是相乘

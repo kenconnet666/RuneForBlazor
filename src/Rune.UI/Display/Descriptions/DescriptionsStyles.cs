@@ -48,8 +48,10 @@ public enum DescriptionsLayout
 /// <param name="MinItemWidth">自适应栏数时每栏的最小宽度；null 时用固定栏数。</param>
 /// <param name="MaxColumns">自适应栏数时最多几栏。</param>
 public readonly record struct DescriptionsAppearance(
-    DescriptionsLayout Layout, bool Bordered, Size? Size, int Columns, CssLength? MinItemWidth, int MaxColumns)
+    DescriptionsLayout Layout, bool Bordered, Size? Size, int Columns, CssLength? MinItemWidth, int MaxColumns) : IAppearance
 {
+    IEnumerable<Enum?> IAppearance.Variants => [Layout, Size];
+
     /// <summary>跨几栏的样式：固定栏数时按栏数封顶、容器窄于 32em 时不跨；自适应时按算出的栏数封顶（同 vue-tsx-pro）。</summary>
     public Sx? SpanOf(int span) =>
         Layout == DescriptionsLayout.Inline || span <= 1 ? null

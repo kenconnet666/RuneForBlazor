@@ -234,7 +234,7 @@ public class SelectTests : BunitContext
         Assert.True(match("任何文字", ""));
         Assert.False(match("北京", "上"));
 
-        var config = new UIConfig(Themes.Light, null, ColorScheme.System, ComponentDefaults.Empty, ComponentStyles.Empty)
+        var config = new UIConfig(Themes.Light, null, ColorScheme.System, ComponentConfigs.Empty)
         {
             TextMatcher = (text, query) => text == "北京" && query == "bj",
         };

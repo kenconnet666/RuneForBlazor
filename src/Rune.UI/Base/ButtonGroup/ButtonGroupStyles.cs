@@ -14,7 +14,10 @@ public enum ButtonGroupPart
 /// <param name="Tone">色调。</param>
 /// <param name="Size">字号档位。</param>
 /// <param name="Radius">圆角。</param>
-public sealed record ButtonGroupAppearance(ButtonVariant? Variant, Tone? Tone, Size? Size, Radius? Radius);
+public sealed record ButtonGroupAppearance(ButtonVariant? Variant, Tone? Tone, Size? Size, Radius? Radius) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Variant, Tone, Size, Radius];
+}
 
 /// <summary>按钮组的样式（同 vue-tsx-pro 的 buttonGroupStyles）。</summary>
 public static class ButtonGroupStyles

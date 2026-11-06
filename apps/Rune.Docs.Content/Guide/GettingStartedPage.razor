@@ -80,7 +80,10 @@
         {
             o.ThemeChoices = ThemeChoices.Builtin;   // 用户可以切换的主题（不切换时不写）
             o.Lang = Lang.ZhCn;                       // 组件里的文案与地区信息
-            o.Defaults = new() { new ButtonDefaults { Size = Size.Sm } };
+            o.Components = new()                      // 组件的定制：默认值、按部件与按档位取值的样式
+            {
+                new ComponentConfig<ButtonDefaults, ButtonPart> { Defaults = new() { Size = Size.Sm } },
+            };
         });
         """;
 
@@ -92,8 +95,7 @@
         ["`ColorScheme`", "`ColorScheme.System`", "亮暗：跟随系统、只用亮色、只用暗色"],
         ["`ThemeChoices`", "无", "用户可以切换的几套主题（ThemeSwitcher 列出它们）"],
         ["`Lang`", "`Lang.ZhCn`", "语言包：组件里的文案、日期与数字的格式"],
-        ["`Defaults`", "空", "组件的默认值（所有按钮小一号、所有卡片描边）"],
-        ["`Styles`", "空", "按部件追加的样式（所有对话框的标题用强调色）"],
+        ["`Components`", "空", "组件的定制，每个组件一项：默认值（所有按钮小一号）、按部件追加的样式（所有对话框的标题用强调色）、按档位取值追加的样式（描边按钮用虚线）"],
         ["`Ripple`", "`true`", "按钮、菜单项按下时的波纹"],
     ];
 

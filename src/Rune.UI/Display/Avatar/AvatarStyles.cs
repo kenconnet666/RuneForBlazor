@@ -22,7 +22,10 @@ public enum AvatarPart
 /// <param name="Variant">后备内容的底色样式（Soft 或 Solid）。</param>
 /// <param name="Tone">后备内容的色调。</param>
 /// <param name="Grouped">在头像组里：往前叠，加一圈页面底色的描边。</param>
-public readonly record struct AvatarAppearance(Size? Size, Radius Radius, StatusVariant Variant, Tone Tone, bool Grouped);
+public readonly record struct AvatarAppearance(Size? Size, Radius Radius, StatusVariant Variant, Tone Tone, bool Grouped) : IAppearance
+{
+    IEnumerable<Enum?> IAppearance.Variants => [Size, Radius, Variant, Tone];
+}
 
 /// <summary>头像的默认值（<see cref="ComponentDefaults"/> 里设置）。</summary>
 public sealed record AvatarDefaults : IComponentDefaults<AvatarDefaults>
