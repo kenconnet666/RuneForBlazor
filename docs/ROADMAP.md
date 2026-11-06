@@ -138,7 +138,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 
 - [ ] Tour
 - [x] Breadcrumbs、Steps（同一页，同 vue；底座补了 FlexOrderedList）
-- [ ] Form 的分步示例换用 Steps
+- [x] Form 的分步示例换用 Steps
 - [ ] NavMenu、NavBar（横向导航，放不下收进“更多”；AppShell 混合布局示例换用）
 
 ## 阶段 3：表格

@@ -5,7 +5,7 @@
 
 <Card>
     <Form EditContext="context" OnValidSubmit="SubmitAsync" ErrorSummary="false">
-        <Small Tone="TextTone.Muted">第 @(step + 1) 步，共 @steps.Length 步：@steps[step].Title</Small>
+        <Steps Current="step" Items="StepItems" />
         @if (step == 0)
         {
             <Field Label="企业名称">
@@ -65,6 +65,8 @@
         ("企业信息", [nameof(Application.Company), nameof(Application.Contact), nameof(Application.Phone)]),
         ("账号与预算", [nameof(Application.Password), nameof(Application.Confirm), nameof(Application.BudgetMin), nameof(Application.BudgetMax)]),
     ];
+
+    static readonly StepItem[] StepItems = [.. steps.Select(step => new StepItem(step.Title))];
 
     // 改了左边的字段，右边的跟着重新校验（填过的才校验，没填过的不打扰）
     static readonly Dictionary<string, string> dependents = new()
