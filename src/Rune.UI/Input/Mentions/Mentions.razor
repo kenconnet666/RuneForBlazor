@@ -13,7 +13,9 @@
 @typeparam TItem
 @inherits UIComponent
 
-<Textarea Value="@Value" ValueChanged="SetTextAsync" @attributes="Attrs.MergeProps(null, Rest, TextareaManaged)" />
+<Textarea Value="@Value" ValueChanged="SetTextAsync" ValueExpression="ValueExpression" Rows="Rows" MaxRows="MaxRows" Fixed="Fixed" ShowCount="ShowCount"
+          Variant="Variant" Size="Size" Radius="Radius" Disabled="Disabled" ReadOnly="ReadOnly" Required="Required" Invalid="Invalid"
+          @attributes="Attrs.MergeProps(null, Rest, TextareaManaged)" />
 <ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@TextareaId" ListId="@ListId" OnToggle="Toggled" Size="Size" Label="@Config.Lang.MentionsList"
              Query="@query" Results="@(open ? OptionSource<TItem>.Results(Config.Lang, query.Length > 0 ? query : Prefix, Shown.Count) : null)"
              Entries="Shown" Loading="@(Loading || options.Loading)" OnPick="Pick" ChildContent="ChildContent" Empty="Empty"
@@ -35,6 +37,39 @@
 
     /// <summary>文字变了。</summary>
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    /// <summary>值的来源（<c>@bind-Value</c> 自动给出）：表单校验按它找到字段。</summary>
+    [Parameter] public System.Linq.Expressions.Expression<Func<string?>>? ValueExpression { get; set; }
+
+    /// <summary>至少显示几行，默认 3（同 Textarea）。</summary>
+    [Parameter] public int Rows { get; set; } = 3;
+
+    /// <summary>最多增高到几行，之后在里面滚动（同 Textarea）。</summary>
+    [Parameter] public int? MaxRows { get; set; }
+
+    /// <summary>不自动增高（同 Textarea）。</summary>
+    [Parameter] public bool Fixed { get; set; }
+
+    /// <summary>显示字数计数，上限取 maxlength（同 Textarea）。</summary>
+    [Parameter] public bool ShowCount { get; set; }
+
+    /// <summary>外壳的样式（同 Textarea）。</summary>
+    [Parameter] public InputVariant? Variant { get; set; }
+
+    /// <summary>圆角（同 Textarea）。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    /// <summary>不可用；不写时跟着 Field。</summary>
+    [Parameter] public bool? Disabled { get; set; }
+
+    /// <summary>只读；不写时跟着 Field。</summary>
+    [Parameter] public bool? ReadOnly { get; set; }
+
+    /// <summary>必填；不写时跟着 Field。</summary>
+    [Parameter] public bool? Required { get; set; }
+
+    /// <summary>校验未通过；不写时跟着 Field 与表单校验。</summary>
+    [Parameter] public bool? Invalid { get; set; }
 
     /// <summary>文字里提到的选项的值（<c>@bind-Mentioned</c>），随文字更新。</summary>
     [Parameter] public IReadOnlyList<string>? Mentioned { get; set; }
@@ -100,10 +135,11 @@
     Attrs TextareaManaged => new()
     {
         Id = TextareaId,
-        ["Size"] = Size,
         ["aria-autocomplete"] = "list",
         ["aria-controls"] = ListId,
         ["data-rune-mentions"] = Prefix,
+        // 列表的键盘宿主：高亮经 aria-activedescendant 写在它上面（键盘在 mentions.js 里）
+        ["data-rune-list"] = "text",
         ["data-rune-popover"] = PopoverId,
         ["onrunecommand"] = EventCallback.Factory.Create<CommandEventArgs>(this, CommandAsync),
     };

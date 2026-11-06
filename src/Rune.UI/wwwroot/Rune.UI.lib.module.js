@@ -459,7 +459,8 @@ function onKeyDown(event) {
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
   if (menu) moveInMenu(menu, event);
   else openMenuFromTrigger(event);
-  if (event.target instanceof Element && event.target.matches('[data-rune-list]')) moveInList(event.target, event);
+  // 提及的文本框也是列表宿主（高亮跟着它），但键盘只在列表打开时由 mentions.js 处理
+  if (event.target instanceof Element && event.target.matches('[data-rune-list]:not([data-rune-mentions])')) moveInList(event.target, event);
   moveRoving(event);
   keySlider(event);
   keyResizeHandle(event);

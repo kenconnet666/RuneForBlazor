@@ -63,9 +63,10 @@ public sealed class DemoServer : IAsyncLifetime
         var context = await Browser.NewContextAsync(new() { BaseURL = BaseUrl, ViewportSize = new() { Width = 1280, Height = 900 } });
         await context.GrantPermissionsAsync(["clipboard-read", "clipboard-write"]);
         var page = await context.NewPageAsync();
-        await page.GotoAsync($"/{mode}/{demo}");
+        // 各测试类并行、共用一个演示进程：CI 的机器忙时一页偶尔要三十多秒才加载完。等到 DOM 就绪即可（后面还等初始化器），时限放宽到 60 秒
+        await page.GotoAsync($"/{mode}/{demo}", new() { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 60_000 });
         // JS 初始化器装好之前，浮层、复制这类客户端行为还没人处理
-        await page.WaitForSelectorAsync("html[data-rune-ready]", new() { State = WaitForSelectorState.Attached });
+        await page.WaitForSelectorAsync("html[data-rune-ready]", new() { State = WaitForSelectorState.Attached, Timeout = 60_000 });
         if (mode != "static")
             await page.WaitForSelectorAsync("[data-demo-interactive=true]", new() { Timeout = 60_000 });
         return page;
