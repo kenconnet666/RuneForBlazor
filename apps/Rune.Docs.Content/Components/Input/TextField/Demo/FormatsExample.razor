@@ -1,4 +1,4 @@
-@* 输入时自动分组：手机号、身份证号、银行卡号；值是去掉空格的原文，校验写在模型上 *@
+@* 输入时自动分组：手机号、身份证号、银行卡号；值是去掉空格的原文，校验写在模型上（标了 [Required] 的字段，Field 自动标必填） *@
 @inherits RuneComponent
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
@@ -26,13 +26,13 @@
 
     sealed class Contact
     {
-        [ChinaPhone(ErrorMessage = "请填写 11 位手机号")]
+        [Required(ErrorMessage = "请填写 11 位手机号"), ChinaPhone(ErrorMessage = "请填写 11 位手机号")]
         public string? Phone { get; set; } = "138000011";
 
-        [IdCard(ErrorMessage = "身份证号不对（出生日期或最后一位校验码）")]
+        [Required(ErrorMessage = "请填写身份证号"), IdCard(ErrorMessage = "身份证号不对（出生日期或最后一位校验码）")]
         public string? IdCard { get; set; } = "11010519491231002X";
 
-        [MinLength(16, ErrorMessage = "银行卡号至少 16 位")]
+        [Required(ErrorMessage = "请填写银行卡号"), MinLength(16, ErrorMessage = "银行卡号至少 16 位")]
         public string? BankCard { get; set; }
     }
 }

@@ -76,6 +76,23 @@ public class FormTests : BunitContext
     }
 
     [Fact]
+    public void 字段不写Required时看绑定字段的Required标注_写了以它为准()
+    {
+        var model = new Model();
+        var marked = Render<Field>(p => p.Add(x => x.Label, "邮箱").AddChildContent<TextField>(text => text.Add(x => x.ValueExpression, () => model.Email)));
+        Assert.NotNull(marked.Find("label [data-part=requiredMark]"));
+        Assert.Equal("true", marked.Find("input").GetAttribute("aria-required"));
+
+        var plain = Render<Field>(p => p.Add(x => x.Label, "手机号").AddChildContent<TextField>(text => text.Add(x => x.ValueExpression, () => model.Phone)));
+        Assert.Empty(plain.FindAll("[data-part=requiredMark]"));
+        Assert.Null(plain.Find("input").GetAttribute("aria-required"));
+
+        var overridden = Render<Field>(p => p.Add(x => x.Label, "邮箱").Add(x => x.Required, false)
+            .AddChildContent<TextField>(text => text.Add(x => x.ValueExpression, () => model.Email)));
+        Assert.Empty(overridden.FindAll("[data-part=requiredMark]"));
+    }
+
+    [Fact]
     public void 字段不写标签时取Display或DisplayName_写了标签以它为准()
     {
         var model = new Model();

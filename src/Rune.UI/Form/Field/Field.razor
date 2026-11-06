@@ -21,7 +21,7 @@
      @attributes="Attrs.Merge(parts[FieldPart.Root], Rest, LayoutAttrs(startLayout))">
     @if (ShownLabel is { } label)
     {
-        <label id="@labelId" for="@controlId" @attributes="Attrs.Merge(parts[FieldPart.Label], PropsLabel)">@label@if (Required)
+        <label id="@labelId" for="@controlId" @attributes="Attrs.Merge(parts[FieldPart.Label], PropsLabel)">@label@if (IsRequired)
             {
                 <Icon Data="BuiltInIcons.Asterisk" @attributes="Attrs.MergeProps(parts[FieldPart.RequiredMark])" />
             }</label>
@@ -62,8 +62,8 @@
     /// <summary>校验未通过、但不显示错误信息：控件只标红（错误写在别处时）。</summary>
     [Parameter] public bool Invalid { get; set; }
 
-    /// <summary>必填：标签后加 *，控件加 aria-required（校验交给表单）。</summary>
-    [Parameter] public bool Required { get; set; }
+    /// <summary>必填：标签后加 *，控件加 aria-required（校验交给表单）；不写时看绑定字段上有没有 <c>[Required]</c>。</summary>
+    [Parameter] public bool? Required { get; set; }
 
     /// <summary>里面的控件不可用；所在的 Form、FormSection 不可用时也是。</summary>
     [Parameter] public bool Disabled { get; set; }
@@ -112,7 +112,10 @@
     bool IsReadOnly => ReadOnly || Layout?.ReadOnly == true;
 
     // 显示的标签：写了 Label 用它，否则取绑定字段的显示名（控件报上字段之后才有，registration.Field 是信号）
-    string? ShownLabel => Label ?? (registration.Field is { } bound ? DisplayNames.Of(bound) : null);
+    string? ShownLabel => Label ?? (registration.Field is { } bound ? FieldAnnotations.DisplayName(bound) : null);
+
+    // 必填：写了 Required 用它，否则看绑定字段上有没有 [Required]
+    bool IsRequired => Required ?? (registration.Field is { } bound && FieldAnnotations.IsRequired(bound));
 
     FieldIdentifier? registered;
     // 创建序号：错误汇总排序时区分同一个模型的不同实例（报价单的各行）
@@ -158,7 +161,7 @@
             _ => null,
         };
         // 只写了 Invalid 时只标红：没有错误元素，不进 aria-describedby
-        return context.Get((ShownLabel is not null, describedBy, invalid || Invalid, Required, IsDisabled, IsReadOnly), this,
+        return context.Get((ShownLabel is not null, describedBy, invalid || Invalid, IsRequired, IsDisabled, IsReadOnly), this,
             static (k, owner) => new FieldContext(owner.controlId, k.HasLabel ? owner.labelId : null, k.DescribedBy, k.Invalid, k.Required, k.Disabled, k.ReadOnly, owner.registration));
     }
 
