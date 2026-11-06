@@ -25,7 +25,28 @@ public class StateTests
         _ = tracked.Value;
         _ = peeked.Peek();
 
-        Assert.Equal([tracked], frame.Reads.Keys);
+        Assert.Equal([tracked], frame.Reads!.Keys);
+    }
+
+    [Fact]
+    public void 没读信号时不建依赖表_退订之前的依赖()
+    {
+        var state = new State<int>(0);
+        var observer = new RecordingObserver();
+        var subscriptions = new Subscriptions(observer);
+        using (var frame = DependencyTracker.Begin())
+        {
+            _ = state.Value;
+            subscriptions.Update(frame.Reads);
+        }
+
+        using (var frame = DependencyTracker.Begin())
+        {
+            Assert.Null(frame.Reads);
+            Assert.False(subscriptions.Update(frame.Reads));
+        }
+        state.Value = 1;
+        Assert.Equal(0, observer.Count);
     }
 
     [Fact]
@@ -34,7 +55,7 @@ public class StateTests
         var state = new State<int>(0);
         var subscriptions = new Subscriptions(new RecordingObserver());
 
-        Dictionary<Signal, long> reads;
+        Dictionary<Signal, long>? reads;
         using (var frame = DependencyTracker.Begin())
         {
             _ = state.Value;

@@ -78,6 +78,34 @@ public class AttrsMergeTests : IDisposable
     }
 
     [Fact]
+    public void 同样的几层再合并时返回同一个结果_换了作用域照样登记规则()
+    {
+        var defaults = new Attrs { Sx = new Style { Color = "red" }, ["data-part"] = "root" };
+        var managed = new Attrs { AriaLabel = "关闭" };
+
+        var first = Attrs.Merge(defaults, null, managed);
+        Assert.Same(first, Attrs.Merge(defaults, null, managed));
+        Assert.NotSame(first, Attrs.Merge(defaults, null, new Attrs { AriaLabel = "关闭" }));
+
+        // 另一个请求、电路：结果取缓存，规则仍要登记进它的作用域
+        var other = new StyleRegistry();
+        using (StyleRegistry.Enter(other)) Assert.Same(first, Attrs.Merge(defaults, null, managed));
+        Assert.Single(other.Rules);
+    }
+
+    [Fact]
+    public void 交给子组件的几层没变时是同一个对象_子组件按引用比较Sx就会跳过渲染()
+    {
+        var part = new Attrs { Sx = new Style { Color = "red" } };
+        var user = new Attrs { Sx = new Style { Width = CssLength.Percent(100) }, Id = "icon" };
+
+        var props = Attrs.MergeProps(part, user);
+        Assert.Same(props, Attrs.MergeProps(part, user));
+        Assert.Same(Attrs.Layer(part, user), Attrs.Layer(part, user));
+        Assert.NotSame(props, Attrs.Layer(part, user));
+    }
+
+    [Fact]
     public void 不在组件渲染里合并样式会报错()
     {
         using var outside = StyleRegistry.Enter(null!);

@@ -12,15 +12,19 @@ internal static class DependencyTracker
     public static Frame Begin() => current = new Frame(current);
 
     /// <summary>信号被读取时调用：记下它与读取时的版本（同一信号只记第一次）。</summary>
-    public static void RecordRead(Signal signal) => current?.Reads.TryAdd(signal, signal.Version);
+    public static void RecordRead(Signal signal) => current?.Record(signal);
 
     /// <summary>一次收集。</summary>
     public sealed class Frame(Frame? parent) : IDisposable
     {
         readonly int ownerThread = Environment.CurrentManagedThreadId;
 
-        /// <summary>读到的信号 → 读取时的版本。</summary>
-        public Dictionary<Signal, long> Reads { get; } = [];
+        Dictionary<Signal, long>? reads;
+
+        /// <summary>读到的信号 → 读取时的版本；一个也没读时为 null（多数组件的渲染不读信号，不为它建字典）。</summary>
+        public Dictionary<Signal, long>? Reads => reads;
+
+        internal void Record(Signal signal) => (reads ??= []).TryAdd(signal, signal.Version);
 
         /// <summary>结束收集，恢复外层的帧。</summary>
         public void Dispose()

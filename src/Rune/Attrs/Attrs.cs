@@ -21,6 +21,9 @@ public sealed partial class Attrs : IEnumerable<KeyValuePair<string, object>>
     // From 直接引用组件收到的 AdditionalAttributes（只读，不复制），所以类型是只读接口
     IReadOnlyDictionary<string, object>? values;
 
+    // 以这一层为锚的上一次合并（见 Merge）
+    MergeEntry? mergeCache;
+
     /// <summary>样式，展开时换成 class；合并时各层的样式按层的顺序叠加。</summary>
     public Sx? Sx { get; init; }
 

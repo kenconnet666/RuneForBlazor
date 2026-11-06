@@ -6,16 +6,23 @@ namespace Rune;
 /// </summary>
 internal sealed class Subscriptions(ISignalObserver observer)
 {
-    HashSet<Signal> current = [];
+    // 订阅着的信号；没有时为 null（多数组件的渲染不读信号，每次渲染都走这里，不为它分配）
+    HashSet<Signal>? current;
 
-    /// <summary>换成这一次读到的依赖。</summary>
+    /// <summary>换成这一次读到的依赖（一个也没读时为 null）。</summary>
     /// <returns>读取之后有依赖又变了（那次通知可能在订阅之前就发完了），调用方应当再处理一次。</returns>
-    public bool Update(Dictionary<Signal, long> reads)
+    public bool Update(Dictionary<Signal, long>? reads)
     {
+        if (reads is null || reads.Count == 0)
+        {
+            Clear();
+            return false;
+        }
         foreach (var signal in reads.Keys)
-            if (!current.Contains(signal)) signal.Subscribe(observer);
-        foreach (var signal in current)
-            if (!reads.ContainsKey(signal)) signal.Unsubscribe(observer);
+            if (current?.Contains(signal) != true) signal.Subscribe(observer);
+        if (current is not null)
+            foreach (var signal in current)
+                if (!reads.ContainsKey(signal)) signal.Unsubscribe(observer);
         current = [.. reads.Keys];
 
         foreach (var (signal, versionWhenRead) in reads)
@@ -26,7 +33,8 @@ internal sealed class Subscriptions(ISignalObserver observer)
     /// <summary>退订全部（观察者销毁时）。</summary>
     public void Clear()
     {
+        if (current is null) return;
         foreach (var signal in current) signal.Unsubscribe(observer);
-        current = [];
+        current = null;
     }
 }

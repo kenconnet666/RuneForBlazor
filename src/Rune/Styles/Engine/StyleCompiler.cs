@@ -4,9 +4,22 @@ using System.Text;
 namespace Rune.Styles;
 
 /// <summary>一组样式合并后的结果：一个类名与它的 CSS 规则。</summary>
-/// <param name="ClassName">类名，按内容哈希（同样的样式在服务端、浏览器、所有请求里都同名）。</param>
-/// <param name="Css">这个类的全部规则（基础块与各条件块）。</param>
-internal sealed record CompiledStyle(string ClassName, string Css);
+/// <param name="className">类名，按内容哈希（同样的样式在服务端、浏览器、所有请求里都同名）。</param>
+/// <param name="css">这个类的全部规则（基础块与各条件块）。</param>
+internal sealed class CompiledStyle(string className, string css)
+{
+    /// <summary>类名。</summary>
+    public string ClassName { get; } = className;
+
+    /// <summary>规则文本。</summary>
+    public string Css { get; } = css;
+
+    /// <summary>
+    /// 最近一次登记进的登记表：同一个作用域里每次渲染都要登记一遍，是它就不用再加锁查表。
+    /// 只是提示：几个作用域交替时被覆盖，照常查表（登记本身是幂等的）。
+    /// </summary>
+    internal StyleRegistry? LastRegistry;
+}
 
 /// <summary>
 /// 样式引擎：把按顺序排列的几段样式合成一个类。

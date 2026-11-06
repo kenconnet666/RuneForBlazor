@@ -72,7 +72,9 @@ public sealed class StyleRegistry
     {
         var registry = Current ?? throw new InvalidOperationException(
             "找不到样式登记表：样式要在组件渲染时使用，并且应用要注册 Rune（services.AddRune() 或 AddRuneUI()）");
+        if (ReferenceEquals(style.LastRegistry, registry)) return;
         registry.Add(style);
+        style.LastRegistry = registry;
     }
 
     void Add(CompiledStyle style)

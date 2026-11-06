@@ -47,7 +47,7 @@ public sealed class Derived<T> : Signal, ISignalObserver
         int epochAtStart;
         lock (stateLock) epochAtStart = epoch;
 
-        Dictionary<Signal, long> reads;
+        Dictionary<Signal, long>? reads;
         using (var frame = DependencyTracker.Begin())
         {
             cached = compute();

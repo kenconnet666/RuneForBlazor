@@ -26,15 +26,16 @@ namespace Rune.Styles;
 public static class Css
 {
     static readonly ConcurrentDictionary<MethodInfo, object> defined = new();
-    static readonly ConcurrentDictionary<(MethodInfo Method, object Key), object> definedByKey = new();
+    // 按键定义的缓存按键与结果的类型分开放（Keyed<TKey, T>），热重载时要一起清掉
+    static readonly ConcurrentQueue<Action> keyedClearers = new();
 
     /// <summary>定义一段样式（或任意一组样式），第一次调用时创建并缓存。</summary>
     public static T Define<T>(Func<T> define) where T : class =>
-        (T)defined.GetOrAdd(define.Method, _ => define());
+        (T)defined.GetOrAdd(define.Method, static (_, create) => create(), define);
 
     /// <summary>按键定义：每个键创建一次（档位 → 部件样式）。</summary>
     public static T Define<TKey, T>(TKey key, Func<TKey, T> define) where TKey : notnull where T : class =>
-        (T)definedByKey.GetOrAdd((define.Method, key), _ => define(key));
+        Keyed<TKey, T>.Of(define.Method).GetOrAdd(key, define);
 
     /// <summary>定义标记：<c>Css.Marker("rune-listbox-option")</c>，类名就是这个名字（同 vue-tsx-pro 的 defineMarker），用连字符小写、带组件库前缀，避免与使用方的类重名。</summary>
     public static Marker Marker(string name) =>
@@ -53,8 +54,22 @@ public static class Css
     internal static void ClearDefinitions()
     {
         defined.Clear();
-        definedByKey.Clear();
+        foreach (var clear in keyedClearers) clear();
         StyleCompiler.ClearContentCache();
+    }
+
+    /// <summary>
+    /// 某种键、某种结果的按键定义：先按定义它的 lambda、再按键找。键不装箱、按自己的相等比较（元组、枚举都不分配），
+    /// 每次渲染都要查（配方、档位样式），这是热路径。
+    /// </summary>
+    static class Keyed<TKey, T> where TKey : notnull where T : class
+    {
+        static readonly ConcurrentDictionary<MethodInfo, ConcurrentDictionary<TKey, T>> byMethod = new();
+
+        static Keyed() => keyedClearers.Enqueue(byMethod.Clear);
+
+        public static ConcurrentDictionary<TKey, T> Of(MethodInfo method) =>
+            byMethod.TryGetValue(method, out var cache) ? cache : byMethod.GetOrAdd(method, static _ => new());
     }
 }
 
