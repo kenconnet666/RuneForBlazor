@@ -93,6 +93,22 @@ public static class SharedStyles
         _ => new Style { [FillColor.Name] = $"{Tones.Of(tone).Text}", [OnFillColor.Name] = $"{Colors.Background}" },
     });
 
+    /// <summary>
+    /// 按宽度收起的一行里的一项（data-rune-overflow-item，js/overflow.js 量宽度、写 data-overflow-hidden）：放不下的移出排版、藏起来，
+    /// 但仍可测量（容器要 position: relative）。SelectedTags 的标签、NavBar 的各项用它。
+    /// </summary>
+    public static Style OverflowItem => Css.Define(static () => new Style
+    {
+        [When.Attribute("[data-overflow-hidden]")] = new()
+        {
+            Position = Position.Absolute,
+            InsetInlineStart = 0,
+            InsetBlockStart = 0,
+            Visibility = Visibility.Hidden,
+            PointerEvents = PointerEvents.None,
+        },
+    });
+
     /// <summary>键盘聚焦时的焦点环（画在元素外侧）。</summary>
     public static Style FocusRing => Css.Define(static () => new Style
     {

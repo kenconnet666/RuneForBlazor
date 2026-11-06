@@ -38,16 +38,6 @@ public static class SelectedTagsStyles
         Contain = Contain.InlineSize,
     });
 
-    /// <summary>每个标签：放不下的（JS 写 data-overflow-hidden）藏起来但仍可测量。</summary>
-    internal static Style Tag => Css.Define(static () => new Style
-    {
-        [When.Attribute("[data-overflow-hidden]")] = new()
-        {
-            Position = Position.Absolute,
-            InsetInlineStart = 0,
-            InsetBlockStart = 0,
-            Visibility = Visibility.Hidden,
-            PointerEvents = PointerEvents.None,
-        },
-    });
+    /// <summary>每个标签：放不下的藏起来但仍可测量（<see cref="SharedStyles.OverflowItem"/>）。</summary>
+    internal static Style Tag => SharedStyles.OverflowItem;
 }

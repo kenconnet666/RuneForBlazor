@@ -1,0 +1,53 @@
+@*
+    数据驱动的侧边导航（同 vue-tsx-pro 的 NavMenu）：菜单是一棵树（后端按角色返回、或配置文件里写的），直接交给 NavMenu 渲染，不用自己递归拼 NavItem。
+    <NavMenu aria-label="主菜单" Items="@([new("首页", "/", Lucide.House), new("降本管理", Icon: Lucide.Boxes, Children: [new("降本项目", "projects", Badge: 3), new("台账", "ledger")])])" />
+    有 Children 的项是一组：顶层的显示成带小标题、一直展开的小节（TopLevel = Section，默认）或可收起的分组（Group），
+    更深的层级都是可收起的分组（含当前页的组自动展开）；没有 Children 的项是链接。没有 Href 又没有可显示子项的项不显示
+    （后端返回的目录下没有该用户能看的页面时，目录自然消失）。当前页按地址判断（NavItem 的 Active），也可以逐项写 Active。
+    紧凑与抽屉里的表现同 NavList，由所在的 AppShell 决定。未声明的属性落到 NavList（nav）上；aria-label 是导航的名称。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<NavList @attributes="Rest">
+    @foreach (var item in Items)
+    {
+        @Node(item, 0)
+    }
+</NavList>
+
+@code {
+    /// <summary>菜单树。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<NavMenuItem> Items { get; set; } = [];
+
+    /// <summary>顶层有子项的项怎么显示，默认带小标题、一直展开的小节。</summary>
+    [Parameter] public NavMenuTopLevel TopLevel { get; set; }
+
+    RenderFragment Node(NavMenuItem item, int depth) => __builder =>
+    {
+        if (!item.IsVisible) return;
+        if (item.Children is not { Count: > 0 } children)
+        {
+            <NavItem @key="item.KeyOrDefault" Href="@(item.Href!)" Icon="item.Icon" Badge="item.Badge" Disabled="item.Disabled" Active="item.Active">@item.Label</NavItem>
+            return;
+        }
+        if (depth == 0 && TopLevel == NavMenuTopLevel.Section)
+        {
+            <NavSection @key="item.KeyOrDefault" Label="@item.Label" Icon="item.Icon">
+                @foreach (var child in children)
+                {
+                    @Node(child, depth + 1)
+                }
+            </NavSection>
+        }
+        else
+        {
+            <NavGroup @key="item.KeyOrDefault" Label="@item.Label" Icon="item.Icon">
+                @foreach (var child in children)
+                {
+                    @Node(child, depth + 1)
+                }
+            </NavGroup>
+        }
+    };
+}

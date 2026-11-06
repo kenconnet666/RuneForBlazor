@@ -1,0 +1,27 @@
+@* 后台的顶栏导航：有子项的是下拉菜单，待办带角标；拖动滑块把顶栏变窄，放不下的项收进“更多” *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="@($"顶栏宽度：{width}%")">
+        <Slider TValue="int" @bind-Value="width" Min="30" Max="100" />
+    </Field>
+    <Card Padding="SpaceScale.Xs" style="@($"width:{width}%")">
+        <NavBar Items="Items" aria-label="主导航" data-testid="header" />
+    </Card>
+    <Small Tone="TextTone.Muted">当前页按地址判断；本页的链接是锚点，点了在地址栏里变化</Small>
+</Flex>
+
+@code {
+    static readonly NavMenuItem[] Items =
+    [
+        new("工作台", "#home", Lucide.House),
+        new("采购", Icon: Lucide.ShoppingCart, Children: [new("采购单", "#po"), new("询价比价", "#quote"), new("合同", "#contract")]),
+        new("供应商", "#suppliers", Lucide.Users),
+        new("库存", "#stock", Lucide.Boxes),
+        new("物流", "#logistics", Lucide.Truck, Badge: 3),
+        new("报表", Icon: Lucide.ChartColumn, Children: [new("销售月报", "#monthly"), new("季度复盘", "#quarterly")]),
+        new("设置", "#settings", Lucide.Wrench),
+    ];
+
+    int width = 100;
+}

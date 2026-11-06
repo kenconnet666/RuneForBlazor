@@ -1,0 +1,116 @@
+@*
+    横向导航（同 vue-tsx-pro 的 NavBar，顶部菜单）：一行链接，有子项的是下拉菜单；放不下时后面的收进“更多”菜单。后台的顶栏、门户的主导航。
+    <NavBar aria-label="主导航" Items="@([new("工作台", "/"), new("采购", Children: [new("采购单", "po"), new("供应商", "suppliers")]), new("报表", "reports", Badge: 3)])" />
+    菜单数据同 NavMenu（NavMenuItem），同一份可以同时给顶栏与侧栏。参考 Ant Design Menu 的 horizontal 模式（溢出收进“…”）。
+    当前页按地址判断（同 NavList），链接带 aria-current="page" 与下划线；子项是当前页时它的菜单按钮也高亮。
+    下拉菜单是 Menu（↑↓ 移动、Esc 关闭回到按钮），菜单项是链接（MenuLinkItem）。放不下：JS 量出前几项（js/overflow.js），
+    其余收进“更多”（有子项的按分组列出）；藏起来的项不占位、读屏与 Tab 跳过。未声明的属性落到 nav 上；aria-label 是导航的名称。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@implements IDisposable
+@inject NavigationManager Navigation
+@{ var list = NavBarStyles.Of(default, Config.Styles); }
+
+<nav @attributes="Rest">
+    <ul data-rune-overflow data-rune-overflow-report @onrunecommand="OnOverflow" @attributes="Attrs.Merge(list[NavBarPart.List], PropsList)">
+        @foreach (var item in Items)
+        {
+            var current = HasCurrent(item);
+            var parts = NavBarStyles.Of(new(current, item.Disabled), Config.Styles);
+            <li @key="item.KeyOrDefault" data-rune-overflow-item @attributes="Attrs.Merge(list[NavBarPart.Item])">
+                @if (item.Children is { Count: > 0 } children)
+                {
+                    <Menu>
+                        <Trigger Context="t">
+                            <ButtonBase Disabled="item.Disabled" data-state="@(current ? "active" : "inactive")" @attributes="Attrs.MergeProps(parts[NavBarPart.Link], null, t)">
+                                @Content(item)
+                                <Icon Data="BuiltInIcons.ChevronDown" />
+                            </ButtonBase>
+                        </Trigger>
+                        <ChildContent>@MenuLinks(children)</ChildContent>
+                    </Menu>
+                }
+                else
+                {
+                    <a href="@(item.Disabled || item.Href is null ? null : NavLinks.Resolve(Navigation, item.Href))" aria-current="@(current ? "page" : null)"
+                       aria-disabled="@(item.Disabled ? "true" : null)" data-state="@(current ? "active" : "inactive")" @attributes="Attrs.Merge(parts[NavBarPart.Link])">@Content(item)</a>
+                }
+            </li>
+        }
+        @{
+            var hidden = Items.Skip(visible ?? Items.Count).ToList();
+            var more = NavBarStyles.Of(new(hidden.Any(HasCurrent)), Config.Styles);
+        }
+        <li data-rune-overflow-rest data-overflow-hidden @attributes="Attrs.Merge(list[NavBarPart.Item])">
+            <Menu Placement="Placement.BottomEnd">
+                <Trigger Context="t">
+                    <ButtonBase aria-label="@Config.Lang.NavBarMore" @attributes="Attrs.MergeProps(more[NavBarPart.Link], null, t)"><Icon Data="BuiltInIcons.Ellipsis" /></ButtonBase>
+                </Trigger>
+                <ChildContent>
+                    @foreach (var item in hidden)
+                    {
+                        if (item.Children is { Count: > 0 } children)
+                        {
+                            <MenuGroup @key="item.KeyOrDefault" Label="@item.Label">@MenuLinks(children)</MenuGroup>
+                        }
+                        else
+                        {
+                            @MenuLinks([item])
+                        }
+                    }
+                </ChildContent>
+            </Menu>
+        </li>
+    </ul>
+</nav>
+
+@code {
+    // JS 量出的放得下的个数；还没量时全部显示
+    int? visible;
+
+    /// <summary>各项：有 Href 是链接，有 Children 是下拉菜单（一层）。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<NavMenuItem> Items { get; set; } = [];
+
+    /// <summary>列表（ul）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    void IDisposable.Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+
+    void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    bool IsCurrent(NavMenuItem item) => item.Active ?? (item.Href is { } href && NavLinks.IsCurrent(Navigation, href, Microsoft.AspNetCore.Components.Routing.NavLinkMatch.All));
+
+    // 子项里有没有当前页
+    bool HasCurrent(NavMenuItem item) => IsCurrent(item) || (item.Children ?? []).Any(HasCurrent);
+
+    void OnOverflow(CommandEventArgs e)
+    {
+        if (e.Name == "overflow" && int.TryParse(e.Text, System.Globalization.CultureInfo.InvariantCulture, out var count)) visible = count;
+    }
+
+    RenderFragment Content(NavMenuItem item) => @<text>
+        @if (item.Icon is not null)
+        {
+            <Icon Data="item.Icon" />
+        }
+        @item.Label
+        @if (item.Badge > 0)
+        {
+            <Badge Size="Size.Xs" Variant="StatusVariant.Solid" Tone="Tone.Danger" Radius="Radius.Full">@(item.Badge > 99 ? "99+" : item.Badge.ToString(System.Globalization.CultureInfo.InvariantCulture))</Badge>
+        }
+    </text>;
+
+    // 菜单里的链接（下拉菜单、“更多”菜单共用）
+    RenderFragment MenuLinks(IReadOnlyList<NavMenuItem> children) => __builder =>
+    {
+        foreach (var child in children)
+        {
+            <MenuLinkItem @key="child.KeyOrDefault" Href="@NavLinks.Resolve(Navigation, child.Href ?? "")" Icon="child.Icon" Disabled="child.Disabled"
+                          aria-current="@(IsCurrent(child) ? "page" : null)">@child.Label</MenuLinkItem>
+        }
+    };
+}

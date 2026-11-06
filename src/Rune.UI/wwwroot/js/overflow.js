@@ -1,4 +1,7 @@
-// 一行标签按宽度收起（data-rune-overflow，同 vue-tsx-pro 的 useOverflowItems）。
+// 一行标签按宽度收起（data-rune-overflow，同 vue-tsx-pro 的 useOverflowItems）。SelectedTags 的“+N”文字在这里写；
+// NavBar 的“更多”菜单要列出收起的项：行上带 data-rune-overflow-report 时，放得下的个数变了就经 rune-command（overflow）告诉 C#。
+
+import { sendCommand } from './shared.js';
 
 // 同 vue-tsx-pro 的 useOverflowItems（参考 rc-overflow）：所有标签都渲染，放不下的移出排版、藏起来但仍可测量；
 // 宽度变了、标签加减了就重新量。量不到布局（宽度为 0）时全部显示。至少显示一个。
@@ -44,6 +47,10 @@ function measureOverflow(row) {
     ? items.length
     : Math.max(fitCount(widths, restWidth, gap, available), Math.min(1, items.length));
   items.forEach((item, index) => item.toggleAttribute('data-overflow-hidden', index >= visible));
+  if (row.hasAttribute('data-rune-overflow-report') && row.dataset.runeOverflowVisible !== String(visible)) {
+    row.dataset.runeOverflowVisible = String(visible);
+    sendCommand(row, 'overflow', String(visible));
+  }
   if (!rest) return;
   const hidden = items.length - visible;
   rest.toggleAttribute('data-overflow-hidden', hidden === 0);

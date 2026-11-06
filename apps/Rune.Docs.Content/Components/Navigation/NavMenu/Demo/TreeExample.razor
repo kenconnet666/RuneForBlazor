@@ -1,0 +1,30 @@
+@* 数据驱动的侧栏菜单：一棵树交给 NavMenu；示例里不真的换页，“降本项目”用 Active 标成当前页（实际应用里按地址判断） *@
+@inherits RuneComponent
+
+<Flex Gap="SpaceScale.Lg" Align="ItemAlign.Start" Wrap="true">
+    <Card Padding="SpaceScale.Sm" Sx="CardWidth">
+        <NavMenu aria-label="主菜单" Items="Menu" TopLevel="topLevel" data-testid="menu" />
+    </Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <ToggleGroup Value="@topLevel.ToString()" ValueChanged="v => topLevel = Enum.Parse<NavMenuTopLevel>(v!)" Required="true" Size="Size.Sm" aria-label="顶层目录">
+            <ToggleItem Value="Section">小节</ToggleItem>
+            <ToggleItem Value="Group">分组</ToggleItem>
+        </ToggleGroup>
+        <Small Tone="TextTone.Muted">当前页：降本项目（含当前页的分组自动展开）</Small>
+    </Flex>
+</Flex>
+
+@code {
+    static readonly NavMenuItem[] Menu =
+    [
+        new("首页", "#home", Lucide.House),
+        new("降本管理", Icon: Lucide.Boxes, Children: [new("降本项目", "#projects", Badge: 3, Active: true), new("台账", "#ledger", Lucide.ClipboardList), new("已停用的入口", "#legacy", Disabled: true)]),
+        new("系统", Icon: Lucide.Settings, Children: [new("用户与角色", "#system-users"), new("数据字典", Children: [new("字典类型", "#system-dict")])]),
+        // 后端返回的目录下没有该用户能看的页面：不显示
+        new("审批", Children: []),
+    ];
+
+    static Style CardWidth => Css.Define(static () => new Style { Width = CssLength.Rem(16) });
+
+    NavMenuTopLevel topLevel;
+}

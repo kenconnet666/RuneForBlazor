@@ -1,0 +1,13 @@
+@page "/components/nav-bar"
+@attribute [DocMeta("NavBar 横向导航", "顶栏的一行链接与下拉菜单，放不下的项收进“更多”。侧边的多级导航用 NavList。", DocCategory.Navigation, Order = 4)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Navigation.NavBar.Demo
+
+<DocPage Meta="Meta">
+    <Example Id="header" Title="后台顶栏" Demo="typeof(HeaderExample)">
+        <Code>Items</Code> 里有 <Code>Href</Code> 的是链接，有 <Code>Children</Code> 的是下拉菜单（Menu，菜单项是链接）。当前页按地址判断（同 <TextLink Href="components/nav-list">NavList</TextLink>），
+        链接带 aria-current 与下划线，子项是当前页时它的下拉按钮也高亮；<Code>Badge</Code> 是计数角标。放不下时后面的项收进“更多”菜单（有子项的按分组列出），
+        藏起来的项不占位、读屏与 Tab 都跳过。菜单数据同 <TextLink Href="components/nav-menu">NavMenu</TextLink>（<Code>NavMenuItem</Code>）。
+    </Example>
+    <ApiReference Types="[typeof(NavBar)]" />
+</DocPage>
