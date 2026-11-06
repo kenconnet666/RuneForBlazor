@@ -14,7 +14,7 @@ public enum PaginationPart
     /// <summary>每一项（li，包着按钮或省略号）。</summary>
     Item,
 
-    /// <summary>页码按钮（Button / LinkButton）。</summary>
+    /// <summary>页码按钮（Button / LinkButton，保留按钮自己的部件标记，同 vue-tsx-pro）。</summary>
     Page,
 
     /// <summary>省略号。</summary>

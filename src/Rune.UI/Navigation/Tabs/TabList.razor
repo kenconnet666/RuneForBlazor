@@ -21,16 +21,16 @@ else
     <div data-rune-tabs @attributes="Attrs.Merge(parts[TabsPart.Bar], PropsBar)">
         @* 滚动按钮只给指针用：键盘在标签之间移动时，当前标签会自己滚进来 *@
         <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@Config.Lang.TabScrollPrevious" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
-                    PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(parts[TabsPart.BarButton], null, ScrollBack)" />
+                    PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(Part.Unmarked(parts[TabsPart.BarButton]), null, ScrollBack)" />
         @List(parts)
         <IconButton Icon="BuiltInIcons.ChevronRight" Label="@Config.Lang.TabScrollNext" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
-                    PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(parts[TabsPart.BarButton], null, ScrollForward)" />
+                    PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(Part.Unmarked(parts[TabsPart.BarButton]), null, ScrollForward)" />
         @if (ShowAllMenu)
         {
             <Menu Placement="Placement.BottomEnd">
                 <Trigger Context="t">
                     <IconButton Icon="BuiltInIcons.ChevronDown" Label="@Config.Lang.TabList" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
-                                @attributes="Attrs.MergeProps(parts[TabsPart.BarButton], null, t)" />
+                                @attributes="Attrs.MergeProps(Part.Unmarked(parts[TabsPart.BarButton]), null, t)" />
                 </Trigger>
                 <ChildContent>
                     <MenuRadioGroup Label="@Config.Lang.TabList" Value="@Tabs.Value" ValueChanged="SelectFromMenu">
@@ -45,7 +45,7 @@ else
         @if (OnAdd.HasDelegate)
         {
             <IconButton Icon="BuiltInIcons.Plus" Label="@Config.Lang.TabAdd" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
-                        @onclick="OnAdd" @attributes="Attrs.MergeProps(parts[TabsPart.BarButton], PropsAdd)" />
+                        @onclick="OnAdd" @attributes="Attrs.MergeProps(Part.Unmarked(parts[TabsPart.BarButton]), PropsAdd)" />
         }
     </div>
 }

@@ -95,14 +95,11 @@
     // 总数变少（筛选后）时父级的 Page 可能超出范围：写回前夹到 1–页数
     Task GoAsync(int target) => page.SetAsync(Math.Clamp(target, 1, Count));
 
-    // 页码按钮的样式层：只带样式与按部件定制，不带分页的部件标记——按钮保留自己的 button/root（同 vue-tsx-pro，那边的分页没有部件标记）
-    Memo<Attrs, Attrs> pageLayer;
-
     /// <summary>一个页码：当前页是浅底品牌色，其余是 ghost；有 Href 时是链接。</summary>
     RenderFragment PageButton(PartLayers<PaginationPart> parts, int target, bool isCurrent) => __builder =>
     {
         var attrs = Attrs.MergeProps(
-            Attrs.Layer(pageLayer.Get(parts[PaginationPart.Page], static layer => layer.Without("data-scope", "data-part")), new Attrs { AriaLabel = Config.Lang.PageLabel(target) }),
+            Attrs.Layer(Part.Unmarked(parts[PaginationPart.Page]), new Attrs { AriaLabel = Config.Lang.PageLabel(target) }),
             PropsPage,
             new Attrs { ["aria-current"] = isCurrent ? "page" : null });
         var variant = isCurrent ? ButtonVariant.Soft : ButtonVariant.Ghost;

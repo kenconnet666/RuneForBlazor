@@ -17,7 +17,7 @@ public enum TabsPart
     /// <summary>line 样式的下划线指示条（span）。</summary>
     Indicator,
 
-    /// <summary>横排放不下时的滚动按钮、新建按钮（IconButton 组件）。</summary>
+    /// <summary>横排放不下时的滚动按钮、新建按钮（IconButton 组件，保留 IconButton 自己的部件标记，同 vue-tsx-pro）。</summary>
     BarButton,
 
     /// <summary>标签面板（div，role="tabpanel"）。</summary>

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Rune.Styles;
 
 namespace Rune.UI;
@@ -8,6 +9,14 @@ namespace Rune.UI;
 /// </summary>
 public static class Part
 {
+    static readonly ConditionalWeakTable<Attrs, Attrs> unmarked = new();
+
+    /// <summary>
+    /// 部件的默认层去掉部件标记，只留样式与按部件定制：部件是本库的另一个组件、而 vue-tsx-pro 在那里保留子组件自己的标记时用
+    /// （分页的页码按钮、标签栏的滚动与新建按钮是 button/root）。按层缓存（层本身按配方缓存），渲染时不分配。
+    /// </summary>
+    public static Attrs Unmarked(Attrs layer) => unmarked.GetValue(layer, static l => l.Without("data-scope", "data-part"));
+
     /// <summary>
     /// 创建部件的默认层。在样式定义里调用（<see cref="Css.Define{TKey,T}"/>，按档位与定制缓存），渲染时不再创建。
     /// </summary>
