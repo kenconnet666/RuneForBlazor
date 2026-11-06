@@ -141,6 +141,8 @@ function collect({ side, ids, props, canvasWidth, SEMANTIC_TAGS }) {
       const style = getComputedStyle(element);
       const values = {};
       for (const prop of props) values[prop] = normalize(style.getPropertyValue(prop));
+      // 关键帧的名字由两边各自按内容哈希生成，比不了：只比有没有动画（时长、缓动等另有属性）
+      if ('animation-name' in values && values['animation-name'] !== 'none') values['animation-name'] = '(有)';
       const rect = element.getBoundingClientRect();
       values.width = `${rect.width}px`;
       values.height = `${rect.height}px`;
