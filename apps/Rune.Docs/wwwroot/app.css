@@ -4,3 +4,16 @@ body { margin: 0; }
 /* 换页后焦点移到标题（FocusOnNavigate，读屏从这里接着读）：它不是可操作的元素，不画焦点框。
    只写标题：组件库的样式在级联层里，这里不分层的规则会盖过它们（别的 tabindex="-1" 元素的焦点框要留着） */
 h1[tabindex="-1"]:focus { outline: none; }
+
+/* 字体切换（fonts.js）：最外层的 RuneProvider 换字体变量，正文、标题、代码一起换；示例里自带主题的嵌套 Provider 不动 */
+:root[data-docs-font="sarasa"] [data-rune-theme]:not([data-rune-theme] *) {
+  --rune-fonts-sans: "Sarasa Mono SC", ui-monospace, system-ui, monospace;
+  --rune-fonts-heading: "Sarasa Mono SC", ui-monospace, system-ui, monospace;
+  --rune-fonts-mono: "Sarasa Mono SC", ui-monospace, system-ui, monospace;
+}
+
+:root[data-docs-font="wenkai"] [data-rune-theme]:not([data-rune-theme] *) {
+  --rune-fonts-sans: "LXGW WenKai Mono", ui-monospace, system-ui, monospace;
+  --rune-fonts-heading: "LXGW WenKai Mono", ui-monospace, system-ui, monospace;
+  --rune-fonts-mono: "LXGW WenKai Mono", ui-monospace, system-ui, monospace;
+}

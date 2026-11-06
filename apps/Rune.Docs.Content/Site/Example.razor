@@ -78,12 +78,13 @@
 
     static Style DescriptionStyle => Css.Define(static () => new Style { Color = Colors.TextMuted });
 
+    // 页面底色衬底（同真实页面）：卡片、浮层的表面色在它上面才分得出层级
     static Style Canvas => Css.Define(static () => new Style
     {
         MinHeight = CssLength.Rem(7),
         FontSize = FontSizes.Md,
         LineHeight = LineHeights.Normal,
-        BackgroundColor = Colors.Surface,
+        BackgroundColor = Colors.Background,
     });
 
     static Style Framed => Css.Define(static () => new Style { Padding = 0, [Breakpoints.Sm] = new() { Padding = 0 } });

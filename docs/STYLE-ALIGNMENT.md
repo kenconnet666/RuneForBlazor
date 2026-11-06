@@ -86,7 +86,7 @@ builder.Services.AddRuneUI(o => o.Components = new()
   但按钮的文字是主题的文字色，深色主题里白底浅字看不清；Rune 原来就用表面色，深浅主题都看得清）。
 - Table 与 DataTable 共用部件样式（vue d450fe3a）：Rune 还没有 DataTable，只有一个表格配方，没有可合并的。
 
-### 阶段 4：美学（2026-11-06 跟进 vue 已完成的部分，vue feat/style-overhaul 到 8a14554a，PR #4 未合并）
+### 阶段 4：美学（2026-11-06 跟进 vue 已完成的部分，vue feat/style-overhaul 到 8f699409，PR #4 未合并）
 
 vue 那边合并用快进、不 squash，提交号不变；CI 的 `VUE_TSX_PRO_REF` 指到当前跟进到的提交（样式属性表、主题、语言包同一版本）。
 
@@ -111,8 +111,13 @@ vue 那边合并用快进、不 squash，提交号不变；CI 的 `VUE_TSX_PRO_R
 - 亮色主题着色页面 + 白卡片（vue c340d084，重新生成）：亮色、森林、柠檬、樱花、喜庆、薰衣草、墨白的页面取原来的 surfaceMuted，
   surface / surfaceRaised 改白色，surfaceMuted 取页面与 fill 的中间，surfaceTranslucent 跟着页面；几套主题的图表系列色调深到 3:1。
   纸张、高对比、深色不动。开机脚本的底色取主题的 Background，自动跟着变。端到端测试里色块的期望值改成 `#ffffff`。
-- 组件库只用系统字体栈、不带 web 字体（vue 的决定）：Rune 本来就是。vue 的文档站另外默认用霞鹜文楷等宽（npm 包 rune-ui-wuxiawenkai，
-  挂载后才加载），Rune 的文档站还没跟。
+- 组件库只用系统字体栈、不带 web 字体（vue 的决定）：Rune 本来就是。
+- 文档站的字体切换（vue 758c20b9）：顶栏主题按钮旁的字体按钮，系统字体（默认）、更纱黑体等宽、霞鹜文楷等宽（npm 包 rune-ui-font），
+  选中才加载。Rune 没有前端打包，字体 CSS 从 jsDelivr 按版本取（`apps/Rune.Docs/wwwroot/fonts.js`）；vue 换主题的 fonts，
+  Rune 在 app.css 里按 `data-docs-font` 覆盖最外层 Provider 的字体变量（不分层，盖过主题），示例里自带主题的嵌套 Provider 不动。
+- 示例画布改用页面底色（vue d82f6eff）：卡片、浮层的表面色在它上面才分得出层级。
+- Tabs 改用逻辑属性（vue 9976b696）：分隔线、下划线用 block 方向；指示条横排、竖排各给一份位置，竖排不再叠着横排的 `left`
+  （从右到左时结束边就是 left，物理属性会盖过 `inset-inline-end`）。Rune 没有 Steps。
 - 表单标签升到 14px（vue 5b471484）：Field 的标签 `FontSizes.Md`、中等字重，说明文字仍小一档、弱化色；FormSection 的字段行距 Md → Lg。
 - 小浮层的进出场更快（vue 5b471484）：新增 `OverlayTransitions.Pop`（进场 Sm + enter、离场 Xs），Popover、HoverCard、Menu、选项列表用它
   （vue 的 anchoredPanelSx；Rune 还没有日期面板、Cascader、TreeSelect），对话框仍用 `Scale`。`Durations` 各档的注释按实际用处改写。

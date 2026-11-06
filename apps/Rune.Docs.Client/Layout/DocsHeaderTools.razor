@@ -1,5 +1,5 @@
 @*
-    顶栏结束边的工具：搜索、主题切换、仓库链接。同 DocsNav，独立成没有参数的组件，换页时不跟着外壳重新渲染。
+    顶栏结束边的工具：搜索、主题切换、字体切换、仓库链接。同 DocsNav，独立成没有参数的组件，换页时不跟着外壳重新渲染。
 *@
 @inherits RuneComponent
 @inject NavigationManager Navigation
@@ -7,6 +7,7 @@
 <div @attributes="Attrs.Merge(ToolsLayer)">
     <CommandPalette TItem="DocEntry" Items="DocsCatalog.All" ToOption="SearchOption" OnAction="Go" />
     <ThemeSwitcher />
+    <DocsFontSwitcher />
     <IconLinkButton Href="@DocsLayout.Repository" External="true" Icon="DocsKitIcons.Github" Label="GitHub 仓库" Sx="WideOnly" />
 </div>
 
