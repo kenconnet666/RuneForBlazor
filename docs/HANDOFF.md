@@ -5,8 +5,9 @@
 ## 目标与工作方式
 
 - RuneForBlazor 是 vue-tsx-pro（`~\IdeaProjects\vue-tsx-pro`）的 Blazor（.NET 10）移植：样式、交互都要和 vue 一致，API 的形状按 Blazor 习惯（ROADMAP 的“Blazor 化的约定”）。
-  EasyQuerySharp（`~\RiderProjects\EasyQuerySharp`）是表格查询契约与全栈示例的参考（ROADMAP 阶段 4、8）。
-- 用户的要求：**无人值守持续执行完整路线图**（2026-11-06 重新规划：R → 阶段 1 → 9）；直接提交推送 master，不开 PR。
+  EasyQuerySharp（`~\RiderProjects\EasyQuerySharp`）是表格查询契约与全栈示例的参考（ROADMAP 阶段 3、7）。
+- 用户的要求：**无人值守持续执行完整路线图**（2026-11-06 跟进 vue 0.11 之后第二次重新规划：阶段 0 → 8）；直接提交推送 master，不开 PR。
+  行为与样式尽量和 vue-tsx-pro 一致；vue 有问题时通知维护它的会话修好、发版，不直接改 vue 的仓库。
 - 测试节奏：本地只跑改动相关的测试；完整测试交给 CI，不等它；**下次提交前先 `gh run list` 看 CI，失败就先修**。
 - 回复与注释用中文；代码、标识符、commit message 用英文；提交末尾加 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。
 - 密钥只在用户环境变量 / GitHub secrets 里，不写进任何文件。
@@ -71,18 +72,16 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 
 ## 最近的进度
 
-- R.1 完成（CI 恢复全绿：测试类继承 `E2ETest`，结束时关掉自己开的浏览器上下文）；R.2、R.3 大部分完成，剩下的见 ROADMAP。
-- 阶段 1 完成：List / OrderedList / ListItem、ClientOnly、Can（AuthorizeView）、ButtonBase、Banner、Result、Empty 页、Switch 补齐、FileDrop、Upload（列表模式）。
-- 阶段 2 做到 Image / Lightbox 与 Upload 的图片墙（剩 Tree、VirtualList 补齐）。
-- 2026-11-06 起路线图暂停：先做性能（`docs/PERFORMANCE.md`，基准 `tests/Rune.Benchmarks`），之后按 vue-tsx-pro 的样式体系改造逐阶段跟进
-  （`docs/STYLE-ALIGNMENT.md`，那边每完成一个阶段会发消息来）。阶段 1 已跟进；阶段 2、3 不改外观的部分已跟进，组件定制合成了 `Components` 一个入口
-  （默认值、按部件与按档位取值的样式）；阶段 4 跟进了 vue 已完成的部分（主题与对比度、控件高度、界面字重、着色页面 + 白卡片、表单标签、小浮层的进出场；按 vue 的 PR 分支生成）。
+- 旧路线图的 R、阶段 1 完成，阶段 2 做到 Image / Lightbox 与 Upload 的图片墙；中间暂停做了性能（`docs/PERFORMANCE.md`，基准 `tests/Rune.Benchmarks`）。
+- vue-tsx-pro 的样式体系改造（0.11）已跟进（`docs/STYLE-ALIGNMENT.md`）：分段输出与级联层、`Components` 一个定制入口、主题与对比度、
+  控件高度、界面字重、着色页面 + 白卡片、表单标签、小浮层的进出场、Tabs 的逻辑属性、文档站的字体切换与页面底色的画布。
+- 2026-11-06 用户恢复路线图并重新规划（阶段 0 → 8）。
 - 单元测试 520 个全过；端到端在 CI 上跑。
 
 ## 下一步
 
-1. 等 vue-tsx-pro 样式改造各阶段的通知，按 STYLE-ALIGNMENT.md 跟进；PERFORMANCE.md 的待议项随之取舍。
-2. 用户说恢复路线图后：阶段 2 剩下的 Tree（含 TreeSelect、TreeTransfer）、VirtualList 补齐，然后阶段 3 → 9；R.4 代码走查（单独提交）。
+1. ROADMAP 阶段 0（公开面收口、OtpField 用输入框配方、全部页面对照、代码走查），然后阶段 1（Tree 一组、VirtualList 补齐）→ 8。
+2. vue 那边发 0.11.0 后会通知：CI 改为固定到 vue master 的发版提交；之后每批改动照“自主执行的规矩”跟进。
 
 ## 移植时的约定（踩过的坑）
 
