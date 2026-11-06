@@ -97,6 +97,10 @@
 //   data-rune-affix="top|bottom" 固钉（Affix，CSS sticky）：前面（贴底时后面）零高度的哨兵（data-rune-affix-sentinel）滚出去就写 data-stuck；
 //                            data-target 是 sticky 相对的滚动容器的 id；data-rune-affix-report 时贴住、离开发出 rune-command（stick / unstick）
 //   data-rune-back-top="400" 回到顶部（BackTop）：滚过这么多 px 写 data-shown、去掉 aria-hidden；点了平滑滚回顶部、焦点回到开头（data-target 是滚动容器）
+//   data-rune-ellipsis-text  截断的文字（Ellipsis）：内容超出了就在外层（data-rune-ellipsis）写 data-truncated；外层是 "tooltip" 时截断的文字可聚焦，
+//                            它上面的提示（data-rune-tooltip）只在截断时弹出；展开着（data-expanded）时不量
+//   data-rune-marquee="40"  跑马灯（Marquee）：一份内容（data-rune-marquee-group）的长度除以速度（px/s）写成 --rune-marquee-duration，内容变了重新量；
+//                            减少动态效果时容器可以聚焦（不滚动，手动滚动查看）
 //   data-rune-viewport-fill  占满到窗口底边的区域（ViewportFill）：量出自己的顶边写成 --rune-fill-top，窗口与文档尺寸变化时重新量
 //   data-rune-grid-span="n"  网格里跨 n 列的项：网格实际的列比 n 少时（按宽度自动换列的网格变窄）改成跨当前的列数
 //   data-rune-control        输入框的外壳：点在空白处（内边距、图标、前后缀）时聚焦里面的输入元素；
@@ -129,7 +133,7 @@
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框）、menus（菜单的键盘、子菜单、右键菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
-// leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、tween（会滚动的数字）、affix（固钉与回到顶部）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格、尺寸观察、占满到窗口底边）、shared（共用的小工具）。
+// leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、tween（会滚动的数字）、affix（固钉与回到顶部）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格、尺寸观察、占满到窗口底边、截断的文字、跑马灯的时长）、shared（共用的小工具）。
 
 import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawCheckOnChange, drawIcon, startDismiss, startRipple } from './js/effects.js';
@@ -139,7 +143,7 @@ import { clickCascader, keyCascader, onCascaderFocusIn } from './js/cascader.js'
 import { keyMentions, onMentionsClick, onMentionsCompositionEnd, onMentionsFocusOut, onMentionsInput, onMentionsKeyUp, pickMention } from './js/mentions.js';
 import { releasePointer, trackPointer } from './js/pointer.js';
 import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, onToasterFocusOut } from './js/toast.js';
-import { watchGrid, watchSize, watchViewportFill } from './js/layout.js';
+import { watchEllipsis, watchGrid, watchMarquee, watchSize, watchViewportFill } from './js/layout.js';
 import { onTweenValueChanged, watchTween } from './js/tween.js';
 import { clickBackTop, watchAffix, watchBackTop } from './js/affix.js';
 import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
@@ -328,6 +332,8 @@ const watched = [
   ['[data-rune-viewport-fill]', watchViewportFill],
   ['[data-rune-affix]', watchAffix],
   ['[data-rune-back-top]', watchBackTop],
+  ['[data-rune-ellipsis-text]', watchEllipsis],
+  ['[data-rune-marquee]', watchMarquee],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 

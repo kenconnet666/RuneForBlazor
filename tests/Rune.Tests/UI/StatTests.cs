@@ -125,4 +125,48 @@ public class StatTests : BunitContext
         Assert.Equal("收益", cut.Find("aside").GetAttribute("aria-label"));
         Assert.Contains("--rune-aside-width:18rem", cut.Markup.Replace(" ", ""));
     }
+
+    [Fact]
+    public void 比例条_读屏名称带各段数量_零的段不画但留在图例里()
+    {
+        ProportionSegment[] segments = [new("a", "已完成", 25) { Tone = Tone.Success }, new("b", "受阻", 0), new("c", "进行中", 35) { Color = "#3e63dd" }];
+        var cut = Render<ProportionBar>(p => p.Add(x => x.Label, "工单构成").Add(x => x.Segments, segments).Add(x => x.ValueText, s => $"{s.Value} 项"));
+        Assert.Equal("工单构成：已完成 25 项，受阻 0 项，进行中 35 项", cut.Find("[role=img]").GetAttribute("aria-label"));
+        Assert.Equal(2, cut.FindAll("[role=img] > span").Count);
+        Assert.Equal(3, cut.FindAll("li").Count);
+        Assert.Contains("--rune-status-dot-color:#3e63dd", cut.FindAll("[role=img] > span")[1].GetAttribute("style")!.Replace(" ", ""));
+    }
+
+    [Fact]
+    public void 截断文字_提示不再当说明念_展开按钮带aria_expanded()
+    {
+        var cut = Render<Ellipsis>(p => p.AddChildContent("很长的供应商名称"));
+        var text = cut.Find("[data-rune-ellipsis-text]");
+        Assert.True(text.HasAttribute("data-rune-tooltip"));
+        Assert.False(text.HasAttribute("aria-describedby"));
+        Assert.Equal("tooltip", cut.Find("[data-rune-ellipsis]").GetAttribute("data-rune-ellipsis"));
+
+        var expandable = Render<Ellipsis>(p => p.Add(x => x.Lines, 2).Add(x => x.Expandable, true).AddChildContent("很长的描述"));
+        Assert.False(expandable.Find("[data-rune-ellipsis-text]").HasAttribute("data-rune-tooltip"));
+        var toggle = expandable.Find("button");
+        Assert.Equal("false", toggle.GetAttribute("aria-expanded"));
+        toggle.Click();
+        Assert.Equal("true", expandable.Find("button").GetAttribute("aria-expanded"));
+        Assert.True(expandable.Find("[data-rune-ellipsis]").HasAttribute("data-expanded"));
+        Assert.Equal("收起", expandable.Find("button").TextContent);
+    }
+
+    [Fact]
+    public void 跑马灯_复制的那份对读屏隐藏且不可聚焦_速度与方向交给JS()
+    {
+        var cut = Render<Marquee>(p => p.Add(x => x.Direction, MarqueeDirection.Up).Add(x => x.Speed, 20).Add(x => x.Paused, true).AddChildContent("<span>公告</span>"));
+        var root = cut.Find("[role=marquee]");
+        Assert.Equal("20", root.GetAttribute("data-rune-marquee"));
+        Assert.Equal("up", root.GetAttribute("data-direction"));
+        Assert.True(root.HasAttribute("data-paused"));
+        var groups = root.FirstElementChild!.Children;
+        Assert.True(groups[0].HasAttribute("data-rune-marquee-group"));
+        Assert.Equal("true", groups[1].GetAttribute("aria-hidden"));
+        Assert.True(groups[1].HasAttribute("inert"));
+    }
 }

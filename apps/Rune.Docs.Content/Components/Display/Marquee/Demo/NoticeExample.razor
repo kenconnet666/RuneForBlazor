@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Sm">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+        <Icon Data="Lucide.Megaphone" Tone="TextTone.Accent" />
+        <Marquee Direction="MarqueeDirection.Up" Speed="20" Gap="SpaceScale.Sm" Paused="paused" aria-label="公告" Sx="Notice">
+            @foreach (var notice in notices)
+            {
+                <TextSpan @key="notice">@notice</TextSpan>
+            }
+        </Marquee>
+        <IconButton Icon="@(paused ? Lucide.Play : Lucide.Pause)" Label="@(paused ? "继续滚动" : "暂停滚动")" @onclick="() => paused = !paused" />
+    </Flex>
+</Card>
+
+@code {
+    static readonly string[] notices =
+    [
+        "10 月 25 日 02:00–04:00 系统维护，期间暂停下单",
+        "双十一预售今晚 20:00 开始，定金立减 50 元",
+        "新增顺丰次日达，覆盖 120 个城市",
+        "客服热线工作时间调整为 8:00–22:00",
+    ];
+
+    bool paused;
+
+    static Style Notice => Css.Define(static () => new Style { FlexGrow = 1, Height = CssLength.Em(1.5) });
+}

@@ -1,0 +1,24 @@
+@page "/components/ellipsis"
+@attribute [DocMeta("Ellipsis 截断文字", "超出一行或几行时省略：真的被截断了才给出看全文的办法（悬停、聚焦时的提示，或展开按钮），没截断时就是普通文字。", DocCategory.Display, Order = 16)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Ellipsis.Demo
+
+<DocPage Meta="Meta">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="tooltip" Title="截断时才有提示" Demo="typeof(SuppliersExample)">
+                是否截断由 JS 的 ResizeObserver 量出，宽度、内容变了重新量（拖动滑块试试）。截断时文字能用 Tab 聚焦，悬停或聚焦显示全文（Tooltip）；
+                没截断时就是普通文字，不多一个 Tab 停留。这些都在浏览器里决定，没有往返。只要省略、不需要看全文时用 Text 的
+                <Code>Truncate</Code> / <Code>LineClamp</Code>。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="expand" Title="多行与展开" Demo="typeof(ExpandExample)">
+                <Code>Lines</Code> 是最多几行，<Code>Expandable</Code> 在截断时后面放“展开”，展开后显示全部、按钮换成“收起”（aria-expanded）；
+                写了 Expandable 时默认不再给提示。<Code>@@bind-Expanded</Code> 可以双向绑定，<Code>TooltipContent</Code> 换提示的内容，
+                <Code>Tooltip="false"</Code> 关掉。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Ellipsis)]" />
+</DocPage>

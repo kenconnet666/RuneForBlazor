@@ -1,0 +1,13 @@
+@page "/components/proportion-bar"
+@attribute [DocMeta("ProportionBar 比例条", "一根横条按各部分的数量分段，下面是图例：看一个总数由哪几块构成（工单的三种状态、存储空间）。", DocCategory.Display, Order = 15)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.ProportionBar.Demo
+
+<DocPage Meta="Meta">
+    <Example Id="pool" Title="构成" Demo="typeof(PoolExample)">
+        <Code>Segments</Code> 互斥、加起来是总数；颜色用 <Code>Tone</Code>（状态色）或 <Code>Color</Code>（任意颜色）。横条对读屏是一张图，
+        名称（<Code>Label</Code>）后面自动带上各段的数量；图例是普通文字，<Code>ValueText</Code> 改数量的写法，<Code>LegendExtra</Code> 在图例项后面补一句。
+        数量为 0 的段不画但留在图例里。要比较趋势、多个总数时用图表。
+    </Example>
+    <ApiReference Types="[typeof(ProportionBar), typeof(ProportionSegment)]" />
+</DocPage>

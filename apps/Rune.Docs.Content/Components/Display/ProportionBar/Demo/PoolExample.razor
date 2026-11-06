@@ -1,0 +1,30 @@
+@* 工单的三种状态：互斥、加起来是总数；图例后面可以补一句（“等外部回复”） *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <ProportionBar Label="工单构成" Segments="tickets" ValueText="@(s => $"{s.Value} 项")">
+        <LegendExtra>
+            @if (context.Key == "blocked")
+            {
+                <Small Tone="TextTone.Muted">等外部回复</Small>
+            }
+        </LegendExtra>
+    </ProportionBar>
+    <ProportionBar Label="存储空间" Size="Size.Sm" Segments="storage" ValueText="@(s => $"{s.Value} GB")" />
+</Flex>
+
+@code {
+    static readonly ProportionSegment[] tickets =
+    [
+        new("done", "已完成", 25) { Tone = Tone.Success },
+        new("blocked", "受阻", 4) { Tone = Tone.Warning },
+        new("open", "进行中", 35) { Tone = Tone.Info },
+    ];
+
+    static readonly ProportionSegment[] storage =
+    [
+        new("docs", "文档", 42) { Color = "#3e63dd" },
+        new("images", "图片", 28) { Color = "#12a594" },
+        new("free", "剩余", 30) { Tone = Tone.Neutral },
+    ];
+}

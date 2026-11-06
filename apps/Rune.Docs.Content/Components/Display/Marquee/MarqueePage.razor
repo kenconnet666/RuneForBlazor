@@ -1,0 +1,22 @@
+@page "/components/marquee"
+@attribute [DocMeta("Marquee 跑马灯", "内容无缝循环滚动（合作伙伴、标签墙、公告）：纯 CSS 动画，四个方向，悬停暂停，减少动态效果时不滚动。", DocCategory.Display, Order = 18)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Marquee.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="partners" Title="合作伙伴与标签墙" Demo="typeof(PartnersExample)">
+                内容复制一份接在后面，平移一份的长度时正好与开头重合。<Code>Speed</Code> 是每秒多少像素，内容多少都一样快（JS 量出一份的长度换算成动画时长）；
+                <Code>Fade</Code> 两端渐隐；指针悬停、焦点在里面时暂停（<Code>PauseOnHover</Code> 默认开）。复制的那份对读屏隐藏，读屏只念一遍。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="notice" Title="竖向公告" Demo="typeof(NoticeExample)">
+                <Code>Direction="MarqueeDirection.Up"</Code> 竖向滚动，高度由 <Code>Sx</Code> 给。会一直动的内容要给用户暂停的办法（WCAG 2.2.2）：
+                <Code>Paused</Code> 由外部的按钮控制。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Marquee)]" />
+</DocPage>

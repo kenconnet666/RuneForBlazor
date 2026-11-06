@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Marquee Fade="true" Gap="SpaceScale.Xl" aria-label="合作伙伴">
+        @foreach (var (icon, name) in partners)
+        {
+            <Flex @key="name" Align="ItemAlign.Center" Gap="SpaceScale.Sm" Sx="Partner">
+                <Icon Data="icon" />
+                <TextSpan Weight="Weight.Semibold">@name</TextSpan>
+            </Flex>
+        }
+    </Marquee>
+    <Marquee Fade="true" Direction="MarqueeDirection.Right" Speed="25" Gap="SpaceScale.Sm" aria-label="特性">
+        @foreach (var tag in tags)
+        {
+            <Badge @key="tag" Variant="StatusVariant.Soft" Radius="Radius.Full">@tag</Badge>
+        }
+    </Marquee>
+</Flex>
+
+@code {
+    static readonly (IconData Icon, string Name)[] partners =
+    [
+        (Lucide.Cloud, "云杉科技"), (Lucide.Rocket, "星舰物流"), (Lucide.Leaf, "青禾农业"), (Lucide.Mountain, "远山户外"),
+        (Lucide.WavesHorizontal, "潮汐传媒"), (Lucide.Zap, "闪电支付"), (Lucide.Gem, "晶石珠宝"), (Lucide.Coffee, "拾光咖啡"),
+    ];
+
+    static readonly string[] tags = ["组件库", "主题定制", "无障碍", "虚拟滚动", "强类型样式", "Razor", "日期组件", "3D 效果", "表单校验", "图表"];
+
+    static Style Partner => Css.Define(static () => new Style { Color = Colors.TextMuted, FontSize = FontSizes.Lg, WhiteSpace = WhiteSpace.Nowrap });
+}

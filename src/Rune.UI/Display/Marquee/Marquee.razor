@@ -1,0 +1,50 @@
+@*
+    跑马灯（div，同 vue-tsx-pro 的 Marquee）：内容循环滚动（合作伙伴 logo、公告、标签墙）。纯 CSS 动画：内容复制一份接在后面，
+    平移到正好一份的长度时与开头重合，无缝循环。
+    <Marquee Speed="40" aria-label="合作伙伴">@foreach (var p in partners) { <img src="@p.Logo" alt="@p.Name" /> }</Marquee>
+    - 方向 Left / Right / Up / Down；Speed 是每秒多少 px：JS（data-rune-marquee）量出一份内容的长度换算成动画时长，内容变化时重新量；
+    - 指针悬停、焦点在里面时暂停（PauseOnHover）；Paused 由外部控制（WCAG 2.2.2：给用户一个暂停按钮）；
+    - 减少动态效果时不滚动，内容可以手动滚动查看（JS 让容器可以聚焦，键盘也能滚）；
+    - role="marquee"（用 aria-label 命名）；复制的那份对读屏隐藏且不可聚焦（inert），读屏只念一遍。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div role="marquee" data-rune-marquee="@Speed" data-direction="@Direction.ToString().ToLowerInvariant()" data-paused="@(Paused ? "" : null)"
+     @attributes="Attrs.Merge(MarqueeStyles.Root(vertical, Fade), Rest)">
+    <div @attributes="Attrs.Merge(MarqueeStyles.Track(Direction, PauseOnHover, Paused), PropsTrack)">
+        <div data-rune-marquee-group @attributes="Attrs.Merge(MarqueeStyles.Group(vertical, Gap, copy: false), PropsGroup)">@ChildContent</div>
+        <div aria-hidden="true" inert @attributes="Attrs.Merge(MarqueeStyles.Group(vertical, Gap, copy: true), PropsGroup)">@ChildContent</div>
+    </div>
+</div>
+
+@code {
+    bool vertical => MarqueeStyles.Vertical(Direction);
+
+    /// <summary>滚动方向，默认 Left。</summary>
+    [Parameter] public MarqueeDirection Direction { get; set; }
+
+    /// <summary>速度：每秒多少 px，默认 40。</summary>
+    [Parameter] public int Speed { get; set; } = 40;
+
+    /// <summary>指针悬停、焦点在里面时暂停，默认开。</summary>
+    [Parameter] public bool PauseOnHover { get; set; } = true;
+
+    /// <summary>暂停。</summary>
+    [Parameter] public bool Paused { get; set; }
+
+    /// <summary>两端渐隐。</summary>
+    [Parameter] public bool Fade { get; set; }
+
+    /// <summary>项之间（以及两份之间）的间距，默认 Lg。</summary>
+    [Parameter] public SpaceScale Gap { get; set; } = SpaceScale.Lg;
+
+    /// <summary>做动画的那一层的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrack { get; set; }
+
+    /// <summary>每一份内容的部件属性。</summary>
+    [Parameter] public Attrs? PropsGroup { get; set; }
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

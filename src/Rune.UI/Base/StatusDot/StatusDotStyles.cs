@@ -36,10 +36,11 @@ public static class StatusDotStyles
 
     static Style Md => Css.Define(static () => new Style { Width = CssLength.Rem(0.625), Height = CssLength.Rem(0.625) });
 
-    static Style ToneColor(Tone tone) => Css.Define(tone, static tone => new Style
+    // 比例条（ProportionBar）的色段与色点同色
+    internal static Style ToneColor(Tone tone) => Css.Define(tone, static tone => new Style
     {
         BackgroundColor = tone == Tone.Neutral ? Colors.TextMuted : Tones.Of(tone).Solid,
     });
 
-    static Style Custom => Css.Define(static () => new Style { BackgroundColor = CustomColor });
+    internal static Style Custom => Css.Define(static () => new Style { BackgroundColor = CustomColor });
 }

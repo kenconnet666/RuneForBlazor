@@ -1,0 +1,70 @@
+@*
+    截断的文字（span，同 vue-tsx-pro 的 Ellipsis）：超出一行（或 Lines 行）时省略，真的被截断了才给出看全文的办法——悬停或聚焦时的提示，或展开按钮。
+    表格里的长名称、卡片里的描述、列表里的备注。
+    <Ellipsis>杭州远山精密机械有限公司（萧山二厂）</Ellipsis>             一行，截断时悬停看全文
+    <Ellipsis Lines="3" Expandable="true">@description</Ellipsis>       三行，截断时后面有“展开”
+    是否截断由 JS 量（data-rune-ellipsis-text 上的 ResizeObserver，写 data-truncated），没截断时就是普通文字：不能聚焦、不弹提示、没有按钮；
+    这些都在浏览器里按 data-truncated 决定，没有往返。截断时文字能用 Tab 聚焦（键盘用户也能看全文），提示的内容默认是正文，
+    TooltipContent 可以换成别的；Expandable 时展开后显示全部，再点“收起”（可以 @bind-Expanded）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<span data-rune-ellipsis="@(TooltipShown ? "tooltip" : "")" data-expanded="@(expanded.Value ? "" : null)"
+      @attributes="Attrs.Merge(Lines > 1 ? EllipsisStyles.MultilineRoot : EllipsisStyles.Root, Rest)">
+    @if (TooltipShown && !expanded.Value)
+    {
+        <Tooltip>
+            @* 全文本来就在页面里：提示只是给看的，不再当作说明（aria-describedby）念一遍 *@
+            <Trigger Context="t">@Body(t.Without("aria-describedby"))</Trigger>
+            <ChildContent>@(TooltipContent ?? ChildContent)</ChildContent>
+        </Tooltip>
+    }
+    else
+    {
+        @Body(null)
+    }
+    @if (Expandable)
+    {
+        <button type="button" aria-expanded="@(expanded.Value ? "true" : "false")" @onclick="() => expanded.SetAsync(!expanded.Value)"
+                @attributes="Attrs.Merge(expanded.Value ? EllipsisStyles.Toggle : EllipsisStyles.ToggleWhenTruncated, PropsToggle)">
+            @(expanded.Value ? Config.Lang.EllipsisCollapse : Config.Lang.EllipsisExpand)
+        </button>
+    }
+</span>
+
+@code {
+    Bindable<bool> expanded { get => field ??= new(this, () => Expanded, () => ExpandedChanged); }
+
+    /// <summary>最多几行，默认 1。</summary>
+    [Parameter] public int Lines { get; set; } = 1;
+
+    /// <summary>截断时后面放“展开”按钮，展开后显示全部。</summary>
+    [Parameter] public bool Expandable { get; set; }
+
+    /// <summary>是否展开（可绑定）。</summary>
+    [Parameter] public bool Expanded { get; set; }
+
+    /// <summary>展开、收起时。</summary>
+    [Parameter] public EventCallback<bool> ExpandedChanged { get; set; }
+
+    /// <summary>截断时悬停、聚焦显示提示；默认在不可展开时显示。</summary>
+    [Parameter] public bool? Tooltip { get; set; }
+
+    /// <summary>提示的内容，默认是正文。</summary>
+    [Parameter] public RenderFragment? TooltipContent { get; set; }
+
+    /// <summary>截断的那段文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsText { get; set; }
+
+    /// <summary>展开按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsToggle { get; set; }
+
+    /// <summary>文字。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    bool TooltipShown => Tooltip ?? (TooltipContent is not null || !Expandable);
+
+    RenderFragment Body(Attrs? trigger) =>
+        @<span data-rune-ellipsis-text @attributes="Attrs.Merge(EllipsisStyles.Text(expanded.Value ? 0 : Lines), PropsText, trigger)">@ChildContent</span>;
+}

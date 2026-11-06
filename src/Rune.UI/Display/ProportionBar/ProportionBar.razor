@@ -1,0 +1,62 @@
+@*
+    比例条（div，同 vue-tsx-pro 的 ProportionBar）：一根横条按各部分的数量分段，下面是图例（色点、名称、数量），
+    看一个总数由哪几块构成（工单的三种状态、各状态的占比、存储空间）。部分之间互斥、加起来是总数时用它；要比较趋势用图表。
+    <ProportionBar Label="工单构成" Segments="segments" ValueText="s => $"{s.Value} 项"" />
+    横条对读屏是一张图（role="img"），名称后面自动带上各段的数量；图例是普通文字。
+    数量为 0 的段不画但留在图例里。颜色用 Tone（状态色）或 Color（任意 CSS 颜色，如图表色板）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(ProportionBarStyles.Root, Rest)">
+    <div role="img" aria-label="@AriaLabel" @attributes="Size == UI.Size.Sm ? ProportionBarStyles.BarSm : ProportionBarStyles.BarMd">
+        @for (var i = 0; i < Segments.Count; i++)
+        {
+            var segment = Segments[i];
+            if (segment.Value <= 0) continue;
+            <span @key="segment.Key" @attributes="ProportionBarStyles.Segment(ToneOf(segment, i), segment.Color, segment.Value)"></span>
+        }
+    </div>
+    @if (Legend)
+    {
+        <ul @attributes="ProportionBarStyles.Legend">
+            @for (var i = 0; i < Segments.Count; i++)
+            {
+                var segment = Segments[i];
+                <li @key="segment.Key" @attributes="ProportionBarStyles.LegendItem">
+                    <StatusDot Size="StatusDotSize.Md" Tone="ToneOf(segment, i)" Color="segment.Color" />
+                    <span>@segment.Label</span>
+                    <span @attributes="ProportionBarStyles.Value">@(ValueText?.Invoke(segment) ?? LangFormat.Number(segment.Value, NumberFormat.Default, Config.Lang))</span>
+                    @LegendExtra?.Invoke(segment)
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    // 没写色调时按顺序取
+    static readonly Tone[] Order = [UI.Tone.Accent, UI.Tone.Info, UI.Tone.Success, UI.Tone.Warning, UI.Tone.Danger, UI.Tone.Neutral];
+
+    /// <summary>各段，按顺序从起始边排。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ProportionSegment> Segments { get; set; } = [];
+
+    /// <summary>横条的名称（读屏）：后面自动带上各段的数量。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>图例里数量的写法，默认按语言格式化的数字。</summary>
+    [Parameter] public Func<ProportionSegment, string>? ValueText { get; set; }
+
+    /// <summary>下面的图例，默认显示。</summary>
+    [Parameter] public bool Legend { get; set; } = true;
+
+    /// <summary>横条的粗细：Sm 细一些，其余是默认的 Md。</summary>
+    [Parameter] public Size Size { get; set; } = UI.Size.Md;
+
+    /// <summary>图例每一项后面的补充（“待定价”）。</summary>
+    [Parameter] public RenderFragment<ProportionSegment>? LegendExtra { get; set; }
+
+    string AriaLabel => $"{Label}：{string.Join("，", Segments.Select(s => $"{s.Label} {ValueText?.Invoke(s) ?? LangFormat.Number(s.Value, NumberFormat.Default, Config.Lang)}"))}";
+
+    static Tone ToneOf(ProportionSegment segment, int index) => segment.Tone ?? Order[index % Order.Length];
+}

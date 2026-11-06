@@ -21,6 +21,8 @@ function groupOf(panel) {
 
 /** 触发元素对应的浮层。 */
 export function hoverPanelOf(trigger) {
+  // 截断的文字（Ellipsis）：真的截断了才弹出全文
+  if (trigger.hasAttribute('data-rune-ellipsis-text') && !trigger.closest('[data-truncated]')) return null;
   const id = trigger.getAttribute('data-rune-tooltip') ?? trigger.getAttribute('data-rune-hovercard');
   return id ? document.getElementById(id) : null;
 }

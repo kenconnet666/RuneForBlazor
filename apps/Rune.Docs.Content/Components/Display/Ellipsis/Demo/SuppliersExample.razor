@@ -1,0 +1,32 @@
+@* 列表里的长名称：拖动滑块改宽度，真的截断了的名称才能悬停、聚焦看全文 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="@($"列表宽度：{width}rem")">
+        <Slider TValue="int" @bind-Value="width" Min="10" Max="30" />
+    </Field>
+    <Card Padding="SpaceScale.Sm" style="@($"width: {width}rem; max-width: 100%")">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            @foreach (var supplier in suppliers)
+            {
+                <Flex @key="supplier.Name" Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <Badge Size="Size.Xs" Variant="StatusVariant.Soft" Tone="@(supplier.Grade == "A" ? Tone.Success : Tone.Neutral)">@supplier.Grade</Badge>
+                    <Ellipsis>@supplier.Name</Ellipsis>
+                    <Small Tone="TextTone.Muted" style="margin-inline-start: auto; flex-shrink: 0">@supplier.City</Small>
+                </Flex>
+            }
+        </Flex>
+    </Card>
+</Flex>
+
+@code {
+    static readonly (string Name, string City, string Grade)[] suppliers =
+    [
+        ("杭州远山精密机械有限公司（萧山二厂）", "杭州", "A"),
+        ("宁波海川液压件有限公司", "宁波", "A"),
+        ("苏州明德电子科技有限公司 · 华东区域服务中心", "苏州", "B"),
+        ("无锡恒通", "无锡", "C"),
+    ];
+
+    int width = 18;
+}
