@@ -6,6 +6,8 @@
 //   - 键盘：空格 / Enter 拿起、放下，方向键（竖排 ↑↓，横排 ←→，跟随 RTL）移一位、Home / End 到两端，每一步发 rune-reorder；
 //     Esc 回到拿起时的位置；焦点离开时就地放下。元素被 Blazor 移动后焦点放回把手上。
 //   - 读屏：每一步念一句（data-texts 是语言包的句子，{label} 与 900001、900002 换成名称、位置、总数）。
+// "grid" 是换行排列的一组同样大小的格子（Upload 的图片墙）：被拖的项横竖都跟着指针，落点是离它最近的格子，其余项挪到相邻的格子；
+// 键盘 ← / → 移一格（跟随 RTL），↑ / ↓ 移一行。
 
 import { speak } from './shared.js';
 import { startMove } from './move.js';
@@ -23,6 +25,13 @@ const itemByKey = (list, key) => itemsOf(list).find((item) => keyOf(item) === ke
 const handleOf = (item) => item?.querySelector('[data-rune-sortable-handle]') ?? null;
 const labelOf = (item) => item.dataset.label ?? keyOf(item);
 const horizontalOf = (list) => list.dataset.runeSortable === 'horizontal';
+const gridOf = (list) => list.dataset.runeSortable === 'grid';
+
+/** 网格一行几格：与第一格同一行（顶边相同）的有几个 */
+function columnsOf(items) {
+  const top = items[0]?.getBoundingClientRect().top;
+  return Math.max(1, items.filter((item) => Math.abs(item.getBoundingClientRect().top - top) < 1).length);
+}
 
 function say(list, name, item, index, total) {
   const template = JSON.parse(list.dataset.texts || '{}')[name];
@@ -149,10 +158,15 @@ export function keySortable(event) {
     return true;
   }
   const rtl = getComputedStyle(list).direction === 'rtl';
-  const forward = horizontalOf(list) ? (rtl ? 'ArrowLeft' : 'ArrowRight') : 'ArrowDown';
-  const backward = horizontalOf(list) ? (rtl ? 'ArrowRight' : 'ArrowLeft') : 'ArrowUp';
+  const grid = gridOf(list);
+  const inline = horizontalOf(list) || grid;
+  const forward = inline ? (rtl ? 'ArrowLeft' : 'ArrowRight') : 'ArrowDown';
+  const backward = inline ? (rtl ? 'ArrowRight' : 'ArrowLeft') : 'ArrowUp';
+  const row = grid ? columnsOf(itemsOf(list)) : 0;
   const to = event.key === forward ? from + 1
     : event.key === backward ? from - 1
+    : grid && event.key === 'ArrowDown' ? Math.min(from + row, order.length - 1)
+    : grid && event.key === 'ArrowUp' ? Math.max(from - row, 0)
     : event.key === 'Home' ? 0
     : event.key === 'End' ? order.length - 1
     : null;
@@ -182,48 +196,73 @@ export function grabSortable(event) {
   const list = item?.parentElement;
   if (!list?.matches('[data-rune-sortable]') || handle.matches(':disabled') || list.hasAttribute('data-disabled') || dragging.has(list)) return;
   const horizontal = horizontalOf(list);
+  const grid = gridOf(list);
   const rtl = horizontal && getComputedStyle(list).direction === 'rtl';
   const items = itemsOf(list);
   const keys = items.map(keyOf);
   const key = keyOf(item);
   const from = keys.indexOf(key);
   const scroller = scrollParent(list);
-  const scrollOf = () => (horizontal ? scroller.scrollLeft : scroller.scrollTop);
-  const startScroll = scrollOf();
-  // 按下时各项在轴上的起止（内容坐标）：判断越过了谁的中线、让位多少
-  const spans = items.map((element) => {
+  const start = { x: scroller.scrollLeft, y: scroller.scrollTop };
+  // 按下以来滚了多少：内容坐标 = 视口坐标 + 滚动
+  const scrolled = () => ({ x: scroller.scrollLeft - start.x, y: scroller.scrollTop - start.y });
+  // 按下时各项的位置（内容坐标）：判断越过了谁、让位多少
+  const rects = items.map((element) => {
     const rect = element.getBoundingClientRect();
-    return horizontal ? { start: rect.left + startScroll, end: rect.right + startScroll } : { start: rect.top + startScroll, end: rect.bottom + startScroll };
+    return { left: rect.left + start.x, top: rect.top + start.y, right: rect.right + start.x, bottom: rect.bottom + start.y };
   });
+  const spans = rects.map((rect) => (horizontal ? { start: rect.left, end: rect.right } : { start: rect.top, end: rect.bottom }));
   const gap = spans.length > 1 ? Math.abs(spans[1].start - spans[0].end) : 0;
   const size = spans[from].end - spans[from].start + gap;
   const center = (span) => (span.start + span.end) / 2;
+  const middle = (rect) => ({ x: (rect.left + rect.right) / 2, y: (rect.top + rect.bottom) / 2 });
+  const translate = (element, x, y) => (element.style.transform = x || y ? `translate(${x}px, ${y}px)` : '');
   let started = false;
-  let delta = 0;
+  let delta = { x: 0, y: 0 };
   let to = from;
   let pointer = { x: event.clientX, y: event.clientY };
   let frame = 0;
   event.preventDefault();
 
-  // 落点：沿书写方向排在被拖的项前面的项有几个（RTL 横排时“前面”在右边）
+  // 被拖的项现在的位移：单列只沿轴移动，网格横竖都跟着指针
+  const offset = () => {
+    const scroll = scrolled();
+    const x = delta.x + scroll.x;
+    const y = delta.y + scroll.y;
+    return grid ? { x, y } : horizontal ? { x, y: 0 } : { x: 0, y };
+  };
+
+  // 落点。单列：沿书写方向排在被拖的项前面的项有几个（RTL 横排时“前面”在右边）；网格：离被拖的项最近的格子
   const targetIndex = () => {
-    const moving = center(spans[from]) + delta + (scrollOf() - startScroll);
+    const moved = offset();
+    if (grid) {
+      const origin = middle(rects[from]);
+      const at = { x: origin.x + moved.x, y: origin.y + moved.y };
+      const distances = rects.map((rect) => Math.hypot(middle(rect).x - at.x, middle(rect).y - at.y));
+      return distances.indexOf(Math.min(...distances));
+    }
+    const moving = center(spans[from]) + (horizontal ? moved.x : moved.y);
     return keys.filter((other, index) => index !== from && (rtl ? center(spans[index]) > moving : center(spans[index]) < moving)).length;
   };
 
-  // 其余项让位：落点与原位之间的项朝原位那边挪一个被拖项的长度
+  // 其余项让位：落点与原位之间的项朝原位那边挪。单列挪一个被拖项的长度，网格挪到相邻的格子
   const shift = () => {
     items.forEach((element, index) => {
       if (index === from) return;
-      const offset = from < to && index > from && index <= to ? -size : to < from && index >= to && index < from ? size : 0;
-      const along = rtl ? -offset : offset;
-      element.style.transform = along ? (horizontal ? `translateX(${along}px)` : `translateY(${along}px)`) : '';
+      const step = from < to && index > from && index <= to ? -1 : to < from && index >= to && index < from ? 1 : 0;
+      if (grid) {
+        const slot = rects[index + step];
+        translate(element, slot.left - rects[index].left, slot.top - rects[index].top);
+        return;
+      }
+      const distance = (rtl ? -step : step) * size;
+      translate(element, horizontal ? distance : 0, horizontal ? 0 : distance);
     });
   };
 
   const follow = () => {
-    const along = delta + (scrollOf() - startScroll);
-    item.style.transform = horizontal ? `translateX(${along}px)` : `translateY(${along}px)`;
+    const moved = offset();
+    translate(item, moved.x, moved.y);
   };
 
   const autoScroll = () => {
@@ -239,15 +278,15 @@ export function grabSortable(event) {
     // 项会因为位移移动：捕获放在不动的列表上
     target: list,
     onMove: ({ deltaX, deltaY, clientX, clientY }) => {
-      const along = horizontal ? deltaX : deltaY;
+      const distance = grid ? Math.hypot(deltaX, deltaY) : Math.abs(horizontal ? deltaX : deltaY);
       if (!started) {
-        if (Math.abs(along) < THRESHOLD) return;
+        if (distance < THRESHOLD) return;
         started = true;
         dragging.add(list);
         item.setAttribute('data-dragging', '');
         say(list, 'grabbed', item, from, keys.length);
       }
-      delta = along;
+      delta = { x: deltaX, y: deltaY };
       pointer = { x: clientX, y: clientY };
       follow();
       to = targetIndex();
@@ -267,10 +306,13 @@ export function grabSortable(event) {
         say(list, 'cancelled', item, from, keys.length);
         return;
       }
-      // 滑到落点：往后挪时尾部对齐落点那一项的尾部，往前挪时头部对齐它的头部
-      const landing = to > from ? spans[to].end - spans[from].end : spans[to].start - spans[from].start;
+      // 滑到落点：网格是落点那一格；单列往后挪时尾部对齐落点那一项的尾部，往前挪时头部对齐它的头部
       item.removeAttribute('data-dragging');
-      item.style.transform = horizontal ? `translateX(${landing}px)` : `translateY(${landing}px)`;
+      if (grid) translate(item, rects[to].left - rects[from].left, rects[to].top - rects[from].top);
+      else {
+        const landing = to > from ? spans[to].end - spans[from].end : spans[to].start - spans[from].start;
+        translate(item, horizontal ? landing : 0, horizontal ? 0 : landing);
+      }
       const next = moved(keys, key, to);
       requestOrder(list, next, (adopted) => {
         // 顺序跟上了：元素已经在新位置，去掉位移时不要过渡；没采纳：滑回原处

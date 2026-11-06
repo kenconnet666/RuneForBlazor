@@ -4,6 +4,7 @@
     <Image Src="/photos/1-thumb.jpg" Alt="支架正面" Width="160" Height="120" Preview="true" PreviewSrc="/photos/1.jpg" />
     加载状态由 JS 初始化器按图片的 load / error 写在图片的 data-state 上（同 Avatar），样式按它切换，没有往返，静态 SSR 也一样。
     可以预览的图片是按钮：名称“查看大图：Alt”；不在组里时它直接打开自己的 Lightbox（data-rune-open，静态 SSR 也能看大图）。
+    写了 OnPreview 时点击交给它（Upload 的图片墙按自己的顺序打开预览）。
     缩略图加载失败时按钮仍在：大图是另一个地址，可能还看得到。未声明的属性落到 img 上；外层用 PropsRoot。
 *@
 @namespace Rune.UI
@@ -15,7 +16,7 @@
             @attributes="Attrs.Merge(Attrs.Layer(ImageStyles.Root(Radius, button: true), SizeVars), PropsRoot, TriggerAttrs)">
         @Content
     </button>
-    @if (Group is null)
+    @if (OwnsLightbox)
     {
         <Lightbox Id="@lightboxId" Items="[Item]" @attributes="Attrs.MergeProps(null, PropsLightbox)" />
     }
@@ -32,7 +33,7 @@ else
     Memo<(CssLength? Width, CssLength? Height), Attrs> sizeVars;
     Memo<string, Attrs> imageManaged;
     Memo<string, Attrs> triggerAttrs;
-    Attrs? groupTrigger;
+    Attrs? clickTrigger;
 
     /// <summary>图片地址。</summary>
     [Parameter, EditorRequired] public string Src { get; set; } = "";
@@ -76,6 +77,9 @@ else
     /// <summary>加载失败的占位的部件属性。</summary>
     [Parameter] public Attrs? PropsFallback { get; set; }
 
+    /// <summary>点击预览时交给它，不打开 Lightbox（使用方自己打开，如按列表的顺序）。</summary>
+    [Parameter] public EventCallback OnPreview { get; set; }
+
     /// <summary>不在 ImageGroup 里时自己的预览（交给 Lightbox）的部件属性。</summary>
     [Parameter] public Attrs? PropsLightbox { get; set; }
 
@@ -94,10 +98,13 @@ else
         Vars = [.. Var(ImageStyles.WidthVar, k.Width), .. Var(ImageStyles.HeightVar, k.Height)],
     });
 
-    // 在组里：点击时组从这一张打开共用的预览；不在组里：点击由 JS 直接打开自己的 Lightbox
-    Attrs TriggerAttrs => Group is not null
-        ? groupTrigger ??= new Attrs { ["aria-haspopup"] = "dialog", ["onclick"] = EventCallback.Factory.Create(this, () => Group?.Open(this)) }
-        : triggerAttrs.Get(lightboxId, static id => new Attrs { ["data-rune-open"] = id, ["aria-haspopup"] = "dialog" });
+    // 自己的 Lightbox：不在组里、也没有接手预览的 OnPreview
+    bool OwnsLightbox => Group is null && !OnPreview.HasDelegate;
+
+    // 自己的 Lightbox 由 JS 直接打开；否则点击交给 OnPreview，或由组从这一张打开共用的预览
+    Attrs TriggerAttrs => OwnsLightbox
+        ? triggerAttrs.Get(lightboxId, static id => new Attrs { ["data-rune-open"] = id, ["aria-haspopup"] = "dialog" })
+        : clickTrigger ??= new Attrs { ["aria-haspopup"] = "dialog", ["onclick"] = EventCallback.Factory.Create(this, PreviewAsync) };
 
     Attrs ImageManaged => imageManaged.Get(Alt, static alt => new Attrs { ["alt"] = alt, ["data-rune-image"] = true });
 
@@ -120,7 +127,14 @@ else
 
     protected override void OnInitialized()
     {
-        if (Preview) Group?.Register(this);
+        if (Preview && !OnPreview.HasDelegate) Group?.Register(this);
+    }
+
+    Task PreviewAsync()
+    {
+        if (OnPreview.HasDelegate) return OnPreview.InvokeAsync();
+        Group?.Open(this);
+        return Task.CompletedTask;
     }
 
     protected override void OnDispose() => Group?.Release(this);

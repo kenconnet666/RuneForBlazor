@@ -82,8 +82,9 @@ const BUILT_IN = [
   'circle-minus',
   // Sortable 的把手
   'grip-vertical',
-  // Image 加载失败的占位，Lightbox 的工具栏
+  // Image 加载失败的占位，Upload 图片墙的“添加图片”，Lightbox 的工具栏
   'image-off',
+  'image-plus',
   'zoom-in',
   'zoom-out',
   'rotate-ccw',

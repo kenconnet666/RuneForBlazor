@@ -72,7 +72,7 @@
 //                            图片（data-rune-lightbox-image）加载好、打开、旋转后整张放进视口，比例写进 data-rune-lightbox-zoom
 //   data-rune-resize         宽度调整手柄（role="separator"）：拖动、方向键、双击回到 data-default，当场改父元素的宽（横向手柄是高），
 //                            结束时发出冒泡的 rune-resize（size）；没给宽度时按父元素量出 aria-valuenow
-//   data-rune-sortable="vertical|horizontal" 可拖动排序的列表（Sortable）：项（data-rune-sortable-item="key"）的把手（data-rune-sortable-handle）上拖动，
+//   data-rune-sortable="vertical|horizontal|grid" 可拖动排序的列表（Sortable；grid 是 Upload 的图片墙）：项（data-rune-sortable-item="key"）的把手（data-rune-sortable-handle）上拖动，
 //                            其余项用 transform 让位，松开发 rune-reorder（新的顺序），顺序跟上后去掉位移；空格拿起、方向键挪、Esc 取消，每一步发 rune-reorder；
 //                            data-texts 是读屏念的句子
 //   data-rune-splitter-handle 分栏（Splitter）的分隔条：拖动、方向键（5%）、Home / End、双击回到 data-default，当场改外层（data-rune-splitter）的
@@ -124,6 +124,9 @@
 //   data-rune-check-draw     复选框：用户点击勾上时把后面的对勾一笔画出（初次渲染、外部改值不画）
 //   data-rune-draw="true"    图标的描线动画：插入时为 true、或由 false 变为 true 时一笔画出（减少动态效果时直接画好）
 //   data-rune-file-drop      选文件的区域（FileDrop）：拖着文件经过时写 data-dragging；文件由盖满区域的原生 file input 接住
+//   data-rune-upload-previews="地址 …" Upload 的图片墙：选到的图片建本地地址（object URL），经 rune-command（file-previews）交给 C#；
+//                            属性值是还在用的地址，不再用的、组件不在了的收回
+//   data-rune-paste-files    粘贴文件（截图）：塞进里面 FileDrop 的 input 并发 change，同选文件
 //   data-rune-tween="lg"     会滚动的数字（AnimatedNumber）：data-value 变了时从显示中的值滚到新值（第一次出现时从 data-from），逐帧改文字节点，
 //                            停下时换回 C# 的终值；中间帧按 data-locale、data-format（Intl 的选项加 scale、suffix）格式化，时长取主题的这一档
 //   data-rune-dismiss        可移除元素（data-rune-dismissible，如标签）里的移除按钮：元素先离场（data-dismissing），
@@ -146,7 +149,7 @@
 
 import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawCheckOnChange, drawIcon, startDismiss, startRipple } from './js/effects.js';
-import { onFileDragEnter, onFileDragLeave, onFileDrop } from './js/files.js';
+import { createFilePreviews, onFileDragEnter, onFileDragLeave, onFileDrop, pasteFiles, releaseDetachedPreviews, releaseFilePreviews } from './js/files.js';
 import { guardLeave } from './js/leave.js';
 import { clickCascader, keyCascader, onCascaderFocusIn } from './js/cascader.js';
 import { keyMentions, onMentionsClick, onMentionsCompositionEnd, onMentionsFocusOut, onMentionsInput, onMentionsKeyUp, pickMention } from './js/mentions.js';
@@ -295,6 +298,9 @@ function install(blazor) {
     if (target instanceof Element && target.hasAttribute('data-rune-count')) updateCount(target);
   });
   document.addEventListener('paste', sendPasteCommand);
+  document.addEventListener('paste', pasteFiles);
+  // 图片墙选到的图片：赶在 InputFile 之前建本地地址
+  document.addEventListener('change', createFilePreviews, true);
   document.addEventListener('fullscreenchange', onFullscreenChange);
   document.addEventListener('focusin', onFocusIn);
   document.addEventListener('focusout', onFocusOut);
@@ -312,7 +318,7 @@ function install(blazor) {
     childList: true,
     attributes: true,
     attributeOldValue: true,
-    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query', 'aria-busy', 'data-rune-fullscreen', 'data-rune-invalid-submit', 'data-value', 'data-rune-watermark'],
+    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query', 'aria-busy', 'data-rune-fullscreen', 'data-rune-invalid-submit', 'data-value', 'data-rune-watermark', 'data-rune-upload-previews'],
   });
   syncWithin(document);
   // 装好了：端到端测试、对照工具等它出现再操作（脚本加载之前的点击没人处理）
@@ -382,6 +388,7 @@ function onMutations(mutations) {
       else if (mutation.attributeName === 'aria-busy') syncHideEmpty(mutation.target.closest('[role="listbox"]'));
       else if (mutation.attributeName === 'data-rune-fullscreen') syncFullscreen(mutation.target);
       else if (mutation.attributeName === 'data-rune-watermark') drawWatermark(mutation.target);
+      else if (mutation.attributeName === 'data-rune-upload-previews') releaseFilePreviews(mutation.target);
       else if (mutation.attributeName === 'data-value') { if (mutation.target.hasAttribute('data-rune-tween')) onTweenValueChanged(mutation.target); }
       else if (mutation.attributeName === 'data-rune-invalid-submit') { if (mutation.target.hasAttribute('data-rune-invalid-submit')) focusInvalid(mutation.target); }
       else if (mutation.attributeName === 'data-rune-copy-request') {
@@ -397,7 +404,10 @@ function onMutations(mutations) {
       syncWithin(node);
       focusArrivedContent(node);
     }
-    if (mutation.removedNodes.length > 0) releaseFullscreen();
+    if (mutation.removedNodes.length > 0) {
+      releaseFullscreen();
+      releaseDetachedPreviews();
+    }
     if (!(mutation.target instanceof Element)) continue;
     // 列表重新渲染（虚拟滚动换了一批选项、选项变了）：高亮放回高亮项上
     if (mutation.addedNodes.length > 0) {

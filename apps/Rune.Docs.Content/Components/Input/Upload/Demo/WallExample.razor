@@ -1,0 +1,31 @@
+@* 验收照片墙：图片墙是方形缩略图，点开看大图（墙上的图左右切换）；拖动把手调整顺序（第一张是封面），
+   截图后在这里按 Ctrl + V 也能加进来；上传中盖一层进度，名字里带“失败”的图会上传失败、可以重试 *@
+@inherits RuneComponent
+@using Microsoft.AspNetCore.Components.Forms
+@using Rune.Docs.Components.Display.Image.Demo
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="验收照片" Description="最多 8 张，单张不超过 5 MB；第一张是封面">
+        <Upload @bind-Value="photos" UploadAsync="UploadAsync" ListType="UploadListType.Picture" Multiple="true" Accept="image/*"
+                MaxSize="5_000_000" MaxFiles="8" Sortable="true" Pasteable="true" />
+    </Field>
+    <Small Tone="TextTone.Muted" data-testid="cover">封面：@(photos.FirstOrDefault()?.Name ?? "还没有照片")</Small>
+</Flex>
+
+@code {
+    // 已有的照片（上次交的）：用示例图纸当照片
+    IReadOnlyList<UploadFile> photos = [.. Drawings.All.Take(3).Select(d => UploadFile.Existing($"{d.Title}.svg", d.Src))];
+
+    // 假的上传：每 300 ms 进 20%
+    static async Task<object?> UploadAsync(IBrowserFile file, IProgress<double> progress, CancellationToken cancellation)
+    {
+        for (var fraction = 0.2; ; fraction += 0.2)
+        {
+            await Task.Delay(300, cancellation);
+            progress.Report(Math.Min(fraction, 1));
+            if (fraction < 1) continue;
+            if (file.Name.Contains("失败")) throw new IOException("网络中断");
+            return $"/files/{Uri.EscapeDataString(file.Name)}";
+        }
+    }
+}

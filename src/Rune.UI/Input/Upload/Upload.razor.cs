@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Rune.Styles;
 
 namespace Rune.UI;
 
@@ -9,6 +11,14 @@ public partial class Upload
     // 正在上传的文件各一个：移除、重新上传、组件销毁时取消。上传函数的后续可能在别的线程上跑完，增删要加锁
     readonly Dictionary<string, CancellationTokenSource> running = [];
     readonly Lock gate = new();
+    // 图片墙里选的图片的本地地址（JS 建的 object URL）：文件的键（名称|大小|修改时间）→ 地址
+    readonly Dictionary<string, string> localPreviews = [];
+    readonly string instructionsId = UniqueId.Next("upload-sortable");
+    Memo<int, Attrs> thumbnailVars;
+    bool previewing;
+    int previewIndex;
+
+    static readonly CssLength Fill = CssLength.Percent(100);
 
     /// <summary>怎样上传一个文件；不写时只选文件、不上传（停在 Selected）。</summary>
     [Parameter] public UploadHandler? UploadAsync { get; set; }
@@ -25,16 +35,28 @@ public partial class Upload
     /// <summary>最多几个文件，超出的不加进来。</summary>
     [Parameter] public int? MaxFiles { get; set; }
 
-    /// <summary>选择区域里提示文字下面的说明（大小、类型限制）。</summary>
+    /// <summary>选择区域里提示文字下面的说明（大小、类型限制）；图片墙里显示在墙下面。</summary>
     [Parameter] public RenderFragment? Description { get; set; }
+
+    /// <summary>列表的样子：一行一个文件（默认），或图片墙。</summary>
+    [Parameter] public UploadListType ListType { get; set; }
+
+    /// <summary>图片墙里缩略图的边长（px），默认 104。</summary>
+    [Parameter] public int ThumbnailSize { get; set; } = DefaultThumbnailSize;
+
+    /// <summary>拖动把手（或聚焦后用键盘）调整文件的顺序（图片墙）。</summary>
+    [Parameter] public bool Sortable { get; set; }
+
+    /// <summary>焦点在组件里时 Ctrl + V 把剪贴板里的图片、文件加进来。</summary>
+    [Parameter] public bool Pasteable { get; set; }
 
     /// <summary>选择区域（FileDrop）的部件属性。</summary>
     [Parameter] public Attrs? PropsDrop { get; set; }
 
-    /// <summary>列表（ul，交给 GridList）的部件属性。</summary>
+    /// <summary>列表的部件属性：一行一个文件时是 ul（交给 GridList），图片墙里是缩略图的列表。</summary>
     [Parameter] public Attrs? PropsList { get; set; }
 
-    /// <summary>每一项（li）的部件属性。</summary>
+    /// <summary>每一项（li，图片墙里是一格）的部件属性。</summary>
     [Parameter] public Attrs? PropsItem { get; set; }
 
     /// <summary>每一项的文件图标（按状态是文件、对勾或警告）的部件属性。</summary>
@@ -58,7 +80,73 @@ public partial class Upload
     /// <summary>移除按钮的部件属性（交给 IconButton；名称按语言包的 UploadRemove 生成）。</summary>
     [Parameter] public Attrs? PropsRemove { get; set; }
 
+    const int DefaultThumbnailSize = 104;
+
     IReadOnlyList<UploadFile> Files => CurrentValue ?? [];
+
+    bool PasteEnabled => Pasteable && !IsReadOnly && !IsDisabled;
+
+    // 到了 MaxFiles：图片墙收起“添加图片”
+    bool IsFull => Multiple && MaxFiles is { } max && Files.Count >= max;
+
+    Attrs? ThumbnailVars => ThumbnailSize == DefaultThumbnailSize ? null
+        : thumbnailVars.Get(ThumbnailSize, static size => new Attrs { Vars = [UploadStyles.ThumbnailVar.Set(size)] });
+
+    // 说明，粘贴的提示接在后面：列表模式在选择区域里，图片墙在墙下面
+    RenderFragment? Hint => !PasteEnabled ? Description : builder =>
+    {
+        if (Description is not null)
+        {
+            builder.AddContent(0, Description);
+            builder.AddContent(1, " · ");
+        }
+        builder.AddContent(2, Config.Lang.UploadPasteHint);
+    };
+
+    /// <summary>缩略图与大图的地址：已有文件的地址，或选的图片的本地地址；都没有时为 null。</summary>
+    string? PreviewOf(UploadFile item) =>
+        item.Url ?? (item.File is { } file && localPreviews.TryGetValue(KeyOf(file), out var url) ? url : null);
+
+    // 还在用的本地地址：写在属性上，JS 收回别的
+    string PreviewsInUse => string.Join(' ', Files
+        .Where(item => !item.Rejected && item.File is not null)
+        .Select(item => localPreviews.GetValueOrDefault(KeyOf(item.File!)))
+        .OfType<string>()
+        .Distinct());
+
+    // 与 JS 的 files.js 一致：名称|大小|修改时间（毫秒）
+    static string KeyOf(IBrowserFile file) => $"{file.Name}|{file.Size}|{file.LastModified.ToUnixTimeMilliseconds()}";
+
+    // 能预览的（按墙上的顺序）
+    List<UploadFile> Previewable => [.. Files.Where(item => !item.Rejected && PreviewOf(item) is not null)];
+
+    IReadOnlyList<LightboxItem> PreviewItems => [.. Previewable.Select(item => new LightboxItem(PreviewOf(item)!, item.Name)
+    {
+        Caption = builder => builder.AddContent(0, item.Name),
+        DownloadName = item.Name,
+    })];
+
+    void OpenPreview(UploadFile item)
+    {
+        previewIndex = Previewable.FindIndex(other => other.Id == item.Id);
+        previewing = previewIndex >= 0;
+    }
+
+    // JS 交来选到的图片的本地地址
+    void OnCommand(CommandEventArgs e)
+    {
+        if (e.Name != "file-previews" || e.Text is not { } json) return;
+        var urls = JsonSerializer.Deserialize(json, UIJson.Relaxed.DictionaryStringString);
+        foreach (var (key, url) in urls ?? []) localPreviews[key] = url;
+    }
+
+    // JS 交来新的顺序（各项的 id）：按它重排；对不上（列表在这期间变了）时不动
+    Task ReorderAsync(ReorderEventArgs e)
+    {
+        var byId = Files.ToDictionary(item => item.Id);
+        if (e.Values.Length != byId.Count || !e.Values.All(byId.ContainsKey)) return Task.CompletedTask;
+        return SetValueAsync([.. e.Values.Select(id => byId[id])]);
+    }
 
     static string StateOf(UploadStatus status) => status switch
     {
@@ -134,7 +222,11 @@ public partial class Upload
         {
             if (running.Remove(id, out var cancellation)) cancellation.Cancel();
         }
-        return SetValueAsync([.. Files.Where(f => f.Id != id)]);
+        var kept = Files.Where(f => f.Id != id).ToList();
+        // 没有别的项用着的本地地址不再记着（JS 按属性收回它）
+        if (Files.FirstOrDefault(f => f.Id == id)?.File is { } file && !kept.Any(f => f.File is { } other && KeyOf(other) == KeyOf(file)))
+            localPreviews.Remove(KeyOf(file));
+        return SetValueAsync(kept);
     }
 
     // 按 id 改一项：总是改当前的列表（上传函数的后续可能在别的线程上，切回渲染器的线程）

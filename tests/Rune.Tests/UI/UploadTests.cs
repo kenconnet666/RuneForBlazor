@@ -6,7 +6,7 @@ using Rune.UI;
 
 namespace Rune.Tests.UI;
 
-/// <summary>上传：超限与类型不符的列出来不上传、单选替换、数量上限、进度与完成、失败重试、移除取消、已有文件。</summary>
+/// <summary>上传：超限与类型不符的列出来不上传、单选替换、数量上限、进度与完成、失败重试、移除取消、已有文件、图片墙。</summary>
 public class UploadTests : BunitContext
 {
     readonly FakeUploads uploads = new();
@@ -121,6 +121,49 @@ public class UploadTests : BunitContext
         Assert.Contains("482 kB", cut.Find("li").TextContent);
         Assert.Empty(cut.FindAll("input[type=file]"));
         Assert.Empty(cut.FindAll("button"));
+    }
+
+    [Fact]
+    public void 图片墙_本地地址由JS交来_按墙上的顺序预览_拖动排序写回()
+    {
+        IReadOnlyList<UploadFile> value = [UploadFile.Existing("a.png", "/a.png"), UploadFile.Existing("b.png", "/b.png")];
+        var cut = Render<Upload>(p => p
+            .Add(x => x.Value, value)
+            .Add(x => x.ValueChanged, (IReadOnlyList<UploadFile> v) => value = v)
+            .Add(x => x.ListType, UploadListType.Picture)
+            .Add(x => x.Multiple, true)
+            .Add(x => x.Sortable, true)
+            .Add(x => x.Pasteable, true));
+        // 父级把新值传回去（同 @bind-Value）
+        void Sync() => cut.Render(p => p.Add(x => x.Value, value));
+
+        var wall = cut.Find("[data-rune-upload-previews]");
+        Assert.True(wall.HasAttribute("data-rune-paste-files"));
+        Assert.Equal("grid", cut.Find("[role=list]").GetAttribute("data-rune-sortable"));
+        Assert.Equal(["/a.png", "/b.png"], cut.FindAll("[role=listitem] img").Select(i => i.GetAttribute("src")));
+        Assert.Equal("移动 a.png", cut.Find("[data-rune-sortable-handle]").GetAttribute("aria-label"));
+        Assert.Contains("添加图片", cut.Find("[data-rune-file-drop]").TextContent);
+
+        // 选的图片：JS 交来本地地址之前是图标与文件名，之后是缩略图，地址写在属性上（JS 据此收回不用的）
+        Pick(cut, InputFileContent.CreateFromText("png", "c.png", contentType: "image/png"));
+        Sync();
+        Assert.Equal("c.png", cut.FindAll("[role=listitem]")[2].TextContent.Trim());
+        var file = value[2].File!;
+        var key = $"{file.Name}|{file.Size}|{file.LastModified.ToUnixTimeMilliseconds()}";
+        cut.Find("[data-rune-upload-previews]").TriggerEvent("onrunecommand", new CommandEventArgs { Name = "file-previews", Text = $$"""{"{{key}}":"blob:c"}""" });
+        Assert.Equal("blob:c", cut.FindAll("[role=listitem] img")[2].GetAttribute("src"));
+        Assert.Equal("blob:c", cut.Find("[data-rune-upload-previews]").GetAttribute("data-rune-upload-previews"));
+
+        // 按墙上的顺序预览：从点的那张开始
+        cut.Find("button[aria-label='查看大图：b.png']").Click();
+        Assert.Equal("true", cut.Find("dialog").GetAttribute("data-open"));
+        Assert.Equal("第 2 张，共 3 张", cut.Find("dialog [aria-live=polite]").TextContent);
+
+        // JS 交来新的顺序
+        cut.Find("[role=list]").TriggerEvent("onrunereorder", new ReorderEventArgs { Values = [value[2].Id, value[0].Id, value[1].Id] });
+        Sync();
+        Assert.Equal(["blob:c", "/a.png", "/b.png"], cut.FindAll("[role=listitem] img").Select(i => i.GetAttribute("src")));
+        Assert.Equal(["c.png", "a.png", "b.png"], value.Select(f => f.Name));
     }
 
     static void Pick(IRenderedComponent<Upload> cut, params InputFileContent[] files) =>

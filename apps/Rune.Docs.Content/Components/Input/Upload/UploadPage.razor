@@ -4,6 +4,13 @@
 @using Rune.Docs.Components.Input.Upload.Demo
 
 <DocPage Meta="Meta" Wide="true">
+    <Example Id="wall" Title="图片墙：预览、排序与粘贴" Demo="typeof(WallExample)">
+        <Code>ListType="UploadListType.Picture"</Code> 时文件是方形缩略图（<Code>ThumbnailSize</Code>，默认 104 px）：
+        选的图片用本地地址马上显示，不等上传（JS 建的 object URL，不经过 C#，不用了就收回）；点开看大图（墙上的图共用一个预览，按墙上的顺序左右切换），
+        别的文件显示图标与文件名。上传中盖一层进度，失败标红、可以重试；选文件的区域是墙上最后一格，到了 <Code>MaxFiles</Code> 就收起。
+        <Code>Sortable</Code> 时每张图上有把手，拖动或聚焦后用空格拿起、方向键移动（↑↓ 跨行），松开才把新顺序写回值；
+        <Code>Pasteable</Code> 时焦点在组件里按 <Kbd>Ctrl</Kbd> + <Kbd>V</Kbd>，剪贴板里的图片（截图）就加进来。
+    </Example>
     <Examples>
         <ExampleColumn>
             <Example Id="photos" Title="选好就上传" Demo="typeof(PhotosExample)">
@@ -32,6 +39,9 @@
         ("Enter / Space", "在选择区域上：打开系统的文件对话框（原生 input[type=file]）"),
         ("Tab", "每个文件的“重新上传”“移除”按钮都在 Tab 顺序里"),
         ("Enter / Space", "在“重新上传”“移除”上：重新上传 / 移除这个文件（上传中的会取消）"),
+        ("Enter / Space", "图片墙：在缩略图上看大图；在把手上拿起、放下"),
+        ("← / → / ↑ / ↓", "图片墙拿起后：前后移一格 / 跨一行；Esc 取消"),
+        ("Ctrl + V", "Pasteable 时：把剪贴板里的图片、文件加进来"),
     ])" />
     <ApiReference Types="[typeof(Upload), typeof(FileDrop), typeof(UploadFile)]" />
 </DocPage>

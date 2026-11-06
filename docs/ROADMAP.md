@@ -165,7 +165,8 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 - [ ] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动），紧接着 TreeSelect、TreeTransfer（Transfer 的树形）
 - [x] Image / ImageGroup / Lightbox：加载状态由 JS 写在图片上（`data-rune-image`，Avatar 共用），平移、缩放、旋转在 JS 里改行内样式，换哪一张由 C# 管；
   单张图片的预览由 `data-rune-open` 直接打开（静态 SSR 也能看大图）
-- [ ] Upload 的图片墙（`ListType`：方形缩略图、点开预览、Ctrl + V 粘贴图片、拖动排序）
+- [x] Upload 的图片墙（`ListType`）：本地图片用 JS 建的 object URL 马上显示（经 rune-command 交给 C#，不用了由 JS 收回）；预览按墙上的顺序（Image 新增 `OnPreview`）；
+  粘贴文件由 JS 塞进 FileDrop 的 input；排序用 sortable.js 新增的 grid 模式（二维落点、按格让位、↑↓ 跨行）
 - [ ] VirtualList 补齐：随页面滚动、横向、骨架行、跳到第几项、可见范围变化的回调
 
 ## 阶段 3：浮层与导航
