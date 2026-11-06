@@ -19,6 +19,8 @@ public class CommandPaletteTests(DemoServer demo) : E2ETest(demo)
         // 说明也参与匹配：“库存”只在“报表”的说明里
         await input.PressSequentiallyAsync("库存");
         await Assertions.Expect(dialog.GetByRole(AriaRole.Option)).ToHaveCountAsync(1);
+        // 输入时去掉了指着旧结果的高亮，新结果渲染后才高亮第一项（Server 模式下选项数先变）：等高亮回来再按 Enter
+        await Assertions.Expect(input).ToHaveAttributeAsync("aria-activedescendant", new System.Text.RegularExpressions.Regex("-0$"));
         await page.Keyboard.PressAsync("Enter");
         await Assertions.Expect(dialog).ToBeHiddenAsync();
         await Assertions.Expect(page.GetByTestId("last")).ToContainTextAsync("执行了：报表");

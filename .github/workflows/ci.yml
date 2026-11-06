@@ -75,10 +75,25 @@ jobs:
 
   # 端到端测试只在 Linux 上跑：只构建要用的演示项目与测试项目，装 Chromium 与它要的系统库，再启动演示项目逐个操作页面
   e2e:
-    name: 端到端测试
+    name: 端到端测试（${{ matrix.shard }}）
     runs-on: ubuntu-latest
     # 全部用例本地约 3 分钟；卡住时不占着 runner 等默认的 6 小时
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      # 按测试类名的首字母分两半并行：A–L 一半，其余（含以后新加的）一半，两边合起来正好是全部
+      matrix:
+        include:
+          - shard: A–L
+            filter: >-
+              --filter-class 'Rune.E2E.A*' --filter-class 'Rune.E2E.B*' --filter-class 'Rune.E2E.C*' --filter-class 'Rune.E2E.D*'
+              --filter-class 'Rune.E2E.E*' --filter-class 'Rune.E2E.F*' --filter-class 'Rune.E2E.G*' --filter-class 'Rune.E2E.H*'
+              --filter-class 'Rune.E2E.I*' --filter-class 'Rune.E2E.J*' --filter-class 'Rune.E2E.K*' --filter-class 'Rune.E2E.L*'
+          - shard: M–Z
+            filter: >-
+              --filter-not-class 'Rune.E2E.A*' --filter-not-class 'Rune.E2E.B*' --filter-not-class 'Rune.E2E.C*' --filter-not-class 'Rune.E2E.D*'
+              --filter-not-class 'Rune.E2E.E*' --filter-not-class 'Rune.E2E.F*' --filter-not-class 'Rune.E2E.G*' --filter-not-class 'Rune.E2E.H*'
+              --filter-not-class 'Rune.E2E.I*' --filter-not-class 'Rune.E2E.J*' --filter-not-class 'Rune.E2E.K*' --filter-not-class 'Rune.E2E.L*'
     steps:
       - uses: actions/checkout@v7
 
@@ -101,7 +116,7 @@ jobs:
         run: pwsh tests/Rune.E2E/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
 
       - name: 端到端测试
-        run: dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build
+        run: dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build ${{ matrix.filter }}
 
   icon-gen:
     name: 图标数据、第三方脚本与上游一致
