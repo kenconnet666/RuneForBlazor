@@ -1,24 +1,14 @@
 @*
     AppShell 的混合布局示例（整页，在 iframe 里打开）：同 vue-tsx-pro 文档站 AppShell 的 frames/Mixed。
     顶栏是一级导航，侧栏是当前模块的二级导航（可以收起成图标栏），底部是页脚。
-    顶栏的一级导航 vue-tsx-pro 用 NavBar（还没做），这里先用几个链接按钮代替。数据是虚构的。
+    顶栏的一级导航是 NavBar（放不下时收进“更多”），当前模块“采购”用 Active 标出。数据是虚构的。
 *@
 @attribute [DocFrame("app-shell", "mixed")]
 @inherits RuneComponent
 
 <AppShell SidebarCollapsible="true" @bind-SidebarCollapsed="collapsed">
     <Brand><AppShellBrand Href="#home" Icon="Lucide.Box">采购协同</AppShellBrand></Brand>
-    <Nav>
-        <nav aria-label="模块">
-            <Flex Gap="SpaceScale.Xs">
-                @foreach (var module in modules)
-                {
-                    <LinkButton Href="@module.Href" Icon="module.Icon" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="Size.Sm"
-                                aria-current="@(module.Href == "#purchase" ? "page" : null)">@module.Label</LinkButton>
-                }
-            </Flex>
-        </nav>
-    </Nav>
+    <Nav><NavBar Items="modules" aria-label="模块" /></Nav>
     <Header><Avatar Size="Size.Sm" Name="林小满" /></Header>
     <Sidebar>
         <NavList aria-label="采购">
@@ -54,7 +44,6 @@
 @code {
     sealed record SidePage(string Title, IconData Icon);
     sealed record Metric(string Label, decimal Value, string? Unit = null);
-    sealed record Module(string Label, string Href, IconData Icon);
 
     static readonly Dictionary<string, SidePage> sidePages = new()
     {
@@ -77,10 +66,10 @@
     };
 
     // 顶栏的一级导航：各模块（示例里只有“采购”是做好的）
-    static readonly Module[] modules =
+    static readonly NavMenuItem[] modules =
     [
         new("工作台", "#home", Lucide.House),
-        new("采购", "#purchase", Lucide.ShoppingCart),
+        new("采购", "#purchase", Lucide.ShoppingCart, Active: true),
         new("报表", "#reports", Lucide.ChartColumn),
         new("文档", "#docs", Lucide.FileText),
     ];
