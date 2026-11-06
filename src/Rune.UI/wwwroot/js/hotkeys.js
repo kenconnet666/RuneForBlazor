@@ -7,7 +7,7 @@ const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
 const SYMBOLS = { ctrl: '⌃', alt: '⌥', shift: '⇧', meta: '⌘' };
 const ARROWS = { arrowup: '↑', arrowdown: '↓', arrowleft: '←', arrowright: '→' };
-const TYPING = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
+export const TYPING = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
 
 function matches(event, hotkey) {
   const parts = hotkey.toLowerCase().split('+');

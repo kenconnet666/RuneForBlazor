@@ -7,7 +7,8 @@ import { caretRect } from './caret.js';
 
 let floatingUi = null;
 
-const loadFloatingUi = () => (floatingUi ??= import('../vendor/floating-ui.dom.mjs'));
+/** Floating UI（computePosition、autoUpdate、中间件），第一次用到时加载 */
+export const loadFloatingUi = () => (floatingUi ??= import('../vendor/floating-ui.dom.mjs'));
 
 // 正在跟随触发元素的浮层 → 停止跟随
 const floatingCleanups = new WeakMap();
@@ -45,6 +46,31 @@ function floatingAnchorOf(overlay) {
   if (anchor) return anchor;
   const id = CSS.escape(overlay.id);
   return document.querySelector(`[popovertarget="${id}"], [data-rune-tooltip="${id}"], [data-rune-hovercard="${id}"]`);
+}
+
+/**
+ * 贴着任意元素定位一个 position: fixed 的元素并持续跟随（新手引导的卡片贴着目标）；不是浮层，没有锚点属性与开关。
+ * 返回 { ready（第一次定位完成）, stop（停止跟随）}。
+ */
+export function followElement(anchor, element, placement, gap) {
+  let stopped = false;
+  let cleanup = () => {};
+  const ready = loadFloatingUi().then(({ computePosition, autoUpdate, offset, flip, shift }) => new Promise((resolve) => {
+    if (stopped) return resolve();
+    const middleware = [offset(gap), flip({ padding: VIEWPORT_PADDING, crossAxis: true }), shift({ padding: VIEWPORT_PADDING })];
+    cleanup = autoUpdate(anchor, element, () => computePosition(anchor, element, { placement, strategy: 'fixed', middleware }).then(({ x, y, placement: final }) => {
+      if (stopped) return;
+      Object.assign(element.style, { left: `${x}px`, top: `${y}px`, transformOrigin: TRANSFORM_ORIGIN[final.split('-')[0]] });
+      resolve();
+    }));
+  }));
+  return {
+    ready,
+    stop: () => {
+      stopped = true;
+      cleanup();
+    },
+  };
 }
 
 /** 贴着触发元素定位并持续跟随；第一次定位完成（可见）时完成。 */

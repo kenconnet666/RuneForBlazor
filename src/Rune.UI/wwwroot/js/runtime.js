@@ -17,6 +17,7 @@ import { blurSortable, grabSortable, keySortable } from './sortable.js';
 import { showLightboxImage, watchLightbox } from './lightbox.js';
 import { closeTreeAfterPick, keyTree, pressTreeItem } from './tree.js';
 import { watchVirtual } from './virtual.js';
+import { keyTour, watchTour } from './tour.js';
 import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './lists.js';
 import { watchIndicator } from './indicator.js';
 import { scheduleOverflow, watchOverflow } from './overflow.js';
@@ -176,6 +177,7 @@ const watched = [
   ['[data-rune-watermark]', drawWatermark],
   ['[data-rune-pointer]', watchPointer],
   ['[data-rune-virtual]', watchVirtual],
+  ['dialog[data-rune-tour]', watchTour],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 
@@ -337,7 +339,7 @@ function onKeyDown(event) {
   exitFullscreenOnEscape(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
-  if (keyCascader(event) || keyMentions(event) || keySortable(event) || keyTree(event)) return;
+  if (keyCascader(event) || keyMentions(event) || keySortable(event) || keyTree(event) || keyTour(event)) return;
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
   if (menu) moveInMenu(menu, event);
   else openMenuFromTrigger(event);

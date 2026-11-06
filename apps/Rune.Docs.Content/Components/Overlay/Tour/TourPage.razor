@@ -1,0 +1,19 @@
+@page "/components/tour"
+@attribute [DocMeta("Tour 新手引导", "一步一步高亮页面上的元素并说明：遮罩镂空出目标，卡片贴着目标显示步数、上一步、下一步与跳过。", DocCategory.Overlay, Order = 6)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Overlay.Tour.Demo
+
+<DocPage Meta="Meta">
+    <Example Id="onboarding" Title="订单中心的引导" Demo="typeof(OnboardingExample)">
+        每一步的 <Code>Target</Code> 是 CSS 选择器（这里按 data-tour 找）；没有目标的步骤卡片居中。切换步骤时目标滚到视口中间，滚动、缩放时镂空跟着动。
+        <Code>@@bind-Open</Code>、<Code>@@bind-Current</Code> 都可以双向绑定；点“完成”调用 <Code>OnFinish</Code>，跳过或 Esc 只关闭。模态：背景不可操作，焦点在卡片里循环。
+        每一步可以有 <Code>Cover</Code> 封面（插图、截图），贴着卡片顶边显示；<Code>PropsNext</Code> 可以把“下一步”设为不可用，等用户完成某个操作再继续。
+    </Example>
+    <KeyboardReference Keys="@([
+        ("→ / ←", "下一步 / 上一步（从右到左排版时反过来）；焦点在输入框里时不处理，“下一步”不可用时不前进"),
+        ("Tab / Shift+Tab", "在卡片的按钮之间移动，焦点不会离开卡片"),
+        ("Enter / Space", "按下聚焦的按钮"),
+        ("Esc", "结束引导（不调用 OnFinish），焦点回到打开前的位置"),
+    ])" />
+    <ApiReference Types="[typeof(Tour)]" />
+</DocPage>

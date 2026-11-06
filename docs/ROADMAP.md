@@ -136,7 +136,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 
 ## 阶段 2：浮层与导航
 
-- [ ] Tour
+- [x] Tour（模态 dialog 同 Dialog；镂空与卡片的跟随在 js/tour.js，卡片定位用 floating.js 新增的 followElement）
 - [x] Breadcrumbs、Steps（同一页，同 vue；底座补了 FlexOrderedList）
 - [x] Form 的分步示例换用 Steps
 - [x] NavMenu、NavBar（菜单数据同一份 NavMenuItem；NavBar 放不下的收进“更多”，复用 js/overflow.js）

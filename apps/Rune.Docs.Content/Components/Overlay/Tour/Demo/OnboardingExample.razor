@@ -1,0 +1,83 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+        <Button Icon="Lucide.Sparkles" @onclick="Start">开始引导</Button>
+        <Small Tone="TextTone.Muted">@(finished ? "已完成引导" : "← → 切换步骤，Esc 或“跳过”随时退出")</Small>
+    </Flex>
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <TextField Type="search" Icon="Lucide.Search" placeholder="订单号、客户" aria-label="搜索订单" Sx="Grow" data-tour="search" />
+                <IconButton Icon="Lucide.Funnel" Label="筛选" data-tour="filter" />
+                <IconButton Icon="Lucide.Download" Label="导出" data-tour="export" />
+                <Button Icon="Lucide.Plus">新建</Button>
+            </Flex>
+            <Table aria-label="订单" data-tour="table">
+                <TableHead>
+                    <TableRow>
+                        <TableHeaderCell>订单号</TableHeaderCell>
+                        <TableHeaderCell>客户</TableHeaderCell>
+                        <TableHeaderCell>金额</TableHeaderCell>
+                        <TableHeaderCell>状态</TableHeaderCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    @foreach (var (id, customer, amount, tone, status) in Orders)
+                    {
+                        <TableRow @key="id">
+                            <TableCell>@id</TableCell>
+                            <TableCell>@customer</TableCell>
+                            <TableCell>@amount</TableCell>
+                            <TableCell><Badge Tone="tone">@status</Badge></TableCell>
+                        </TableRow>
+                    }
+                </TableBody>
+            </Table>
+        </Flex>
+    </Card>
+    <Tour @bind-Open="touring" @bind-Current="step" Steps="Steps" OnFinish="() => finished = true" />
+</Flex>
+
+@code {
+    static readonly (string Id, string Customer, string Amount, Tone Tone, string Status)[] Orders =
+    [
+        ("#10234", "林小满", "¥1,280.00", Tone.Success, "已发货"),
+        ("#10233", "周一航", "¥329.00", Tone.Warning, "待付款"),
+        ("#10232", "陈默", "¥4,299.00", Tone.Info, "备货中"),
+    ];
+
+    static Style Grow => Css.Define(static () => new Style { FlexGrow = 1 });
+
+    // 第一步的封面：主题色的渐变上放一个大图标，换主题时跟着变
+    static Style CoverStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        Height = CssLength.Rem(7),
+        BackgroundImage = $"linear-gradient(135deg, {Tones.Accent.Soft}, {Colors.Fill})",
+        Color = Tones.Accent.Text,
+        FontSize = CssLength.Rem(3),
+    });
+
+    static readonly Attrs CoverLayer = new() { Sx = CoverStyle };
+
+    static readonly TourStep[] Steps =
+    [
+        new("欢迎使用订单中心", "花一分钟认识这几个常用功能。", Cover: @<div @attributes="Attrs.Merge(CoverLayer)"><Icon Data="Lucide.PackageCheck" /></div>),
+        new("搜索", "按订单号、客户姓名或手机号查找订单。", "[data-tour=search]"),
+        new("筛选", "按状态、日期、金额筛选，条件会记住。", "[data-tour=filter]"),
+        new("导出", "把当前筛选结果导出为 Excel。", "[data-tour=export]", Placement.Left),
+        new("订单列表", "点订单号查看详情，右键有更多操作。", "[data-tour=table]", Placement.Top),
+    ];
+
+    bool touring;
+    int step;
+    bool finished;
+
+    void Start()
+    {
+        step = 0;
+        touring = true;
+    }
+}

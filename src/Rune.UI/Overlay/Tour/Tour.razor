@@ -1,0 +1,152 @@
+@*
+    新手引导（同 vue-tsx-pro 的 Tour，原生模态 dialog）：一步一步高亮页面上的元素并说明。遮罩盖住整页，目标处镂空；步骤卡片贴着目标显示。
+    <Tour @bind-Open="touring" @bind-Current="step" Steps="@([
+        new("搜索", "按名称或编号查找订单", "#search"),
+        new("导出", "导出为 Excel", "#export", Placement.Left),
+        new("就这些", "随时可以在帮助菜单里重新查看"),          // 没有目标：卡片居中
+    ])" />
+    模态：背景 inert、Esc 关闭、焦点在卡片里循环，关闭后焦点回到打开前的位置（同 Dialog）。目标是 CSS 选择器：切换步骤时滚动到视口中间，
+    滚动、缩放、目标大小变化时镂空与卡片跟着动（js/tour.js）；找不到目标时卡片居中、整页遮罩。
+    卡片：封面（可选）、标题（dialog 的名称）、说明（描述）、步数、上一步 / 下一步（最后一步是“完成”）、跳过。
+    → / ← 下一步 / 上一步（从右到左排版时反过来；焦点在输入框里时不处理）。点“完成”时调用 OnFinish，跳过或 Esc 时只关闭。
+    未声明的属性落到 dialog 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = TourStyles.Of(Config.Styles);
+    var index = Math.Clamp(current.Value, 0, Math.Max(Steps.Count - 1, 0));
+    var step = Steps.Count > 0 ? Steps[index] : null;
+    var last = index >= Steps.Count - 1;
+}
+
+<dialog @attributes="Attrs.Merge(parts[TourPart.Root], Rest, Managed(index, step))" @onrunetoggle="HandleToggle" @onrunecommand="OnCommandAsync">
+    <div aria-hidden="true" data-rune-tour-spotlight data-dimmed="@(step?.Target is null ? true : null)" @attributes="Attrs.Merge(parts[TourPart.Spotlight], PropsSpotlight)"></div>
+    @if (step is not null)
+    {
+        <div tabindex="-1" data-rune-tour-panel data-centered="@(step.Target is null ? true : null)" @attributes="Attrs.Merge(parts[TourPart.Panel], PropsPanel)">
+            @if (step.Cover is not null)
+            {
+                <div @attributes="Attrs.Merge(parts[TourPart.Cover], PropsCover)">@step.Cover</div>
+            }
+            <H2 Size="Size.Md" id="@TitleId" @attributes="Attrs.MergeProps(parts[TourPart.Title], PropsTitle)">@step.Title</H2>
+            @if (step.Content is not null)
+            {
+                <div id="@ContentId" @attributes="Attrs.Merge(parts[TourPart.Content], PropsContent)">@step.Content</div>
+            }
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true" @attributes="Attrs.MergeProps(parts[TourPart.Footer], PropsFooter)">
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted" @attributes="Attrs.MergeProps(parts[TourPart.Progress], PropsProgress)">@Config.Lang.TourProgress(index + 1, Steps.Count)</TextSpan>
+                @if (!last)
+                {
+                    <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="Size.Sm" @onclick="SkipAsync" @attributes="Attrs.MergeProps(null, PropsSkip)">@Config.Lang.TourSkip</Button>
+                }
+                @if (index > 0)
+                {
+                    <Button Variant="ButtonVariant.Outline" Size="Size.Sm" @onclick="PreviousAsync" @attributes="Attrs.MergeProps(null, PropsPrevious)">@Config.Lang.TourPrevious</Button>
+                }
+                <Button Size="Size.Sm" @onclick="NextAsync" @attributes="Attrs.MergeProps(null, PropsNext)">@(last ? Config.Lang.TourFinish : Config.Lang.TourNext)</Button>
+            </Flex>
+        </div>
+    }
+</dialog>
+
+@code {
+    readonly string generatedId = UniqueId.Next("tour");
+
+    /// <summary>各步。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TourStep> Steps { get; set; } = [];
+
+    /// <summary>是否显示（<c>@bind-Open</c>）。</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>打开或关闭了（跳过、Esc、完成）。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>当前第几步，从 0 开始（<c>@bind-Current</c>）。</summary>
+    [Parameter] public int Current { get; set; }
+
+    /// <summary>当前步骤变了。</summary>
+    [Parameter] public EventCallback<int> CurrentChanged { get; set; }
+
+    /// <summary>镂空比目标大出多少（px），默认 6。</summary>
+    [Parameter] public int Padding { get; set; } = 6;
+
+    /// <summary>点了最后一步的“完成”。</summary>
+    [Parameter] public EventCallback OnFinish { get; set; }
+
+    /// <summary>镂空的部件属性。</summary>
+    [Parameter] public Attrs? PropsSpotlight { get; set; }
+
+    /// <summary>卡片的部件属性。</summary>
+    [Parameter] public Attrs? PropsPanel { get; set; }
+
+    /// <summary>封面的部件属性。</summary>
+    [Parameter] public Attrs? PropsCover { get; set; }
+
+    /// <summary>标题（H2，对话框的名称）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>说明（对话框的描述）的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>底部一行（Flex）的部件属性。</summary>
+    [Parameter] public Attrs? PropsFooter { get; set; }
+
+    /// <summary>步数（TextSpan）的部件属性。</summary>
+    [Parameter] public Attrs? PropsProgress { get; set; }
+
+    /// <summary>跳过按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsSkip { get; set; }
+
+    /// <summary>上一步按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsPrevious { get; set; }
+
+    /// <summary>下一步（最后一步是完成）按钮的部件属性：可以设 Disabled（完成某个操作后才能继续）。</summary>
+    [Parameter] public Attrs? PropsNext { get; set; }
+
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
+    Bindable<int> current { get => field ??= new(this, () => Current, () => CurrentChanged); }
+
+    string TourId => AdditionalAttributes?.GetValueOrDefault("id") as string ?? generatedId;
+    string TitleId => $"{TourId}-title";
+    string ContentId => $"{TourId}-content";
+
+    // dialog 上由组件管理的属性：data-open 交给 JS 同步原生状态（showModal / close）；这一步的目标、方向、留白交给 js/tour.js
+    Attrs Managed(int index, TourStep? step) => new()
+    {
+        Id = TourId,
+        AriaLabelledBy = TitleId,
+        AriaDescribedBy = step?.Content is null ? null : ContentId,
+        ["data-rune-overlay"] = true,
+        ["data-rune-tour"] = true,
+        ["data-open"] = open.Value ? "true" : "false",
+        ["data-step"] = index.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        ["data-rune-tour-target"] = step?.Target,
+        ["data-placement"] = step is null ? null : Floating.NameOf(step.Placement),
+        ["data-padding"] = Padding.ToString(System.Globalization.CultureInfo.InvariantCulture),
+    };
+
+    Task HandleToggle(OverlayToggleEventArgs e) => e.Open == open.Value ? Task.CompletedTask : open.SetAsync(e.Open);
+
+    Task OnCommandAsync(CommandEventArgs e) => e.Name switch
+    {
+        "next" when PropsNext?["Disabled"] is not true => NextAsync(),
+        "previous" => PreviousAsync(),
+        _ => Task.CompletedTask,
+    };
+
+    Task SkipAsync() => open.SetAsync(false);
+
+    Task PreviousAsync() => current.Value > 0 ? current.SetAsync(current.Value - 1) : Task.CompletedTask;
+
+    async Task NextAsync()
+    {
+        if (current.Value < Steps.Count - 1)
+        {
+            await current.SetAsync(current.Value + 1);
+            return;
+        }
+        await open.SetAsync(false);
+        await OnFinish.InvokeAsync();
+    }
+}
