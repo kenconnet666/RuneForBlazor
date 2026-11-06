@@ -1,0 +1,66 @@
+@inherits RuneComponent
+@using System.ComponentModel
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true">
+        <TextField @bind-Value="keyword" Immediate="true" type="search" Icon="Lucide.Search" Clearable="true" placeholder="订单号或客户" aria-label="搜索订单" Sx="Search" />
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <Small Tone="TextTone.Muted">@(selected.Count > 0 ? $"已选 {selected.Count} 单" : $"共 {Shown.Count:N0} 单")</Small>
+            <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Neutral" Icon="Lucide.Download" Disabled="selected.Count == 0">导出</Button>
+            <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.Trash" Disabled="selected.Count == 0" @onclick="() => selected = []">取消订单</Button>
+        </Flex>
+    </Flex>
+    <DataTable Items="Shown" GetKey="o => o.Id" @bind-Sort="sort" SelectionMode="SelectionMode.Multiple" @bind-Selected="selected"
+               aria-label="订单" PropsRoot="TableHeight">
+        <PropertyColumn Property="o => o.Id" Width="120" Sortable="true" Sticky="ColumnSticky.Start" />
+        <PropertyColumn Property="o => o.Customer" Width="110" Sortable="true" />
+        <PropertyColumn Property="o => o.City" Width="90" />
+        @* 不写内容：按 Type 与当前语言格式化（金额用语言的币种，数字类靠结束边） *@
+        <PropertyColumn Property="o => o.Amount" Width="130" Type="ColumnType.Currency" Sortable="true" />
+        <TemplateColumn Key="status" Title="状态" Width="100" Sortable="true" Value="o => o.Status.Label" Context="order">
+            <Badge Tone="order.Status.Tone">@order.Status.Label</Badge>
+        </TemplateColumn>
+        <PropertyColumn Property="o => o.PlacedAt" Width="180" Type="ColumnType.DateTime" Sortable="true" />
+        <TemplateColumn Title="操作" Width="64" Sticky="ColumnSticky.End" Context="order">
+            <IconButton Icon="Lucide.Ellipsis" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="Size.Sm" Label="@($"{order.Id} 的更多操作")" />
+        </TemplateColumn>
+    </DataTable>
+</Flex>
+
+@code {
+    sealed record OrderStatus(Tone Tone, string Label);
+
+    sealed record Order(
+        [property: DisplayName("订单号")] string Id,
+        [property: DisplayName("客户")] string Customer,
+        [property: DisplayName("城市")] string City,
+        [property: DisplayName("金额")] decimal Amount,
+        OrderStatus Status,
+        [property: DisplayName("下单时间")] DateTime PlacedAt);
+
+    static readonly string[] Customers = ["林小满", "周一航", "陈默", "许悠", "王晴", "赵浩然", "孙思远", "李雨桐"];
+    static readonly string[] Cities = ["上海", "北京", "杭州", "深圳", "成都", "武汉"];
+    static readonly OrderStatus[] Statuses = [new(Tone.Warning, "待付款"), new(Tone.Info, "备货中"), new(Tone.Accent, "已发货"), new(Tone.Success, "已完成"), new(Tone.Danger, "已退款")];
+    static readonly DateTime Latest = new(2026, 10, 20, 18, 0, 0);
+
+    // 一万条订单：只渲染看得见的几十行；越往后越早，每单相隔 37 分钟
+    static readonly Order[] Orders = [.. Enumerable.Range(0, 10_000).Select(index => new Order(
+        $"SO{100_000 + index}",
+        Customers[index % Customers.Length],
+        Cities[index * 7 % Cities.Length],
+        Math.Round((index * 9301 + 49297) % 233280 / 23.328m) / 100 + 9.9m,
+        Statuses[index * 3 % Statuses.Length],
+        Latest.AddMinutes(-index * 37)))];
+
+    static Attrs TableHeight => new() { Sx = Css.Define(static () => new Style { MaxHeight = CssLength.Rem(26) }) };
+
+    static Style Search => Css.Define(static () => new Style { Width = CssLength.Rem(16) });
+
+    string? keyword;
+    ColumnSort? sort = new("placedAt", SortDirection.Descending);
+    IReadOnlyList<string> selected = [];
+
+    IReadOnlyList<Order> Shown => string.IsNullOrEmpty(keyword)
+        ? Orders
+        : [.. Orders.Where(o => o.Id.Contains(keyword, StringComparison.Ordinal) || o.Customer.Contains(keyword, StringComparison.Ordinal))];
+}

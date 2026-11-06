@@ -6,18 +6,22 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（72 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（77 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
     /// <summary>Lucide 图标 <c>amphora</c>（pottery、artifact、artefact、vase、ceramics、clay、archaeology、museum）。</summary>
     public static IconData Amphora => field ??= new("amphora", "<path d=\"M10 2v5.632c0 .424-.272.795-.653.982A6 6 0 0 0 6 14c.006 4 3 7 5 8\"/><path d=\"M10 5H8a2 2 0 0 0 0 4h.68\"/><path d=\"M14 2v5.632c0 .424.272.795.652.982A6 6 0 0 1 18 14c0 4-3 7-5 8\"/><path d=\"M14 5h2a2 2 0 0 1 0 4h-.68\"/><path d=\"M18 22H6\"/><path d=\"M9 2h6\"/>");
+    /// <summary>Lucide 图标 <c>arrow-down</c>（direction、movement、vertical、downward、downwards、south、descend、page down）。</summary>
+    public static IconData ArrowDown => field ??= new("arrow-down", "<path d=\"M12 5v14\"/><path d=\"m19 12-7 7-7-7\"/>");
     /// <summary>Lucide 图标 <c>arrow-left</c>（direction、movement、horizontal、leftward、leftwards、west、navigation、preceding）。</summary>
     public static IconData ArrowLeft => field ??= new("arrow-left", "<path d=\"m12 19-7-7 7-7\"/><path d=\"M19 12H5\"/>");
     /// <summary>Lucide 图标 <c>arrow-right</c>（direction、movement、horizontal、rightward、rightwards、east、navigation、following）。</summary>
     public static IconData ArrowRight => field ??= new("arrow-right", "<path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/>");
     /// <summary>Lucide 图标 <c>arrow-up</c>（direction、movement、vertical、upward、upwards、north、ascend、page up）。</summary>
     public static IconData ArrowUp => field ??= new("arrow-up", "<path d=\"m5 12 7-7 7 7\"/><path d=\"M12 19V5\"/>");
+    /// <summary>Lucide 图标 <c>arrow-up-down</c>（direction、movement、vertical、upward、upwards、north、ascend、page up）。</summary>
+    public static IconData ArrowUpDown => field ??= new("arrow-up-down", "<path d=\"m21 16-4 4-4-4\"/><path d=\"M17 20V4\"/><path d=\"m3 8 4-4 4 4\"/><path d=\"M7 4v16\"/>");
     /// <summary>Lucide 图标 <c>arrow-up-right</c>（direction、movement、diagonal、northeast、north-east、north east）。</summary>
     public static IconData ArrowUpRight => field ??= new("arrow-up-right", "<path d=\"M7 7h10v10\"/><path d=\"M7 17 17 7\"/>");
     /// <summary>Lucide 图标 <c>asterisk</c>（symbol、mark、pointer、pencil、sign、alert、notification、indicator）。</summary>
@@ -50,6 +54,8 @@ public static partial class BuiltInIcons
     public static IconData Citrus => field ??= new("citrus", "<path d=\"M21.66 17.67a1.08 1.08 0 0 1-.04 1.6A12 12 0 0 1 4.73 2.38a1.1 1.1 0 0 1 1.61-.04z\"/><path d=\"M19.65 15.66A8 8 0 0 1 8.35 4.34\"/><path d=\"m14 10-5.5 5.5\"/><path d=\"M14 17.85V10H6.15\"/>");
     /// <summary>Lucide 图标 <c>code</c>（coding、programming、development、source、html、xml）。</summary>
     public static IconData Code => field ??= new("code", "<path d=\"m16 18 6-6-6-6\"/><path d=\"m8 6-6 6 6 6\"/>");
+    /// <summary>Lucide 图标 <c>columns-3</c>（lines、list、queue、preview、parallel、series、split、vertical）。</summary>
+    public static IconData Columns3 => field ??= new("columns-3", "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M9 3v18\"/><path d=\"M15 3v18\"/>");
     /// <summary>Lucide 图标 <c>contrast</c>（display、accessibility）。</summary>
     public static IconData Contrast => field ??= new("contrast", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 18a6 6 0 0 0 0-12v12z\"/>");
     /// <summary>Lucide 图标 <c>copy</c>（clone、duplicate、multiple）。</summary>
@@ -62,6 +68,8 @@ public static partial class BuiltInIcons
     public static IconData Eclipse => field ??= new("eclipse", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 2a7 7 0 1 0 10 10\"/>");
     /// <summary>Lucide 图标 <c>ellipsis</c>（et cetera、etc、loader、loading、progress、pending、throbber、menu）。</summary>
     public static IconData Ellipsis => field ??= new("ellipsis", "<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/>");
+    /// <summary>Lucide 图标 <c>ellipsis-vertical</c>（menu、options、spread、more、further、extra、overflow、dots）。</summary>
+    public static IconData EllipsisVertical => field ??= new("ellipsis-vertical", "<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"12\" cy=\"5\" r=\"1\"/><circle cx=\"12\" cy=\"19\" r=\"1\"/>");
     /// <summary>Lucide 图标 <c>eye</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>
     public static IconData Eye => field ??= new("eye", "<path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>");
     /// <summary>Lucide 图标 <c>eye-off</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>
@@ -78,6 +86,8 @@ public static partial class BuiltInIcons
     public static IconData Flower => field ??= new("flower", "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5\"/><path d=\"M12 7.5V9\"/><path d=\"M7.5 12H9\"/><path d=\"M16.5 12H15\"/><path d=\"M12 16.5V15\"/><path d=\"m8 8 1.88 1.88\"/><path d=\"M14.12 9.88 16 8\"/><path d=\"m8 16 1.88-1.88\"/><path d=\"M14.12 14.12 16 16\"/>");
     /// <summary>Lucide 图标 <c>flower-2</c>（sustainability、nature、plant、spring）。</summary>
     public static IconData Flower2 => field ??= new("flower-2", "<path d=\"M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1\"/><circle cx=\"12\" cy=\"8\" r=\"2\"/><path d=\"M12 10v12\"/><path d=\"M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z\"/><path d=\"M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z\"/>");
+    /// <summary>Lucide 图标 <c>funnel</c>（filter、hopper）。</summary>
+    public static IconData Funnel => field ??= new("funnel", "<path d=\"M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z\"/>");
     /// <summary>Lucide 图标 <c>grip-vertical</c>（grab、dots、handle、move、drag）。</summary>
     public static IconData GripVertical => field ??= new("grip-vertical", "<circle cx=\"9\" cy=\"12\" r=\"1\"/><circle cx=\"9\" cy=\"5\" r=\"1\"/><circle cx=\"9\" cy=\"19\" r=\"1\"/><circle cx=\"15\" cy=\"12\" r=\"1\"/><circle cx=\"15\" cy=\"5\" r=\"1\"/><circle cx=\"15\" cy=\"19\" r=\"1\"/>");
     /// <summary>Lucide 图标 <c>hash</c>（hashtag、number、pound）。</summary>

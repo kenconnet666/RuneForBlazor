@@ -113,6 +113,12 @@ const BUILT_IN = [
   'feather',
   'amphora',
   'palette',
+  // DataTable：排序箭头、表头筛选、列菜单、列设置
+  'arrow-down',
+  'arrow-up-down',
+  'funnel',
+  'ellipsis-vertical',
+  'columns-3',
 ];
 
 /** 文档注释里最多列几个关键词 */

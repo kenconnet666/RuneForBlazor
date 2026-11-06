@@ -1,0 +1,273 @@
+@*
+    数据表格（同 vue-tsx-pro 的 DataTable）：按列渲染一组行，始终虚拟滚动（十万行也只渲染看得见的几十行）。
+    <DataTable Items="orders" GetKey="o => o.Id" @bind-Sort="sort" SelectionMode="SelectionMode.Multiple" @bind-Selected="picked" aria-label="订单">
+        <PropertyColumn Property="o => o.Id" Width="120" Sticky="ColumnSticky.Start" />
+        <PropertyColumn Property="o => o.Customer" Sortable />
+        <PropertyColumn Property="o => o.Amount" Type="ColumnType.Currency" Sortable Summary="ColumnSummary.Sum" />
+        <StatusColumn Property="o => o.Status" Statuses="OrderStatuses" />
+        <TemplateColumn Title="操作" Width="96" Sticky="ColumnSticky.End" Context="order"><Button Variant="ButtonVariant.Link">编辑</Button></TemplateColumn>
+    </DataTable>
+    - 结构：原生 table（读屏按表格念：第几行第几列、列标题）+ table-layout: fixed + colgroup 定列宽，外层是 ScrollArea（两个方向滚动）。
+    - 高度：外层默认最高 32em，用 PropsRoot 的 Sx 改，或 Flexible 放进竖排的弹性容器；表头吸顶、固定列不随横向滚动。
+    - 虚拟滚动在 JS 里（js/virtual.js 的表格模式）：只渲染看得见的行，上下各一个占位行撑出滚动高度；行带 aria-rowindex，表格带 aria-rowcount。
+    - 排序：点可排序的列标题在 正序 → 倒序 → 不排 之间切换；默认在本地排（Collation：数字、日期、按语言的文字），
+      ManualSort 时只写回排序，由调用方向服务端要排好序的数据。MultiSort 时排序写在 Sorts，按住 Shift 点是追加一列。
+    - 选择：SelectionMode 时多一列勾选框（单选是单选框），Selected 是已选行的 key。
+    - 加载：只用骨架行：Loading 时表体换成骨架；滚动加载（OnRangeChange）已有数据时骨架接在末尾。
+    - 合计：列写 Summary（Sum 精确相加）或 SummaryContent 时底部多一行吸底的合计。
+    - 状态列（StatusColumn）显示成 StatusBadge；RowTone 给整行着色；ActiveKey 标出主从视图里正在看的一行。
+    未声明的属性落到 table 上；aria-label 或 aria-labelledby 是表格的名称。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@inherits UIComponent
+
+<CascadingValue Value="columns" IsFixed="true">
+    @{ columns.Start(); }
+    @ChildContent
+    @Deferred
+</CascadingValue>
+
+@code {
+    // 表格在各列把自己交给表格之后才渲染：排到渲染队列的末尾（Defer 是内部组件，不能写成标记）
+    RenderFragment Deferred => builder =>
+    {
+        builder.OpenComponent<Defer>(0);
+        builder.AddComponentParameter(1, nameof(Defer.ChildContent), (RenderFragment)(inner =>
+        {
+            FinishCollectingColumns();
+            inner.AddContent(0, Table);
+        }));
+        builder.CloseComponent();
+    };
+
+    RenderFragment Table => __builder =>
+    {
+        var look = Look;
+        var parts = DataTableStyles.Of(look, Config.Styles);
+        var shown = columns.All;
+        var items = Rows;
+        var types = shown.Select(column => ColumnDisplay.TypeOf(column, items)).ToArray();
+        var offsets = ColumnDisplay.Offsets(shown, WidthOf, LeadingWidth);
+        var sortList = ActiveSorts;
+        var span = shown.Count + (SelectionMode is null ? 0 : 1);
+        var summary = HasSummary && items.Count > 0 && !Replacing;
+        // 有起始边的固定列时，勾选列也固定在最前面
+        var stickySelectStyle = offsets.Start.Count > 0 ? DataTableStyles.StickySelect : null;
+        Attrs? stickySelect = stickySelectStyle is null ? null : new Attrs { Sx = stickySelectStyle };
+
+        <ScrollArea Axis="ScrollAxis.Both" Focusable="Virtual" PropsViewport="ViewportManaged"
+                    @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.Root], Flexible ? DataTableStyles.Flexible : null as Attrs), PropsRoot)">
+            <table @attributes="Attrs.Merge(parts[DataTablePart.Table], Rest, TableManaged(items.Count + 1 + (summary ? 1 : 0)))">
+                <colgroup>
+                    @if (SelectionMode is not null)
+                    {
+                        <col style="width:@ColumnDisplay.Px(SelectWidth)" />
+                    }
+                    @foreach (var column in shown)
+                    {
+                        var width = WidthOf(column) is { } px ? ColumnDisplay.Px(px) : ColumnDisplay.FlexWidth(column, shown, WidthOf, LeadingWidth);
+                        <col @key="column" style="@(width is null ? null : $"width:{width}")" />
+                    }
+                </colgroup>
+                <thead @attributes="Attrs.Merge(parts[DataTablePart.Head])">
+                    <tr aria-rowindex="1" @attributes="Attrs.Merge(parts[DataTablePart.HeadRow])">
+                        @if (SelectionMode is not null)
+                        {
+                            <th scope="col" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.SelectHeaderCell], stickySelect))">
+                                @if (SelectionMode == UI.SelectionMode.Multiple)
+                                {
+                                    var state = SelectAllState;
+                                    <Checkbox Value="state.All" Indeterminate="state.Some" Disabled="!state.Any" ValueChanged="@(_ => ToggleAllAsync())"
+                                              aria-label="@Config.Lang.TableSelectAll" @attributes="Attrs.MergeProps(parts[DataTablePart.SelectAll])" />
+                                }
+                                else
+                                {
+                                    <VisuallyHidden>@Config.Lang.TableSelectColumn</VisuallyHidden>
+                                }
+                            </th>
+                        }
+                        @for (var position = 0; position < shown.Count; position++)
+                        {
+                            var column = shown[position];
+                            var align = ColumnDisplay.AlignOf(column, types[position]);
+                            var priority = IndexOfSort(sortList, column.ColumnKey);
+                            var direction = priority >= 0 ? sortList[priority].Direction : (SortDirection?)null;
+                            <th @key="column" scope="col" data-sticky="@column.Sticky?.ToString().ToLowerInvariant()"
+                                aria-sort="@(column.Sortable ? (priority == 0 ? AriaSort(direction) : "none") : null)"
+                                @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], TableStyles.AlignOf(align), StickyLayer(column, offsets)))">
+                                @if (column.Sortable)
+                                {
+                                    <ButtonBase @attributes="Attrs.MergeProps(parts[DataTablePart.SortButton])" @onclick="e => OnSortClickAsync(column, e)">
+                                        <span @attributes="Attrs.Merge(parts[DataTablePart.SortLabel])">@Header(column)</span>
+                                        <Icon Data="@(direction switch { SortDirection.Ascending => BuiltInIcons.ArrowUp, SortDirection.Descending => BuiltInIcons.ArrowDown, _ => BuiltInIcons.ArrowUpDown })"
+                                              @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.SortIcon], direction is null ? null : (Attrs)DataTableStyles.SortActive))" />
+                                        @if (sortList.Count > 1 && priority >= 0)
+                                        {
+                                            <span aria-hidden="true" @attributes="Attrs.Merge(parts[DataTablePart.SortPriority])">@(priority + 1)</span>
+                                            @* aria-sort 只放在第一排序列上（ARIA 的要求），其余列的次序与方向写给读屏 *@
+                                            @if (priority > 0)
+                                            {
+                                                <VisuallyHidden>@Config.Lang.TableSortPriority(priority + 1, direction == SortDirection.Ascending ? Config.Lang.TableSortAscending : Config.Lang.TableSortDescending)</VisuallyHidden>
+                                            }
+                                        }
+                                    </ButtonBase>
+                                }
+                                else
+                                {
+                                    @Header(column)
+                                }
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody data-rune-virtual-list @attributes="Attrs.Merge(parts[DataTablePart.Body])">
+                    @if (Replacing)
+                    {
+                        @SkeletonRows(SkeletonRowCount, parts, shown)
+                    }
+                    else if (items.Count == 0 && !Loading)
+                    {
+                        <tr>
+                            <td colspan="@span" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.EmptyCell]))">
+                                @if (Empty is not null)
+                                {
+                                    @Empty
+                                }
+                                else
+                                {
+                                    <Empty Size="Size.Sm" @attributes="Attrs.MergeProps(null, PropsEmpty)"><Title>@(EmptyText ?? Config.Lang.TableEmpty)</Title></Empty>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    else if (items.Count > 0)
+                    {
+                        var (from, to) = RenderedRange;
+                        var selectedKeys = SelectedKeys;
+                        @if (Virtual)
+                        {
+                            <tr data-rune-virtual-before aria-hidden="true"><td colspan="@span" @attributes="Attrs.Merge(parts[DataTablePart.Spacer])"></td></tr>
+                        }
+                        @for (var index = from; index <= to; index++)
+                        {
+                            var item = items[index];
+                            var key = GetKey(item);
+                            var number = index + 1;
+                            var isSelected = SelectionMode is not null && selectedKeys.Contains(key);
+                            var active = ActiveKey is not null && ActiveKey == key;
+                            var tone = RowTone?.Invoke(item);
+                            var rowParts = IsStriped && index % 2 == 1 ? DataTableStyles.Of(look with { Striped = true }, Config.Styles) : parts;
+                            var rowLayer = Attrs.Layer(rowParts[DataTablePart.Row], new Attrs
+                            {
+                                Sx = Sx.Of(tone is { } t ? DataTableStyles.ToneOf(t) : null, isSelected ? DataTableStyles.Selected : null,
+                                    active ? DataTableStyles.Active : null, OnRowClick.HasDelegate ? DataTableStyles.Clickable : null),
+                            });
+                            <tr @key="key" data-index="@index" data-key="@key" data-state="@(isSelected ? "selected" : null)" data-tone="@tone?.ToString().ToLowerInvariant()"
+                                aria-rowindex="@(index + 2)" aria-selected="@(SelectionMode is null ? null : isSelected ? "true" : "false")" aria-current="@(active ? "true" : null)"
+                                @attributes="Attrs.Merge(rowLayer, PropsRowFor?.Invoke(item, index) ?? PropsRow)">
+                                @if (SelectionMode is not null)
+                                {
+                                    <td @attributes="Attrs.Merge(Attrs.Layer(rowParts[DataTablePart.Cell], rowParts[DataTablePart.SelectCell], new Attrs { Sx = Sx.Of(stickySelectStyle, active ? DataTableStyles.ActiveEdge : null) }))">
+                                        @if (SelectionMode == UI.SelectionMode.Single)
+                                        {
+                                            <CascadingValue TValue="IRadioGroup<string>" Value="Radios">
+                                                <Radio TValue="string" Value="key" Disabled="!IsSelectable(item)" aria-label="@Config.Lang.TableSelectRow(number)"
+                                                       Sx="rowParts[DataTablePart.SelectRadio].Sx" />
+                                            </CascadingValue>
+                                        }
+                                        else
+                                        {
+                                            <Checkbox Value="isSelected" Disabled="!IsSelectable(item)" ValueChanged="@(_ => ToggleRowAsync(key))"
+                                                      aria-label="@Config.Lang.TableSelectRow(number)" @attributes="Attrs.MergeProps(rowParts[DataTablePart.SelectCheckbox])" />
+                                        }
+                                    </td>
+                                }
+                                @for (var position = 0; position < shown.Count; position++)
+                                {
+                                    var column = shown[position];
+                                    var cellLayer = Attrs.Layer(rowParts[DataTablePart.Cell], new Attrs
+                                    {
+                                        Sx = Sx.Of(TableStyles.AlignOf(ColumnDisplay.AlignOf(column, types[position])), column.Wrap ? TableStyles.Wrap : null,
+                                            active && position == 0 && SelectionMode is null ? DataTableStyles.ActiveEdge : null),
+                                    }, StickyLayer(column, offsets));
+                                    <td @key="column" @attributes="Attrs.Merge(cellLayer)">@CellOf(column, item, types[position])</td>
+                                }
+                            </tr>
+                        }
+                        @if (Virtual)
+                        {
+                            <tr data-rune-virtual-after aria-hidden="true"><td colspan="@span" @attributes="Attrs.Merge(parts[DataTablePart.Spacer])"></td></tr>
+                        }
+                    }
+                    @if (Appending)
+                    {
+                        @SkeletonRows(MoreSkeletonRows, parts, shown)
+                    }
+                </tbody>
+                @if (summary)
+                {
+                    <tfoot @attributes="Attrs.Merge(parts[DataTablePart.Foot])">
+                        <tr aria-rowindex="@(items.Count + 2)">
+                            @if (SelectionMode is not null)
+                            {
+                                <td @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell], stickySelect))"></td>
+                            }
+                            @for (var position = 0; position < shown.Count; position++)
+                            {
+                                var column = shown[position];
+                                <td @key="column" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell],
+                                        Attrs.Layer(TableStyles.AlignOf(ColumnDisplay.AlignOf(column, types[position])), StickyLayer(column, offsets))))">
+                                    @SummaryOf(column, position, types[position])
+                                </td>
+                            }
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </ScrollArea>
+    };
+
+    // 一行骨架：同一行的单元格一起扫，行与行依次错开（一道波从上往下推过表格）
+    RenderFragment SkeletonRows(int count, PartLayers<DataTablePart> parts, IReadOnlyList<DataTableColumn<TItem>> shown) => __builder =>
+    {
+        for (var row = 0; row < count; row++)
+        {
+            <tr @key="@($"skeleton-{row}")" aria-hidden="true" @attributes="Attrs.Merge(parts[DataTablePart.Row])">
+                @if (SelectionMode is not null)
+                {
+                    <td @attributes="Attrs.Merge(parts[DataTablePart.Cell])"></td>
+                }
+                @for (var position = 0; position < shown.Count; position++)
+                {
+                    <td @attributes="Attrs.Merge(parts[DataTablePart.Cell])">
+                        <Skeleton Delay="@(row * ShimmerStyles.Stagger)"
+                                  @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.Skeleton], SkeletonWidth(row, position)), PropsSkeleton)" />
+                    </td>
+                }
+            </tr>
+        }
+    };
+
+    // 骨架条的长短错落：90%、75%、60%、45%
+    static Attrs SkeletonWidth(int row, int position) => new() { InlineStyle = $"width:{90 - (row + position) % 4 * 15}%" };
+
+    RenderFragment Header(DataTableColumn<TItem> column) => column.HeaderContent ?? (builder => builder.AddContent(0, column.Label));
+
+    static int IndexOfSort(IReadOnlyList<ColumnSort> sorts, string key)
+    {
+        for (var at = 0; at < sorts.Count; at++)
+        {
+            if (sorts[at].Key == key) return at;
+        }
+        return -1;
+    }
+
+    static string? AriaSort(SortDirection? direction) => direction switch
+    {
+        SortDirection.Ascending => "ascending",
+        SortDirection.Descending => "descending",
+        _ => "none",
+    };
+}

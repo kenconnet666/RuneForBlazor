@@ -1,0 +1,48 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <ToggleGroup @bind-Value="mode" Required="true" Size="Size.Sm" aria-label="状态">
+            <ToggleItem Value="@("data")">有数据</ToggleItem>
+            <ToggleItem Value="@("loading")">首次加载</ToggleItem>
+            <ToggleItem Value="@("refreshing")">刷新中</ToggleItem>
+            <ToggleItem Value="@("empty")">没有数据</ToggleItem>
+        </ToggleGroup>
+        <ToggleGroup @bind-Value="density" Required="true" Size="Size.Sm" aria-label="密度">
+            <ToggleItem Value="@nameof(TableDensity.Compact)">紧凑</ToggleItem>
+            <ToggleItem Value="@nameof(TableDensity.Standard)">标准</ToggleItem>
+            <ToggleItem Value="@nameof(TableDensity.Comfortable)">宽松</ToggleItem>
+        </ToggleGroup>
+    </Flex>
+    <DataTable Items="Rows" GetKey="log => log.Id.ToString()" Loading="@(mode is "loading" or "refreshing")"
+               Density="Enum.Parse<TableDensity>(density)" Variant="TableVariant.Ghost" Striped="true" aria-label="运行日志" PropsRoot="TableHeight">
+        <ChildContent>
+            <PropertyColumn Property="log => log.Id" Title="#" Width="56" />
+            <PropertyColumn Property="log => log.Level" Title="级别" Width="90" />
+            <PropertyColumn Property="log => log.Message" Title="内容" Width="260" Wrap="true" />
+        </ChildContent>
+        <Empty>
+            <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Sm" Sx="EmptyPadding">
+                今天还没有日志
+                <Button Size="Size.Sm" Variant="ButtonVariant.Soft" @onclick="@(() => mode = "data")">载入示例数据</Button>
+            </Flex>
+        </Empty>
+    </DataTable>
+</Flex>
+
+@code {
+    sealed record Log(int Id, string Level, string Message);
+
+    static readonly string[] Levels = ["INFO", "WARN", "ERROR"];
+    static readonly string[] Messages = ["服务健康检查通过", "支付回调重试第 2 次", "库存同步超时"];
+    static readonly Log[] Sample = [.. Enumerable.Range(0, 6).Select(index => new Log(index, Levels[index % 3], Messages[index % 3]))];
+
+    static Attrs TableHeight => new() { Sx = Css.Define(static () => new Style { Height = CssLength.Rem(16) }) };
+
+    static Style EmptyPadding => Css.Define(static () => new Style { PaddingBlock = Space.Lg });
+
+    string mode = "loading";
+    string density = nameof(TableDensity.Compact);
+
+    IReadOnlyList<Log> Rows => mode is "empty" or "loading" ? [] : Sample;
+}

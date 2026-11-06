@@ -86,6 +86,28 @@ public static class LangFormat
         return $"{value.ToString(exponent == 0 ? "#,0" : "#,0.#", CultureOf(culture))} {FileSizeUnits[exponent]}";
     }
 
+    /// <summary>
+    /// 日期（同 vue-tsx-pro 的 format.date，dateStyle: medium）：zh-CN 是 2026年1月1日，en-US 是 Jan 1, 2026；
+    /// <paramref name="withTime"/> 时后面加上时、分（timeStyle: short）。值是 DateOnly、DateTime 或 DateTimeOffset。
+    /// </summary>
+    public static string Date(object value, string culture, bool withTime = false)
+    {
+        var info = CultureOf(culture).DateTimeFormat;
+        var dateTime = value switch
+        {
+            DateOnly date => date.ToDateTime(TimeOnly.MinValue),
+            DateTimeOffset offset => offset.DateTime,
+            DateTime time => time,
+            _ => throw new ArgumentException($"不是日期：{value.GetType()}", nameof(value)),
+        };
+        var pattern = MediumDatePattern(info) + (withTime ? " " + info.ShortTimePattern : "");
+        return dateTime.ToString(pattern, info);
+    }
+
+    // 长日期去掉星期、月份用简写：最接近 Intl 的 dateStyle: medium
+    static string MediumDatePattern(DateTimeFormatInfo info) =>
+        info.LongDatePattern.Replace("dddd, ", "").Replace("dddd ", "").Replace("dddd", "").Replace("MMMM", "MMM").Trim();
+
     static CultureInfo CultureOf(string name) => cultures.GetOrAdd(name, static name =>
     {
         try

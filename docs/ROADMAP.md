@@ -149,6 +149,10 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
   让 EasyQuerySharp 一侧不经转换就能消费
 - [ ] DataTable / DataTableView：列用子组件声明（`PropertyColumn` 按表达式取值，标题取 `[Display]`，排序键取属性路径；`TemplateColumn` 自定义内容），也可以给列定义列表；
   数据给 `Items`（内存里排序、筛选、分页）或 `ItemsProvider`（服务端）；排序、表头筛选、选择、展开、固定列、列宽拖动、网格方向键与单元格编辑（行校验）、行拖动、虚拟滚动、骨架行、密度
+  - [x] 核心：列的子组件（PropertyColumn、StatusColumn、TemplateColumn）、单列与多列排序（本地 / ManualSort）、单选与多选、虚拟滚动（virtual.js 的表格模式）、
+    骨架与空状态、固定列、合计行、行的色调、主从视图的当前行与点行
+  - [ ] 表头筛选与列菜单（ColumnHeaderActions）、列宽调整（ColumnResizer）、分组表头、详情行
+  - [ ] 网格方向键与单元格编辑（行校验）、行拖动、服务端数据（接 TableQueryState）
 - [ ] ColumnHeaderActions、ColumnResizer、ColumnSettings、SelectionBar、ColumnTable、TreeDataTable、PivotTable、CSV 导出（vue 的 `csv.ts`；xlsx 见阶段 7）
 - [ ] FieldCompare（字段写法同列定义；列表布局用已有的 ValueChange），接着 Timeline 的 change-log 示例换用它
 - [ ] 预渲染不重复取数（`[PersistentState]`）：表格的 `ItemsProvider` 在预渲染时取的数交给交互后的渲染，不再请求一次

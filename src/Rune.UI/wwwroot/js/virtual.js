@@ -2,6 +2,8 @@
 // 先按估计大小排出位置表，渲染后测量真实大小并按 key 缓存；可见范围用二分查找；可视区上方的项大小变化时同步调整滚动位置，可见内容不跳。
 // 分工：C# 只渲染 JS 报告的那一段（rune-command range），每项带 data-index 与 data-key；位置（transform）、列表的总大小、
 // 测量都在 JS 里，不等往返。滚动到指定项由 C# 写 data-rune-virtual-scroll（index:序号:对齐:序列号 或 offset:像素:auto:序列号）。
+// 表格（选项 table，DataTable）：列表是 tbody，行不能用 transform 排位置，改为上下两个占位行（data-rune-virtual-before / after）撑出滚动高度；
+// 吸顶的表头、吸底的合计行挡住的部分不算可见，滚动到某一行时停在它们之间（同 vue 的 scrollPaddingStart / End）。
 
 import { sendCommand } from './shared.js';
 
@@ -60,10 +62,10 @@ class Virtualizer {
   }
 
   readOptions() {
-    const { count = 0, estimate = 40, overscan = 4, horizontal = false, window: followWindow = false } =
+    const { count = 0, estimate = 40, overscan = 4, horizontal = false, window: followWindow = false, table = false } =
       JSON.parse(this.host.getAttribute('data-rune-virtual') || '{}');
     const changed = count !== this.options?.count || estimate !== this.options?.estimate;
-    this.options = { count, estimate, overscan, horizontal, followWindow };
+    this.options = { count, estimate, overscan, horizontal, followWindow, table };
     // 总数变了：序号与 key 的对应作废（数据换了、过滤了），测量过的大小按 key 保留
     if (changed) {
       this.keys.clear();
@@ -195,11 +197,19 @@ class Virtualizer {
     return this.options.horizontal ? box.inlineSize : box.blockSize;
   }
 
-  /** 列表开头距滚动内容开头的距离：随页面滚动时是列表在页面里的位置 */
+  /** 列表开头距滚动内容开头的距离：随页面滚动时是列表在页面里的位置；表格里是表头的高度 */
   scrollMargin() {
-    if (!this.options.followWindow || !this.list) return 0;
+    if (!this.list) return 0;
     const rect = this.list.getBoundingClientRect();
-    return this.options.horizontal ? rect.left + window.scrollX : rect.top + window.scrollY;
+    if (this.options.followWindow) return this.options.horizontal ? rect.left + window.scrollX : rect.top + window.scrollY;
+    if (!this.options.table) return 0;
+    return rect.top - this.host.getBoundingClientRect().top + this.host.scrollTop;
+  }
+
+  /** 吸顶的表头、吸底的合计行挡住的高度：滚动到某一行时让过它们 */
+  scrollPadding() {
+    const table = this.options.table ? this.list?.closest('table') : null;
+    return { before: table?.tHead?.offsetHeight ?? 0, after: table?.tFoot?.offsetHeight ?? 0 };
   }
 
   scrollBy(delta) {
@@ -226,7 +236,8 @@ class Virtualizer {
   update() {
     const measurements = this.getMeasurements();
     const { horizontal, overscan, count } = this.options;
-    if (this.list) {
+    if (this.list && this.options.table) this.placeRows(measurements);
+    else if (this.list) {
       this.list.style[horizontal ? 'width' : 'height'] = `${this.totalSize()}px`;
       for (const element of this.list.children) {
         const item = measurements[Number(element.getAttribute('data-index'))];
@@ -241,6 +252,28 @@ class Virtualizer {
     if (message === this.sent) return;
     this.sent = message;
     sendCommand(this.host, 'range', message);
+  }
+
+  /** 表格：上方的占位行高到第一个渲染的行，下方的占位行补足剩下的总高度 */
+  placeRows(measurements) {
+    let first = Infinity;
+    let last = -1;
+    for (const element of this.list.children) {
+      if (!element.hasAttribute('data-index')) continue;
+      const index = Number(element.getAttribute('data-index'));
+      first = Math.min(first, index);
+      last = Math.max(last, index);
+    }
+    const before = last < 0 ? 0 : (measurements[first]?.start ?? 0);
+    const after = last < 0 ? 0 : this.totalSize() - (measurements[last]?.end ?? 0);
+    const size = (selector, height) => {
+      const cell = this.list.querySelector(`:scope > ${selector} > td`);
+      if (!cell) return;
+      cell.parentElement.hidden = height <= 0;
+      cell.style.height = `${height}px`;
+    };
+    size('[data-rune-virtual-before]', before);
+    size('[data-rune-virtual-after]', after);
   }
 
   /** C# 写的滚动请求：每个序列号只执行一次 */
@@ -284,14 +317,16 @@ class Virtualizer {
     const item = this.getMeasurements()[clamp(index, 0, this.options.count - 1)];
     if (!item) return null;
     const { offset, viewport } = this;
+    const { before, after } = this.scrollPadding();
     let target;
     if (align === 'auto') {
-      if (item.start >= offset && item.end <= offset + viewport) return null;
-      target = item.start < offset ? item.start : item.end - viewport;
-    } else if (align === 'start') target = item.start;
-    else if (align === 'end') target = item.end - viewport;
-    else target = item.start + item.size / 2 - viewport / 2;
-    return clamp(target, 0, Math.max(0, this.totalSize() - viewport));
+      if (item.start >= offset + before && item.end <= offset + viewport - after) return null;
+      target = item.start < offset + before ? item.start - before : item.end - viewport + after;
+    } else if (align === 'start') target = item.start - before;
+    else if (align === 'end') target = item.end - viewport + after;
+    else target = item.start + item.size / 2 - (viewport + before - after) / 2;
+    // 开头可以负到 -before：第一行对齐开头时回到最顶上，表头下面就是它
+    return clamp(target, -before, Math.max(0, this.totalSize() - viewport + after));
   }
 }
 
