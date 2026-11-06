@@ -12,3 +12,4 @@ RUNE005 | Rune | Warning | 不要在渲染路径上新建 Style
 RUNE006 | Rune | Info | 样式值有现成的常量或类型化写法
 RUNE007 | Rune | Disabled | 组件内部的长度不要用 px
 RUNE008 | Rune | Warning | for 循环变量被延后执行的内容捕获
+RUNE009 | Rune | Error | 不要在静态初始化里调用 Attrs.Merge

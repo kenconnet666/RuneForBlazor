@@ -50,6 +50,11 @@ internal static class Diagnostics
         "RUNE008", "for 循环变量被延后执行的内容捕获",
         "'{0}' 是 for 循环变量，被 lambda（Razor 的子内容、事件处理）捕获：执行时循环已经走完，拿到的是最后的值；在循环体里先复制成局部变量（var item = items[{0}];）",
         Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor StaticMerge = new(
+        "RUNE009", "不要在静态初始化里调用 Attrs.Merge",
+        "Attrs.Merge 要在渲染中调用（它把样式规则登记到当前请求、电路）：静态的层只初始化一次，之后的请求拿到的类名没有规则，静态 SSR 的页面上样式会丢；改用 new Attrs { Sx = … } 或 Attrs.Layer",
+        Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
 }
 
 /// <summary>
