@@ -14,52 +14,27 @@
 
 <div role="group" aria-labelledby="@(Field?.LabelId)" aria-describedby="@ControlAttrs.AriaDescribedBy" @attributes="Attrs.Merge(parts[TransferPart.Root], Rest)">
     @Panel(parts, 0)
-    <div @attributes="Attrs.Merge(parts[TransferPart.Actions])">
-        @foreach (var to in new[] { 1, 0 })
-        {
-            <IconButton Icon="@(to == 1 ? BuiltInIcons.ChevronRight : BuiltInIcons.ChevronLeft)" Label="@Config.Lang.TransferMoveTo(TitleOf(to))"
-                        Variant="ButtonVariant.Soft" Size="UI.Size.Sm" PropsIcon="ActionIconLayer(parts)" Disabled="@(IsDisabled || checkedKeys[1 - to].Count == 0)"
-                        @onclick="() => MoveAsync(1 - to, checkedKeys[1 - to])" @attributes="Attrs.MergeProps(null, PropsAction)" />
-        }
-    </div>
+    <TransferActions Titles="(TitleOf(0), TitleOf(1))" CanMoveRight="@(!IsDisabled && checkedKeys[0].Count > 0)" CanMoveLeft="@(!IsDisabled && checkedKeys[1].Count > 0)"
+                     OnMoveRight="() => MoveAsync(0, checkedKeys[0])" OnMoveLeft="() => MoveAsync(1, checkedKeys[1])" PropsAction="PropsAction" />
     @Panel(parts, 1)
     @* 移动后的播报：一直在 DOM 里的礼貌播报区 *@
     <span aria-live="polite" @attributes="Attrs.Merge(VisuallyHiddenLayer)">@announcement</span>
 </div>
 
 @code {
-    /// <summary>一边：全选框、标题、计数、搜索框与列表。</summary>
+    /// <summary>一边：全选框、标题、计数、搜索框（TransferPanel）与列表。</summary>
     RenderFragment Panel(PartLayers<TransferPart> parts, int side) => __builder =>
     {
         var title = TitleOf(side);
         var titleId = $"{ControlId}-title-{side}";
         var shown = ShownEntries(side);
-        var selectable = shown.Where(e => !e.Option.Disabled).Select(e => e.Option.Value).ToList();
-        var visibleChecked = selectable.Count(checkedKeys[side].Contains);
-        var all = selectable.Count > 0 && visibleChecked == selectable.Count;
-        <section aria-labelledby="@titleId" @attributes="Attrs.Merge(parts[TransferPart.Panel], PropsPanel)">
-            <div @attributes="Attrs.Merge(parts[TransferPart.Header])">
-                <Checkbox Value="all" ValueChanged="next => CheckAll(side, selectable, next)" Indeterminate="@(!all && visibleChecked > 0)"
-                          Disabled="@(IsDisabled || selectable.Count == 0)" aria-label="@Config.Lang.TransferSelectAll(title)" />
-                <span id="@titleId" @attributes="Attrs.Merge(parts[TransferPart.Title])">@title</span>
-                <Small Tone="TextTone.Muted">@Config.Lang.TransferCount(checkedKeys[side].Count, SideEntries(side).Count)</Small>
-            </div>
-            @if (Searchable)
-            {
-                <div @attributes="Attrs.Merge(parts[TransferPart.Search])">
-                    <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
-                        <TextField Type="search" Icon="BuiltInIcons.Search" Variant="InputVariant.Soft" Size="UI.Size.Sm" Immediate="true" Disabled="IsDisabled"
-                                   Value="@searches[side]" ValueChanged="text => searches[side] = text ?? string.Empty" Sx="TransferStyles.SearchField"
-                                   placeholder="@Config.Lang.SelectSearch" aria-label="@($"{Config.Lang.SelectSearch} {title}")" @attributes="Attrs.MergeProps(null, PropsSearch)" />
-                    </CascadingValue>
-                </div>
-            }
-            @* 列表各以自己的标题为名：不归外面的 Field 管 *@
-            <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
-                <Listbox TItem="TItem" Items="shown.Select(e => e.Item)" ToOption="ToOption" SelectionMode="SelectionMode.Multiple" Disabled="IsDisabled"
-                         Values="checkedKeys[side]" ValuesChanged="keys => checkedKeys[side] = keys" id="@($"{ControlId}-{side}")" aria-labelledby="@titleId"
-                         data-rune-option-dblclick @onrunecommand="e => DoubleClickAsync(side, e)" @attributes="Attrs.MergeProps(parts[TransferPart.List], PropsList)" />
-            </CascadingValue>
-        </section>
+        <TransferPanel Title="@title" TitleId="@titleId" Selectable="@([.. shown.Where(e => !e.Option.Disabled).Select(e => e.Option.Value)])"
+                       Checked="checkedKeys[side]" CheckedChanged="keys => checkedKeys[side] = keys" Total="SideEntries(side).Count"
+                       Searchable="Searchable" Search="@searches[side]" SearchChanged="text => searches[side] = text ?? string.Empty" Disabled="IsDisabled"
+                       PropsSearch="PropsSearch" @attributes="Attrs.MergeProps(null, PropsPanel)">
+            <Listbox TItem="TItem" Items="shown.Select(e => e.Item)" ToOption="ToOption" SelectionMode="SelectionMode.Multiple" Disabled="IsDisabled"
+                     Values="checkedKeys[side]" ValuesChanged="keys => checkedKeys[side] = keys" id="@($"{ControlId}-{side}")" aria-labelledby="@titleId"
+                     data-rune-option-dblclick @onrunecommand="e => DoubleClickAsync(side, e)" @attributes="Attrs.MergeProps(parts[TransferPart.List], PropsList)" />
+        </TransferPanel>
     };
 }

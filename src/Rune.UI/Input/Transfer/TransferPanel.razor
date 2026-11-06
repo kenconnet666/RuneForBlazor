@@ -1,0 +1,77 @@
+@*
+    穿梭框的一边（同 vue-tsx-pro 的 renderPanel）：全选框、标题、“勾上 / 总数”、搜索框，下面是这一边的列表（ChildContent）。
+    Transfer（两边都是 Listbox）与 TreeTransfer（左边是 Tree）共用；勾选、搜索的状态由穿梭框管，这里只画。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = TransferStyles.Of(Config.Styles);
+    var visibleChecked = Selectable.Count(Checked.Contains);
+    var all = Selectable.Count > 0 && visibleChecked == Selectable.Count;
+}
+
+<section aria-labelledby="@TitleId" @attributes="Attrs.Merge(parts[TransferPart.Panel], Rest)">
+    <div @attributes="Attrs.Merge(parts[TransferPart.Header])">
+        <Checkbox Value="all" ValueChanged="CheckAllAsync" Indeterminate="@(!all && visibleChecked > 0)"
+                  Disabled="@(Disabled || Selectable.Count == 0)" aria-label="@Config.Lang.TransferSelectAll(Title)" />
+        <span id="@TitleId" @attributes="Attrs.Merge(parts[TransferPart.Title])">@Title</span>
+        <Small Tone="TextTone.Muted">@Config.Lang.TransferCount(Checked.Count, Total)</Small>
+    </div>
+    @if (Searchable)
+    {
+        <div @attributes="Attrs.Merge(parts[TransferPart.Search])">
+            <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
+                <TextField Type="search" Icon="BuiltInIcons.Search" Variant="InputVariant.Soft" Size="UI.Size.Sm" Immediate="true" Disabled="Disabled"
+                           Value="@Search" ValueChanged="SearchChanged" Sx="TransferStyles.SearchField"
+                           placeholder="@Config.Lang.SelectSearch" aria-label="@($"{Config.Lang.SelectSearch} {Title}")" @attributes="Attrs.MergeProps(null, PropsSearch)" />
+            </CascadingValue>
+        </div>
+    }
+    @* 列表各以自己的标题为名：不归外面的 Field 管 *@
+    <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">@ChildContent</CascadingValue>
+</section>
+
+@code {
+    /// <summary>这一边的标题。</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>标题的 id：这一边与它的列表以标题为名。</summary>
+    [Parameter, EditorRequired] public string TitleId { get; set; } = "";
+
+    /// <summary>全选管得到的项：看得见（搜索后留下）、能勾的。</summary>
+    [Parameter] public IReadOnlyList<string> Selectable { get; set; } = [];
+
+    /// <summary>这一边勾上的。</summary>
+    [Parameter] public IReadOnlyList<string> Checked { get; set; } = [];
+
+    /// <summary>勾上的变了（全选框）。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> CheckedChanged { get; set; }
+
+    /// <summary>这一边一共几项（计数的分母）。</summary>
+    [Parameter] public int Total { get; set; }
+
+    /// <summary>带搜索框。</summary>
+    [Parameter] public bool Searchable { get; set; }
+
+    /// <summary>搜索框里的文字。</summary>
+    [Parameter] public string Search { get; set; } = "";
+
+    /// <summary>搜索框里的文字变了。</summary>
+    [Parameter] public EventCallback<string?> SearchChanged { get; set; }
+
+    /// <summary>不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>搜索框（TextField）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSearch { get; set; }
+
+    /// <summary>这一边的列表。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 全选只管看得见的：取消时只去掉看得见的，别的勾选保留
+    Task CheckAllAsync(bool all)
+    {
+        var others = Checked.Where(key => !Selectable.Contains(key));
+        return CheckedChanged.InvokeAsync(all ? [.. others, .. Selectable] : [.. others]);
+    }
+}

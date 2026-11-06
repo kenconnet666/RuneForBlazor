@@ -1,0 +1,37 @@
+@*
+    穿梭框中间的两个按钮（同 vue-tsx-pro 的 renderActions）：移到右边、移到左边，没有勾上的时不可用。Transfer 与 TreeTransfer 共用。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = TransferStyles.Of(Config.Styles); }
+
+<div @attributes="Attrs.Merge(parts[TransferPart.Actions])">
+    @foreach (var to in new[] { 1, 0 })
+    {
+        <IconButton Icon="@(to == 1 ? BuiltInIcons.ChevronRight : BuiltInIcons.ChevronLeft)" Label="@Config.Lang.TransferMoveTo(to == 1 ? Titles.Target : Titles.Source)"
+                    Variant="ButtonVariant.Soft" Size="UI.Size.Sm" PropsIcon="ActionIconLayer(parts)" Disabled="@(!(to == 1 ? CanMoveRight : CanMoveLeft))"
+                    @onclick="@(to == 1 ? OnMoveRight : OnMoveLeft)" @attributes="Attrs.MergeProps(null, PropsAction)" />
+    }
+</div>
+
+@code {
+    /// <summary>两边的标题（按钮的名称“移到…”）。</summary>
+    [Parameter, EditorRequired] public (string Source, string Target) Titles { get; set; }
+
+    /// <summary>左边有勾上的、能移到右边。</summary>
+    [Parameter] public bool CanMoveRight { get; set; }
+
+    /// <summary>右边有勾上的、能移回左边。</summary>
+    [Parameter] public bool CanMoveLeft { get; set; }
+
+    /// <summary>点了“移到右边”。</summary>
+    [Parameter] public EventCallback OnMoveRight { get; set; }
+
+    /// <summary>点了“移到左边”。</summary>
+    [Parameter] public EventCallback OnMoveLeft { get; set; }
+
+    /// <summary>两个按钮（IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsAction { get; set; }
+
+    static Attrs ActionIconLayer(PartLayers<TransferPart> parts) => Attrs.Layer(parts[TransferPart.ActionIcon], null, new Attrs { ["FlipInRtl"] = true });
+}

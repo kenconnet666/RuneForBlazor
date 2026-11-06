@@ -68,15 +68,6 @@ public partial class Transfer<TItem>
         return text.Length == 0 ? all : [.. all.Where(e => Filter?.Invoke(e.Item, text) ?? Config.Matches(e.Option.Label, text))];
     }
 
-    static Attrs ActionIconLayer(PartLayers<TransferPart> parts) => Attrs.Layer(parts[TransferPart.ActionIcon], null, new Attrs { ["FlipInRtl"] = true });
-
-    // 全选只管看得见的：取消时只去掉看得见的，别的勾选保留
-    void CheckAll(int side, List<string> selectable, bool all)
-    {
-        var others = checkedKeys[side].Where(key => !selectable.Contains(key));
-        checkedKeys[side] = all ? [.. others, .. selectable] : [.. others];
-    }
-
     /// <summary>把 keys 从 from 这一边移到另一边：不可用的、已经不在这一边的不动。</summary>
     async Task MoveAsync(int from, IReadOnlyList<string> keys)
     {
