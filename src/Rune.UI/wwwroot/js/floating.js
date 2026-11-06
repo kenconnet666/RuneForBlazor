@@ -51,11 +51,13 @@ function floatingAnchorOf(overlay) {
 export async function anchorFloating(overlay) {
   const anchor = floatingAnchorOf(overlay);
   if (!anchor) return;
-  overlay.style.visibility = 'hidden';
+  // 定位好之前看不见、点不着（不在旧位置闪一下）。用透明而不是 visibility: hidden：后者让已经聚焦的元素失焦
+  // （原生 popover 打开时就按 autofocus 聚焦了搜索框），定位期间打的字落到页面上丢了
+  Object.assign(overlay.style, { opacity: '0', pointerEvents: 'none' });
   const [{ computePosition, autoUpdate, offset, flip, shift, arrow: arrowMiddleware, size }] = await Promise.all([loadFloatingUi(), contentRendered(overlay)]);
   // 加载期间又关上了
   if (!overlay.matches(':popover-open')) {
-    overlay.style.visibility = '';
+    Object.assign(overlay.style, { opacity: '', pointerEvents: '' });
     return;
   }
   releaseFloating(overlay);
@@ -101,7 +103,7 @@ export async function anchorFloating(overlay) {
           transform: `rotate(${ARROW_ROTATION[side]}deg)`,
         });
       }
-      Object.assign(overlay.style, { left: `${x}px`, top: `${y}px`, visibility: '', transformOrigin: TRANSFORM_ORIGIN[side] });
+      Object.assign(overlay.style, { left: `${x}px`, top: `${y}px`, opacity: '', pointerEvents: '', transformOrigin: TRANSFORM_ORIGIN[side] });
       overlay.dataset.side = side;
       overlay.dataset.align = align;
       resolve();
