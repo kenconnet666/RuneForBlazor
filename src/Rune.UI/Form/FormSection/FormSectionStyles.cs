@@ -56,7 +56,7 @@ public static class FormSectionStyles
             FormSectionPart.HeaderText => HeaderText,
             FormSectionPart.Heading => Heading,
             FormSectionPart.Trigger => Sx.Of(SharedStyles.ButtonReset, SharedStyles.FocusRing, Trigger),
-            FormSectionPart.Chevron => Sx.Of(Chevron, s.Closed ? ChevronClosed : null),
+            FormSectionPart.Chevron => Sx.Of(Chevron, DisclosureStyles.Icon, s.Closed ? ChevronClosed : null),
             FormSectionPart.Description => Description,
             FormSectionPart.Extra => Extra,
             FormSectionPart.Body => Sx.Of(Body, s.MultiColumn ? BodyColumns : null),
@@ -113,14 +113,14 @@ public static class FormSectionStyles
         [When.Hover] = new() { BackgroundColor = Colors.Fill },
     });
 
-    static Style Chevron => Css.Define(static () => new Style
-    {
-        FlexShrink = 0,
-        Color = Colors.TextMuted,
-        Transition = $"rotate {Durations.Md} {Easings.Standard}",
-    });
+    static Style Chevron => Css.Define(static () => new Style { FlexShrink = 0, Color = Colors.TextMuted });
 
-    static Style ChevronClosed => Css.Define(static () => new Style { Rotate = CssValue.Deg(-90) });
+    // 收起时向下的箭头朝行尾：从右往左时朝左
+    static Style ChevronClosed => Css.Define(static () => new Style
+    {
+        Rotate = CssValue.Deg(-90),
+        [When.Rtl] = new() { Rotate = CssValue.Deg(90) },
+    });
 
     static Style Description => Css.Define(static () => new Style { FontSize = FontSizes.Sm, LineHeight = LineHeights.Normal });
 

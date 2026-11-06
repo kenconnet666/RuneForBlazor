@@ -8,7 +8,7 @@
 <div aria-hidden="true" @attributes="Attrs.Merge(RootLayer, Rest)">
     @for (var index = 0; index < Lines; index++)
     {
-        <Skeleton @key="index" Variant="SkeletonVariant.Text" Delay="@(Delay + index * ShimmerStyles.Stagger)"
+        <Skeleton @key="index" Shape="SkeletonShape.Text" Delay="@(Delay + index * ShimmerStyles.Stagger)"
                   @attributes="Attrs.MergeProps(Lines > 1 && index == Lines - 1 ? LastLine : null, PropsLine)" />
     }
 </div>

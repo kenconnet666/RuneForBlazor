@@ -3,7 +3,7 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>骨架的常用形状。</summary>
-public enum SkeletonVariant
+public enum SkeletonShape
 {
     /// <summary>一行文字：高 1em，占满宽度。</summary>
     Text,
@@ -38,11 +38,11 @@ public static class SkeletonStyles
     // 十六套主题不必各调一遍；光带叠在底色上，再深一档
     static readonly string Tint = $"color-mix(in oklab, {Colors.Text} 9%, transparent)";
 
-    /// <summary>各部件的默认层：<paramref name="variant"/> 是形状，<paramref name="wrapping"/> 表示包着内容（字色透明）。</summary>
-    public static PartLayers<SkeletonPart> Of(SkeletonVariant? variant, bool wrapping, ComponentStyles styles) =>
-        Recipe.Of("skeleton", (variant, wrapping), styles, static ((SkeletonVariant? Variant, bool Wrapping) k, SkeletonPart part) => part switch
+    /// <summary>各部件的默认层：<paramref name="shape"/> 是形状，<paramref name="wrapping"/> 表示包着内容（字色透明）。</summary>
+    public static PartLayers<SkeletonPart> Of(SkeletonShape? shape, bool wrapping, ComponentStyles styles) =>
+        Recipe.Of("skeleton", (shape, wrapping), styles, static ((SkeletonShape? Shape, bool Wrapping) k, SkeletonPart part) => part switch
         {
-            SkeletonPart.Root => Sx.Of(Root, ShimmerStyles.Wave, k.Variant is { } v ? VariantOf(v) : null, k.Wrapping ? Wrapping : null),
+            SkeletonPart.Root => Sx.Of(Root, ShimmerStyles.Wave, k.Shape is { } shape ? ShapeOf(shape) : null, k.Wrapping ? Wrapping : null),
             _ => Hidden,
         });
 
@@ -63,12 +63,12 @@ public static class SkeletonStyles
 
     static Style Hidden => Css.Define(static () => new Style { Visibility = Visibility.Hidden });
 
-    static Style VariantOf(SkeletonVariant variant) => Css.Define(variant, static variant => variant switch
+    static Style ShapeOf(SkeletonShape shape) => Css.Define(shape, static shape => shape switch
     {
-        SkeletonVariant.Text => new Style { Display = Display.Block, Width = CssLength.Percent(100), Height = CssLength.Em(1) },
-        SkeletonVariant.Heading => new Style { Display = Display.Block, Width = CssLength.Percent(40), Height = CssLength.Em(1.5) },
-        SkeletonVariant.Circle => new Style { Width = CssLength.Em(2.5), Height = CssLength.Em(2.5), FlexShrink = 0, BorderRadius = Radii.Full },
-        SkeletonVariant.Button => new Style
+        SkeletonShape.Text => new Style { Display = Display.Block, Width = CssLength.Percent(100), Height = CssLength.Em(1) },
+        SkeletonShape.Heading => new Style { Display = Display.Block, Width = CssLength.Percent(40), Height = CssLength.Em(1.5) },
+        SkeletonShape.Circle => new Style { Width = CssLength.Em(2.5), Height = CssLength.Em(2.5), FlexShrink = 0, BorderRadius = Radii.Full },
+        SkeletonShape.Button => new Style
         {
             Width = CssLength.Em(6),
             Height = $"max({Sizes.Control}, {Sizes.MinTarget})",

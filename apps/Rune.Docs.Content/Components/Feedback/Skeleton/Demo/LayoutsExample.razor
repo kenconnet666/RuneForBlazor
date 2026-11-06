@@ -9,8 +9,8 @@
             @if (layoutsLoading)
             {
                 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
-                    <Skeleton Variant="SkeletonVariant.Image" />
-                    <Skeleton Variant="SkeletonVariant.Heading" Delay="ShimmerStyles.Stagger" style="width: 70%" />
+                    <Skeleton Shape="SkeletonShape.Image" />
+                    <Skeleton Shape="SkeletonShape.Heading" Delay="ShimmerStyles.Stagger" style="width: 70%" />
                     <SkeletonText Lines="3" Delay="2 * ShimmerStyles.Stagger" />
                 </Flex>
             }
@@ -34,10 +34,10 @@
                         @* 子内容延后执行：循环变量先取成局部变量 *@
                         var delay = index * ShimmerStyles.Stagger;
                         <Flex @key="index" Gap="SpaceScale.Md" Align="ItemAlign.Center">
-                            <Skeleton Variant="SkeletonVariant.Circle" Delay="delay" />
+                            <Skeleton Shape="SkeletonShape.Circle" Delay="delay" />
                             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" style="flex: 1">
-                                <Skeleton Variant="SkeletonVariant.Text" Delay="delay" style="width: 35%" />
-                                <Skeleton Variant="SkeletonVariant.Text" Delay="delay + ShimmerStyles.Stagger / 2" />
+                                <Skeleton Shape="SkeletonShape.Text" Delay="delay" style="width: 35%" />
+                                <Skeleton Shape="SkeletonShape.Text" Delay="delay + ShimmerStyles.Stagger / 2" />
                             </Flex>
                         </Flex>
                     }
@@ -87,7 +87,7 @@
                             <Skeleton Sx="FieldBox" Delay="delay + ShimmerStyles.Stagger / 2" />
                         </Flex>
                     }
-                    <Skeleton Variant="SkeletonVariant.Button" Delay="3 * ShimmerStyles.Stagger" />
+                    <Skeleton Shape="SkeletonShape.Button" Delay="3 * ShimmerStyles.Stagger" />
                 </Flex>
             }
             else

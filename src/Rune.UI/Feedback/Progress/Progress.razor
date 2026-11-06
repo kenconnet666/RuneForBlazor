@@ -18,7 +18,7 @@
     var size = Size ?? defaults?.Size;
     var radius = Radius ?? defaults?.Radius ?? UI.Radius.Full;
     var determinate = Value is not null;
-    var parts = ProgressStyles.Of(new ProgressAppearance(Shape, tone, !determinate), Config.Styles);
+    var parts = ProgressStyles.Of(new ProgressAppearance(Shape, tone, !determinate, radius), Config.Styles);
     var clamped = Math.Clamp(Value ?? 0, 0, Math.Max(Max, 0));
     var percent = PercentOf(clamped);
     double? targetPercent = Target is { } target ? PercentOf(Math.Clamp(target, 0, Math.Max(Max, 0))) : null;
@@ -62,7 +62,7 @@
                     <TextSpan Tone="TextTone.Muted" aria-hidden="true" @attributes="Attrs.MergeProps(parts[ProgressPart.ValueLabel], PropsValueLabel)">@shownValue</TextSpan>
                 }
             </div>
-            @Bar(parts, progressbar, determinate, percent, targetPercent, radius)
+            @Bar(parts, progressbar, determinate, percent, targetPercent)
         }
     </div>
 }
@@ -72,7 +72,7 @@ else if (circle)
 }
 else
 {
-    @Bar(parts, progressbar, determinate, percent, targetPercent, radius)
+    @Bar(parts, progressbar, determinate, percent, targetPercent)
 }
 
 @code {
@@ -139,8 +139,8 @@ else
 
     static CssLength PercentLength(double percent) => $"{Number(percent)}%";
 
-    RenderFragment Bar(PartLayers<ProgressPart> parts, Attrs progressbar, bool determinate, double percent, double? targetPercent, Radius radius) =>
-        @<div @attributes="Attrs.Merge(parts[ProgressPart.Track], Rest, Attrs.Layer(progressbar, new Attrs { Sx = ScaleStyles.Radius(radius) }))">
+    RenderFragment Bar(PartLayers<ProgressPart> parts, Attrs progressbar, bool determinate, double percent, double? targetPercent) =>
+        @<div @attributes="Attrs.Merge(parts[ProgressPart.Track], Rest, progressbar)">
             <div @attributes="Attrs.Merge(parts[ProgressPart.Indicator], PropsIndicator, determinate ? new Attrs { Vars = [ProgressStyles.Value.Set(PercentLength(percent))] } : null)"></div>
             @if (targetPercent is { } target)
             {

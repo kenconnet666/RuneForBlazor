@@ -34,7 +34,7 @@ public class SkeletonTests : BunitContext
     [Fact]
     public void 骨架_不包内容时没有inert()
     {
-        var cut = Render<Skeleton>(p => p.Add(x => x.Variant, SkeletonVariant.Circle));
+        var cut = Render<Skeleton>(p => p.Add(x => x.Shape, SkeletonShape.Circle));
         Assert.False(cut.Find("span").HasAttribute("inert"));
         Assert.Null(cut.Find("span").GetAttribute("style"));
     }

@@ -1,13 +1,13 @@
 @inherits RuneComponent
 
 <Grid MinItemWidth="@("10em")" Gap="SpaceScale.Lg">
-    @foreach (var (variant, label) in shapes)
+    @foreach (var (shape, label) in shapes)
     {
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
             <div @attributes="Attrs.Merge(Stage)">
-                <Skeleton Variant="variant" />
+                <Skeleton Shape="shape" />
             </div>
-            <Small Tone="TextTone.Muted">@label variant="@Lower(variant)"</Small>
+            <Small Tone="TextTone.Muted">@label shape="@Lower(shape)"</Small>
         </Flex>
     }
     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
@@ -19,13 +19,13 @@
 </Grid>
 
 @code {
-    static readonly (SkeletonVariant Variant, string Label)[] shapes =
+    static readonly (SkeletonShape Shape, string Label)[] shapes =
     [
-        (SkeletonVariant.Text, "文字行"),
-        (SkeletonVariant.Heading, "标题"),
-        (SkeletonVariant.Circle, "头像"),
-        (SkeletonVariant.Button, "按钮"),
-        (SkeletonVariant.Image, "图片"),
+        (SkeletonShape.Text, "文字行"),
+        (SkeletonShape.Heading, "标题"),
+        (SkeletonShape.Circle, "头像"),
+        (SkeletonShape.Button, "按钮"),
+        (SkeletonShape.Image, "图片"),
     ];
 
     // 同一行的格子一样高：形状在剩下的空间里居中，说明文字都落在格子底部

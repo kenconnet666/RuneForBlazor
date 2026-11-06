@@ -65,7 +65,7 @@
 </div>
 
 @code {
-    static readonly Attrs OpenIcon = new() { Sx = CodeBlockStyles.ExpandIconOpen };
+    static readonly Attrs OpenIcon = new() { Sx = DisclosureStyles.Flip };
 
     bool expanded;
     Memo<(string? Highlighted, string? Added, string? Removed), LineMarks> marks;

@@ -3,7 +3,7 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>迷你图的画法。</summary>
-public enum SparklineVariant
+public enum SparklineType
 {
     /// <summary>折线（默认）。</summary>
     Line,

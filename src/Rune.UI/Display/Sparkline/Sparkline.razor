@@ -1,8 +1,8 @@
 @*
     迷你图（span，同 vue-tsx-pro 的 Sparkline）：没有坐标轴的小折线、面积或柱，嵌在指标卡（Stat 的 ChildContent）、表格的格子、列表的一行里看走势。
     纯 SVG（C# 直接输出，静态 SSR 也一样），宽度占满容器，高度默认 2em（随字号缩放）。
-    <Stat Label="实际销售" Value="910.36m" Unit="万元"><Sparkline Data="monthly" Variant="SparklineVariant.Area" Label="近 12 个月" /></Stat>
-    <Sparkline Data="@([3, 5, null, 4, 8])" Variant="SparklineVariant.Bar" Tone="Tone.Success" />
+    <Stat Label="实际销售" Value="910.36m" Unit="万元"><Sparkline Data="monthly" Type="SparklineType.Area" Label="近 12 个月" /></Stat>
+    <Sparkline Data="@([3, 5, null, 4, 8])" Type="SparklineType.Bar" Tone="Tone.Success" />
     空值（null）处断开（柱是空位）；默认标出最后一个点。读屏念成一句话：几个值、从哪到哪、最低最高（按 ValueFormat 与当前语言格式化），Label 写在前面。
 *@
 @namespace Rune.UI
@@ -11,7 +11,7 @@
 
 @{
     var present = Data.Where(v => v is not null).Select(v => (double)v!.Value).ToList();
-    var bars = Variant == SparklineVariant.Bar;
+    var bars = Type == SparklineType.Bar;
     var low = (double?)Min ?? (present.Count == 0 ? 0 : bars ? Math.Min(present.Min(), 0) : present.Min());
     var high = (double?)Max ?? (present.Count == 0 ? 1 : bars ? Math.Max(present.Max(), 0) : present.Max());
     var span = high - low is var d && d != 0 ? d : 1;
@@ -35,7 +35,7 @@
         {
             foreach (var points in Segments(YOf))
             {
-                @if (Variant == SparklineVariant.Area && points.Count > 1)
+                @if (Type == SparklineType.Area && points.Count > 1)
                 {
                     <path d="@($"{PathOf(points)} L{N(points[^1].X)} 100 L{N(points[0].X)} 100 Z")" @attributes="SparklineStyles.Area" />
                 }
@@ -54,7 +54,7 @@
     [Parameter, EditorRequired] public IReadOnlyList<decimal?> Data { get; set; } = [];
 
     /// <summary>画法，默认折线。</summary>
-    [Parameter] public SparklineVariant Variant { get; set; }
+    [Parameter] public SparklineType Type { get; set; }
 
     /// <summary>色调，默认 Accent。</summary>
     [Parameter] public Tone Tone { get; set; } = UI.Tone.Accent;
@@ -82,7 +82,7 @@
     Attrs? HeightVar => Height is { } h ? heightVar.Get(h, static v => new Attrs { Vars = [SparklineStyles.HeightVar.Set(v)] }) : null;
 
     // 最后一个点：HTML 圆点按百分比定位（SVG 拉伸时圆不变形）
-    Attrs? LastVars(int lastIndex, int width, Func<double, double> yOf) => ShowLast && Variant != SparklineVariant.Bar && lastIndex >= 0
+    Attrs? LastVars(int lastIndex, int width, Func<double, double> yOf) => ShowLast && Type != SparklineType.Bar && lastIndex >= 0
         ? new Attrs { Vars = [SparklineStyles.LastX.Set(CssLength.Percent(lastIndex * 100.0 / width)), SparklineStyles.LastY.Set(CssLength.Percent(yOf((double)Data[lastIndex]!.Value)))] }
         : null;
 

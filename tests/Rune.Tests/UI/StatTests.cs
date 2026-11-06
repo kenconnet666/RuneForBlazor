@@ -217,7 +217,7 @@ public class StatTests : BunitContext
         Assert.Equal(2, cut.FindAll("path").Count);
         Assert.Equal("M0 100 L1 60", cut.FindAll("path")[0].GetAttribute("d"));
 
-        var bars = Render<Sparkline>(p => p.Add(x => x.Data, [3m, null, 4m]).Add(x => x.Variant, SparklineVariant.Bar));
+        var bars = Render<Sparkline>(p => p.Add(x => x.Data, [3m, null, 4m]).Add(x => x.Type, SparklineType.Bar));
         Assert.Equal(2, bars.FindAll("rect").Count);
         Assert.Empty(bars.FindAll("span[aria-hidden]"));
     }

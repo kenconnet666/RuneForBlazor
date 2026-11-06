@@ -101,7 +101,7 @@ public static class NavListStyles
                 s.Current ? Current : null,
                 s.Disabled ? Disabled : null),
             NavListPart.Label => Sx.Of(ItemStyles.Label, s.IconOnly ? SharedStyles.VisuallyHidden : null),
-            NavListPart.Chevron => Chevron,
+            NavListPart.Chevron => DisclosureStyles.Icon,
             NavListPart.Section => Section,
             NavListPart.SectionLabel => Sx.Of(SectionLabel, s.IconOnly ? CompactSection : null),
             NavListPart.SectionIcon => SectionIcon,
@@ -112,9 +112,6 @@ public static class NavListStyles
 
     /// <summary>分组、紧凑分组里的列表：缩进；紧凑时不缩进。</summary>
     public static Style Nested(bool compact) => compact ? CompactNested : NestedList;
-
-    /// <summary>分组展开时的箭头（转到朝下）。</summary>
-    public static Style ChevronOpen => Css.Define(static () => new Style { Transform = "rotate(90deg)" });
 
     static Style NestedList => Css.Define(static () => new Style { PaddingInlineStart = Space.Lg, PaddingTop = Space.Xs });
 
@@ -144,8 +141,6 @@ public static class NavListStyles
         BackgroundColor = CssColors.Transparent,
         PointerEvents = PointerEvents.None,
     });
-
-    static Style Chevron => Css.Define(static () => new Style { Transition = $"transform {Durations.Md} {Easings.Standard}" });
 
     // 小节之间留出间隔，第一节贴着顶部
     static Style Section => Css.Define(static () => new Style

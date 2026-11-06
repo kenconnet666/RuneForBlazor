@@ -56,7 +56,8 @@ public enum ProgressShape
 /// <param name="Shape">形状。</param>
 /// <param name="Tone">色调。</param>
 /// <param name="Indeterminate">不确定进度（没有值）。</param>
-public readonly record struct ProgressAppearance(ProgressShape Shape, Tone Tone, bool Indeterminate);
+/// <param name="Radius">轨道的圆角，默认圆形。</param>
+public readonly record struct ProgressAppearance(ProgressShape Shape, Tone Tone, bool Indeterminate, Radius Radius = Radius.Full);
 
 /// <summary>进度的默认值（<see cref="ComponentDefaults"/> 里设置）。</summary>
 public sealed record ProgressDefaults : IComponentDefaults<ProgressDefaults>
@@ -97,7 +98,8 @@ public static class ProgressStyles
                 ProgressPart.Header => Sx.Of(Header, SharedStyles.RelativeSmall),
                 ProgressPart.Label => circle ? SharedStyles.RelativeSmall : Sx.Of(),
                 ProgressPart.ValueLabel => circle ? Sx.Of(CircleValue, SharedStyles.RelativeSmall) : BarValue,
-                ProgressPart.Track => Track,
+                // 圆角在配方里：按部件的定制排在它后面，盖得住（字号按布局放在外层或轨道上，仍由组件给）
+                ProgressPart.Track => Sx.Of(Track, ScaleStyles.Radius(a.Radius)),
                 ProgressPart.Indicator => Sx.Of(Indicator, ToneFill(a.Tone, stroke: false), a.Indeterminate ? Sliding : Determinate),
                 ProgressPart.Target => Target,
                 ProgressPart.Circle => Circle,

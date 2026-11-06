@@ -11,14 +11,14 @@
 *@
 @namespace Rune.UI
 @inherits UIComponent
-@{ var parts = AccordionStyles.Of(false, Disabled, Config.Styles); }
+@{ var parts = AccordionStyles.Of(false, Disabled, Size, Config.Styles); }
 
 <CascadingValue Value="State">
     <div @attributes="Attrs.Merge(parts[AccordionPart.Root], Rest, RootManaged)">@ChildContent</div>
 </CascadingValue>
 
 @code {
-    Memo<(Size? Size, bool Disabled), Attrs> rootManaged;
+    Memo<bool, Attrs> rootManaged;
 
     /// <summary>单开（默认，值是 Value）或多开（值是 Values）。</summary>
     [Parameter] public SelectionMode SelectionMode { get; set; }
@@ -62,12 +62,11 @@
     // 交给各项：展开的项变了时是新的实例，各项跟着重新渲染
     AccordionState State => new(Expanded, Math.Clamp(HeadingLevel, 2, 6), Disabled, ToggleAsync);
 
-    Attrs RootManaged => rootManaged.Get((Size, Disabled), static k => new Attrs
+    Attrs RootManaged => rootManaged.Get(Disabled, static disabled => new Attrs
     {
-        Sx = k.Size is { } size ? Sx.Of(ScaleStyles.FontSize(size)) : null,
         ["data-rune-roving"] = "vertical tabbable",
         ["data-rune-roving-items"] = "[data-accordion-trigger]",
-        ["data-disabled"] = k.Disabled ? true : null,
+        ["data-disabled"] = disabled ? true : null,
     });
 
     async Task ToggleAsync(string item)

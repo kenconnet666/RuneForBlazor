@@ -84,7 +84,7 @@ public static class CodeBlockStyles
             CodeBlockPart.Copy => a.CopyInCorner ? Copy : Sx.Of(),
             // 同 vue-tsx-pro 建在 ButtonBase 上：去掉浏览器的按钮样式、颜色过渡、波纹
             CodeBlockPart.Expand => Sx.Of(SharedStyles.ButtonReset, SharedStyles.FocusRingInset, SharedStyles.RippleHost, SharedStyles.InteractionColors, Expand),
-            _ => ExpandIcon,
+            _ => DisclosureStyles.Icon,
         });
 
     /// <summary>一行的标记样式；普通的行没有。</summary>
@@ -95,9 +95,6 @@ public static class CodeBlockStyles
         CodeLineMark.Removed => Removed,
         _ => null,
     };
-
-    /// <summary>展开后箭头朝上。</summary>
-    public static Style ExpandIconOpen => Css.Define(static () => new Style { Rotate = CssValue.Deg(180) });
 
     // MinWidth 0：放在 grid / flex 里时外层不被最长的一行代码撑宽（滚动的是里面的 pre）
     static Style Wrapper => Css.Define(static () => new Style
@@ -231,5 +228,4 @@ public static class CodeBlockStyles
     });
 
     // 旋转的过渡（同 vue-tsx-pro 的 disclosureStyles.icon）
-    static Style ExpandIcon => Css.Define(static () => new Style { Transition = $"rotate {Durations.Sm} {Easings.Standard}" });
 }

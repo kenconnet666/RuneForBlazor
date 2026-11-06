@@ -27,16 +27,17 @@ public enum AccordionPart
 /// <summary>手风琴的样式（同 vue-tsx-pro 的 accordionStyles）：项之间一条细线，标题按钮占满一行、悬停变底色，展开时箭头转过来。</summary>
 public static class AccordionStyles
 {
-    /// <summary>某种状态（展开、不可用）、某套定制下各部件的默认层。</summary>
-    public static PartLayers<AccordionPart> Of(bool open, bool disabled, ComponentStyles styles) =>
-        Recipe.Of("accordion", (open, disabled), styles, static ((bool Open, bool Disabled) s, AccordionPart part) => part switch
+    /// <summary>某种状态（展开、不可用）、字号档位（外层用，各项写 null）、某套定制下各部件的默认层。</summary>
+    public static PartLayers<AccordionPart> Of(bool open, bool disabled, Size? size, ComponentStyles styles) =>
+        Recipe.Of("accordion", (open, disabled, size), styles, static ((bool Open, bool Disabled, Size? Size) s, AccordionPart part) => part switch
         {
-            AccordionPart.Root => Root,
+            // 字号在配方里：按部件的定制排在它后面，盖得住
+            AccordionPart.Root => Sx.Of(Root, s.Size is { } size ? ScaleStyles.FontSize(size) : null),
             AccordionPart.Item => Item,
             AccordionPart.Heading => Heading,
             // 同 vue 的 ButtonBase：去默认外观、焦点环、波纹、交互状态的颜色过渡
             AccordionPart.Trigger => Sx.Of(SharedStyles.ButtonReset, SharedStyles.FocusRing, SharedStyles.RippleHost, SharedStyles.InteractionColors, Trigger, s.Disabled ? TriggerDisabled : null),
-            AccordionPart.Chevron => Sx.Of(Chevron, s.Open ? ChevronOpen : null),
+            AccordionPart.Chevron => Sx.Of(Chevron, DisclosureStyles.Icon, s.Open ? DisclosureStyles.Flip : null),
             _ => Content,
         });
 
@@ -76,14 +77,7 @@ public static class AccordionStyles
         [When.Hover] = new() { BackgroundColor = CssColors.Transparent },
     });
 
-    static Style Chevron => Css.Define(static () => new Style
-    {
-        FlexShrink = 0,
-        Color = Colors.TextMuted,
-        Transition = $"rotate {Durations.Sm} {Easings.Standard}",
-    });
-
-    static Style ChevronOpen => Css.Define(static () => new Style { Rotate = CssValue.Deg(180) });
+    static Style Chevron => Css.Define(static () => new Style { FlexShrink = 0, Color = Colors.TextMuted });
 
     static Style Content => Css.Define(static () => new Style { PaddingInline = Space.Sm, PaddingBlockEnd = Space.Md, Color = Colors.Text });
 }

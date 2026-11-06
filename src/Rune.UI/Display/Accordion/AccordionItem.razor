@@ -8,7 +8,7 @@
 @{
     var open = Accordion?.Expanded.Contains(Value) == true;
     var off = Disabled || Accordion?.Disabled == true;
-    var parts = AccordionStyles.Of(open, off, Config.Styles);
+    var parts = AccordionStyles.Of(open, off, null, Config.Styles);
     var state = open ? "open" : "closed";
 }
 
