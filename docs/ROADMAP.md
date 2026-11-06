@@ -1,206 +1,222 @@
 # 路线图
 
-目标：把 vue-tsx-pro 的组件库（`packages/ui`，约 220 个组件、文档站 138 页）移植成 Blazor 版，**外观与交互尽量与 vue-tsx-pro 一致**，
-同时保留 Blazor 的写法（`@bind-Value`、EventCallback、RenderFragment、EditContext）。设计取舍见 [DESIGN.md](DESIGN.md)。
+状态标记：`[ ]` 未开始、`[~]` 进行中、`[x]` 完成、`[!]` 待决（原因写在该项下面）。
 
-阶段按依赖排：先补对齐工具与基础设施，再按“输入 → 小组件 → 布局展示 → 浮层导航 → 表格 → 日期 → 图表 → 页面组合”推进，最后做文档站与发布准备。
-每个阶段内一项一项做完整（达到完成标准）再做下一项。
+本文只列还没做完的事。已完成部分的写法与取舍见 [DESIGN.md](DESIGN.md)；2026-11-06 重新规划之前的版本见 git `341f814:docs/ROADMAP.md`（旧阶段与新阶段的对应见文末）。
 
-## 自主执行的规矩（用户不在时照此推进）
+## 目标
 
-- **小步快跑、直接推 master**：每完成一项（一个组件或一组紧密相关的组件），本地跑相关测试与生成器检查，提交并推送到 master，不开 PR、不推 tag、不发 NuGet。
-  整理与功能分开提交。推送前看上一次 CI，红了先修；长命令放后台，等待时准备下一项。
-- **一般不派子代理**：组件开发、审查、浏览器验证都自己做；只有需要长时间后台盯着的事（等 CI、跑长测试）放后台。
-- **遇到下面的情况，这一项停下，写进本文末尾的“待决”（日期、项、卡在哪、需要决定什么），转去做下一个不依赖它的项**：
-  要加“已定的决定”第 3 条以外的第三方依赖；要凭据、账号、发布；同一个 CI 失败修了两次仍不明原因；
-  vue-tsx-pro 的做法在 Blazor 里做不到、又有多种合理的替代方向；需要改公共 API 且影响已完成组件的用法（小的改名、补参数不算，直接改并写进提交说明）。
-- **不写过程流水账**：结论进文档（决定进本文或 DESIGN，坑进 DESIGN 的对应节），过程留在提交说明里。
-- **会话上下文**：每完成一个阶段在本文勾选并写一行结论；中途接手时先读本文、DESIGN、最近的提交说明。
+**1.0：vue-tsx-pro 组件库的 Blazor 版，成熟可用。**
+
+- **外观与交互对齐 vue-tsx-pro**（`packages/ui`，约 220 个组件）：样式配方、键盘、焦点、aria、动效以它为准，`tools/parity` 的报告没有未解释的差异。
+- **写法是地道的 Blazor**：API 的形状按 Blazor 与 .NET 的习惯（见“Blazor 化的约定”），不照搬 Vue 的组合式写法；静态 SSR、Server、WebAssembly、Auto 四种渲染模式都能用。
+- **能接 .NET 后端**：表格与筛选栏的查询请求是一份普通的 C# 类型，EasyQuerySharp 的 `FilterBy` / `SortBy` 能直接消费（全栈示例见阶段 8）。
+- **按可发布的标准做**：公共 API 冻结、文档站齐全、能打包；发不发、发到哪由用户决定。
+
+## 现状（2026-11-06）
+
+- **已完成**：底座（信号、组件基类、属性合并、强类型 CSS、分析器 RUNE001–008、主题与配置、语言包、生成器）、文档站（Rune.Docs，可导出静态站点）、渲染模式测试台（Rune.Demo）、对照工具 `tools/parity`、端到端测试项目；
+  组件：基础（按钮家族、文字、图标、标记、代码）、表单与输入（Field / Form、文本数字颜色、勾选单选开关、Select / Combobox / Autocomplete / TagsInput、Slider、Rating、OtpField、Cascader、Transfer、Mentions）、
+  浮层（Popover、Menu / ContextMenu、Tooltip、HoverCard、Dialog / Drawer / AlertDialog / DialogService、Popconfirm、CommandPalette、Toast）、导航（Tabs、NavList、Pagination 一组、Toolbar、TableOfContents、SkipLink）、
+  布局与展示（Flex、Grid、Container、ScrollArea、Separator、ResizeHandle、PageScrollbar、Card、Accordion、Collapse / Collapsible、Avatar、Descriptions、ItemList、VirtualList 第一版）、
+  反馈（Alert、Empty、Progress、Skeleton、LoadingBar、LoadingOverlay）、静态 Table、AppShell、ThemeSwitcher、docs-kit。
+- **还差约 90 个组件**：基础 3、反馈 2、输入 5、布局 6、展示 15、浮层 2、导航 4、表格 9、日期 15、图表 16、页面组合与主题定制 14。
+- **测试**：bUnit 340 个、端到端 78 个；文档站 54 个组件页，部署已准备好、没发布。
+- **CI**：master 最近 5 次都失败在端到端任务（跑到约 5 分钟时 runner 收到关停信号，或打开页面超时）；构建、单元测试、生成器检查是绿的。
+- **清单与代码不一致**：旧路线图阶段 6 写在“待做”里的 CloseButton、CopyButton、IconLinkButton、Mark、Code、Blockquote 代码里已经有了，没勾；Mentions 还没有单元测试与端到端用例。
 
 ## 已定的决定
 
 | #   | 事项 | 决定 |
 | --- | ---- | ---- |
-| 1 | 外观 | 以 vue-tsx-pro 为准：token、主题由脚本生成（已完成）；组件的配方按 vue-tsx-pro 对应组件的样式**逐条移植**（尺寸、内边距、圆角、颜色 token、状态、过渡），不凭印象重画；做不到的写进 DESIGN |
-| 2 | 交互与无障碍 | 以 vue-tsx-pro 为准（键盘、焦点、aria、读屏播报、动效）；Blazor 下按 DESIGN 第 8 节的做法实现（原生元素优先，JS 初始化器做事件委托，组件只写 data 属性） |
-| 3 | 依赖 | 运行时只依赖 ASP.NET Core；测试可以用 bUnit、xUnit、`Microsoft.Playwright`（端到端）；生成器脚本只用 node 内置模块与 `npm pack`。其余依赖进“待决” |
-| 4 | 包 | `Rune`（运行时）、`Rune.UI`（组件，含表格）、`Rune.Icons`（Lucide 全集）；日期做成 `Rune.UI.Dates`、图表做成 `Rune.Charts`，WebAssembly 下可以懒加载 |
-| 5 | 命名 | 组件名、参数名照 vue-tsx-pro（PascalCase）；与 Razor / HTML 冲突时改名并记在 DESIGN（已有：TextSpan、TextLink、NativeSelect）；`Select` 留给可搜索、多选的自绘下拉 |
-| 6 | 语言 | 组件里的文字（“关闭”“请选择”“共 N 条”）进语言包（`UIConfig.Lang`），内置 zh-CN（默认）与 en-US，由脚本从 vue-tsx-pro 的语言包生成 |
-| 7 | 演示 | 演示页的名字与 vue-tsx-pro 文档站的路由一致（`/components/button` ↔ `/{模式}/button`），示例的场景、顺序照文档站，方便逐页对照 |
-| 8 | 不做 | vue-tsx-pro 的 code-editor、diagram、maps、three（三维与特效背景）、xlsx 模块；mobile、mini、kit、flow、fullstack 包。需要时另议（待决） |
-| 9 | 文档站 | 组件基本齐了（阶段 11 之后）再用本库自己的组件搭，不提前做 |
-| 10 | 发布 | 只把打包、SourceLink、README 准备好，发不发、发到哪由用户决定 |
+| 1 | 外观 | 以 vue-tsx-pro 为准：token、主题由脚本生成；组件的配方按 vue-tsx-pro 对应组件**逐条移植**（尺寸、内边距、圆角、颜色 token、状态、过渡），不凭印象重画；做不到的写进 DESIGN |
+| 2 | 交互与无障碍 | 以 vue-tsx-pro 为准（键盘、焦点、aria、读屏播报、动效）；实现按 DESIGN 第 8 节：原生元素优先，JS 初始化器做事件委托，组件只写 data 属性 |
+| 3 | 依赖 | 运行时只依赖 ASP.NET Core；测试用 bUnit、xUnit、`Microsoft.Playwright`；生成器脚本只用 node 内置模块与 `npm pack`。其余依赖进“待决” |
+| 4 | 包 | `Rune`（运行时）、`Rune.UI`（组件，含表格）、`Rune.Icons`（Lucide 全集）、`Rune.UI.Dates`、`Rune.Charts`（后两个 WebAssembly 下可以懒加载） |
+| 5 | 命名 | 组件名、参数名照 vue-tsx-pro（PascalCase），参数与事件的**形状**按“Blazor 化的约定”；与 Razor / HTML 冲突时改名并记在 DESIGN（TextSpan、TextLink、NativeSelect） |
+| 6 | 语言 | 组件里的文字进语言包（`UIConfig.Lang`），内置 zh-CN（默认）与 en-US，由 lang-gen 从 vue-tsx-pro 生成；拼音匹配不做（`UIConfig.TextMatcher` 留着接口） |
+| 7 | 演示 | 文档页的路由、示例的场景与顺序照 vue-tsx-pro 文档站，方便逐页对照；渲染模式测试台 Rune.Demo 保留，与文档站共用 Rune.Docs.Content 的页面 |
+| 8 | 不做 | vue-tsx-pro 的 code-editor、diagram、three、xlsx、演练场；mobile、mini、kit、flow 包。需要时另议 |
+| 9 | 地图数据 | 图表的 Map 用公有领域或许可明确的来源（如 Natural Earth）导出，来源与许可写进 NOTICE |
+| 10 | 部署 | 文档站导出静态文件，部署到 Cloudflare Workers 的静态资源；工作流只手动触发，令牌放仓库 secret `CLOUDFLARE_API_TOKEN`，由用户配置后自己运行 |
+| 11 | 发布 | NuGet 暂不发布，阶段 9 只做本地打包与安装试用 |
+| 12 | 全栈示例（2026-11-06） | 做阶段 8。EasyQuerySharp 只进示例，组件库不引用；`TableQuery` 到 `FilterBy` / `SortBy` 的接线先写在示例里、不单独出包；CI 按固定的提交检出 EasyQuerySharp（同 `VUE_TSX_PRO_REF`） |
 
-## 与 vue-tsx-pro 对照的做法
+## Blazor 化的约定（2026-11-06）
 
-vue-tsx-pro 的组件与本库一样在每个内部元素上写 `data-scope` / `data-part`（实测文档站的按钮页有 77 个），所以可以按部件逐个对比计算后的样式：
+以 vue-tsx-pro 为准的是**外观、交互、无障碍和名字**；**API 的形状**按 Blazor 与 .NET。R.3 按这张表改已有组件，之后的组件直接照做。
 
-1. **先读后写**：做一个组件前，读 vue-tsx-pro 里的源码（`packages/ui/src/<分类>/<组件>.tsx` 与它用到的 `utils/style/*`）、文档页的示例与 `COMPONENTS.md` 的相关节，
-   把配方（部件 × 档位 × 状态）逐条移植成 C#，参数照搬名字与默认值。
-2. **演示对齐**：演示页照文档站的示例写（同样的场景、同样的顺序、示例上写同样的 `data-testid`）。
-3. **自动对比**（阶段 4 做工具 `tools/parity`）：本地开着 vue-tsx-pro 文档站（`pnpm dev:docs`，端口 5174，`--vue` 指定仓库）与本库演示项目（5300），
-   脚本用 Playwright（取自 vue-tsx-pro 的依赖）打开同一个示例，按 `(示例, data-scope, data-part, 第几个)` 配对元素，比较计算后的
-   尺寸（宽高、内外边距、圆角、边框宽度）、字体（字号、字重、行高、字体族）、颜色（文字、背景、边框，解析成 rgb）、阴影、过渡与动画，
-   亮、暗两套主题各一遍，输出差异报告（容差 0.5px）；并存两边的截图供人看。悬停、聚焦、按下、打开等状态由脚本触发后再比。
-4. **差异处理**：报告里的差异逐条改到一致；确实不该一致的（Blazor 的结构限制、原生元素差异）在演示页注释与 DESIGN 里写原因。
-   这一步是每个组件的完成标准之一。
-5. **CI**：对比依赖本地的 vue-tsx-pro 文档站，不进 CI；进 CI 的是本库自己的端到端测试与截图基线（阶段 4、14）。
+| vue-tsx-pro | 本库 |
+| --- | --- |
+| `v-model`、`_bind:open` | `@bind-Value`、`@bind-Open`（`Xxx` + `XxxChanged`，输入控件另有 `ValueExpression`）；`@bind-Value:after` 照常可用 |
+| 事件回调返回 `false` 拦下 | 事件参数上的 `KeepOpen` / `Cancel`（同 `CancelEventArgs`） |
+| 插槽 | `RenderFragment` / `RenderFragment<T>`，名字是 PascalCase 名词（`Title`、`Footer`、`ItemTemplate`） |
+| `items` / `columns` 数组 | 能声明的用子组件（`<TabPanel>`、`<DescriptionsItem>`、表格的 `<PropertyColumn>`）；数据驱动的用 `Items` + `ItemTemplate` |
+| 取远程数据的函数 | 委托：选项用 `OptionsLoader<T>`（已有）；表格、长列表用 `ItemsProvider`（同 Virtualize / QuickGrid：起始位置、条数、排序、`CancellationToken`） |
+| zod schema + `useForm` | `EditForm` / `EditContext` + DataAnnotations（或任意校验器）；字段名取 `[Display(Name)]`；值转换失败按 `InputBase` 的做法记进 `ValidationMessageStore` |
+| `useToast()` / `useDialog()` 等组合式函数 | scoped 服务（`ToastService`、`DialogService`）+ 布局里放宿主（`Toaster`、`DialogHost`） |
+| `el.focus()` | 可聚焦的组件公开 `Element`（`ElementReference?`）与 `FocusAsync()`，同 `InputBase.Element` |
+| `createUi` / `Provider` | `AddRuneUI`（DI，服务端与 WebAssembly 各一次）+ `RuneProvider`（级联值） |
+| `Can`（权限） | 包一层 `AuthorizeView`，按策略、角色显示或隐藏 |
+| `ClientOnly` / `useMounted` | `RendererInfo.IsInteractive`；`ClientOnly` 只是它的组件写法 |
+| “现在”（今天、相对时间） | 注入 `TimeProvider`：预渲染与交互渲染用同一个时刻，测试可以固定 |
+| 日期模型 `DateTime` | `DateOnly`、`TimeOnly`、`DateTime`、`DateTimeOffset`；格式、周起始、月份名取 `CultureInfo`，不另造日期类型 |
+| SSR 水合时带过去的数据 | `[PersistentState]`（.NET 10）：预渲染时取到的数据带给交互渲染，不重复请求 |
+| 列表的查询状态进地址栏 | `[SupplyParameterFromQuery]` + `NavigationManager.GetUriWithQueryParameters` |
+| kit 的 `load`、action、权限 | Blazor Web App 自带（`@rendermode`、`[PersistentState]`、Minimal API、`[Authorize]`），不移植 kit |
+
+与 Blazor 常见写法不同、但保留不改的：
+
+- **部件属性 `PropsXxx`**（277 个参数）：类型是 `Attrs`（带 Sx、事件按接收者合并），不是 `AdditionalAttributes` 那样的字典；改名牵动全部组件，收益小。
+- **组件不调用 `IJSRuntime`**：JS 初始化器 + data 属性，四种渲染模式行为一致、Server 模式没有往返（DESIGN 第 8 节）。`FocusAsync` 用 Blazor 自带的 `ElementReference.FocusAsync`，不算例外。
+- **样式是运行时生成的强类型 CSS**，不用 CSS 隔离（`.razor.css`）：主题、档位、按部件定制都要在 C# 里合并（DESIGN 第 5 节）。
+
+## 自主执行的规矩（用户不在时照此推进）
+
+- **小步快跑、直接推 master**：每完成一项（一个组件或一组紧密相关的组件），本地跑相关测试与生成器检查，提交并推送；不开 PR、不推 tag、不发 NuGet。整理与功能分开提交。
+- **master 不留红**：推送前看上一次 CI，红了先修；长命令放后台，等待时准备下一项。
+- **一般不派子代理**：组件开发、审查、浏览器验证都自己做；只有要长时间盯着的事（等 CI、跑长测试）放后台。
+- **遇到下面的情况，这一项停下，写进“待决”**（日期、项、卡在哪、需要决定什么），转去做下一个不依赖它的项：
+  要加“已定的决定”第 3 条以外的依赖；要凭据、账号、发布；同一个 CI 失败修了两次仍不明原因；
+  vue-tsx-pro 的做法在 Blazor 里做不到、又有多种合理的替代方向；要改公共 API 且影响已完成组件的用法（小的改名、补参数不算，R.3 已列出的不算，直接改并写进提交说明）。
+- **不写过程流水账**：结论进文档（决定进本文或 DESIGN，坑进 DESIGN 的对应节），过程留在提交说明里。每完成一个阶段在本文勾选并写一行结论。
+- **中途接手**：先读 [HANDOFF.md](HANDOFF.md)、本文、DESIGN、最近的提交说明。
 
 ## 每个组件的完成标准
 
-1. **样式对齐**：按上一节移植配方，`tools/parity` 的报告没有未解释的差异（亮、暗主题）；
-2. **API**：参数、默认值、部件与 vue-tsx-pro 对应；部件标记、`PropsXxx` 部件属性、组件默认值（有外观档位时登记 `XxxDefaults`）、中文文档注释；
-3. **行为测试**（bUnit）：受控、只给值、都不给三种用法与主要分支，aria 属性；
-4. **浏览器**：演示页照文档站示例写，静态 SSR、Server、WebAssembly、Auto 四种模式都打开看过、点过；有自己键盘或焦点逻辑的组件有端到端用例（阶段 4 起）；
+1. **样式对齐**：配方逐条移植，`tools/parity` 的报告没有未解释的差异（亮、暗主题）；
+2. **API**：参数、默认值、部件与 vue-tsx-pro 对应，形状符合“Blazor 化的约定”；部件标记、`PropsXxx` 部件属性、组件默认值（有外观档位时登记 `XxxDefaults`）、必填参数 `[EditorRequired]`、中文文档注释；
+3. **行为测试**（bUnit）：受控、只给值、都不给三种用法与主要分支，aria 属性；输入类另测在 `EditForm` 里的用法；
+4. **浏览器**：静态 SSR、Server、WebAssembly、Auto 四种模式都打开看过、点过；有键盘、焦点、拖动逻辑的组件有端到端用例；
 5. **无障碍**：键盘与读屏符合 WAI-ARIA 的做法（以 vue-tsx-pro 的实现为准）；
-6. **性能**：过一遍懒加载与按需实例化（下节）；
-7. **文档**：DESIGN 记下新的取舍与坑；本文勾选。
+6. **性能**：对象按需创建（`Css.Define`、`field ??=`、`Memo`）、收起的内容与没打开的浮层不渲染、渲染路径不分配、大列表虚拟滚动；
+7. **文档**：文档页照 vue-tsx-pro 文档站的示例写，有 API 表与键盘一节；DESIGN 记下新的取舍与坑；本文勾选。
 
 ## 工作方式
 
-- **在真实浏览器里做组件**：开着演示项目（`dotnet watch --project apps/Rune.Demo`），对照着 vue-tsx-pro 文档站做。
-- **懒加载与按需实例化**（每个组件都要过一遍）：
-  - 对象按需创建：样式用 `Css.Define`，`[State]`、`Bindable`、部件 id 等用 `field ??=`；组件管理的属性用 `Memo` 或预先建好；
-  - 内容按需渲染：收起的内容、没打开的浮层不渲染，大列表用虚拟滚动；
-  - 渲染路径不分配：参数没变时复用同一个对象，不在渲染里新建 `Style`、捕获 this 的委托、集合；
-  - 程序集按需加载：日期、图表是独立程序集，WebAssembly 下可以 `BlazorWebAssemblyLazyLoad`。
-- **验证**：本地跑与改动相关的测试与生成器检查（`--check`），全量交给 CI；推送前看一眼上一次 CI。
-- **生成器**：css-gen、theme-gen 读 vue-tsx-pro（CI 固定在 `VUE_TSX_PRO_REF`），icon-gen 读 lucide-static；vue-tsx-pro 更新了主题或样式数据时重新生成并更新 `VUE_TSX_PRO_REF`。
+- **先读后写**：做一个组件前读 vue-tsx-pro 的源码（`packages/ui/src/<分类>/<组件>.tsx` 与它用到的 `utils/style/*`）、文档页的示例与 `COMPONENTS.md` 的相关节。
+- **对照**：本地开着 vue-tsx-pro 文档站（端口 5174）与测试台（5300），`tools/parity` 按 `(示例, data-scope, data-part, 第几个)` 配对元素比较计算后的样式（亮暗、悬停聚焦按下打开），差异改到一致，确实不该一致的在文档页注释与 DESIGN 里写原因。对照不进 CI。
+- **生成器**：css-gen、theme-gen、lang-gen 读 vue-tsx-pro（CI 固定在 `VUE_TSX_PRO_REF`），icon-gen 读 lucide-static；vue-tsx-pro 更新了主题、样式数据或语言包时重新生成并更新 `VUE_TSX_PRO_REF`。
+- **验证**：本地跑与改动相关的测试与生成器检查（`--check`），全量交给 CI。
+
+## 执行顺序
+
+R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项贯穿全程，在最后收尾。
+
+- 某一项进入待决时，跳到下一个不依赖它的项；日期（5）、图表（6）不依赖 2–4，前面卡住时可以先做。
+- 已有页面里等其他组件的示例缺口，记在提供那个组件的阶段里，做到时补上。
 
 ---
 
-## 已完成
+## R 整理与纠正（不加新组件）
 
-- **阶段 0 底座**：演示项目（按组件 × 渲染模式）、主题与配置层（`AddRuneUI`、`RuneProvider`、组件默认值、按部件定制）、强类型 CSS（css-gen）、
-  `CssVar`、分析器 RUNE001–005、NuGet 打包、样式登记表按渲染器查找。
-- **阶段 1 基础组件**：Button / IconButton / LinkButton、Icon / Spinner、Lucide 全集（`Rune.Icons`）、配方 API、TextSpan / Paragraph / H1–H6 / TextLink / Kbd / VisuallyHidden、
-  Badge / Tag、Flex / Grid / GridItem、Card、Alert。
-- **阶段 2 浮层与反馈**：JS 初始化器（事件委托、受控开关同步、菜单键盘、提示的 Esc、锁定滚动、锚点定位兜底）、Popover、Menu、Tooltip、Dialog、Drawer、Toast、Popconfirm。
-- **整理与对齐**：图标改从 Lucide 官方 SVG 生成；token 与 16 套内置主题由 theme-gen 从 vue-tsx-pro 生成（em 间距与圆角、时长 xs–xl 与减少动效、enter / exit 缓动）；
-  `SharedStyles.InteractionColors`；按钮与菜单项的波纹；浮层统一的进出场 `OverlayTransitions`；.editorconfig 与 Rider 设置。
-- **阶段 3 输入与表单（前半）**：`FormControl<TValue>`（接入 EditContext）、Field（标签可在起始边）、Form（提交中、错误汇总并跳到字段）、
-  TextField、Textarea、NumberField、Checkbox、Switch、RadioGroup / Radio、NativeSelect、Slider。
+- [ ] R.1 CI 恢复全绿：
+  - 端到端任务最近 5 次失败：跑到约 5 分钟时 runner 收到关停信号，或打开页面超时，本地复现全过。现在全部用例共用一个演示服务与浏览器（程序集级夹具），xUnit 按测试类并行；
+    先在 CI 上记下内存与同时打开的浏览器上下文数，再决定限制并行、按渲染模式分片成几个任务，并给任务加 `timeout-minutes`；
+  - 补 Mentions 的 bUnit 与端到端用例（参照 `CascaderTests`、`TransferTests`）。
+- [ ] R.2 清单、文档与代码对齐：
+  - 代码里已有、旧路线图没勾的 CloseButton、CopyButton、IconLinkButton、Mark、Code、Blockquote，以及旧阶段 6 的“补齐已有组件”（Alert 的说明与额外内容分开、关闭时淡出；Switch 的加载中与轨道里的文字），
+    逐个按完成标准核对，缺的补进对应阶段；
+  - 文档站 54 页逐页核对是否跑过对照（旧阶段 4 的“已对齐”清单只覆盖一部分），没跑过的跑一遍；
+  - HANDOFF 的路径与“下一步”跟着本文改。
+- [ ] R.3 Blazor 化的 API 纠正（按“Blazor 化的约定”，1.0 之前一次改完，提交说明写清迁移）：
+  - 可聚焦的组件公开 `Element` 与 `FocusAsync()`：输入类（TextField、Textarea、NumberField、ColorField、OtpField、Select、Combobox、TagsInput、Mentions……）、按钮家族、Dialog / Drawer。
+    现在全库没有一处 `ElementReference`，使用方没法在 C# 里聚焦（例如提交失败后聚焦某个字段、打开对话框后聚焦指定的控件）；
+  - 表单：Field 不写 Label 时取绑定字段的 `[Display(Name)]`，错误汇总用同一个名字；能解析失败的控件（NumberField、ColorField，之后的日期）核对现在的行为，
+    统一成 `InputBase` 的做法：转换失败的文字记进 `ValidationMessageStore`、标 `aria-invalid`，不只是悄悄恢复；
+  - 静态 SSR 的表单：除了 `FormName`，核对 `[SupplyParameterFromForm]`、防伪令牌、`Enhance` 的转交，补一个静态 SSR 提交的端到端用例；
+  - `RuneComponent` 与 .NET 10 `ComponentBase` 对齐核对：`DispatchExceptionAsync`（`ErrorBoundary` 接得住异步异常）、`Assets`、`[PersistentState]`、`[SupplyParameterFromQuery]` 在 Rune 组件上都能用，各补一个测试；
+  - 预渲染不重复取数：定一个用 `[PersistentState]` 的共用做法写进 DESIGN（Select 的远程选项首屏、之后的表格与 QueryTable 用）；
+  - 命令式对话框：加 `DialogService.Open<TComponent>(parameters)`（正文是一个组件，同 `DynamicComponent`），组件里经级联的 `DialogHandle` 关闭并带结果（`Closed` 能拿到 `TResult`）；
+    现有的 `RenderFragment<DialogHandle>` 写法保留；
+  - 泛型推断：子组件要用父级类型参数的（CheckboxGroup、Select 一族、Tabs，之后的表格列）补 `[CascadingTypeParameter]`（现在只有 RadioGroup 有）；必填参数补 `[EditorRequired]`；
+  - 语言：`AddRuneUI` 加一个按 `CultureInfo.CurrentUICulture` 选语言包的选项（配合 ASP.NET Core 的 RequestLocalization），默认仍是 zh-CN；
+  - WebAssembly 裁剪：`Rune`、`Rune.UI`、`Rune.Icons` 打开 `IsTrimmable` 与裁剪分析器，修掉警告（反射只留在文档站的 API 表里）。
+- [ ] R.4 代码走查（单独提交）：过长或职责混杂的文件（`Rune.UI.lib.module.js` 490 行、`lists.js`、`overlays.js`、`Cascader.razor.cs`、`ToastService.cs`）、重复的样式片段与死代码；
+  入口顶部的 data 属性总表与实际用到的核对一遍。
 
----
+完成标准：上面各项做完；文档与代码一致；CI 连续绿。
 
-## 阶段 4：对照工具与基础设施（后面阶段要用的先铺好）
+## 阶段 1：基础、反馈、输入收尾
 
-- [x] `tools/parity`：按上面“对照的做法”第 3 条实现；README 写用法；拿已完成的组件试一遍，修掉报告里的差异
-      （按钮已对齐：亮暗主题、悬停聚焦按下一致；Badge、Kbd、Card 在各自页面对照时改）
-- [ ] 演示页改名对齐文档站的路由（typography → text、layout → flex / grid 等），示例按文档站补齐；已完成组件逐个过一遍对照报告
-      （已对齐：button、icon-button、icon、text、badge、alert、text-field、number-field（NumberRangeField 待做）、checkbox（开关的 loading 与轨道内容在阶段 6）、toggle-group、control-group、slider、rating（结构不同：每颗星都有填色层，视觉一致）、otp-field、listbox、skeleton（Avatar、Stat、DataTable 做好后补全）、popover（HoverCard 在阶段 8）、popconfirm、menu（已对齐）、flex（除了还没做的 Avatar、Descriptions、输入框）；card（已对齐）；缺的组件做到时补示例：Descriptions、Table、ButtonGroup、Avatar；toast（已对齐）；dialog（已对齐）、drawer（detail、imperative 的示例要 DataTable 与 Timeline，等它们做好；命令式抽屉 DialogService.Open(DrawerOptions) 已有）；旧的 form 页等 Form 对齐时换掉）
-- [x] 语言包：`UIConfig.Lang` 与 `RuneProvider` 的 `Lang`；`tools/lang-gen` 从 vue-tsx-pro 的语言包生成 zh-CN、en-US；已有组件里的文字（关闭、确定、取消、增加、减少……）改成取语言包
-- [x] 端到端测试项目 `tests/Rune.E2E`（Microsoft.Playwright，Chromium）：启动演示项目，覆盖已有的键盘与焦点逻辑（菜单、对话框、气泡确认、数字框方向键、表单错误汇总跳转）；进 CI
-      （另有数字框按住连加、显示密码、清空回焦、复制、标签移除后的焦点；之后每个有键盘或焦点逻辑的组件都加用例）
-- [x] 列表状态与键盘（同 vue-tsx-pro 的 `list-state.ts`）：高亮项、`aria-activedescendant`、方向键 / Home / End / PageUp / PageDown、首字母、多选；Listbox 组件；后面的 Select、Combobox、Tree、Tabs、Menu 共用
-      （数据层 `ListState`、`ItemStyles`；键盘在 JS 初始化器的 `data-rune-list`，菜单改用同一个类型搜索；顺手做了 Empty）
-- [x] 骨架与扫光：Skeleton、SkeletonText、`ShimmerStyles`（同 `utils/style/shimmer.ts`）；延迟显示加载态（同 `useDelayedLoading`）
-      （`DelayedLoading`；Card、Listbox 的 Loading 用上了；骨架屏页的 layouts 差 Stat，table 示例等 DataTable）
-- [ ] JS 初始化器按需补的能力（用到时再加，每项写进 DESIGN 第 8 节）：尺寸变化（ResizeObserver → data 属性或事件）、拖动（指针捕获）、复制到剪贴板、滚动到可见、宽度与触发元素一致的浮层
-      （已有：复制到剪贴板、滚动到可见（列表高亮）、漫游焦点（data-rune-roving）、跟随选中项的滑块（data-rune-indicator）、浮层定位换成 Floating UI（12 种位置、箭头、shift、`data-fit-height` / `data-match-width`）、提示的悬停意图；拖动（js/move.js，Slider 在用）；尺寸变化在 Splitter 用到时做）
-- [x] 虚拟滚动：包一层 Blazor 的 `Virtualize`，与列表状态配合（VirtualList、DataTable、长下拉要用）
-      （Listbox 超过 100 项且在交互模式下用 Virtualize；JS 的高亮改成按序号，看不见的选项由 `data-rune-options` 给出；
-      VirtualList 先做了容器滚动的第一版（图标库用），随页面滚动、横向、骨架行、跳到第几项在阶段 7 补齐）
+- [ ] 基础：List、Can（包 `AuthorizeView`）、ClientOnly
+- [ ] 反馈：Banner（关闭同 Tag、Alert 的 `data-rune-dismiss`）、Result
+- [ ] FileDrop / Upload（拖放、粘贴、进度、列表、图片墙；vue：`input/FileDrop.tsx`、`input/Upload.tsx`）：选文件走 Blazor 的 `InputFile`（`IBrowserFile`），
+  上传由使用方的函数完成并报告进度、支持取消；图片墙的预览等阶段 2 的 Lightbox、排序等 Sortable，做到时补
+- [ ] R.2 核对后剩下的已有组件补齐（Alert、Switch……）
 
-## 阶段 5：输入与选择（阶段 3 后半）
+## 阶段 2：布局与展示
 
-- [ ] Select（单选、多选、可搜索、清空、远程选项、已选标签“+N”）、Combobox、Autocomplete、ListPopover
-      （已做：Select、Combobox、Autocomplete、ListPopover、SelectedTags（按数量、按宽度收起）、选项数据 OptionSource（远程、过滤、已选项文字）、文字匹配 UIConfig.Matches）
-- [x] TagsInput、SelectedTags、ToggleGroup、ControlGroup、CheckboxGroup（Checkbox 的 items）
-      （输入组件的外观参数收进 InputControl；相连的样式 AttachedStyles 之后 ButtonGroup 共用；JS 补了漫游焦点、滑块；Field 的说明可以带格式（DescriptionContent）；标签增删时其余标签平移补位的动画（vue-tsx-pro 的 useLayoutAnimation）待做通用的 FLIP 时补）
-- [x] Slider 的范围（两个滑块）、刻度、竖向；Rating；OtpField；NumberRangeField；ColorField；CharacterCount（Textarea 的字数统计与清空）
-      （已做：ColorField（颜色解析 ColorValue，期望值对照 culori；ColorSwatch 在 vue 的 docs-kit，可选模块不做）；CharacterCount（阶段 3 已做）；NumberRangeField（NumberField 补了 Scale）；OtpField（格子由 JS 按输入框画；不写 maxlength，粘贴带分隔的码不丢位）；Rating（填充纯 CSS、悬停预览在 JS）；Slider 按 vue-tsx-pro 重写（范围、刻度、竖向、只读、OnValueCommit，拖动与键盘在 JS），NumberRange 之后 NumberRangeField 共用）
-- [ ] Cascader、Transfer、Mentions、FileDrop / Upload（拖放、进度、列表）
-      （已做：Cascader（列里的键盘用 data-rune-list，列之间与进入后的聚焦在 cascader.js）；Transfer（TreeTransfer 等 Tree 做好））
-- [ ] TreeSelect（依赖阶段 7 的 Tree）、PeoplePicker（阶段 12）、ConditionBuilder（阶段 12）
-- [x] 表单：FormSection、FormErrorSummary 独立成组件、Form 的离开前确认
-      （已做：字段布局 FieldLayout 由 Form、FormSection 层叠给 Field 与控件；提交没通过时焦点到错误汇总或第一个出错的控件；LeaveConfirmation 点链接由 JS 拦（交互岛的增强导航 NavigationLock 拦不到）；Form 文档的 7 个示例与 FormSection 页按 vue 重写，分步示例的步骤条等阶段 8 的 Steps）
+- [ ] 布局：Affix、BackTop、AsideLayout（FormSection 的 AdmissionExample 换用）、Prose、Splitter（JS 初始化器补尺寸变化：ResizeObserver）、ViewportFill
+- [ ] 展示：Ellipsis、Stat、AnimatedNumber、ValueChange、ProportionBar、Timeline（操作人、折叠、字段差异）、Checklist、Marquee、Watermark、FieldCompare；
+  Sparkline、Gauge 先做成独立的小 SVG，阶段 6 的底座做好后改用
+- [ ] Sortable：拖动排序的通用能力（单容器与多容器、落点插入线、键盘），Tree、Upload、Tabs、KanbanBoard 共用
+- [ ] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动），紧接着 TreeSelect、TreeTransfer（Transfer 的树形）
+- [ ] Image 与 Lightbox（缩放、旋转、拖动），接着补 Upload 的图片墙预览
+- [ ] VirtualList 补齐：随页面滚动、横向、骨架行、跳到第几项、可见范围变化的回调
+- 示例缺口：Skeleton 的 layouts 换用 Stat；Drawer 的 detail 示例换用 Timeline
 
-## 阶段 6：基础与反馈补齐
+## 阶段 3：浮层与导航
 
-- [ ] 基础：ButtonGroup（相连的按钮）、CloseButton、CopyButton、IconLinkButton、Indicator、StatusDot、Mark、Code / CodeText / CodeBlock（不带高亮，带复制）、Blockquote、List、Can（权限）、ClientOnly（交互模式下才渲染）
-      （已做：ButtonGroup、Indicator、StatusDot、CodeBlock（Shiki 在浏览器里高亮）与 CodeText（按“基础组件先做”、文档站提前））
-- [ ] 反馈：Banner、Empty（已做）、Result、Progress（线形、环形）、LoadingBar、LoadingOverlay
-      （已做：Progress（条形、环形、目标、不确定进度）、LoadingOverlay、LoadingBar（动画在 JS，可跟着增强导航走））
-- [ ] 补齐已有组件：Toast（已做：ToastService 控制器，标题与说明、操作、进度、六个位置、最多条数与叠放、悬停/聚焦暂停、important、同 Id 替换、PromiseAsync、F8 / Esc / 滑动关闭）、Alert（description 与额外内容分开、关闭时淡出）、
-      Card（loading 骨架、装饰效果 tilt / spotlight / beam，已做）、Switch（loading、开关内的文字）、Menu（勾选项、单选项、子菜单、分组标题、说明、链接项、尺寸、注册快捷键，已做）、Drawer（可拖动宽度，已做）
+- [ ] Tour
+- [ ] Breadcrumbs、Steps（Form 的分步示例换用）、NavMenu、NavBar（横向导航，放不下收进“更多”；AppShell 混合布局示例换用）
 
-## 阶段 7：布局与展示
+## 阶段 4：表格
 
-- [ ] 布局：Container、Separator、ScrollArea、Splitter / ResizeHandle、Affix、BackTop、AsideLayout、Prose、PageScrollbar、ViewportFill
-      （PageScrollbar 已做：整页的浮层滚动条，AppShell 默认带着，JS 与 ScrollArea 共用一套）
-      （已做：Avatar、AvatarGroup、Indicator（演示里的缩写替身都换成了 Avatar）；Collapse（Collapsible 改用，收起可被页内查找）；FormValue（隐藏的表单值，5 个组件改用）；ScrollArea（按“基础组件先做、上层依托”提前做；Listbox、ListPopover、Menu、Dialog / Drawer 的正文已改用它，FloatingStyles 有 ScrollPanel / ScrollArea）、Separator、Descriptions（自适应栏数用容器查询；卡片、布局、宽度手柄示例的替代写法已换掉，布局页的控制条也换成了 ToggleGroup、头像换成 Avatar））
-- [ ] 展示：Accordion、Collapse、Avatar / AvatarGroup、Descriptions、Ellipsis、Image（预览接 Lightbox）、ItemList、Stat、AnimatedNumber、ValueChange、
-      Timeline、Tree（勾选、懒加载、拖动排序）、VirtualList、Checklist、Marquee、ProportionBar、Gauge、Sortable、Watermark、FieldCompare
-      （已做：ItemList（组件先做，命令式对话框的示例用它；文档页随阶段 7 的展示组件补））
+- [ ] 查询的契约（先写 DESIGN 一节）：`TableQuery`（页码、每页条数、多列排序、列筛选、筛选栏的条件树）是纯数据类型、不依赖任何 ORM，
+  能与查询字符串互转（刷新、分享链接保持状态）。对照 vue-tsx-pro 的 `use-table-query.ts`、easy-query TS 的 `parseTableRequest` 与 EasyQuerySharp 的 `FilterBy` / `SortBy`，
+  让 EasyQuerySharp 一侧不经转换就能消费
+- [ ] DataTable / DataTableView：列用子组件声明（`PropertyColumn` 按表达式取值，标题取 `[Display]`，排序键取属性路径；`TemplateColumn` 自定义内容），也可以给列定义列表；
+  数据给 `Items`（内存里排序、筛选、分页）或 `ItemsProvider`（服务端）；排序、表头筛选、选择、展开、固定列、列宽拖动、网格方向键与单元格编辑（行校验）、行拖动、虚拟滚动、骨架行、密度
+- [ ] ColumnHeaderActions、ColumnResizer、ColumnSettings、SelectionBar、ColumnTable、TreeDataTable、PivotTable、CSV 导出（vue 的 `csv.ts`；xlsx 不做）
+- 示例缺口：Skeleton 的 table 示例、Table 的 column-table 示例、Drawer 的 imperative 示例、Badge 的表格状态示例换用 DataTable
 
-## 阶段 8：浮层与导航
+## 阶段 5：日期（`Rune.UI.Dates`）
 
-- [ ] 浮层：AlertDialog（已做，另有命令式的 DialogService：Open、ConfirmAsync）、ContextMenu（已做）、HoverCard、CommandPalette、Lightbox、Tour
-      （已做：HoverCard（NavList 的紧凑分组要用，按“基础组件先做”提前）；CommandPalette（文档站的搜索））
-- [ ] 导航：Tabs（溢出、可关闭、拖动排序）、Breadcrumbs、Steps、NavList、NavMenu、NavBar、Pagination / Pager / PageSizeSelect / PageJump / PaginationBar（已做）、SkipLink、TableOfContents、Toolbar
-      （已做：Toolbar、NavList / NavItem / NavGroup / NavSection（按“基础组件先做”提前；宽度手柄示例已换用）；Tabs（溢出滚动、可关闭、新建、拖动与 Alt + ←→ 排序、“全部标签页”菜单）；TableOfContents、Pager、SkipLink（文档站要用））
+- [ ] 取值与格式：`DateOnly` / `TimeOnly` / `DateTime` / `DateTimeOffset`，格式、周起始、月份名取 `CultureInfo`，“现在”取 `TimeProvider`；
+  对照 vue 的 `DateTime.tsx`、`date-locale.ts`、`date-segments.ts`，行为差异写进 DESIGN
+- [ ] DateField、TimeField、SegmentedField、DateSegmentGroup
+- [ ] Calendar、RangeCalendar、QuarterCalendar、CalendarBoard / CalendarView（整页日历的二维方向键：JS 初始化器补网格焦点）
+- [ ] DatePicker（日、周、月、季、年，快捷项、“今天”、禁用的时间段）、DateRangePicker、TimePicker、RelativeTime、Countdown
+- [ ] WebAssembly 下程序集懒加载（`BlazorWebAssemblyLazyLoad`）验证
 
-## 阶段 9：表格
+## 阶段 6：图表（`Rune.Charts`，C# 输出 SVG）
 
-- [ ] Table（静态表格的样式）、DataTable / DataTableView（排序、筛选、选择、展开、固定列、列宽拖动、虚拟滚动、骨架行）、
-      ColumnHeaderActions、ColumnResizer、ColumnSettings、SelectionBar、ColumnTable、TreeDataTable、PivotTable
-      （已做：静态 Table 及各元素组件（按文档站需要提前；ColumnTable 随 DataTable 做））
+- [ ] 底座：比例尺、坐标轴刻度、图例、提示、响应式尺寸、图表色 token（已有 `ChartColors`）、标注、缩放、导出图片与数据
+- [ ] Line、Area、Bar（堆叠、100% 堆叠）、Combo（双轴）、Scatter、Donut、Radar、Funnel、Treemap、Waterfall、Sankey、Chord、Graph、Timeline、热力图；Sparkline、Gauge 改用这套底座
+- [ ] Map（数据来源见已定的决定第 9 条）
+- [ ] WebAssembly 下程序集懒加载验证
 
-## 阶段 10：日期（`Rune.UI.Dates`）
+## 阶段 7：页面组合与主题定制
 
-- [ ] 日期模型与格式（同 vue-tsx-pro 的 DateTime，按语言包的地区格式化）、DateField / TimeField / SegmentedField / DateSegmentGroup
-- [ ] Calendar、RangeCalendar、QuarterCalendar、CalendarBoard / CalendarView、DatePicker、DateRangePicker、TimePicker、RelativeTime、Countdown
+- [ ] 输入：ConditionBuilder（条件树与阶段 4 的 `TableQuery` 共用一份类型）、PeoplePicker / PeoplePickerPanel（用户、部门、角色）
+- [ ] FilterBar（基本筛选 + 接 ConditionBuilder 的高级筛选）、ActionBar、QueryTable（FilterBar + DataTable + 工具栏：密度、列设置、刷新、全屏；查询状态进地址栏）
+- [ ] FormDialog（对话框里的 EditForm：确认时校验、提交中拦住关闭）、StepsForm、DataImport（CSV）
+- [ ] AuthLayout、NotificationCenter、CommentThread（接 Mentions）、KanbanBoard（Sortable 多容器）、DeadlineBadge、SlideCaptcha
+- [ ] ThemeCustomizer、ThemeThumbnail，接着做文档站的主题定制页；ThemeSwitcher 的局部主题；Provider 页
 
-## 阶段 11：图表（`Rune.Charts`，SVG）
+## 阶段 8：.NET 全栈示例（已定的决定第 12 条）
 
-- [ ] 底座：坐标轴、比例尺、图例、提示、响应式尺寸、图表色 token（已有 `ChartColors`）
-- [ ] Line、Area、Bar、Combo、Scatter、Donut、Radar、Funnel、Treemap、Waterfall、Sankey、Chord、Graph、Timeline；Sparkline、Gauge 改用这套底座；
-      Map（地图数据找公有领域或许可明确的来源导出进来，如 Natural Earth，许可与来源写进 NOTICE）
+- [ ] `apps/Rune.Sample`（Blazor Web App，Auto 渲染模式）+ EasyQuerySharp + SQLite，走完一个后台模块：
+  QueryTable 服务端分页、排序、筛选（`TableQuery` → `FilterBy` / `SortBy`）、FormDialog 新建与编辑（聚合根保存）、权限（`[Authorize]`、`Can`）、预渲染 + `[PersistentState]`；
+  端到端测试在 Server、WebAssembly 下各跑一遍。示例里重复出现的接线到第三次时再收成包。
 
-## 阶段 12：页面级组合
+## 阶段 9：质量与发布准备（贯穿全程，这里收尾）
 
-- [ ] AppShell、AuthLayout、ActionBar、FilterBar、QueryTable、FormDialog、StepsForm、KanbanBoard、NotificationCenter、CommentThread、
-      DataImport、DeadlineBadge、ThemeSwitcher（含主题偏好的保存）、SlideCaptcha、PeoplePicker、ConditionBuilder；ThemeCustomizer、ThemeThumbnail（主题定制页用）
-      （已做：AppShell、AppShellBrand、ThemeSwitcher（文档站的外壳，按“基础组件先做”提前）；pageScrollbar 已做（PageScrollbar），
-      混合布局示例的 NavBar 先用链接按钮代替；ThemeSwitcher 只做了整页切换，vue 示例里只作用于一块区域的局部主题还没做）
-
-## 阶段 13：文档站
-
-- [ ] 用本库组件搭（同 vue-tsx-pro 的 docs-kit：CodePreview、PropsTable 从 XML 文档注释生成、DocArticle、ColorSwatch）；页面与 vue-tsx-pro 文档站一一对应；
-      主题定制页（同 theme-customize）；演示项目的示例迁过去
-      （已做：docs-kit 的 CodePreview、CodeGroup、DocArticle / DocSection、PropsTable（含 ApiProp、ComponentApi 数据）、TextTable、ColorSwatch、DocsKitIcons.Github，
-      统一放在 Rune.UI 里；文档站 Rune.Docs：演示迁成文档页（一个示例一个文件、按 vue-tsx-pro 分两列），API 表从类型与 XML 文档生成，
-      首页、快速开始 / 写样式 / 主题定制三篇指南、搜索、本页目录、上一篇 / 下一篇。还缺：演练场（暂不做）、主题定制页（等 ThemeCustomizer）、
-      键盘说明表（KeyboardReference））。图标库已做（Icon 页的图标库小节，同 vue 的 IconLibrary：搜索、按行虚拟滚动、详情卡复制或下载 SVG）。
-      换页性能（已做）：外壳的侧栏、顶栏工具、本页目录拆成没有参数的组件；站内换页后示例与 API 表排队渲染（RenderQueue / Queued），
-      骨架先出来；XML 文档注释按成员位置建索引、用到才解析；组件库层面见阶段 14 的性能项
-      部署已准备好没发布：tools/docs-export 导出静态站点（57 页，WebAssembly 接管），.github/workflows/docs.yml 手动触发，
-      wrangler 部署到 Cloudflare Workers 的静态资源（令牌放在仓库 secret CLOUDFLARE_API_TOKEN）
-
-## 阶段 14：质量与发布准备（贯穿全程，这里收尾）
-
-- [ ] 端到端测试覆盖全部有键盘、焦点、拖动逻辑的组件；axe-core 无障碍检查跑全部示例（亮、暗主题）
-- [ ] 截图基线进 CI（Chromium，亮、暗主题），变化时人工确认
-- [ ] 性能：大列表、表格的渲染与内存基准；WebAssembly 的裁剪与懒加载程序集验证
-      （已做：参数比较认同一个内容片段实例与 Attrs（级联值通知时带子内容的组件不再白白重新渲染）；交互模式下每次渲染新登记的样式合成一个 style 元素）
-- [ ] 打包：四个包的说明、图标与许可、版本号；`dotnet new` 模板（可选）；发布说明。是否发布、发到哪由用户决定
+- [ ] 端到端覆盖全部有键盘、焦点、拖动逻辑的组件；输入法用例（组字中的回车不提交、不选中：Combobox、TagsInput、Mentions、Textarea）；axe-core 无障碍检查跑全部示例（亮、暗主题）
+- [ ] 截图基线进 CI（固定的 Linux 容器，Chromium，亮、暗主题），变化时人工确认
+- [ ] 文档站：键盘与无障碍一节（KeyboardReference）；搜索能搜到参数名与示例标题
+- [ ] 性能：大列表、表格的渲染与内存基准；WebAssembly 裁剪（R.3 打开分析器之后）与懒加载程序集；组件库样式预生成静态 CSS（可选，DESIGN 第 12 节）
+- [ ] API 冻结前的审计：全部公共 API 对一遍“Blazor 化的约定”与 vue-tsx-pro 的名字，出清单逐条改
+- [ ] 打包：五个包的说明、图标与许可、版本号、SourceLink、发布说明；`dotnet new` 模板（可选）；本地打包与安装试用
 
 ---
-
-## 已定（2026-11-05 用户决定）
-
-- 所有阶段持续执行到底。
-- 拼音匹配暂时不做（UIConfig.TextMatcher 留着接口）。
-- 地图数据去找资源导出进来（阶段 11），来源与许可写进 NOTICE。
-- vue-tsx-pro 的可选模块（代码编辑器、流程图 diagram、三维与特效背景、xlsx）暂时不移植；不做移动端组件库。
-- NuGet 暂不发布，阶段 14 只做本地打包与安装试用。
-- 文档站部署到 Cloudflare Workers 的静态资源（免费额度），工作流只手动触发；令牌放仓库 secret CLOUDFLARE_API_TOKEN，由用户配置后自己运行。
-- 渲染模式测试台 Rune.Demo 保留，与文档站共用 Rune.Docs.Content 的页面。three、diagram、演练场继续不做。
 
 ## 待决
 
 （执行中遇到的停顿点记在这里：日期、项号、卡在哪、需要用户决定什么。）
 
+## 旧阶段的去处
 
+旧 4（对照工具与基础设施）→ R.2 与各阶段；旧 5 → 1（Upload）、2（TreeSelect、TreeTransfer）、7（PeoplePicker、ConditionBuilder）；旧 6 → 1；旧 7 → 2；
+旧 8 → 2（Lightbox）、3；旧 9 → 4；旧 10 → 5；旧 11 → 6；旧 12 → 7；旧 13（文档站）已基本完成，剩下的进 7（主题定制页）、9（键盘说明）；旧 14 → 9。

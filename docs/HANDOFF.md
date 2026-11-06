@@ -4,8 +4,9 @@
 
 ## 目标与工作方式
 
-- RuneForBlazor 是 vue-tsx-pro（`C:\Users\lionheart\IdeaProjects\vue-tsx-pro`）的 Blazor（.NET 10）移植：样式、交互都要和 vue 一致。
-- 用户的要求：**无人值守持续执行完整路线图**（阶段 5 → 14）；直接提交推送 master，不开 PR。
+- RuneForBlazor 是 vue-tsx-pro（`~\IdeaProjects\vue-tsx-pro`）的 Blazor（.NET 10）移植：样式、交互都要和 vue 一致，API 的形状按 Blazor 习惯（ROADMAP 的“Blazor 化的约定”）。
+  EasyQuerySharp（`~\RiderProjects\EasyQuerySharp`）是表格查询契约与全栈示例的参考（ROADMAP 阶段 4、8）。
+- 用户的要求：**无人值守持续执行完整路线图**（2026-11-06 重新规划：R → 阶段 1 → 9）；直接提交推送 master，不开 PR。
 - 测试节奏：本地只跑改动相关的测试；完整测试交给 CI，不等它；**下次提交前先 `gh run list` 看 CI，失败就先修**。
 - 回复与注释用中文；代码、标识符、commit message 用英文；提交末尾加 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。
 - 密钥只在用户环境变量 / GitHub secrets 里，不写进任何文件。
@@ -61,10 +62,8 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 
 ## 下一步（按路线图）
 
-1. 补 Mentions 测试（参考 `tests/Rune.Tests/UI/CascaderTests.cs`、`TransferTests.cs` 的写法），ROADMAP 第 114 行附近标注 Mentions 已做。
-2. 阶段 5 剩下 FileDrop / Upload（vue：`packages/ui/src/input/Upload.tsx`，732 行），之后 TreeSelect、TreeTransfer 等 Tree 做好再补。
-3. 已有页面里等其它组件的缺口：Skeleton 的 table 示例、Table 的 column-table（ColumnTable）、Drawer 的 detail / imperative 示例都要等 DataTable（阶段 9）与 Timeline；Provider 页、ThemeSwitcher 缩略图在阶段 12。
-4. 然后阶段 6 → 14（见 ROADMAP）。
+1. R 整理与纠正：R.1 先让 CI 恢复全绿（端到端任务的 runner 关停、页面超时）并补 Mentions 测试，再做 R.2–R.4。
+2. 然后阶段 1 → 9（见 ROADMAP；已有页面等其他组件的示例缺口记在提供那个组件的阶段里）。
 
 ## 移植时的约定（踩过的坑）
 

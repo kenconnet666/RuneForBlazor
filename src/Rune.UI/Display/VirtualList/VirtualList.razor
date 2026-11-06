@@ -5,7 +5,7 @@
     读屏：role="list"，每项带 aria-setsize / aria-posinset，没渲染的项也算在总数里；没有数据时显示 Empty（不是列表）。
     交互模式下才虚拟滚动；静态 SSR、预渲染时先输出前 InitialCount 项，交互接管后换成虚拟滚动。
     未声明的属性落到外层（ScrollArea）上；aria-label 写在这里就是列表的名称（读屏从视口读，组件转交过去）。
-    还没做（阶段 7）：随页面滚动、横向、加载中的骨架行、跳到第几项、可见范围变化的回调。
+    还没做（路线图阶段 2）：随页面滚动、横向、加载中的骨架行、跳到第几项、可见范围变化的回调。
 *@
 @namespace Rune.UI
 @typeparam TItem

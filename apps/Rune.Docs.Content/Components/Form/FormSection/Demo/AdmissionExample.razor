@@ -108,7 +108,7 @@
     string? account = "6222 0210 0100 1234 567";
     string? term = "60";
 
-    // 同 AsideLayout（阶段 7 做成组件）：容器够宽（56rem）时目录在右边一列、粘在顶栏下面；窄了叠成一列，目录在后
+    // 同 AsideLayout（路线图阶段 2 做成组件）：容器够宽（56rem）时目录在右边一列、粘在顶栏下面；窄了叠成一列，目录在后
     static readonly Condition Wide = Containers.MinWidth(CssLength.Rem(56));
 
     static Style Container => Css.Define(static () => new Style { ContainerType = ContainerType.InlineSize, MinWidth = 0 });
