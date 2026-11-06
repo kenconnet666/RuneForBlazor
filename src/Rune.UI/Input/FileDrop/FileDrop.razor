@@ -1,0 +1,84 @@
+@*
+    选文件的区域（label，同 vue-tsx-pro 的 FileDrop）：点击（或聚焦后按 Enter / 空格）打开文件对话框，也可以把文件拖进来。
+    <FileDrop accept="image/*" Multiple="true" @bind-Value="files" OnReject="ShowRejected" />
+    选文件走 Blazor 的 InputFile：原生 file input 透明地盖满整个区域，点击、放下文件都落在它上面，键盘、读屏都是浏览器的；
+    值是这次选到的文件（IBrowserFile，已按 accept 过滤；不写 Multiple 时最多一个），读内容用 <c>file.OpenReadStream(maxAllowedSize)</c>
+    （Server 模式经 SignalR 分块传、WebAssembly 在本地读）。拖放不受 accept 限制，不符合的经 OnReject 交出去。
+    拖着文件经过时 JS 初始化器写 data-dragging。在 Field 里时关联标签、说明与错误；未声明的属性落到 input 上，Sx 落在区域上。
+    列表、进度、重试见 Upload（建在它上面）。
+*@
+@namespace Rune.UI
+@inherits FormControl<IReadOnlyList<IBrowserFile>>
+@using Microsoft.AspNetCore.Components.Forms
+
+<label data-rune-file-drop data-disabled="@(IsDisabled ? "true" : null)" data-readonly="@(IsReadOnly ? "true" : null)"
+       @attributes="Attrs.Merge(FileDropStyles.Root(IsInvalid, IsDisabled || IsReadOnly), RootUserAttrs)">
+    <InputFile @ref="input" OnChange="OnChangeAsync" @attributes="Attrs.Merge(FileDropStyles.Input, NamedInputUserAttrs, InputManaged)" />
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <Icon Data="BuiltInIcons.Upload" @attributes="Attrs.MergeProps(IconLayer, PropsIcon)" />
+        <span @attributes="Attrs.Merge(HintLayer, PropsHint)">@Config.Lang.FileDrop</span>
+        @if (Description is not null)
+        {
+            <span @attributes="Attrs.Merge(DescriptionLayer, PropsDescription)">@Description</span>
+        }
+    }
+</label>
+
+@code {
+    static readonly Attrs IconLayer = new() { Sx = FileDropStyles.Icon };
+    static readonly Attrs HintLayer = new() { Sx = FileDropStyles.Hint };
+    static readonly Attrs DescriptionLayer = new() { Sx = FileDropStyles.Description };
+
+    InputFile? input;
+    Memo<(Attrs Control, string? Accept, bool Multiple, bool Locked), Attrs> inputManaged;
+
+    /// <summary>接受的文件类型（同原生 accept：<c>image/*</c>、<c>.pdf</c>）；拖进来的不符合的经 OnReject 交出去。</summary>
+    [Parameter] public string? Accept { get; set; }
+
+    /// <summary>可以选多个。</summary>
+    [Parameter] public bool Multiple { get; set; }
+
+    /// <summary>选到的文件里不符合 Accept 的（拖放不受 accept 限制）。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<IBrowserFile>> OnReject { get; set; }
+
+    /// <summary>提示文字下面的说明（大小、类型限制）。</summary>
+    [Parameter] public RenderFragment? Description { get; set; }
+
+    /// <summary>区域里的内容；默认是图标、提示文字（取语言包）与 Description。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>图标的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>提示文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsHint { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    // input 上由组件管理的属性：表单状态、accept、multiple；只读与不可用一样不能选文件（文件输入框没有原生的只读）
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, Accept, Multiple, IsDisabled || IsReadOnly), static k => Attrs.Merge(k.Control, new Attrs
+    {
+        ["accept"] = k.Accept,
+        ["multiple"] = k.Multiple ? true : null,
+        ["disabled"] = k.Locked ? true : null,
+        ["readonly"] = null,
+    }));
+
+    async Task OnChangeAsync(InputFileChangeEventArgs e)
+    {
+        var files = e.FileCount == 0 ? [] : e.GetMultipleFiles(int.MaxValue);
+        var accepted = files.Where(file => FileAccept.Matches(file, Accept)).ToList();
+        var rejected = files.Where(file => !FileAccept.Matches(file, Accept)).ToList();
+        if (accepted.Count > 0) await SetValueAsync(Multiple ? accepted : [accepted[0]]);
+        if (rejected.Count > 0) await OnReject.InvokeAsync(rejected);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnAfterRender(bool firstRender) => Element = input?.Element;
+}

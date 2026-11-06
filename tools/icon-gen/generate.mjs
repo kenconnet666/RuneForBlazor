@@ -67,6 +67,8 @@ const BUILT_IN = [
   'panel-left-open',
   'dot',
   'code',
+  // FileDrop
+  'upload',
   // Result 的常见状态：403、404、500
   'shield-x',
   'file-question-mark',

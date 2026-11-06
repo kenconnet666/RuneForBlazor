@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（55 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（56 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -112,6 +112,8 @@ public static partial class BuiltInIcons
     public static IconData Trees => field ??= new("trees", "<path d=\"M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z\"/><path d=\"M7 16v6\"/><path d=\"M13 19v3\"/><path d=\"M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5\"/>");
     /// <summary>Lucide 图标 <c>triangle-exclamation-point</c>（alert、warning、danger、caution、notice、error、risk、concern）。</summary>
     public static IconData TriangleExclamationPoint => field ??= new("triangle-exclamation-point", "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/>");
+    /// <summary>Lucide 图标 <c>upload</c>（file）。</summary>
+    public static IconData Upload => field ??= new("upload", "<path d=\"M12 3v12\"/><path d=\"m17 8-5-5-5 5\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/>");
     /// <summary>Lucide 图标 <c>user</c>（user、people、identity、individual、personal、person、account、contact）。</summary>
     public static IconData User => field ??= new("user", "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/>");
     /// <summary>Lucide 图标 <c>waves-horizontal</c>（water、sea、sound、hertz、wavelength、vibrate、ocean、swimming）。</summary>

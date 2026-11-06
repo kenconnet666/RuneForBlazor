@@ -106,6 +106,7 @@
 //   data-rune-autosize       多行文本框：输入时、值变了（属性值随之变化）时按 scrollHeight 设高度（上下限由 CSS 的 min/max-height 夹住）
 //   data-rune-check-draw     复选框：用户点击勾上时把后面的对勾一笔画出（初次渲染、外部改值不画）
 //   data-rune-draw="true"    图标的描线动画：插入时为 true、或由 false 变为 true 时一笔画出（减少动态效果时直接画好）
+//   data-rune-file-drop      选文件的区域（FileDrop）：拖着文件经过时写 data-dragging；文件由盖满区域的原生 file input 接住
 //   data-rune-dismiss        可移除元素（data-rune-dismissible，如标签）里的移除按钮：元素先离场（data-dismissing），
 //                            结束后发出冒泡的 rune-dismiss（Blazor 里是 @onrunedismiss）；被移除时焦点交给同组的下一个
 //                            （没有就上一个）可聚焦元素，没被移除就重新显示
@@ -122,10 +123,11 @@
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框、菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
-// leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
+// leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawIcon, startDismiss, startRipple } from './js/effects.js';
+import { onFileDragEnter, onFileDragLeave, onFileDrop } from './js/files.js';
 import { guardLeave } from './js/leave.js';
 import { clickCascader, keyCascader, onCascaderFocusIn } from './js/cascader.js';
 import { keyMentions, onMentionsClick, onMentionsCompositionEnd, onMentionsFocusOut, onMentionsInput, onMentionsKeyUp, pickMention } from './js/mentions.js';
@@ -242,6 +244,9 @@ function install(blazor) {
   document.addEventListener('pointerdown', grabResizeHandle);
   document.addEventListener('pointerdown', grabTab);
   document.addEventListener('pointerdown', grabToast);
+  document.addEventListener('dragenter', onFileDragEnter);
+  document.addEventListener('dragleave', onFileDragLeave);
+  document.addEventListener('drop', onFileDrop);
   document.addEventListener('dblclick', resetResizeHandle);
   document.addEventListener('dblclick', doubleClickOption);
   document.addEventListener('auxclick', auxClickTabs);

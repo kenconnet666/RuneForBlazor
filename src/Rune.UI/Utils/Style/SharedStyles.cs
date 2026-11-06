@@ -103,6 +103,16 @@ public static class SharedStyles
         },
     });
 
+    /// <summary>里面的元素键盘聚焦时，焦点环画在这个元素外侧（同 vue-tsx-pro 的 focusRingStyles.hasVisible）：原生 input 视觉上看不见的拖放区。</summary>
+    public static Style FocusRingWithin => Css.Define(static () => new Style
+    {
+        [When.Has(":focus-visible")] = new()
+        {
+            Outline = $"{BorderWidths.Sm} solid {Colors.FocusRing}",
+            OutlineOffset = BorderWidths.Sm,
+        },
+    });
+
     /// <summary>键盘聚焦时的焦点环（画在元素内侧）：外侧会被裁掉的元素用（面板里的按钮、表格单元格）。</summary>
     public static Style FocusRingInset => Css.Define(static () => new Style
     {
