@@ -19,7 +19,7 @@ vue-tsx-pro 在做一轮样式体系的联合改造（架构、整理、API、�
 | 阶段 2：外观词表 | `Tone`（6 个状态色）与 `TextTone`（含 muted、inherit）已经分开，正是 vue 的最终取舍 | **已跟进**：Skeleton `Variant` → `Shape`、Sparkline `Variant` → `Type`；Dialog / Drawer 的 `Size`（宽度）照 vue 的决定不改 |
 | 阶段 2：入口不再导出内部样式表 | 组件的 `XxxStyles` 多是 public（配方、部件枚举要给定制用），里面的单个样式多是 private / internal | 只留部件枚举与 `Of`（配方）public，其余 internal；有了 `Components` 入口后再收 |
 | 阶段 3 整理：共用片段、条件别名、裸值换 token | `SharedStyles`（ButtonReset、FocusRing、InteractionColors……）、`ItemStyles`、`ShimmerStyles` 已有；`When.*` 条件别名已统一；分析器 RUNE006 / RUNE007 管着类型化取值与 px | 按 vue 的片段清单补齐（pressable、disabled、disclosure 箭头、scrim / onScrim token……），裸值（Lightbox、Upload 的遮罩色）换 token |
-| 阶段 4 美学：token 与主题 | 主题由 `tools/theme-gen` 从 vue 的主题生成（`Themes.g.cs`） | token 取值、去掉海洋、加高对比暗色：vue 改完后重新生成即可；控件高度（xs 24 … xl 40）、中文字重、波纹默认关（`UIConfig.Ripple`）跟着改 |
+| 阶段 4 美学：token 与主题 | 主题由 `tools/theme-gen` 从 vue 的主题生成（`Themes.g.cs`） | **跟进了已完成的部分**（见第 3 节）：重新生成主题、跟随系统的增强对比度、elevated 卡片的边框；控件高度（xs 24 … xl 40）、中文字重、着色页面、标题阶梯等 vue 做完再跟。波纹 vue 最后保持默认开启，Rune 本来就是 |
 | 阶段 5 文档 | `docs/DESIGN.md`、文档站的样式与主题页 | 同步规范与迁移说明 |
 
 ## 2. 改造前先做的性能准备（2026-11-06）
@@ -81,6 +81,23 @@ builder.Services.AddRuneUI(o => o.Components = new()
 - 焦点环的 `virtual`（当前项常亮）：Rune 的 Cascader 用 CSS 条件（`[data-highlighted]:where(:focus *)`）画，不经状态往返；只有它一处用，
   按“第三次才抽象”的约定先不抽共用件。`inset` 早就有（`SharedStyles.FocusRingInset`）。
 - 还没做：OtpField 的格子改用输入框的外观（会改外观、要加 Variant / Radius 参数），放到下一批。
+- 遮罩的颜色 token（vue 9d5af3f3）：`Colors.Scrim`（图片上的深色遮罩）、`ScrimStrong`（看图背景）、`OnScrim`（遮罩上的文字）；
+  Upload 的进度遮罩、Lightbox 的背景与按钮改用它们（取值不变）。不同：Upload 图片墙右上角的小按钮仍用半透明的表面色底（vue 改成 `OnScrim` 的白底，
+  但按钮的文字是主题的文字色，深色主题里白底浅字看不清；Rune 原来就用表面色，深浅主题都看得清）。
+- Table 与 DataTable 共用部件样式（vue d450fe3a）：Rune 还没有 DataTable，只有一个表格配方，没有可合并的。
+
+### 阶段 4：美学（2026-11-06 跟进 vue 已完成的部分，vue feat/style-overhaul 9de32da3，PR #4 未合并）
+
+- 主题重新生成（CI 的 `VUE_TSX_PRO_REF` 指到 9de32da3，语言包同一版本）：去掉海洋、加高对比暗色 `Themes.HighContrastDark`（仍是 16 套，ThemeSwitcher 的图标用 eclipse）；
+  两套高对比文字到 7:1；占位文字改用次要文字色（4.5:1）；亮色的成功、警告、信息文字改中间调。
+- theme-gen 修了一处：vue 的遮罩 token 只写在 light.ts，其他主题取 defineVars 的默认值；生成器原来只把“主题之外的组”放进 `Themes.Base`，
+  主题没写的颜色在 Rune 里就成了未定义的变量（`ThemeTests` 查出来）。现在各组的默认值都进 Base，主题只覆盖写了的，同 vue。
+- 跟随系统时尊重增强对比度（同 vue 的 `SystemThemes.contrast` / builtinSystemThemes）：`ThemeChoices.SystemContrast`（亮、暗两套），
+  `ThemeChoices.Builtin` 配好高对比的两套；开机脚本与 `js/theme.js` 先按 `prefers-contrast: more` 选一对再按明暗选，并监听对比度的变化；
+  主题类（`ThemeStyles.ClassFor` 的 `contrast`）同样写进媒体查询，脚本没运行时也对。
+- elevated 卡片加 `BorderMuted` 的边框（深色主题里阴影看不见）。
+- ButtonBase 继承字重：Rune 的 `SharedStyles.ButtonReset` 本来就是 `font: inherit`（含字重），不用改。
+- 删 Figma 设计资源：Rune 没有这块。
 
 ### 阶段 1：分段输出与级联层（2026-11-06 跟进）
 

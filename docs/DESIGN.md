@@ -120,13 +120,14 @@
   `ThemeStyles.ClassFor` 生成只设变量的类。换主题只换容器上的类，组件不用重新计算样式。
 - **token 与内置主题同 vue-tsx-pro**：分组、命名、取值都对齐（颜色与阴影取自 Radix，间距与圆角用 em 随字号缩放，动效参考 Material 3）。
   16 套内置主题由 `tools/theme-gen` 从 vue-tsx-pro 的主题文件生成（`Themes.g.cs`），CI 校验两边一致；vue-tsx-pro 加了 token 而这边没有时脚本报错。
+  各组 token 的默认值（vue 的 tokens.ts）进 `Themes.Base`，每套主题只覆盖写了的（同 vue 的 defineVars 默认值在 `:root`、主题类覆盖）。
   中性色调不另设 token，直接用反色表面、填充、文字、边框（同 vue-tsx-pro 的 tone-styles）。本库独有的只有层级（提示、消息提示不在顶层）。
 - **主题自己说是亮是暗**（`IsDark`）：容器上的 `color-scheme` 按主题写，固定用赛博朋克这类暗色主题时原生控件、滚动条也是暗色。
 - **条件取值**：`[Media.ReducedMotion] = new("…") { [Durations.Md] = "0ms" }`。用户要求减少动态效果时全部时长为 0，
   用时长 token 写的过渡自动关掉，组件不再各自加“减少动效”的样式（原来的 `SharedStyles.ReducedMotion` 已删）；循环的装饰动画（加载指示）自己处理。
 - **作用范围**：`RuneProvider` 用 `display: contents` 的包裹元素挂主题类，并设文字颜色、字体、字号、行高（同 vue-tsx-pro 的 Provider），不影响布局；
   变量与这些属性沿 DOM 继承，所以静态外壳里的主题对里面的交互区域同样生效。
-- **配置**：`UIConfig`（主题、亮暗、组件默认值、按部件的样式定制、波纹开关）。应用级的来自 `AddRuneUI`（DI，服务端与 WebAssembly 各注册一次），
+- **配置**：`UIConfig`（主题、亮暗、组件的定制、波纹开关）。应用级的来自 `AddRuneUI`（DI，服务端与 WebAssembly 各注册一次），
   `RuneProvider` 在一片区域里叠加修改。级联值不能跨渲染模式边界，交互区域里需要局部修改时在里面再放一个 Provider。
 - **语言包**：`Lang`（同 vue-tsx-pro 的 Lang，由 `tools/lang-gen` 生成）放在 `UIConfig.Lang`，`AddRuneUI` 设应用级的、`RuneProvider` 的 `Lang` 在一片区域里换；
   组件里的文案参数（CloseLabel、ClearLabel……）不写时取语言包。Provider 的包裹元素写上 `lang` 与 `dir`。改几条用 `Lang.ZhCn with { … }`。
@@ -180,7 +181,9 @@
   最外层的 RuneProvider 输出每套主题按 `:root[data-theme="名字"] .主题类` 取用的变量（排在跟随系统的两段之后，选择器更具体）；
   head 里的 ThemeBootScript 输出配置（`script#rune-theme-config`：存储键、每套的底色、文字色、配色方案）与一小段脚本，页面显示前按 localStorage
   写好根元素的 data-theme 与颜色。ThemeSwitcher 的菜单项写 `data-rune-theme-choice`，`js/theme.js` 处理点击（记下、写根元素、从按钮处圆形展开）、
-  同步选中标记与按钮图标（复制选中项的图标），并跟着系统明暗、其他标签页、增强导航换页重新应用。C# 不知道选了哪套，所以单选项的选中标记按
+  同步选中标记与按钮图标（复制选中项的图标），并跟着系统明暗与对比度、其他标签页、增强导航换页重新应用。
+  跟随系统时先按 `prefers-contrast: more` 选一对（`ThemeChoices.SystemContrast`，内置的是高对比亮、暗，同 vue 的 builtinSystemThemes），再按明暗选一套；
+  脚本没运行时主题类里同样的媒体查询兜底。C# 不知道选了哪套，所以单选项的选中标记按
   aria-checked 用 CSS 显示（MenuRadioItem 的 Indicator），JS 改 aria-checked 就够。代价是每页都带全部可选主题的变量（16 套约 230KB，未压缩），
   静态导出时再考虑抽成共享样式表。
 - **文档内容是一个 Razor 类库（apps/Rune.Docs.Content）**：组件页 `Components/<分类>/<组件>/<组件>Page.razor`（`@page` + `[DocMeta]`，示例按 vue-tsx-pro 的两列写定），

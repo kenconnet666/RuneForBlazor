@@ -12,11 +12,12 @@ namespace Rune.UI;
 /// </summary>
 public sealed class ThemeBootScript : ComponentBase
 {
-    // 读记住的选择（隐私模式下存储会抛错）→ 解析跟随系统 → 写根元素；没有这套主题的颜色时只记下选择
+    // 读记住的选择（隐私模式下存储会抛错）→ 解析跟随系统（先按对比度选一对，再按明暗）→ 写根元素；没有这套主题的颜色时只记下选择
     const string Script =
         "(()=>{const c=JSON.parse(document.getElementById('rune-theme-config').textContent);const r=document.documentElement;" +
         "let p;try{p=localStorage.getItem(c.key)}catch(e){}if(p!=='system'&&!c.themes[p])p=c.fallback;" +
-        "const n=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?c.system.dark:c.system.light):p;" +
+        "const s=c.system.contrast&&matchMedia('(prefers-contrast: more)').matches?c.system.contrast:c.system;" +
+        "const n=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?s.dark:s.light):p;" +
         "r.dataset.themePreference=p;const t=c.themes[n];if(!t)return;r.dataset.theme=n;" +
         "r.style.colorScheme=t.colorScheme;r.style.backgroundColor=t.background;r.style.color=t.text})()";
 

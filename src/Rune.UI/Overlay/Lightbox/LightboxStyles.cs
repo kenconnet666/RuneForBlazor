@@ -40,8 +40,8 @@ public static class LightboxStyles
         BorderWidth = 0,
         Display = Display.None,
         FlexDirection = FlexDirection.Column,
-        BackgroundColor = "rgb(0 0 0 / 0.86)",
-        Color = "#fff",
+        BackgroundColor = Colors.ScrimStrong,
+        Color = Colors.OnScrim,
         ColorScheme = ColorSchemeKeywords.Dark,
         [When.Modal] = new() { Display = Display.Flex },
     });
@@ -148,8 +148,8 @@ public static class LightboxStyles
 
     static Style ButtonStyle => Css.Define(static () => new Style
     {
-        Color = "#fff",
+        Color = Colors.OnScrim,
         BackgroundColor = CssColors.Transparent,
-        [When.Hover] = new() { BackgroundColor = "rgb(255 255 255 / 0.12)" },
+        [When.Hover] = new() { BackgroundColor = $"color-mix(in srgb, {Colors.OnScrim} 12%, transparent)" },
     });
 }

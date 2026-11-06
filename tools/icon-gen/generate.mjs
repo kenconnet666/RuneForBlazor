@@ -101,7 +101,7 @@ const BUILT_IN = [
   'scroll-text',
   'moon-star',
   'contrast',
-  'waves-horizontal',
+  'eclipse',
   'trees',
   'citrus',
   'flower-2',

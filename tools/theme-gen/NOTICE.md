@@ -1,7 +1,7 @@
 # 内置主题的来源
 
 `generate.mjs` 读取 [vue-tsx-pro](https://github.com/kenconnet666/vue-tsx-pro) 的 `packages/ui/src/config/theme`（版本见 CI 的 `VUE_TSX_PRO_REF`），
-生成 `src/Rune.UI/Config/Theme/Themes.g.cs`：16 套内置主题，以及所有主题共用的 Base（字号、间距、尺寸、动效等组的默认值）。
+生成 `src/Rune.UI/Config/Theme/Themes.g.cs`：16 套内置主题，以及所有主题共用的 Base（各组 token 的默认值：字号、间距、尺寸、动效等组只取这里，主题没写的 token 也取这里）。
 
 | 内容 | 来源 | 许可 |
 | ---- | ---- | ---- |

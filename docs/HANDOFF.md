@@ -76,7 +76,7 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 - 阶段 2 做到 Image / Lightbox 与 Upload 的图片墙（剩 Tree、VirtualList 补齐）。
 - 2026-11-06 起路线图暂停：先做性能（`docs/PERFORMANCE.md`，基准 `tests/Rune.Benchmarks`），之后按 vue-tsx-pro 的样式体系改造逐阶段跟进
   （`docs/STYLE-ALIGNMENT.md`，那边每完成一个阶段会发消息来）。阶段 1 已跟进；阶段 2、3 不改外观的部分已跟进，组件定制合成了 `Components` 一个入口
-  （默认值、按部件与按档位取值的样式）。
+  （默认值、按部件与按档位取值的样式）；阶段 4 跟进了 vue 已完成的主题与对比度部分（主题按 vue 的 PR 分支生成）。
 - 单元测试 516 个全过；端到端在 CI 上跑。
 
 ## 下一步

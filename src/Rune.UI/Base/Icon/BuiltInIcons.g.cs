@@ -58,6 +58,8 @@ public static partial class BuiltInIcons
     public static IconData Dot => field ??= new("dot", "<circle cx=\"12\" cy=\"12\" r=\"1\"/>");
     /// <summary>Lucide 图标 <c>download</c>（import、export、save、pull）。</summary>
     public static IconData Download => field ??= new("download", "<path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/>");
+    /// <summary>Lucide 图标 <c>eclipse</c>（lunar、solar、crescent moon、sun、earth、day、night、planet）。</summary>
+    public static IconData Eclipse => field ??= new("eclipse", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 2a7 7 0 1 0 10 10\"/>");
     /// <summary>Lucide 图标 <c>ellipsis</c>（et cetera、etc、loader、loading、progress、pending、throbber、menu）。</summary>
     public static IconData Ellipsis => field ??= new("ellipsis", "<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/>");
     /// <summary>Lucide 图标 <c>eye</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>
@@ -144,8 +146,6 @@ public static partial class BuiltInIcons
     public static IconData Upload => field ??= new("upload", "<path d=\"M12 3v12\"/><path d=\"m17 8-5-5-5 5\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/>");
     /// <summary>Lucide 图标 <c>user</c>（user、people、identity、individual、personal、person、account、contact）。</summary>
     public static IconData User => field ??= new("user", "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/>");
-    /// <summary>Lucide 图标 <c>waves-horizontal</c>（water、sea、sound、hertz、wavelength、vibrate、ocean、swimming）。</summary>
-    public static IconData WavesHorizontal => field ??= new("waves-horizontal", "<path d=\"M2 12q2.5 2 5 0t5 0 5 0 5 0\"/><path d=\"M2 19q2.5 2 5 0t5 0 5 0 5 0\"/><path d=\"M2 5q2.5 2 5 0t5 0 5 0 5 0\"/>");
     /// <summary>Lucide 图标 <c>x</c>（alphabet、character、text、font、typography、x、remove、delete）。</summary>
     public static IconData X => field ??= new("x", "<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>");
     /// <summary>Lucide 图标 <c>zap</c>（flash、camera、lightning、electricity、energy、power、quick）。</summary>

@@ -1,6 +1,6 @@
 // 主题切换（ThemeSwitcher）：选择记在 localStorage 里，根元素写上解析出的主题名（data-theme，RuneProvider 的主题类据此取那一套）
 // 与选择（data-theme-preference），再按配置设好根元素的底色、文字色与配色方案。配置是 ThemeBootScript 输出的 script#rune-theme-config。
-// 跟随系统时系统明暗变了、其他标签页改了选择、增强导航换了页之后都重新应用。切换时新主题从按钮处圆形展开（View Transitions；
+// 跟随系统时系统明暗或对比度变了、其他标签页改了选择、增强导航换了页之后都重新应用。切换时新主题从按钮处圆形展开（View Transitions；
 // 不支持或减少动态效果时直接换）。菜单里的单选项（data-rune-theme-choice）的 aria-checked 与触发按钮的图标（data-rune-theme-icon，
 // 换成选中项的图标）在这里同步：C# 不知道选了哪套。显示 token 取值的元素（data-rune-token-value）换主题后重新读。
 
@@ -8,6 +8,7 @@ import { reducedMotion } from './shared.js';
 
 const SYSTEM = 'system';
 const darkQuery = matchMedia('(prefers-color-scheme: dark)');
+const contrastQuery = matchMedia('(prefers-contrast: more)');
 
 function readConfig() {
   const element = document.getElementById('rune-theme-config');
@@ -32,7 +33,8 @@ function storedPreference(config) {
 
 function resolve(config, preference) {
   if (preference !== SYSTEM) return preference;
-  return darkQuery.matches ? config.system.dark : config.system.light;
+  const pair = config.system.contrast && contrastQuery.matches ? config.system.contrast : config.system;
+  return darkQuery.matches ? pair.dark : pair.light;
 }
 
 /** 按选择写根元素，并同步页面上的主题切换 */
@@ -66,14 +68,16 @@ export function reapplyTheme() {
   if (config) apply(config, storedPreference(config));
 }
 
-/** 装上全局的监听：系统明暗变了（跟随系统时）、其他标签页改了选择 */
+/** 装上全局的监听：系统明暗或对比度变了（跟随系统时）、其他标签页改了选择 */
 export function installTheme() {
-  darkQuery.addEventListener('change', () => {
+  const followSystem = () => {
     const config = readConfig();
     if (config && storedPreference(config) === SYSTEM) apply(config, SYSTEM);
-    // 没有可选主题时跟随系统的暗色主题由媒体查询切换：token 的取值也变了
+    // 没有可选主题时跟随系统的主题由媒体查询切换：token 的取值也变了
     else if (!config) refreshTokenValues();
-  });
+  };
+  darkQuery.addEventListener('change', followSystem);
+  contrastQuery.addEventListener('change', followSystem);
   window.addEventListener('storage', (event) => {
     const config = readConfig();
     if (config && event.key === config.key) apply(config, storedPreference(config));

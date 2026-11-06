@@ -6,7 +6,7 @@
     const string program = """
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddRuneUI(options => options.Theme = Themes.Ocean);
+        builder.Services.AddRuneUI(options => options.Theme = Themes.Forest);
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();

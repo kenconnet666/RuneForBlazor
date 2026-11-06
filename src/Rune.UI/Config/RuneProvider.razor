@@ -39,7 +39,7 @@
 
     /// <summary>
     /// 用户可以选的几套主题（ThemeSwitcher 切换，记在浏览器里）：输出每套的变量，按根元素的 data-theme 取用；
-    /// 还没选过（或页面脚本没运行）时跟随系统，用它的 SystemLight、SystemDark。
+    /// 还没选过（或页面脚本没运行）时跟随系统，用它的 SystemLight、SystemDark（系统要求增强对比度时用 SystemContrast）。
     /// 一般写在 <see cref="RuneUIOptions.ThemeChoices"/>（最外层的 Provider 用它）；这里写的只作用于这片区域。
     /// </summary>
     [Parameter] public ThemeChoices? Choices { get; set; }
@@ -67,9 +67,9 @@
         (AppliesTheme ? ThemeClass : null, AppliesTheme ? ThemeLabel : null, config.Lang.Code, config.Lang.Direction),
         static k => new Attrs { Class = k.Class, ["data-rune-theme"] = k.Label, ["lang"] = k.Code, ["dir"] = k.Direction });
 
-    // 有可选主题时跟随系统的两套取它的，另输出每套主题按 data-theme 取用的变量
+    // 有可选主题时跟随系统的几套取它的，另输出每套主题按 data-theme 取用的变量
     string ThemeClass => (Choices ?? (IsInsideProvider ? null : config.ThemeChoices)) is { } choices
-        ? ThemeStyles.ClassFor(choices.SystemLight, choices.SystemDark, Rune.Styles.ColorScheme.System, choices.Themes)
+        ? ThemeStyles.ClassFor(choices.SystemLight, choices.SystemDark, Rune.Styles.ColorScheme.System, choices.Themes, choices.SystemContrast)
         : ThemeStyles.ClassFor(config.Theme, config.DarkTheme, config.ColorScheme);
 
     // 不产生盒子、不影响布局；文字颜色、字体、字号、行高由里面的元素继承（同 vue-tsx-pro 的 Provider）

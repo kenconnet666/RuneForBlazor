@@ -69,6 +69,8 @@ public class ThemeSwitcherTests : BunitContext
         using var json = JsonDocument.Parse(config.TextContent);
         Assert.Equal("rune-theme", json.RootElement.GetProperty("key").GetString());
         Assert.Equal("dark", json.RootElement.GetProperty("system").GetProperty("dark").GetString());
+        // 没写 SystemContrast：不按对比度区分
+        Assert.False(json.RootElement.GetProperty("system").TryGetProperty("contrast", out _));
         var paper = json.RootElement.GetProperty("themes").GetProperty("paper");
         Assert.Equal("light", paper.GetProperty("colorScheme").GetString());
         Assert.StartsWith("#", paper.GetProperty("background").GetString());
@@ -77,8 +79,18 @@ public class ThemeSwitcherTests : BunitContext
         using (Rune.Styles.StyleRegistry.Enter(new Rune.Styles.StyleRegistry()))
         {
             var choices = Services.GetRequiredService<UIConfig>().ThemeChoices!;
-            var expected = Rune.Styles.ThemeStyles.ClassFor(choices.SystemLight, choices.SystemDark, Rune.Styles.ColorScheme.System, choices.Themes);
+            var expected = Rune.Styles.ThemeStyles.ClassFor(choices.SystemLight, choices.SystemDark, Rune.Styles.ColorScheme.System, choices.Themes, choices.SystemContrast);
             Assert.Contains(expected, provider.Find("div").ClassList);
         }
+    }
+
+    [Fact]
+    public void 全部内置主题跟随系统时_系统要求增强对比度用高对比的亮暗两套()
+    {
+        using var json = JsonDocument.Parse(ThemeChoices.Builtin.ToJson());
+        var contrast = json.RootElement.GetProperty("system").GetProperty("contrast");
+
+        Assert.Equal(("high-contrast", "high-contrast-dark"), (contrast.GetProperty("light").GetString(), contrast.GetProperty("dark").GetString()));
+        Assert.True(json.RootElement.GetProperty("themes").TryGetProperty("high-contrast-dark", out _));
     }
 }

@@ -5,8 +5,8 @@
 <DocPage Meta="Meta">
     <GuideSection Id="builtin" Title="内置主题">
         <Paragraph>
-            主题是一组 token 的取值。内置 16 套（同 vue-tsx-pro）：亮色、暗色、纸张、午夜、高对比，以及海洋、森林、柠檬、樱花等风格主题，
-            对比度逐对检查过。应用默认跟随系统用亮色或暗色；在 <Code>AddRuneUI</Code> 里换。
+            主题是一组 token 的取值。内置 16 套（同 vue-tsx-pro）：亮色、暗色、纸张、午夜、高对比（亮、暗两套，文字到 7:1），
+            以及森林、柠檬、樱花等风格主题，对比度逐对检查过。应用默认跟随系统用亮色或暗色；在 <Code>AddRuneUI</Code> 里换。
         </Paragraph>
         <CodeBlock Code="@builtin" Lang="csharp" />
     </GuideSection>
@@ -18,7 +18,11 @@
             在页面显示前按记住的选择设好，不闪一下默认主题。切换全在浏览器里，没有往返，静态 SSR 也能用。
         </Paragraph>
         <CodeBlock Code="@switcher" Lang="razor" />
-        <Paragraph>本站右上角就是它。可选的主题越多，页面带的变量越多（每套约十几 KB，压缩前）：只列用得上的几套。</Paragraph>
+        <Paragraph>
+            本站右上角就是它。可选的主题越多，页面带的变量越多（每套约十几 KB，压缩前）：只列用得上的几套。
+            “跟随系统”按系统的明暗选 <Code>SystemLight</Code> 或 <Code>SystemDark</Code>；写了 <Code>SystemContrast</Code> 时，
+            系统要求增强对比度（Windows 的对比度主题、macOS 的“增强对比度”）改用它的两套。<Code>ThemeChoices.Builtin</Code> 已经配好高对比的亮、暗两套。
+        </Paragraph>
     </GuideSection>
 
     <GuideSection Id="custom" Title="写自己的主题">

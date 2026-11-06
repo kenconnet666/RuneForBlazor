@@ -18,14 +18,20 @@ public sealed record ThemeChoices(IReadOnlyList<Theme> Themes)
     /// <summary>“跟随系统”的取值。</summary>
     public const string System = "system";
 
-    /// <summary>全部内置主题（亮色、暗色、纸张……），跟随系统时用亮色、暗色。</summary>
-    public static ThemeChoices Builtin => field ??= new(UI.Themes.All);
+    /// <summary>全部内置主题（亮色、暗色、纸张……），跟随系统时用亮色、暗色，系统要求增强对比度时用高对比的亮、暗两套。</summary>
+    public static ThemeChoices Builtin => field ??= new(UI.Themes.All) { SystemContrast = (UI.Themes.HighContrast, UI.Themes.HighContrastDark) };
 
     /// <summary>跟随系统、系统是亮色时用的主题，默认 <see cref="UI.Themes.Light"/>。</summary>
     public Theme SystemLight { get; init; } = UI.Themes.Light;
 
     /// <summary>跟随系统、系统是暗色时用的主题，默认 <see cref="UI.Themes.Dark"/>。</summary>
     public Theme SystemDark { get; init; } = UI.Themes.Dark;
+
+    /// <summary>
+    /// 跟随系统、系统要求增强对比度（<c>prefers-contrast: more</c>，如 Windows 的对比度主题、macOS 的“增强对比度”）时的亮、暗两套；
+    /// 不写时不区分。两套都要在 <see cref="Themes"/> 里。
+    /// </summary>
+    public (Theme Light, Theme Dark)? SystemContrast { get; init; }
 
     /// <summary>记住选择的 localStorage 键，默认 rune-theme。</summary>
     public string StorageKey { get; init; } = "rune-theme";
@@ -34,7 +40,7 @@ public sealed record ThemeChoices(IReadOnlyList<Theme> Themes)
     public string Fallback { get; init; } = System;
 
     /// <summary>
-    /// 交给浏览器端的配置（JSON）：存储键、默认选择、跟随系统的两套，以及每套主题的底色、文字色与配色方案
+    /// 交给浏览器端的配置（JSON）：存储键、默认选择、跟随系统的几套，以及每套主题的底色、文字色与配色方案
     /// （页面显示前就把根元素的颜色设对，不闪一下默认主题）。
     /// </summary>
     public string ToJson()
@@ -49,6 +55,13 @@ public sealed record ThemeChoices(IReadOnlyList<Theme> Themes)
             json.WriteStartObject("system");
             json.WriteString("light", SystemLight.Name);
             json.WriteString("dark", SystemDark.Name);
+            if (SystemContrast is { } contrast)
+            {
+                json.WriteStartObject("contrast");
+                json.WriteString("light", contrast.Light.Name);
+                json.WriteString("dark", contrast.Dark.Name);
+                json.WriteEndObject();
+            }
             json.WriteEndObject();
             json.WriteStartObject("themes");
             foreach (var theme in Themes)

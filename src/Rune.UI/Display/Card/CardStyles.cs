@@ -137,7 +137,8 @@ public static class CardStyles
     static Style Variant(CardVariant variant) => Css.Define(variant, static variant => variant switch
     {
         CardVariant.Outline => new Style { BorderColor = Colors.Border },
-        CardVariant.Elevated => new Style { BackgroundColor = Colors.SurfaceRaised, BoxShadow = Shadows.Md },
+        // 一圈弱边框：深色主题里阴影看不见，卡片仍与页面分得开
+        CardVariant.Elevated => new Style { BackgroundColor = Colors.SurfaceRaised, BorderColor = Colors.BorderMuted, BoxShadow = Shadows.Md },
         CardVariant.Ghost => new Style(),
         _ => new Style { BackgroundColor = Colors.Surface, BorderColor = Colors.Border },
     });

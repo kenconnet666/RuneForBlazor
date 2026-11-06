@@ -135,23 +135,24 @@ public static class ThemeStyles
     /// </summary>
     public const string ChoiceAttribute = "data-theme";
 
-    static readonly ConcurrentDictionary<(Theme Light, Theme? Dark, ColorScheme Scheme, string Choices), CompiledStyle> compiled = new();
+    static readonly ConcurrentDictionary<(Theme Light, Theme? Dark, ColorScheme Scheme, string Choices, (Theme Light, Theme Dark)? Contrast), CompiledStyle> compiled = new();
 
     /// <summary>
     /// 主题对应的类名。只能在 <see cref="RuneComponent"/> 的渲染中调用（要登记规则）。
-    /// 跟随系统时生成两段：默认用亮色主题，<c>prefers-color-scheme: dark</c> 时用暗色主题。
+    /// 跟随系统时生成两段：默认用亮色主题，<c>prefers-color-scheme: dark</c> 时用暗色主题；
+    /// 写了 <paramref name="contrast"/> 时系统要求增强对比度（<c>prefers-contrast: more</c>）改用它的亮、暗两套。
     /// 写了 <paramref name="choices"/> 时每套再生成一段 <c>:root[data-theme="名字"] .类</c>（按名字区分，名字要唯一）：
     /// 根元素上写了哪套就用哪套，没写时同上。
     /// </summary>
-    public static string ClassFor(Theme light, Theme? dark = null, ColorScheme scheme = ColorScheme.System, IReadOnlyList<Theme>? choices = null)
+    public static string ClassFor(Theme light, Theme? dark = null, ColorScheme scheme = ColorScheme.System, IReadOnlyList<Theme>? choices = null, (Theme Light, Theme Dark)? contrast = null)
     {
-        var key = (light, dark, scheme, choices is null ? "" : string.Join(',', choices.Select(t => t.Name)));
-        var style = compiled.GetOrAdd(key, static (key, choices) => Compile(key.Light, key.Dark, key.Scheme, choices), choices);
+        var key = (light, dark, scheme, choices is null ? "" : string.Join(',', choices.Select(t => t.Name)), contrast);
+        var style = compiled.GetOrAdd(key, static (key, choices) => Compile(key.Light, key.Dark, key.Scheme, choices, key.Contrast), choices);
         StyleRegistry.Register(style);
         return style.ClassName;
     }
 
-    static CompiledStyle Compile(Theme light, Theme? dark, ColorScheme scheme, IReadOnlyList<Theme>? choices)
+    static CompiledStyle Compile(Theme light, Theme? dark, ColorScheme scheme, IReadOnlyList<Theme>? choices, (Theme Light, Theme Dark)? contrast)
     {
         var (main, alternative) = (scheme, dark) switch
         {
@@ -163,6 +164,9 @@ public static class ThemeStyles
         const string placeholder = ".{0}";
         var css = Rules(placeholder, main);
         if (alternative is not null) css += "@media (prefers-color-scheme: dark){" + Rules(placeholder, alternative) + "}";
+        if (scheme == ColorScheme.System && contrast is { } pair)
+            css += "@media (prefers-contrast: more){" + Rules(placeholder, pair.Light) + "}" +
+                "@media (prefers-contrast: more) and (prefers-color-scheme: dark){" + Rules(placeholder, pair.Dark) + "}";
         // 选中的主题写在根元素上，选择器更具体，盖过上面两段
         foreach (var choice in choices ?? [])
             css += Rules($":root[{ChoiceAttribute}=\"{choice.Name}\"] {placeholder}", choice);

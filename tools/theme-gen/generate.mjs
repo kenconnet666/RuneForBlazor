@@ -6,7 +6,8 @@
 //   --check   只比较不写入；生成文件与现有内容不一致时以非零状态退出（CI 用）
 //
 // 数据：packages/ui/src/config/theme/
-//   tokens.ts   各组 token 的默认值（css.defineVars）：主题之外的组（字号、间距、尺寸、动效……）取这里，作为 Base；
+//   tokens.ts   各组 token 的默认值（css.defineVars），作为 Base：主题之外的组（字号、间距、尺寸、动效……）只取这里，
+//               主题里没写的 token 也取这里（同 vue 的 defineVars 默认值写在 :root 上，主题只覆盖写了的）；
 //               值写成 { default, '@media …': … } 的（动效时长在减少动态效果时为 0）生成条件块
 //   *.ts        每套主题：createTheme(颜色 | 阴影 | 字体 | 圆角, { … }) 与 { name, colorScheme, styles: [四组] }
 // 对象字面量按 JS 求值（只含字符串，没有别的依赖）；每个 vue 的 token 都要能对上 C# 的 token（TOKEN_MAP），对不上就报错，
@@ -38,9 +39,6 @@ const RUNE_ONLY = [
   ['ZIndices.Toast', '1200'],
   ['ZIndices.Tooltip', '1300'],
 ];
-
-/** 主题里会换的组（每套主题写全）；其余的组只取 tokens.ts 的默认值 */
-const THEMED_GROUPS = new Set(['colors', 'shadows', 'fonts', 'radii']);
 
 /** 减少动态效果的媒体查询 → C# 的条件 */
 const CONDITIONS = { '@media (prefers-reduced-motion: reduce)': 'Media.ReducedMotion' };
@@ -130,11 +128,10 @@ function assignment(group, key, value, indent) {
   return `${indent}[${token}] = ${csharpString(value)},`;
 }
 
-// Base：主题之外的组
+// Base：各组的默认值
 const baseLines = [];
 const conditional = new Map();
 for (const [group, tokens] of defaults) {
-  if (THEMED_GROUPS.has(group)) continue;
   for (const [key, value] of Object.entries(tokens)) {
     if (typeof value === 'object') {
       baseLines.push(assignment(group, key, value.default, '        '));
@@ -198,7 +195,7 @@ const output = [
   '/// </summary>',
   'public static partial class Themes',
   '{',
-  '    /// <summary>所有内置主题共用的部分：主题之外的组（字号、间距、尺寸、动效……），取 vue-tsx-pro tokens.ts 的默认值。</summary>',
+  '    /// <summary>所有内置主题共用的部分：各组 token 取 vue-tsx-pro tokens.ts 的默认值，主题只覆盖自己写了的。</summary>',
   '    public static Theme Base => Css.Define(static () => new Theme("base")',
   '    {',
   ...baseLines,

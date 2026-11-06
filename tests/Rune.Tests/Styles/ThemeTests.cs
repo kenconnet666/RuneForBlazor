@@ -68,6 +68,30 @@ public class ThemeTests : IDisposable
     }
 
     [Fact]
+    public void 跟随系统时系统要求增强对比度改用高对比的两套_写在明暗两段之后()
+    {
+        var light = new Theme("light") { [ink] = "black" };
+        var dark = new Theme("dark", basedOn: light) { IsDark = true, [ink] = "white" };
+        var contrastLight = new Theme("contrast-light", basedOn: light) { [ink] = "#000" };
+        var contrastDark = new Theme("contrast-dark", basedOn: dark) { IsDark = true, [ink] = "#fff" };
+
+        var className = ThemeStyles.ClassFor(light, dark, ColorScheme.System, contrast: (contrastLight, contrastDark));
+
+        var rule = Assert.Single(registry.Rules);
+        var contrastLightRule = $"@media (prefers-contrast: more){{.{className}{{--test-ink:#000;color-scheme:light;}}}}";
+        var contrastDarkRule = $"@media (prefers-contrast: more) and (prefers-color-scheme: dark){{.{className}{{--test-ink:#fff;color-scheme:dark;}}}}";
+        Assert.Contains(contrastLightRule, rule);
+        Assert.Contains(contrastDarkRule, rule);
+        // 同一具体度，后写的胜：亮暗 → 高对比亮 → 高对比暗
+        Assert.True(rule.IndexOf("@media (prefers-color-scheme: dark)", StringComparison.Ordinal) < rule.IndexOf(contrastLightRule, StringComparison.Ordinal));
+        Assert.True(rule.IndexOf(contrastLightRule, StringComparison.Ordinal) < rule.IndexOf(contrastDarkRule, StringComparison.Ordinal));
+        Assert.NotEqual(className, ThemeStyles.ClassFor(light, dark));
+        // 固定亮暗时不跟随系统的对比度
+        ThemeStyles.ClassFor(light, dark, ColorScheme.Light, contrast: (contrastLight, contrastDark));
+        Assert.DoesNotContain(registry.Rules, r => r != rule && r.Contains("prefers-contrast"));
+    }
+
+    [Fact]
     public void 固定暗色时只写暗色主题()
     {
         var light = new Theme("light") { [ink] = "black" };

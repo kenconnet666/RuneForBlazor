@@ -145,8 +145,8 @@ public static class UploadStyles
         FlexDirection = FlexDirection.Column,
         Gap = Space.Xs,
         Padding = Space.Xs,
-        BackgroundColor = "rgb(0 0 0 / 0.55)",
-        Color = "#fff",
+        BackgroundColor = Colors.Scrim,
+        Color = Colors.OnScrim,
         FontSize = FontSizes.Xs,
     });
 

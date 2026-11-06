@@ -70,6 +70,15 @@ public static class Colors
     /// <summary>模态的遮罩。</summary>
     public static readonly CssColor Overlay = "var(--rune-colors-overlay)";
 
+    /// <summary>图片、视频上的深色遮罩（上传的进度与文件名），上面放 <see cref="OnScrim"/> 的文字；盖在任意图片上，默认不随主题变。</summary>
+    public static readonly CssColor Scrim = "var(--rune-colors-scrim)";
+
+    /// <summary>看图时铺满的深色背景（Lightbox）。</summary>
+    public static readonly CssColor ScrimStrong = "var(--rune-colors-scrim-strong)";
+
+    /// <summary>遮罩上的文字与图标。</summary>
+    public static readonly CssColor OnScrim = "var(--rune-colors-on-scrim)";
+
     /// <summary>选中文字的背景。</summary>
     public static readonly CssColor Selection = "var(--rune-colors-selection)";
 
