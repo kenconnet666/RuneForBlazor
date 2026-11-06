@@ -420,3 +420,10 @@ export function onQueryChanged(list) {
     if (results) speak(results);
   }, RESULT_ANNOUNCE_DELAY));
 }
+
+/** 双击一个选项（data-rune-option-dblclick 的列表，穿梭框双击直接移过去）：发出 rune-command（move，带选项的序号）。 */
+export function doubleClickOption(event) {
+  const option = event.target instanceof Element ? event.target.closest('[role="option"]:not([aria-disabled="true"])') : null;
+  const list = option?.closest('[role="listbox"][data-rune-option-dblclick]');
+  if (list) sendCommand(list, 'move', String(indexOfOption(option)));
+}

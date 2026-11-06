@@ -1,0 +1,26 @@
+@* 项目成员：从全部成员里挑人加入项目，可搜索，离职的人不能选；双击一项直接移过去 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="项目成员" Description="勾上之后点中间的箭头，或双击一项">
+        <Transfer Items="members" ToOption="ToOption" @bind-Value="joined" Titles="@(("全部成员", "项目成员"))" Searchable="true" />
+    </Field>
+    <Small Tone="TextTone.Muted">已加入 @(joined?.Count ?? 0) 人：@string.Join("、", (joined ?? []).Select(id => members.First(m => m.Id == id).Name))</Small>
+</Flex>
+
+@code {
+    sealed record Member(string Id, string Name, string Team, bool Left);
+
+    static readonly (string Name, string Team)[] names =
+    [
+        ("周一航", "设计"), ("许悠", "设计"), ("林小满", "前端"), ("赵浩然", "前端"), ("陈默", "后端"), ("韩笑", "后端"), ("宋知遥", "测试"),
+        ("顾北辰", "运维"), ("沈清禾", "产品"), ("陆星河", "前端"), ("唐语桐", "后端"), ("温子期", "测试"), ("苏念", "产品"), ("江屿", "设计"),
+    ];
+
+    static readonly Member[] members = [.. names.Select((n, index) => new Member($"u{index + 1}", n.Name, n.Team, index is 6 or 11))];
+
+    static ListboxOption ToOption(Member member) =>
+        new(member.Id, member.Name, Disabled: member.Left, Description: member.Left ? $"{member.Team} · 已离职" : member.Team);
+
+    IReadOnlyList<string>? joined = ["u3", "u5"];
+}

@@ -30,6 +30,7 @@
 //                            子菜单项（aria-haspopup="menu"）点击、→ 打开并聚焦第一项，指针停留打开、斜着移向子菜单不误关（安全三角），子菜单里 ← 关闭
 //   data-rune-cascader       级联选择的弹层：每一列是 data-rune-list 的列表；→ 进入下一级（发 rune-command enter，下一列渲染出来后聚焦）、
 //                            ← 回到上一级，有下一级的项上 Enter 先点再进入，高亮移动后发 highlight（C# 换下一列）；触发按钮上 ↓ 打开
+//   data-rune-option-dblclick 列表：双击选项时发出 rune-command（move，带序号），穿梭框据此直接移过去
 //   data-rune-context-menu   右键菜单的区域：右键、Shift+F10、菜单键时从指针位置（键盘时从焦点元素的左下角）弹出里面的菜单，关闭后焦点回到原处
 //   data-rune-list="space typeahead"
 //                            列表的键盘宿主：role="listbox" 本身，或 aria-controls 指向列表的触发按钮、输入框。焦点留在宿主上，
@@ -121,7 +122,7 @@ import { clickCascader, keyCascader, onCascaderFocusIn } from './js/cascader.js'
 import { releasePointer, trackPointer } from './js/pointer.js';
 import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, onToasterFocusOut } from './js/toast.js';
 import { watchGrid, watchSize } from './js/layout.js';
-import { activeIndex, closeAfterPick, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
+import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
 import { watchIndicator } from './js/indicator.js';
 import { scheduleOverflow, watchOverflow } from './js/overflow.js';
 import { moveRoving, noteRovingFocus, watchRoving } from './js/roving.js';
@@ -232,6 +233,7 @@ function install(blazor) {
   document.addEventListener('pointerdown', grabTab);
   document.addEventListener('pointerdown', grabToast);
   document.addEventListener('dblclick', resetResizeHandle);
+  document.addEventListener('dblclick', doubleClickOption);
   document.addEventListener('auxclick', auxClickTabs);
   document.addEventListener('pointerdown', onHoverPointerDown);
   document.addEventListener('pointermove', highlightUnderPointer);

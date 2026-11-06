@@ -1,0 +1,21 @@
+@page "/components/transfer"
+@attribute [DocMeta("Transfer 穿梭框", "左边可选、右边已选，勾上之后移过去：分配权限、指派成员、挑选导出的列。", DocCategory.Input, Order = 16)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.Transfer.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="members" Title="项目成员" Demo="typeof(MembersExample)">
+        每一边是一个可多选的 <TextLink Href="components/listbox">Listbox</TextLink>（虚拟滚动，上千项也不卡）：上方是全选框、标题与“勾上 / 总数”，
+        <Code>Searchable</Code> 时带搜索框，全选只管搜索后留下的项。<Code>@@bind-Value</Code> 是右边的值，按移过去的先后排列；选项的
+        <Code>Disabled</Code> 勾不上也就移不动。移动后读屏播报移了几项。窄屏时两边上下排，按钮换成上下箭头。
+    </Example>
+    <KeyboardReference Keys="@([
+        ("Tab", "在全选框、搜索框、列表、按钮之间移动"),
+        ("↑ / ↓ / Home / End", "列表里移动高亮（同 Listbox）"),
+        ("Space", "勾上或取消高亮的项"),
+        ("Enter", "点中间的按钮：把勾上的项移到另一边"),
+    ])">
+        整个穿梭框是一组（role="group"，名称是 Field 的标签），两边的列表各以自己的标题为名，按钮的名称是“移到某一边”。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(Transfer<>)]" />
+</DocPage>
