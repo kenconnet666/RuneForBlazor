@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    @* 项多、放不下时横向滚动；拖到边缘会自动滚动 *@
+    <ScrollArea Axis="ScrollAxis.X">
+        <Sortable @bind-Items="columns" Orientation="Orientation.Horizontal" KeyOf="c => c.Key" LabelOf="c => c.Label" aria-label="表格列的顺序">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                <Icon Data="context.Icon" />
+                <TextSpan>@context.Label</TextSpan>
+            </Flex>
+        </Sortable>
+    </ScrollArea>
+    <Small Tone="TextTone.Muted">表头：@string.Join(" | ", columns.Select(c => c.Label))</Small>
+</Flex>
+
+@code {
+    IReadOnlyList<Column> columns =
+    [
+        new("id", "编号", Lucide.Hash),
+        new("name", "姓名", Lucide.User),
+        new("phone", "电话", Lucide.Phone),
+        new("email", "邮箱", Lucide.Mail),
+        new("joined", "入职日期", Lucide.CalendarDays),
+    ];
+
+    sealed record Column(string Key, string Label, IconData Icon);
+}

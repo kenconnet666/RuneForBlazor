@@ -1,0 +1,30 @@
+@page "/components/sortable"
+@attribute [DocMeta("Sortable 拖动排序", "拖动把手或用键盘改变顺序，@bind-Items 写回新的顺序：竖排、横排，拖到边缘自动滚动，让位有动画，读屏播报位置。", DocCategory.Display, Order = 10)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Sortable.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="tasks" Title="待办排序" Demo="typeof(TasksExample)">
+                <Code>@@bind-Items</Code> 双向绑定，拖完直接得到新顺序。拖动时其余项在浏览器里让位，松开才把新顺序交给 C#（Server 模式下没有逐帧的往返）。
+                键盘：Tab 到把手，<Kbd>Space</Kbd> 拿起，<Kbd>↑</Kbd> <Kbd>↓</Kbd> 移动，<Kbd>Space</Kbd> 放下，<Kbd>Esc</Kbd> 取消；
+                读屏用 <Code>LabelOf</Code> 的文字播报“移到第几位”。<Code>Disabled</Code> 时把手不可用，列表照常显示。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="columns" Title="横排：调整列顺序" Demo="typeof(ColumnsExample)">
+                <Code>Orientation="Orientation.Horizontal"</Code> 横排，键盘用 <Kbd>←</Kbd> <Kbd>→</Kbd>。项多时在外面包 ScrollArea，拖到边缘会自动滚动。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("Space / Enter", "在把手上：拿起这一项；拿起后再按：放下"),
+        ("↓ / ↑", "拿起后：移动一位（横排时用 → / ←，跟随从右到左排版）"),
+        ("Home / End", "拿起后：移到最前 / 最后"),
+        ("Esc", "取消，回到原来的位置"),
+    ])">
+        拿起、移动、放下、取消都会播报给读屏（WCAG 2.5.7 的拖动替代操作）。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(Sortable<>)]" />
+</DocPage>

@@ -254,4 +254,29 @@ public class StatTests : BunitContext
         Assert.False(cut.Find("[data-rune-splitter]").HasAttribute("data-collapsed"));
         Assert.Equal("55", cut.Find("[role=separator]").GetAttribute("aria-valuenow"));
     }
+
+    [Fact]
+    public void 拖动排序_JS交来的新顺序写回_对不上时不动_把手的名称与说明()
+    {
+        IReadOnlyList<string> items = ["a", "b", "c"];
+        var cut = Render<Sortable<string>>(p => p
+            .Add(x => x.Items, items)
+            .Add(x => x.ItemsChanged, (IReadOnlyList<string> v) => items = v)
+            .Add(x => x.KeyOf, s => s)
+            .Add(x => x.LabelOf, s => s.ToUpperInvariant())
+            .Add(x => x.ChildContent, item => b => b.AddContent(0, item)));
+
+        var list = cut.Find("[data-rune-sortable]");
+        Assert.Equal("vertical", list.GetAttribute("data-rune-sortable"));
+        Assert.Contains("\"moved\":\"{label} 移到第 900001 位，共 900002 项\"", list.GetAttribute("data-texts"));
+        var handle = cut.Find("[data-rune-sortable-handle]");
+        Assert.Equal("移动 A", handle.GetAttribute("aria-label"));
+        Assert.Equal("false", handle.GetAttribute("aria-pressed"));
+        Assert.Equal(cut.Find("[id^=sortable]").Id, handle.GetAttribute("aria-describedby"));
+
+        list.TriggerEvent("onrunereorder", new ReorderEventArgs { Values = ["c", "a", "b"] });
+        Assert.Equal(["c", "a", "b"], items);
+        list.TriggerEvent("onrunereorder", new ReorderEventArgs { Values = ["c", "x", "b"] });
+        Assert.Equal(["c", "a", "b"], items);
+    }
 }

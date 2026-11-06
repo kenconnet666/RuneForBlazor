@@ -1,0 +1,87 @@
+@*
+    可拖动排序的列表（ul，同 vue-tsx-pro 的 Sortable）：每项前有一个把手，拖动或用键盘改变顺序，@bind-Items 写回新的顺序。
+    <Sortable @bind-Items="tasks" KeyOf="t => t.Id" LabelOf="t => t.Title" aria-label="待办">
+        <TextSpan>@context.Title</TextSpan>
+    </Sortable>
+    拖动、键盘、读屏播报、自动滚动都在 JS 里（data-rune-sortable）：拖动时其余项用位移让位，松开才把新顺序交给 C#（没有逐帧的往返）；
+    键盘每挪一步交一次，焦点留在把手上。列表自己不滚动：项多时在外面包 ScrollArea，拖到边缘时自动滚动会找到它的视口。
+    把手是按钮：名称“移动 项名”，操作说明经 aria-describedby 关联，拿起时 aria-pressed。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits UIComponent
+
+<FlexList Direction="@(horizontal ? LayoutDirection.Row : LayoutDirection.Column)" Gap="SpaceScale.Xs"
+          data-rune-sortable="@(horizontal ? "horizontal" : "vertical")" data-texts="@Texts" data-disabled="@(Disabled ? "" : null)"
+          @onrunereorder="OnReorderAsync" @attributes="Attrs.MergeProps(SortableStyles.List, Rest)">
+    @foreach (var item in items.Value)
+    {
+        var key = KeyOf(item);
+        var label = LabelOf?.Invoke(item) ?? key;
+        <li @key="key" data-rune-sortable-item="@key" data-label="@label" @attributes="Attrs.Merge(horizontal ? SortableStyles.ItemHorizontal : SortableStyles.Item, PropsItem)">
+            @* 拖动的把手不出波纹 *@
+            <ButtonBase Ripple="false" Disabled="Disabled" data-rune-sortable-handle aria-label="@Config.Lang.SortableHandle(label)"
+                        aria-describedby="@instructionsId" aria-pressed="false" @attributes="Attrs.MergeProps(SortableStyles.Handle, PropsHandle)">
+                <Icon Data="BuiltInIcons.GripVertical" />
+            </ButtonBase>
+            <div @attributes="Attrs.Merge(SortableStyles.Content, PropsContent)">@ChildContent?.Invoke(item)</div>
+        </li>
+    }
+</FlexList>
+<VisuallyHidden id="@instructionsId">@Config.Lang.SortableInstructions</VisuallyHidden>
+
+@code {
+    readonly string instructionsId = UniqueId.Next("sortable");
+    Memo<Lang, string> texts;
+
+    Bindable<IReadOnlyList<TItem>> items { get => field ??= new(this, () => Items, () => ItemsChanged); }
+
+    /// <summary>各项（可绑定：顺序变了写回新的列表）。</summary>
+    [Parameter] public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    /// <summary>顺序变了（拖动松开、键盘每挪一步）。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<TItem>> ItemsChanged { get; set; }
+
+    /// <summary>项的 key，同一列表里唯一。</summary>
+    [Parameter, EditorRequired] public Func<TItem, string> KeyOf { get; set; } = default!;
+
+    /// <summary>项的名称：把手的名称与读屏播报用它；默认是 key。</summary>
+    [Parameter] public Func<TItem, string>? LabelOf { get; set; }
+
+    /// <summary>排列方向，默认竖排。</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
+
+    /// <summary>不可用：不能拖动。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>每项的内容。</summary>
+    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+
+    /// <summary>每一项（li）的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    /// <summary>把手（交给 ButtonBase）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHandle { get; set; }
+
+    /// <summary>内容的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    bool horizontal => Orientation == Orientation.Horizontal;
+
+    // 读屏念的句子交给 JS：名称是 {label}，位置与总数是 900001、900002（JS 换成实际的数）
+    string Texts => texts.Get(Config.Lang, static lang => System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string>
+    {
+        ["grabbed"] = lang.SortableGrabbed("{label}", 900001, 900002),
+        ["moved"] = lang.SortableMoved("{label}", 900001, 900002),
+        ["dropped"] = lang.SortableDropped("{label}", 900001, 900002),
+        ["cancelled"] = lang.SortableCancelled("{label}", 900001),
+    }, SortableJson.Relaxed.DictionaryStringString));
+
+    // JS 交来新的顺序（各项的 key）：按它重排；对不上（列表在这期间变了）时不动
+    Task OnReorderAsync(ReorderEventArgs e)
+    {
+        var byKey = items.Value.ToDictionary(KeyOf);
+        if (e.Values.Length != byKey.Count || !e.Values.All(byKey.ContainsKey)) return Task.CompletedTask;
+        return items.SetAsync([.. e.Values.Select(key => byKey[key])]);
+    }
+}

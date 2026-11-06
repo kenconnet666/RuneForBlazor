@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Switch @bind-Value="locked">锁定顺序</Switch>
+    <Sortable @bind-Items="tasks" KeyOf="t => t.Id" LabelOf="t => t.Title" Disabled="locked" aria-label="今日待办">
+        <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+            <TextSpan>@context.Title</TextSpan>
+            <Badge Tone="context.Tone" Variant="StatusVariant.Soft">@context.Priority</Badge>
+        </Flex>
+    </Sortable>
+    <Small Tone="TextTone.Muted" data-testid="order">顺序：@string.Join(" → ", tasks.Select(t => t.Id))</Small>
+</Flex>
+
+@code {
+    IReadOnlyList<TaskItem> tasks =
+    [
+        new("review", "评审首页改版设计稿", Tone.Danger, "紧急"),
+        new("invoice", "处理 9 月发票报销", Tone.Warning, "重要"),
+        new("interview", "面试前端候选人", Tone.Warning, "重要"),
+        new("docs", "补充接口文档", Tone.Info, "一般"),
+        new("weekly", "写周报", Tone.Info, "一般"),
+    ];
+
+    bool locked;
+
+    sealed record TaskItem(string Id, string Title, Tone Tone, string Priority);
+}

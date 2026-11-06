@@ -160,7 +160,8 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 - [x] Ellipsis（截断由 JS 量，提示、可聚焦、展开按钮都按 data-truncated）、ProportionBar、Checklist、Marquee（时长由 JS 按长度算）、Watermark（canvas 在 JS 里画）；
   新增分析器 RUNE009（静态初始化里不能调 Attrs.Merge：静态 SSR 会丢样式）
 - [x] Sparkline、Gauge：C# 直接输出的小 SVG（静态 SSR 也一样），阶段 6 的图表底座做好后再看要不要改用。FieldCompare 建在表格的列定义（类型推断、按列格式化、ColumnTable）上，移到阶段 4
-- [ ] Sortable：拖动排序的通用能力（单容器与多容器、落点插入线、键盘），Tree、Upload、Tabs、KanbanBoard 共用
+- [x] Sortable（单列）：拖动时其余项用 transform 让位、松开才发 rune-reorder（Blazor 管元素，JS 不挪节点），顺序跟上后去掉位移；
+  键盘拿起、挪动、取消，每步播报；拖到边缘自动滚动。多容器（分组、落点插入线、影子）随阶段 7 的 KanbanBoard 补；Upload 图片墙的排序用它
 - [ ] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动），紧接着 TreeSelect、TreeTransfer（Transfer 的树形）
 - [ ] Image 与 Lightbox（缩放、旋转、拖动），接着补 Upload 的图片墙（`ListType`：方形缩略图、点开预览、Ctrl + V 粘贴图片）
 - [ ] VirtualList 补齐：随页面滚动、横向、骨架行、跳到第几项、可见范围变化的回调

@@ -80,6 +80,8 @@ const BUILT_IN = [
   'circle-dashed',
   'ban',
   'circle-minus',
+  // Sortable 的把手
+  'grip-vertical',
   // Result 的常见状态：403、404、500
   'shield-x',
   'file-question-mark',

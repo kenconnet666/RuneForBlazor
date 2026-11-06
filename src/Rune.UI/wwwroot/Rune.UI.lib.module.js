@@ -69,6 +69,9 @@
 //   data-rune-avatar-image   头像的图片：加载完写 data-state="loaded"（显示出来），失败写 "error"（藏起来，露出后备内容）；插入时已经加载完的照样标
 //   data-rune-resize         宽度调整手柄（role="separator"）：拖动、方向键、双击回到 data-default，当场改父元素的宽（横向手柄是高），
 //                            结束时发出冒泡的 rune-resize（size）；没给宽度时按父元素量出 aria-valuenow
+//   data-rune-sortable="vertical|horizontal" 可拖动排序的列表（Sortable）：项（data-rune-sortable-item="key"）的把手（data-rune-sortable-handle）上拖动，
+//                            其余项用 transform 让位，松开发 rune-reorder（新的顺序），顺序跟上后去掉位移；空格拿起、方向键挪、Esc 取消，每一步发 rune-reorder；
+//                            data-texts 是读屏念的句子
 //   data-rune-splitter-handle 分栏（Splitter）的分隔条：拖动、方向键（5%）、Home / End、双击回到 data-default，当场改外层（data-rune-splitter）的
 //                            --rune-split-start / -end，结束时发 rune-resize（起始一栏的百分比）；外层有 data-collapsible 时 Enter 发 rune-command（toggle）
 //   data-rune-overflow       一行标签（Select 的 MaxTagCount 按宽度）：量出放得下几个 data-rune-overflow-item，其余写 data-overflow-hidden
@@ -136,7 +139,7 @@
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框）、menus（菜单的键盘、子菜单、右键菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄、分栏的分隔条）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
-// leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、tween（会滚动的数字）、affix（固钉与回到顶部）、watermark（水印）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格、尺寸观察、占满到窗口底边、截断的文字、跑马灯的时长）、shared（共用的小工具）。
+// leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、tween（会滚动的数字）、affix（固钉与回到顶部）、watermark（水印）、sortable（拖动排序）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格、尺寸观察、占满到窗口底边、截断的文字、跑马灯的时长）、shared（共用的小工具）。
 
 import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawCheckOnChange, drawIcon, startDismiss, startRipple } from './js/effects.js';
@@ -150,6 +153,7 @@ import { watchEllipsis, watchGrid, watchMarquee, watchSize, watchViewportFill } 
 import { onTweenValueChanged, watchTween } from './js/tween.js';
 import { clickBackTop, watchAffix, watchBackTop } from './js/affix.js';
 import { drawWatermark } from './js/watermark.js';
+import { blurSortable, grabSortable, keySortable } from './js/sortable.js';
 import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
 import { watchIndicator } from './js/indicator.js';
 import { scheduleOverflow, watchOverflow } from './js/overflow.js';
@@ -247,6 +251,7 @@ function install(blazor) {
   document.addEventListener('pointerdown', grabSlider);
   document.addEventListener('pointerdown', grabResizeHandle);
   document.addEventListener('pointerdown', grabSplitter);
+  document.addEventListener('pointerdown', grabSortable);
   document.addEventListener('pointerdown', grabTab);
   document.addEventListener('pointerdown', grabToast);
   document.addEventListener('dragenter', onFileDragEnter);
@@ -470,7 +475,7 @@ function onKeyDown(event) {
   exitFullscreenOnEscape(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
-  if (keyCascader(event) || keyMentions(event)) return;
+  if (keyCascader(event) || keyMentions(event) || keySortable(event)) return;
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
   if (menu) moveInMenu(menu, event);
   else openMenuFromTrigger(event);
@@ -499,6 +504,7 @@ function onFocusIn(event) {
 }
 
 function onFocusOut(event) {
+  blurSortable(event);
   onOtpFocus(event);
   onMentionsFocusOut(event);
   onHoverFocusOut(event);
