@@ -66,21 +66,16 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 - Transfer（双击移动：data-rune-option-dblclick）。
 - Mentions + MentionText + MentionSegments（`js/mentions.js`、`js/caret.js`，弹层贴着 @ 的位置）。
 
-## 最后一次提交（交接时推送）
+## 最近的进度
 
-- Mentions 修正：转发 Textarea 的参数（Rows、MaxRows……，之前未声明的 Rows 以字符串传给 Textarea 导致 500）；文本框是列表宿主（data-rune-list="text"）以便高亮，通用列表键盘排除提及框。已在 server/wasm 两种模式下对照 vue 验证：弹出、过滤、Enter 选中、Mentioned 更新、Esc 后不再弹出都一致。
-- E2E 打开页面放宽到 60 秒、等 DOMContentLoaded（CI 上偶发 30 秒加载超时，本地全过）。
-- **还没做**：Mentions 的单元测试与 E2E；ROADMAP 里 Mentions 的“已做”标注（下一步顺手补）。
-
-## CI 现状
-
-- 最近几次失败都是 E2E 打开页面超时（menu、popconfirm）或 runner 被关停，本地复现全过；这次放宽了时限，推送后看结果。
-- 单元测试、构建、对照检查都是绿的。
+- R.1 完成（CI 恢复全绿：测试类继承 `E2ETest`，结束时关掉自己开的浏览器上下文）；R.2、R.3 大部分完成，剩下的见 ROADMAP。
+- 阶段 1 完成：List / OrderedList / ListItem、ClientOnly、Can（AuthorizeView）、ButtonBase、Banner、Result、Empty 页、Switch 补齐、FileDrop、Upload（列表模式）。
+- 单元测试 456 个全过；端到端在 CI 上跑。
 
 ## 下一步（按路线图）
 
-1. R 整理与纠正：R.1 先让 CI 恢复全绿（端到端任务的 runner 关停、页面超时）并补 Mentions 测试，再做 R.2–R.4。
-2. 然后阶段 1 → 9（见 ROADMAP；已有页面等其他组件的示例缺口记在提供那个组件的阶段里）。
+1. R.4 代码走查（单独提交）；R.2 剩下的差异随提供那个组件的阶段补。
+2. 阶段 2：布局与展示（AsideLayout、Stat、Sortable、Tree、Image / Lightbox 与 Upload 的图片墙、VirtualList 补齐……），然后阶段 3 → 9。
 
 ## 移植时的约定（踩过的坑）
 

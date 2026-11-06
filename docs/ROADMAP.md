@@ -114,14 +114,14 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
   测试类改继承 `E2ETest`，测试结束时关掉自己开的上下文；本地全部用例从约 5 分钟降到 3 分钟以内；任务加了 30 分钟时限。补了 Mentions 的 bUnit 与端到端用例。
 - [~] R.2 清单、文档与代码对齐：
   - [x] CloseButton、CopyButton、IconLinkButton、Mark、Code、Blockquote 已在代码里（有文档页或示例、有测试）；Alert 已同 vue（说明与内容分开、经 dismiss 淡出）；
-    Switch 还缺 Loading、CheckedContent / UncheckedContent 与对应的部件属性，进阶段 1；
+    Switch 缺的 Loading、CheckedContent / UncheckedContent 与对应的部件属性在阶段 1 补齐了；
   - [x] 文档站 54 页全部跑了对照（亮色）。修掉的系统性问题：部件名同 vue 保留 camelCase（`headerCell`，之前转成了连字符，多词部件从没配上对）；
     对照工具跳过代码高亮的词元与看不见的元素；Avatar 图片加载后不再显示后备内容；CodeBlock 展开按钮建在按钮重置样式上；分页的页码按钮保留 Button 的标记；
   - [x] 部件标记与 vue 对齐：Tabs 的标签项单独成 Tab 配方（tab/root、tab/close）；分页的页码按钮、标签栏的按钮保留 Button 的标记（`Part.Unmarked`）；
     表尾的行标题保留 table/rowHeader；Card 加了 skeleton 部件。新增 vue 的 `ButtonBase`（无外观的按钮，原来的按钮基类改名 `ButtonCore`），Menu 的示例与 ButtonBase 页照 vue 写；
     Field 不写 Required 时看 `[Required]`（同 vue 的 form.Field 按 schema 标必填）；对照工具不比关键帧名、跳过看不见的元素；
   - [ ] 剩下的差异（menu、tabs 已经 0 差异）：transfer 的 members、progress、card 的 effects、dialog 的进出场（这边用独立的 scale 属性，vue 用 transform，视觉一致）；
-    等别的组件的：form-section / form 的 admission（AsideLayout）、skeleton（Stat）、checkbox 的 switch（Switch 补齐）；
+    等别的组件的：form-section / form 的 admission（AsideLayout）、skeleton（Stat）；checkbox 的 switch 在 Switch 补齐后已对齐；
     内容不同造成的宽度差（code、toast、loading-bar、button-base 的文字）与 rating（每颗星多一层填色，DESIGN 里写过）不处理；
   - [x] HANDOFF 的路径与“下一步”。
 - [~] R.3 Blazor 化的 API 纠正（按“Blazor 化的约定”）：
@@ -144,8 +144,10 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 
 - [x] 基础：List / OrderedList / ListItem、ClientOnly；Can 用 AuthorizeView（不另做组件，有文档页）；另补了 vue 的 ButtonBase
 - [x] 反馈：Banner（关闭同 Tag、Alert 的 `data-rune-dismiss`）、Result（403 / 404 / 500 的图标进了内置图标）；补了 Empty 的文档页（同 vue 的“空状态与结果”）
-- [ ] FileDrop / Upload（拖放、粘贴、进度、列表、图片墙；vue：`input/FileDrop.tsx`、`input/Upload.tsx`）：选文件走 Blazor 的 `InputFile`（`IBrowserFile`），
-  上传由使用方的函数完成并报告进度、支持取消；图片墙的预览等阶段 2 的 Lightbox、排序等 Sortable，做到时补
+- [x] FileDrop / Upload（vue：`input/FileDrop.tsx`、`input/Upload.tsx`）：选文件走 Blazor 的 `InputFile`（`IBrowserFile`），拖放时按 accept 过滤；
+  Upload 的值是 `UploadFile` 列表，上传由使用方的 `UploadAsync` 完成（`IProgress<double>` 报进度、`CancellationToken` 取消），超限与类型不符的列出来不上传，
+  失败可重试、移除即取消，已有文件用 `UploadFile.Existing`；不给上传函数时在 `OnValidSubmit` 里读 `IBrowserFile`（代替 vue 的隐藏 file input）。
+  图片墙（缩略图、预览、粘贴）随阶段 2 的 Lightbox 补，拖动排序随 Sortable 补
 - [x] Switch 补齐：Loading、CheckedContent / UncheckedContent（轨道里的文字）与对应的部件属性（同 vue-tsx-pro 的 Switch）
 
 ## 阶段 2：布局与展示
@@ -155,7 +157,7 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
   Sparkline、Gauge 先做成独立的小 SVG，阶段 6 的底座做好后改用
 - [ ] Sortable：拖动排序的通用能力（单容器与多容器、落点插入线、键盘），Tree、Upload、Tabs、KanbanBoard 共用
 - [ ] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动），紧接着 TreeSelect、TreeTransfer（Transfer 的树形）
-- [ ] Image 与 Lightbox（缩放、旋转、拖动），接着补 Upload 的图片墙预览
+- [ ] Image 与 Lightbox（缩放、旋转、拖动），接着补 Upload 的图片墙（`ListType`：方形缩略图、点开预览、Ctrl + V 粘贴图片）
 - [ ] VirtualList 补齐：随页面滚动、横向、骨架行、跳到第几项、可见范围变化的回调
 - 示例缺口：Skeleton 的 layouts 换用 Stat；Drawer 的 detail 示例换用 Timeline
 
