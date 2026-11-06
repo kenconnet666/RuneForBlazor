@@ -1,0 +1,30 @@
+@* 被退回后重新提交：上次交的文件从后端读回来，用 UploadFile.Existing 放进值里；可以删、可以补，新选的一秒后上传完 *@
+@inherits RuneComponent
+@using Microsoft.AspNetCore.Components.Forms
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="交付证据" Description="被退回后重新提交：上次的文件还在，可以删、可以补">
+        <Upload @bind-Value="evidence" Multiple="true" UploadAsync="UploadAsync" />
+    </Field>
+    <Small Tone="TextTone.Muted">
+        提交的是：@string.Join("、", evidence.Where(f => f.Status == UploadStatus.Done).Select(f => f.Url ?? f.Response))
+    </Small>
+</Flex>
+
+@code {
+    IReadOnlyList<UploadFile> evidence =
+    [
+        UploadFile.Existing("方案评审纪要.pdf", "#review", 482_000),
+        UploadFile.Existing("验证报告.pdf", "#report"),
+    ];
+
+    static async Task<object?> UploadAsync(IBrowserFile file, IProgress<double> progress, CancellationToken cancellation)
+    {
+        for (var fraction = 0.25; fraction <= 1; fraction += 0.25)
+        {
+            await Task.Delay(250, cancellation);
+            progress.Report(fraction);
+        }
+        return $"/files/{Uri.EscapeDataString(file.Name)}";
+    }
+}

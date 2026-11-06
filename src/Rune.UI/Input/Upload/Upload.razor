@@ -1,0 +1,56 @@
+@*
+    上传（div，同 vue-tsx-pro 的 Upload）：FileDrop 选文件，下面列出文件、上传进度、失败重试与移除。只负责界面与状态，怎样上传由 UploadAsync 决定：
+    <Upload @bind-Value="files" Multiple="true" accept="image/*" MaxSize="5_000_000" UploadAsync="SendAsync" />
+    - 值是 UploadFile 的列表（文件、状态、进度、错误、上传函数的返回值）；
+    - 给了 UploadAsync 时选到文件就开始上传，否则停在 Selected（等提交时一起上传）；移除正在上传的文件会取消（CancellationToken）；
+    - 超过 MaxSize、不在 Accept 里的文件也列出来，带错误、不上传；单选（不写 Multiple）时新文件替换旧的；
+    - 已有文件（之前上传过、从后端读回来的）用 UploadFile.Existing 放进值里：状态是完成，给了地址时文件名链到它，可以移除。
+    图片墙、拖动排序、粘贴在阶段 2 的 Lightbox、Sortable 之后补。在 Field 里时里面的 FileDrop 关联标签与错误。
+*@
+@namespace Rune.UI
+@inherits FormControl<IReadOnlyList<UploadFile>>
+@using Microsoft.AspNetCore.Components.Forms
+
+<div @attributes="Attrs.Merge(UploadStyles.Root, RootUserAttrs)">
+    @if (!IsReadOnly)
+    {
+        @* 选好的文件不在 FileDrop 的输入框里（选完就清空）：已有文件时不再原生必填，免得表单交不了 *@
+        <FileDrop Accept="@Accept" Multiple="Multiple" Disabled="IsDisabled" Invalid="IsInvalid" Required="@(IsRequired && Files.Count == 0)"
+                  Description="Description" ValueChanged="AddPicked" OnReject="AddRejected" @attributes="Attrs.MergeProps(null, PropsDrop)" />
+    }
+    @if (Files.Count > 0)
+    {
+        @* 状态变化（失败、完成）由读屏播报 *@
+        <GridList Gap="SpaceScale.Xs" aria-live="polite" @attributes="Attrs.MergeProps(null, PropsList)">
+            @foreach (var item in Files)
+            {
+                var failed = item.Status == UploadStatus.Error;
+                <li @key="item.Id" data-state="@StateOf(item.Status)" @attributes="Attrs.Merge(UploadStyles.Item, PropsItem)">
+                    <Icon Data="@(failed ? BuiltInIcons.CircleExclamationPoint : item.Status == UploadStatus.Done ? BuiltInIcons.CircleCheck : BuiltInIcons.File)"
+                          @attributes="Attrs.MergeProps(UploadStyles.Icon(item.Status), PropsIcon)" />
+                    <div @attributes="Attrs.Merge(UploadStyles.Body, PropsBody)">
+                        <span @attributes="Attrs.Merge(UploadStyles.Name, PropsName)">@if (item.Url is { } url) { <TextLink Href="@url" target="_blank">@item.Name</TextLink> } else { @item.Name }</span>
+                        @if (item.Status == UploadStatus.Uploading)
+                        {
+                            <Progress Size="UI.Size.Xs" Value="@PercentOf(item)" aria-label="@item.Name" @attributes="Attrs.MergeProps(UploadStyles.Progress, PropsProgress)" />
+                        }
+                        else
+                        {
+                            <span @attributes="Attrs.Merge(UploadStyles.Meta(failed), PropsMeta)">@(failed ? item.Error : SizeOf(item))@if (item.Status == UploadStatus.Done) { <VisuallyHidden> @Config.Lang.UploadDone</VisuallyHidden> }</span>
+                        }
+                    </div>
+                    @if (failed && UploadAsync is not null && !item.Rejected && !IsReadOnly)
+                    {
+                        <IconButton Icon="BuiltInIcons.RotateCw" Variant="ButtonVariant.Ghost" Size="UI.Size.Sm" Label="@Config.Lang.UploadRetry(item.Name)"
+                                    @onclick="() => StartAsync(item)" @attributes="Attrs.MergeProps(null, PropsRetry)" />
+                    }
+                    @if (!IsReadOnly)
+                    {
+                        <IconButton Icon="BuiltInIcons.X" Variant="ButtonVariant.Ghost" Size="UI.Size.Sm" Label="@Config.Lang.UploadRemove(item.Name)" Disabled="IsDisabled"
+                                    @onclick="() => RemoveAsync(item.Id)" @attributes="Attrs.MergeProps(null, PropsRemove)" />
+                    }
+                </li>
+            }
+        </GridList>
+    }
+</div>

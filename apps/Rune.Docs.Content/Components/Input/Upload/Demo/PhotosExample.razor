@@ -1,0 +1,31 @@
+@* 商品图片：选好就上传，每张一行显示进度；假的上传有三分之一的概率在中途失败（可以重试），移除正在上传的会经 CancellationToken 取消 *@
+@inherits RuneComponent
+@using Microsoft.AspNetCore.Components.Forms
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="商品图片" Description="最多 6 张，每张不超过 2 MB">
+        <Upload @bind-Value="photos" Multiple="true" Accept="image/*" MaxSize="2_000_000" MaxFiles="6" UploadAsync="FakeUploadAsync" />
+    </Field>
+    <Small Tone="TextTone.Muted">
+        @Count(p => p.Status == UploadStatus.Done) 张已上传 · @Count(p => p.Status == UploadStatus.Error && !p.Rejected) 张失败（可以重试）· @Count(p => p.Rejected) 张不合要求
+    </Small>
+</Flex>
+
+@code {
+    IReadOnlyList<UploadFile> photos = [];
+
+    int Count(Func<UploadFile, bool> match) => photos.Count(match);
+
+    // 假的上传：每 120 ms 进 8%
+    static async Task<object?> FakeUploadAsync(IBrowserFile file, IProgress<double> progress, CancellationToken cancellation)
+    {
+        var fails = Random.Shared.NextDouble() < 0.33;
+        for (var fraction = 0.08; ; fraction += 0.08)
+        {
+            await Task.Delay(120, cancellation);
+            progress.Report(Math.Min(fraction, 1));
+            if (fails && fraction > 0.6) throw new IOException("网络中断");
+            if (fraction >= 1) return $"https://cdn.example.com/{Uri.EscapeDataString(file.Name)}";
+        }
+    }
+}

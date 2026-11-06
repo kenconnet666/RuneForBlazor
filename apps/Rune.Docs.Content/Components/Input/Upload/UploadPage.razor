@@ -1,0 +1,37 @@
+@page "/components/upload"
+@attribute [DocMeta("Upload 上传", "选文件、看进度、失败重试：Upload 管列表与状态，怎么上传由 UploadAsync 决定；FileDrop 是只负责选文件的拖放区域。", DocCategory.Input, Order = 13)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.Upload.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="photos" Title="选好就上传" Demo="typeof(PhotosExample)">
+                给了 <Code>UploadAsync</Code> 时选到文件就开始上传：它拿到文件（<Code>IBrowserFile</Code>，用 <Code>OpenReadStream</Code> 读）、
+                报告进度的 <Code>IProgress&lt;double&gt;</Code> 和取消用的 <Code>CancellationToken</Code>，返回值记在 <Code>Response</Code> 上，抛异常算失败。
+                失败的可以重试，移除正在上传的会取消。超过 <Code>MaxSize</Code>、不在 <Code>Accept</Code> 里的也列出来，带错误、不上传；
+                到了 <Code>MaxFiles</Code> 再选的不加进来。进度按整数百分比变化才更新，Server 模式下不会每个包都推一次。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="form" Title="随表单提交" Demo="typeof(ResumeExample)">
+                不给 <Code>UploadAsync</Code> 时文件停在“已选择”，值里带着 <Code>IBrowserFile</Code>，在 <Code>OnValidSubmit</Code> 里和别的字段一起处理；
+                校验照常写在模型上。单选（不写 <Code>Multiple</Code>）时新文件替换旧的。
+            </Example>
+            <Example Id="existing" Title="已有文件" Demo="typeof(ExistingExample)">
+                之前上传过、从后端读回来的文件用 <Code>UploadFile.Existing</Code> 放进值里：状态是完成、不重新上传，给了地址时文件名链到它；
+                可以移除，新选的照常上传。
+            </Example>
+            <Example Id="file-drop" Title="FileDrop" Demo="typeof(ImportExample)">
+                只负责选文件：点击、聚焦后按 Enter / 空格、或把文件拖进来。选到的经 <Code>ValueChanged</Code> 交出去；
+                拖放不受 accept 限制，不合格的经 <Code>OnReject</Code> 交出去。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("Enter / Space", "在选择区域上：打开系统的文件对话框（原生 input[type=file]）"),
+        ("Tab", "每个文件的“重新上传”“移除”按钮都在 Tab 顺序里"),
+        ("Enter / Space", "在“重新上传”“移除”上：重新上传 / 移除这个文件（上传中的会取消）"),
+    ])" />
+    <ApiReference Types="[typeof(Upload), typeof(FileDrop), typeof(UploadFile)]" />
+</DocPage>

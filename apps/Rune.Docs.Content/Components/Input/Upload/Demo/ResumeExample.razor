@@ -1,0 +1,50 @@
+@* 投递简历：不给上传函数，文件停在“已选择”；提交时和别的字段一起处理（这里读出每个文件的字节数，真实场景是发给后端） *@
+@inherits RuneComponent
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="model" OnValidSubmit="SubmitAsync">
+    <Field Label="姓名">
+        <TextField @bind-Value="model.Name" />
+    </Field>
+    <Field Label="简历" Required="true" Description="PDF 或 Word，不超过 10 MB；提交时一起上传">
+        <Upload @bind-Value="model.Resume" Accept=".pdf,.doc,.docx" MaxSize="MaxSize" />
+    </Field>
+    <Flex Gap="SpaceScale.Sm" Justify="ContentJustify.End" Align="ItemAlign.Center">
+        <Small Tone="TextTone.Muted" aria-live="polite">@result</Small>
+        <Button Type="submit">投递</Button>
+    </Flex>
+</Form>
+
+@code {
+    const long MaxSize = 10_000_000;
+
+    Application model = new();
+    string result = "";
+
+    async Task SubmitAsync()
+    {
+        var sizes = new List<string>();
+        foreach (var file in model.Resume.Where(f => f.File is not null && !f.Rejected))
+        {
+            await using var stream = file.File!.OpenReadStream(MaxSize);
+            var bytes = 0L;
+            var buffer = new byte[81920];
+            for (int read; (read = await stream.ReadAsync(buffer)) > 0;) bytes += read;
+            sizes.Add($"{file.Name}（{LangFormat.FileSize(bytes, "zh-CN")}）");
+        }
+        result = $"已投递：{model.Name}，{string.Join("、", sizes)}";
+    }
+
+    sealed class Application : IValidatableObject
+    {
+        public string? Name { get; set; } = "林小满";
+
+        public IReadOnlyList<UploadFile> Resume { get; set; } = [];
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (!Resume.Any(f => !f.Rejected)) yield return new("请选择简历", [nameof(Resume)]);
+            else if (Resume.Any(f => f.Rejected)) yield return new("移除不合要求的文件后再投递", [nameof(Resume)]);
+        }
+    }
+}

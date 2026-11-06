@@ -1,0 +1,37 @@
+@* 导入通讯录：FileDrop 只负责选文件，读文件、校验、导入都由自己决定；拖进来的不是 CSV 时经 OnReject 交出来 *@
+@inherits RuneComponent
+@using Microsoft.AspNetCore.Components.Forms
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <FileDrop Accept=".csv,text/csv" PropsIcon="SpreadsheetIcon" ValueChanged="ImportAsync" OnReject="Reject">
+        <Description>第一行是表头：姓名、手机号、部门</Description>
+    </FileDrop>
+    @if (rejected.Length > 0)
+    {
+        <Alert Tone="Tone.Danger" Title="不是 CSV 文件">@rejected</Alert>
+    }
+    @if (imported.Length > 0)
+    {
+        <Small Tone="TextTone.Muted">已读取 @imported</Small>
+    }
+</Flex>
+
+@code {
+    static readonly Attrs SpreadsheetIcon = new() { [nameof(Icon.Data)] = Lucide.FileSpreadsheet };
+
+    string imported = "";
+    string rejected = "";
+
+    async Task ImportAsync(IReadOnlyList<IBrowserFile> files)
+    {
+        if (files is not [var file, ..]) return;
+        rejected = "";
+        using var reader = new StreamReader(file.OpenReadStream(maxAllowedSize: 1_000_000));
+        var rows = 0;
+        while (await reader.ReadLineAsync() is { } line)
+            if (line.Length > 0) rows++;
+        imported = $"{file.Name}：{rows} 行";
+    }
+
+    void Reject(IReadOnlyList<IBrowserFile> files) => rejected = string.Join("、", files.Select(f => f.Name));
+}
