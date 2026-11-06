@@ -1,0 +1,42 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Sm">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Tree Items="files" GetKey="e => e.Path" GetLabel="e => e.Name" GetChildren="e => e.Children" GetIcon="IconOf"
+              @bind-Expanded="expanded" SelectionMode="SelectionMode.Single" @bind-Selected="selected" aria-label="项目文件" Sx="TreeHeight" data-testid="files" />
+        <Small Tone="TextTone.Muted">选中：@(selected.FirstOrDefault() ?? "无")</Small>
+    </Flex>
+</Card>
+
+@code {
+    sealed record Entry(string Path, string Name, IReadOnlyList<Entry>? Children = null);
+
+    static Entry File(string dir, string name) => new($"{dir}/{name}", name);
+
+    static Entry Folder(string dir, string name, Func<string, IReadOnlyList<Entry>> children) => new($"{dir}/{name}", name, children($"{dir}/{name}"));
+
+    static readonly Entry[] files =
+    [
+        Folder("", "src", src =>
+        [
+            Folder(src, "components", dir => [File(dir, "Button.tsx"), File(dir, "Card.tsx"), File(dir, "Dialog.tsx")]),
+            Folder(src, "pages", dir => [File(dir, "Home.tsx"), File(dir, "Orders.tsx")]),
+            File(src, "main.ts"),
+            File(src, "router.ts"),
+        ]),
+        Folder("", "public", dir => [File(dir, "favicon.svg")]),
+        File("", "package.json"),
+        File("", "README.md"),
+    ];
+
+    static IconData IconOf(Entry entry, bool expanded) =>
+        entry.Children is not null ? (expanded ? Lucide.FolderOpen : Lucide.Folder)
+        : entry.Name.EndsWith(".json", StringComparison.Ordinal) ? Lucide.FileBraces
+        : entry.Name.EndsWith(".md", StringComparison.Ordinal) ? Lucide.FileText
+        : Lucide.FileCode;
+
+    static Style TreeHeight => Css.Define(static () => new Style { Height = CssLength.Rem(17) });
+
+    IReadOnlyList<string> expanded = ["/src", "/src/components"];
+    IReadOnlyList<string> selected = ["/src/components/Button.tsx"];
+}

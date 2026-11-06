@@ -1,0 +1,29 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Sm">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Tree Items="regions" GetKey="r => r.Code" GetLabel="r => r.Name" GetChildren="r => r.Children" @bind-Expanded="expanded"
+              Checkable="true" @bind-Checked="checkedKeys" aria-label="配送范围" Sx="TreeHeight" data-testid="regions" />
+        <Small Tone="TextTone.Muted">已勾选 @checkedKeys.Count 个节点</Small>
+    </Flex>
+</Card>
+
+@code {
+    sealed record Region(string Code, string Name, IReadOnlyList<Region>? Children = null);
+
+    static readonly Region[] regions =
+    [
+        new("east", "华东",
+        [
+            new("sh", "上海"),
+            new("zj", "浙江", [new("hz", "杭州"), new("nb", "宁波"), new("wz", "温州")]),
+            new("js", "江苏", [new("nj", "南京"), new("su", "苏州")]),
+        ]),
+        new("south", "华南", [new("gz", "广州"), new("sz", "深圳")]),
+    ];
+
+    static Style TreeHeight => Css.Define(static () => new Style { Height = CssLength.Rem(17) });
+
+    IReadOnlyList<string> expanded = ["east", "zj"];
+    IReadOnlyList<string> checkedKeys = ["sh", "hz", "nb"];
+}

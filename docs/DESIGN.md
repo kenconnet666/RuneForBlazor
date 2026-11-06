@@ -347,6 +347,14 @@
   类型搜索与菜单共用一个实现（连续输入拼词、停顿 500 毫秒清空、同一个字母轮换）。
   vue-tsx-pro 的 Listbox 用 css.create，没有部件标记：对照工具另按 role 配对。
   渲染拆成 `ListboxView`（只画列表与选项）：Listbox 在它外面加值与焦点，弹出的选项列表 `ListPopover`（Select，之后的 Combobox、TagsInput）在它外面加浮层与头部。
+- **Tree**：数据逻辑在 `TreeData`（同 vue-tsx-pro 的 utils/data/tree.ts：平铺、索引、勾选联动与半选、取法、过滤、组装、移动，都不改原数据），
+  TreeSelect、TreeTransfer 与之后的树形表格共用。树就是一个列表宿主（`role="tree"` + `data-rune-list`）：↑↓、Home / End、类型搜索、高亮与虚拟滚动
+  照 lists.js 走（treeitem 按 `data-index` 编号，aria-posinset 是同级里的位置）；tree.js 只管 → ←、Enter、空格、Alt + 方向键，
+  展开收起等要改状态的经 rune-command 交给 C#。看不见的行不在 DOM 里，C# 把各行的父行、能否展开、是否展开写在 `data-rune-tree-rows` 上。
+  不可用的节点能经过（同 vue），所以选项表里不标不可用，选中、勾选时由 C# 拦下。勾选框只是外观：`inert` 的原生 checkbox，
+  `:checked` / `:indeterminate` 的样式照用勾选框的配方，点击落到外层。`LoadChildren` 是 EventCallback：完成后使用方重新渲染，新数据才交得回来
+  （普通的 Func 不会让父组件刷新）。拖动整个在 JS 里（落点写成行上的 `data-drop`，靠边滚动、停在收起的节点上展开），松开时才交给 C#：
+  `CanDrop` 是 C# 函数，所以在松开时判断，拖动途中不像 vue 那样隐藏不能放的落点（问它就要往返，Server 模式下跟不上指针）。
 - **Select**：外壳、前置图标、清空按钮、箭头是输入框的部件（`InputStyles`，`InputAppearance.Picker`），按 InputPart 定制时一起变，同 vue-tsx-pro；
   触发按钮是 `role="combobox"` 的 button，用原生 `popovertarget` 打开（静态 SSR 也能开），弹层 `data-anchor` 贴着外壳、`data-match-width` 同宽。
   开关、高亮、焦点都在 JS：关闭时 ↓ / Enter / 空格打开、↑ 打开到最后一项、单选按字母直接选中；打开后高亮已选项；单选列表点选后关闭；

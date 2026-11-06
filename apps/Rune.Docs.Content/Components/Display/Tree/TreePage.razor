@@ -1,0 +1,46 @@
+@page "/components/tree"
+@attribute [DocMeta("Tree 树", "可展开的层级列表（文件夹、组织架构、分类）：单选、多选、父子联动的勾选、懒加载子节点，节点多时虚拟滚动。", DocCategory.Display, Order = 7)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Tree.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="files" Title="文件树" Demo="typeof(FilesExample)">
+                <Code>GetKey</Code>、<Code>GetLabel</Code>、<Code>GetChildren</Code> 读你自己的数据结构，不用先转换；<Code>GetIcon</Code> 按展开状态换图标。
+                键盘 ↑↓ 移动，→ 展开，← 收起，Enter 选中，输入文字跳到匹配项。
+            </Example>
+            <Example Id="outline" Title="搜索与拖动" Demo="typeof(OutlineExample)">
+                <Code>Filter</Code> 按节点文字过滤（同 <Code>UIConfig.TextMatcher</Code> 的匹配），<Code>FilterBy</Code> 自己判断：留下匹配的节点与它们的上级并展开上级，匹配的加粗；
+                清空后回到原来的展开状态。写了 <Code>OnMove</Code> 就能拖动节点：放在一项的上沿、下沿是放到它前后，放在中间是放进它里面，停在收起的节点上会展开它；
+                键盘用 Alt + 方向键。<Code>OnMove</Code> 报告 key 与目标（父节点、位置），交给 <Code>TreeData.Move</Code> 生成新数据；<Code>CanDrop</Code> 拦下不能放的位置（松开时判断）。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="checkable" Title="勾选" Demo="typeof(CheckableExample)">
+                <Code>Checkable</Code> 时每项前有勾选框：勾上父节点会勾上全部子孙，子节点全勾上时父节点也勾上，只勾一部分时父节点半选（读屏念“部分选中”）。
+                <Code>Checked</Code> 里是全部勾上的节点。权限树里“只给这一级”时写 <Code>CheckStrictly</Code>：父子不联动，各自勾选。
+            </Example>
+            <Example Id="lazy" Title="按需加载、不可用与自定义内容" Demo="typeof(LazyExample)">
+                <Code>HasChildren</Code> 说节点有子节点（还没取回来也能展开），展开时调用 <Code>LoadChildren</Code>，进行中显示加载指示；取回后放进数据。
+                <Code>IsDisabled</Code> 的节点可以经过、展开，不能选中；<Code>GetIcon</Code> 按节点（和展开状态）换图标，<Code>ChildContent</Code> 自定义文字部分，
+                <Code>Indent</Code> 改每层的缩进（em）。整棵树还没取回来时写 <Code>Loading</Code>（骨架行），没有节点时显示 <Code>Empty</Code>（默认“暂无数据”）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("↓ / ↑", "移到下一个 / 上一个看得见的节点"),
+        ("→", "展开节点；已展开时进入第一个子节点（从右到左排版时用 ←）"),
+        ("←", "收起节点；已收起或是叶子时回到父节点（从右到左排版时用 →）"),
+        ("Home / End", "移到第一个 / 最后一个看得见的节点"),
+        ("Enter", "选中节点；不能选中时展开或收起"),
+        ("Space", "勾选（Checkable 时），否则选中"),
+        ("字母键", "移到下一个以它开头的节点"),
+        ("Alt + ↑ / ↓", "写了 OnMove 时：在同级里上移、下移"),
+        ("Alt + →", "写了 OnMove 时：放进上一个同级节点的最后（从右到左排版时用 ←）"),
+        ("Alt + ←", "写了 OnMove 时：移到父节点后面（从右到左排版时用 →）"),
+    ])">
+        整棵树只占一个 Tab 位置，当前项经 aria-activedescendant 告诉读屏；层级与位置经 aria-level、aria-setsize、aria-posinset 念出。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(Tree<>)]" />
+</DocPage>

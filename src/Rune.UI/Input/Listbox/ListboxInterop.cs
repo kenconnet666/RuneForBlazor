@@ -30,6 +30,26 @@ static class ListboxInterop
         writer.WriteEndObject();
     });
 
+    /// <summary>
+    /// 树的结构表 <c>{"parents":[-1,0,0],"expandable":[0],"expanded":[0]}</c>（data-rune-tree-rows）：各行的父行（第一层是 -1）、
+    /// 能展开的行、展开着的行。看不见的行不在 DOM 里，JS 靠它处理 → ←（展开、进入子节点、回到父节点）。
+    /// </summary>
+    public static string TreeStructure(IEnumerable<int> parents, IEnumerable<int> expandable, IEnumerable<int> expanded) => Write(writer =>
+    {
+        writer.WriteStartObject();
+        WriteNumbers(writer, "parents", parents);
+        WriteNumbers(writer, "expandable", expandable);
+        WriteNumbers(writer, "expanded", expanded);
+        writer.WriteEndObject();
+    });
+
+    static void WriteNumbers(Utf8JsonWriter writer, string name, IEnumerable<int> values)
+    {
+        writer.WriteStartArray(name);
+        foreach (var value in values) writer.WriteNumberValue(value);
+        writer.WriteEndArray();
+    }
+
     /// <summary>字符串数组（SelectedTags 的“+1”…“+N”）。</summary>
     public static string StringArray(IEnumerable<string> values) => Write(writer =>
     {

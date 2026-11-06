@@ -1,0 +1,111 @@
+@*
+    树（同 vue-tsx-pro 的 Tree，WAI-ARIA Tree）：可展开的层级列表（文件夹、组织架构、分类），可单选 / 多选、父子联动的勾选（含半选）、懒加载子节点、搜索过滤、移动节点。
+    <Tree Items="folders" GetKey="f => f.Id" GetLabel="f => f.Name" GetChildren="f => f.Children" @bind-Expanded="open"
+          SelectionMode="SelectionMode.Single" @bind-Selected="current" aria-label="目录" />
+    数据驱动：GetKey / GetLabel / GetChildren 读你自己的数据结构，不用先转换。节点平铺渲染（虚拟滚动没法嵌套 role="group"），
+    层级经 aria-level / aria-setsize / aria-posinset 告诉读屏；交互模式下节点多时（超过 VirtualThreshold 行）虚拟滚动。
+    键盘：焦点在树上，当前项经 aria-activedescendant 告诉读屏。↑↓、Home / End、按字母跳转在 JS 里移动（同列表，见 lists.js），
+    → ← 展开收起或进出层级、Enter、空格、Alt + 方向键与指针拖动（移动节点）由 JS 转成命令交给 C#（tree.js）。
+    未声明的属性落到树元素（role="tree"，也是 ScrollArea 的视口）上；aria-label 或 aria-labelledby 是树的名称。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits UIComponent
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@{
+    var rows = Rows;
+    var root = TreeStyles.Of(default, Config.Styles);
+}
+
+<ScrollArea Focusable="false" PropsViewport="Attrs.Layer(root[TreePart.Root], Rest, RootManaged)" @attributes="Attrs.MergeProps(null, PropsScrollArea)">
+    @if (rows.Count == 0)
+    {
+        @Placeholder(root)
+    }
+    else if (IsVirtual)
+    {
+        <Virtualize Items="RowIndexes" ItemSize="EstimateSize" OverscanCount="6" Context="index">@RenderRow(index)</Virtualize>
+    }
+    else
+    {
+        for (var index = 0; index < rows.Count; index++)
+        {
+            @RenderRow(index)
+        }
+    }
+</ScrollArea>
+@if (OnMove.HasDelegate)
+{
+    <span aria-live="polite" @attributes="Attrs.Merge(VisuallyHiddenLayer)">@announcement</span>
+}
+
+@code {
+    RenderFragment RenderRow(int index)
+    {
+        var row = Rows[index];
+        var state = StateOf(row);
+        var disabled = IsDisabled?.Invoke(row.Node) ?? false;
+        var parts = TreeStyles.Of(new(state.Selected, Filtering?.Matched.Contains(row.Key) == true), Config.Styles);
+        var icon = GetIcon?.Invoke(row.Node, state.Expanded);
+        var loadingChildren = loadingKeys.Contains(row.Key);
+        return @<div @key="row.Key" @onclick="() => OnItemClickAsync(row)"
+                     @attributes="Attrs.Merge(parts[TreePart.Item], PropsItemOf(row.Node, state), ItemManaged(index, row, state, disabled, loadingChildren))">
+            @if (row.Depth > 0)
+            {
+                <span @attributes="Attrs.Merge(IndentLayer)"></span>
+            }
+            <span aria-hidden="true" @onclick="() => ToggleAsync(row)" @onclick:stopPropagation="true" @attributes="Attrs.Merge(parts[TreePart.Toggle], PropsToggle)">
+                @if (loadingChildren)
+                {
+                    <Spinner />
+                }
+                else if (row.Expandable)
+                {
+                    <Icon Data="BuiltInIcons.ChevronRight" FlipInRtl="true" Sx="@(state.Expanded ? ExpandedChevron : CollapsedChevron)" />
+                }
+            </span>
+            @if (Checkable)
+            {
+                var box = ChoiceStyles.Of(new ChoiceAppearance(ChoiceKind.Checkbox, null, Tone.Accent), Config.Styles);
+                <span aria-hidden="true" @onclick="() => CheckAsync(row)" @onclick:stopPropagation="true"
+                      @attributes="Attrs.Merge(parts[TreePart.Checkbox], PropsCheckbox, Attrs.Layer(box[ChoicePart.Control]))">
+                    <input type="checkbox" inert tabindex="-1" checked="@(state.Checked == CheckState.Checked)"
+                           data-indeterminate="@(state.Checked == CheckState.Indeterminate ? "true" : "false")" @attributes="Attrs.Merge(box[ChoicePart.Input])" />
+                    <Icon Data="@(state.Checked == CheckState.Indeterminate ? BuiltInIcons.Minus : BuiltInIcons.Check)" StrokeWidth="3" @attributes="Attrs.MergeProps(box[ChoicePart.Indicator])" />
+                </span>
+            }
+            @if (icon is not null)
+            {
+                <Icon Data="icon" />
+            }
+            <span @attributes="Attrs.Merge(parts[TreePart.Label], PropsLabel)">
+                @if (ChildContent is null)
+                {
+                    @GetLabel(row.Node)
+                }
+                else
+                {
+                    @ChildContent(state)
+                }
+            </span>
+        </div>;
+    }
+
+    // 没有节点时：加载中是几行骨架，否则是空状态
+    RenderFragment Placeholder(PartLayers<TreePart> parts) => @<text>
+        @if (Loading)
+        {
+            if (indicator.Shown)
+            {
+                for (var row = 0; row < SkeletonRows; row++)
+                {
+                    <Skeleton @key="row" Delay="@(row * ShimmerStyles.Stagger)" @attributes="Attrs.MergeProps(parts[TreePart.Skeleton], SkeletonWidths[row], PropsSkeleton)" />
+                }
+            }
+        }
+        else
+        {
+            @(Empty ?? DefaultEmpty)
+        }
+    </text>;
+}

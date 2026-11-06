@@ -129,7 +129,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 
 ## 阶段 1：树与长列表
 
-- [ ] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动；从右到左时展开箭头朝下，同 vue 0.11）
+- [x] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动；从右到左时展开箭头朝下，同 vue 0.11）：`TreeData` 底座、键盘与拖动在 JS（lists.js + tree.js）
 - [ ] TreeSelect（浮层用 `OverlayTransitions.Pop`）、TreeTransfer（Transfer 的树形）
 - [ ] VirtualList 补齐：随页面滚动、横向、骨架行、跳到第几项、可见范围变化的回调
 
@@ -145,7 +145,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
   让 EasyQuerySharp 一侧不经转换就能消费
 - [ ] DataTable / DataTableView：列用子组件声明（`PropertyColumn` 按表达式取值，标题取 `[Display]`，排序键取属性路径；`TemplateColumn` 自定义内容），也可以给列定义列表；
   数据给 `Items`（内存里排序、筛选、分页）或 `ItemsProvider`（服务端）；排序、表头筛选、选择、展开、固定列、列宽拖动、网格方向键与单元格编辑（行校验）、行拖动、虚拟滚动、骨架行、密度
-- [ ] ColumnHeaderActions、ColumnResizer、ColumnSettings、SelectionBar、ColumnTable、TreeDataTable、PivotTable、CSV 导出（vue 的 `csv.ts`；xlsx 不做）
+- [ ] ColumnHeaderActions、ColumnResizer、ColumnSettings、SelectionBar、ColumnTable、TreeDataTable、PivotTable、CSV 导出（vue 的 `csv.ts`；xlsx 见阶段 7）
 - [ ] FieldCompare（字段写法同列定义；列表布局用已有的 ValueChange），接着 Timeline 的 change-log 示例换用它
 - [ ] 预渲染不重复取数（`[PersistentState]`）：表格的 `ItemsProvider` 在预渲染时取的数交给交互后的渲染，不再请求一次
 - 示例缺口：Skeleton 的 table 示例、Table 的 column-table 示例、Drawer 的 imperative 与 detail 示例（detail 用 DataTable、Timeline、DeadlineBadge）、

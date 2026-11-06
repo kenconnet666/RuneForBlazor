@@ -1,0 +1,40 @@
+@* 培训手册的目录：搜索过滤（匹配的加粗、上级展开），拖动调整层级与顺序（或 Alt + 方向键），附录不能再往下放 *@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Sm">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <TextField @bind-Value="query" Immediate="true" Icon="Lucide.Search" type="search" placeholder="搜索章节（试试“检验”）" aria-label="搜索章节" />
+        <Tree TItem="Section" Items="sections" GetKey="s => s.Id" GetLabel="s => s.Title" GetChildren="s => s.Children" @bind-Expanded="expanded" Filter="@query"
+              OnMove="Move" CanDrop="CanDrop" PropsScrollArea="treeHeight" aria-label="手册目录" data-testid="outline" />
+        <Small Tone="TextTone.Muted">拖动标题调整层级与顺序，或选中后按 Alt + 方向键；已移动 @moves 次</Small>
+    </Flex>
+</Card>
+
+@code {
+    sealed record Section(string Id, string Title, bool Appendix = false, IReadOnlyList<Section>? Children = null);
+
+    static readonly TreeAccessors<Section> Accessors = new(s => s.Id, s => s.Children);
+
+    static readonly Attrs treeHeight = new() { Sx = Css.Define(static () => new Style { Height = CssLength.Rem(18) }) };
+
+    IReadOnlyList<Section> sections =
+    [
+        new("intro", "第一章 入职须知", Children: [new("intro-culture", "公司文化"), new("intro-it", "账号与设备")]),
+        new("process", "第二章 采购流程", Children: [new("process-request", "请购单"), new("process-quote", "询价与比价"), new("process-contract", "合同审批")]),
+        new("quality", "第三章 来料检验", Children: [new("quality-sampling", "抽样方案"), new("quality-report", "检验报告")]),
+        new("appendix", "附录 表单模板", Appendix: true),
+    ];
+
+    IReadOnlyList<string> expanded = ["intro", "process", "quality"];
+    string? query;
+    int moves;
+
+    void Move(TreeMove<Section> move)
+    {
+        sections = TreeData.Move(sections, Accessors, (section, children) => section with { Children = children }, move.Key, move.Target) ?? sections;
+        moves++;
+    }
+
+    // 附录放在第一层，不放进别的章节里，也不接收子节点
+    static bool CanDrop(Section section, TreeMoveTarget target) => section.Appendix ? target.Parent is null : target.Parent != "appendix";
+}

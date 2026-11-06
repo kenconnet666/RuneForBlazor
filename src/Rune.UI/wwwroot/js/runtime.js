@@ -15,6 +15,7 @@ import { clickBackTop, watchAffix, watchBackTop } from './affix.js';
 import { drawWatermark } from './watermark.js';
 import { blurSortable, grabSortable, keySortable } from './sortable.js';
 import { showLightboxImage, watchLightbox } from './lightbox.js';
+import { keyTree, pressTreeItem } from './tree.js';
 import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './lists.js';
 import { watchIndicator } from './indicator.js';
 import { scheduleOverflow, watchOverflow } from './overflow.js';
@@ -65,6 +66,7 @@ export function install(blazor, on) {
   on('pointerdown', startRipple);
   on('pointerdown', focusOnShell);
   on('pointerdown', keepFocusOnListHost);
+  on('pointerdown', pressTreeItem);
   on('pointerdown', grabSlider);
   on('pointerdown', grabResizeHandle);
   on('pointerdown', grabSplitter);
@@ -243,7 +245,7 @@ function onMutations(mutations) {
   // 列表重新渲染（虚拟滚动换了一批选项、选项变了）：高亮放回高亮项上。一个列表一批只处理一次
   const lists = new Set();
   for (const target of grown) {
-    const list = target.closest('[role="listbox"]');
+    const list = target.closest('[role="listbox"], [role="tree"]');
     if (list) lists.add(list);
   }
   for (const list of lists) {
@@ -332,7 +334,7 @@ function onKeyDown(event) {
   exitFullscreenOnEscape(event);
   if (event.key === 'Enter' || event.key === ' ') startRipple(event);
   if (event.target instanceof HTMLInputElement && event.target.matches('[data-rune-spin]')) spin(event.target, event);
-  if (keyCascader(event) || keyMentions(event) || keySortable(event)) return;
+  if (keyCascader(event) || keyMentions(event) || keySortable(event) || keyTree(event)) return;
   const menu = event.target instanceof Element ? event.target.closest('[role="menu"][data-rune-overlay]') : null;
   if (menu) moveInMenu(menu, event);
   else openMenuFromTrigger(event);
@@ -357,7 +359,7 @@ function onFocusIn(event) {
   onHoverFocusIn(event);
   onToasterFocusIn(event);
   // 列表自己获得焦点：还没有高亮项时高亮默认项（触发按钮、输入框做宿主时由打开下拉的一方决定）
-  if (target.matches('[role="listbox"][data-rune-list]') && activeIndex(target, target) < 0) highlightDefault(target, target);
+  if (target.matches(':is([role="listbox"], [role="tree"])[data-rune-list]') && activeIndex(target, target) < 0) highlightDefault(target, target);
 }
 
 function onFocusOut(event) {

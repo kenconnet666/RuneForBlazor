@@ -1,4 +1,5 @@
 // 列表：类型搜索、高亮与键盘（data-rune-list）、选项弹出层（Select）的开关与焦点、搜索词变化后的高亮与播报。
+// 树（role="tree"，Tree）也是这样的列表：各行是 treeitem，↑↓、Home / End、类型搜索照列表的走，展开、进出层级在 tree.js。
 
 import { sendCommand, speak } from './shared.js';
 
@@ -47,9 +48,13 @@ const optionTables = new WeakMap();
 // 高亮项还没渲染、等着滚进可见范围的宿主
 const pendingScroll = new WeakSet();
 
-/** 宿主控制的列表：宿主本身是 listbox，或经 aria-controls 指向它。 */
+// 列表里的一项：选项，或树的一行
+const ITEM = '[role="option"], [role="treeitem"]';
+
+/** 宿主控制的列表：宿主本身是 listbox（或 tree），或经 aria-controls 指向它。 */
 function listOf(host) {
-  if (host.getAttribute('role') === 'listbox') return host;
+  const role = host.getAttribute('role');
+  if (role === 'listbox' || role === 'tree') return host;
   const id = host.getAttribute('aria-controls');
   return id ? document.getElementById(id) : null;
 }
@@ -84,8 +89,10 @@ function optionAt(list, index) {
   return index < 0 ? null : document.getElementById(`${list.id}-${index}`);
 }
 
+// 树的行按 data-index 编号（aria-posinset 是在同级里的位置）
 function indexOfOption(option) {
-  return Number(option.getAttribute('aria-posinset')) - 1;
+  const row = option.getAttribute('data-index');
+  return row !== null ? Number(row) : Number(option.getAttribute('aria-posinset')) - 1;
 }
 
 /** 高亮项的序号；没有、或选项变少后已经不在了时 -1。 */
@@ -95,7 +102,7 @@ export function activeIndex(host, list) {
 }
 
 /** 高亮一项（-1 取消）；scroll 时滚进可见范围（键盘移动；指针移过的本来就看得见）。 */
-function highlight(host, list, index, scroll) {
+export function highlight(host, list, index, scroll) {
   if (index < 0) {
     host.removeAttribute('data-rune-active');
     host.removeAttribute('aria-activedescendant');
@@ -111,7 +118,7 @@ function highlight(host, list, index, scroll) {
 export function syncHighlight(host, list) {
   const index = activeIndex(host, list);
   const option = optionAt(list, index);
-  for (const other of list.querySelectorAll('[role="option"][data-highlighted]')) {
+  for (const other of list.querySelectorAll(':is([role="option"], [role="treeitem"])[data-highlighted]')) {
     if (other !== option) other.removeAttribute('data-highlighted');
   }
   option?.setAttribute('data-highlighted', '');
@@ -156,7 +163,7 @@ export function highlightDefault(host, list) {
   const attribute = list.getAttribute('data-rune-selected');
   const selected = attribute !== null
     ? Number(attribute)
-    : [...list.querySelectorAll('[role="option"][aria-selected="true"]')].map(indexOfOption).find((index) => !table[index]?.disabled) ?? -1;
+    : [...list.querySelectorAll(':is([role="option"], [role="treeitem"])[aria-selected="true"]')].map(indexOfOption).find((index) => !table[index]?.disabled) ?? -1;
   highlight(host, list, selected >= 0 ? selected : table.findIndex((option) => !option.disabled), true);
 }
 

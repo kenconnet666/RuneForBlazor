@@ -1,0 +1,50 @@
+@* 组织架构：子部门展开时才向“服务端”取（LoadChildren，加载中显示指示）；已停用的部门可以展开、不能选中；ChildContent 在名字后面加人数 *@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Sm">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Tree TItem="Department" Items="departments" GetKey="d => d.Id" GetLabel="d => d.Name" GetChildren="d => d.Teams" HasChildren="d => d.HasTeams"
+              LoadChildren="LoadTeamsAsync" IsDisabled="d => d.Retired" GetIcon="IconOf"
+              @bind-Expanded="expanded" SelectionMode="SelectionMode.Single" @bind-Selected="selected" Indent="1.5" aria-label="组织架构" Sx="TreeHeight" data-testid="org">
+            @context.Node.Name
+            <Badge Size="Size.Sm" Variant="StatusVariant.Soft" Tone="Tone.Neutral" Sx="Count">@context.Node.People 人</Badge>
+        </Tree>
+        <Small Tone="TextTone.Muted">@(selected.FirstOrDefault() is { } id ? $"选中了 {id}" : "展开部门时才加载下面的小组")</Small>
+    </Flex>
+</Card>
+
+@code {
+    sealed record Department(string Id, string Name, int People, bool HasTeams, bool Retired = false, IReadOnlyList<Department>? Teams = null);
+
+    static readonly string[] TeamNames = ["产品", "设计", "研发", "测试"];
+
+    static IconData IconOf(Department department, bool expanded) => department.HasTeams ? Lucide.BuildingComplex : Lucide.Users;
+
+    static Style TreeHeight => Css.Define(static () => new Style { Height = CssLength.Rem(16) });
+
+    static Style Count => Css.Define(static () => new Style { MarginInlineStart = Space.Xs });
+
+    IReadOnlyList<Department> departments =
+    [
+        new("product", "产品部", 24, true),
+        new("rd", "研发部", 86, true),
+        new("market", "市场部", 15, true),
+        new("legal", "法务部（已停用）", 0, false, Retired: true),
+    ];
+
+    IReadOnlyList<string> expanded = [];
+    IReadOnlyList<string> selected = [];
+
+    // 模拟服务端：按部门取下一级，600 毫秒后返回；取回后换掉这个部门，交回新的数据
+    async Task LoadTeamsAsync(Department parent)
+    {
+        await Task.Delay(600);
+        var teams = TeamNames.Select((name, index) => new Department(
+            $"{parent.Id}-{index}",
+            $"{parent.Name.TrimEnd('部')}{name}组",
+            3 + (index * 7 + parent.People) % 9,
+            false,
+            Retired: index == 3 && parent.Id == "rd")).ToArray();
+        departments = [.. departments.Select(d => d.Id == parent.Id ? d with { Teams = teams } : d)];
+    }
+}
