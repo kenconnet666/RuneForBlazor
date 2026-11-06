@@ -17,6 +17,33 @@ public class FormTests : BunitContext
         public string? Email { get; set; }
 
         public bool Agreed { get; set; }
+
+        [Display(Name = "手机号")]
+        public string? Phone { get; set; }
+
+        [System.ComponentModel.DisplayName("备注")]
+        public string? Note { get; set; }
+    }
+
+    [Fact]
+    public void 字段不写标签时取Display或DisplayName_写了标签以它为准()
+    {
+        var model = new Model();
+        var cut = Render<Field>(p => p.AddChildContent<TextField>(text => text.Add(x => x.ValueExpression, () => model.Phone)));
+        var label = cut.Find("label");
+        Assert.Equal("手机号", label.TextContent.Trim());
+        Assert.Equal(label.Id, cut.Find("input").GetAttribute("aria-labelledby") ?? label.Id);
+        Assert.Equal(cut.Find("input").Id, label.GetAttribute("for"));
+
+        var note = Render<Field>(p => p.AddChildContent<Textarea>(text => text.Add(x => x.ValueExpression, () => model.Note)));
+        Assert.Equal("备注", note.Find("label").TextContent.Trim());
+
+        var given = Render<Field>(p => p.Add(x => x.Label, "联系电话").AddChildContent<TextField>(text => text.Add(x => x.ValueExpression, () => model.Phone)));
+        Assert.Equal("联系电话", given.Find("label").TextContent.Trim());
+
+        // 没有标注、也没写标签：没有标签元素
+        var bare = Render<Field>(p => p.AddChildContent<TextField>(text => text.Add(x => x.ValueExpression, () => model.Email)));
+        Assert.Empty(bare.FindAll("label"));
     }
 
     [Fact]
