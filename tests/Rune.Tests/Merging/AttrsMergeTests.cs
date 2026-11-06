@@ -57,7 +57,7 @@ public class AttrsMergeTests : IDisposable
     }
 
     [Fact]
-    public void 样式合成一个类并登记规则()
+    public void 两层各有样式时按层分段_每段一个类_后面的层盖过前面的()
     {
         var merged = ToDictionary(Attrs.Merge(
             new() { Sx = new Style { Color = "red" }, Class = "host" },
@@ -65,8 +65,9 @@ public class AttrsMergeTests : IDisposable
 
         var classes = ((string)merged["class"]).Split(' ');
         Assert.Equal("host", classes[0]);
-        var rule = Assert.Single(registry.Rules);
-        Assert.Contains($".{classes[1]}{{color:blue;}}", rule);
+        Assert.Equal(
+            [$"@layer rune.s0{{.{classes[1]}{{color:red;}}}}", $"@layer rune.s1{{.{classes[2]}{{color:blue;}}}}"],
+            registry.Rules);
     }
 
     [Fact]

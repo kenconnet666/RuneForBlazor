@@ -22,9 +22,16 @@ internal sealed class CompiledStyle(string className, string css)
 }
 
 /// <summary>
-/// 样式引擎：把按顺序排列的几段样式合成一个类。
+/// 样式引擎：把按顺序排列的几段样式合成一个类；按合并来源分段时（<see cref="CompileSegments"/>）每段一个类，各进一层级联层。
 /// </summary>
 /// <remarks>
+/// <para>
+/// 级联层（同 vue-tsx-pro 的分段输出）：每块样式表开头声明 <see cref="LayerOrder"/>，主题变量在 <c>rune.vars</c>，第 k 段的规则在 <c>rune.s{k}</c>，
+/// 后面的段不论特异性都盖过前面的段。第 k 段（k &gt; 0）输出它改到的属性所在的属性族（<see cref="FamilyOf"/>）在前 k + 1 段合并后的完整取值，
+/// 含它没改的条件值：每个属性族最高的那一层里总有这一族完整的合并结果，层里排出的规则与合成一个类时相同，语义逐字一致。
+/// 简写与长属性分在不同的段时靠属性族一起带（前段写 <c>outline</c>、后段写 <c>outline-color</c>，后段带上那条简写，顺序照常）。
+/// 合并只按“条件 + 属性”覆盖、没有“去掉属性”的写法，所以低层的条件取值不会漏上来，不需要 vue-tsx-pro 那样补 <c>revert</c>。
+/// </para>
 /// <para>合并：同一“条件 + 属性”后写的覆盖先写的；条件块之间互不影响（只改悬停时的颜色不会清掉默认颜色）。</para>
 /// <para>
 /// 缓存分两层：
@@ -45,6 +52,16 @@ internal static class StyleCompiler
 
     static readonly ConcurrentDictionary<string, CompiledStyle> byContent = new();
 
+    /// <summary>分段的上限：超出的并进最后一段。</summary>
+    internal const int MaxSegments = 8;
+
+    /// <summary>级联层的顺序：每块样式表最前面声明（重复声明同样的顺序不改变什么）。</summary>
+    internal static readonly string LayerOrder =
+        "@layer rune.vars," + string.Join(',', Enumerable.Range(0, MaxSegments).Select(k => $"rune.s{k}")) + ";";
+
+    /// <summary>主题变量所在的层。</summary>
+    internal const string VarsLayer = "rune.vars";
+
     /// <summary>挂在每个 <see cref="Style"/> 实例上的缓存。</summary>
     internal sealed class InstanceCache
     {
@@ -57,6 +74,74 @@ internal static class StyleCompiler
 
     /// <summary>跟在第一段后面的样式，按引用比较（Style 没有重写 Equals）。</summary>
     internal readonly record struct Followers(Style? A, Style? B, Style? C, Style? D, Style? E);
+
+    /// <summary>
+    /// 按合并来源分段编译：每段一个类（没有声明的段不出类），第 k 段在层 <c>rune.s{k}</c>。只有一段时同 <see cref="Compile"/>。
+    /// </summary>
+    public static IReadOnlyList<CompiledStyle> CompileSegments(IReadOnlyList<IReadOnlyList<Style>> segments)
+    {
+        if (segments.Count > MaxSegments)
+            segments = [.. segments.Take(MaxSegments - 1), [.. segments.Skip(MaxSegments - 1).SelectMany(segment => segment)]];
+        if (segments.Count == 1) return Compile(segments[0]) is { } single ? [single] : [];
+
+        var result = new List<CompiledStyle>(segments.Count);
+        for (var index = 0; index < segments.Count; index++)
+        {
+            var compiled = index == 0 ? Compile(segments[0]) : CompileSegment(segments, index);
+            if (compiled is not null) result.Add(compiled);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// 第 index 段（index &gt; 0）的声明：前 index + 1 段合并后，属于这一段改到的属性族的那些（含它没改的条件值）。
+    /// </summary>
+    internal static Dictionary<string, Dictionary<string, string>> SegmentBlocks(IReadOnlyList<IReadOnlyList<Style>> segments, int index)
+    {
+        var own = FlattenAll(segments[index]);
+        var families = own.Values.SelectMany(declarations => declarations.Keys).Select(FamilyOf).ToHashSet(StringComparer.Ordinal);
+        var prefix = FlattenAll(segments.Take(index + 1).SelectMany(segment => segment));
+        var blocks = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
+        foreach (var (chain, declarations) in prefix)
+        {
+            var kept = declarations.Where(d => families.Contains(FamilyOf(d.Key))).ToDictionary(StringComparer.Ordinal);
+            if (kept.Count > 0) blocks[chain] = kept;
+        }
+        return blocks;
+    }
+
+    static readonly Dictionary<string, string> familyRoots = new(StringComparer.Ordinal)
+    {
+        ["top"] = "inset", ["right"] = "inset", ["bottom"] = "inset", ["left"] = "inset",
+        ["row-gap"] = "gap", ["column-gap"] = "gap", ["align"] = "place", ["justify"] = "place",
+        ["columns"] = "column", ["line-height"] = "font", ["white"] = "text",
+    };
+
+    /// <summary>
+    /// 属性族（同 vue-tsx-pro 的 familyOf）：有简写、长属性关系的属性归同一族，按名字的第一段分（border、margin、outline、font……）；
+    /// 名字对不上的几个例外：inset 与 top / right / bottom / left，gap 与 row-gap / column-gap，place 与 align / justify，
+    /// columns 归 column，line-height 归 font（font 简写会重设它），white-space 归 text（text-wrap-mode 的简写）。自定义属性各自一族。
+    /// 分得粗没关系（只是多带几条声明），分得细会出错。
+    /// </summary>
+    internal static string FamilyOf(string property)
+    {
+        if (property.StartsWith("--", StringComparison.Ordinal)) return property;
+        // 从第二个字符找：带厂商前缀的（-webkit-line-clamp）按前缀归族
+        var dash = property.IndexOf('-', 1);
+        var root = dash < 0 ? property : property[..dash];
+        return familyRoots.GetValueOrDefault(property) ?? familyRoots.GetValueOrDefault(root) ?? root;
+    }
+
+    static CompiledStyle? CompileSegment(IReadOnlyList<IReadOnlyList<Style>> segments, int index)
+    {
+        var blocks = SegmentBlocks(segments, index);
+        if (blocks.Count == 0) return null;
+        // 带进来的动画名（animation 这一族）引用的关键帧：前面各段用到的都随这个类输出
+        var keyframes = blocks.Values.Any(block => block.ContainsKey("animation-name"))
+            ? segments.Take(index + 1).SelectMany(segment => segment).SelectMany(AllKeyframes)
+            : [];
+        return CompileBlocks(blocks, index, keyframes);
+    }
 
     /// <summary>合成一个类；没有任何声明时返回 null。</summary>
     public static CompiledStyle? Compile(IReadOnlyList<Style> styles)
@@ -81,11 +166,21 @@ internal static class StyleCompiler
 
     static CompiledStyle? CompileByContent(IReadOnlyList<Style> styles)
     {
-        // 条件链（"" 表示无条件）→ 属性 → 值；后写的覆盖先写的
+        var blocks = FlattenAll(styles);
+        return blocks.Count == 0 ? null : CompileBlocks(blocks, 0, styles.SelectMany(AllKeyframes));
+    }
+
+    // 条件链（"" 表示无条件）→ 属性 → 值；后写的覆盖先写的
+    static Dictionary<string, Dictionary<string, string>> FlattenAll(IEnumerable<Style> styles)
+    {
         var blocks = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
         foreach (var style in styles) Flatten(style, "", blocks);
-        if (blocks.Count == 0) return null;
+        return blocks;
+    }
 
+    /// <summary>声明表 → 第 segment 段的类：类名按内容哈希（第 0 段与不分段时相同；后面的段带上段号，同样的规则在不同的层里是不同的类）。</summary>
+    static CompiledStyle CompileBlocks(Dictionary<string, Dictionary<string, string>> blocks, int segment, IEnumerable<Keyframes> keyframes)
+    {
         var orderedBlocks = blocks
             .Select(block => (Chain: block.Key, Priority: ChainPriority(block.Key), Declarations: block.Value))
             .OrderBy(block => block.Priority)
@@ -100,14 +195,14 @@ internal static class StyleCompiler
                 canonical.Append(property).Append(':').Append(value).Append(';');
             canonical.Append('}');
         }
-        var key = canonical.ToString();
+        var key = segment == 0 ? canonical.ToString() : $"{segment}|{canonical}";
         if (byContent.TryGetValue(key, out var hit)) return hit;
 
         if (byContent.Count >= ContentCacheLimit) byContent.Clear();
         var className = "r" + StableHash.Of(key);
-        var css = BuildCss(className, orderedBlocks.Select(b => (b.Chain, b.Declarations)));
-        // 引用到的关键帧随类一起输出（类名里已含动画名，内容相同的类引用的也是同一组关键帧）
-        foreach (var keyframes in styles.SelectMany(AllKeyframes).Distinct()) css += keyframes.Css;
+        var css = $"@layer rune.s{segment}{{{BuildCss(className, orderedBlocks.Select(b => (b.Chain, b.Declarations)))}}}";
+        // 引用到的关键帧随类一起输出（类名里已含动画名，内容相同的类引用的也是同一组关键帧）；放在层外，名字按内容哈希不会撞
+        foreach (var used in keyframes.Distinct()) css += used.Css;
         return byContent.GetOrAdd(key, new CompiledStyle(className, css));
     }
 

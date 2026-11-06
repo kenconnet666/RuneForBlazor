@@ -27,7 +27,8 @@ public class ButtonTests : BunitContext
         Assert.Equal("button", button.GetAttribute("type"));
         Assert.Equal("true", button.GetAttribute("aria-pressed"));
         Assert.True(button.HasAttribute("data-rune-ripple"));
-        Assert.Single(button.ClassList);
+        // 组件自己的一段、使用方的一段
+        Assert.Equal(2, button.ClassList.Length);
         button.Click();
         Assert.Equal(1, clicks);
     }
@@ -170,7 +171,7 @@ public class ButtonTests : BunitContext
     }
 
     [Fact]
-    public void 部件是组件时样式作为Sx交下去_只合成一个类()
+    public void 部件是组件时样式作为Sx交下去_按来源分段_使用方的在最后一层()
     {
         var cut = Render<Button>(p => p
             .Add(x => x.Icon, BuiltInIcons.Plus)
@@ -178,9 +179,11 @@ public class ButtonTests : BunitContext
             .AddChildContent("新建"));
 
         var svg = cut.Find("svg");
-        Assert.Single(svg.ClassList);
+        var classes = svg.ClassList.ToArray();
         Assert.Equal("button", svg.GetAttribute("data-scope"));
-        Assert.Contains(Registry.Rules, rule => rule.Contains($".{svg.ClassName}{{") && rule.Contains("color:crimson") && rule.Contains("width:1em"));
+        // 图标自己的一段在最低层；使用方的颜色在后面的层里，盖过前面的
+        Assert.Contains(Registry.Rules, rule => rule.StartsWith("@layer rune.s0{") && rule.Contains($".{classes[0]}{{") && rule.Contains("width:1em"));
+        Assert.Contains(Registry.Rules, rule => !rule.StartsWith("@layer rune.s0{") && rule.Contains($".{classes[^1]}{{") && rule.Contains("color:crimson"));
     }
 
     [Fact]
@@ -195,8 +198,7 @@ public class ButtonTests : BunitContext
         var svg = cut.Find("svg");
         Assert.Equal("loader-circle", svg.GetAttribute("data-icon"));
         Assert.Equal("true", svg.GetAttribute("aria-hidden"));
-        Assert.Single(svg.ClassList);
-        Assert.Contains(Registry.Rules, rule => rule.Contains("@keyframes rk") && rule.Contains("animation-name:rk"));
+        Assert.Contains(Registry.Rules, rule => svg.ClassList.Any(c => rule.Contains($".{c}{{")) && rule.Contains("@keyframes rk") && rule.Contains("animation-name:rk"));
     }
 
     [Fact]

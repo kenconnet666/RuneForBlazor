@@ -38,8 +38,8 @@ public class TableTests : BunitContext
         Assert.Contains("--rune-table-column-width:8rem", column.GetAttribute("style"));
         Assert.Equal("row", cut.Find("tbody th").GetAttribute("scope"));
         Assert.NotEqual(cut.Find("tbody th").ClassName, column.ClassName);
-        var foot = cut.Find("tfoot td").ClassName;
-        Assert.Contains(Registry.Rules, rule => rule.Contains($".{foot}{{") && rule.Contains("border-top-width"));
+        var foot = cut.Find("tfoot td").ClassList;
+        Assert.Contains(Registry.Rules, rule => foot.Any(c => rule.Contains($".{c}{{")) && rule.Contains("border-top-width"));
     }
 
     [Fact]

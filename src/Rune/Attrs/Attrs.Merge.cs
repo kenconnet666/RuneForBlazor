@@ -7,7 +7,8 @@ public sealed partial class Attrs
     /// <summary>
     /// 合并三层属性：组件的默认层 &lt; 使用方传入的 &lt; 组件管理的（状态、无障碍属性，使用方不能改）。
     /// <list type="bullet">
-    /// <item><description>样式（<see cref="Sx"/>）：按层的顺序叠加，后面的覆盖前面的同名属性；合成一个类；</description></item>
+    /// <item><description>样式（<see cref="Sx"/>）：按层的顺序叠加，后面的覆盖前面的同名属性。几层各有样式时按层分段（<see cref="Sx.Layers"/>）：
+    /// 每段一个类、各进一层级联层，结果与合成一个类相同；只有一层有样式（最常见）时一个类；</description></item>
     /// <item><description>class、style：依次拼接；</description></item>
     /// <item><description>事件（on 开头）：都执行，按层的顺序；每个处理器由写它的组件执行，执行后那个组件照常重新渲染；</description></item>
     /// <item><description>其他属性：后面的层覆盖前面的。</description></item>
@@ -22,26 +23,30 @@ public sealed partial class Attrs
         var anchor = AnchorOf(defaults, user, managed);
         if (anchor?.mergeCache is { } hit && hit.Matches(MergeKind.Element, defaults, user, managed))
         {
-            if (hit.Compiled is not null) StyleRegistry.Register(hit.Compiled);
+            Register(hit.Compiled);
             return hit.Result;
         }
 
-        var styles = CollectStyles(defaults, user, managed);
-        var compiled = StyleCompiler.Compile(styles);
-        if (compiled is not null) StyleRegistry.Register(compiled);
+        var compiled = CompileLayers(defaults, user, managed);
+        Register(compiled);
 
         Attrs result;
         // 最常见：几层都只有样式（部件的默认样式）→ 每组样式对应一个固定的结果
         if (defaults?.values is null && user?.values is null && managed?.values is null)
-            result = compiled is null ? Empty : ClassOnlyCache.Get(compiled);
+            result = compiled.Count switch
+            {
+                0 => Empty,
+                1 => ClassOnlyCache.Get(compiled[0]),
+                _ => new Attrs { values = new Dictionary<string, object>(1, StringComparer.OrdinalIgnoreCase) { ["class"] = ClassNames(compiled) } },
+            };
         else
         {
             var merged = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             MergeInto(merged, defaults);
             MergeInto(merged, user);
             MergeInto(merged, managed);
-            if (compiled is not null)
-                merged["class"] = merged.TryGetValue("class", out var extra) ? $"{extra} {compiled.ClassName}" : compiled.ClassName;
+            if (compiled.Count > 0)
+                merged["class"] = merged.TryGetValue("class", out var extra) ? $"{extra} {ClassNames(compiled)}" : ClassNames(compiled);
             result = new Attrs { values = merged };
         }
         anchor?.mergeCache = new MergeEntry(MergeKind.Element, defaults, user, managed, result, compiled);
@@ -50,8 +55,7 @@ public sealed partial class Attrs
 
     /// <summary>
     /// 部件是本库的组件（按钮里的图标、加载指示）时用：规则同 <see cref="Merge"/>，但样式不在这里合成类，
-    /// 而是作为子组件的 <c>Sx</c> 参数交下去，子组件把它排在自己的样式之后、只合成一个类
-    /// （两个类各自的规则谁先插入谁就输，结果不可靠）。
+    /// 而是作为子组件的 <c>Sx</c> 参数交下去（几层的分段保留着），子组件把它排在自己的样式之后合并。
     /// <code>&lt;Icon Data="Icon" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon)" /&gt;</code>
     /// </summary>
     public static Attrs MergeProps(Attrs? defaults, Attrs? user = null, Attrs? managed = null)
@@ -60,15 +64,15 @@ public sealed partial class Attrs
         var anchor = AnchorOf(defaults, user, managed);
         if (anchor?.mergeCache is { } hit && hit.Matches(MergeKind.Props, defaults, user, managed)) return hit.Result;
 
-        var styles = CollectStyles(defaults, user, managed);
+        var sx = Sx.Layers(defaults?.Sx, user?.Sx, managed?.Sx);
         var merged = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         MergeInto(merged, defaults);
         MergeInto(merged, user);
         MergeInto(merged, managed);
         // 键名与 RuneComponent.Sx 参数同名：展开到组件上时 Blazor 按名字设置这个参数
-        if (styles.Count > 0) merged[nameof(Sx)] = styles as Sx ?? Sx.Create([.. styles]);
+        if (sx is not null) merged[nameof(Sx)] = sx;
         var result = new Attrs { values = merged };
-        anchor?.mergeCache = new MergeEntry(MergeKind.Props, defaults, user, managed, result, null);
+        anchor?.mergeCache = new MergeEntry(MergeKind.Props, defaults, user, managed, result, []);
         return result;
     }
 
@@ -82,17 +86,16 @@ public sealed partial class Attrs
         var anchor = AnchorOf(defaults, user, managed);
         if (anchor?.mergeCache is { } hit && hit.Matches(MergeKind.Layer, defaults, user, managed)) return hit.Result;
 
-        var styles = CollectStyles(defaults, user, managed);
         var merged = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         MergeInto(merged, defaults);
         MergeInto(merged, user);
         MergeInto(merged, managed);
         var result = new Attrs
         {
-            Sx = styles.Count == 0 ? null : styles as Sx ?? Sx.Create([.. styles]),
+            Sx = Sx.Layers(defaults?.Sx, user?.Sx, managed?.Sx),
             values = merged.Count == 0 ? null : merged,
         };
-        anchor?.mergeCache = new MergeEntry(MergeKind.Layer, defaults, user, managed, result, null);
+        anchor?.mergeCache = new MergeEntry(MergeKind.Layer, defaults, user, managed, result, []);
         return result;
     }
 
@@ -119,32 +122,25 @@ public sealed partial class Attrs
 
     static bool IsBlank(Attrs? layer) => layer is null || (layer.values is null && layer.Sx is null);
 
-    /// <summary>按层的顺序收集样式；只有一层带样式时直接用它（渲染里最常见，不分配）。</summary>
-    static IReadOnlyList<Style> CollectStyles(Attrs? defaults, Attrs? user, Attrs? managed)
-    {
-        Sx? only = null;
-        var layersWithStyles = 0;
-        foreach (var layer in (ReadOnlySpan<Attrs?>)[defaults, user, managed])
-        {
-            if (layer?.Sx is not { Count: > 0 } sx) continue;
-            only = sx;
-            layersWithStyles++;
-        }
-        if (layersWithStyles <= 1) return only ?? (IReadOnlyList<Style>)[];
+    /// <summary>几层的样式按层分段编译（只有一层带样式时就是它自己的分段，渲染里最常见）。</summary>
+    static IReadOnlyList<CompiledStyle> CompileLayers(Attrs? defaults, Attrs? user, Attrs? managed) =>
+        Sx.Layers(defaults?.Sx, user?.Sx, managed?.Sx) is { } sx ? StyleCompiler.CompileSegments(sx.Segments) : [];
 
-        var styles = new List<Style>();
-        foreach (var layer in (ReadOnlySpan<Attrs?>)[defaults, user, managed])
-            if (layer?.Sx is { } sx) styles.AddRange(sx);
-        return styles;
+    static void Register(IReadOnlyList<CompiledStyle> compiled)
+    {
+        foreach (var style in compiled) StyleRegistry.Register(style);
     }
+
+    static string ClassNames(IReadOnlyList<CompiledStyle> compiled) =>
+        compiled.Count == 1 ? compiled[0].ClassName : string.Join(' ', compiled.Select(style => style.ClassName));
 
     /// <summary>算出一组样式的类名并登记规则（直接展开一层 Attrs 时用）。</summary>
     static string? CompileClass(Sx sx)
     {
-        var compiled = StyleCompiler.Compile(sx);
-        if (compiled is null) return null;
-        StyleRegistry.Register(compiled);
-        return compiled.ClassName;
+        var compiled = StyleCompiler.CompileSegments(sx.Segments);
+        if (compiled.Count == 0) return null;
+        Register(compiled);
+        return ClassNames(compiled);
     }
 
     static void MergeInto(Dictionary<string, object> merged, Attrs? layer)
@@ -181,7 +177,7 @@ public sealed partial class Attrs
     /// 上一次以这一层为锚的合并：几层是同样的对象（Attrs 创建后不变）时结果也一样，直接复用，不再收集样式、建字典。
     /// 条目不可变、整体替换：静态的默认层被几个电路同时用时，读到的总是某一次完整的结果。
     /// </summary>
-    sealed record MergeEntry(MergeKind Kind, Attrs? Defaults, Attrs? User, Attrs? Managed, Attrs Result, CompiledStyle? Compiled)
+    sealed record MergeEntry(MergeKind Kind, Attrs? Defaults, Attrs? User, Attrs? Managed, Attrs Result, IReadOnlyList<CompiledStyle> Compiled)
     {
         public bool Matches(MergeKind kind, Attrs? defaults, Attrs? user, Attrs? managed) =>
             Kind == kind && ReferenceEquals(Defaults, defaults) && ReferenceEquals(User, user) && ReferenceEquals(Managed, managed);

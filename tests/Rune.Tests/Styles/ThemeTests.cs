@@ -42,8 +42,9 @@ public class ThemeTests : IDisposable
 
         var className = ThemeStyles.ClassFor(light, dark, ColorScheme.System);
 
-        // color-scheme 按各自主题是亮是暗
+        // color-scheme 按各自主题是亮是暗；主题变量在最低的层，组件的规则（含它们改的变量）在上面的层
         var rule = Assert.Single(registry.Rules);
+        Assert.StartsWith("@layer rune.vars{", rule);
         Assert.Contains($".{className}{{--test-ink:black;color-scheme:light;}}", rule);
         Assert.Contains($"@media (prefers-color-scheme: dark){{.{className}{{--test-ink:white;color-scheme:dark;}}}}", rule);
     }

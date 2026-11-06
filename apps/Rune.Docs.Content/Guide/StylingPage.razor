@@ -49,6 +49,11 @@
         <Paragraph>
             使用方写的类、样式、属性与组件管理的合并，不会覆盖组件的状态与无障碍属性；事件处理叠在一起都会执行。
         </Paragraph>
+        <Paragraph>
+            组件库的规则都在 CSS 级联层里（<Code>rune.vars</Code> 是主题变量，<Code>rune.s0</Code>、<Code>rune.s1</Code>……依次是组件自己的、定制的、使用方的样式），
+            后面的层不论选择器多具体都盖过前面的，所以 <Code>Sx</Code> 与定制总能盖住组件的默认样式。应用自己不分层的全局 CSS 会盖过整个组件库：
+            重置样式（<Code>button { … }</Code> 这类）请放进更低的层，例如 <Code>@@layer reset { … }</Code> 并在最前面声明 <Code>@@layer reset, rune.vars;</Code>。
+        </Paragraph>
     </GuideSection>
 </DocPage>
 

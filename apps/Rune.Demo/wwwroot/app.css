@@ -1,17 +1,6 @@
+/* 组件库的样式都在级联层里（rune.vars、rune.s0…），这里不分层的规则会盖过它们：只写演示外壳自己的 */
 h1:focus {
     outline: none;
-}
-
-.valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
-}
-
-.invalid {
-    outline: 1px solid #e50000;
-}
-
-.validation-message {
-    color: #e50000;
 }
 
 .blazor-error-boundary {
@@ -24,18 +13,6 @@ h1:focus {
         content: "An error has occurred."
     }
 
-.darker-border-checkbox.form-check-input {
-    border-color: #929292;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-    color: var(--bs-secondary-color);
-    text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-    text-align: start;
-}
 /* 演示项目的外壳（不属于组件库） */
 body { margin: 0; font-family: system-ui, sans-serif; }
 .demo-shell { display: grid; grid-template-columns: 200px 1fr; min-height: 100vh; background: var(--rune-colors-background); color: var(--rune-colors-text); }

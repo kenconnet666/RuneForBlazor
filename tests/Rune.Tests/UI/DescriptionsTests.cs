@@ -58,8 +58,8 @@ public class DescriptionsTests : BunitContext
     {
         var cut = Render<Descriptions>(p => p.Add(x => x.Columns, 2).Add(x => x.ChildContent, Item("地址", "上海", span: 3)));
 
-        var className = cut.Find("dl > div").ClassName;
-        Assert.Contains(Registry.Rules, rule => rule.Contains($".{className}") && rule.Contains("grid-column:span 2"));
+        var classes = cut.Find("dl > div").ClassList;
+        Assert.Contains(Registry.Rules, rule => classes.Any(c => rule.Contains($".{c}")) && rule.Contains("grid-column:span 2"));
         Assert.Contains(Registry.Rules, rule => rule.Contains("@container (max-width: 32em)") && rule.Contains("grid-template-columns:1fr"));
     }
 

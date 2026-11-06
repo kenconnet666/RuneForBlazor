@@ -58,8 +58,10 @@ public class RuneProviderTests : BunitContext
             .Add(x => x.Styles, styles)
             .AddChildContent<Card>(c => c.Add(x => x.Header, b => b.AddContent(0, "标题"))));
 
-        var header = cut.Find("[data-scope=card][data-part=header]");
-        Assert.Contains(Registry.Rules, rule => rule.Contains($".{header.ClassName}{{") && rule.Contains("font-weight:700"));
+        // 组件自己的一段、定制的一段：定制在后面的层，盖过组件的
+        var classes = cut.Find("[data-scope=card][data-part=header]").ClassList.ToArray();
+        Assert.Equal(2, classes.Length);
+        Assert.Contains(Registry.Rules, rule => rule.StartsWith("@layer rune.s1{") && rule.Contains($".{classes[1]}{{") && rule.Contains("font-weight:700"));
     }
 
     [Fact]

@@ -167,7 +167,8 @@ public static class ThemeStyles
         foreach (var choice in choices ?? [])
             css += Rules($":root[{ChoiceAttribute}=\"{choice.Name}\"] {placeholder}", choice);
         var className = "rt" + StableHash.Of(css);
-        return new CompiledStyle(className, css.Replace("{0}", className, StringComparison.Ordinal));
+        // 主题变量在最低的层：组件的规则（含它们改的变量）在上面的层，宿主不分层的 CSS 盖过两者
+        return new CompiledStyle(className, $"@layer {StyleCompiler.VarsLayer}{{{css.Replace("{0}", className, StringComparison.Ordinal)}}}");
     }
 
     // 一套主题的规则：变量与 color-scheme（按主题本身是亮是暗），再加各条件块（@media 包在外面）

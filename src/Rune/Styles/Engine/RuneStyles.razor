@@ -30,12 +30,12 @@
         Registry.Changed += OnRulesChanged;
     }
 
-    // 上次渲染以来新登记的规则合成一块
+    // 上次渲染以来新登记的规则合成一块；每块开头声明级联层的顺序（规则都在层里，第一次出现层名之前就要定好顺序）
     void Collect()
     {
         var added = Registry.RulesFrom(collected);
         if (added.Count == 0) return;
-        chunks.Add((collected, string.Concat(added)));
+        chunks.Add((collected, StyleCompiler.LayerOrder + string.Concat(added)));
         collected += added.Count;
     }
 

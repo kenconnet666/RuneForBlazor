@@ -128,7 +128,7 @@ public class StyleCompilerTests
     {
         var compiled = Compile(new Style { [When.Hover] = new() { [Media.Up(768)] = new() { Color = "blue" } } });
 
-        Assert.Equal($"@media (min-width: 768px){{.{compiled.ClassName}:hover{{color:blue;}}}}", compiled.Css);
+        Assert.Equal($"@layer rune.s0{{@media (min-width: 768px){{.{compiled.ClassName}:hover{{color:blue;}}}}}}", compiled.Css);
     }
 
     [Fact]

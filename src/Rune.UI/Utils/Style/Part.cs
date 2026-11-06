@@ -29,7 +29,8 @@ public static class Part
         var customized = styles.Of(part);
         return new Attrs
         {
-            Sx = customized.Count == 0 ? sx : Sx.Create([.. sx, .. customized]),
+            // 配置的定制单独一段（一个类、一层）：组件的档位与定制相加而不是相乘
+            Sx = customized.Count == 0 ? sx : Sx.Layers(sx, Sx.Create([.. customized])),
             ["data-scope"] = scope,
             ["data-part"] = NameOf(part),
         };
