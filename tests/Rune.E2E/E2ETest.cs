@@ -14,7 +14,8 @@ public abstract class E2ETest(DemoServer demo) : IAsyncDisposable
     /// </summary>
     protected async Task<IPage> OpenAsync(string mode, string page)
     {
-        var context = await demo.Browser.NewContextAsync(new() { BaseURL = demo.BaseUrl, ViewportSize = new() { Width = 1280, Height = 900 } });
+        // 浏览器语言固定成 en-US（同 CI 的 Linux）：界面语言来自语言包，不随浏览器；本地的中文浏览器会掩盖这类问题
+        var context = await demo.Browser.NewContextAsync(new() { BaseURL = demo.BaseUrl, ViewportSize = new() { Width = 1280, Height = 900 }, Locale = "en-US" });
         contexts.Add(context);
         await context.GrantPermissionsAsync(["clipboard-read", "clipboard-write"]);
         var tab = await context.NewPageAsync();

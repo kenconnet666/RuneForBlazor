@@ -119,6 +119,8 @@
   `RuneUIOptions.Languages` 写了几套时按界面文化选（同 ASP.NET Core 的本地化：RequestLocalization 设好 CurrentUICulture）：UIConfig 改成 scoped，
   每个请求 / 电路第一次用到时按当时的文化取（`Lang.Match`：代码完全相同 → 语言相同 → 父文化），同一作用域里是同一个对象。
   vue-tsx-pro 的 toLocaleString 翻译成 `LangFormat.Number`：取不到文化数据时（WebAssembly 按需加载）用不变文化，不抛异常。
+  数字、金额的格式（`NumberFormat`，同 vue 的 NumericFormat）按语言包的语言、用 decimal 算；WebAssembly 默认只按浏览器语言加载一片 ICU 数据，
+  语言包的语言与浏览器不同时（英文浏览器看中文界面）取不到那个文化，所以 WebAssembly 应用要写 `BlazorWebAssemblyLoadAllGlobalizationData`（文档站、测试台都写了）。
 - **默认值**：每个组件一个 record（`CollapsibleDefaults`），属性可空，`Over` 定义叠加规则；组件上写的参数 > 最近的 Provider > 应用级 > 组件自己的默认值。
 - **按部件定制样式**：用组件的部件枚举（`CollapsiblePart.Trigger`）指定，写错编译不过；追加在组件样式之后、使用方的 Sx 之前，`Part.Of` 统一处理，组件不用为此写代码。
 - **不让下面的组件白白重新渲染**：Provider 的参数没变时给出同一个配置对象；配置是 record，级联参数与普通参数一样比较，没变就跳过。
