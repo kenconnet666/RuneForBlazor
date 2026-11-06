@@ -209,7 +209,7 @@ public class InputTests : BunitContext
 
         cut.WaitForAssertion(() =>
         {
-            var link = cut.Find("[data-part=summary-list] a");
+            var link = cut.Find("[data-part=summaryList] a");
             Assert.Equal("姓名：请填写姓名", link.TextContent.Trim());
             Assert.Equal(cut.Find("input").Id, link.GetAttribute("data-rune-focus"));
         });

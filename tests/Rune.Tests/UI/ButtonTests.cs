@@ -74,7 +74,7 @@ public class ButtonTests : BunitContext
         Assert.Equal("_blank", link.GetAttribute("target"));
         Assert.Equal("noopener noreferrer", link.GetAttribute("rel"));
         Assert.Contains("在新窗口打开", link.TextContent);
-        Assert.NotNull(cut.Find("[data-part=icon-end]"));
+        Assert.NotNull(cut.Find("[data-part=iconEnd]"));
     }
 
     [Fact]
