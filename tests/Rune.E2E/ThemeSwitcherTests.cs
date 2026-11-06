@@ -13,7 +13,7 @@ public class ThemeSwitcherTests(DemoServer demo) : E2ETest(demo)
         var root = page.Locator("html");
         var switcher = page.GetByTestId("switcher");
         var trigger = page.Locator($"[popovertarget='{await switcher.GetAttributeAsync("id")}']");
-        // 示例的效果区（表面色衬底）
+        // 示例的效果区（页面底色衬底）
         var canvas = page.Locator("[data-demo]").First;
 
         // 没选过：跟随系统（测试浏览器是亮色）
@@ -23,7 +23,7 @@ public class ThemeSwitcherTests(DemoServer demo) : E2ETest(demo)
         await trigger.ClickAsync();
         await switcher.GetByRole(AriaRole.Menuitemradio, new() { Name = "纸张" }).ClickAsync();
         await Assertions.Expect(root).ToHaveAttributeAsync("data-theme", "paper");
-        await Assertions.Expect(canvas).ToHaveCSSAsync("background-color", "rgb(250, 245, 232)");
+        await Assertions.Expect(canvas).ToHaveCSSAsync("background-color", "rgb(245, 239, 223)");
         await Assertions.Expect(switcher).Not.ToBeVisibleAsync();
         await Assertions.Expect(switcher.Locator("[data-rune-theme-choice=paper]")).ToHaveAttributeAsync("aria-checked", "true");
         Assert.Equal(
