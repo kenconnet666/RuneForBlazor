@@ -216,10 +216,10 @@ public static class ButtonStyles
     });
 
     /// <summary>显示密码按钮的标记：图标按它的 aria-pressed 切换（不认外面别的按下状态，如切换按钮组里的项）。</summary>
-    public static readonly Marker RevealMarker = Css.Marker("rune-reveal-button");
+    internal static readonly Marker RevealMarker = Css.Marker("rune-reveal-button");
 
     /// <summary>复制按钮的标记：图标按它的 data-state 切换。</summary>
-    public static readonly Marker CopyMarker = Css.Marker("rune-copy-button");
+    internal static readonly Marker CopyMarker = Css.Marker("rune-copy-button");
 
     /// <summary>显示密码按钮平时的图标（睁眼）：按下后（aria-pressed）隐藏。</summary>
     internal static Style RevealIcon => Css.Define(static () => new Style

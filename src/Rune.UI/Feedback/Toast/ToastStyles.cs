@@ -61,7 +61,7 @@ public static class ToastStyles
         });
 
     /// <summary>在顶部：最新的通知在最上面，进场从上方滑入。</summary>
-    public static bool FromTop(ToastPlacement placement) => placement is ToastPlacement.Top or ToastPlacement.TopStart or ToastPlacement.TopEnd;
+    internal static bool FromTop(ToastPlacement placement) => placement is ToastPlacement.Top or ToastPlacement.TopStart or ToastPlacement.TopEnd;
 
     /// <summary>正在离场的一项：淡出（高度由 Collapse 收起）。</summary>
     internal static Style ItemClosing => Css.Define(static () => new Style

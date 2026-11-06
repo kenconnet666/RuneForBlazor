@@ -40,10 +40,10 @@ public static class CommandPaletteStyles
         });
 
     /// <summary>对话框：停在视口上部而不是正中，结果变多变少时输入框不跳。</summary>
-    public static Style Dialog => Css.Define(static () => new Style { MarginBlockStart = CssLength.Dvh(12) });
+    internal static Style Dialog => Css.Define(static () => new Style { MarginBlockStart = CssLength.Dvh(12) });
 
     /// <summary>对话框的正文：结果列表贴边。</summary>
-    public static Style Body => Css.Define(static () => new Style { Padding = 0 });
+    internal static Style Body => Css.Define(static () => new Style { Padding = 0 });
 
     // 窄屏（40rem 以下）只留放大镜图标，不挤占顶栏
     static Style Trigger => Css.Define(static () => new Style

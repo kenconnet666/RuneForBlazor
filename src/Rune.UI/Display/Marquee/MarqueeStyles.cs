@@ -22,7 +22,7 @@ public enum MarqueeDirection
 /// 跑马灯的样式（同 vue-tsx-pro 的 marqueeStyles）：两份内容并排，动画平移 -50% 正好是一份（含它后面的间距），无缝循环。
 /// 一圈的时长由 JS 按一份内容的长度与速度算出，写在 --rune-marquee-duration 上；减少动态效果时不滚动，变成可以手动滚动的区域。
 /// </summary>
-public static class MarqueeStyles
+internal static class MarqueeStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它
     static readonly CssVar<CssValue> Duration = CssVar.Value("rune-marquee-duration");

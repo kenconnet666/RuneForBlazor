@@ -66,5 +66,5 @@ public static class ColorFieldStyles
     });
 
     /// <summary>文字输入框上叠加的等宽字体：#hex 各位对齐，改一位时不跳动（输入框的部件仍是 InputPart.Input）。</summary>
-    public static Style MonoInput => Css.Define(static () => new Style { FontFamily = Fonts.Mono, FontVariantLigatures = FontVariantLigatures.None });
+    internal static Style MonoInput => Css.Define(static () => new Style { FontFamily = Fonts.Mono, FontVariantLigatures = FontVariantLigatures.None });
 }

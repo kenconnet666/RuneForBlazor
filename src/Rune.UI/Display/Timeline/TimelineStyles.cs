@@ -6,7 +6,7 @@ namespace Rune.UI;
 /// 时间线的样式（同 vue-tsx-pro 的 timelineStyles）。每项是独立的网格：节点一列、内容一列，交替排布时三列（左内容、节点、右内容）；
 /// 节点列至少有图标节点那么宽，圆点、图标、加载指示混排时各项才对得齐。交替排布按容器宽度切换（窄于 32em 排回一侧）。
 /// </summary>
-public static class TimelineStyles
+internal static class TimelineStyles
 {
     static readonly Condition Narrow = Containers.MaxWidth(CssLength.Em(32));
 

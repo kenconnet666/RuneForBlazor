@@ -42,7 +42,7 @@ public static class TableOfContentsStyles
         });
 
     /// <summary>按级别缩进：2 级贴着细线留一档，往下每级多一档。</summary>
-    public static Style Indent(int level) => Css.Define(Math.Max(level - 1, 1), static steps => new Style
+    internal static Style Indent(int level) => Css.Define(Math.Max(level - 1, 1), static steps => new Style
     {
         PaddingInlineStart = CssLength.Em(steps * 0.75),
     });

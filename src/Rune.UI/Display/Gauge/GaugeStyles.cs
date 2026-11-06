@@ -11,7 +11,7 @@ public sealed record GaugeBand(decimal To, Tone Tone);
 /// 仪表盘的样式（同 vue-tsx-pro 的 gaugeStyles）：宽 10em，随字号缩放。数值弧与外圈区间用明亮的实色——它们只是辅助，
 /// 数值以文字给出（中间与读屏），不需要文字的对比度。
 /// </summary>
-public static class GaugeStyles
+internal static class GaugeStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它
     static readonly CssVar<CssColor> Color = CssVar.Color("rune-gauge-color");

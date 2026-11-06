@@ -3,7 +3,7 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>主栏 + 侧栏的样式（同 vue-tsx-pro 的 asideLayoutStyles）：外层是容器查询的容器，宽到 56rem 才分两栏、侧栏才粘住。</summary>
-public static class AsideLayoutStyles
+internal static class AsideLayoutStyles
 {
     /// <summary>分两栏的容器宽度。</summary>
     static readonly Condition Wide = Containers.MinWidth(CssLength.Rem(56));

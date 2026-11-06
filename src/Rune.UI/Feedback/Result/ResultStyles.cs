@@ -51,7 +51,7 @@ public sealed record ResultDefaults : IComponentDefaults<ResultDefaults>
 public static class ResultStyles
 {
     /// <summary>状态码（显示在标题上方）。</summary>
-    public static string CodeOf(ResultStatus status) => status switch
+    internal static string CodeOf(ResultStatus status) => status switch
     {
         ResultStatus.Forbidden => "403",
         ResultStatus.NotFound => "404",
@@ -59,7 +59,7 @@ public static class ResultStyles
     };
 
     /// <summary>状态的图标与色调。</summary>
-    public static (IconData Icon, Tone Tone) LookOf(ResultStatus status) => status switch
+    internal static (IconData Icon, Tone Tone) LookOf(ResultStatus status) => status switch
     {
         ResultStatus.Forbidden => (BuiltInIcons.ShieldX, Tone.Warning),
         ResultStatus.NotFound => (BuiltInIcons.FileQuestionMark, Tone.Info),

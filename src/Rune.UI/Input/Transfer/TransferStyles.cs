@@ -48,7 +48,7 @@ public static class TransferStyles
         });
 
     /// <summary>搜索框占满宽度。</summary>
-    public static Style SearchField => Css.Define(static () => new Style { Width = CssLength.Percent(100) });
+    internal static Style SearchField => Css.Define(static () => new Style { Width = CssLength.Percent(100) });
 
     // 窄屏时上下排，按钮换成上下箭头
     static readonly Condition Narrow = Media.Query("(max-width: 40rem)");

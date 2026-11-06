@@ -11,6 +11,9 @@
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />
+    <!-- 组件的样式表不公开（外观定制走 Components 入口与部件属性），测试与基准要直接核对 -->
+    <InternalsVisibleTo Include="Rune.Tests" />
+    <InternalsVisibleTo Include="Rune.Benchmarks" />
   </ItemGroup>
 
   <ItemGroup>

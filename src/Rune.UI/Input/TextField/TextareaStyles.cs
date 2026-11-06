@@ -4,7 +4,7 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>多行文本框里 textarea 的样式（同 vue-tsx-pro 的 textareaStyles）：外壳与 TextField 相同，InputStyles 的 Input 部件在多行时叠上这些。</summary>
-public static class TextareaStyles
+internal static class TextareaStyles
 {
     // 随外壳拉伸：外壳给了高度时文字区占满，不停在基线上；原生控件换不了浮层滚动条，改细
     internal static Style Textarea => Css.Define(static () => new Style

@@ -17,7 +17,7 @@ vue-tsx-pro 在做一轮样式体系的联合改造（架构、整理、API、�
 | 阶段 2：size、radius、tone 进配方档位 | 多数配方的键已含这些档位（`IconStyles.Of(size, tone, …)`），定制排在组件样式之后；个别组件在配方之外再叠 `ScaleStyles.Radius` | 逐个核对，叠在配方外的移进配方 |
 | 阶段 2：每个内部节点都是部件、`data-scope` 用实际组件名 | 约 90 个组件走 `Recipe.Of`（有 `data-scope` / `data-part`、可定制）；阶段 2 后半新做的组件（Image、Lightbox、Sortable、Stat、Watermark、Splitter……）用的是内部静态 `Attrs`，没有部件标记、定制不到 | 这些组件补成配方（vue 那边同样在补）；`data-scope` 跟着 vue 的改名走（parity 按它配对） |
 | 阶段 2：外观词表 | `Tone`（6 个状态色）与 `TextTone`（含 muted、inherit）已经分开，正是 vue 的最终取舍 | **已跟进**：Skeleton `Variant` → `Shape`、Sparkline `Variant` → `Type`；Dialog / Drawer 的 `Size`（宽度）照 vue 的决定不改 |
-| 阶段 2：入口不再导出内部样式表 | 组件的 `XxxStyles` 多是 public（配方、部件枚举要给定制用），里面的单个样式多是 private / internal | 只留部件枚举与 `Of`（配方）public，其余 internal；有了 `Components` 入口后再收 |
+| 阶段 2：入口不再导出内部样式表 | 组件的 `XxxStyles` 多是 public（配方、部件枚举要给定制用），里面的单个样式多是 private / internal | **已做**（2026-11-06）：配方类只留 `Of`（部件层）与 CSS 变量钩子 public，没有配方的样式表整类 internal（25 个）；共用件（`Utils/Style`、`ScaleStyles`、`FloatingStyles`、`OverlayTransitions`）照常公开；测试与基准经 `InternalsVisibleTo` |
 | 阶段 3 整理：共用片段、条件别名、裸值换 token | `SharedStyles`（ButtonReset、FocusRing、InteractionColors……）、`ItemStyles`、`ShimmerStyles` 已有；`When.*` 条件别名已统一；分析器 RUNE006 / RUNE007 管着类型化取值与 px | 按 vue 的片段清单补齐（pressable、disabled、disclosure 箭头、scrim / onScrim token……），裸值（Lightbox、Upload 的遮罩色）换 token |
 | 阶段 4 美学：token 与主题 | 主题由 `tools/theme-gen` 从 vue 的主题生成（`Themes.g.cs`） | **跟进了已完成的部分**（见第 3 节）：重新生成主题、跟随系统的增强对比度、elevated 卡片的边框、控件高度（xs 24 … xl 40）、中文字重、着色页面、表单标签与字段行距、小浮层的进出场；标题阶梯等 vue 做完再跟。波纹 vue 最后保持默认开启，Rune 本来就是 |
 | 阶段 5 文档 | `docs/DESIGN.md`、文档站的样式与主题页 | 同步规范与迁移说明 |

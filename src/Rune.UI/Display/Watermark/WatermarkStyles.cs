@@ -3,7 +3,7 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>水印的样式（同 vue-tsx-pro 的 watermarkStyles）：包着内容的一层相对定位，水印那一层盖在上面、不挡操作。</summary>
-public static class WatermarkStyles
+internal static class WatermarkStyles
 {
     internal static readonly Attrs Root = new() { Sx = RootStyle };
     internal static readonly Attrs Layer = new() { Sx = LayerStyle };

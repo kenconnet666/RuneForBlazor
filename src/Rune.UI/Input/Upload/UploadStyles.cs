@@ -16,7 +16,7 @@ public enum UploadListType
 /// 上传的样式（同 vue-tsx-pro 的 uploadStyles）：选文件的区域在上，文件一行一个列在下面；
 /// 图片墙是一排同样大小的格子（边长是 --rune-upload-thumbnail），拖动排序的位移由 JS 写在格子上（同 Sortable）。
 /// </summary>
-public static class UploadStyles
+internal static class UploadStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它们
     internal static readonly CssVar<CssLength> ThumbnailVar = CssVar.Length("rune-upload-thumbnail", "104px");

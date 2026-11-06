@@ -3,7 +3,7 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>截断的文字的样式（同 vue-tsx-pro 的 ellipsisStyles）：单行省略或按行数截断；截断了（JS 写 data-truncated）才显示展开按钮、能聚焦。</summary>
-public static class EllipsisStyles
+internal static class EllipsisStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它
     static readonly Marker RootMarker = Css.Marker("rune-ellipsis");

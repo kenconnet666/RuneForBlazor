@@ -17,7 +17,7 @@ public sealed record ProportionSegment(string Key, string Label, decimal Value)
 }
 
 /// <summary>比例条的样式（同 vue-tsx-pro 的 proportionBarStyles）。</summary>
-public static class ProportionBarStyles
+internal static class ProportionBarStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它
     /// <summary>一段的份额（flex-grow）：经它写在段上（类不随数量变化）。</summary>

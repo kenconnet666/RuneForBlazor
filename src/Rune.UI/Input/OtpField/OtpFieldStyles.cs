@@ -35,7 +35,7 @@ public enum OtpCharset
 public static class OtpFieldStyles
 {
     /// <summary>外层的标记：校验未通过、不可用时格子跟着变。</summary>
-    public static readonly Marker RootMarker = Css.Marker("rune-otp");
+    internal static readonly Marker RootMarker = Css.Marker("rune-otp");
 
     /// <summary>某个字号档位、某套定制下各部件的默认层。</summary>
     public static PartLayers<OtpFieldPart> Of(Size? size, ComponentStyles styles) =>

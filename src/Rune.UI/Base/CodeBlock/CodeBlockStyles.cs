@@ -88,7 +88,7 @@ public static class CodeBlockStyles
         });
 
     /// <summary>一行的标记样式；普通的行没有。</summary>
-    public static Style? MarkOf(CodeLineMark mark) => mark switch
+    internal static Style? MarkOf(CodeLineMark mark) => mark switch
     {
         CodeLineMark.Highlighted => Highlighted,
         CodeLineMark.Added => Added,

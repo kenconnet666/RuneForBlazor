@@ -117,16 +117,16 @@ public static class AppShellStyles
         });
 
     /// <summary>两侧栏滚动区域的视口：滚到头不带动页面。</summary>
-    public static Style RailViewport => Css.Define(static () => new Style { OverscrollBehavior = OverscrollBehavior.Contain });
+    internal static Style RailViewport => Css.Define(static () => new Style { OverscrollBehavior = OverscrollBehavior.Contain });
 
     /// <summary>左侧栏滚动区域的内容层；紧凑（图标栏）时两边只留一点，图标居中。</summary>
-    public static Style SidebarContent(bool compact) => compact ? SidebarContentCompact : SidebarContentFull;
+    internal static Style SidebarContent(bool compact) => compact ? SidebarContentCompact : SidebarContentFull;
 
     /// <summary>右侧栏滚动区域的内容层。</summary>
-    public static Style AsideContent => Css.Define(static () => new Style { PaddingBlock = Space.Xl, PaddingInline = Space.Lg });
+    internal static Style AsideContent => Css.Define(static () => new Style { PaddingBlock = Space.Xl, PaddingInline = Space.Lg });
 
     /// <summary>品牌的产品名：侧栏收起成图标栏（宽屏）时只留给读屏。</summary>
-    public static Style BrandNameCollapsed => Css.Define(static () => new Style
+    internal static Style BrandNameCollapsed => Css.Define(static () => new Style
     {
 #pragma warning disable RUNE007 // 同 SharedStyles.VisuallyHidden，只在宽屏时
         [Breakpoints.Lg] = new()

@@ -25,7 +25,7 @@ public enum ImageFit
 /// 图片与图片组的样式（同 vue-tsx-pro 的 imageStyles、imageGroupStyles）。加载状态由 JS 初始化器写在图片的 data-state 上（loaded / error），
 /// 不用等往返：加载中图片透明、下面的占位在扫光；加载好了淡入、占位藏起来；失败了图片藏起来，露出失败的占位。
 /// </summary>
-public static class ImageStyles
+internal static class ImageStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它们
     internal static readonly CssVar<CssLength> WidthVar = CssVar.Length("rune-image-width", "auto");

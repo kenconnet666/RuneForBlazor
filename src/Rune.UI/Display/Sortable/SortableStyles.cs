@@ -7,7 +7,7 @@ namespace Rune.UI;
 /// 让位的项带过渡；被拖着的（data-dragging）不带过渡、浮在上面；键盘拿起的（data-grabbed）同样浮起。
 /// 顺序跟上后 JS 在列表上写 data-settling，去掉位移时不要过渡。
 /// </summary>
-public static class SortableStyles
+internal static class SortableStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它们
     static readonly Marker ListMarker = Css.Marker("rune-sortable");

@@ -3,7 +3,7 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>完成清单的样式（同 vue-tsx-pro 的 checklistStyles）：状态一列、内容一列、操作一列，状态贴着名称那一行。</summary>
-public static class ChecklistStyles
+internal static class ChecklistStyles
 {
     internal static readonly Attrs Root = new() { Sx = RootStyle };
     internal static readonly Attrs Summary = new() { Sx = SummaryStyle };

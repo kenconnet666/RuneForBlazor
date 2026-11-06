@@ -3,7 +3,7 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>固钉与回到顶部的样式（同 vue-tsx-pro 的 affixStyles、backTopStyles）。</summary>
-public static class AffixStyles
+internal static class AffixStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它
     /// <summary>贴住时离顶部（或底部）的距离：经它写在元素上（类不随距离变化）。</summary>

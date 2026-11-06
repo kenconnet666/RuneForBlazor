@@ -50,7 +50,7 @@ public static class MentionSegments
 }
 
 /// <summary>提及的样式（同 vue-tsx-pro 的 mentionStyles）。</summary>
-public static class MentionStyles
+internal static class MentionStyles
 {
     /// <summary>提及：强调色的文字，浅底。</summary>
     public static Style Mention => Css.Define(static () => new Style

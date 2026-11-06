@@ -6,7 +6,7 @@ namespace Rune.UI;
 /// 图片预览的样式（同 vue-tsx-pro 的 lightboxStyles）：占满视口的深色 dialog，不跟主题变（看图片本身的颜色）。
 /// 平移、缩放、旋转由 JS 写在内容与图片的行内样式上；拖动、捏合时（视口上的 data-interacting）内容不要过渡。
 /// </summary>
-public static class LightboxStyles
+internal static class LightboxStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它们
     static readonly Condition Interacting = When.Parent(When.Attribute("[data-interacting]"));

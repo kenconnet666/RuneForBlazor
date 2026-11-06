@@ -94,6 +94,7 @@
 - **目录**（同 vue-tsx-pro 的 `packages/ui/src`）：组件按分类放在顶层（`Base`、`Layout`、`Display`、`Feedback`、`Overlay`、`Navigation`、`Input`、`Form`、`Table`、`Patterns`、`DocsKit`），
   一个组件和它的变体、样式文件放一个文件夹（`Base/Button/` 里有 Button、IconButton、LinkButton、ButtonStyles；一组紧密相关的组件同样一个文件夹，`Input/Choice/` 是勾选框、单选、开关），
   同一分类里几个组件共用的代码直接放在分类这一层（`Input/FormControl`、`InputStyles`，`Overlay/Floating`、`OverlayTransitions`，`Layout/LayoutStyles`）。
+  公开面（同 vue-tsx-pro 0.11）：外观定制只走 `Components` 入口与部件属性；样式类公开的只有配方的 `Of`（部件层，自建组件可以借用）、CSS 变量钩子与共用件，组件内部的单个样式与没有配方的样式表是 internal。
   `Config/` 是配置层与组件基类（UIConfig、RuneProvider、UIComponent），下分 `Theme/`（token、色调、内置主题）与 `Lang/`（语言包）；
   `Utils/` 是组件共用的工具：`Style/`（配方与部件、共用样式）、`Data/`（列表状态、颜色解析、文字匹配）、`Dom/`（JS 初始化器发出的事件、UniqueId）。
   文件夹不对应命名空间，类型都在 `Rune.UI`。文档页（`apps/Rune.Docs.Content/Components/{分类}/`）、测试（`tests/Rune.Tests/{Runtime,UI,TestComponents}/`）同样按分类收纳。

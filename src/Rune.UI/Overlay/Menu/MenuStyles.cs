@@ -72,7 +72,7 @@ public static class MenuStyles
         });
 
     /// <summary>有说明时文字层的追加样式：文字与说明上下排。</summary>
-    public static Style StackedLabel => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column });
+    internal static Style StackedLabel => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column });
 
     // 菜单项多时在里面的滚动区域里滚动（最大高度由 JS 按视口剩下的空间写在浮层上）
     static Style Root => Css.Define(static () => new Style

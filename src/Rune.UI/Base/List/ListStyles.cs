@@ -12,7 +12,7 @@ public sealed record ListMarker(IconData? Icon, Attrs? PropsIcon)
 }
 
 /// <summary>正文列表的样式（同 vue-tsx-pro 的 listStylesProse）：缩进与项目之间的间距；有图标时不要圆点、不缩进。</summary>
-public static class ListStyles
+internal static class ListStyles
 {
     /// <summary>列表元素（ul、ol）的默认层：按间距、字号与标记（圆点、编号、图标）缓存。</summary>
     internal static Attrs Of(SpaceScale gap, Size? size, ListKind kind) =>

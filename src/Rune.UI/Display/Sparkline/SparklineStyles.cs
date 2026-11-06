@@ -16,7 +16,7 @@ public enum SparklineType
 }
 
 /// <summary>迷你图的样式（同 vue-tsx-pro 的 sparklineStyles）：颜色来自外层的 --rune-tone-fill（SharedStyles.ToneFill）。</summary>
-public static class SparklineStyles
+internal static class SparklineStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它们
     internal static readonly CssVar<CssLength> HeightVar = CssVar.Length("rune-sparkline-height", "2em");

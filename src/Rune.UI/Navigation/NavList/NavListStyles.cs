@@ -111,7 +111,7 @@ public static class NavListStyles
         });
 
     /// <summary>分组、紧凑分组里的列表：缩进；紧凑时不缩进。</summary>
-    public static Style Nested(bool compact) => compact ? CompactNested : NestedList;
+    internal static Style Nested(bool compact) => compact ? CompactNested : NestedList;
 
     static Style NestedList => Css.Define(static () => new Style { PaddingInlineStart = Space.Lg, PaddingTop = Space.Xs });
 

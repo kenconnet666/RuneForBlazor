@@ -152,7 +152,7 @@ public static class ChoiceStyles
     });
 
     /// <summary>单选组的标记：组校验未通过（aria-invalid）时里面的单选变红；不认外面别的控件的 aria-invalid。</summary>
-    public static readonly Marker GroupMarker = Css.Marker("rune-radio-group");
+    internal static readonly Marker GroupMarker = Css.Marker("rune-radio-group");
 
     // 自己校验未通过，或在校验未通过的组（单选组的 aria-invalid）里
     static Style Invalid => Css.Define(static () => new Style

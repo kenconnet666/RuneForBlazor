@@ -34,7 +34,7 @@ public static class RatingStyles
     public static readonly CssVar<CssLength> Fill = CssVar.Length("rune-rating-fill");
 
     /// <summary>星的标记：勾选的分数在后面哪颗星里，由兄弟关系判断。</summary>
-    public static readonly Marker StarMarker = Css.Marker("rune-rating-star");
+    internal static readonly Marker StarMarker = Css.Marker("rune-rating-star");
 
     // 每颗星的边长
     static readonly CssLength StarSize = CssLength.Em(1.35);
@@ -101,7 +101,7 @@ public static class RatingStyles
     });
 
     /// <summary>外层的标记：不可用时星不放大、不像能点。</summary>
-    public static readonly Marker RatingMarker = Css.Marker("rune-rating");
+    internal static readonly Marker RatingMarker = Css.Marker("rune-rating");
 
     static Style ReadOnlyStar => Css.Define(static () => new Style { Cursor = Cursor.Default, [When.Hover] = new() { Scale = 1 } });
 

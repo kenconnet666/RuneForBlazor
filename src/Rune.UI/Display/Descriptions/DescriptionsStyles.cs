@@ -103,7 +103,7 @@ public static class DescriptionsStyles
         });
 
     /// <summary>有复制按钮的值：按钮紧跟在文字后面，文字换行时按钮在第一行。</summary>
-    public static Style ValueCopyable => Css.Define(static () => new Style
+    internal static Style ValueCopyable => Css.Define(static () => new Style
     {
         Display = Display.Flex,
         AlignItems = AlignItems.Baseline,

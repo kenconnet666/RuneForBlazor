@@ -152,7 +152,7 @@ public static class TableStyles
         });
 
     /// <summary>对齐（单元格、列标题共用；之后的 DataTable 也用）。</summary>
-    public static Style AlignOf(TableAlign align) => align switch
+    internal static Style AlignOf(TableAlign align) => align switch
     {
         TableAlign.Center => AlignCenter,
         TableAlign.End => AlignEnd,
@@ -160,10 +160,10 @@ public static class TableStyles
     };
 
     /// <summary>可以换行（静态表格的单元格默认如此；不换行时超出的部分省略号）。</summary>
-    public static Style Wrap => Css.Define(static () => new Style { WhiteSpace = WhiteSpace.Normal, OverflowWrap = OverflowWrap.Anywhere });
+    internal static Style Wrap => Css.Define(static () => new Style { WhiteSpace = WhiteSpace.Normal, OverflowWrap = OverflowWrap.Anywhere });
 
     /// <summary>写了列宽时：宽度取 <see cref="ColumnWidth"/>。</summary>
-    public static Style Width => Css.Define(static () => new Style { Width = ColumnWidth });
+    internal static Style Width => Css.Define(static () => new Style { Width = ColumnWidth });
 
     static Style AlignStart => Css.Define(static () => new Style { TextAlign = TextAlign.Start });
 

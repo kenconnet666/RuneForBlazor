@@ -4,7 +4,7 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>选文件区域的样式（同 vue-tsx-pro 的 fileDropStyles）。</summary>
-public static class FileDropStyles
+internal static class FileDropStyles
 {
     /// <summary>区域（label）：虚线框，拖着文件经过（data-dragging）时变成强调色。</summary>
     internal static Attrs Root(bool invalid, bool locked) => Css.Define((invalid, locked), static k => new Attrs

@@ -6,7 +6,7 @@ namespace Rune.UI;
 /// 统计数值的样式（同 vue-tsx-pro 的 statStyles）：第一行是图标与指标名、结束边是变化量，第二行是数值，其余各占一整行。
 /// 可换行的弹性布局而不是两列网格：卡片窄时变化量换到下一行，指标名不被挤成一字一行；DOM 顺序不变（读屏仍是名称、数值、变化量）。
 /// </summary>
-public static class StatStyles
+internal static class StatStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它
     /// <summary>StatGroup 每个指标的最小宽度：经它写在外层上（类不随宽度变化）。</summary>

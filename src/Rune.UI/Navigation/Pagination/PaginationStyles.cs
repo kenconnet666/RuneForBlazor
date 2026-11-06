@@ -66,22 +66,22 @@ public static class PaginationStyles
         });
 
     /// <summary>每页条数：所有选项的文字叠在同一格，按最宽的那个撑开，只显示选中的（换条数时按钮不变宽窄）。</summary>
-    public static Style SizeStack => Css.Define(static () => new Style { Display = Display.InlineGrid });
+    internal static Style SizeStack => Css.Define(static () => new Style { Display = Display.InlineGrid });
 
     /// <summary>每页条数的一个选项文字；没选中的加 <see cref="Hidden"/>。</summary>
-    public static Style SizeOption => Css.Define(static () => new Style { GridArea = "1 / 1" });
+    internal static Style SizeOption => Css.Define(static () => new Style { GridArea = "1 / 1" });
 
     /// <summary>占位但看不见。</summary>
-    public static Style Hidden => Css.Define(static () => new Style { Visibility = Visibility.Hidden });
+    internal static Style Hidden => Css.Define(static () => new Style { Visibility = Visibility.Hidden });
 
     /// <summary>跳页的外层。</summary>
-    public static Style JumpRoot => Css.Define(static () => new Style { Display = Display.InlineFlex, AlignItems = AlignItems.Center, Gap = Space.Sm });
+    internal static Style JumpRoot => Css.Define(static () => new Style { Display = Display.InlineFlex, AlignItems = AlignItems.Center, Gap = Space.Sm });
 
     /// <summary>跳页的输入框：放得下三四位页码。</summary>
-    public static Style JumpInput => Css.Define(static () => new Style { Width = CssLength.Em(4.5) });
+    internal static Style JumpInput => Css.Define(static () => new Style { Width = CssLength.Em(4.5) });
 
     /// <summary>跳页前后的提示文字。</summary>
-    public static Style JumpText => Css.Define(static () => new Style { Color = Colors.TextMuted, WhiteSpace = WhiteSpace.Nowrap });
+    internal static Style JumpText => Css.Define(static () => new Style { Color = Colors.TextMuted, WhiteSpace = WhiteSpace.Nowrap });
 
     static Style Root => Css.Define(static () => new Style
     {

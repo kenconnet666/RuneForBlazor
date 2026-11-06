@@ -16,7 +16,7 @@ public enum SplitterSide
 /// 分栏的样式（同 vue-tsx-pro 的 splitterStyles）：三格的网格（起始一栏、分隔条、结束一栏），两栏的份额经 --rune-split-start / -end（fr）给，
 /// 拖动时 JS 直接改这两个变量；收起的一侧（data-collapsed）那一格是 0，另一栏占满。
 /// </summary>
-public static class SplitterStyles
+internal static class SplitterStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它们
     internal static readonly CssVar<CssValue> Start = CssVar.Value("rune-split-start");
