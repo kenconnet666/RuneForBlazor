@@ -117,9 +117,12 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
     Switch 还缺 Loading、CheckedContent / UncheckedContent 与对应的部件属性，进阶段 1；
   - [x] 文档站 54 页全部跑了对照（亮色）。修掉的系统性问题：部件名同 vue 保留 camelCase（`headerCell`，之前转成了连字符，多词部件从没配上对）；
     对照工具跳过代码高亮的词元与看不见的元素；Avatar 图片加载后不再显示后备内容；CodeBlock 展开按钮建在按钮重置样式上；分页的页码按钮保留 Button 的标记；
-  - [ ] 剩下的差异逐页处理：form-section / form 的 admission 示例（等阶段 2 的 AsideLayout）、rating 的 review、menu 的 account、transfer、progress、skeleton（等 Stat）、
-    text-field 的 formats、checkbox 的 switch（等 Switch 补齐）、table 的 invoice 页脚、popconfirm、dialog 的进出场（vue 用 transform，这边用 scale 属性）；
-    部件标记与 vue 不同、配不上对的：Tabs（vue 的标签项是单独的 Tab 配方：`tab/root`、`tab/close`）、Card 的 skeleton、Table 的 rowHeader、输入框外壳的 input/*；
+  - [x] 部件标记与 vue 对齐：Tabs 的标签项单独成 Tab 配方（tab/root、tab/close）；分页的页码按钮、标签栏的按钮保留 Button 的标记（`Part.Unmarked`）；
+    表尾的行标题保留 table/rowHeader；Card 加了 skeleton 部件。新增 vue 的 `ButtonBase`（无外观的按钮，原来的按钮基类改名 `ButtonCore`），Menu 的示例与 ButtonBase 页照 vue 写；
+    Field 不写 Required 时看 `[Required]`（同 vue 的 form.Field 按 schema 标必填）；对照工具不比关键帧名、跳过看不见的元素；
+  - [ ] 剩下的差异（menu、tabs 已经 0 差异）：transfer 的 members、progress、card 的 effects、dialog 的进出场（这边用独立的 scale 属性，vue 用 transform，视觉一致）；
+    等别的组件的：form-section / form 的 admission（AsideLayout）、skeleton（Stat）、checkbox 的 switch（Switch 补齐）；
+    内容不同造成的宽度差（code、toast、loading-bar、button-base 的文字）与 rating（每颗星多一层填色，DESIGN 里写过）不处理；
   - [x] HANDOFF 的路径与“下一步”。
 - [~] R.3 Blazor 化的 API 纠正（按“Blazor 化的约定”）：
   - [x] 可聚焦的组件公开 `Element` 与 `FocusAsync()`（输入类、按钮家族；NumberRangeField、Mentions 转给里面的；一组控件是 null）；
