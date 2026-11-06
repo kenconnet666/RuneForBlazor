@@ -29,4 +29,12 @@
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <EnableSourceLink>false</EnableSourceLink>
   </PropertyGroup>
+
+  <!--
+    语言服务器（csharp-ls，环境变量 RuneLanguageServer=true）里，生成器与代码修复从启动时拷出的副本（bin\ls\）加载：
+    它加载了就锁住文件，锁的是副本，正式构建照常写 bin\。见 .claude/marketplace/rune-csharp-lsp/start.mjs
+  -->
+  <PropertyGroup Condition="'$(RuneLanguageServer)' == 'true' And ('$(MSBuildProjectName)' == 'Rune.Generators' Or '$(MSBuildProjectName)' == 'Rune.CodeFixes')">
+    <BaseOutputPath>bin\ls\</BaseOutputPath>
+  </PropertyGroup>
 </Project>

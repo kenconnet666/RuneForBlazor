@@ -32,10 +32,10 @@ export function findDotnet() {
   return { dotnet, env };
 }
 
-/** 在仓库根目录用找到的 dotnet 执行命令，标准输入输出直通，退出码跟着子进程 */
-export function runDotnet(args) {
+/** 在仓库根目录用找到的 dotnet 执行命令，标准输入输出直通，退出码跟着子进程；extraEnv 是另加的环境变量 */
+export function runDotnet(args, extraEnv = {}) {
   const { dotnet, env } = findDotnet();
-  const child = spawn(dotnet, args, { cwd: root, env, stdio: 'inherit' });
+  const child = spawn(dotnet, args, { cwd: root, env: { ...env, ...extraEnv }, stdio: 'inherit' });
   child.on('exit', (code, signal) => process.exit(code ?? (signal ? 1 : 0)));
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => child.kill(signal));
 }
