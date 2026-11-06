@@ -57,7 +57,7 @@
 | `useToast()` / `useDialog()` 等组合式函数 | scoped 服务（`ToastService`、`DialogService`）+ 布局里放宿主（`Toaster`、`DialogHost`） |
 | `el.focus()` | 可聚焦的组件公开 `Element`（`ElementReference?`）与 `FocusAsync()`，同 `InputBase.Element` |
 | `createUi` / `Provider` | `AddRuneUI`（DI，服务端与 WebAssembly 各一次）+ `RuneProvider`（级联值） |
-| `Can`（权限） | 包一层 `AuthorizeView`，按策略、角色显示或隐藏 |
+| `Can`（权限）、`useCan` | 直接用 Blazor 的 `AuthorizeView`（`Policy` 写权限点、`Roles`、`NotAuthorized`）与 `IAuthorizationService`，不另做组件；文档站的 Can 页演示这种写法 |
 | `ClientOnly` / `useMounted` | `RendererInfo.IsInteractive`；`ClientOnly` 只是它的组件写法 |
 | “现在”（今天、相对时间） | 注入 `TimeProvider`：预渲染与交互渲染用同一个时刻，测试可以固定 |
 | 日期模型 `DateTime` | `DateOnly`、`TimeOnly`、`DateTime`、`DateTimeOffset`；格式、周起始、月份名取 `CultureInfo`，不另造日期类型 |
@@ -142,11 +142,11 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 
 ## 阶段 1：基础、反馈、输入收尾
 
-- [ ] 基础：List、Can（包 `AuthorizeView`）、ClientOnly
+- [x] 基础：List / OrderedList / ListItem、ClientOnly；Can 用 AuthorizeView（不另做组件，有文档页）；另补了 vue 的 ButtonBase
 - [ ] 反馈：Banner（关闭同 Tag、Alert 的 `data-rune-dismiss`）、Result
 - [ ] FileDrop / Upload（拖放、粘贴、进度、列表、图片墙；vue：`input/FileDrop.tsx`、`input/Upload.tsx`）：选文件走 Blazor 的 `InputFile`（`IBrowserFile`），
   上传由使用方的函数完成并报告进度、支持取消；图片墙的预览等阶段 2 的 Lightbox、排序等 Sortable，做到时补
-- [ ] Switch 补齐：Loading、CheckedContent / UncheckedContent（轨道里的文字）与对应的部件属性（同 vue-tsx-pro 的 Switch）
+- [x] Switch 补齐：Loading、CheckedContent / UncheckedContent（轨道里的文字）与对应的部件属性（同 vue-tsx-pro 的 Switch）
 
 ## 阶段 2：布局与展示
 

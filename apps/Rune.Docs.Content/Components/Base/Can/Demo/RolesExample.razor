@@ -1,0 +1,46 @@
+@* 按角色显示：Blazor 里就是 AuthorizeView。这里用级联的 AuthenticationState 模拟当前用户（真实应用里来自登录态），换角色后按钮跟着变 *@
+@inherits RuneComponent
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <ToggleGroup @bind-Value="role" Required="true" Size="Size.Sm" aria-label="当前用户的角色">
+        <ToggleItem Value="viewer">只读</ToggleItem>
+        <ToggleItem Value="editor">编辑</ToggleItem>
+        <ToggleItem Value="admin">管理员</ToggleItem>
+    </ToggleGroup>
+    <CascadingValue Value="User">
+        <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center" Wrap="true">
+            <AuthorizeView Roles="editor,admin">
+                <Authorized><Button Icon="Lucide.Plus">新建</Button></Authorized>
+                <NotAuthorized><Small Tone="TextTone.Muted">没有新建权限</Small></NotAuthorized>
+            </AuthorizeView>
+            <AuthorizeView Roles="admin">
+                <Button Icon="Lucide.Trash" Variant="ButtonVariant.Outline" Tone="Tone.Danger">删除</Button>
+            </AuthorizeView>
+            @* 要自己判断（禁用而不是隐藏）时，AuthorizeView 的内容拿到是否有权限 *@
+            <AuthorizeView Roles="editor,admin">
+                <Authorized><Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral">批量操作</Button></Authorized>
+                <NotAuthorized><Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Disabled="true">批量操作</Button></NotAuthorized>
+            </AuthorizeView>
+        </Flex>
+    </CascadingValue>
+</Flex>
+
+@code {
+    // 每个角色一个现成的状态：同一个角色是同一个对象，里面的 AuthorizeView 不白白重新判断
+    static readonly Dictionary<string, Task<AuthenticationState>> users = new()
+    {
+        ["viewer"] = UserIn(),
+        ["editor"] = UserIn("editor"),
+        ["admin"] = UserIn("editor", "admin"),
+    };
+
+    string? role = "editor";
+
+    Task<AuthenticationState> User => users[role ?? "viewer"];
+
+    static Task<AuthenticationState> UserIn(params string[] roles) =>
+        Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(
+            [new Claim(ClaimTypes.Name, "林小满"), .. roles.Select(r => new Claim(ClaimTypes.Role, r))], authenticationType: "demo"))));
+}

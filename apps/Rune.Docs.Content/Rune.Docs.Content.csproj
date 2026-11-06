@@ -11,6 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Can 页的示例用 AuthorizeView（Blazor 的授权就是 vue-tsx-pro 的 Can 在这边的写法） -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" />
     <ProjectReference Include="..\..\src\Rune\Rune.csproj" />
     <ProjectReference Include="..\..\src\Rune.UI\Rune.UI.csproj" />
     <ProjectReference Include="..\..\src\Rune.Icons\Rune.Icons.csproj" />
