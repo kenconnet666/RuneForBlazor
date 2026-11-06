@@ -26,17 +26,36 @@ public static partial class ComponentApiReader
     static ComponentApi Build(Type component)
     {
         var closed = component.IsGenericTypeDefinition ? Close(component) : component;
-        var instance = Activator.CreateInstance(closed);
+        // 组件列 [Parameter]；数据类型（TimelineItem、UploadFile、NumberFormat 这类项与选项）列公开属性
+        var isComponent = typeof(IComponent).IsAssignableFrom(closed);
+        var instance = NewInstance(closed);
         var properties = closed.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.GetCustomAttribute<ParameterAttribute>() is { CaptureUnmatchedValues: false })
+            .Where(p => isComponent
+                ? p.GetCustomAttribute<ParameterAttribute>() is { CaptureUnmatchedValues: false }
+                : p.GetMethod is { IsPublic: true } && p.GetIndexParameters().Length == 0)
             .ToList();
         var names = properties.Select(p => p.Name).ToHashSet();
+        var constructorParameters = isComponent ? [] : PrimaryParameters(closed);
         var props = properties
             .OrderBy(p => Depth(p.DeclaringType!, closed))
-            .Select(p => PropOf(p, instance, names))
+            .ThenBy(p => constructorParameters.Contains(p.Name) ? 0 : 1)
+            .Select(p => PropOf(p, instance, names) is var prop && constructorParameters.Contains(p.Name) ? prop with { Required = true } : prop)
             .ToList();
         return new ComponentApi(DisplayName(component), Summary(MemberId('T', component)), props);
     }
+
+    // 读默认值用的实例：有无参构造就用它；只有带参数的构造（record 的主构造）时传各参数类型的默认值，属性的初始值照样生效
+    static object? NewInstance(Type type)
+    {
+        if (type.GetConstructor(Type.EmptyTypes) is not null) return Activator.CreateInstance(type);
+        var constructor = type.GetConstructors().OrderBy(c => c.GetParameters().Length).FirstOrDefault();
+        return constructor?.Invoke([.. constructor.GetParameters().Select(p => p.ParameterType.IsValueType ? Activator.CreateInstance(p.ParameterType) : null)]);
+    }
+
+    // record 主构造的参数：对应的属性是必填的
+    static HashSet<string> PrimaryParameters(Type type) => type.GetConstructor(Type.EmptyTypes) is null
+        ? [.. type.GetConstructors().OrderBy(c => c.GetParameters().Length).First().GetParameters().Select(p => p.Name!)]
+        : [];
 
     // 泛型组件随便取一个满足约束的类型参数（只读参数、默认值，不渲染）：数字组件（Slider<TValue>）要数字
     static readonly Type[] Candidates = [typeof(object), typeof(string), typeof(int), typeof(double)];
@@ -73,7 +92,8 @@ public static partial class ComponentApiReader
         var underlying = Nullable.GetUnderlyingType(type) ?? type;
         return new ApiProp(property.Name, kind, TypeName(property), description)
         {
-            Required = property.GetCustomAttribute<EditorRequiredAttribute>() is not null,
+            Required = property.GetCustomAttribute<EditorRequiredAttribute>() is not null
+                || property.GetCustomAttribute<System.Runtime.CompilerServices.RequiredMemberAttribute>() is not null,
             Bindable = kind != ApiPropKind.Event && names.Contains(property.Name + "Changed"),
             Default = kind == ApiPropKind.Prop ? DefaultOf(property, instance) : null,
             Values = underlying.IsEnum ? [.. Enum.GetNames(underlying).Select(n => new ApiValue(n, Summary(MemberId('F', underlying, n))))] : null,

@@ -62,6 +62,24 @@ public class DocsContentTests
     }
 
     [Fact]
+    public void API表_数据类型列公开属性_主构造参数与required成员必填_默认值取初始值()
+    {
+        // record 的主构造参数：没有无参构造也能读，参数排在前面、必填
+        var item = ComponentApiReader.Read(typeof(TimelineItem));
+        Assert.Equal(nameof(TimelineItem.Title), item.Props[0].Name);
+        Assert.True(item.Props[0].Required);
+        Assert.Equal(ApiPropKind.Content, item.Props.Single(p => p.Name == nameof(TimelineItem.Details)).Kind);
+
+        var upload = ComponentApiReader.Read(typeof(UploadFile));
+        Assert.True(upload.Props.Single(p => p.Name == nameof(UploadFile.Id)).Required);
+        Assert.False(upload.Props.Single(p => p.Name == nameof(UploadFile.Url)).Required);
+
+        var format = ComponentApiReader.Read(typeof(NumberFormat));
+        Assert.Equal("1", format.Props.Single(p => p.Name == nameof(NumberFormat.Scale)).Default);
+        Assert.Equal("true", format.Props.Single(p => p.Name == nameof(NumberFormat.UseGrouping)).Default);
+    }
+
+    [Fact]
     public void 本页目录_按登记顺序_API一组排在最后_注销后去掉()
     {
         var headings = new DocHeadings();

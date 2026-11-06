@@ -8,6 +8,10 @@ namespace Rune.UI;
 /// </summary>
 public static class StatStyles
 {
+    // 放在最前：下面的层在静态初始化时就生成样式，要用到它
+    /// <summary>StatGroup 每个指标的最小宽度：经它写在外层上（类不随宽度变化）。</summary>
+    internal static readonly CssVar<CssLength> MinItemWidth = CssVar.Length("rune-stat-min-item-width", "9rem");
+
     internal static readonly Attrs Root = new() { Sx = RootStyle };
     internal static readonly Attrs GroupedRoot = new() { Sx = Sx.Of(RootStyle, GroupItem) };
     internal static readonly Attrs Label = new() { Sx = LabelStyle };
@@ -23,9 +27,6 @@ public static class StatStyles
     internal static readonly Attrs ChangeSkeleton = new() { Sx = ChangeSkeletonStyle };
     internal static readonly Attrs Reveal = new() { Sx = ShimmerStyles.Reveal };
     internal static readonly Attrs GroupRoot = new() { Sx = GroupRootStyle };
-
-    /// <summary>StatGroup 每个指标的最小宽度：经它写在外层上（类不随宽度变化）。</summary>
-    internal static readonly CssVar<CssLength> MinItemWidth = CssVar.Length("rune-stat-min-item-width", "9rem");
 
     /// <summary>数字本身：字号大一档、粗体、等宽数字，按色调着色。</summary>
     internal static Attrs Number(TextTone? tone) => tone is { } t ? TonedNumbers[(int)t] : PlainNumber;
