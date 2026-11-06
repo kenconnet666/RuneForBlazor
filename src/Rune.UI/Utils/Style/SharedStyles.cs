@@ -73,6 +73,9 @@ public static class SharedStyles
     /// <summary>相对所在文字小一档（0.93em）：提示条里的关闭按钮。</summary>
     public static Style RelativeSmall => Css.Define(static () => new Style { FontSize = CssLength.Em(0.93) });
 
+    /// <summary>相对所在文字大两档（1.29em，同 vue-tsx-pro 的 relativeFontSizeStyles.xl）：结果页的标题。</summary>
+    public static Style RelativeExtraLarge => Css.Define(static () => new Style { FontSize = CssLength.Em(1.29) });
+
     /// <summary>色调的实底（勾选框勾上、滑块已选的一段）：取自外层的 <see cref="ToneFill"/>。</summary>
     public static readonly CssVar<CssColor> FillColor = CssVar.Color("rune-tone-fill");
 

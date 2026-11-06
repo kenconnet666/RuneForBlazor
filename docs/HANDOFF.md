@@ -26,6 +26,7 @@
   升级：`dotnet tool update csharp-ls`（改的是 dotnet-tools.json）。
 - 语言服务器加载了源生成器就会锁住它的 DLL：启动脚本先把 Rune.Generators、Rune.CodeFixes 的输出拷到 `bin/ls/`，经环境变量 `RuneLanguageServer` 让它加载副本，
   正式构建照常写 `bin/`。生成器改了以后语言服务器里还是旧的，重开会话才更新。
+- 新加的 `.razor` 组件语言服务器要重开才认识（报“找不到类型”，实际编译没问题）。
 
 ## 常用命令
 

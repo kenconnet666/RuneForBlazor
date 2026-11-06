@@ -1,0 +1,37 @@
+@* 页面顶部的横幅：维护公告（实底、最醒目）、试用到期（可关闭，关掉后记住）、只读模式 *@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.None">
+    @if (!maintenanceClosed)
+    {
+        <Banner Variant="BannerVariant.Solid" Tone="Tone.Warning" Icon="Lucide.Wrench" Title="系统维护" OnClose="() => maintenanceClosed = true">
+            <Action>
+                @* 实底上的链接跟随横幅的文字颜色，对比度才够 *@
+                <TextLink Href="#maintenance" Tone="TextTone.Inherit" Underline="LinkUnderline.Always">查看公告</TextLink>
+            </Action>
+            <ChildContent>今晚 22:00–23:00 暂停服务，请提前保存草稿</ChildContent>
+        </Banner>
+    }
+    @if (!trialClosed)
+    {
+        <Banner Tone="Tone.Accent" OnClose="() => trialClosed = true">
+            <Action><Button Size="Size.Xs" Variant="ButtonVariant.Solid">升级到正式版</Button></Action>
+            <ChildContent>试用还剩 3 天，到期后项目将变为只读</ChildContent>
+        </Banner>
+    }
+    <Banner Tone="Tone.Neutral" Icon="Lucide.Lock" Size="Size.Sm">当前项目已归档，只能查看</Banner>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" style="padding: 1em 1.25em">
+        <TextSpan Weight="Weight.Semibold">项目台账</TextSpan>
+        <Small Tone="TextTone.Muted">横幅占满宽度、一行说完，放在页面最上方；关掉的写进本地存储，下次不再出现。</Small>
+        @if (trialClosed || maintenanceClosed)
+        {
+            <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" @onclick="Reset">重新显示关掉的横幅</Button>
+        }
+    </Flex>
+</Card>
+
+@code {
+    bool trialClosed, maintenanceClosed;
+
+    void Reset() => (trialClosed, maintenanceClosed) = (false, false);
+}

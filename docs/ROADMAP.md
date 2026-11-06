@@ -143,7 +143,7 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 ## 阶段 1：基础、反馈、输入收尾
 
 - [x] 基础：List / OrderedList / ListItem、ClientOnly；Can 用 AuthorizeView（不另做组件，有文档页）；另补了 vue 的 ButtonBase
-- [ ] 反馈：Banner（关闭同 Tag、Alert 的 `data-rune-dismiss`）、Result
+- [x] 反馈：Banner（关闭同 Tag、Alert 的 `data-rune-dismiss`）、Result（403 / 404 / 500 的图标进了内置图标）；补了 Empty 的文档页（同 vue 的“空状态与结果”）
 - [ ] FileDrop / Upload（拖放、粘贴、进度、列表、图片墙；vue：`input/FileDrop.tsx`、`input/Upload.tsx`）：选文件走 Blazor 的 `InputFile`（`IBrowserFile`），
   上传由使用方的函数完成并报告进度、支持取消；图片墙的预览等阶段 2 的 Lightbox、排序等 Sortable，做到时补
 - [x] Switch 补齐：Loading、CheckedContent / UncheckedContent（轨道里的文字）与对应的部件属性（同 vue-tsx-pro 的 Switch）

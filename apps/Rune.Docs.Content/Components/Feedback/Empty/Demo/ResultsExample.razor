@@ -1,0 +1,37 @@
+@* 换色调时重新创建 Result（@key），图标重新画一遍 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ToggleGroup @bind-Value="tone" Required="true" Size="Size.Sm" aria-label="结果的色调">
+        <ToggleItem Value="success">成功</ToggleItem>
+        <ToggleItem Value="danger">失败</ToggleItem>
+        <ToggleItem Value="warning">警告</ToggleItem>
+        <ToggleItem Value="info">信息</ToggleItem>
+    </ToggleGroup>
+    <Card>
+        @{ var result = results[tone ?? "success"]; }
+        <Result @key="tone" Tone="result.Tone">
+            <Title>@result.Title</Title>
+            <Description>@result.Description</Description>
+            <Action>
+                <Flex Gap="SpaceScale.Sm" Justify="ContentJustify.Center">
+                    <Button Size="Size.Sm">@result.Action</Button>
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Ghost">帮助</Button>
+                </Flex>
+            </Action>
+            <ChildContent><Code>Tone="Tone.@result.Tone"</Code></ChildContent>
+        </Result>
+    </Card>
+</Flex>
+
+@code {
+    static readonly Dictionary<string, (Tone Tone, string Title, string Description, string Action)> results = new()
+    {
+        ["success"] = (Tone.Success, "提交成功", "审核结果会在 1 个工作日内通过邮件通知你。", "返回列表"),
+        ["danger"] = (Tone.Danger, "支付失败", "银行卡余额不足，订单已保留 30 分钟。", "换一张卡"),
+        ["warning"] = (Tone.Warning, "需要补充资料", "营业执照照片不清晰，请重新上传。", "去上传"),
+        ["info"] = (Tone.Info, "正在审核", "提交后通常 2 小时内完成审核。", "查看进度"),
+    };
+
+    string? tone = "success";
+}

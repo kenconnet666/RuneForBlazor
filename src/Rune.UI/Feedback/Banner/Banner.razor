@@ -1,0 +1,99 @@
+@*
+    横幅（div，同 vue-tsx-pro 的 Banner）：贴着页面（或区域）顶部的一行通栏通知，系统维护、试用到期、新功能上线、只读模式这类整页都相关的消息。
+    <Banner Tone="Tone.Warning" Title="系统维护" OnClose="Hide"><Action><TextLink Href="/notice">查看详情</TextLink></Action><ChildContent>今晚 22:00–23:00 暂停服务</ChildContent></Banner>
+    和 Alert 的分工：Alert 放在内容里、说明某一块的状态，可以有多行正文；Banner 占满宽度、一行说完，内容居中，放在页面最上方。
+    写了 OnClose 就有关闭按钮：先淡出（JS 初始化器做），离场结束才调用 OnClose，由使用方移除并记住“已关闭”；没移除就重新出现。
+    页面加载时就在的横幅不播报；运行中才出现的用 Live（同 Alert）。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = BannerStyles.Of(Variant, Tone, Size, OnClose.HasDelegate, Config.Styles); }
+
+<div data-tone="@Tone.ToString().ToLowerInvariant()" @attributes="Attrs.Merge(parts[BannerPart.Root], Rest, Managed)">
+    @if (!HideIcon)
+    {
+        <Icon Data="@(Icon ?? Tones.StatusIcon(Tone))" @attributes="Attrs.MergeProps(parts[BannerPart.Icon], PropsIcon)" />
+    }
+    <div @attributes="Attrs.Merge(parts[BannerPart.Content], PropsContent)">
+        @if (Title is not null)
+        {
+            <strong @attributes="Attrs.Merge(parts[BannerPart.Title], PropsTitle)">@Title</strong>
+        }
+        @ChildContent
+    </div>
+    @if (Action is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[BannerPart.Action], PropsAction)">@Action</div>
+    }
+    @if (OnClose.HasDelegate)
+    {
+        <CloseButton Label="@CloseLabel" @attributes="Attrs.MergeProps(Part.Unmarked(parts[BannerPart.Close]), PropsClose, DismissButton)" />
+    }
+</div>
+
+@code {
+    static readonly Attrs DismissButton = new() { ["data-rune-dismiss"] = true };
+
+    Memo<(AlertLive Live, bool Closable), Attrs> managed;
+
+    /// <summary>色调，默认提示色（Info）；也决定默认图标。</summary>
+    [Parameter] public Tone Tone { get; set; } = Tone.Info;
+
+    /// <summary>样式，默认浅色底。</summary>
+    [Parameter] public BannerVariant Variant { get; set; }
+
+    /// <summary>字号档位；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>加粗的开头（“系统维护”），与正文在同一行。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>图标；不写时按色调选。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>不显示图标。</summary>
+    [Parameter] public bool HideIcon { get; set; }
+
+    /// <summary>正文后的操作（链接或小按钮）。</summary>
+    [Parameter] public RenderFragment? Action { get; set; }
+
+    /// <summary>读屏播报方式，默认不播报（同 Alert）。</summary>
+    [Parameter] public AlertLive Live { get; set; }
+
+    /// <summary>给了就显示关闭按钮：先离场，离场结束再调用；使用方没移除时重新出现。</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    /// <summary>关闭按钮的读屏名称，默认取语言包。</summary>
+    [Parameter] public string? CloseLabel { get; set; }
+
+    /// <summary>正文。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>图标的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>文字区的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>操作区的部件属性。</summary>
+    [Parameter] public Attrs? PropsAction { get; set; }
+
+    /// <summary>关闭按钮的部件属性（交给 CloseButton）。</summary>
+    [Parameter] public Attrs? PropsClose { get; set; }
+
+    // 外层上由组件管理的属性：播报角色与关闭（离场结束的事件）；不变时复用同一个对象
+    Attrs Managed => managed.Get((Live, OnClose.HasDelegate), this, static (k, self) => new Attrs
+    {
+        Role = k.Live switch
+        {
+            AlertLive.Polite => "status",
+            AlertLive.Assertive => "alert",
+            _ => null,
+        },
+        ["data-rune-dismissible"] = k.Closable ? true : null,
+        ["onrunedismiss"] = k.Closable ? EventCallback.Factory.Create<EventArgs>(self, () => self.OnClose.InvokeAsync()) : null,
+    });
+}

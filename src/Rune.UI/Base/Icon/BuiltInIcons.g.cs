@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（52 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（55 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -56,6 +56,8 @@ public static partial class BuiltInIcons
     public static IconData EyeOff => field ??= new("eye-off", "<path d=\"M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49\"/><path d=\"M14.084 14.158a3 3 0 0 1-4.242-4.242\"/><path d=\"M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143\"/><path d=\"m2 2 20 20\"/>");
     /// <summary>Lucide 图标 <c>feather</c>（quill、plume、writing、author、literature、poetry、manuscript、bird）。</summary>
     public static IconData Feather => field ??= new("feather", "<path d=\"M14.086 18.412A2 2 0 0112.67 19H5v-7.672a2 2 0 01.586-1.414L11.75 3.75a6 6 0 118.49 8.49z\"/><path d=\"M16 8 2 22\"/><path d=\"M17.488 15H9\"/>");
+    /// <summary>Lucide 图标 <c>file-question-mark</c>（document、help、guide、tutorial、manual、unknown、unidentified、unspecified）。</summary>
+    public static IconData FileQuestionMark => field ??= new("file-question-mark", "<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M12 17h.01\"/><path d=\"M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3\"/>");
     /// <summary>Lucide 图标 <c>flame</c>（heat、burn、light、glow、ignite、passion、ember、fire）。</summary>
     public static IconData Flame => field ??= new("flame", "<path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\"/>");
     /// <summary>Lucide 图标 <c>flower</c>（sustainability、nature、plant、spring）。</summary>
@@ -98,6 +100,10 @@ public static partial class BuiltInIcons
     public static IconData ScrollText => field ??= new("scroll-text", "<path d=\"M15 12h-5\"/><path d=\"M15 8h-5\"/><path d=\"M19 17V5a2 2 0 0 0-2-2H4\"/><path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\"/>");
     /// <summary>Lucide 图标 <c>search</c>（search、magnifier、scan、scanning、browsing、finding、find、lookup）。</summary>
     public static IconData Search => field ??= new("search", "<path d=\"m21 21-4.34-4.34\"/><circle cx=\"11\" cy=\"11\" r=\"8\"/>");
+    /// <summary>Lucide 图标 <c>server-crash</c>（cloud、storage、problem、error）。</summary>
+    public static IconData ServerCrash => field ??= new("server-crash", "<path d=\"M6 10H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2\"/><path d=\"M6 14H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2\"/><path d=\"M6 6h.01\"/><path d=\"M6 18h.01\"/><path d=\"m13 6-4 6h6l-4 6\"/>");
+    /// <summary>Lucide 图标 <c>shield-x</c>（shield、privacy、safeguard、security、cybersecurity、secure、safety、protection）。</summary>
+    public static IconData ShieldX => field ??= new("shield-x", "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/><path d=\"m14.5 9.5-5 5\"/><path d=\"m9.5 9.5 5 5\"/>");
     /// <summary>Lucide 图标 <c>star</c>（starred、featured、favorite、favourite、save、wishlist、bookmark、highlight）。</summary>
     public static IconData Star => field ??= new("star", "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\"/>");
     /// <summary>Lucide 图标 <c>sun</c>（brightness、weather、light、summer）。</summary>

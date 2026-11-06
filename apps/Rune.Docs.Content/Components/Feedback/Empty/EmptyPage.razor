@@ -1,0 +1,24 @@
+@page "/components/empty"
+@attribute [DocMeta("Empty 空状态与结果", "没有内容时的说明（Empty）与操作完成后的整块反馈（Result）：图标、标题、说明、操作居中排列。", DocCategory.Feedback, Order = 4)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Feedback.Empty.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="empty" Title="空状态" Demo="typeof(EmptiesExample)">
+                列表、表格、搜索结果没有内容时用 <Code>Empty</Code>：说清楚为什么空、接下来能做什么；<Code>Size</Code> 跟字号档位缩放，下拉选项里用 Sm。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="result" Title="结果" Demo="typeof(ResultsExample)">
+                <Code>Result</Code> 是提交、支付这类操作后的整块反馈：<Code>Tone</Code> 决定图标与颜色，图标第一次出现时一笔画出（<Code>Draw</Code>），减少动态效果时直接显示。
+            </Example>
+            <Example Id="status" Title="403、404、500" Demo="typeof(StatusesExample)">
+                <Code>Status</Code> 给出常见出错页的图标、色调与状态码，标题、说明取语言包（<Code>Lang.ResultStatus</Code>），显式写的优先：
+                403 补一句缺的是什么权限，比通用的说明更有用。状态码只是装饰，读屏念标题。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Empty), typeof(Result)]" />
+</DocPage>

@@ -1,0 +1,41 @@
+@* 常见的出错页：Status 给出图标、色调、状态码与默认文案，显式写的优先 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ToggleGroup @bind-Value="status" Required="true" Size="Size.Sm" aria-label="状态">
+        <ToggleItem Value="403">403 没有权限</ToggleItem>
+        <ToggleItem Value="404">404 找不到</ToggleItem>
+        <ToggleItem Value="500">500 服务出错</ToggleItem>
+    </ToggleGroup>
+    <Card>
+        <Result @key="status" Status="Current" Description="@(Current == ResultStatus.Forbidden ? ForbiddenDetail : null)">
+            <Action>
+                <Flex Gap="SpaceScale.Sm" Justify="ContentJustify.Center">
+                    @if (Current == ResultStatus.ServerError)
+                    {
+                        <Button Size="Size.Sm">重试</Button>
+                    }
+                    else
+                    {
+                        <LinkButton Size="Size.Sm" Href="#">回到首页</LinkButton>
+                    }
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Ghost">@(Current == ResultStatus.Forbidden ? "申请权限" : "联系管理员")</Button>
+                </Flex>
+            </Action>
+        </Result>
+    </Card>
+</Flex>
+
+@code {
+    // 403 补一句具体缺的权限：显式写的说明优先于语言包的默认说明
+    static readonly RenderFragment ForbiddenDetail = @<text>查看项目台账需要“财务查看”权限，可以联系你的部门管理员开通。</text>;
+
+    string? status = "404";
+
+    ResultStatus Current => status switch
+    {
+        "403" => ResultStatus.Forbidden,
+        "500" => ResultStatus.ServerError,
+        _ => ResultStatus.NotFound,
+    };
+}

@@ -1,0 +1,89 @@
+@*
+    结果页（div，同 vue-tsx-pro 的 Result）：操作完成后的整块反馈（提交成功、支付失败、权限不足）。大图标（第一次出现时一笔画出）+ 标题 + 说明 + 操作，居中排列。
+    <Result Tone="Tone.Success"><Title>提交成功</Title><Description>审核结果会通过邮件通知你。</Description><Action><Button>返回列表</Button></Action></Result>
+    <Result Status="ResultStatus.NotFound"><Action><LinkButton Href="">回到首页</LinkButton></Action></Result>   常见状态：图标、色调、标题与说明都有默认值
+    只是展示，不带角色；操作后才出现、需要读屏播报时，由所在区域用 aria-live 或把焦点移到标题上。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = ResultStyles.Of(Size ?? Config.Defaults.Get<ResultDefaults>()?.Size, Config.Styles);
+    var look = Status is { } status ? ResultStyles.LookOf(status) : default((IconData Icon, Tone Tone)?);
+    var text = Status is { } s && Config.Lang.ResultStatus.TryGetValue(ResultStyles.CodeOf(s), out var found) ? found : null;
+    var tone = Tone ?? look?.Tone ?? UI.Tone.Success;
+    // 没写标题、说明时取语言包里这个状态的文字
+    var defaultTitle = Title is null ? text?.GetValueOrDefault("title") : null;
+    var defaultDescription = Description is null ? text?.GetValueOrDefault("description") : null;
+}
+
+<div data-tone="@tone.ToString().ToLowerInvariant()" @attributes="Attrs.Merge(parts[ResultPart.Root], Rest)">
+    @if (!HideIcon)
+    {
+        <Icon Data="@(Icon ?? look?.Icon ?? Tones.StatusIcon(tone))" Tone="tone.AsText()" Draw="Draw" @attributes="Attrs.MergeProps(parts[ResultPart.Icon], PropsIcon)" />
+    }
+    @if (Status is { } code)
+    {
+        @* 标题已经说明了状态，状态码对读屏是重复的 *@
+        <TextSpan aria-hidden="true" @attributes="Attrs.MergeProps(parts[ResultPart.Code], PropsCode)">@ResultStyles.CodeOf(code)</TextSpan>
+    }
+    @if (Title is not null || defaultTitle is not null)
+    {
+        <TextSpan @attributes="Attrs.MergeProps(parts[ResultPart.Title], PropsTitle)">@if (Title is not null) { @Title } else { @defaultTitle }</TextSpan>
+    }
+    @if (Description is not null || defaultDescription is not null)
+    {
+        <Paragraph @attributes="Attrs.MergeProps(parts[ResultPart.Description], PropsDescription)">@if (Description is not null) { @Description } else { @defaultDescription }</Paragraph>
+    }
+    @ChildContent
+    @if (Action is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[ResultPart.Action], PropsAction)">@Action</div>
+    }
+</div>
+
+@code {
+    /// <summary>常见状态（403、404、500）：给出图标、色调、状态码与默认的标题、说明，显式写的优先。</summary>
+    [Parameter] public ResultStatus? Status { get; set; }
+
+    /// <summary>色调，默认成功（写了 Status 时按状态）；也决定默认图标。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>字号档位，内部尺寸随之缩放；不写时取默认值（<see cref="ResultDefaults"/>），再没有就继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>图标；不写时按状态或色调选。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>不显示图标。</summary>
+    [Parameter] public bool HideIcon { get; set; }
+
+    /// <summary>第一次出现时描线画出图标，默认是；减少动态效果时直接画好。</summary>
+    [Parameter] public bool Draw { get; set; } = true;
+
+    /// <summary>标题；写了 Status 时默认取语言包。</summary>
+    [Parameter] public RenderFragment? Title { get; set; }
+
+    /// <summary>说明；写了 Status 时默认取语言包。</summary>
+    [Parameter] public RenderFragment? Description { get; set; }
+
+    /// <summary>操作（如“返回”“重试”按钮）。</summary>
+    [Parameter] public RenderFragment? Action { get; set; }
+
+    /// <summary>说明之后的内容（如错误详情）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>图标的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>状态码的部件属性（交给 TextSpan）。</summary>
+    [Parameter] public Attrs? PropsCode { get; set; }
+
+    /// <summary>标题的部件属性（交给 TextSpan）。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>说明的部件属性（交给 Paragraph）。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>操作区的部件属性。</summary>
+    [Parameter] public Attrs? PropsAction { get; set; }
+}

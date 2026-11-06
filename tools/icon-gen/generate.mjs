@@ -67,6 +67,10 @@ const BUILT_IN = [
   'panel-left-open',
   'dot',
   'code',
+  // Result 的常见状态：403、404、500
+  'shield-x',
+  'file-question-mark',
+  'server-crash',
   // ThemeSwitcher：跟随系统与各套内置主题
   'monitor',
   'sun',

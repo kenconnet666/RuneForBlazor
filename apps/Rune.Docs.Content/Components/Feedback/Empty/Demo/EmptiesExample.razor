@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="CssLength.Em(14)" Gap="SpaceScale.Md">
+    <Card>
+        <Empty Icon="Lucide.Inbox">
+            <Title>还没有订单</Title>
+            <Description>顾客下单后会显示在这里，也可以先手动录入一张。</Description>
+            <Action><Button Size="Size.Sm" Icon="Lucide.Plus">新建订单</Button></Action>
+        </Empty>
+    </Card>
+    <Card>
+        <Empty Icon="Lucide.SearchX" Size="Size.Sm">
+            <Title>没有找到“rune-ui”</Title>
+            <Description>换个关键词，或者检查拼写。</Description>
+            <Action><TextSpan Size="Size.Sm">试试 <TextLink Href="components/empty">button</TextLink></TextSpan></Action>
+        </Empty>
+    </Card>
+    <Card>
+        <Empty Icon="Lucide.FolderOpen" Size="Size.Sm"><Title>文件夹是空的</Title></Empty>
+    </Card>
+</Grid>
