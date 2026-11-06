@@ -1,0 +1,88 @@
+@*
+    会滚动的数字（span，同 vue-tsx-pro 的 AnimatedNumber）：值变化时从旧值过渡到新值，按当前语言格式化，等宽数字不抖动。统计卡片的数值、金额、百分比、计数器。
+    <AnimatedNumber Value="revenue" Format="new() { Style = NumberStyle.Currency }" />
+    <AnimatedNumber Value="0.123m" Format="NumberFormat.Percent" Trend="true"><Prefix>较上周 </Prefix></AnimatedNumber>
+    过渡在浏览器里逐帧改数字的文字（data-rune-tween，不经过 C# 渲染，Server 模式下没有逐帧的往返），停下时换回 C# 格式化的终值。
+    读屏只读终值：滚动中的数字对读屏隐藏，旁边有一份隐藏的终值文字；需要播报变化时在外层加 aria-live。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<span data-trend="@(Trend ? TrendName : null)" @attributes="Attrs.Merge(RootLayer, Rest)">
+    @if (Prefix is not null)
+    {
+        <span @attributes="Attrs.Merge(null, PropsPrefix)">@Prefix</span>
+    }
+    <span @attributes="Attrs.Merge(null, PropsValue)" aria-hidden="true" data-rune-tween="@DurationToken" data-value="@ValueText"
+          data-from="@FromText" data-format="@IntlFormat" data-locale="@Config.Lang.Code">@Text</span>
+    <VisuallyHidden @attributes="Attrs.MergeProps(null, PropsLabel)">@Text</VisuallyHidden>
+    @if (Suffix is not null)
+    {
+        <span @attributes="Attrs.Merge(null, PropsSuffix)">@Suffix</span>
+    }
+</span>
+
+@code {
+    // 按色调缓存外层的层：等宽数字、不换行，加上文字色
+    static readonly Attrs Plain = new() { Sx = RootStyle };
+    static readonly Attrs[] Toned = [.. Enum.GetValues<TextTone>().Select(tone => new Attrs { Sx = Sx.Of(RootStyle, SharedStyles.TextColor(tone)) })];
+
+    Memo<(NumberFormat Format, string Currency), string> intlFormat;
+
+    /// <summary>数值。</summary>
+    [Parameter, EditorRequired] public decimal Value { get; set; }
+
+    /// <summary>格式：金额 <c>new() { Style = NumberStyle.Currency }</c>（币种默认取语言包）、百分比 <see cref="NumberFormat.Percent"/>、以万为单位 <c>new() { Scale = 10_000, MaximumFractionDigits = 2 }</c>。</summary>
+    [Parameter] public NumberFormat? Format { get; set; }
+
+    /// <summary>过渡的时长档位（主题的 durations），默认 Lg。</summary>
+    [Parameter] public Size Duration { get; set; } = Size.Lg;
+
+    /// <summary>第一次出现时从这个值滚到 Value；不给时直接显示 Value。</summary>
+    [Parameter] public decimal? From { get; set; }
+
+    /// <summary>按正负着色：正数成功色、负数危险色（涨跌）；data-trend 写 up / down / flat。</summary>
+    [Parameter] public bool Trend { get; set; }
+
+    /// <summary>文字色调；Trend 时由正负决定（零用它）。</summary>
+    [Parameter] public TextTone? Tone { get; set; }
+
+    /// <summary>数字前的内容（说明文字、图标）。</summary>
+    [Parameter] public RenderFragment? Prefix { get; set; }
+
+    /// <summary>数字后的内容（单位“人”）。</summary>
+    [Parameter] public RenderFragment? Suffix { get; set; }
+
+    /// <summary>前缀的部件属性。</summary>
+    [Parameter] public Attrs? PropsPrefix { get; set; }
+
+    /// <summary>后缀的部件属性。</summary>
+    [Parameter] public Attrs? PropsSuffix { get; set; }
+
+    /// <summary>滚动中的数字（对读屏隐藏）的部件属性。</summary>
+    [Parameter] public Attrs? PropsValue { get; set; }
+
+    /// <summary>给读屏的终值文字（VisuallyHidden）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    NumberFormat ShownFormat => Format ?? NumberFormat.Default;
+
+    string Text => LangFormat.Number(Value, ShownFormat, Config.Lang);
+
+    string TrendName => Value > 0 ? "up" : Value < 0 ? "down" : "flat";
+
+    TextTone? ShownTone => Trend && Value != 0 ? (Value > 0 ? TextTone.Success : TextTone.Danger) : Tone;
+
+    Attrs RootLayer => ShownTone is { } tone ? Toned[(int)tone] : Plain;
+
+    string ValueText => Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    string? FromText => From?.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    // 主题的时长档位到 xl 为止
+    string DurationToken => (Duration > Size.Xl ? Size.Xl : Duration).ToString().ToLowerInvariant();
+
+    string IntlFormat => intlFormat.Get((ShownFormat, Config.Lang.Currency), static k => k.Format.ToIntlJson(k.Currency));
+
+    static Style RootStyle => Css.Define(static () => new Style { FontVariantNumeric = FontVariantNumeric.TabularNums, WhiteSpace = WhiteSpace.Nowrap });
+}

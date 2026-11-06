@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（58 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（60 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -114,6 +114,10 @@ public static partial class BuiltInIcons
     public static IconData Sun => field ??= new("sun", "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2\"/><path d=\"M12 20v2\"/><path d=\"m4.93 4.93 1.41 1.41\"/><path d=\"m17.66 17.66 1.41 1.41\"/><path d=\"M2 12h2\"/><path d=\"M20 12h2\"/><path d=\"m6.34 17.66-1.41 1.41\"/><path d=\"m19.07 4.93-1.41 1.41\"/>");
     /// <summary>Lucide 图标 <c>trees</c>（tree、forest、park、nature）。</summary>
     public static IconData Trees => field ??= new("trees", "<path d=\"M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z\"/><path d=\"M7 16v6\"/><path d=\"M13 19v3\"/><path d=\"M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5\"/>");
+    /// <summary>Lucide 图标 <c>trending-down</c>（diagram、graph、visualization、data、analytics、analysis、statistics、presentation）。</summary>
+    public static IconData TrendingDown => field ??= new("trending-down", "<path d=\"M16 17h6v-6\"/><path d=\"m22 17-8.5-8.5-5 5L2 7\"/>");
+    /// <summary>Lucide 图标 <c>trending-up</c>（diagram、graph、visualization、data、analytics、analysis、statistics、presentation）。</summary>
+    public static IconData TrendingUp => field ??= new("trending-up", "<path d=\"M16 7h6v6\"/><path d=\"m22 7-8.5 8.5-5-5L2 17\"/>");
     /// <summary>Lucide 图标 <c>triangle-exclamation-point</c>（alert、warning、danger、caution、notice、error、risk、concern）。</summary>
     public static IconData TriangleExclamationPoint => field ??= new("triangle-exclamation-point", "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/>");
     /// <summary>Lucide 图标 <c>upload</c>（file）。</summary>

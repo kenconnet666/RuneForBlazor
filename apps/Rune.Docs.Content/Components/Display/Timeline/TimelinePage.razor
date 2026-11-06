@@ -1,0 +1,35 @@
+@page "/components/timeline"
+@attribute [DocMeta("Timeline 时间线", "按时间排列的事件：订单进度、流转与操作记录、版本历史。节点带色调与图标，可左右交替，进行中的一项显示加载指示，记录多时收起旧的。", DocCategory.Display, Order = 6)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Timeline.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="approval" Title="审批流转记录" Demo="typeof(ApprovalExample)">
+                流程的流转事件每条一项：<Code>Actor</Code> 是处理人，标题写在哪个节点做了什么，处理结果按种类换 <Code>Icon</Code> 与 <Code>Tone</Code>
+                （同意、退回、催办、超时自动处理），意见写在 <Code>Description</Code>，附件做成链接（<Code>DescriptionContent</Code>）。
+                <Code>Reverse</Code> 新的在前，Items 仍按时间先后给。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="order" Title="订单进度" Demo="typeof(OrderExample)">
+                每项一个节点（圆点或 <Code>Icon</Code>）与标题、时间、说明；<Code>DateTime</Code> 写进 time 元素给机器读；
+                <Code>Pending</Code> 是还在进行中的最后一项。
+            </Example>
+            <Example Id="releases" Title="左右交替" Demo="typeof(ReleasesExample)">
+                <Code>Alternate</Code> 让事件左右交替排布，<Code>Tone</Code> 给节点着色；容器窄时自动排回一侧。标题要放组件时用 <Code>TitleContent</Code>。
+            </Example>
+            <Example Id="contract" Title="流转记录：交替、小一号" Demo="typeof(ContractExample)">
+                流转记录也是普通的 Items，<Code>Alternate</Code>、<Code>Size</Code>、部件属性照常用。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <Example Id="change-log" Title="操作记录：操作人、改动、收起" Demo="typeof(ChangeLogExample)">
+        项写 <Code>Actor</Code> 是操作人，显示在时间前面（<Code>Avatar</Code> 是头像，没有头像时显示首字母）；改了哪些字段放进
+        <Code>DescriptionContent</Code>，长的内容（完整的对比、附件、原文）放 <Code>Details</Code>，项里一个“查看详情”的按钮点开才显示（打开时才渲染）。
+        <Code>MaxVisible</Code> 只显示最新的几项，其余收起在“展开其余 N 条”后面，按钮在旧的那一端（倒序时在最后），展开后变成“收起”；
+        是否展开可以用 <Code>@@bind-Expanded</Code> 绑定。
+    </Example>
+    <ApiReference Types="[typeof(Timeline), typeof(TimelineItem)]" />
+</DocPage>

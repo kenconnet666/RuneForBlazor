@@ -1,0 +1,15 @@
+@inherits RuneComponent
+
+<Card>
+    <Timeline Items="steps" Pending="正在派送，预计今天 18:00 前送达" />
+</Card>
+
+@code {
+    static readonly TimelineItem[] steps =
+    [
+        new("已下单") { Time = "10-18 09:12", DateTime = "2026-10-18T09:12", Icon = Lucide.CircleCheck },
+        new("已付款") { Time = "10-18 09:13", DateTime = "2026-10-18T09:13", Icon = Lucide.CreditCard, Description = "微信支付 ¥1,280.00" },
+        new("已出库") { Time = "10-18 15:40", DateTime = "2026-10-18T15:40", Icon = Lucide.Package },
+        new("运输中") { Time = "10-19 06:20", DateTime = "2026-10-19T06:20", Icon = Lucide.Truck, Tone = Tone.Accent, Description = "快件已到达【上海徐汇营业部】" },
+    ];
+}

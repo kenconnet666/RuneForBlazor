@@ -1,0 +1,40 @@
+@page "/components/stat"
+@attribute [DocMeta("Stat 统计数值", "一个关键指标：名称、数值与单位、图标、环比变化，仪表盘顶部的一排卡片；AnimatedNumber 是其中会滚动的数字，也能单独用。", DocCategory.Display, Order = 11)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Stat.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
+                Stat 只是内容，放进 Card、Grid 里组合。数字按当前语言格式化，<Code>Format</Code> 控制小数位与缩放：金额以元给出、按万元显示时写
+                <Code>new() { Scale = 10_000 }</Code> 并配 <Code>Unit="万元"</Code>，按 decimal 计算、不丢精度。结构是 <Code>dl</Code>，
+                读屏按“名称—数值”成对朗读，图标对读屏隐藏。
+            </Example>
+            <Example Id="change" Title="变化量" Demo="typeof(ChangeExample)">
+                <Code>Change</Code> 默认按百分比显示，上升为成功色、下降为危险色；成本、耗时这类越低越好的指标写 <Code>InvertChange</Code>。
+                变化量是绝对数时用 <Code>ChangeFormat</Code> 换格式。
+            </Example>
+            <Example Id="live" Title="数值变化" Demo="typeof(LiveExample)">
+                数值变化时从旧值滚动到新值（AnimatedNumber），过渡在浏览器里逐帧进行，Server 模式下没有逐帧的往返；读屏只读终值，减少动态效果时直接跳到新值。
+                下方的迷你趋势是示例自己拼的最近 12 次取值，装饰性、对读屏隐藏。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="animated-number" Title="AnimatedNumber 单独使用" Demo="typeof(NumbersExample)">
+                值变化时从旧值滚到新值，等宽数字不抖动。<Code>Format</Code> 是 <Code>NumberFormat</Code>（同 Intl.NumberFormat 的选项，加上缩放
+                <Code>Scale</Code> 与单位 <Code>Suffix</Code>），金额不写币种时用语言包的币种；中间帧在浏览器里按 Intl 格式化，停下时是 C# 按 decimal
+                格式化的终值。<Code>Trend</Code> 按正负着色；<Code>Prefix</Code>、<Code>Suffix</Code> 放在数字前后（图标、单位）。
+            </Example>
+            <Example Id="group" Title="一排指标" Demo="typeof(GroupExample)">
+                <Code>StatGroup</Code> 把几个 Stat 排成一排，按宽度换行（<Code>MinItemWidth</Code>，默认 9rem），同一行里之间一条竖线。
+                超时、缺漏这类要引起注意的数写 <Code>Tone="TextTone.Danger"</Code>，数值换成危险色。
+            </Example>
+            <Example Id="loading" Title="加载中" Demo="typeof(LoadingExample)">
+                <Code>Loading</Code> 时数值与变化量换成骨架，一道光带从起始边扫过，指标名照常显示；Card 的 <Code>Loading</Code> 把正文换成几行骨架。
+                骨架对读屏隐藏，外层带 <Code>aria-busy</Code>；很快完成的加载不出现骨架，减少动态效果时不扫光。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Stat), typeof(StatGroup), typeof(AnimatedNumber), typeof(NumberFormat)]" />
+</DocPage>

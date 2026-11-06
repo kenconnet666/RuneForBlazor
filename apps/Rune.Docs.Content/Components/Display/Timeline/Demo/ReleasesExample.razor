@@ -1,0 +1,20 @@
+@inherits RuneComponent
+
+<Timeline Items="releases" Alternate="true" />
+
+@code {
+    readonly TimelineItem[] releases =
+    [
+        new("v2.4.0")
+        {
+            TitleContent = @<Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">v2.4.0 <Badge Tone="Tone.Accent" Size="Size.Xs">最新</Badge></Flex>,
+            Time = "2026-10-20",
+            Tone = Tone.Accent,
+            Description = "十二套内置主题、日期组件第 1 层、3D 效果。",
+        },
+        new("v2.3.0") { Time = "2026-09-02", Tone = Tone.Success, Description = "表单 schema 推出字段约束。" },
+        new("v2.2.1") { Time = "2026-08-11", Tone = Tone.Warning, Description = "修复 Safari 下弹层闪烁。" },
+        new("v2.2.0") { Time = "2026-07-25", Description = "虚拟列表与树组件。" },
+        new("v2.0.0") { Time = "2026-05-30", Tone = Tone.Danger, Description = "破坏性变更：符文改名。" },
+    ];
+}

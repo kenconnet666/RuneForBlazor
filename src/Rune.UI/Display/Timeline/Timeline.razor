@@ -1,0 +1,190 @@
+@*
+    时间线（ol，同 vue-tsx-pro 的 Timeline）：按时间排列的事件（订单进度、操作记录、版本历史）。每项一个节点（圆点或图标，带色调）+ 标题、时间、说明，
+    节点之间连一条线；可以左右交替排布；还在进行中时最后一项显示加载指示（Pending）。参考 Ant Design Timeline。
+    <Timeline Items="steps" Pending="正在派送" />   steps = [new("已下单") { Time = "10-18 09:12" }, new("已发货") { Time = "10-18 15:40", Tone = Tone.Success, Icon = Lucide.Truck }]
+    Items 按时间先后给；Reverse 时新的在前（操作记录、流转记录常这样看），进行中的一项也在最前。
+    操作记录：项写 Actor（操作人，可以带 Avatar 头像）显示在时间前面；DescriptionContent 里可以放 FieldCompare 列出改了哪些字段；
+    长的内容放 Details，项里一个“查看详情”的按钮点开才显示。记录多时写 MaxVisible：只显示最新的几项，其余收起在“展开其余 N 条”后面
+    （按钮在旧的那一端，展开后变成“收起”，可以 @bind-Expanded）。语义是有序列表；时间用 time 元素（给了 DateTime 时写上机器可读的时间）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@{
+    var hidden = MaxVisible is { } max && Items.Count > max ? Items.Count - max : 0;
+    var shown = hidden > 0 && !expanded.Value ? Items.Skip(hidden) : Items;
+    var chronological = shown.Select(item => (Item: item, Pending: false)).ToList();
+    if (Pending is not null) chronological.Add((new TimelineItem(Pending) { Key = "pending" }, true));
+    if (Reverse) chronological.Reverse();
+    // 按钮在旧的那一端：倒序时在最后，最后一项仍连线到它
+    var toggleAtEnd = hidden > 0 && Reverse;
+}
+<ol reversed="@Reverse" data-alternate="@(Alternate ? "true" : null)" @attributes="Attrs.Merge(TimelineStyles.Root, SizeLayer, Rest)">
+    @if (hidden > 0 && !Reverse)
+    {
+        @Toggle(hidden)
+    }
+    @for (var i = 0; i < chronological.Count; i++)
+    {
+        var (item, pending) = chronological[i];
+        var last = i == chronological.Count - 1 && !toggleAtEnd;
+        var end = Alternate && i % 2 == 1;
+        <li @key="@(item.Key ?? (object)i)" data-state="@(pending ? "pending" : null)" aria-busy="@(pending ? "true" : null)"
+            @attributes="Attrs.Merge(Alternate ? TimelineStyles.ItemAlternate : TimelineStyles.Item, PropsItem)">
+            @* 交替排布：奇数项左侧放时间，偶数项右侧放时间 *@
+            @if (Alternate && !end)
+            {
+                @OppositeTime(item)
+            }
+            <div @attributes="Attrs.Merge(TimelineStyles.Rail, PropsRail)">
+                @if (pending)
+                {
+                    <Spinner @attributes="TimelineStyles.Pending" />
+                }
+                else
+                {
+                    <span @attributes="Attrs.Merge(TimelineStyles.Marker(item.Tone ?? Tone.Neutral, item.Icon is not null), PropsMarker)">
+                        @if (item.Icon is { } icon)
+                        {
+                            <Icon Data="icon" />
+                        }
+                    </span>
+                }
+                @if (!last)
+                {
+                    <span @attributes="Attrs.Merge(TimelineStyles.Line, PropsLine)"></span>
+                }
+            </div>
+            <div @attributes="Attrs.Merge(end ? TimelineStyles.ContentEnd : TimelineStyles.Content, PropsContent)">
+                <div @attributes="Attrs.Merge(TimelineStyles.Title, PropsTitle)">@(item.TitleContent ?? (RenderFragment)(b => b.AddContent(0, item.Title)))</div>
+                @if (item.Actor is not null)
+                {
+                    <div @attributes="Attrs.Merge(TimelineStyles.Meta, PropsMeta)">
+                        <span @attributes="TimelineStyles.Actor">
+                            <Avatar Src="@item.Avatar" Name="@item.Actor" @attributes="TimelineStyles.Avatar" />
+                            @item.Actor
+                        </span>
+                        @InlineTime(item)
+                    </div>
+                }
+                else
+                {
+                    @InlineTime(item)
+                }
+                @if (item.DescriptionContent is not null || item.Description is not null)
+                {
+                    <div @attributes="Attrs.Merge(TimelineStyles.Description, PropsDescription)">@(item.DescriptionContent ?? (RenderFragment)(b => b.AddContent(0, item.Description)))</div>
+                }
+                @if (item.Details is not null)
+                {
+                    <Collapsible Lazy="true" PropsContent="TimelineStyles.DetailsContent" @attributes="Attrs.MergeProps(null, PropsDetails)">
+                        <Trigger Context="t">
+                            <Button Variant="ButtonVariant.Link" Size="UI.Size.Sm" IconEnd="@(t.AriaExpanded == true ? BuiltInIcons.ChevronUp : BuiltInIcons.ChevronDown)"
+                                    @attributes="Attrs.Merge(TimelineStyles.DetailsToggle, t)">@Config.Lang.TimelineDetails</Button>
+                        </Trigger>
+                        <ChildContent>@item.Details</ChildContent>
+                    </Collapsible>
+                }
+            </div>
+            @if (end)
+            {
+                @OppositeTime(item)
+            }
+        </li>
+    }
+    @if (toggleAtEnd)
+    {
+        @Toggle(hidden)
+    }
+</ol>
+
+@code {
+    Bindable<bool> expanded { get => field ??= new(this, () => Expanded, () => ExpandedChanged); }
+
+    /// <summary>各项，按时间先后（旧的在前）。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TimelineItem> Items { get; set; } = [];
+
+    /// <summary>还在进行中：最后多一项，节点是加载指示，标题是它。</summary>
+    [Parameter] public string? Pending { get; set; }
+
+    /// <summary>新的在前：倒过来显示（进行中的一项也在最前），ol 带 reversed。</summary>
+    [Parameter] public bool Reverse { get; set; }
+
+    /// <summary>左右交替排布（时间在对侧）；窄的容器里仍是单侧。</summary>
+    [Parameter] public bool Alternate { get; set; }
+
+    /// <summary>字号档位；不写时继承。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>最多显示几项（不算进行中的一项）：只显示最新的这几项，其余收起在“展开其余 N 条”后面。</summary>
+    [Parameter] public int? MaxVisible { get; set; }
+
+    /// <summary>收起的各项展开了没有（可绑定）。</summary>
+    [Parameter] public bool Expanded { get; set; }
+
+    /// <summary>展开、收起时。</summary>
+    [Parameter] public EventCallback<bool> ExpandedChanged { get; set; }
+
+    /// <summary>每一项（li）的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    /// <summary>节点与连接线所在的列的部件属性。</summary>
+    [Parameter] public Attrs? PropsRail { get; set; }
+
+    /// <summary>节点的部件属性。</summary>
+    [Parameter] public Attrs? PropsMarker { get; set; }
+
+    /// <summary>连接线的部件属性。</summary>
+    [Parameter] public Attrs? PropsLine { get; set; }
+
+    /// <summary>内容（标题、时间、说明）的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>操作人与时间那一行的部件属性。</summary>
+    [Parameter] public Attrs? PropsMeta { get; set; }
+
+    /// <summary>时间（time）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTime { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>详情（交给 Collapsible）的部件属性。</summary>
+    [Parameter] public Attrs? PropsDetails { get; set; }
+
+    /// <summary>展开其余各项的按钮（交给 Button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsToggle { get; set; }
+
+    Attrs? SizeLayer => Size is { } size ? sizeLayers.Get(size, static s => new Attrs { Sx = ScaleStyles.FontSize(s) }) : null;
+
+    Memo<Size, Attrs> sizeLayers;
+
+    // 内容里的时间：交替排布时只在窄的容器里显示（宽时在对侧）
+    RenderFragment InlineTime(TimelineItem item) => item.Time is null ? _ => { } : TimeOf(item, Alternate ? TimelineStyles.TimeInline : TimelineStyles.Time);
+
+    // 交替排布时对侧的一格：没有时间也占位，保持三列对齐
+    RenderFragment OppositeTime(TimelineItem item) => item.Time is null
+        ? @<span @attributes="TimelineStyles.OppositeGap"></span>
+        : TimeOf(item, TimelineStyles.TimeOpposite);
+
+    RenderFragment TimeOf(TimelineItem item, Attrs layer) =>
+        @<time @attributes="Attrs.Merge(layer, PropsTime)" datetime="@item.DateTime">@item.Time</time>;
+
+    // 收起的那几项所在的位置：节点列一段虚线，内容是展开、收起的按钮
+    RenderFragment Toggle(int hidden) =>
+        @<li @key="@("toggle")" @attributes="TimelineStyles.Item">
+            <div @attributes="Attrs.Merge(TimelineStyles.Rail, PropsRail)">
+                <span @attributes="TimelineStyles.ToggleLine"></span>
+            </div>
+            <div @attributes="TimelineStyles.ToggleContent">
+                <Button Variant="ButtonVariant.Link" Size="UI.Size.Sm" IconEnd="@(expanded.Value ? BuiltInIcons.ChevronUp : BuiltInIcons.ChevronDown)"
+                        aria-expanded="@(expanded.Value ? "true" : "false")" @onclick="() => expanded.SetAsync(!expanded.Value)"
+                        @attributes="Attrs.MergeProps(null, PropsToggle)">
+                    @(expanded.Value ? Config.Lang.TimelineShowLess : Config.Lang.TimelineShowMore(hidden))
+                </Button>
+            </div>
+        </li>;
+}

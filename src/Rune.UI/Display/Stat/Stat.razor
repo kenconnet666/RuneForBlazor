@@ -1,0 +1,177 @@
+@*
+    统计数值（dl，同 vue-tsx-pro 的 Stat）：指标名、数值与单位、可选的图标与环比变化。仪表盘顶部的一排卡片、详情页的关键指标。外观只是内容，放进 Card、Grid 里组合：
+    <Card><Stat Label="实际销售额" Value="910.36m" Unit="万元" Icon="Lucide.Wallet" Change="0.123m" ChangeLabel="较上月" /></Card>
+    <Stat Label="测算销售" Value="a" Format="wan" Unit="万元"><Progress Value="81" Size="Size.Xs" aria-label="年度目标完成度" /><Footer>…</Footer></Stat>
+    排版（参考 Ant Design Pro 的 ChartCard）：第一行是图标与指标名、结束边是变化量；第二行是数值；ChildContent 是数值下面占满整宽的补充内容（进度条、迷你图）；
+    Footer 是底栏，上方一条分隔线，放两项时分别靠两端。一排几个指标用 StatGroup：按宽度换行，同一行里指标之间一条竖线。
+    数值变化时滚动过渡（AnimatedNumber），读屏只读终值；变化量按正负着色并带箭头，成本、耗时这类“越低越好”的指标写 InvertChange。
+    加载中（Loading）数值与变化量换成扫光的骨架，指标名照常显示。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@{
+    var skeleton = indicator.Shown;
+    // 出现过骨架之后，换回数值时淡入
+    if (skeleton) revealing = true;
+    var reveal = revealing && !skeleton ? StatStyles.Reveal : null;
+}
+<dl aria-busy="@(Loading ? "true" : null)" @attributes="Attrs.Merge(Grouped ? StatStyles.GroupedRoot : StatStyles.Root, Rest)">
+    <dt @attributes="Attrs.Merge(StatStyles.Label, PropsLabel)">
+        @if (Icon is not null)
+        {
+            <span @attributes="Attrs.Merge(StatStyles.Icon, PropsIcon)"><Icon Data="Icon" /></span>
+        }
+        <span>@Label</span>
+    </dt>
+    <dd @attributes="Attrs.Merge(StatStyles.Value, reveal, PropsValue)">
+        @if (skeleton)
+        {
+            <Skeleton @attributes="StatStyles.NumberSkeleton" />
+        }
+        else if (Value is { } value)
+        {
+            <AnimatedNumber Value="value" Format="Format" @attributes="Attrs.MergeProps(StatStyles.Number(Tone), PropsNumber)" />
+        }
+        else
+        {
+            <span @attributes="Attrs.Merge(StatStyles.Number(Tone), PropsNumber)">@Text</span>
+        }
+        @if (Unit is not null && !skeleton)
+        {
+            <span @attributes="Attrs.Merge(StatStyles.Unit, PropsUnit)">@Unit</span>
+        }
+    </dd>
+    @if (Change is { } change)
+    {
+        <dd data-trend="@(skeleton ? null : Direction(change))" @attributes="Attrs.Merge(StatStyles.Change, reveal, PropsChange)">
+            @if (skeleton)
+            {
+                <Skeleton @attributes="StatStyles.ChangeSkeleton" />
+            }
+            else
+            {
+                <AnimatedNumber Value="change" Format="ChangeFormat" Tone="ChangeTone(change)">
+                    <Prefix>
+                        @if (change != 0)
+                        {
+                            <Icon Data="@(change > 0 ? BuiltInIcons.TrendingUp : BuiltInIcons.TrendingDown)" aria-hidden="true" />
+                        }
+                    </Prefix>
+                </AnimatedNumber>
+                @if (ChangeLabel is not null)
+                {
+                    <span @attributes="Attrs.Merge(StatStyles.ChangeLabel, PropsChangeLabel)">@ChangeLabel</span>
+                }
+            }
+        </dd>
+    }
+    @if (Description is not null)
+    {
+        <dd @attributes="Attrs.Merge(StatStyles.Description, PropsDescription)">@Description</dd>
+    }
+    @if (ChildContent is not null)
+    {
+        <dd @attributes="Attrs.Merge(StatStyles.Body, PropsBody)">@ChildContent</dd>
+    }
+    @if (Footer is not null)
+    {
+        <dd @attributes="Attrs.Merge(StatStyles.Footer, PropsFooter)">@Footer</dd>
+    }
+</dl>
+
+@code {
+    /// <summary>变化量默认的格式：百分比、最多一位小数、正数带 +。</summary>
+    public static readonly NumberFormat DefaultChangeFormat = new() { Style = NumberStyle.Percent, MaximumFractionDigits = 1, SignDisplay = SignDisplay.ExceptZero };
+
+    DelayedLoading? delayedLoading;
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+    bool revealing;
+
+    [CascadingParameter(Name = StatGroup.CascadeName)] bool Grouped { get; set; }
+
+    /// <summary>指标名。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>数值：按当前语言与 <see cref="Format"/> 格式化，变化时滚动；不是数字时用 <see cref="Text"/>。</summary>
+    [Parameter] public decimal? Value { get; set; }
+
+    /// <summary>没有数值时原样显示的文字（如“—”、“98.5%”）。</summary>
+    [Parameter] public string? Text { get; set; }
+
+    /// <summary>数值的格式：两位小数 <c>new() { MinimumFractionDigits = 2 }</c>、百分比、以元给出按万元显示 <c>new() { Scale = 10_000, MaximumFractionDigits = 2 }</c> 配 Unit="万元"。</summary>
+    [Parameter] public NumberFormat? Format { get; set; }
+
+    /// <summary>单位，跟在数值后面、字号小一档。</summary>
+    [Parameter] public string? Unit { get; set; }
+
+    /// <summary>数值的色调：超时、缺漏这类要引起注意的数用 Danger、Warning；不写时是正文色。</summary>
+    [Parameter] public TextTone? Tone { get; set; }
+
+    /// <summary>指标名前面的图标（装饰，对读屏隐藏）。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>变化量（环比、同比）：正数向上、负数向下；默认按百分比显示（0.12 → +12%）。</summary>
+    [Parameter] public decimal? Change { get; set; }
+
+    /// <summary>变化量的格式，默认 <see cref="DefaultChangeFormat"/>。</summary>
+    [Parameter] public NumberFormat ChangeFormat { get; set; } = DefaultChangeFormat;
+
+    /// <summary>变化量后面的说明，如“较上月”。</summary>
+    [Parameter] public string? ChangeLabel { get; set; }
+
+    /// <summary>下降是好事（成本、耗时、故障数）：下降显示成功色、上升显示危险色。</summary>
+    [Parameter] public bool InvertChange { get; set; }
+
+    /// <summary>数值下面的补充说明（一行小字）。</summary>
+    [Parameter] public RenderFragment? Description { get; set; }
+
+    /// <summary>底栏：上方一条分隔线；放两项时分别靠两端，如“年度目标 2,000 万元”与“完成 81%”。</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>数值下面占满整宽的补充内容：进度条、迷你图。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>加载中：数值与变化量换成扫光的骨架，带 aria-busy；很快完成时不闪。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>指标名（dt）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>数值（dd）的部件属性。</summary>
+    [Parameter] public Attrs? PropsValue { get; set; }
+
+    /// <summary>图标外层的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>数字本身（AnimatedNumber，或文字值的 span）的部件属性。</summary>
+    [Parameter] public Attrs? PropsNumber { get; set; }
+
+    /// <summary>单位的部件属性。</summary>
+    [Parameter] public Attrs? PropsUnit { get; set; }
+
+    /// <summary>变化（dd）的部件属性。</summary>
+    [Parameter] public Attrs? PropsChange { get; set; }
+
+    /// <summary>变化后面的说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsChangeLabel { get; set; }
+
+    /// <summary>补充说明（dd）的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>补充内容（dd，ChildContent 的外层）的部件属性。</summary>
+    [Parameter] public Attrs? PropsBody { get; set; }
+
+    /// <summary>底栏（dd）的部件属性。</summary>
+    [Parameter] public Attrs? PropsFooter { get; set; }
+
+    static string Direction(decimal change) => change > 0 ? "up" : change < 0 ? "down" : "flat";
+
+    TextTone ChangeTone(decimal change) => change == 0 ? TextTone.Muted : (change > 0) != InvertChange ? TextTone.Success : TextTone.Danger;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => indicator.Update(Loading);
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => delayedLoading?.Dispose();
+}

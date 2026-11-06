@@ -1,0 +1,59 @@
+@* 报价单的操作记录：新的在前，每项有操作人（头像或首字母）与时间，改了哪些字段列在项里，完整的字段对比收在“查看详情”里。
+   记录多，只显示最新的 4 条，其余在“展开其余 N 条”后面。（字段对比等 FieldCompare 做好后换用它） *@
+@inherits RuneComponent
+
+<Card>
+    <Timeline Items="items" Reverse="true" MaxVisible="4" @bind-Expanded="expanded" />
+</Card>
+
+@code {
+    static readonly Quote V1 = new(86.5m, 2_000, 30, "华辰精密", "含税含运");
+    static readonly Quote V2 = V1 with { UnitPrice = 82m, LeadDays = 25 };
+    static readonly Quote V3 = V2 with { Quantity = 2_400, Remark = "含税含运，分两批交付" };
+    static readonly Quote V4 = V3 with { UnitPrice = 79.8m, Supplier = "恒远五金" };
+
+    readonly TimelineItem[] items;
+    bool expanded;
+
+    public ChangeLogExample()
+    {
+        items =
+        [
+            new("创建报价单") { Key = "1", Actor = "周宁", Time = "10-14 09:02", DateTime = "2026-10-14T09:02", Icon = Lucide.FilePlusCorner, Tone = Tone.Accent },
+            Change(new("修改报价") { Key = "2", Actor = "周宁", Time = "10-14 15:40", DateTime = "2026-10-14T15:40", Icon = Lucide.Pencil }, V1, V2),
+            new("提交审批") { Key = "3", Actor = "周宁", Time = "10-15 10:05", DateTime = "2026-10-15T10:05", Icon = Lucide.Send, Tone = Tone.Info },
+            new("退回修改")
+            {
+                Key = "4", Actor = "陆川", Time = "10-16 11:20", DateTime = "2026-10-16T11:20", Icon = Lucide.Undo2, Tone = Tone.Warning,
+                Description = "数量按 Q4 排产计划补到 2,400，备注写明分批交付",
+            },
+            Change(new("修改报价") { Key = "5", Actor = "周宁", Time = "10-16 16:48", DateTime = "2026-10-16T16:48", Icon = Lucide.Pencil }, V2, V3),
+            Change(new("换供应商重新比价") { Key = "6", Actor = "方圆", Time = "10-18 09:30", DateTime = "2026-10-18T09:30", Icon = Lucide.Pencil }, V3, V4),
+            new("审批通过") { Key = "7", Actor = "陆川", Time = "10-18 14:12", DateTime = "2026-10-18T14:12", Icon = Lucide.ShieldCheck, Tone = Tone.Success },
+        ];
+    }
+
+    // 一次修改：项里列改了的字段，详情里是全部字段
+    static TimelineItem Change(TimelineItem item, Quote before, Quote after) => item with
+    {
+        DescriptionContent = @<span>@string.Join("；", Fields(before, after).Where(f => f.Before != f.After).Select(f => $"{f.Name} {f.Before} → {f.After}"))</span>,
+        Details =
+            @<Descriptions Columns="1">
+                @foreach (var field in Fields(before, after))
+                {
+                    <DescriptionsItem Label="@field.Name">@(field.Before == field.After ? field.After : $"{field.Before} → {field.After}")</DescriptionsItem>
+                }
+            </Descriptions>,
+    };
+
+    static (string Name, string Before, string After)[] Fields(Quote before, Quote after) =>
+    [
+        ("单价", $"¥{before.UnitPrice:0.00}", $"¥{after.UnitPrice:0.00}"),
+        ("数量", $"{before.Quantity:#,0}", $"{after.Quantity:#,0}"),
+        ("交期（天）", $"{before.LeadDays}", $"{after.LeadDays}"),
+        ("供应商", before.Supplier, after.Supplier),
+        ("备注", before.Remark, after.Remark),
+    ];
+
+    sealed record Quote(decimal UnitPrice, int Quantity, int LeadDays, string Supplier, string Remark);
+}

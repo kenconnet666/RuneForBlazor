@@ -1,0 +1,36 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Descriptions Columns="2">
+        @* 不写币种时用语言包的币种 *@
+        <DescriptionsItem Label="余额"><AnimatedNumber Value="balance" Format="Money" /></DescriptionsItem>
+        <DescriptionsItem Label="环比"><AnimatedNumber Value="growth" Format="Growth" Trend="true" /></DescriptionsItem>
+        <DescriptionsItem Label="累计下载"><AnimatedNumber Value="downloads" /></DescriptionsItem>
+        <DescriptionsItem Label="评分">
+            <AnimatedNumber Value="rating" Format="OneDecimal" Duration="Size.Xl">
+                <Prefix><Icon Data="Lucide.Star" Tone="TextTone.Warning" /></Prefix>
+                <Suffix> / 5</Suffix>
+            </AnimatedNumber>
+        </DescriptionsItem>
+    </Descriptions>
+    <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Icon="Lucide.RefreshCw" @onclick="Shuffle">换一组数</Button>
+</Flex>
+
+@code {
+    static readonly NumberFormat Money = new() { Style = NumberStyle.Currency };
+    static readonly NumberFormat Growth = new() { Style = NumberStyle.Percent, MaximumFractionDigits = 1 };
+    static readonly NumberFormat OneDecimal = new() { MinimumFractionDigits = 1 };
+
+    decimal balance = 12_880.35m;
+    decimal growth = 0.124m;
+    decimal downloads = 9_007_199_254_740_993m;
+    decimal rating = 4.6m;
+
+    void Shuffle()
+    {
+        balance += Math.Round((decimal)Random.Shared.NextDouble() * 4000 - 2000, 2);
+        growth = Math.Round((decimal)Random.Shared.NextDouble() * 0.5m - 0.2m, 3);
+        downloads += Random.Shared.Next(1000, 50_000);
+        rating = Math.Round((decimal)Random.Shared.NextDouble() * 2 + 3, 1);
+    }
+}

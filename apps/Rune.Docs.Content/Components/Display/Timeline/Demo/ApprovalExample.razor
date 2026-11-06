@@ -1,0 +1,36 @@
+@* 采购申请的流转记录：每条事件一项，Actor 是处理人，处理结果按种类换图标与色调（同意、退回、超时自动处理）；
+   意见写在 Description，附件做成链接；Reverse 新的在前 *@
+@inherits RuneComponent
+
+<Card>
+    <Timeline Items="records" Reverse="true" />
+</Card>
+
+@code {
+    readonly TimelineItem[] records;
+
+    public ApprovalExample()
+    {
+        records =
+        [
+            At(new("发起") { Actor = "周宁", Tone = Tone.Accent, Icon = Lucide.CirclePlay }, "2026-10-14T09:02"),
+            At(new("认领了 部门审批") { Actor = "陆川", Icon = Lucide.Hand }, "2026-10-14T10:15"),
+            At(new("部门审批：退回修改") { Actor = "陆川", Tone = Tone.Warning, Icon = Lucide.CornerUpLeft, Description = "报价只有一家，请再比价一家后提交" }, "2026-10-14T10:40"),
+            At(new("修改申请：重新提交")
+            {
+                Actor = "周宁",
+                Tone = Tone.Success,
+                Icon = Lucide.Check,
+                DescriptionContent = @<Flex Gap="SpaceScale.Sm" Wrap="true"><TextLink Href="#">比价单.xlsx</TextLink><TextLink Href="#">报价-乙公司.pdf</TextLink></Flex>,
+            }, "2026-10-15T16:20"),
+            At(new("部门审批：同意") { Actor = "陆川", Tone = Tone.Success, Icon = Lucide.Check }, "2026-10-16T09:05"),
+            At(new("催办 预算核对") { Actor = "周宁", Tone = Tone.Info, Icon = Lucide.BellRing, Description = "供应商月底调价，麻烦尽快" }, "2026-10-19T09:30"),
+            At(new("预算核对 没人认领，转负责人指定") { Actor = "系统", Tone = Tone.Warning, Icon = Lucide.Hourglass }, "2026-10-21T09:00"),
+            At(new("指定 方圆 处理 预算核对") { Actor = "韩笑", Tone = Tone.Accent, Icon = Lucide.UserCheck }, "2026-10-21T09:12"),
+            At(new("预算核对：核对无误（超时自动处理）") { Actor = "系统", Tone = Tone.Info, Icon = Lucide.Clock, Description = "超过时限，视为无异议" }, "2026-10-24T00:00"),
+        ];
+    }
+
+    // 时间写成“月-日 时:分”，机器可读的完整时间进 DateTime
+    static TimelineItem At(TimelineItem item, string dateTime) => item with { DateTime = dateTime, Time = dateTime[5..16].Replace('T', ' ') };
+}

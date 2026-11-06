@@ -1,0 +1,17 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("12em")" Gap="SpaceScale.Md">
+    <Card><Stat Label="订单数" Value="1284" Change="0.123m" ChangeLabel="较上月" /></Card>
+    <Card><Stat Label="客单价" Value="86.4m" Unit="元" Change="-0.042m" ChangeLabel="较上月" /></Card>
+    <Card>
+        <Stat Label="平均响应时间" Value="212" Unit="ms" Change="-0.18m" ChangeLabel="较上周" InvertChange="true">
+            <Description>越低越好：下降显示为改善</Description>
+        </Stat>
+    </Card>
+    @* 变化量是绝对数而不是比例：ChangeFormat 换成带符号的整数 *@
+    <Card><Stat Label="新增会员" Value="342" Unit="人" Change="58" ChangeFormat="Signed" ChangeLabel="较昨日" /></Card>
+</Grid>
+
+@code {
+    static readonly NumberFormat Signed = new() { SignDisplay = SignDisplay.ExceptZero };
+}

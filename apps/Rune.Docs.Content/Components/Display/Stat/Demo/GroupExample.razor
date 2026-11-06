@@ -1,0 +1,36 @@
+@* 一排指标：按宽度换行，同一行里之间一条竖线；要引起注意的数用 Tone 标红 *@
+@inherits RuneComponent
+
+<Card Variant="CardVariant.Outline" Padding="SpaceScale.Md">
+    <Header>需要处理</Header>
+    <ChildContent>
+        <StatGroup>
+            @foreach (var item in items)
+            {
+                <Stat @key="item.Label" Label="@item.Label" Icon="item.Icon" Value="item.Value" Unit="项"
+                      Tone="@(item.Urgent && item.Value > 0 ? TextTone.Danger : null)">
+                    <Footer>
+                        @if (item.Value > 0)
+                        {
+                            <TextLink Href="#">去处理</TextLink>
+                        }
+                        else
+                        {
+                            <Small Tone="TextTone.Muted">没有</Small>
+                        }
+                    </Footer>
+                </Stat>
+            }
+        </StatGroup>
+    </ChildContent>
+</Card>
+
+@code {
+    static readonly (string Label, IconData Icon, int Value, bool Urgent)[] items =
+    [
+        ("超时", Lucide.AlarmClock, 10, true),
+        ("7 天内到期", Lucide.CalendarClock, 6, false),
+        ("待验收", Lucide.BadgeCheck, 5, false),
+        ("可关闭", Lucide.PackageCheck, 0, false),
+    ];
+}

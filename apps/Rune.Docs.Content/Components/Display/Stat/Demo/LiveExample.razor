@@ -1,0 +1,81 @@
+@* 每 2 秒刷新一次：数值滚动到新值，变化量与上一次比较；下面的迷你趋势是最近 12 次取值（装饰，对读屏隐藏） *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Wrap="true">
+        <Switch @bind-Value="running">每 2 秒刷新</Switch>
+        <Small Tone="TextTone.Muted">数值滚动到新值，变化量与上一次比较</Small>
+    </Flex>
+    <Grid MinItemWidth="@("15em")" Gap="SpaceScale.Md">
+        @foreach (var metric in metrics)
+        {
+            var value = metric.History[^1];
+            var previous = metric.History[^2];
+            var (min, max) = (metric.History.Min(), metric.History.Max());
+            <Card @key="metric.Label">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                    <Stat Label="@metric.Label" Icon="metric.Icon" Value="value" Unit="@metric.Unit" ChangeLabel="较上次"
+                          Change="@(previous == 0 ? 0 : (decimal)(value - previous) / previous)" InvertChange="@(metric.Label == "平均延迟")" />
+                    <div aria-hidden="true" @attributes="Trend">
+                        @for (var i = 0; i < metric.History.Length; i++)
+                        {
+                            var percent = 25 + (metric.History[i] - min) * 75.0 / Math.Max(max - min, 1);
+                            <span @attributes="Attrs.Merge(i == metric.History.Length - 1 ? Latest : Bar, BarHeight(percent))"></span>
+                        }
+                    </div>
+                </Flex>
+            </Card>
+        }
+    </Grid>
+</Flex>
+
+@code {
+    static readonly Attrs Trend = new() { Sx = TrendStyle };
+    static readonly Attrs Bar = new() { Sx = BarStyle };
+    static readonly Attrs Latest = new() { Sx = Sx.Of(BarStyle, LatestStyle) };
+
+    Timer? timer;
+    bool running = true;
+    Metric[] metrics =
+    [
+        new("在线人数", Lucide.Users, "人", 180, Seed(3260, 180)),
+        new("每分钟订单", Lucide.ShoppingCart, "单", 12, Seed(86, 12)),
+        new("接口 QPS", Lucide.Activity, "次/秒", 90, Seed(1420, 90)),
+        new("平均延迟", Lucide.Gauge, "ms", 14, Seed(118, 14)),
+    ];
+
+    protected override void OnInitialized()
+    {
+        // 只在交互渲染时刷新：静态渲染没有电路，定时器改了也送不到页面
+        if (RendererInfo.IsInteractive) timer = new Timer(_ => InvokeAsync(Tick), null, 2000, 2000);
+    }
+
+    void Tick()
+    {
+        if (!running) return;
+        metrics = [.. metrics.Select(m => m with { History = [.. m.History[1..], Math.Max(0, (int)Math.Round(m.History[^1] + (Random.Shared.NextDouble() - 0.5) * m.Spread))] })];
+        StateHasChanged();
+    }
+
+    static int[] Seed(int value, int spread) => [.. Enumerable.Range(0, 12).Select(i => (int)Math.Round(value + Math.Sin(i) * spread))];
+
+    static Attrs BarHeight(double percent) => new() { ["style"] = $"height: {percent.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)}%" };
+
+    protected override void OnDispose() => timer?.Dispose();
+
+    sealed record Metric(string Label, IconData Icon, string Unit, int Spread, int[] History);
+
+    static Style TrendStyle => Css.Define(static () => new Style { Display = Display.Flex, AlignItems = AlignItems.FlexEnd, Gap = CssLength.Rem(0.125), Height = CssLength.Rem(2) });
+
+    static Style BarStyle => Css.Define(static () => new Style
+    {
+        FlexGrow = 1,
+        BorderRadius = CssLength.Rem(0.0625),
+        BackgroundColor = Tones.Accent.SoftHover,
+        TransitionProperty = "height",
+        TransitionDuration = Durations.Md,
+        TransitionTimingFunction = Easings.Standard,
+    });
+
+    static Style LatestStyle => Css.Define(static () => new Style { BackgroundColor = Tones.Accent.Solid });
+}

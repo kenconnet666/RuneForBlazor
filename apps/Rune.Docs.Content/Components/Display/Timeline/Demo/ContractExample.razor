@@ -1,0 +1,17 @@
+@* 合同协商的流转记录：旧的在前、左右交替、小一号；留言、暂停、恢复各有图标 *@
+@inherits RuneComponent
+
+<Card>
+    <Timeline Items="records" Alternate="true" Size="Size.Sm" />
+</Card>
+
+@code {
+    static readonly TimelineItem[] records =
+    [
+        new("法务 · 张律 发起") { Time = "10-08 14:00", DateTime = "2026-10-08T14:00", Tone = Tone.Accent, Icon = Lucide.CirclePlay },
+        new("法务 · 张律 · 法务审核：通过") { Time = "10-09 10:20", DateTime = "2026-10-09T10:20", Tone = Tone.Success, Icon = Lucide.CircleCheck },
+        new("商务 · 林夏 留言") { Time = "10-10 08:45", DateTime = "2026-10-10T08:45", Icon = Lucide.MessageSquare, Description = "付款节点改成验收后 30 天，法务已口头同意" },
+        new("管理层 · 秦总 暂停了流程") { Time = "10-12 17:30", DateTime = "2026-10-12T17:30", Tone = Tone.Warning, Icon = Lucide.Pause, Description = "等对方董事会决议" },
+        new("管理层 · 秦总 恢复了流程") { Time = "10-20 09:00", DateTime = "2026-10-20T09:00", Tone = Tone.Accent, Icon = Lucide.CirclePlay },
+    ];
+}

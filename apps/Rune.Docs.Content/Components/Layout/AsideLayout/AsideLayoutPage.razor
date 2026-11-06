@@ -1,0 +1,13 @@
+@page "/components/aside-layout"
+@attribute [DocMeta("AsideLayout 主栏与侧栏", "详情页常用的两栏：主栏放长内容，侧栏定宽、粘在顶栏下面放要一直看得见的；容器窄了叠成一列。", DocCategory.Layout, Order = 8)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Layout.AsideLayout.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="detail" Title="详情页" Demo="typeof(DetailExample)">
+        子内容是主栏，<Code>Aside</Code> 是侧栏（<Code>AsideWidth</Code> 定宽，默认 26rem），两栏里的块按 <Code>Gap</Code> 竖排。
+        按容器宽度决定叠不叠（不到 56rem 叠成一列、侧栏在后），放在抽屉、分栏里也对。<Code>Sticky</Code>（默认开）让侧栏粘在 AppShell
+        的顶栏下面，滚动主栏时不动；示例在文档的卡片里，关掉了。
+    </Example>
+    <ApiReference Types="[typeof(AsideLayout)]" />
+</DocPage>

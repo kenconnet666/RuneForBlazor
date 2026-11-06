@@ -1,0 +1,47 @@
+@* 详情页：主栏放概览与明细，侧栏放金额与里程碑；容器窄了（不到 56rem）叠成一列 *@
+@inherits RuneComponent
+
+<AsideLayout AsideLabel="收益与里程碑" AsideWidth="@("18rem")" Sticky="false">
+    <Aside>
+        <Card Variant="CardVariant.Outline">
+            <Header>收益（万元）</Header>
+            <ChildContent>
+                <Grid Columns="2" Gap="SpaceScale.Sm">
+                    <Stat Label="预期" Value="17.48m" />
+                    <Stat Label="测算" Text="—" />
+                </Grid>
+            </ChildContent>
+        </Card>
+        <Card Variant="CardVariant.Outline">
+            <Header>里程碑</Header>
+            <ChildContent>
+                <Timeline Size="Size.Sm" Items="milestones" Pending="验证中，计划 10-30 完成" />
+            </ChildContent>
+        </Card>
+    </Aside>
+    <ChildContent>
+        <Card Variant="CardVariant.Outline">
+            <Header>概览</Header>
+            <ChildContent>
+                <Descriptions Columns="2" Size="Size.Sm">
+                    <DescriptionsItem Label="任务类别" Value="产品改进" />
+                    <DescriptionsItem Label="责任团队" Value="技术部" />
+                    <DescriptionsItem Label="主办" Value="宋知行" />
+                    <DescriptionsItem Label="计划完成" Value="2026-10-06" />
+                </Descriptions>
+            </ChildContent>
+        </Card>
+        <Card Variant="CardVariant.Outline">
+            <Header>改进明细</Header>
+            <ChildContent>卡箍改用铝合金，合并两件支架，减少紧固件。</ChildContent>
+        </Card>
+    </ChildContent>
+</AsideLayout>
+
+@code {
+    static readonly TimelineItem[] milestones =
+    [
+        new("方案确定") { Time = "2026-08-13", Tone = Tone.Success },
+        new("验证样件交付") { Time = "2026-09-22", Tone = Tone.Success },
+    ];
+}

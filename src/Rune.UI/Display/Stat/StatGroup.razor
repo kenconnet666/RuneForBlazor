@@ -1,0 +1,25 @@
+@*
+    一排指标（div，同 vue-tsx-pro 的 StatGroup）：按宽度换行，同一行里指标之间一条竖线。
+    <StatGroup><Stat Label="超时" Value="10" Tone="TextTone.Danger" /><Stat Label="待验收" Value="5" /></StatGroup>
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(StatStyles.GroupRoot, Rest, WidthVar)">
+    <CascadingValue Name="@CascadeName" Value="true" IsFixed="true">@ChildContent</CascadingValue>
+</div>
+
+@code {
+    /// <summary>交给里面的 Stat 的级联值的名字：在组里时画竖线。</summary>
+    internal const string CascadeName = "RuneStatGroup";
+
+    Memo<CssLength, Attrs> widthVar;
+
+    /// <summary>每个指标最窄多宽，放不下就换行；默认 9rem。</summary>
+    [Parameter] public CssLength? MinItemWidth { get; set; }
+
+    /// <summary>Stat。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    Attrs? WidthVar => MinItemWidth is { } width ? widthVar.Get(width, static w => new Attrs { Vars = [StatStyles.MinItemWidth.Set(w)] }) : null;
+}

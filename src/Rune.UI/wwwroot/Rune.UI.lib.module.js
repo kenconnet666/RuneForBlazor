@@ -107,6 +107,8 @@
 //   data-rune-check-draw     复选框：用户点击勾上时把后面的对勾一笔画出（初次渲染、外部改值不画）
 //   data-rune-draw="true"    图标的描线动画：插入时为 true、或由 false 变为 true 时一笔画出（减少动态效果时直接画好）
 //   data-rune-file-drop      选文件的区域（FileDrop）：拖着文件经过时写 data-dragging；文件由盖满区域的原生 file input 接住
+//   data-rune-tween="lg"     会滚动的数字（AnimatedNumber）：data-value 变了时从显示中的值滚到新值（第一次出现时从 data-from），逐帧改文字节点，
+//                            停下时换回 C# 的终值；中间帧按 data-locale、data-format（Intl 的选项加 scale、suffix）格式化，时长取主题的这一档
 //   data-rune-dismiss        可移除元素（data-rune-dismissible，如标签）里的移除按钮：元素先离场（data-dismissing），
 //                            结束后发出冒泡的 rune-dismiss（Blazor 里是 @onrunedismiss）；被移除时焦点交给同组的下一个
 //                            （没有就上一个）可聚焦元素，没被移除就重新显示
@@ -123,7 +125,7 @@
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框）、menus（菜单的键盘、子菜单、右键菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
-// leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
+// leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、tween（会滚动的数字）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
 import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawCheckOnChange, drawIcon, startDismiss, startRipple } from './js/effects.js';
@@ -134,6 +136,7 @@ import { keyMentions, onMentionsClick, onMentionsCompositionEnd, onMentionsFocus
 import { releasePointer, trackPointer } from './js/pointer.js';
 import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, onToasterFocusOut } from './js/toast.js';
 import { watchGrid, watchSize } from './js/layout.js';
+import { onTweenValueChanged, watchTween } from './js/tween.js';
 import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './js/lists.js';
 import { watchIndicator } from './js/indicator.js';
 import { scheduleOverflow, watchOverflow } from './js/overflow.js';
@@ -282,7 +285,7 @@ function install(blazor) {
     childList: true,
     attributes: true,
     attributeOldValue: true,
-    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query', 'aria-busy', 'data-rune-fullscreen', 'data-rune-invalid-submit'],
+    attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query', 'aria-busy', 'data-rune-fullscreen', 'data-rune-invalid-submit', 'data-value'],
   });
   syncWithin(document);
   // 装好了：端到端测试、对照工具等它出现再操作（脚本加载之前的点击没人处理）
@@ -316,6 +319,7 @@ const watched = [
   ['[data-rune-fullscreen="true"]', syncFullscreen],
   ['[data-rune-theme-switcher]', watchThemeSwitcher],
   ['[data-rune-token-value]', fillTokenValue],
+  ['[data-rune-tween]', watchTween],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 
@@ -342,6 +346,7 @@ function onMutations(mutations) {
       else if (mutation.attributeName === 'data-rune-query') onQueryChanged(mutation.target);
       else if (mutation.attributeName === 'aria-busy') syncHideEmpty(mutation.target.closest('[role="listbox"]'));
       else if (mutation.attributeName === 'data-rune-fullscreen') syncFullscreen(mutation.target);
+      else if (mutation.attributeName === 'data-value') { if (mutation.target.hasAttribute('data-rune-tween')) onTweenValueChanged(mutation.target); }
       else if (mutation.attributeName === 'data-rune-invalid-submit') { if (mutation.target.hasAttribute('data-rune-invalid-submit')) focusInvalid(mutation.target); }
       else if (mutation.attributeName === 'data-rune-copy-request') {
         if (mutation.target.hasAttribute('data-rune-copy-request')) copyFrom(mutation.target);

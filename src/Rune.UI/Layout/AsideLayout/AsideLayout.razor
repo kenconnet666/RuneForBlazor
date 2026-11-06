@@ -1,0 +1,45 @@
+@*
+    主栏 + 侧栏（div，同 vue-tsx-pro 的 AsideLayout）：详情页常用的两栏，主栏放长内容（概览、明细、流程），侧栏放要一直看得见的（金额、状态、清单）。
+    <AsideLayout AsideLabel="收益与关闭"><Aside><BenefitCard /><ClosingCard /></Aside><ChildContent><OverviewCard /><PartsCard /></ChildContent></AsideLayout>
+    宽的时候侧栏定宽、粘在顶栏下面（AppShell 的 StickyOffset），滚动主栏时它不动；窄了（容器不到 56rem）叠成一列，侧栏在后。
+    按容器宽度而不是窗口宽度决定叠不叠：放在抽屉、分栏里也对。两栏里的块按 Gap 竖排。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(AsideLayoutStyles.Root, Rest)">
+    <div @attributes="Attrs.Merge(AsideLayoutStyles.Grid(Gap), WidthVar)">
+        <div @attributes="Attrs.Merge(AsideLayoutStyles.Column(Gap, sticky: false), PropsMain)">@ChildContent</div>
+        <aside @attributes="Attrs.Merge(AsideLayoutStyles.Column(Gap, Sticky), PropsAside)" aria-label="@AsideLabel">@Aside</aside>
+    </div>
+</div>
+
+@code {
+    Memo<CssLength, Attrs> widthVar;
+
+    /// <summary>侧栏的内容。</summary>
+    [Parameter, EditorRequired] public RenderFragment? Aside { get; set; }
+
+    /// <summary>侧栏的名称（aside 的 aria-label）。</summary>
+    [Parameter] public string? AsideLabel { get; set; }
+
+    /// <summary>侧栏的宽度，默认 26rem。</summary>
+    [Parameter] public CssLength? AsideWidth { get; set; }
+
+    /// <summary>侧栏粘在顶栏下面，默认开。</summary>
+    [Parameter] public bool Sticky { get; set; } = true;
+
+    /// <summary>两栏之间、栏里各块之间的间距，默认 Md。</summary>
+    [Parameter] public SpaceScale Gap { get; set; } = SpaceScale.Md;
+
+    /// <summary>主栏（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsMain { get; set; }
+
+    /// <summary>侧栏（aside）的部件属性。</summary>
+    [Parameter] public Attrs? PropsAside { get; set; }
+
+    /// <summary>主栏的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    Attrs? WidthVar => AsideWidth is { } width ? widthVar.Get(width, static w => new Attrs { Vars = [AsideLayoutStyles.AsideWidth.Set(w)] }) : null;
+}

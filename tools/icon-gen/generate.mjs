@@ -71,6 +71,9 @@ const BUILT_IN = [
   'upload',
   'file',
   'rotate-cw',
+  // Stat 的环比变化
+  'trending-up',
+  'trending-down',
   // Result 的常见状态：403、404、500
   'shield-x',
   'file-question-mark',
