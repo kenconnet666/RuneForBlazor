@@ -67,7 +67,7 @@ else
     // 画法交给 JS：选项写成一个 JSON 属性，变了 JS 重画
     string Options => options.Get((Text, Lines, Image, Width, Height, Rotate, GapX, GapY, FontSize, Color), static k => System.Text.Json.JsonSerializer.Serialize(
         new WatermarkOptions(k.Lines ?? (k.Text is null ? [] : [k.Text]), k.Image, k.Width, k.Height, k.Rotate, [k.GapX, k.GapY], k.FontSize, k.Color),
-        WatermarkJson.Relaxed.WatermarkOptions));
+        UIJson.Relaxed.WatermarkOptions));
 
     RenderFragment Layer => @<div aria-hidden="true" data-rune-watermark="@Options"
                                  @attributes="Attrs.Merge(Fullscreen ? WatermarkStyles.FullscreenLayer : WatermarkStyles.Layer, PropsLayer)"></div>;

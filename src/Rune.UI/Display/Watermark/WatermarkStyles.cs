@@ -1,6 +1,3 @@
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Rune.Styles;
 
 namespace Rune.UI;
@@ -31,17 +28,3 @@ public static class WatermarkStyles
 /// <summary>交给 JS 画水印的选项（data-rune-watermark 的 JSON）。</summary>
 internal sealed record WatermarkOptions(
     IReadOnlyList<string> Lines, string? Image, int Width, int Height, int Rotate, int[] Gap, int FontSize, string? Color);
-
-// 裁剪友好：源生成的序列化，不靠反射
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
-[JsonSerializable(typeof(WatermarkOptions))]
-internal sealed partial class WatermarkJson : JsonSerializerContext
-{
-    // 文字原样写进属性（Blazor 会转义属性值），不转成 \uXXXX
-    internal static WatermarkJson Relaxed { get; } = new(new JsonSerializerOptions
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-    });
-}

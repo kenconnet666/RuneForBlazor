@@ -12,7 +12,7 @@
 @inherits UIComponent
 
 <FlexList Direction="@(horizontal ? LayoutDirection.Row : LayoutDirection.Column)" Gap="SpaceScale.Xs"
-          data-rune-sortable="@(horizontal ? "horizontal" : "vertical")" data-texts="@Texts" data-disabled="@(Disabled ? "" : null)"
+          data-rune-sortable="@(horizontal ? "horizontal" : "vertical")" data-texts="@SortableTexts.Of(Config.Lang)" data-disabled="@(Disabled ? "" : null)"
           @onrunereorder="OnReorderAsync" @attributes="Attrs.MergeProps(SortableStyles.List, Rest)">
     @foreach (var item in items.Value)
     {
@@ -32,7 +32,6 @@
 
 @code {
     readonly string instructionsId = UniqueId.Next("sortable");
-    Memo<Lang, string> texts;
 
     Bindable<IReadOnlyList<TItem>> items { get => field ??= new(this, () => Items, () => ItemsChanged); }
 
@@ -67,15 +66,6 @@
     [Parameter] public Attrs? PropsContent { get; set; }
 
     bool horizontal => Orientation == Orientation.Horizontal;
-
-    // 读屏念的句子交给 JS：名称是 {label}，位置与总数是 900001、900002（JS 换成实际的数）
-    string Texts => texts.Get(Config.Lang, static lang => System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string>
-    {
-        ["grabbed"] = lang.SortableGrabbed("{label}", 900001, 900002),
-        ["moved"] = lang.SortableMoved("{label}", 900001, 900002),
-        ["dropped"] = lang.SortableDropped("{label}", 900001, 900002),
-        ["cancelled"] = lang.SortableCancelled("{label}", 900001),
-    }, SortableJson.Relaxed.DictionaryStringString));
 
     // JS 交来新的顺序（各项的 key）：按它重排；对不上（列表在这期间变了）时不动
     Task OnReorderAsync(ReorderEventArgs e)
