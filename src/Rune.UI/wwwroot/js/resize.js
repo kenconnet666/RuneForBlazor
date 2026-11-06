@@ -1,8 +1,12 @@
 // 宽度调整手柄（data-rune-resize，同 vue-tsx-pro 的 ResizeHandle）：拖动、← / →（横向手柄是 ↑ / ↓）、双击回到 data-default，
 // 都在这里当场改父元素的尺寸（行内的 width / height），夹在 aria-valuemin、aria-valuemax 之间；一次操作结束（松开、按键、双击）
 // 才发出冒泡的 rune-resize（size）交给 C#。从右到左排版下横向方向自动镜像；data-edge="start" 时往起始方向拖是变宽。
+// 分栏（Splitter）的分隔条（data-rune-splitter-handle）同理：拖动、方向键（每次 5%）、Home / End、双击回到 data-default，
+// 当场改分栏外层的 --rune-split-start / --rune-split-end（两栏的 fr），结束时发 rune-resize（size 是起始一栏的百分比）；
+// Enter 发 rune-command（toggle），C# 收起或展开可收起的那一侧。
 
 import { startMove } from './move.js';
+import { sendCommand } from './shared.js';
 
 const watched = new WeakSet();
 
@@ -94,5 +98,80 @@ export function resetResizeHandle(event) {
   const handle = event.target;
   const size = fit(handle, Number(handle.dataset.default));
   apply(handle, size);
+  commit(handle, size);
+}
+
+// 分栏：起始一栏的百分比夹在 aria-valuemin、aria-valuemax 之间，保留一位小数
+const splitRootOf = (handle) => handle.closest('[data-rune-splitter]');
+const splitHorizontal = (root) => root.dataset.runeSplitter !== 'vertical';
+
+function fitSplit(handle, size) {
+  const min = Number(handle.getAttribute('aria-valuemin') ?? 0);
+  const max = Number(handle.getAttribute('aria-valuemax') ?? 100);
+  return Math.round(Math.min(Math.max(size, min), max) * 10) / 10;
+}
+
+function applySplit(handle, size) {
+  const root = splitRootOf(handle);
+  root.style.setProperty('--rune-split-start', `${size}fr`);
+  root.style.setProperty('--rune-split-end', `${100 - size}fr`);
+  handle.setAttribute('aria-valuenow', String(size));
+}
+
+export function grabSplitter(event) {
+  if (event.button !== 0 || !(event.target instanceof Element)) return;
+  const handle = event.target.closest('[data-rune-splitter-handle]');
+  const root = handle && splitRootOf(handle);
+  if (!root) return;
+  const rect = root.getBoundingClientRect();
+  const horizontal = splitHorizontal(root);
+  const total = horizontal ? rect.width : rect.height;
+  const sign = horizontal && getComputedStyle(root).direction === 'rtl' ? -1 : 1;
+  const from = Number(handle.getAttribute('aria-valuenow'));
+  let size = from;
+  event.preventDefault();
+  startMove(event, {
+    target: handle,
+    onMove: ({ deltaX, deltaY }) => {
+      size = fitSplit(handle, from + ((horizontal ? deltaX * sign : deltaY) / total) * 100);
+      applySplit(handle, size);
+    },
+    onEnd: () => commit(handle, size),
+  });
+}
+
+export function keySplitter(event) {
+  if (!(event.target instanceof Element) || !event.target.matches('[data-rune-splitter-handle]')) return;
+  const handle = event.target;
+  const root = splitRootOf(handle);
+  if (event.key === 'Enter') {
+    if (!root?.hasAttribute('data-collapsible')) return;
+    event.preventDefault();
+    sendCommand(handle, 'toggle');
+    return;
+  }
+  const horizontal = splitHorizontal(root);
+  const rtl = horizontal && getComputedStyle(root).direction === 'rtl';
+  const forward = horizontal ? (rtl ? 'ArrowLeft' : 'ArrowRight') : 'ArrowDown';
+  const backward = horizontal ? (rtl ? 'ArrowRight' : 'ArrowLeft') : 'ArrowUp';
+  const now = Number(handle.getAttribute('aria-valuenow'));
+  const next = event.key === forward ? now + 5
+    : event.key === backward ? now - 5
+    : event.key === 'Home' ? Number(handle.getAttribute('aria-valuemin'))
+    : event.key === 'End' ? Number(handle.getAttribute('aria-valuemax'))
+    : null;
+  if (next === null) return;
+  event.preventDefault();
+  const size = fitSplit(handle, next);
+  applySplit(handle, size);
+  commit(handle, size);
+}
+
+export function resetSplitter(event) {
+  if (!(event.target instanceof Element)) return;
+  const handle = event.target.closest('[data-rune-splitter-handle][data-default]');
+  if (!handle) return;
+  const size = fitSplit(handle, Number(handle.dataset.default));
+  applySplit(handle, size);
   commit(handle, size);
 }

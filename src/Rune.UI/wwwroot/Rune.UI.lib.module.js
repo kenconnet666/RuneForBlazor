@@ -69,6 +69,8 @@
 //   data-rune-avatar-image   头像的图片：加载完写 data-state="loaded"（显示出来），失败写 "error"（藏起来，露出后备内容）；插入时已经加载完的照样标
 //   data-rune-resize         宽度调整手柄（role="separator"）：拖动、方向键、双击回到 data-default，当场改父元素的宽（横向手柄是高），
 //                            结束时发出冒泡的 rune-resize（size）；没给宽度时按父元素量出 aria-valuenow
+//   data-rune-splitter-handle 分栏（Splitter）的分隔条：拖动、方向键（5%）、Home / End、双击回到 data-default，当场改外层（data-rune-splitter）的
+//                            --rune-split-start / -end，结束时发 rune-resize（起始一栏的百分比）；外层有 data-collapsible 时 Enter 发 rune-command（toggle）
 //   data-rune-overflow       一行标签（Select 的 MaxTagCount 按宽度）：量出放得下几个 data-rune-overflow-item，其余写 data-overflow-hidden
 //                            （CSS 藏起来但仍可测量），data-rune-overflow-rest（“+N”）的文字取自 data-rune-more 里的第 N 项
 //   data-rune-tabs           横排的标签栏：放不下时写 data-overflowing、启用滚动按钮，当前标签滚进来；可关闭的标签上 Delete、中键关闭；
@@ -133,7 +135,7 @@
 //
 // 这个文件只负责安装：注册自定义事件、挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框）、menus（菜单的键盘、子菜单、右键菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
-// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
+// roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄、分栏的分隔条）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
 // leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、tween（会滚动的数字）、affix（固钉与回到顶部）、watermark（水印）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格、尺寸观察、占满到窗口底边、截断的文字、跑马灯的时长）、shared（共用的小工具）。
 
 import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from './js/controls.js';
@@ -161,7 +163,7 @@ import { navigationEnded, navigationStarted, watchLoadingBar } from './js/loadin
 import { formatHotkeyLabel, hotkeyTarget } from './js/hotkeys.js';
 import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from './js/tabs.js';
 import { watchCollapse } from './js/collapse.js';
-import { grabResizeHandle, keyResizeHandle, resetResizeHandle, watchResizeHandle } from './js/resize.js';
+import { grabResizeHandle, grabSplitter, keyResizeHandle, keySplitter, resetResizeHandle, resetSplitter, watchResizeHandle } from './js/resize.js';
 import { grabSlider, keySlider, watchSlider } from './js/slider.js';
 import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './js/theme.js';
 import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './js/fullscreen.js';
@@ -244,12 +246,14 @@ function install(blazor) {
   document.addEventListener('pointerdown', keepFocusOnListHost);
   document.addEventListener('pointerdown', grabSlider);
   document.addEventListener('pointerdown', grabResizeHandle);
+  document.addEventListener('pointerdown', grabSplitter);
   document.addEventListener('pointerdown', grabTab);
   document.addEventListener('pointerdown', grabToast);
   document.addEventListener('dragenter', onFileDragEnter);
   document.addEventListener('dragleave', onFileDragLeave);
   document.addEventListener('drop', onFileDrop);
   document.addEventListener('dblclick', resetResizeHandle);
+  document.addEventListener('dblclick', resetSplitter);
   document.addEventListener('dblclick', doubleClickOption);
   document.addEventListener('auxclick', auxClickTabs);
   document.addEventListener('pointerdown', onHoverPointerDown);
@@ -475,6 +479,7 @@ function onKeyDown(event) {
   moveRoving(event);
   keySlider(event);
   keyResizeHandle(event);
+  keySplitter(event);
   keyTabs(event);
   // 列表没用掉的按键再转成命令（Enter 选中了高亮项时不再加标签）
   if (event.key === 'Backspace' || event.key === 'Escape' || event.key === 'Enter') sendKeyCommand(event);

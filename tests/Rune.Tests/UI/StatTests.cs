@@ -208,4 +208,50 @@ public class StatTests : BunitContext
         var page = Render<Watermark>(p => p.Add(x => x.Text, "内部资料").Add(x => x.Fullscreen, true));
         Assert.Single(page.Nodes.OfType<AngleSharp.Dom.IElement>());
     }
+
+    [Fact]
+    public void 迷你图_空值处断开_读屏念概括()
+    {
+        var cut = Render<Sparkline>(p => p.Add(x => x.Data, [3m, 5m, null, 4m, 8m]).Add(x => x.Label, "近 5 月"));
+        Assert.Equal("近 5 月：4 个值，从 3 到 8，最低 3，最高 8", cut.Find("[role=img]").GetAttribute("aria-label"));
+        Assert.Equal(2, cut.FindAll("path").Count);
+        Assert.Equal("M0 100 L1 60", cut.FindAll("path")[0].GetAttribute("d"));
+
+        var bars = Render<Sparkline>(p => p.Add(x => x.Data, [3m, null, 4m]).Add(x => x.Variant, SparklineVariant.Bar));
+        Assert.Equal(2, bars.FindAll("rect").Count);
+        Assert.Empty(bars.FindAll("span[aria-hidden]"));
+    }
+
+    [Fact]
+    public void 仪表盘_meter的取值与目标_数值弧取所在区间的色调()
+    {
+        GaugeBand[] bands = [new(0.6m, Tone.Danger), new(0.9m, Tone.Warning), new(1, Tone.Success)];
+        var cut = Render<Gauge>(p => p.Add(x => x.Value, 0.82m).Add(x => x.Max, 1).Add(x => x.ValueFormat, NumberFormat.Percent)
+            .Add(x => x.Target, 0.9m).Add(x => x.Bands, bands).Add(x => x.Label, "完成率"));
+        var meter = cut.Find("[role=meter]");
+        Assert.Equal("0.82", meter.GetAttribute("aria-valuenow"));
+        Assert.Equal("82%，目标 90%", meter.GetAttribute("aria-valuetext"));
+        Assert.Equal("完成率", meter.GetAttribute("aria-label"));
+        Assert.Single(cut.FindAll("line"));
+        // 轨道、数值弧、三段区间
+        Assert.Equal(5, cut.FindAll("path").Count);
+    }
+
+    [Fact]
+    public void 分栏_分隔条是可聚焦的separator_比例经变量_收起的一栏inert()
+    {
+        var cut = Render<Splitter>(p => p.Add(x => x.Size, 40).Add(x => x.Collapsible, SplitterSide.End).Add(x => x.Collapsed, true)
+            .Add(x => x.StartContent, (RenderFragment)(b => b.AddContent(0, "列表"))).Add(x => x.EndContent, (RenderFragment)(b => b.AddContent(0, "详情"))));
+        var root = cut.Find("[data-rune-splitter]");
+        Assert.Equal("end", root.GetAttribute("data-collapsed"));
+        Assert.Contains("--rune-split-start:40fr", root.GetAttribute("style")!.Replace(" ", ""));
+        var handle = cut.Find("[role=separator]");
+        Assert.Equal("0", handle.GetAttribute("tabindex"));
+        Assert.Equal("100", handle.GetAttribute("aria-valuenow"));
+        Assert.True(cut.Find("[id$=-end]").HasAttribute("inert"));
+
+        handle.TriggerEvent("onruneresize", new ResizeEventArgs { Size = 55 });
+        Assert.False(cut.Find("[data-rune-splitter]").HasAttribute("data-collapsed"));
+        Assert.Equal("55", cut.Find("[role=separator]").GetAttribute("aria-valuenow"));
+    }
 }

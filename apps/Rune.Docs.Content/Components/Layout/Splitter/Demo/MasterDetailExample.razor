@@ -1,0 +1,67 @@
+@* 左列表、右详情：拖分隔条调比例（双击回到初始比例），右栏可以收起 *@
+@inherits RuneComponent
+
+<Splitter Sx="Frame" @bind-Size="size" Collapsible="SplitterSide.End" @bind-Collapsed="hidden">
+    <StartContent>
+        @foreach (var mail in mails)
+        {
+            <button @key="mail.Id" type="button" @onclick="() => current = mail.Id" @attributes="Attrs.Merge(mail.Id == current ? ActiveItem : Item)">
+                <TextSpan Size="Size.Sm" Weight="Weight.Semibold">@mail.Title</TextSpan>
+                <Small Tone="TextTone.Muted">@mail.From</Small>
+            </button>
+        }
+    </StartContent>
+    <EndContent>
+        @{ var selected = mails.First(m => m.Id == current); }
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Sx="Detail">
+            <TextSpan Weight="Weight.Semibold">@selected.Title</TextSpan>
+            <Small Tone="TextTone.Muted">来自 @selected.From</Small>
+            <TextSpan Size="Size.Sm">@selected.Body</TextSpan>
+        </Flex>
+    </EndContent>
+</Splitter>
+
+@code {
+    static readonly Attrs Item = new() { Sx = ItemStyle };
+    static readonly Attrs ActiveItem = new() { Sx = Sx.Of(ItemStyle, ActiveStyle) };
+
+    static readonly (int Id, string From, string Title, string Body)[] mails =
+    [
+        (1, "财务部", "费用核算待复核", "测算参数与报价不一致，请复核材料单价。"),
+        (2, "PMO", "派单：机柜导轨第二供应商", "请在 5 个工作日内完成方案设计。"),
+        (3, "财务", "结算超 30 天提醒", "显示器支架的结算已经 32 天。"),
+    ];
+
+    double size = 40;
+    bool hidden;
+    int current = 1;
+
+    static Style Frame => Css.Define(static () => new Style
+    {
+        Height = CssLength.Rem(16),
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = Colors.Border,
+        BorderRadius = Radii.Md,
+    });
+
+    static Style ItemStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        Gap = CssLength.Rem(0.125),
+        Width = CssLength.Percent(100),
+        TextAlign = TextAlign.Start,
+        PaddingBlock = Space.Sm,
+        PaddingInline = Space.Md,
+        BorderWidth = 0,
+        BackgroundColor = CssColors.Transparent,
+        Cursor = Cursor.Pointer,
+        Color = CssWide.Inherit,
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
+    });
+
+    static Style ActiveStyle => Css.Define(static () => new Style { BackgroundColor = Tones.Accent.Soft, [When.Hover] = new() { BackgroundColor = Tones.Accent.Soft } });
+
+    static Style Detail => Css.Define(static () => new Style { Padding = Space.Md });
+}

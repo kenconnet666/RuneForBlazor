@@ -1,0 +1,40 @@
+@* 上下排列：上面编辑、下面预览；上栏可以收起，比例范围 30%–70% *@
+@inherits RuneComponent
+
+<Splitter Sx="Frame" Orientation="Orientation.Vertical" @bind-Size="size" MinSize="30" MaxSize="70" Collapsible="SplitterSide.Start">
+    <StartContent>
+        <div @attributes="Attrs.Merge(Pane)">
+            <Textarea @bind-Value="text" aria-label="方案" Fixed="true" Sx="Editor" />
+        </div>
+    </StartContent>
+    <EndContent>
+        <div @attributes="Attrs.Merge(Pane)">
+            <Small Tone="TextTone.Muted">预览（上栏 @size%）</Small>
+            <div @attributes="Attrs.Merge(Preview)">@text</div>
+        </div>
+    </EndContent>
+</Splitter>
+
+@code {
+    static readonly Attrs Pane = new() { Sx = PaneStyle };
+    static readonly Attrs Preview = new() { Sx = PreviewStyle };
+
+    string? text = "改进方案：\n1. 卡箍改用铝合金\n2. 合并两件支架，减少紧固件";
+    double size = 50;
+
+    static Style Frame => Css.Define(static () => new Style
+    {
+        Height = CssLength.Rem(18),
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = Colors.Border,
+        BorderRadius = Radii.Md,
+    });
+
+    static Style PaneStyle => Css.Define(static () => new Style { Padding = Space.Sm, Height = CssLength.Percent(100), BoxSizing = BoxSizing.BorderBox });
+
+    // 编辑框占满上栏：外壳撑满，文字区随外壳拉伸（Fixed：高度不随内容变）
+    static Style Editor => Css.Define(static () => new Style { Width = CssLength.Percent(100), Height = CssLength.Percent(100) });
+
+    static Style PreviewStyle => Css.Define(static () => new Style { WhiteSpace = WhiteSpace.PreWrap });
+}

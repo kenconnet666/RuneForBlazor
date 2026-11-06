@@ -1,0 +1,128 @@
+@*
+    迷你图（span，同 vue-tsx-pro 的 Sparkline）：没有坐标轴的小折线、面积或柱，嵌在指标卡（Stat 的 ChildContent）、表格的格子、列表的一行里看走势。
+    纯 SVG（C# 直接输出，静态 SSR 也一样），宽度占满容器，高度默认 2em（随字号缩放）。
+    <Stat Label="实际销售" Value="910.36m" Unit="万元"><Sparkline Data="monthly" Variant="SparklineVariant.Area" Label="近 12 个月" /></Stat>
+    <Sparkline Data="@([3, 5, null, 4, 8])" Variant="SparklineVariant.Bar" Tone="Tone.Success" />
+    空值（null）处断开（柱是空位）；默认标出最后一个点。读屏念成一句话：几个值、从哪到哪、最低最高（按 ValueFormat 与当前语言格式化），Label 写在前面。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using System.Globalization
+
+@{
+    var present = Data.Where(v => v is not null).Select(v => (double)v!.Value).ToList();
+    var bars = Variant == SparklineVariant.Bar;
+    var low = (double?)Min ?? (present.Count == 0 ? 0 : bars ? Math.Min(present.Min(), 0) : present.Min());
+    var high = (double?)Max ?? (present.Count == 0 ? 1 : bars ? Math.Max(present.Max(), 0) : present.Max());
+    var span = high - low is var d && d != 0 ? d : 1;
+    double YOf(double value) => 100 - (value - low) / span * 100;
+    var width = bars ? Data.Count : Math.Max(Data.Count - 1, 1);
+    var lastIndex = LastIndex();
+}
+<span role="img" aria-label="@AriaLabel(present)" @attributes="Attrs.Merge(Attrs.Layer(SparklineStyles.Root(Tone), HeightVar, LastVars(lastIndex, width, YOf)), Rest)">
+    <svg viewBox="0 0 @width.ToString(CultureInfo.InvariantCulture) 100" preserveAspectRatio="none" aria-hidden="true" @attributes="SparklineStyles.Svg">
+        @if (bars)
+        {
+            var zero = YOf(Math.Max(low, 0));
+            for (var i = 0; i < Data.Count; i++)
+            {
+                if (Data[i] is not { } value) continue;
+                var y = YOf((double)value);
+                <rect x="@N(i + 0.15)" width="0.7" y="@N(Math.Min(y, zero))" height="@N(Math.Abs(y - zero))" @attributes="SparklineStyles.Bar" />
+            }
+        }
+        else
+        {
+            foreach (var points in Segments(YOf))
+            {
+                @if (Variant == SparklineVariant.Area && points.Count > 1)
+                {
+                    <path d="@($"{PathOf(points)} L{N(points[^1].X)} 100 L{N(points[0].X)} 100 Z")" @attributes="SparklineStyles.Area" />
+                }
+                <path d="@PathOf(points)" vector-effect="non-scaling-stroke" @attributes="SparklineStyles.Line" />
+            }
+        }
+    </svg>
+    @if (ShowLast && !bars && lastIndex >= 0)
+    {
+        <span aria-hidden="true" @attributes="SparklineStyles.Last"></span>
+    }
+</span>
+
+@code {
+    /// <summary>各个值，按时间先后；空值处断开。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<decimal?> Data { get; set; } = [];
+
+    /// <summary>画法，默认折线。</summary>
+    [Parameter] public SparklineVariant Variant { get; set; }
+
+    /// <summary>色调，默认 Accent。</summary>
+    [Parameter] public Tone Tone { get; set; } = UI.Tone.Accent;
+
+    /// <summary>高度，默认 2em。</summary>
+    [Parameter] public CssLength? Height { get; set; }
+
+    /// <summary>标出最后一个点（折线、面积），默认开。</summary>
+    [Parameter] public bool ShowLast { get; set; } = true;
+
+    /// <summary>纵向范围的下限；不写时按数据取（柱从 0 起）。</summary>
+    [Parameter] public decimal? Min { get; set; }
+
+    /// <summary>纵向范围的上限；不写时按数据取（柱从 0 起）。</summary>
+    [Parameter] public decimal? Max { get; set; }
+
+    /// <summary>读屏念的数值格式。</summary>
+    [Parameter] public NumberFormat? ValueFormat { get; set; }
+
+    /// <summary>名称：读屏先念它（“近 12 个月实际销售”）。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    Memo<CssLength, Attrs> heightVar;
+
+    Attrs? HeightVar => Height is { } h ? heightVar.Get(h, static v => new Attrs { Vars = [SparklineStyles.HeightVar.Set(v)] }) : null;
+
+    // 最后一个点：HTML 圆点按百分比定位（SVG 拉伸时圆不变形）
+    Attrs? LastVars(int lastIndex, int width, Func<double, double> yOf) => ShowLast && Variant != SparklineVariant.Bar && lastIndex >= 0
+        ? new Attrs { Vars = [SparklineStyles.LastX.Set(CssLength.Percent(lastIndex * 100.0 / width)), SparklineStyles.LastY.Set(CssLength.Percent(yOf((double)Data[lastIndex]!.Value)))] }
+        : null;
+
+    int LastIndex()
+    {
+        for (var i = Data.Count - 1; i >= 0; i--)
+            if (Data[i] is not null) return i;
+        return -1;
+    }
+
+    // 连续的段：空值处断开
+    List<List<(double X, double Y)>> Segments(Func<double, double> yOf)
+    {
+        var segments = new List<List<(double X, double Y)>>();
+        var current = new List<(double X, double Y)>();
+        for (var i = 0; i < Data.Count; i++)
+        {
+            if (Data[i] is { } value) current.Add((i, yOf((double)value)));
+            else if (current.Count > 0)
+            {
+                segments.Add(current);
+                current = [];
+            }
+        }
+        if (current.Count > 0) segments.Add(current);
+        return segments;
+    }
+
+    static string PathOf(List<(double X, double Y)> points) =>
+        string.Join(' ', points.Select((p, i) => $"{(i == 0 ? 'M' : 'L')}{N(p.X)} {N(p.Y)}"));
+
+    static string N(double value) => Math.Round(value, 3).ToString(CultureInfo.InvariantCulture);
+
+    string AriaLabel(List<double> present)
+    {
+        string Format(decimal value) => LangFormat.Number(value, ValueFormat ?? NumberFormat.Default, Config.Lang);
+        var values = Data.Where(v => v is not null).Select(v => v!.Value).ToList();
+        var summary = values.Count == 0
+            ? Config.Lang.EmptyValue
+            : Config.Lang.SparklineSummary(values.Count, Format(values[0]), Format(values[^1]), Format(values.Min()), Format(values.Max()));
+        return Label is null ? summary : $"{Label}：{summary}";
+    }
+}

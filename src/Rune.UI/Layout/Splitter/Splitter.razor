@@ -1,0 +1,137 @@
+@*
+    分栏（div，同 vue-tsx-pro 的 Splitter）：两栏并排（或上下），中间的分隔条可以拖动调整比例，一侧可以收起。收件箱（左列表、右预览）、
+    主从视图、编辑器与预览这类“两块都要看、比例因人而异”的布局。
+    <Splitter @bind-Size="listSize" Collapsible="SplitterSide.End" @bind-Collapsed="previewHidden"><Start><List /></Start><End><Preview /></End></Splitter>
+    Size 是起始一栏占的百分比（@bind-Size 记住），拖动时夹在 MinSize–MaxSize 之间；双击分隔条回到初始比例。
+    分隔条按 WAI-ARIA 的 Window Splitter 模式：role="separator"、可聚焦，←/→（上下排列时 ↑/↓）每次调 5%，Home / End 到最小 / 最大，
+    Enter 收起或展开可收起的那一侧；从右到左排版下左右键自动镜像。拖动、按键都在 JS 里当场改两栏的比例，一次操作结束才交给 C#（没有逐帧的往返）。
+    写了 Collapsible 时分隔条中间有收起、展开的小按钮；收起的一栏宽度是 0、inert（不可聚焦、读屏不念；不用 hidden：不占格子时后面两格会往前挪），另一栏占满。两栏各自滚动，用浮层滚动条（ScrollArea）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using System.Globalization
+
+@{
+    var horizontal = Orientation == Orientation.Horizontal;
+    var hideStart = collapsed.Value && Collapsible == SplitterSide.Start;
+    var hideEnd = collapsed.Value && Collapsible == SplitterSide.End;
+}
+<div data-rune-splitter="@(horizontal ? "horizontal" : "vertical")" data-collapsible="@(Collapsible is null ? null : "")"
+     data-collapsed="@(collapsed.Value && Collapsible is { } side ? side.ToString().ToLowerInvariant() : null)"
+     @onruneresize="OnResizeAsync" @onrunecommand="OnCommandAsync"
+     @attributes="Attrs.Merge(SplitterStyles.Root(horizontal, Bordered), SizeVars, Rest)">
+    <div id="@($"{id}-start")" inert="@hideStart" @attributes="Attrs.Merge(SplitterStyles.Pane, PropsStart)">@Pane(StartContent)</div>
+    <div @attributes="SplitterStyles.Track(horizontal)">
+        <div role="separator" tabindex="0" data-rune-splitter-handle data-default="@initialSize.ToString(CultureInfo.InvariantCulture)"
+             aria-label="@(Label ?? Config.Lang.SplitterResize)" aria-orientation="@(horizontal ? "vertical" : "horizontal")" aria-controls="@($"{id}-start")"
+             aria-valuenow="@((hideStart ? 0 : hideEnd ? 100 : size.Value).ToString(CultureInfo.InvariantCulture))"
+             aria-valuemin="@MinSize.ToString(CultureInfo.InvariantCulture)" aria-valuemax="@MaxSize.ToString(CultureInfo.InvariantCulture)"
+             @attributes="Attrs.Merge(SplitterStyles.Handle(horizontal), PropsHandle)">
+            <span @attributes="SplitterStyles.Line(horizontal)"></span>
+        </div>
+        @if (Collapsible is { } collapsibleSide)
+        {
+            @* 键盘用户在分隔条上按 Enter：按钮不进 Tab 顺序，免得多停一次 *@
+            <IconButton Icon="ToggleIcon(horizontal)" Size="UI.Size.Xs" Variant="ButtonVariant.Outline" Tone="UI.Tone.Neutral"
+                        Label="@(collapsed.Value ? Config.Lang.SplitterExpand : Config.Lang.SplitterCollapse)"
+                        aria-expanded="@(collapsed.Value ? "false" : "true")" aria-controls="@($"{id}-{collapsibleSide.ToString().ToLowerInvariant()}")" tabindex="-1"
+                        @onclick="() => collapsed.SetAsync(!collapsed.Value)" @attributes="Attrs.MergeProps(SplitterStyles.Toggle, PropsToggle)" />
+        }
+    </div>
+    <div id="@($"{id}-end")" inert="@hideEnd" @attributes="Attrs.Merge(SplitterStyles.Pane, PropsEnd)">@Pane(EndContent)</div>
+</div>
+
+@code {
+    readonly string id = UniqueId.Next("splitter");
+    double initialSize;
+    bool initialized;
+    Memo<double, Attrs> sizeVars;
+
+    Bindable<double> size { get => field ??= new(this, () => Size, () => SizeChanged); }
+    Bindable<bool> collapsed { get => field ??= new(this, () => Collapsed, () => CollapsedChanged); }
+
+    /// <summary>起始一栏（左或上）的内容。</summary>
+    [Parameter, EditorRequired] public RenderFragment? StartContent { get; set; }
+
+    /// <summary>结束一栏（右或下）的内容。</summary>
+    [Parameter, EditorRequired] public RenderFragment? EndContent { get; set; }
+
+    /// <summary>两栏的排法：Horizontal 左右并排（默认），Vertical 上下排列。</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>起始一栏占的百分比，默认 50（可绑定，记住拖动后的比例）。</summary>
+    [Parameter] public double Size { get; set; } = 50;
+
+    /// <summary>比例变了（一次拖动、按键结束时）。</summary>
+    [Parameter] public EventCallback<double> SizeChanged { get; set; }
+
+    /// <summary>起始一栏最少占多少（百分比），默认 20。</summary>
+    [Parameter] public double MinSize { get; set; } = 20;
+
+    /// <summary>起始一栏最多占多少（百分比），默认 80。</summary>
+    [Parameter] public double MaxSize { get; set; } = 80;
+
+    /// <summary>哪一侧可以收起；不写时不能收起。</summary>
+    [Parameter] public SplitterSide? Collapsible { get; set; }
+
+    /// <summary>可收起的那一侧收着（可绑定）。</summary>
+    [Parameter] public bool Collapsed { get; set; }
+
+    /// <summary>收起、展开时。</summary>
+    [Parameter] public EventCallback<bool> CollapsedChanged { get; set; }
+
+    /// <summary>分隔条的名称（读屏），默认取语言包（调整分栏）。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>外面一圈边框、圆角与表面色：独立成块（收件箱的列表与预览）。</summary>
+    [Parameter] public bool Bordered { get; set; }
+
+    /// <summary>起始一栏（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsStart { get; set; }
+
+    /// <summary>结束一栏（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsEnd { get; set; }
+
+    /// <summary>两栏里滚动区域（ScrollArea）的部件属性。</summary>
+    [Parameter] public Attrs? PropsScroll { get; set; }
+
+    /// <summary>分隔条（div，role="separator"）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHandle { get; set; }
+
+    /// <summary>收起、展开按钮（交给 IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsToggle { get; set; }
+
+    Attrs SizeVars => sizeVars.Get(size.Value, static s => new Attrs
+    {
+        Vars = [SplitterStyles.Start.Set($"{s.ToString(CultureInfo.InvariantCulture)}fr"), SplitterStyles.End.Set($"{(100 - s).ToString(CultureInfo.InvariantCulture)}fr")],
+    });
+
+    // 收起、展开按钮的箭头：指向收起的方向
+    IconData ToggleIcon(bool horizontal)
+    {
+        var towardStart = (Collapsible == SplitterSide.Start) != collapsed.Value;
+        return horizontal
+            ? towardStart ? BuiltInIcons.ChevronLeft : BuiltInIcons.ChevronRight
+            : towardStart ? BuiltInIcons.ChevronUp : BuiltInIcons.ChevronDown;
+    }
+
+    RenderFragment Pane(RenderFragment? content) =>
+        @<ScrollArea Axis="ScrollAxis.Both" PropsContent="SplitterStyles.PaneContent" @attributes="Attrs.MergeProps(SplitterStyles.PaneScroll, PropsScroll)">@content</ScrollArea>;
+
+    // 拖动、按键结束：JS 已经改好了比例，这里记下（拖出收着的一侧即展开）
+    async Task OnResizeAsync(ResizeEventArgs e)
+    {
+        await size.SetAsync(e.Size);
+        if (collapsed.Value) await collapsed.SetAsync(false);
+    }
+
+    Task OnCommandAsync(CommandEventArgs e) => e.Name == "toggle" && Collapsible is not null ? collapsed.SetAsync(!collapsed.Value) : Task.CompletedTask;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (initialized) return;
+        initialized = true;
+        initialSize = Size;
+    }
+}

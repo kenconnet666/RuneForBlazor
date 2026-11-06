@@ -1,0 +1,27 @@
+@* 工作台的一排仪表盘：完成率（分三段，目标 90%）、产能利用率（越过 85% 就是提醒）、供应商风险分（越低越好，区间倒过来）。
+   数值弧的颜色取它所在区间的色调；读屏按 meter 念数值与目标 *@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("12em")" Gap="SpaceScale.Md">
+    <Card Sx="Centered">
+        <Gauge Value="0.82m" Max="1" ValueFormat="NumberFormat.Percent" Label="年度销售完成率" Target="0.9m"
+               Bands="@([new(0.6m, Tone.Danger), new(0.9m, Tone.Warning), new(1, Tone.Success)])" />
+    </Card>
+    <Card Sx="Centered">
+        <Gauge Value="0.91m" Max="1" ValueFormat="NumberFormat.Percent" Label="产线利用率"
+               Bands="@([new(0.7m, Tone.Info), new(0.85m, Tone.Success), new(1, Tone.Warning)])" />
+    </Card>
+    <Card Sx="Centered">
+        <Gauge Value="38" Label="供应商风险分" Bands="@([new(40, Tone.Success), new(70, Tone.Warning), new(100, Tone.Danger)])" />
+    </Card>
+    <Card Sx="Centered">
+        <Gauge Value="2.4m" Max="5" ValueFormat="OneDecimal" Unit="天" Label="平均处理时长" Tone="Tone.Accent" />
+    </Card>
+</Grid>
+
+@code {
+    static readonly NumberFormat OneDecimal = new() { MaximumFractionDigits = 1 };
+
+    // 仪表盘在卡片里居中
+    static Style Centered => Css.Define(static () => new Style { Display = Display.Grid, JustifyItems = JustifyItems.Center });
+}

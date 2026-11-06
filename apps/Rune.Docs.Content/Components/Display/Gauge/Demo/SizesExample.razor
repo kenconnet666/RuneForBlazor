@@ -1,0 +1,13 @@
+@* 大小随字号：Size 档位或外层的字号；中间的文字可以用 ValueContent 换成自己的（“82 分”） *@
+@inherits RuneComponent
+
+<Flex Gap="SpaceScale.Lg" Align="ItemAlign.End" Wrap="true">
+    <Gauge Value="82" Bands="bands" Size="Size.Xs" Label="Xs" />
+    <Gauge Value="82" Bands="bands" Size="Size.Sm" Label="Sm" />
+    <Gauge Value="82" Bands="bands" Label="默认" />
+    <Gauge Value="82" Bands="bands" Size="Size.Lg" Label="质量评分"><ValueContent>82 分</ValueContent></Gauge>
+</Flex>
+
+@code {
+    static readonly GaugeBand[] bands = [new(60, Tone.Danger), new(80, Tone.Warning), new(100, Tone.Success)];
+}

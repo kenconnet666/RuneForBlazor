@@ -1,0 +1,38 @@
+@* 表格里的一列走势：每行一条迷你图，高度跟行高；有缺的月份时折线在这里断开。Tone 按走势选：单价降了是好事（Success），涨了标危险色 *@
+@inherits RuneComponent
+
+<Table aria-label="零件单价走势">
+    <TableHead>
+        <TableRow>
+            <TableHeaderCell>件号</TableHeaderCell>
+            <TableHeaderCell>名称</TableHeaderCell>
+            <TableHeaderCell Align="TableAlign.End">最新单价（元）</TableHeaderCell>
+            <TableHeaderCell style="width: 10rem">近 7 个月</TableHeaderCell>
+        </TableRow>
+    </TableHead>
+    <TableBody>
+        @foreach (var part in parts)
+        {
+            var first = part.Prices.First(p => p is not null)!.Value;
+            var last = part.Prices[^1]!.Value;
+            <TableRow @key="part.Code">
+                <TableCell>@part.Code</TableCell>
+                <TableCell>@part.Name</TableCell>
+                <TableCell Align="TableAlign.End">@last.ToString("0.0")</TableCell>
+                <TableCell>
+                    <Sparkline Data="part.Prices" Tone="@(last <= first ? Tone.Success : Tone.Danger)" Height="CssLength.Em(1.5)" Label="@($"{part.Name}近 7 个月单价")" />
+                </TableCell>
+            </TableRow>
+        }
+    </TableBody>
+</Table>
+
+@code {
+    static readonly (string Code, string Name, decimal?[] Prices)[] parts =
+    [
+        ("SKU-21108", "显示器支架", [128.6m, 127.9m, 126.2m, 121.4m, 119.4m, 118.9m, 116.8m]),
+        ("SKU-53214", "线束卡箍", [3.2m, 3.2m, 3.3m, null, 3.6m, 3.7m, 3.9m]),
+        ("SKU-11802", "办公椅", [2150, 2120, 2080, 2075, 2060, 1990, 1985]),
+        ("SKU-70431", "包装胶带", [86, 88, 85, 91, 89, 93, 95]),
+    ];
+}

@@ -1,0 +1,126 @@
+@*
+    仪表盘（div，role="meter"，同 vue-tsx-pro 的 Gauge）：半圆的刻度上显示一个量落在哪个区间——完成率、利用率、风险分。外圈是分段的区间
+    （危险、提醒、良好），里面的弧是当前值（颜色取它所在区间的色调），中间是数值，下面是名称。
+    <Gauge Value="0.82m" Max="1" ValueFormat="NumberFormat.Percent" Label="销售完成率" Target="0.9m"
+           Bands="@([new(0.6m, Tone.Danger), new(0.9m, Tone.Warning), new(1, Tone.Success)])" />
+    和 Progress 的分工：Progress 是做到哪了（上传、步骤）；Gauge 是一个量处在好坏的哪一段（有区间、有目标）。
+    纯 SVG（C# 直接输出），大小随字号缩放（宽 10em）。读屏按 meter 念：数值（按 ValueFormat 与单位格式化）与目标。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using System.Globalization
+
+@{
+    var fraction = FractionOf(Value);
+    var band = Bands?.FirstOrDefault(b => Value <= b.To) ?? Bands?.LastOrDefault();
+    var spoken = Text(Value);
+}
+<div role="meter" aria-label="@Label" aria-valuemin="@N(Min)" aria-valuemax="@N(Max)" aria-valuenow="@N(Math.Clamp(Value, Min, Max))"
+     aria-valuetext="@(Target is { } target ? $"{spoken}，{Config.Lang.ProgressTarget(Text(target))}" : spoken)"
+     @attributes="Attrs.Merge(Attrs.Layer(GaugeStyles.Root(Tone ?? band?.Tone ?? UI.Tone.Accent), SizeLayer), Rest)">
+    <div @attributes="GaugeStyles.Dial">
+        <svg viewBox="0 -4 200 108" aria-hidden="true" @attributes="GaugeStyles.Svg">
+            <path d="@Arc(0, 1, Radius)" @attributes="GaugeStyles.Track" />
+            @if (fraction > 0)
+            {
+                <path d="@Arc(0, fraction, Radius)" @attributes="GaugeStyles.Value" />
+            }
+            @if (Bands is not null)
+            {
+                for (var i = 0; i < Bands.Count; i++)
+                {
+                    var from = FractionOf(i == 0 ? Min : Bands[i - 1].To);
+                    var to = FractionOf(Bands[i].To);
+                    if (to <= from) continue;
+                    <path d="@Arc(from, to, BandRadius)" @attributes="GaugeStyles.Band(Bands[i].Tone)" />
+                }
+            }
+            @if (Target is { } mark)
+            {
+                var (inner, outer) = (PointOf(FractionOf(mark), Radius - 10), PointOf(FractionOf(mark), BandRadius + 4));
+                <line x1="@N(inner.X)" y1="@N(inner.Y)" x2="@N(outer.X)" y2="@N(outer.Y)" @attributes="GaugeStyles.Target" />
+            }
+        </svg>
+        <span aria-hidden="true" @attributes="Attrs.Merge(GaugeStyles.Center, PropsValue)">@(ValueContent ?? (RenderFragment)(b => b.AddContent(0, spoken)))</span>
+    </div>
+    <div aria-hidden="true" @attributes="GaugeStyles.Ends">
+        <span>@LangFormat.Number(Min, ValueFormat ?? NumberFormat.Default, Config.Lang)</span>
+        <span>@LangFormat.Number(Max, ValueFormat ?? NumberFormat.Default, Config.Lang)</span>
+    </div>
+    @if (Label is not null)
+    {
+        <span @attributes="Attrs.Merge(GaugeStyles.Label, PropsLabel)">@Label</span>
+    }
+</div>
+
+@code {
+    // 半圆：圆心 (100, 100)，从左（180°）经上方到右（0°）
+    const double Center = 100;
+    const double Radius = 80;
+    const double BandRadius = 94;
+
+    Memo<Size, Attrs> sizeLayers;
+
+    /// <summary>当前值。</summary>
+    [Parameter, EditorRequired] public decimal Value { get; set; }
+
+    /// <summary>最小值，默认 0。</summary>
+    [Parameter] public decimal Min { get; set; }
+
+    /// <summary>最大值，默认 100。</summary>
+    [Parameter] public decimal Max { get; set; } = 100;
+
+    /// <summary>数值的格式（百分比写 <see cref="NumberFormat.Percent"/>，配 Max="1"）。</summary>
+    [Parameter] public NumberFormat? ValueFormat { get; set; }
+
+    /// <summary>单位：数值后面带上。</summary>
+    [Parameter] public string? Unit { get; set; }
+
+    /// <summary>外圈的区间，按 To 从小到大；不写时外圈是一整段轨道色。</summary>
+    [Parameter] public IReadOnlyList<GaugeBand>? Bands { get; set; }
+
+    /// <summary>目标：外圈上画一道刻度，读屏念在数值后面。</summary>
+    [Parameter] public decimal? Target { get; set; }
+
+    /// <summary>数值弧的色调；不写时取它所在区间的色调，没有区间时 Accent。</summary>
+    [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>名称：显示在下方，也是 meter 的名称。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>中间显示的内容；不写时是格式化的数值。</summary>
+    [Parameter] public RenderFragment? ValueContent { get; set; }
+
+    /// <summary>字号档位：仪表盘的大小随之缩放；不写时继承。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>中间数值的部件属性。</summary>
+    [Parameter] public Attrs? PropsValue { get; set; }
+
+    /// <summary>名称的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    Attrs? SizeLayer => Size is { } size ? sizeLayers.Get(size, static s => new Attrs { Sx = ScaleStyles.FontSize(s) }) : null;
+
+    string Text(decimal number) => LangFormat.Number(number, Unit is null ? ValueFormat ?? NumberFormat.Default : (ValueFormat ?? NumberFormat.Default) with { Suffix = Unit }, Config.Lang);
+
+    double FractionOf(decimal number) => Math.Clamp((double)((number - Min) / (Max - Min is var span && span != 0 ? span : 1)), 0, 1);
+
+    // 比例 fraction（0–1）在半径 r 上的点
+    static (double X, double Y) PointOf(double fraction, double r)
+    {
+        var angle = Math.PI * (1 - fraction);
+        return (Center + r * Math.Cos(angle), Center - r * Math.Sin(angle));
+    }
+
+    // 从 from 到 to（比例）的弧
+    static string Arc(double from, double to, double r)
+    {
+        var (a, b) = (PointOf(from, r), PointOf(to, r));
+        return $"M{N(a.X)} {N(a.Y)} A{N(r)} {N(r)} 0 0 1 {N(b.X)} {N(b.Y)}";
+    }
+
+    static string N(double value) => Math.Round(value, 3).ToString(CultureInfo.InvariantCulture);
+
+    static string N(decimal value) => value.ToString(CultureInfo.InvariantCulture);
+}

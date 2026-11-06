@@ -1,0 +1,16 @@
+@page "/components/gauge"
+@attribute [DocMeta("Gauge 仪表盘", "半圆的刻度上显示一个量落在哪个区间（完成率、利用率、风险分）：分段的区间、当前值、目标刻度。纯 SVG，读屏按 meter 念。", DocCategory.Display, Order = 13)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Gauge.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="dashboard" Title="工作台的一排仪表盘" Demo="typeof(DashboardExample)">
+        <Code>Value</Code> 在 <Code>Min</Code>–<Code>Max</Code>（默认 0–100）之间；<Code>Bands</Code> 是外圈的区间（每段到 <Code>To</Code> 为止，带色调），
+        数值弧取它所在区间的色调（<Code>Tone</Code> 可以指定）；<Code>Target</Code> 在外圈上画一道刻度。<Code>ValueFormat</Code>、<Code>Unit</Code>
+        决定中间与读屏的数值写法。和 Progress 的分工：Progress 是做到哪了，Gauge 是一个量处在好坏的哪一段。
+    </Example>
+    <Example Id="sizes" Title="大小与中间的文字" Demo="typeof(SizesExample)">
+        宽 10em，随字号缩放：<Code>Size</Code> 档位或外层的字号。<Code>ValueContent</Code> 换掉中间的文字；读屏仍念 <Code>aria-valuetext</Code>（格式化的数值与目标）。
+    </Example>
+    <ApiReference Types="[typeof(Gauge), typeof(GaugeBand)]" />
+</DocPage>

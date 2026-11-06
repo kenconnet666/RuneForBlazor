@@ -1,0 +1,28 @@
+@page "/components/splitter"
+@attribute [DocMeta("Splitter 分栏", "两栏并排或上下，中间的分隔条拖动调比例，一侧可以收起：收件箱的列表与预览、主从视图、编辑与预览。", DocCategory.Layout, Order = 7)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Layout.Splitter.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="master-detail" Title="主从视图" Demo="typeof(MasterDetailExample)">
+                <Code>StartContent</Code>、<Code>EndContent</Code> 是两栏的内容，<Code>Size</Code> 是起始一栏的百分比（<Code>@@bind-Size</Code>，要记住时存起来）。
+                <Code>Collapsible</Code> 让一侧可以收起：分隔条中间有小按钮，收起的一栏隐藏、另一栏占满；拖动或用键盘调比例时自动展开。
+                拖动、按键都在浏览器里当场改比例，一次操作结束才交给 C#。两栏各自滚动，外层要给高度。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="vertical" Title="上下排列" Demo="typeof(VerticalExample)">
+                <Code>Orientation="Orientation.Vertical"</Code> 上下排，分隔条横着、用 ↑ / ↓；<Code>MinSize</Code>、<Code>MaxSize</Code> 限定比例的范围。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("← / →", "起始一栏变窄、变宽 5%（从右到左排版下镜像）"),
+        ("↑ / ↓", "上下排列时：上栏变矮、变高 5%"),
+        ("Home / End", "到最小、最大比例"),
+        ("Enter", "收起或展开可收起的那一侧"),
+    ])" />
+    <ApiReference Types="[typeof(Splitter)]" />
+</DocPage>

@@ -1,0 +1,28 @@
+@* 指标卡里的迷你图：Stat 的子内容占满数值下面的一行；折线看走势、面积看总量的起伏、柱看每月的多少。
+   读屏念成一句话（几个值、从哪到哪、最低最高），Label 写在前面 *@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("14em")" Gap="SpaceScale.Md">
+    <Card>
+        <Stat Label="实际销售" Value="360" Unit="万元" Change="0.333m" ChangeLabel="较上月">
+            <Sparkline Data="savings" Label="近 12 个月实际销售" ValueFormat="Wan" />
+        </Stat>
+    </Card>
+    <Card>
+        <Stat Label="门户访问" Value="1680" Unit="次" Change="0.127m" ChangeLabel="较上月">
+            <Sparkline Data="visits" Variant="SparklineVariant.Area" Tone="Tone.Info" Label="近 12 个月门户访问" />
+        </Stat>
+    </Card>
+    <Card>
+        <Stat Label="超时任务" Value="1" Unit="项" Tone="TextTone.Danger" Change="-0.667m" InvertChange="true">
+            <Sparkline Data="overdue" Variant="SparklineVariant.Bar" Tone="Tone.Danger" Label="近 12 个月超时任务" />
+        </Stat>
+    </Card>
+</Grid>
+
+@code {
+    static readonly NumberFormat Wan = new() { Suffix = "万元" };
+    static readonly decimal?[] savings = [40, 70, 150, 205, 180, 150, 185, 150, 190, 205, 270, 360];
+    static readonly decimal?[] visits = [820, 932, 901, 934, 1290, 1330, 1320, 1180, 1420, 1510, 1490, 1680];
+    static readonly decimal?[] overdue = [6, 4, 7, 3, 2, 5, 1, 0, 2, 1, 3, 1];
+}

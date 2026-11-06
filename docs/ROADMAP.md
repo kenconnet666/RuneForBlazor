@@ -154,11 +154,12 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 
 - [x] AsideLayout（FormSection 的 AdmissionExample 已换用）
 - [x] Prose、ViewportFill（JS 量顶边写成变量）、Affix（CSS sticky + 哨兵）、BackTop（出现与滚回都在 JS 里）
-- [ ] Splitter（JS 初始化器补尺寸变化：ResizeObserver）
+- [x] Splitter（拖动、按键在 JS 里改两栏的 fr 变量，结束时交给 C#；收起的一栏 inert）
 - [x] Stat / StatGroup、AnimatedNumber（过渡在 JS 里逐帧改文字节点）、`NumberFormat`（同 vue 的 NumericFormat，decimal 格式化）、ValueChange、
   Timeline（操作人、收起旧的、查看详情、交替、进行中）；Skeleton 的 layouts 已换用 Stat
-- [ ] 展示：Ellipsis、ProportionBar、Checklist、Marquee、Watermark；Sparkline、Gauge 先做成独立的小 SVG，阶段 6 的底座做好后改用。
-  FieldCompare 建在表格的列定义（类型推断、按列格式化、ColumnTable）上，移到阶段 4
+- [x] Ellipsis（截断由 JS 量，提示、可聚焦、展开按钮都按 data-truncated）、ProportionBar、Checklist、Marquee（时长由 JS 按长度算）、Watermark（canvas 在 JS 里画）；
+  新增分析器 RUNE009（静态初始化里不能调 Attrs.Merge：静态 SSR 会丢样式）
+- [x] Sparkline、Gauge：C# 直接输出的小 SVG（静态 SSR 也一样），阶段 6 的图表底座做好后再看要不要改用。FieldCompare 建在表格的列定义（类型推断、按列格式化、ColumnTable）上，移到阶段 4
 - [ ] Sortable：拖动排序的通用能力（单容器与多容器、落点插入线、键盘），Tree、Upload、Tabs、KanbanBoard 共用
 - [ ] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动），紧接着 TreeSelect、TreeTransfer（Transfer 的树形）
 - [ ] Image 与 Lightbox（缩放、旋转、拖动），接着补 Upload 的图片墙（`ListType`：方形缩略图、点开预览、Ctrl + V 粘贴图片）
