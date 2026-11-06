@@ -3,11 +3,11 @@
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
     <Menu>
         <Trigger Context="t">
-            <button type="button" @attributes="Attrs.Merge(TriggerLayer, t)">
+            <ButtonBase Sx="TriggerStyle" @attributes="t">
                 <Avatar Name="林小满" Size="Size.Sm" />
                 <Strong Size="Size.Sm">林小满</Strong>
                 <Icon Data="Lucide.ChevronDown" Tone="TextTone.Muted" />
-            </button>
+            </ButtonBase>
         </Trigger>
         <ChildContent>
             <MenuGroup Label="xiaoman@example.com">
@@ -26,8 +26,6 @@
 @code {
     bool signedOut;
 
-    static readonly Attrs TriggerLayer = new() { Sx = Sx.Of(TriggerStyle, SharedStyles.FocusRing) };
-
     static Style TriggerStyle => Css.Define(static () => new Style
     {
         Display = Display.InlineFlex,
@@ -36,13 +34,7 @@
         PaddingBlock = Space.Xs,
         PaddingInlineStart = Space.Xs,
         PaddingInlineEnd = Space.Sm,
-        BorderWidth = 0,
         BorderRadius = Radii.Full,
-        BackgroundColor = CssColors.Transparent,
-        Color = CssWide.Inherit,
-        FontFamily = CssWide.Inherit,
-        FontSize = CssWide.Inherit,
-        Cursor = Cursor.Pointer,
         [When.HoverEnabled] = new() { BackgroundColor = Colors.FillHover },
     });
 }

@@ -7,11 +7,11 @@
                 @foreach (var (name, icon) in files)
                 {
                     <li @key="name">
-                        <button type="button" aria-pressed="@(selected == name ? "true" : "false")" @attributes="Attrs.Merge(selected == name ? SelectedLayer : FileLayer)"
-                                @onfocus="() => selected = name" @oncontextmenu="() => selected = name" @onclick="() => selected = name">
+                        <ButtonBase Sx="@(selected == name ? SelectedSx : FileSx)" aria-pressed="@(selected == name ? "true" : "false")"
+                                    @onfocus="() => selected = name" @oncontextmenu="() => selected = name" @onclick="() => selected = name">
                             <Icon Data="icon" Sx="FileIcon" />
                             @name
-                        </button>
+                        </ButtonBase>
                     </li>
                 }
             </GridList>
@@ -43,8 +43,8 @@
 
     void Run(string action) => last = $"{action}“{selected}”";
 
-    static readonly Attrs FileLayer = new() { Sx = Sx.Of(FileStyle, SharedStyles.FocusRing) };
-    static readonly Attrs SelectedLayer = new() { Sx = Sx.Of(FileStyle, SharedStyles.FocusRing, Selected) };
+    static readonly Sx FileSx = Sx.Of(FileStyle);
+    static readonly Sx SelectedSx = Sx.Of(FileStyle, Selected);
 
     static Style Area => Css.Define(static () => new Style
     {
@@ -63,13 +63,8 @@
         Gap = Space.Xs,
         Width = CssLength.Percent(100),
         PaddingBlock = Space.Md,
-        BorderWidth = 0,
         BorderRadius = Radii.Md,
-        BackgroundColor = CssColors.Transparent,
-        Color = CssWide.Inherit,
-        FontFamily = CssWide.Inherit,
         FontSize = FontSizes.Sm,
-        Cursor = Cursor.Pointer,
         [When.HoverEnabled] = new() { BackgroundColor = Colors.FillHover },
     });
 

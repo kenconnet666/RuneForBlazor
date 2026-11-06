@@ -1,0 +1,75 @@
+@* 不可用的样式交给使用方：ButtonBase 只换光标、写上 disabled / aria-disabled 与 data-disabled *@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.Xs">
+    <div @attributes="Attrs.Merge(ListLayer)">
+        <ButtonBase Sx="RowSx">
+            @Content(Lucide.Download, "导出为 CSV", "普通状态：悬停、按下变色，按下有波纹")
+        </ButtonBase>
+        <ButtonBase Sx="RowSx" Loading="syncing" @onclick="SyncAsync">
+            @Content(Lucide.CloudUpload, syncing ? "正在同步…" : "同步到云端", "Loading：点击无效、焦点保留，读屏得知 aria-busy", syncing)
+        </ButtonBase>
+        <ButtonBase Sx="DisabledRowSx" Disabled="true" FocusableWhenDisabled="true">
+            @Content(Lucide.Trash, "删除仓库", "FocusableWhenDisabled：Tab 仍能停在这里，读屏读出“不可用”")
+        </ButtonBase>
+        <ButtonBase Sx="DisabledRowSx" Disabled="true">
+            @Content(Lucide.Lock, "转移所有权", "Disabled：原生不可用，Tab 跳过")
+        </ButtonBase>
+    </div>
+</Card>
+
+@code {
+    bool syncing;
+
+    async Task SyncAsync()
+    {
+        syncing = true;
+        await Task.Delay(2000);
+        syncing = false;
+    }
+
+    static RenderFragment Content(IconData icon, string label, string hint, bool busy = false) => __builder =>
+    {
+        if (busy)
+        {
+            <Spinner Size="Size.Sm" Label="同步中" />
+        }
+        else
+        {
+            <Icon Data="icon" />
+        }
+        <span>@label</span>
+        <Small Tone="TextTone.Muted" Sx="Hint">@hint</Small>
+    };
+
+    static readonly Attrs ListLayer = new() { Sx = List };
+    static readonly Sx RowSx = Sx.Of(Row);
+    static readonly Sx DisabledRowSx = Sx.Of(Row, DisabledRow);
+
+    static Style List => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Xs });
+
+    static Style Row => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "auto 1fr",
+        AlignItems = AlignItems.Center,
+        ColumnGap = Space.Md,
+        Width = CssLength.Percent(100),
+        MinHeight = Sizes.MinTarget,
+        PaddingBlock = Space.Sm,
+        PaddingInline = Space.Md,
+        BorderRadius = Radii.Sm,
+        TextAlign = TextAlign.Start,
+        [When.HoverEnabled] = new() { BackgroundColor = Colors.Fill },
+        [When.Active] = new() { BackgroundColor = Colors.FillActive },
+    });
+
+    static Style DisabledRow => Css.Define(static () => new Style
+    {
+        Color = Colors.TextDisabled,
+        [When.HoverEnabled] = new() { BackgroundColor = CssColors.Transparent },
+        [When.Active] = new() { BackgroundColor = CssColors.Transparent },
+    });
+
+    static Style Hint => Css.Define(static () => new Style { GridColumn = "2" });
+}

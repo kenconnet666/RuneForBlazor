@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 namespace Rune.UI;
 
 /// <summary>按钮（button 元素）。</summary>
-public partial class Button : ButtonBase
+public partial class Button : ButtonCore
 {
     /// <summary>按钮文字；加载中仍保留（读屏名称不变）。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -32,7 +32,7 @@ public partial class Button : ButtonBase
     /// <inheritdoc/>
     protected override Tone DefaultTone => UI.Tone.Accent;
 
-    /// <summary>button 上由组件管理的属性（见 <see cref="ButtonBase.StateAttrs"/>）。只有十六种组合，预先建好，渲染时不分配。</summary>
+    /// <summary>button 上由组件管理的属性（见 <see cref="ButtonCore.StateAttrs"/>）。只有十六种组合，预先建好，渲染时不分配。</summary>
     Attrs Managed => managedByState[(Disabled ? 8 : 0) + (FocusableWhenDisabled ? 4 : 0) + (IsLoading ? 2 : 0) + (RippleEnabled ? 1 : 0)];
 
     static readonly Attrs[] managedByState =

@@ -6,7 +6,7 @@ namespace Rune.UI;
 /// 按钮家族的基类：外观参数（样式、色调、尺寸、圆角）、加载中、图标与各部件属性。
 /// 外观按“组件上写的参数 &gt; 所在 ButtonGroup 写的 &gt; 配置的默认值（<see cref="ButtonDefaults"/>）&gt; 各组件自己的默认值”决定。
 /// </summary>
-public abstract partial class ButtonBase : UIComponent
+public abstract partial class ButtonCore : UIComponent
 {
     /// <summary>样式；不写时取配置的默认值，再没有就是组件自己的默认值。</summary>
     [Parameter] public ButtonVariant? Variant { get; set; }
@@ -116,7 +116,7 @@ public abstract partial class ButtonBase : UIComponent
     /// <param name="focusable">不可用时仍可聚焦（链接没有原生 disabled，总是 true）。</param>
     /// <param name="loading">加载中。</param>
     /// <param name="ripple">按下时出波纹。</param>
-    protected static Attrs StateAttrs(bool disabled, bool focusable, bool loading, bool ripple) => new()
+    protected internal static Attrs StateAttrs(bool disabled, bool focusable, bool loading, bool ripple) => new()
     {
         ["disabled"] = disabled && !focusable ? true : null,
         AriaDisabled = disabled && focusable ? true : null,

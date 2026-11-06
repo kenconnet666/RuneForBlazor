@@ -4,7 +4,7 @@
     点击用 @onclick（落到 button 元素上）；加载中、不可用时点击不会触发。
 *@
 @namespace Rune.UI
-@inherits ButtonBase
+@inherits ButtonCore
 @{ var parts = Parts(FullWidth ? ButtonShape.FullWidth : ButtonShape.Normal); }
 
 <button type="@Type" @ref="Element" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!IsLoading && !Disabled), Managed)">

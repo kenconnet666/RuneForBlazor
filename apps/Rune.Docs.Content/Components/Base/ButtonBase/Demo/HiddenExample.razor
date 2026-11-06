@@ -1,0 +1,51 @@
+@* 右列是读屏大致会读出的文字（看得见的文字加上 VisuallyHidden 里的，跳过 aria-hidden 的图标） *@
+@inherits RuneComponent
+
+<Table aria-label="VisuallyHidden 的用法">
+    <TableHead>
+        <TableRow>
+            <TableHeaderCell>用途</TableHeaderCell>
+            <TableHeaderCell>看到的</TableHeaderCell>
+            <TableHeaderCell>读屏读到的</TableHeaderCell>
+        </TableRow>
+    </TableHead>
+    <TableBody>
+        <TableRow>
+            <TableCell NoWrap="true">数字的含义</TableCell>
+            <TableCell>
+                <ButtonBase>
+                    <Flex Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+                        <Icon Data="Lucide.ShoppingCart" />
+                        <Badge Size="Size.Sm" Variant="StatusVariant.Solid" Tone="Tone.Danger" Radius="Radius.Full">3</Badge>
+                        <VisuallyHidden>件商品，打开购物车</VisuallyHidden>
+                    </Flex>
+                </ButtonBase>
+            </TableCell>
+            <TableCell><Small Tone="TextTone.Muted">3 件商品，打开购物车</Small></TableCell>
+        </TableRow>
+        <TableRow>
+            <TableCell NoWrap="true">图形化的评分</TableCell>
+            <TableCell>
+                <Flex Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+                    @for (var n = 1; n <= 5; n++)
+                    {
+                        <Icon @key="n" Data="Lucide.Star" Tone="@(n <= 4 ? TextTone.Warning : TextTone.Muted)" />
+                    }
+                    <VisuallyHidden>4 星，满分 5 星</VisuallyHidden>
+                    <Small Tone="TextTone.Muted">（128）</Small>
+                </Flex>
+            </TableCell>
+            <TableCell><Small Tone="TextTone.Muted">4 星，满分 5 星 （128）</Small></TableCell>
+        </TableRow>
+        <TableRow>
+            <TableCell NoWrap="true">外部链接（TextLink 内置）</TableCell>
+            <TableCell><TextLink Href="https://learn.microsoft.com/aspnet/core/blazor" External="true">Blazor 文档</TextLink></TableCell>
+            <TableCell><Small Tone="TextTone.Muted">Blazor 文档 （在新窗口打开）</Small></TableCell>
+        </TableRow>
+        <TableRow>
+            <TableCell NoWrap="true">省略的单位</TableCell>
+            <TableCell><span>¥ 99 / 月<VisuallyHidden>（每月 99 元，按年付费）</VisuallyHidden></span></TableCell>
+            <TableCell><Small Tone="TextTone.Muted">¥ 99 / 月（每月 99 元，按年付费）</Small></TableCell>
+        </TableRow>
+    </TableBody>
+</Table>

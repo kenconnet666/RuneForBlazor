@@ -3,7 +3,7 @@
     外观同按钮家族：没按下是幽灵按钮，按下时强调色（多选时是 surface 底；单选时底色由组的滑块画）；尺寸跟随组。只有图标时写 aria-label。
 *@
 @namespace Rune.UI
-@inherits ButtonBase
+@inherits ButtonCore
 @{
     var pressed = Group?.Selected.Contains(Value) == true;
     var off = Disabled || Group?.Disabled == true;

@@ -3,7 +3,7 @@
     Label 必填：图标按钮没有文字，Label 就是它的名称（读屏读出、悬停提示）。默认无底、中性色。
 *@
 @namespace Rune.UI
-@inherits ButtonBase
+@inherits ButtonCore
 @{ var parts = Parts(ButtonShape.Square); }
 
 <button type="button" @ref="Element" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!IsLoading && !Disabled), Managed)">
@@ -28,7 +28,7 @@
 
     Memo<(string Label, bool Disabled, bool Focusable, bool Loading, bool Ripple), Attrs> managed;
 
-    /// <summary>button 上由组件管理的属性：名称与状态（见 <see cref="ButtonBase.StateAttrs"/>）；不变时复用同一个对象。</summary>
+    /// <summary>button 上由组件管理的属性：名称与状态（见 <see cref="ButtonCore.StateAttrs"/>）；不变时复用同一个对象。</summary>
     Attrs Managed => managed.Get((Label, Disabled, FocusableWhenDisabled, IsLoading, RippleEnabled), static k =>
         Attrs.Merge(StateAttrs(k.Disabled, k.Focusable, k.Loading, k.Ripple), new Attrs { AriaLabel = k.Label }));
 }

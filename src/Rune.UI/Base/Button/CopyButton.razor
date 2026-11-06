@@ -6,7 +6,7 @@
     给 GetValue 时 C# 取到值后交给 JS 写入。外观同 IconButton（默认无底、中性色）。
 *@
 @namespace Rune.UI
-@inherits ButtonBase
+@inherits ButtonCore
 @{ var parts = Parts(ButtonShape.Square); }
 
 <button type="button" @ref="Element" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !IsLoading), Managed)" @onrunecopied="HandleCopied">

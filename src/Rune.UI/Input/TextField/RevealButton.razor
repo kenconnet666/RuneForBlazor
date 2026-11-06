@@ -3,7 +3,7 @@
     名称不变、用 aria-pressed 表示状态（读屏念“显示密码，已按下”），图标按 aria-pressed 换成闭眼。
 *@
 @namespace Rune.UI
-@inherits ButtonBase
+@inherits ButtonCore
 @{ var parts = Parts(ButtonShape.Square); }
 
 <button type="button" aria-pressed="false" @ref="Element" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled), Managed)">

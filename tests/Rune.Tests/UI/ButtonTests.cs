@@ -14,6 +14,48 @@ public class ButtonTests : BunitContext
     StyleRegistry Registry => Services.GetRequiredService<StyleRegistry>();
 
     [Fact]
+    public void 无外观的按钮_默认type为button_有波纹与使用方的样式()
+    {
+        var clicks = 0;
+        var cut = Render<ButtonBase>(p => p
+            .AddChildContent("套餐")
+            .Add(x => x.Sx, new Style { Padding = Space.Md })
+            .AddUnmatched("aria-pressed", "true")
+            .AddUnmatched("onclick", EventCallback.Factory.Create<MouseEventArgs>(this, () => clicks++)));
+
+        var button = cut.Find("button");
+        Assert.Equal("button", button.GetAttribute("type"));
+        Assert.Equal("true", button.GetAttribute("aria-pressed"));
+        Assert.True(button.HasAttribute("data-rune-ripple"));
+        Assert.Single(button.ClassList);
+        button.Click();
+        Assert.Equal(1, clicks);
+    }
+
+    [Fact]
+    public void 无外观的按钮_不可用与加载中的状态属性_点击不触发()
+    {
+        var clicks = 0;
+        var click = EventCallback.Factory.Create<MouseEventArgs>(this, () => clicks++);
+
+        var disabled = Render<ButtonBase>(p => p.Add(x => x.Disabled, true).AddUnmatched("onclick", click));
+        Assert.True(disabled.Find("button").HasAttribute("disabled"));
+        Assert.True(disabled.Find("button").HasAttribute("data-disabled"));
+
+        var focusable = Render<ButtonBase>(p => p.Add(x => x.Disabled, true).Add(x => x.FocusableWhenDisabled, true).AddUnmatched("onclick", click));
+        Assert.False(focusable.Find("button").HasAttribute("disabled"));
+        Assert.Equal("true", focusable.Find("button").GetAttribute("aria-disabled"));
+        Assert.Throws<MissingEventHandlerException>(() => focusable.Find("button").Click());
+
+        var loading = Render<ButtonBase>(p => p.Add(x => x.Loading, true).Add(x => x.Ripple, false).AddUnmatched("onclick", click));
+        Assert.Equal("true", loading.Find("button").GetAttribute("aria-busy"));
+        Assert.True(loading.Find("button").HasAttribute("data-rune-inert"));
+        Assert.False(loading.Find("button").HasAttribute("data-rune-ripple"));
+        Assert.Throws<MissingEventHandlerException>(() => loading.Find("button").Click());
+        Assert.Equal(0, clicks);
+    }
+
+    [Fact]
     public void 点击触发使用方的处理()
     {
         var clicks = 0;

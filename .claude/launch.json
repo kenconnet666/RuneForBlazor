@@ -5,13 +5,15 @@
       "name": "docs",
       "runtimeExecutable": "node",
       "runtimeArgs": ["tools/dotnet.mjs", "run", "--project", "apps/Rune.Docs", "-c", "Release", "--launch-profile", "http"],
-      "port": 5310
+      "port": 5310,
+      "autoPort": false
     },
     {
       "name": "bench",
       "runtimeExecutable": "node",
       "runtimeArgs": ["tools/dotnet.mjs", "run", "--project", "apps/Rune.Demo", "-c", "Release", "--launch-profile", "http", "--urls", "http://localhost:5300"],
-      "port": 5300
+      "port": 5300,
+      "autoPort": false
     }
   ]
 }

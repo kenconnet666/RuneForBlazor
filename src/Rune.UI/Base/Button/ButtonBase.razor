@@ -1,33 +1,53 @@
 @*
-    按钮家族的共用部分：外观参数、内部排布（前置图标、文字、后置图标、加载指示）。
-    每个具体组件（Button、LinkButton、IconButton）只写自己的元素与行为。
+    无外观的按钮（button 元素，同 vue-tsx-pro 的 ButtonBase）：去掉浏览器的默认样式，统一焦点环、波纹、悬停与按下时的颜色过渡，
+    以及不可用（原生 disabled 或可聚焦的 aria-disabled）、加载中。菜单的触发按钮、可点的标题这类“长得不像按钮的按钮”用它，外观经 Sx 给出；
+    要按钮外观时用 Button。
+    <ButtonBase Sx="styles.Trigger" @onclick="Toggle">…</ButtonBase>
+    未声明的属性（aria-*、data-*、事件）落到 button 上；加载中、不可用时点击不会触发。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 
-@code {
-    // 加载中：内容层隐藏但保留宽度与读屏名称
-    static readonly Attrs hiddenContent = new() { ["data-hidden"] = true };
+<button type="@Type" @ref="Element" @attributes="Attrs.Merge(BaseLayer, UserAttrs, Managed)">@ChildContent</button>
 
-    /// <summary>按钮内部：内容层（前置图标、文字、后置图标）与加载中的指示层。</summary>
-    protected RenderFragment RenderInner(PartLayers<ButtonPart> parts, RenderFragment? text) =>
-        @<text>
-            <span @attributes="Attrs.Merge(parts[ButtonPart.Content], PropsContent, IsLoading ? hiddenContent : null)">
-                @if (Icon is not null)
-                {
-                    <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon)" />
-                }
-                @text
-                @if (TrailingIcon is { } trailing)
-                {
-                    <Icon Data="trailing" @attributes="Attrs.MergeProps(parts[ButtonPart.IconEnd], PropsIconEnd)" />
-                }
-            </span>
-            @if (IsLoading)
-            {
-                <span @attributes="Attrs.Merge(parts[ButtonPart.Spinner])">
-                    <Spinner @attributes="Attrs.MergeProps(null, PropsSpinner)" />
-                </span>
-            }
-        </text>;
+@code {
+    static readonly Attrs BaseLayer = new()
+    {
+        Sx = Sx.Of(SharedStyles.ButtonReset, SharedStyles.FocusRing, SharedStyles.RippleHost, SharedStyles.InteractionColors),
+    };
+
+    // 状态属性只有十六种组合，预先建好，渲染时不分配（同 Button）
+    static readonly Attrs[] managedByState =
+        [.. Enumerable.Range(0, 16).Select(i => ButtonCore.StateAttrs((i & 8) != 0, (i & 4) != 0, (i & 2) != 0, (i & 1) != 0))];
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>不可用：原生 disabled，不能聚焦。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>不可用时仍可聚焦：改用 aria-disabled，点击无效（在一组键盘导航里不希望焦点跳过它时用）。</summary>
+    [Parameter] public bool FocusableWhenDisabled { get; set; }
+
+    /// <summary>加载中：点击无效，带 aria-busy 与 data-loading（加载指示由使用方放进内容）。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>按下时的波纹；不写时沿用配置（<see cref="UIConfig.Ripple"/>）。</summary>
+    [Parameter] public bool? Ripple { get; set; }
+
+    /// <summary>button 的 type：button（默认，不是浏览器默认的 submit）、submit、reset。</summary>
+    [Parameter] public string Type { get; set; } = "button";
+
+    /// <summary>按钮元素，交互渲染之后才有值；用 <see cref="FocusAsync"/> 聚焦。</summary>
+    public ElementReference? Element { get; private set; }
+
+    /// <summary>把焦点移到按钮上；静态渲染（没有交互）时什么也不做。</summary>
+    /// <param name="preventScroll">不把它滚动到可见范围。</param>
+    public ValueTask FocusAsync(bool preventScroll = false) =>
+        RendererInfo.IsInteractive && Element is { } element ? element.FocusAsync(preventScroll) : ValueTask.CompletedTask;
+
+    // 不可用、加载中时去掉使用方的点击处理（同 Button）
+    Attrs UserAttrs => Disabled || Loading ? Rest.Without("onclick") : Rest;
+
+    Attrs Managed => managedByState[(Disabled ? 8 : 0) + (FocusableWhenDisabled ? 4 : 0) + (Loading ? 2 : 0) + ((Ripple ?? Config.Ripple) ? 1 : 0)];
 }

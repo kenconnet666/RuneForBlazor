@@ -1,0 +1,26 @@
+@page "/components/button-base"
+@attribute [DocMeta("ButtonBase 无障碍与基础部件", "ButtonBase 是没有外观的按钮，菜单的触发按钮、可点的卡片这类“长得不像按钮的按钮”用它；VisuallyHidden 放只给读屏器看的文字。", DocCategory.Base, Order = 20)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Base.ButtonBase.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="plans" Title="自定义外观的按钮" Demo="typeof(PlansExample)">
+        ButtonBase 去掉浏览器的默认样式，给出焦点环、按下的波纹、颜色过渡，默认 <Code>type="button"</Code>（不会意外提交表单）；外观全部经 <Code>Sx</Code> 给出。
+        选中状态用 <Code>aria-pressed</Code> 写给读屏，一组单选的卡片外面包 <Code>role="group"</Code> 与名称。要按钮外观时用 Button。
+    </Example>
+    <Examples>
+        <ExampleColumn>
+            <Example Id="states" Title="不可用与加载中" Demo="typeof(StatesExample)">
+                <Code>Disabled</Code> 写原生 disabled，Tab 跳过；加上 <Code>FocusableWhenDisabled</Code> 改用 aria-disabled，焦点仍能停留（菜单、工具栏里不希望焦点跳过它）。
+                <Code>Loading</Code> 时点击无效、带 aria-busy。三种状态都写 data 属性（data-disabled、data-loading），外观由使用方按需给。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="hidden" Title="只给读屏器看的文字" Demo="typeof(HiddenExample)">
+                <Code>VisuallyHidden</Code> 视觉上不占位，读屏照常朗读（不用 display: none，那样读屏也读不到）。用来补上图形、数字、缩写背后的意思；
+                TextLink 的 <Code>External</Code> 已经内置“在新窗口打开”。右列是读屏大致会读出的文字。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ButtonBase), typeof(VisuallyHidden)]" />
+</DocPage>
