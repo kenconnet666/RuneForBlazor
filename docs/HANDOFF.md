@@ -14,6 +14,8 @@
 ## C# 的 LSP（Claude Code）
 
 - 项目级插件：`.claude/settings.json` 登记仓库内的本地插件市场 `.claude/marketplace`，启用 `rune-csharp-lsp`；第一次打开项目时 Claude Code 会问是否信任它。
+  桌面版有时只登记了市场、没装插件（LSP 工具报“没有处理 .cs 的语言服务器”）：在 claude 终端里 `/plugin install rune-csharp-lsp@rune-for-blazor`（项目级），
+  或照 `~/.claude/plugins/installed_plugins.json` 里已有的项目级插件补一条、把插件的两个文件拷进 `~/.claude/plugins/cache/rune-for-blazor/rune-csharp-lsp/1.0.0/`；装好后重开会话。
   之后会话里有 `LSP` 工具（定义、引用、悬停、文档与工作区符号），编辑 `.cs` 后推送诊断。查符号、调用链、改名前的影响面优先用它，文本搜索用 Grep。
 - 语言服务器是 `dotnet-tools.json` 固定版本的 csharp-ls（Roslyn），加载 `RuneForBlazor.slnx`，约 20 秒加载完。`.razor` 不在它的支持范围（它的 Razor 支持只认 `.cshtml`），
   但组件经 Razor 源生成器成为类型，`.cs` 里对组件的引用照样能解析；`.razor` 里的语义查询仍用 Rider 的 MCP。
