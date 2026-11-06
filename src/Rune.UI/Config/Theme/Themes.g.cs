@@ -17,10 +17,10 @@ public static partial class Themes
     /// <summary>所有内置主题共用的部分：各组 token 取 vue-tsx-pro tokens.ts 的默认值，主题只覆盖自己写了的。</summary>
     public static Theme Base => Css.Define(static () => new Theme("base")
     {
-        [Colors.Background] = "#fcfcfd",
-        [Colors.Surface] = "#fcfcfd",
-        [Colors.SurfaceMuted] = "#f9f9fb",
-        [Colors.SurfaceRaised] = "#fcfcfd",
+        [Colors.Background] = "#f9f9fb",
+        [Colors.Surface] = "#ffffff",
+        [Colors.SurfaceMuted] = "#f4f4f7",
+        [Colors.SurfaceRaised] = "#ffffff",
         [Colors.Fill] = "#f0f0f3",
         [Colors.FillHover] = "#e8e8ec",
         [Colors.FillActive] = "#e0e1e6",
@@ -75,7 +75,7 @@ public static partial class Themes
         [Colors.OnScrim] = "#ffffff",
         [Colors.Selection] = "#d2deff",
         [Colors.Highlight] = "#ffee9c",
-        [Colors.SurfaceTranslucent] = "rgba(252, 252, 253, 0.8)",
+        [Colors.SurfaceTranslucent] = "rgba(249, 249, 251, 0.8)",
         [CodeColors.Keyword] = "#3a5bc7",
         [CodeColors.String] = "#1c7a51",
         [CodeColors.Number] = "#bb4500",
@@ -184,10 +184,10 @@ public static partial class Themes
     public static Theme Light => Css.Define(static () => new Theme("light", basedOn: Base)
     {
         // colors（lightColors）
-        [Colors.Background] = "#fcfcfd",
-        [Colors.Surface] = "#fcfcfd",
-        [Colors.SurfaceMuted] = "#f9f9fb",
-        [Colors.SurfaceRaised] = "#fcfcfd",
+        [Colors.Background] = "#f9f9fb",
+        [Colors.Surface] = "#ffffff",
+        [Colors.SurfaceMuted] = "#f4f4f7",
+        [Colors.SurfaceRaised] = "#ffffff",
         [Colors.Fill] = "#f0f0f3",
         [Colors.FillHover] = "#e8e8ec",
         [Colors.FillActive] = "#e0e1e6",
@@ -242,7 +242,7 @@ public static partial class Themes
         [Colors.OnScrim] = "#ffffff",
         [Colors.Selection] = "#d2deff",
         [Colors.Highlight] = "#ffee9c",
-        [Colors.SurfaceTranslucent] = "rgba(252, 252, 253, 0.8)",
+        [Colors.SurfaceTranslucent] = "rgba(249, 249, 251, 0.8)",
         [CodeColors.Keyword] = "#3a5bc7",
         [CodeColors.String] = "#1c7a51",
         [CodeColors.Number] = "#bb4500",
@@ -791,10 +791,10 @@ public static partial class Themes
     public static Theme Forest => Css.Define(static () => new Theme("forest", basedOn: Base)
     {
         // colors（forestColors）
-        [Colors.Background] = "#f9fef9",
-        [Colors.Surface] = "#f9fef9",
-        [Colors.SurfaceMuted] = "#f6fbf6",
-        [Colors.SurfaceRaised] = "#f9fef9",
+        [Colors.Background] = "#f6fbf6",
+        [Colors.Surface] = "#ffffff",
+        [Colors.SurfaceMuted] = "#f1f7f1",
+        [Colors.SurfaceRaised] = "#ffffff",
         [Colors.Fill] = "#ebf3eb",
         [Colors.FillHover] = "#e3ebe3",
         [Colors.FillActive] = "#dce4dc",
@@ -846,7 +846,7 @@ public static partial class Themes
         [Colors.Overlay] = "rgba(24, 35, 24, 0.4)",
         [Colors.Selection] = "#c9e8ca",
         [Colors.Highlight] = "#ffee9c",
-        [Colors.SurfaceTranslucent] = "rgba(249, 254, 249, 0.8)",
+        [Colors.SurfaceTranslucent] = "rgba(246, 251, 246, 0.8)",
         [CodeColors.Keyword] = "#237835",
         [CodeColors.String] = "#147a51",
         [CodeColors.Number] = "#bf4100",
@@ -859,8 +859,8 @@ public static partial class Themes
         [CodeColors.Deleted] = "#feebec",
         [ChartColors.Series1] = "#2b7a3b",
         [ChartColors.Series2] = "#26997b",
-        [ChartColors.Series3] = "#6fa000",
-        [ChartColors.Series4] = "#c68400",
+        [ChartColors.Series3] = "#6e9e00",
+        [ChartColors.Series4] = "#c48300",
         [ChartColors.Series5] = "#a07553",
         [ChartColors.Series6] = "#0d9b8a",
         [ChartColors.Series7] = "#ef5f00",
@@ -891,10 +891,10 @@ public static partial class Themes
     public static Theme Lemon => Css.Define(static () => new Theme("lemon", basedOn: Base)
     {
         // colors（lemonColors）
-        [Colors.Background] = "#fefdf2",
-        [Colors.Surface] = "#fefdf2",
-        [Colors.SurfaceMuted] = "#fbfaef",
-        [Colors.SurfaceRaised] = "#fefdf2",
+        [Colors.Background] = "#fbfaef",
+        [Colors.Surface] = "#ffffff",
+        [Colors.SurfaceMuted] = "#f7f5e9",
+        [Colors.SurfaceRaised] = "#ffffff",
         [Colors.Fill] = "#f3f1e2",
         [Colors.FillHover] = "#ebe9da",
         [Colors.FillActive] = "#e4e2d3",
@@ -946,7 +946,7 @@ public static partial class Themes
         [Colors.Overlay] = "rgba(35, 32, 16, 0.4)",
         [Colors.Selection] = "#ffe770",
         [Colors.Highlight] = "#e2f0bd",
-        [Colors.SurfaceTranslucent] = "rgba(254, 253, 242, 0.8)",
+        [Colors.SurfaceTranslucent] = "rgba(251, 250, 239, 0.8)",
         [CodeColors.Keyword] = "#956300",
         [CodeColors.String] = "#147a51",
         [CodeColors.Number] = "#bf4100",
@@ -958,13 +958,13 @@ public static partial class Themes
         [CodeColors.Inserted] = "#e6f6eb",
         [CodeColors.Deleted] = "#feebec",
         [ChartColors.Series1] = "#9f8700",
-        [ChartColors.Series2] = "#6fa000",
+        [ChartColors.Series2] = "#6e9e00",
         [ChartColors.Series3] = "#3e9b4f",
         [ChartColors.Series4] = "#ef5f00",
         [ChartColors.Series5] = "#0797b9",
         [ChartColors.Series6] = "#cf3897",
         [ChartColors.Series7] = "#0d9b8a",
-        [ChartColors.Series8] = "#c68400",
+        [ChartColors.Series8] = "#c48300",
         // shadows（lemonShadows）
         [Shadows.None] = "none",
         [Shadows.Xs] = "0 1px 1px 0 rgba(80, 72, 10, 0.028), 0 2px 1px -1px rgba(80, 72, 10, 0.035), 0 1px 3px 0 rgba(80, 72, 10, 0.035)",
@@ -991,10 +991,10 @@ public static partial class Themes
     public static Theme Sakura => Css.Define(static () => new Theme("sakura", basedOn: Base)
     {
         // colors（sakuraColors）
-        [Colors.Background] = "#fffafc",
-        [Colors.Surface] = "#fffafc",
-        [Colors.SurfaceMuted] = "#fef7f9",
-        [Colors.SurfaceRaised] = "#fffafc",
+        [Colors.Background] = "#fef7f9",
+        [Colors.Surface] = "#ffffff",
+        [Colors.SurfaceMuted] = "#fcf2f5",
+        [Colors.SurfaceRaised] = "#ffffff",
         [Colors.Fill] = "#f9edf1",
         [Colors.FillHover] = "#f1e5e9",
         [Colors.FillActive] = "#eadee2",
@@ -1046,7 +1046,7 @@ public static partial class Themes
         [Colors.Overlay] = "rgba(40, 27, 32, 0.4)",
         [Colors.Selection] = "#f6cee7",
         [Colors.Highlight] = "#ffee9c",
-        [Colors.SurfaceTranslucent] = "rgba(255, 250, 252, 0.8)",
+        [Colors.SurfaceTranslucent] = "rgba(254, 247, 249, 0.8)",
         [CodeColors.Keyword] = "#b91e82",
         [CodeColors.String] = "#147a51",
         [CodeColors.Number] = "#bf4100",
@@ -1063,7 +1063,7 @@ public static partial class Themes
         [ChartColors.Series4] = "#654dc4",
         [ChartColors.Series5] = "#0d9b8a",
         [ChartColors.Series6] = "#ef5f00",
-        [ChartColors.Series7] = "#309dba",
+        [ChartColors.Series7] = "#309bb8",
         [ChartColors.Series8] = "#3e9b4f",
         // shadows（sakuraShadows）
         [Shadows.None] = "none",
@@ -1091,10 +1091,10 @@ public static partial class Themes
     public static Theme Festive => Css.Define(static () => new Theme("festive", basedOn: Base)
     {
         // colors（festiveColors）
-        [Colors.Background] = "#fffaf6",
-        [Colors.Surface] = "#fffaf6",
-        [Colors.SurfaceMuted] = "#fff7f3",
-        [Colors.SurfaceRaised] = "#fffaf6",
+        [Colors.Background] = "#fff7f3",
+        [Colors.Surface] = "#ffffff",
+        [Colors.SurfaceMuted] = "#fef2ed",
+        [Colors.SurfaceRaised] = "#ffffff",
         [Colors.Fill] = "#fdede6",
         [Colors.FillHover] = "#f5e5de",
         [Colors.FillActive] = "#eeded7",
@@ -1146,7 +1146,7 @@ public static partial class Themes
         [Colors.Overlay] = "rgba(44, 27, 19, 0.4)",
         [Colors.Selection] = "#f8e0a8",
         [Colors.Highlight] = "#fbe6a2",
-        [Colors.SurfaceTranslucent] = "rgba(255, 250, 246, 0.8)",
+        [Colors.SurfaceTranslucent] = "rgba(255, 247, 243, 0.8)",
         [CodeColors.Keyword] = "#b3261a",
         [CodeColors.String] = "#147a51",
         [CodeColors.Number] = "#bf4100",
@@ -1393,10 +1393,10 @@ public static partial class Themes
     public static Theme Lavender => Css.Define(static () => new Theme("lavender", basedOn: Base)
     {
         // colors（lavenderColors）
-        [Colors.Background] = "#fbf9ff",
-        [Colors.Surface] = "#fbf9ff",
-        [Colors.SurfaceMuted] = "#f7f4fc",
-        [Colors.SurfaceRaised] = "#fbf9ff",
+        [Colors.Background] = "#f7f4fc",
+        [Colors.Surface] = "#ffffff",
+        [Colors.SurfaceMuted] = "#f3f0fa",
+        [Colors.SurfaceRaised] = "#ffffff",
         [Colors.Fill] = "#efebf7",
         [Colors.FillHover] = "#e8e3f1",
         [Colors.FillActive] = "#e1dbeb",
@@ -1448,7 +1448,7 @@ public static partial class Themes
         [Colors.Overlay] = "rgba(33, 27, 48, 0.4)",
         [Colors.Selection] = "#e1d9ff",
         [Colors.Highlight] = "#ffee9c",
-        [Colors.SurfaceTranslucent] = "rgba(251, 249, 255, 0.8)",
+        [Colors.SurfaceTranslucent] = "rgba(247, 244, 252, 0.8)",
         [CodeColors.Keyword] = "#5f49bd",
         [CodeColors.String] = "#147a51",
         [CodeColors.Number] = "#bf4100",
@@ -1594,9 +1594,9 @@ public static partial class Themes
     public static Theme Mono => Css.Define(static () => new Theme("mono", basedOn: Base)
     {
         // colors（monoColors）
-        [Colors.Background] = "#ffffff",
+        [Colors.Background] = "#fafafa",
         [Colors.Surface] = "#ffffff",
-        [Colors.SurfaceMuted] = "#fafafa",
+        [Colors.SurfaceMuted] = "#f7f7f7",
         [Colors.SurfaceRaised] = "#ffffff",
         [Colors.Fill] = "#f4f4f4",
         [Colors.FillHover] = "#ececec",
@@ -1649,7 +1649,7 @@ public static partial class Themes
         [Colors.Overlay] = "rgba(0, 0, 0, 0.4)",
         [Colors.Selection] = "#d4d4d4",
         [Colors.Highlight] = "#ffee9c",
-        [Colors.SurfaceTranslucent] = "rgba(255, 255, 255, 0.8)",
+        [Colors.SurfaceTranslucent] = "rgba(250, 250, 250, 0.8)",
         [CodeColors.Keyword] = "#171717",
         [CodeColors.String] = "#147a51",
         [CodeColors.Number] = "#bf4100",
@@ -1694,10 +1694,10 @@ public static partial class Themes
     public static Theme Celadon => Css.Define(static () => new Theme("celadon", basedOn: Base)
     {
         // colors（celadonColors）
-        [Colors.Background] = "#f5f9f7",
-        [Colors.Surface] = "#f5f9f7",
-        [Colors.SurfaceMuted] = "#f0f6f3",
-        [Colors.SurfaceRaised] = "#f5f9f7",
+        [Colors.Background] = "#f0f6f3",
+        [Colors.Surface] = "#ffffff",
+        [Colors.SurfaceMuted] = "#ebf3ef",
+        [Colors.SurfaceRaised] = "#ffffff",
         [Colors.Fill] = "#e6efeb",
         [Colors.FillHover] = "#dde8e3",
         [Colors.FillActive] = "#d3e1db",
@@ -1749,7 +1749,7 @@ public static partial class Themes
         [Colors.Overlay] = "rgba(22, 48, 42, 0.4)",
         [Colors.Selection] = "#c7e8de",
         [Colors.Highlight] = "#fbeeb0",
-        [Colors.SurfaceTranslucent] = "rgba(245, 249, 247, 0.8)",
+        [Colors.SurfaceTranslucent] = "rgba(240, 246, 243, 0.8)",
         [CodeColors.Keyword] = "#18695d",
         [CodeColors.String] = "#3a7229",
         [CodeColors.Number] = "#a3481f",

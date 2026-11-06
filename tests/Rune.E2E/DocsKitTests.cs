@@ -32,7 +32,7 @@ public class DocsKitTests(DemoServer demo) : E2ETest(demo)
     {
         var page = await OpenAsync(mode, "color-field");
         var surface = page.GetByTestId("swatches").Locator("[data-rune-token-value='--rune-colors-surface']");
-        await Assertions.Expect(surface).ToHaveTextAsync("#fcfcfd");
+        await Assertions.Expect(surface).ToHaveTextAsync("#ffffff");
 
         await page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Dark });
         await Assertions.Expect(surface).ToHaveTextAsync("#18191b");

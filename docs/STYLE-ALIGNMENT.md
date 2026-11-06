@@ -86,7 +86,7 @@ builder.Services.AddRuneUI(o => o.Components = new()
   但按钮的文字是主题的文字色，深色主题里白底浅字看不清；Rune 原来就用表面色，深浅主题都看得清）。
 - Table 与 DataTable 共用部件样式（vue d450fe3a）：Rune 还没有 DataTable，只有一个表格配方，没有可合并的。
 
-### 阶段 4：美学（2026-11-06 跟进 vue 已完成的部分，vue feat/style-overhaul 到 4f7770f9，PR #4 未合并）
+### 阶段 4：美学（2026-11-06 跟进 vue 已完成的部分，vue feat/style-overhaul 到 c340d084，PR #4 未合并）
 
 vue 那边合并用快进、不 squash，提交号不变；CI 的 `VUE_TSX_PRO_REF` 指到当前跟进到的提交（样式属性表、主题、语言包同一版本）。
 
@@ -108,6 +108,10 @@ vue 那边合并用快进、不 squash，提交号不变；CI 的 `VUE_TSX_PRO_R
   通知中心、泳道、图表、列设置、表单错误汇总）以后做时按 500。
 - H6 默认字号 Sm（vue 3df7f9ee），与 H5 分开。
 - Upload 图片墙小按钮的对比度（vue 4f7770f9）：vue 改成 Rune 原来的做法（半透明表面色），两边一致了。
+- 亮色主题着色页面 + 白卡片（vue c340d084，重新生成）：亮色、森林、柠檬、樱花、喜庆、薰衣草、墨白的页面取原来的 surfaceMuted，
+  surface / surfaceRaised 改白色，surfaceMuted 取页面与 fill 的中间，surfaceTranslucent 跟着页面；几套主题的图表系列色调深到 3:1。
+  纸张、高对比、深色不动。开机脚本的底色取主题的 Background，自动跟着变。端到端测试里色块的期望值改成 `#ffffff`。
+- 字体只用系统字体栈、不带 web 字体（vue 的决定）：Rune 本来就是。
 
 ### 阶段 1：分段输出与级联层（2026-11-06 跟进）
 
