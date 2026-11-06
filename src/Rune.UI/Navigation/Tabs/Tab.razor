@@ -8,16 +8,16 @@
 @inherits UIComponent
 @{
     var selected = Tabs.Value == Value;
-    var parts = TabsStyles.Of(new(Tabs.Variant, Tabs.Orientation, null, Closable), Config.Styles);
+    var parts = TabsStyles.TabOf(new(Tabs.Variant, Tabs.Orientation, null, Closable), Config.Styles);
 }
 
 @if (Closable)
 {
     @* 关闭按钮不能放进标签按钮里（按钮里不能有按钮）：一起包在 role="presentation" 里，按钮本身只给指针用（对读屏隐藏） *@
-    <span role="presentation" @attributes="Attrs.Merge(parts[TabsPart.CloseWrapper])">
+    <span role="presentation" @attributes="Attrs.Merge(parts[TabPart.CloseWrapper])">
         @TabButton(parts, selected)
         <IconButton Icon="BuiltInIcons.X" Label="@Config.Lang.TabClose(Label)" Size="UI.Size.Xs" Variant="ButtonVariant.Ghost" Radius="UI.Radius.Full"
-                    Disabled="Disabled" @onclick="OnClose" @attributes="Attrs.MergeProps(parts[TabsPart.Close], PropsClose, CloseManaged)" />
+                    Disabled="Disabled" @onclick="OnClose" @attributes="Attrs.MergeProps(parts[TabPart.Close], PropsClose, CloseManaged)" />
     </span>
 }
 else
@@ -74,8 +74,8 @@ else
         if (tabs.Value == registered && rest.Count > 0) _ = tabs.Select(rest[Math.Clamp(index, 0, rest.Count - 1)]);
     }
 
-    RenderFragment TabButton(PartLayers<TabsPart> parts, bool selected) =>
-        @<button type="button" @attributes="Attrs.Merge(parts[TabsPart.Tab], Rest, Managed(selected))">@ChildContent</button>;
+    RenderFragment TabButton(PartLayers<TabPart> parts, bool selected) =>
+        @<button type="button" @attributes="Attrs.Merge(parts[TabPart.Root], Rest, Managed(selected))">@ChildContent</button>;
 
     Attrs Managed(bool selected) => new()
     {

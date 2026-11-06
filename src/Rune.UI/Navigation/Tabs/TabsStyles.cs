@@ -17,20 +17,24 @@ public enum TabsPart
     /// <summary>line 样式的下划线指示条（span）。</summary>
     Indicator,
 
+    /// <summary>横排放不下时的滚动按钮、新建按钮（IconButton 组件）。</summary>
+    BarButton,
+
+    /// <summary>标签面板（div，role="tabpanel"）。</summary>
+    Panel,
+}
+
+/// <summary>一个标签的部件（同 vue-tsx-pro 单独的 Tab 配方：部件标记是 tab/root、tab/closeWrapper、tab/close）。</summary>
+public enum TabPart
+{
     /// <summary>标签（button，role="tab"）。</summary>
-    Tab,
+    Root,
 
     /// <summary>可关闭的标签：包着标签与关闭按钮的一层（span）。</summary>
     CloseWrapper,
 
     /// <summary>关闭按钮（IconButton 组件）。</summary>
     Close,
-
-    /// <summary>横排放不下时的滚动按钮、新建按钮（IconButton 组件）。</summary>
-    BarButton,
-
-    /// <summary>标签面板（div，role="tabpanel"）。</summary>
-    Panel,
 }
 
 /// <summary>标签的样式。</summary>
@@ -174,7 +178,20 @@ public static class TabsStyles
                     line && vertical ? LineListVertical : null,
                     !line && vertical ? SoftListVertical : null),
                 TabsPart.Indicator => Sx.Of(Indicator, vertical ? IndicatorVertical : null),
-                TabsPart.Tab => Sx.Of(
+                TabsPart.BarButton => BarButton,
+                _ => Sx.Of(Panel, SharedStyles.FocusRing),
+            };
+        });
+
+    /// <summary>一个标签的各部件（单独的配方，同 vue-tsx-pro 的 tabRecipe）。</summary>
+    public static PartLayers<TabPart> TabOf(TabsAppearance a, ComponentStyles styles) =>
+        Recipe.Of("tab", a, styles, static (TabsAppearance a, TabPart part) =>
+        {
+            var vertical = a.Orientation == Orientation.Vertical;
+            var line = a.Variant == TabsVariant.Line;
+            return part switch
+            {
+                TabPart.Root => Sx.Of(
                     SharedStyles.ButtonReset,
                     SharedStyles.InteractionColors,
                     SharedStyles.FocusRing,
@@ -183,10 +200,8 @@ public static class TabsStyles
                     line ? LineTab : SoftTab,
                     line && vertical ? LineTabVertical : null,
                     a.Closable ? ClosableTab : null),
-                TabsPart.CloseWrapper => CloseWrapper,
-                TabsPart.Close => Close,
-                TabsPart.BarButton => BarButton,
-                _ => Sx.Of(Panel, SharedStyles.FocusRing),
+                TabPart.CloseWrapper => CloseWrapper,
+                _ => Close,
             };
         });
 
