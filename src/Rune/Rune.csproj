@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Rune.Tests" />
+    <InternalsVisibleTo Include="Rune.Benchmarks" />
   </ItemGroup>
 
   <!--

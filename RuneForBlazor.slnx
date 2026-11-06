@@ -16,6 +16,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Rune.Tests/Rune.Tests.csproj" />
     <Project Path="tests/Rune.E2E/Rune.E2E.csproj" />
+    <Project Path="tests/Rune.Benchmarks/Rune.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/tools/">
     <File Path="tools/css-gen/generate.mjs" />

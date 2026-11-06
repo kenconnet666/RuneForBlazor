@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    性能基准（BenchmarkDotNet）：样式定义的查找、属性合并、样式登记、参数比较这些每次渲染都走的路径，以及整页的渲染（只数批次、没有 DOM 的渲染器）。
+    运行见同目录的 README.md（BenchmarkDotNet 的命令行参数带双横线，XML 注释里不能写）。CI 只构建、不运行
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Rune.Benchmarks</RootNamespace>
+    <!-- BenchmarkDotNet 生成的子项目要能找到这里的程序集 -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <!-- 基准自己实现了一个最小的渲染器（BenchRenderer），要用 RenderTree 里的类型 -->
+    <NoWarn>$(NoWarn);BL0006</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Rune\Rune.csproj" />
+    <ProjectReference Include="..\..\src\Rune.UI\Rune.UI.csproj" />
+  </ItemGroup>
+
+</Project>

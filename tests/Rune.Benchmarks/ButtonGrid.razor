@@ -1,0 +1,21 @@
+@* 渲染基准用的一页：一排排按钮、徽标与图标，都是带部件、带受管属性的常见叶子组件 *@
+@inherits RuneComponent
+
+@for (var i = 0; i < Count; i++)
+{
+    var index = i;
+    <Button Variant="ButtonVariant.Soft" Icon="BuiltInIcons.Check" Disabled="Disabled" aria-label="@($"保存 {index}")">保存</Button>
+    <Badge Tone="Tone.Success">@index</Badge>
+    <Icon Data="BuiltInIcons.Info" Size="Size.Sm" />
+}
+
+@code {
+    /// <summary>每种组件各渲染几个。</summary>
+    [Parameter] public int Count { get; set; }
+
+    /// <summary>按钮是否不可用：切换它让所有按钮的参数都变。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>只为让这一页重新渲染（子组件的参数不变）。</summary>
+    [Parameter] public int Version { get; set; }
+}
