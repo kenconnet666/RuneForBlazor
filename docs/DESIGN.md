@@ -236,7 +236,8 @@
   浮层带 `data-rune-floating="bottom-start"`（`Placement` 12 种），打开时 offset、flip、shift，可选 arrow 与 size（`data-fit-height`、之后下拉框的 `data-match-width`），
   `autoUpdate` 跟随；最终方向写到 `data-side` / `data-align`，缩放原点朝向触发元素。最初用的是 CSS 锚点定位（`position-area` 加翻面），
   做不到贴着视口平移（shift），也不知道最终翻到了哪边（箭头、缩放原点没法跟着），Firefox 还要 JS 兜底，与 vue-tsx-pro 对齐时换掉。
-  定位好之前浮层 `visibility: hidden`，所以焦点在定位之后才移进去（菜单的第一项、对话框类浮层的 autofocus 或第一个可聚焦元素）；
+  定位好之前浮层透明、不接指针（`opacity: 0`、`pointer-events: none`），焦点在定位之后才移进去（菜单的第一项、对话框类浮层的 autofocus 或第一个可聚焦元素）。
+  不用 `visibility: hidden`：原生 popover 打开时就按 autofocus 聚焦了里面的搜索框，元素一藏就失焦，定位期间打的字落到页面上丢了（TreeSelect 的 E2E 发现）；
   第一次打开才渲染内容的浮层打开时还是空的，JS 等内容渲染出来（最多 1 秒）再定位，不先按空盒子定位闪一下。
 - **触发元素由使用方写**：`Trigger` 是 `RenderFragment<Attrs>`，组件把 `popovertarget`、id、aria-controls 等交给它（`<Button @attributes="t">`），按钮仍是使用方的组件。
 - **内容第一次打开才渲染**（交互模式，Popover 的 Lazy）。菜单项、气泡确认一开始就渲染。静态渲染没有交互，一开始就渲染。
@@ -353,7 +354,8 @@
   展开收起等要改状态的经 rune-command 交给 C#。看不见的行不在 DOM 里，C# 把各行的父行、能否展开、是否展开写在 `data-rune-tree-rows` 上。
   不可用的节点能经过（同 vue），所以选项表里不标不可用，选中、勾选时由 C# 拦下。勾选框只是外观：`inert` 的原生 checkbox，
   `:checked` / `:indeterminate` 的样式照用勾选框的配方，点击落到外层。`LoadChildren` 是 EventCallback：完成后使用方重新渲染，新数据才交得回来
-  （普通的 Func 不会让父组件刷新）。拖动整个在 JS 里（落点写成行上的 `data-drop`，靠边滚动、停在收起的节点上展开），松开时才交给 C#：
+  （普通的 Func 不会让父组件刷新）。TreeSelect 的外壳、标签、远程搜索同 Select（`RemoteItems`），弹层里打开后才渲染 Tree，
+  单选点中（或 Enter）时 JS 关弹层（同列表的 closeAfterPick）。拖动整个在 JS 里（落点写成行上的 `data-drop`，靠边滚动、停在收起的节点上展开），松开时才交给 C#：
   `CanDrop` 是 C# 函数，所以在松开时判断，拖动途中不像 vue 那样隐藏不能放的落点（问它就要往返，Server 模式下跟不上指针）。
 - **Select**：外壳、前置图标、清空按钮、箭头是输入框的部件（`InputStyles`，`InputAppearance.Picker`），按 InputPart 定制时一起变，同 vue-tsx-pro；
   触发按钮是 `role="combobox"` 的 button，用原生 `popovertarget` 打开（静态 SSR 也能开），弹层 `data-anchor` 贴着外壳、`data-match-width` 同宽。

@@ -15,7 +15,7 @@ import { clickBackTop, watchAffix, watchBackTop } from './affix.js';
 import { drawWatermark } from './watermark.js';
 import { blurSortable, grabSortable, keySortable } from './sortable.js';
 import { showLightboxImage, watchLightbox } from './lightbox.js';
-import { keyTree, pressTreeItem } from './tree.js';
+import { closeTreeAfterPick, keyTree, pressTreeItem } from './tree.js';
 import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './lists.js';
 import { watchIndicator } from './indicator.js';
 import { scheduleOverflow, watchOverflow } from './overflow.js';
@@ -269,6 +269,7 @@ function onClick(event) {
   pickRating(event);
   scrollTabs(event);
   closeAfterPick(target);
+  closeTreeAfterPick(target);
   clickCascader(target);
   pickMention(target);
   onMentionsClick(target);

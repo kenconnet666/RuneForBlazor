@@ -1,0 +1,79 @@
+@*
+    树形下拉选择（同 vue-tsx-pro 的 TreeSelect）：触发框同 Select，弹出的是一棵树（组织机构、产品结构、物料分类）。单选选一个节点，多选勾选（父子联动）。
+    <TreeSelect Items="orgs" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" @bind-Value="orgId" Searchable="true" />
+    <TreeSelect … SelectionMode="SelectionMode.Multiple" @bind-Values="teamIds" />                      勾选：勾上父节点就是整枝
+    <TreeSelect … SelectionMode="SelectionMode.Multiple" CheckStrategy="CheckStrategy.Child" MaxTagCount="TagLimit.Responsive" />
+
+    单选：点节点或 Enter 选中并关闭；多选：空格或点勾选框，勾上父节点会勾上它的子孙，子节点全勾上时父节点也勾上。
+    Values 按 CheckStrategy 放勾上的节点：全部（默认）、整枝时只放父节点、只放叶子（TreeData.CheckedByStrategy）。
+    多选的标签同 Select（SelectedTags）：排在触发按钮前面，可移除（取消整枝），MaxTagCount 收起，Backspace 移除最后一个；
+    标签只列最上层的整枝（勾上了“研发中心”就不再列它下面的每个组），CheckStrategy.Child 时列叶子。
+    Searchable：弹出层顶部的搜索框，按节点文字过滤，命中节点的祖先一起显示并展开；↓ 从搜索框进到树里。给 Load 时由服务端搜索：
+    打开时与输入停下 300 ms 后按搜索词请求，返回命中的节点连同祖先（第一层），结果全部展开（同 Select 的 Load）。
+    打开后焦点在树上（或搜索框里），键盘同 Tree；Esc 关闭并把焦点还给触发按钮。懒加载同 Tree 的 LoadChildren。
+    已选节点的文字从已加载的树里找，远程搜索换掉的按见过的文字显示；从没见过的（懒加载还没取回来）显示成 key。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits InputControl<string?>
+@{
+    var shell = InputStyles.Of(Appearance with { Picker = true }, Config.Styles);
+    var select = SelectStyles.Of(Config.Styles);
+    var shownKeys = DisplayKeys;
+    var tagged = Multiple && shownKeys.Count > 0;
+    var popover = ListPopoverStyles.Of(Size, Config.Styles);
+}
+
+<div @attributes="Attrs.Merge(shell[InputPart.Root], RootUserAttrs, ShellManaged)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsIcon)" />
+    }
+    @if (tagged)
+    {
+        <SelectedTags Tags="@([.. shownKeys.Select(key => new ListboxOption(key, LabelOf(key)))])" MaxTagCount="MaxTagCount"
+                      OnRemove="@(Locked ? default : RemoveCallback)" PropsTag="PropsTag" @attributes="Attrs.MergeProps(null, PropsTags)" />
+    }
+    <button @ref="Element" @attributes="Attrs.Merge(select[SelectPart.Trigger], InputUserAttrs, TriggerManaged(tagged))">
+        <span @attributes="Attrs.Merge(select[SelectPart.Value], PropsValue)">
+            @if (tagged)
+            {
+                @* 标签那一排是 aria-hidden：读屏从这里念出全部已选 *@
+                <span @attributes="Attrs.Merge(VisuallyHiddenLayer)">@Config.Lang.SelectSummary([.. shownKeys.Select(LabelOf)])</span>
+            }
+            else if (shownKeys.Count == 0)
+            {
+                <span @attributes="Attrs.Merge(select[SelectPart.Placeholder])">@(Placeholder ?? Config.Lang.SelectPlaceholder)</span>
+            }
+            else
+            {
+                @LabelOf(shownKeys[0])
+            }
+        </span>
+    </button>
+    @if (Clearable && Selected.Count > 0 && !Locked)
+    {
+        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="ClearAsync" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusTrigger)" />
+    }
+    <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsChevron, ChevronLayer)" />
+    <FormValue Name="@FieldName" Value="Selected" Disabled="IsDisabled" />
+</div>
+<div @attributes="Attrs.Merge(popover[ListPopoverPart.Root], PropsPopover, PanelManaged)">
+    @if (Searchable)
+    {
+        <div @attributes="Attrs.Merge(popover[ListPopoverPart.Header])">
+            <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
+                <TextField Type="search" Icon="BuiltInIcons.Search" Variant="InputVariant.Soft" Immediate="true" Value="@SearchText" ValueChanged="SetSearchAsync"
+                           @attributes="Attrs.MergeProps(SearchDefaults, PropsSearch, SearchManaged)" />
+            </CascadingValue>
+        </div>
+    }
+    @if (open)
+    {
+        <Tree TItem="TItem" Items="Nodes" GetKey="GetKey" GetLabel="GetLabel" GetChildren="GetChildren" HasChildren="HasChildren" LoadChildren="LoadChildren"
+              IsDisabled="IsNodeDisabled" Expanded="ShownExpanded" ExpandedChanged="SetExpanded" Filter="@LocalQuery" FilterBy="LocalMatch"
+              SelectionMode="@(Multiple ? null : UI.SelectionMode.Single)" Selected="Selected" SelectedChanged="PickAsync"
+              Checkable="Multiple" Checked="Selected" CheckedChanged="SetCheckedAsync" Loading="remote.Loading" EmptyText="@EmptyText"
+              PropsScrollArea="TreeScrollLayer" @attributes="Attrs.MergeProps(null, PropsTree, TreeManaged)" />
+    }
+</div>

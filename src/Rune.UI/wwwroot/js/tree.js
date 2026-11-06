@@ -22,7 +22,9 @@ function structureOf(tree) {
 /** 按键：处理了（不必再交给列表）时返回 true */
 export function keyTree(event) {
   const tree = event.target;
-  if (!(tree instanceof Element) || !tree.matches('[data-rune-tree]') || event.ctrlKey || event.metaKey) return false;
+  if (!(tree instanceof Element) || event.ctrlKey || event.metaKey) return false;
+  if (keyTreeSelect(tree, event)) return true;
+  if (!tree.matches('[data-rune-tree]')) return false;
   const index = activeIndex(tree, tree);
   const forward = isRtl(tree) ? 'ArrowLeft' : 'ArrowRight';
   const backward = isRtl(tree) ? 'ArrowRight' : 'ArrowLeft';
@@ -48,6 +50,7 @@ export function keyTree(event) {
       break;
     case 'Enter':
       sendCommand(tree, 'enter', String(index));
+      closeIfPicked(tree, document.getElementById(`${tree.id}-${index}`));
       break;
     case ' ':
       sendCommand(tree, 'space', String(index));
@@ -57,6 +60,48 @@ export function keyTree(event) {
   }
   event.preventDefault();
   return true;
+}
+
+/**
+ * 树形下拉（TreeSelect）的触发按钮与搜索框：触发按钮上 ↓ 打开（Enter、空格由原生的 popovertarget 打开），
+ * 搜索框里 ↓ 进到树里、Tab 关闭后照常移到下一个。
+ */
+function keyTreeSelect(target, event) {
+  if (event.altKey) return false;
+  if (target.matches('[data-rune-tree-trigger]') && event.key === 'ArrowDown') {
+    const panel = target.popoverTargetElement;
+    if (panel && !panel.matches(':popover-open')) {
+      event.preventDefault();
+      panel.showPopover({ source: target });
+    }
+    return true;
+  }
+  if (!target.matches('input[data-rune-tree-search]')) return false;
+  if (event.key === 'Tab') {
+    target.closest('[popover]')?.hidePopover();
+    return true;
+  }
+  if (event.key !== 'ArrowDown') return false;
+  const tree = document.getElementById(target.getAttribute('aria-controls'));
+  if (!tree) return false;
+  event.preventDefault();
+  tree.focus();
+  return true;
+}
+
+/** 点了弹层里单选树的一行（不是展开箭头）：选中由 C# 处理，这里关上弹层（同 lists.js 的 closeAfterPick） */
+export function closeTreeAfterPick(target) {
+  if (target.closest('[data-rune-tree-toggle]')) return;
+  const item = target.closest('[role="treeitem"]');
+  const tree = item?.closest('[role="tree"]');
+  if (tree) closeIfPicked(tree, item);
+}
+
+function closeIfPicked(tree, item) {
+  // 能选（有 aria-selected）、能用、单选的树在弹层里
+  if (!item?.hasAttribute('aria-selected') || item.getAttribute('aria-disabled') === 'true' || tree.getAttribute('aria-multiselectable') === 'true') return;
+  const panel = tree.closest('[popover]');
+  if (panel?.matches(':popover-open')) panel.hidePopover();
 }
 
 /**

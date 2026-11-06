@@ -130,7 +130,8 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 ## 阶段 1：树与长列表
 
 - [x] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动；从右到左时展开箭头朝下，同 vue 0.11）：`TreeData` 底座、键盘与拖动在 JS（lists.js + tree.js）
-- [ ] TreeSelect（浮层用 `OverlayTransitions.Pop`）、TreeTransfer（Transfer 的树形）
+- [x] TreeSelect：外壳同 Select，弹层里是 Tree（单选、勾选与取法、搜索、远程搜索）
+- [ ] TreeTransfer（Transfer 的树形）
 - [ ] VirtualList 补齐：随页面滚动、横向、骨架行、跳到第几项、可见范围变化的回调
 
 ## 阶段 2：浮层与导航

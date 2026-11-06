@@ -54,7 +54,7 @@
             {
                 <span @attributes="Attrs.Merge(IndentLayer)"></span>
             }
-            <span aria-hidden="true" @onclick="() => ToggleAsync(row)" @onclick:stopPropagation="true" @attributes="Attrs.Merge(parts[TreePart.Toggle], PropsToggle)">
+            <span aria-hidden="true" data-rune-tree-toggle @onclick="() => ToggleAsync(row)" @onclick:stopPropagation="true" @attributes="Attrs.Merge(parts[TreePart.Toggle], PropsToggle)">
                 @if (loadingChildren)
                 {
                     <Spinner />

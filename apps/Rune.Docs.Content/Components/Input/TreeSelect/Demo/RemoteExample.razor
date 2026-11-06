@@ -1,0 +1,23 @@
+@* 远程搜索：Load 按搜索词请求，服务端返回命中的节点连同它们的上级，结果全部展开；Items 放上已选节点的那一枝（编辑页从详情接口拿到），触发框一开始就有文字 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+    <Field Label="归口部门" Description="打开后输入“团队”：服务端返回命中的节点与它们的上级">
+        <TreeSelect TItem="Org" Load="SearchOrgsAsync" Items="selectedBranch" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children"
+                    Searchable="true" Clearable="true" @bind-Value="org" data-testid="remote" />
+    </Field>
+    <Small Tone="TextTone.Muted">值：<Code>@(org ?? "—")</Code></Small>
+</Flex>
+
+@code {
+    static readonly IReadOnlyList<Org> selectedBranch = Org.Prune(Org.All, o => o.Id == "finance-settle");
+
+    string? org = "finance-settle";
+
+    // 假的搜索接口：400 ms 后返回；被后来的请求顶掉、弹层关上时取消
+    static async Task<IEnumerable<Org>> SearchOrgsAsync(string query, CancellationToken cancellation)
+    {
+        await Task.Delay(400, cancellation);
+        return query.Length > 0 ? Org.Prune(Org.All, o => o.Name.Contains(query, StringComparison.Ordinal)) : Org.All;
+    }
+}

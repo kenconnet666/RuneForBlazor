@@ -1,0 +1,40 @@
+@* 通知范围：同样勾上“生产中心”整枝加一个预算团队，三种取法提交的值不同；标签一行放不下时收进“+N” *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ToggleGroup Value="@strategy.ToString()" ValueChanged="Switch" Required="true" Size="Size.Sm" aria-label="CheckStrategy">
+        @foreach (var (value, label) in Strategies)
+        {
+            <ToggleItem @key="value" Value="@value.ToString()">@label</ToggleItem>
+        }
+    </ToggleGroup>
+    <Field Label="通知范围" Description="点标签的 × 取消整枝；Backspace 移除最后一个">
+        <TreeSelect @key="strategy" Items="Org.All" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" SelectionMode="SelectionMode.Multiple"
+                    CheckStrategy="strategy" MaxTagCount="TagLimit.Responsive" @bind-Values="scope" Searchable="true" Clearable="true" data-testid="scope" />
+    </Field>
+    <Small Tone="TextTone.Muted">提交的值：<Code>@(scope.Count > 0 ? string.Join("、", scope) : "—")</Code></Small>
+</Flex>
+
+@code {
+    static readonly (CheckStrategy Value, string Label)[] Strategies =
+    [
+        (CheckStrategy.All, "全部（默认）"),
+        (CheckStrategy.Parent, "整枝只要父节点"),
+        (CheckStrategy.Child, "只要叶子"),
+    ];
+
+    // 勾上的全部节点；按取法整理后才是提交的值
+    static readonly string[] Initial = ["mfg", "mfg-assembly", "mfg-testing", "mfg-packing", "finance-budget"];
+
+    static readonly TreeIndex Index = TreeData.Index(Org.All, Org.Accessors);
+
+    CheckStrategy strategy = CheckStrategy.Parent;
+    IReadOnlyList<string> scope = TreeData.CheckedByStrategy(Index, Initial, CheckStrategy.Parent);
+
+    // 换取法后按新的取法整理同一批勾选（演示用；实际表单里取法是固定的）
+    void Switch(string? value)
+    {
+        strategy = Enum.Parse<CheckStrategy>(value!);
+        scope = TreeData.CheckedByStrategy(Index, Initial, strategy);
+    }
+}

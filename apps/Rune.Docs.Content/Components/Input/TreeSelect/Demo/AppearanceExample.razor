@@ -1,0 +1,30 @@
+@* 前置图标、外观与状态：与 Select 同一套；IsNodeDisabled 让中心、部这一级不能选，只能选到团队 *@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("20rem")" Gap="SpaceScale.Lg">
+    <Field Label="承接团队" Description="中心、部这一级不能选">
+        <TreeSelect Items="Org.All" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" @bind-Value="team"
+                    IsNodeDisabled="o => o.Children is not null" Icon="Lucide.Users" Placeholder="选择团队" />
+    </Field>
+    <Field Label="Variant=Soft Radius=Full">
+        <TreeSelect Items="Org.All" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" @bind-Value="department"
+                    Icon="Lucide.BuildingComplex" Variant="InputVariant.Soft" Radius="Radius.Full" Clearable="true" />
+    </Field>
+    <Field Label="必填" Required="true" Error="@(team is null ? "请选择承接团队" : null)">
+        <TreeSelect Items="Org.All" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" @bind-Value="team" Placeholder="选择团队" />
+    </Field>
+    <Field Label="Size=Sm">
+        <TreeSelect Items="Org.All" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" @bind-Value="department" Size="Size.Sm" />
+    </Field>
+    <Field Label="只读" ReadOnly="true" Description="能聚焦、能看，不能打开">
+        <TreeSelect Items="Org.All" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" Value="finance-settle" Icon="Lucide.BuildingComplex" />
+    </Field>
+    <Field Label="不可用" Disabled="true">
+        <TreeSelect Items="Org.All" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" Value="purchase" />
+    </Field>
+</Grid>
+
+@code {
+    string? team;
+    string? department = "finance";
+}

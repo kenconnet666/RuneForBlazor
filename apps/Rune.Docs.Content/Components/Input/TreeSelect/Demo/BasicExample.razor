@@ -1,0 +1,23 @@
+@* 单选：从组织机构树里选提出单位，可搜索；多选：勾选责任团队，勾上一个中心就是整枝，触发框里只列最上层 *@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Lg">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Field Label="提出单位" Description="打开后输入“团队”试试：命中节点的上级一起展开">
+            <TreeSelect Items="Org.All" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" @bind-Value="org" Searchable="true" Clearable="true" data-testid="org" />
+        </Field>
+        <Small Tone="TextTone.Muted">值：<Code>@(org ?? "—")</Code></Small>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Field Label="责任团队（多选）">
+            <TreeSelect Items="Org.All" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" SelectionMode="SelectionMode.Multiple"
+                        @bind-Values="teams" Searchable="true" Clearable="true" data-testid="teams" />
+        </Field>
+        <Small Tone="TextTone.Muted">勾上的全部：<Code>@(teams.Count > 0 ? string.Join("、", teams) : "—")</Code></Small>
+    </Flex>
+</Grid>
+
+@code {
+    string? org = "rd-frontend";
+    IReadOnlyList<string> teams = ["mfg", "mfg-assembly", "mfg-testing", "mfg-packing", "finance-budget"];
+}

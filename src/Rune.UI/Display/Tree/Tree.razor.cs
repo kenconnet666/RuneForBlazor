@@ -75,7 +75,7 @@ public partial class Tree<TItem>
         builder.OpenComponent<Empty>(0);
         builder.AddComponentParameter(1, nameof(UI.Empty.Size), Size.Sm);
         builder.AddComponentParameter(2, nameof(UI.Empty.HideIcon), true);
-        builder.AddComponentParameter(3, nameof(UI.Empty.Description), (RenderFragment)(b => b.AddContent(0, Filtering is null ? Config.Lang.TreeEmpty : Config.Lang.TreeNoMatch)));
+        builder.AddComponentParameter(3, nameof(UI.Empty.Description), (RenderFragment)(b => b.AddContent(0, EmptyText ?? (Filtering is null ? Config.Lang.TreeEmpty : Config.Lang.TreeNoMatch))));
         builder.AddMultipleAttributes(4, Attrs.MergeProps(PropsEmpty));
         builder.CloseComponent();
     };
@@ -142,6 +142,9 @@ public partial class Tree<TItem>
 
     /// <summary>没有节点时显示的内容；不写时是 Empty（文案取语言包）。</summary>
     [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <summary>没有节点时的文字（Empty 没写时用）；不写时取语言包（暂无数据，过滤时是没有匹配的节点）。搜索没有匹配、加载失败时由使用方换掉。</summary>
+    [Parameter] public string? EmptyText { get; set; }
 
     /// <summary>每一层缩进多少（em），默认 1.25。</summary>
     [Parameter] public double Indent { get; set; } = 1.25;
