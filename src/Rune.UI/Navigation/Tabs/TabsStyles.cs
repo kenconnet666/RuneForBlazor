@@ -180,7 +180,7 @@ public static class TabsStyles
                     line ? LineList : SoftList,
                     line && vertical ? LineListVertical : null,
                     !line && vertical ? SoftListVertical : null),
-                TabsPart.Indicator => Sx.Of(Indicator, vertical ? IndicatorVertical : null),
+                TabsPart.Indicator => Sx.Of(Indicator, vertical ? IndicatorVertical : IndicatorHorizontal),
                 TabsPart.BarButton => BarButton,
                 _ => Sx.Of(Panel, SharedStyles.FocusRing),
             };
@@ -219,9 +219,9 @@ public static class TabsStyles
     // 横排 line 的分隔线画在整行上：标签少时也铺满
     static Style BarLine => Css.Define(static () => new Style
     {
-        BorderBottomWidth = BorderWidths.Xs,
-        BorderBottomStyle = BorderStyle.Solid,
-        BorderBottomColor = Colors.BorderMuted,
+        BorderBlockEndWidth = BorderWidths.Xs,
+        BorderBlockEndStyle = BorderStyle.Solid,
+        BorderBlockEndColor = Colors.BorderMuted,
     });
 
     static Style List => Css.Define(static () => new Style { Display = Display.Flex, FlexShrink = 0 });
@@ -252,24 +252,23 @@ public static class TabsStyles
 
     static Style SoftListVertical => Css.Define(static () => new Style { FlexDirection = FlexDirection.Column });
 
-    // 一条 2px 的品牌色线，压在列表的分隔线上；位置与长度由 JS 写（transform 与宽高）
+    // 一条 2px 的品牌色线，压在列表的分隔线上；位置与长度由 JS 写（transform 与宽高）。
+    // JS 按标签的 offsetLeft / offsetTop（物理坐标）平移，所以起点是物理的 left / top，从右到左时也对得上
     static Style Indicator => Css.Define(static () => new Style
     {
         Position = Position.Absolute,
-        Left = 0,
-        Bottom = 0,
-        Width = 0,
-        Height = BorderWidths.Sm,
         BorderRadius = Radii.Sm,
         BackgroundColor = Tones.Accent.Solid,
         PointerEvents = PointerEvents.None,
         Transition = $"transform {Durations.Md} {Easings.Standard}, width {Durations.Md} {Easings.Standard}, height {Durations.Md} {Easings.Standard}",
     });
 
+    // 横排：压在列表底边的分隔线上（滚动的列表会裁掉伸出去的部分，所以放在边框内侧）
+    static Style IndicatorHorizontal => Css.Define(static () => new Style { Left = 0, InsetBlockEnd = 0, Width = 0, Height = BorderWidths.Sm });
+
+    // 竖排：压在列表结束边的分隔线上。不与横排的 left 叠用：从右到左时结束边就是 left，物理属性会盖过它
     static Style IndicatorVertical => Css.Define(static () => new Style
     {
-        Left = CssLength.Auto,
-        Bottom = CssLength.Auto,
         Top = 0,
         InsetInlineEnd = $"calc(-1 * {BorderWidths.Xs})",
         Width = BorderWidths.Sm,
@@ -297,18 +296,18 @@ public static class TabsStyles
     // 下划线：线由列表的指示条画（切换时滑过去），标签自己只变文字颜色；底边留出线的位置
     static Style LineTab => Css.Define(static () => new Style
     {
-        MarginBottom = $"calc(-1 * {BorderWidths.Xs})",
-        BorderBottomWidth = BorderWidths.Sm,
-        BorderBottomStyle = BorderStyle.Solid,
-        BorderBottomColor = CssColors.Transparent,
+        MarginBlockEnd = $"calc(-1 * {BorderWidths.Xs})",
+        BorderBlockEndWidth = BorderWidths.Sm,
+        BorderBlockEndStyle = BorderStyle.Solid,
+        BorderBlockEndColor = CssColors.Transparent,
     });
 
     // 竖排叠在 LineTab 上（同 vue 的 compound）：线换到结束边
     static Style LineTabVertical => Css.Define(static () => new Style
     {
         JustifyContent = JustifyContent.FlexStart,
-        MarginBottom = 0,
-        BorderBottomWidth = 0,
+        MarginBlockEnd = 0,
+        BorderBlockEndWidth = 0,
         MarginInlineEnd = $"calc(-1 * {BorderWidths.Xs})",
         BorderInlineEndWidth = BorderWidths.Sm,
         BorderInlineEndStyle = BorderStyle.Solid,

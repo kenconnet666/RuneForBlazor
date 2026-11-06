@@ -64,7 +64,8 @@ public static class ToggleGroupStyles
 
     static Style Vertical => Css.Define(static () => new Style { FlexDirection = FlexDirection.Column });
 
-    // 同按钮的 surface 外观；位置与宽高由 JS 写（data-rune-indicator），切换时按主题时长滑过去
+    // 同按钮的 surface 外观；位置与宽高由 JS 写（data-rune-indicator），切换时按主题时长滑过去。
+    // JS 按 offsetLeft / offsetTop（物理坐标）平移，起点用物理的 top / left，从右到左时也对得上
     static Style Indicator => Css.Define(static () => new Style
     {
         Position = Position.Absolute,
