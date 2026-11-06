@@ -1,0 +1,25 @@
+@page "/components/virtual-list"
+@attribute [DocMeta("VirtualList 虚拟列表", "只渲染看得见的几十项，上万条数据也流畅；行高不固定也行，渲染后自动测量。可以随页面滚动、横向排列、滚动加载、跳到指定项。", DocCategory.Display, Order = 8)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.VirtualList.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="contacts" Title="一万条联系人" Demo="typeof(ContactsExample)">
+                组件自己是滚动容器，高度用 <Code>Sx</Code> 给；<Code>EstimateSize</Code> 是估计的行高，渲染后按实际高度测量。数据会过滤、重排时给 <Code>GetKey</Code>。
+                没有数据时显示 <Code>Empty</Code>；读屏念“第几项，共几项”，没渲染的也算在总数里。<Code>Scroll="VirtualScroll.Window"</Code> 时随页面滚动。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="feed" Title="滚动加载" Demo="typeof(FeedExample)">
+                <Code>OnRangeChange</Code> 报告可见范围，接近末尾时取下一页。<Code>Loading</Code> 时只用骨架：没有数据时铺几行，已有数据（取下一页）时接在末尾。
+            </Example>
+            <Example Id="horizontal" Title="横向与跳到指定项" Demo="typeof(HorizontalExample)">
+                <Code>Horizontal</Code> 横向排列与滚动（给宽度），<Code>EstimateSize</Code> 是估计的宽度；<Code>Overscan</Code> 是可见范围前后多渲染几项。
+                用 <Code>@@ref</Code> 拿到组件后调用 <Code>ScrollToIndex</Code> / <Code>ScrollToOffset</Code>，<Code>ScrollAlign</Code> 控制停在开头、中间还是末尾。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(VirtualList<>)]" />
+</DocPage>

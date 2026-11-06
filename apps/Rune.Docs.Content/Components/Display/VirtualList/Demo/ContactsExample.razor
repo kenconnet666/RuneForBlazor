@@ -1,0 +1,46 @@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.None">
+    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Sx="Padded">
+        <TextField @bind-Value="keyword" Immediate="true" type="search" Clearable="true" placeholder="姓名或电话" aria-label="搜索联系人" />
+        <Small Tone="TextTone.Muted">共 @Shown.Count.ToString("N0") 人</Small>
+    </Flex>
+    <VirtualList Items="Shown" GetKey="c => c.Id" EstimateSize="56" aria-label="联系人" Sx="ListHeight" Context="contact" data-testid="contacts">
+        <ChildContent>
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Sx="Padded">
+                <Avatar Size="Size.Sm" Name="@contact.Name" />
+                <Flex Direction="LayoutDirection.Column">
+                    <TextSpan Weight="Weight.Medium">@contact.Name</TextSpan>
+                    <Small Tone="TextTone.Muted">@contact.Department · @contact.Phone</Small>
+                </Flex>
+            </Flex>
+        </ChildContent>
+        <Empty>
+            <TextSpan Tone="TextTone.Muted" Sx="Padded">没有找到“@keyword”</TextSpan>
+        </Empty>
+    </VirtualList>
+</Card>
+
+@code {
+    sealed record Contact(int Id, string Name, string Department, string Phone);
+
+    const string Surnames = "赵钱孙李周吴郑王冯陈褚卫蒋沈韩杨朱秦尤许何吕施张孔曹严华金魏陶姜";
+    static readonly string[] GivenNames = ["小满", "一航", "默", "悠", "晴", "浩然", "思远", "雨桐", "子墨", "若溪", "安"];
+    static readonly string[] Departments = ["设计中心", "研发部", "市场部", "财务部", "客服部"];
+
+    static readonly Contact[] Contacts = [.. Enumerable.Range(0, 10_000).Select(index => new Contact(
+        index,
+        $"{Surnames[index % Surnames.Length]}{GivenNames[index % GivenNames.Length]}",
+        Departments[index % Departments.Length],
+        $"138{index:D8}"))];
+
+    static Style ListHeight => Css.Define(static () => new Style { Height = CssLength.Rem(22) });
+
+    static Style Padded => Css.Define(static () => new Style { PaddingBlock = Space.Sm, PaddingInline = Space.Md });
+
+    string? keyword;
+
+    IReadOnlyList<Contact> Shown => string.IsNullOrEmpty(keyword)
+        ? Contacts
+        : [.. Contacts.Where(c => c.Name.Contains(keyword, StringComparison.Ordinal) || c.Phone.Contains(keyword, StringComparison.Ordinal))];
+}

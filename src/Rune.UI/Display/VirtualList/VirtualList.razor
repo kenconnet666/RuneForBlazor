@@ -1,79 +1,69 @@
 @*
-    虚拟列表（同 vue-tsx-pro 的 VirtualList）：只渲染看得见的几十项，上万条数据也流畅。
-    <VirtualList Items="users" EstimateSize="48" Sx="listHeight" aria-label="用户" Context="user"><UserRow User="user" /></VirtualList>
-    组件自己是滚动容器（ScrollArea，浮层滚动条），高度由使用方给（Sx、class、style）。行高按 EstimateSize 估计，渲染后以实际为准（Blazor 的 Virtualize）。
-    读屏：role="list"，每项带 aria-setsize / aria-posinset，没渲染的项也算在总数里；没有数据时显示 Empty（不是列表）。
-    交互模式下才虚拟滚动；静态 SSR、预渲染时先输出前 InitialCount 项，交互接管后换成虚拟滚动。
-    未声明的属性落到外层（ScrollArea）上；aria-label 写在这里就是列表的名称（读屏从视口读，组件转交过去）。
-    还没做（路线图阶段 2）：随页面滚动、横向、加载中的骨架行、跳到第几项、可见范围变化的回调。
+    虚拟列表（同 vue-tsx-pro 的 VirtualList）：只渲染看得见的几十项，上万条数据也流畅。行高可以不固定，渲染后自动测量。
+    <VirtualList Items="users" GetKey="u => u.Id" EstimateSize="48" Sx="listHeight" aria-label="用户" Context="user"><UserRow User="user" /></VirtualList>
+    默认组件自己是滚动容器（ScrollArea，浮层滚动条），高度由使用方给（Sx、class、style）；Scroll="VirtualScroll.Window" 时随页面滚动。
+    Horizontal 时横向排列与滚动（给宽度），EstimateSize 是估计的宽度。
+    虚拟滚动在 JS 里（js/virtual.js，同 vue 的 virtualizer）：按估计大小排位置，渲染后测量真实大小、按 key 缓存，滚动时算出要渲染的那一段交给 C#；
+    位置与总大小由 JS 写，不等往返。静态 SSR、预渲染时先在普通流里输出前 InitialCount 项，交互接管后换成虚拟滚动。
+    读屏：role="list"，每项带 aria-setsize / aria-posinset，没渲染的项也算在总数里；没有数据时是 role="group"（空状态、骨架不是列表项）。
+    Loading：只用骨架行（按 EstimateSize 的高度）：没有数据时铺满，已有数据（加载更多）时接在末尾，不另加进度条；带 aria-busy。
+    OnRangeChange 报告可见范围（不含 overscan）：接近末尾时加载更多。ScrollToIndex / ScrollToOffset（@ref 拿到组件）滚动到指定项或位置。
+    未声明的属性落到外层（滚动容器）上；aria-label 写在这里就是列表的名称。
 *@
 @namespace Rune.UI
 @typeparam TItem
 @inherits UIComponent
-@using Microsoft.AspNetCore.Components.Web.Virtualization
 
-<ScrollArea PropsViewport="ViewportLayer" @attributes="Attrs.MergeProps(RootLayer, Rest)">
-    @if (Items.Count == 0)
-    {
-        @Empty
-    }
-    else
-    {
-        <div role="list" aria-label="@AriaLabel" @attributes="Attrs.Merge(null, PropsList)">
-            @if (RendererInfo.IsInteractive)
-            {
-                <Virtualize Items="Indexes" ItemSize="EstimateSize" OverscanCount="Overscan" Context="index">@Item(index)</Virtualize>
-            }
-            else
-            {
-                for (var index = 0; index < Math.Min(InitialCount, Items.Count); index++)
-                {
-                    @Item(index)
-                }
-            }
-        </div>
-    }
-</ScrollArea>
+@if (Scroll == VirtualScroll.Container)
+{
+    <ScrollArea Axis="@(Horizontal ? ScrollAxis.X : ScrollAxis.Y)" Focusable="false" PropsViewport="Attrs.Layer(Horizontal ? HorizontalContainerLayer : ContainerLayer, Rest, RootManaged)">@Content</ScrollArea>
+}
+else
+{
+    <div @attributes="Attrs.Merge(RootLayer, Rest, RootManaged)">@Content</div>
+}
 
 @code {
-    static readonly Attrs RootLayer = new() { Sx = Root };
-    static readonly Attrs ViewportLayer = new() { Sx = Viewport };
-    // Virtualize 只要 ICollection：按序号虚拟，模板里才拿得到第几项（aria-posinset）
-    Memo<int, int[]> indexes;
+    RenderFragment Content => @<text>
+        @if (Items.Count > 0)
+        {
+            var (from, to) = RenderedRange;
+            <div data-rune-virtual-list role="presentation" @attributes="Attrs.Merge(Virtual ? ListLayer : null, PropsList)">
+                @for (var index = from; index <= to; index++)
+                {
+                    var item = Items[index];
+                    var key = GetKey?.Invoke(item) ?? index;
+                    <div @key="key" role="listitem" aria-setsize="@Items.Count" aria-posinset="@(index + 1)" data-index="@index" data-key="@key"
+                         @attributes="Attrs.Merge(Virtual ? (Horizontal ? HorizontalItemLayer : VerticalItemLayer) : null, PropsItemFor?.Invoke(item, index) ?? PropsItem)">
+                        @ChildContent?.Invoke(item)
+                    </div>
+                }
+            </div>
+            @if (Loading && indicator.Shown)
+            {
+                @SkeletonRows(MoreSkeletonRows)
+            }
+        }
+        else if (Loading)
+        {
+            @if (indicator.Shown)
+            {
+                @SkeletonRows(SkeletonRowCount)
+            }
+        }
+        else
+        {
+            @Empty
+        }
+    </text>;
 
-    /// <summary>数据。</summary>
-    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
-
-    /// <summary>渲染一项（Context 是这一项）。</summary>
-    [Parameter, EditorRequired] public RenderFragment<TItem>? ChildContent { get; set; }
-
-    /// <summary>每项的估计高度（px），渲染后以实际为准；默认 40。</summary>
-    [Parameter] public float EstimateSize { get; set; } = 40;
-
-    /// <summary>可见范围前后各多渲染几项，默认 4。</summary>
-    [Parameter] public int Overscan { get; set; } = 4;
-
-    /// <summary>静态渲染（没有交互时）先输出前多少项，默认 30。</summary>
-    [Parameter] public int InitialCount { get; set; } = 30;
-
-    /// <summary>没有数据时显示的内容。</summary>
-    [Parameter] public RenderFragment? Empty { get; set; }
-
-    /// <summary>列表层（role="list"）的部件属性。</summary>
-    [Parameter] public Attrs? PropsList { get; set; }
-
-    /// <summary>每一项外层（role="listitem"）的部件属性。</summary>
-    [Parameter] public Attrs? PropsItem { get; set; }
-
-    string? AriaLabel => AdditionalAttributes?.GetValueOrDefault("aria-label") as string;
-
-    int[] Indexes => indexes.Get(Items.Count, static count => [.. Enumerable.Range(0, count)]);
-
-    RenderFragment Item(int index) =>
-        @<div role="listitem" aria-setsize="@Items.Count" aria-posinset="@(index + 1)" @attributes="Attrs.Merge(null, PropsItem)">@ChildContent?.Invoke(Items[index])</div>;
-
-    // 滚到头时不带动外层页面
-    static Style Root => Css.Define(static () => new Style { OverflowAnchor = OverflowAnchor.None });
-
-    static Style Viewport => Css.Define(static () => new Style { OverscrollBehavior = OverscrollBehavior.Contain, OverflowAnchor = OverflowAnchor.None });
+    RenderFragment SkeletonRows(int count) => __builder =>
+    {
+        for (var row = 0; row < count; row++)
+        {
+            <div @key="@($"skeleton-{row}")" aria-hidden="true" @attributes="Attrs.Merge(SkeletonRowLayer)">
+                <Skeleton Delay="@(row * ShimmerStyles.Stagger)" @attributes="Attrs.MergeProps(SkeletonLayer, SkeletonHeight, PropsSkeleton)" />
+            </div>
+        }
+    };
 }

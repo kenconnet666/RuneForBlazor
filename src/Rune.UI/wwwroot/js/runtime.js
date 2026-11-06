@@ -16,6 +16,7 @@ import { drawWatermark } from './watermark.js';
 import { blurSortable, grabSortable, keySortable } from './sortable.js';
 import { showLightboxImage, watchLightbox } from './lightbox.js';
 import { closeTreeAfterPick, keyTree, pressTreeItem } from './tree.js';
+import { watchVirtual } from './virtual.js';
 import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './lists.js';
 import { watchIndicator } from './indicator.js';
 import { scheduleOverflow, watchOverflow } from './overflow.js';
@@ -174,6 +175,7 @@ const watched = [
   ['[data-rune-marquee]', watchMarquee],
   ['[data-rune-watermark]', drawWatermark],
   ['[data-rune-pointer]', watchPointer],
+  ['[data-rune-virtual]', watchVirtual],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 

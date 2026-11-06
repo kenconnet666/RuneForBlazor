@@ -348,6 +348,11 @@
   类型搜索与菜单共用一个实现（连续输入拼词、停顿 500 毫秒清空、同一个字母轮换）。
   vue-tsx-pro 的 Listbox 用 css.create，没有部件标记：对照工具另按 role 配对。
   渲染拆成 `ListboxView`（只画列表与选项）：Listbox 在它外面加值与焦点，弹出的选项列表 `ListPopover`（Select，之后的 Combobox、TagsInput）在它外面加浮层与头部。
+- **VirtualList**：虚拟滚动器在 JS（js/virtual.js，移植 vue-tsx-pro 的 virtualizer.ts）：按估计大小排位置表，渲染后量真实大小、按 data-key 缓存，
+  可视区上方的项变了大小时调整滚动位置；位置（transform）与列表的总大小由 JS 写，滚动时算出要渲染的那一段经命令交给 C#（range），C# 只渲染这一段。
+  不用 Blazor 的 Virtualize：它没有横向、随页面滚动、跳到第几项与可见范围的回调。ScrollToIndex / ScrollToOffset 由 C# 写 data-rune-virtual-scroll（带序列号）。
+  横向时视口 `contain: inline-size`：几万像素的总宽不算进它的固有宽度，按内容排版的祖先（表格、auto 的网格列）不会被撑开；
+  项按内容的高度（视口里隔着 ScrollArea 的内容层，百分比高度算不出来）。静态 SSR、预渲染时在普通流里输出开头几项。
 - **Tree**：数据逻辑在 `TreeData`（同 vue-tsx-pro 的 utils/data/tree.ts：平铺、索引、勾选联动与半选、取法、过滤、组装、移动，都不改原数据），
   TreeSelect、TreeTransfer 与之后的树形表格共用。树就是一个列表宿主（`role="tree"` + `data-rune-list`）：↑↓、Home / End、类型搜索、高亮与虚拟滚动
   照 lists.js 走（treeitem 按 `data-index` 编号，aria-posinset 是同级里的位置）；tree.js 只管 → ←、Enter、空格、Alt + 方向键，

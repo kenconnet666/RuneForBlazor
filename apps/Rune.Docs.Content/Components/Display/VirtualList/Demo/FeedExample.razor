@@ -1,0 +1,56 @@
+@* 滚动加载：OnRangeChange 报告可见范围，接近末尾时取下一页；Loading 时骨架接在末尾 *@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.None">
+    <VirtualList Items="entries" GetKey="e => e.Id" EstimateSize="32" Loading="loading" OnRangeChange="OnRangeChangeAsync" aria-label="运行日志"
+                 Sx="ListHeight" Context="entry" data-testid="feed">
+        <Flex Gap="SpaceScale.Sm" Sx="Padded">
+            <Small Tone="@LevelTones[entry.Level]" Sx="LevelWidth">@entry.Level</Small>
+            <TextSpan Size="Size.Sm">@entry.Message</TextSpan>
+        </Flex>
+    </VirtualList>
+    <Small Tone="TextTone.Muted" Sx="Padded">已加载 @entries.Count 条</Small>
+</Card>
+
+@code {
+    sealed record Entry(int Id, string Level, string Message);
+
+    static readonly string[] Levels = ["INFO", "WARN", "INFO", "ERROR", "INFO", "DEBUG"];
+    static readonly Dictionary<string, TextTone> LevelTones = new() { ["DEBUG"] = TextTone.Muted, ["INFO"] = TextTone.Info, ["WARN"] = TextTone.Warning, ["ERROR"] = TextTone.Danger };
+    static readonly string[] Messages =
+    [
+        "订单服务健康检查通过",
+        "支付回调重试第 2 次",
+        "缓存命中率 97.4%",
+        "库存同步超时，已放入重试队列",
+        "用户 1024 登录成功",
+        "定时任务 report:daily 开始执行，预计耗时 3 分钟，完成后会把结果推送到运营群",
+    ];
+
+    static Style ListHeight => Css.Define(static () => new Style { Height = CssLength.Rem(22) });
+
+    static Style Padded => Css.Define(static () => new Style { PaddingBlock = Space.Xs, PaddingInline = Space.Md });
+
+    // 级别定宽，消息才对得齐
+    static Style LevelWidth => Css.Define(static () => new Style { FlexShrink = 0, Width = CssLength.Em(3.5), FontFamily = Fonts.Mono });
+
+    static Entry[] PageOf(int start) => [.. Enumerable.Range(start, 30).Select(index => new Entry(index, Levels[index % Levels.Length], Messages[index % Messages.Length]))];
+
+    IReadOnlyList<Entry> entries = [];
+    bool loading;
+
+    protected override Task OnInitializedAsync() => LoadMoreAsync();
+
+    async Task LoadMoreAsync()
+    {
+        if (loading) return;
+        loading = true;
+        StateHasChanged();
+        await Task.Delay(900);
+        entries = [.. entries, .. PageOf(entries.Count)];
+        loading = false;
+    }
+
+    // 滚到最后几行时自动取下一页
+    Task OnRangeChangeAsync(VisibleRange range) => range.EndIndex >= entries.Count - 5 ? LoadMoreAsync() : Task.CompletedTask;
+}
