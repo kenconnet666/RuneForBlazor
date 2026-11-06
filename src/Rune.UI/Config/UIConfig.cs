@@ -55,6 +55,13 @@ public sealed class RuneUIOptions
     /// <summary>语言，默认简体中文（<see cref="Lang.ZhCn"/>）；英文界面用 <see cref="Lang.EnUs"/>。</summary>
     public Lang Lang { get; set; } = Lang.ZhCn;
 
+    /// <summary>
+    /// 按界面文化选语言：每个请求（Server 是每个电路）按当时的 <see cref="System.Globalization.CultureInfo.CurrentUICulture"/>
+    /// （通常由 ASP.NET Core 的 RequestLocalization 设定）从这几个里选（<see cref="Lang.Match"/>），都不匹配时用 <see cref="Lang"/>。
+    /// 不写时一直用 <see cref="Lang"/>。<c>o.Languages = [Lang.ZhCn, Lang.EnUs];</c>
+    /// </summary>
+    public IReadOnlyList<Lang>? Languages { get; set; }
+
     /// <inheritdoc cref="UIConfig.TextMatcher"/>
     public TextMatcher? TextMatcher { get; set; }
 
@@ -79,7 +86,17 @@ public static class RuneUIServiceCollectionExtensions
         var options = new RuneUIOptions();
         configure?.Invoke(options);
         services.AddRune();
-        services.AddSingleton(new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher, ThemeChoices = options.ThemeChoices });
+        var config = new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Defaults, options.Styles, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher, ThemeChoices = options.ThemeChoices };
+        if (options.Languages is { Count: > 0 } languages)
+        {
+            // 文化随请求变：每个作用域（请求、电路）第一次用到时按当时的界面文化选一次，同一作用域里一直是同一个对象
+            var byLang = languages.Append(options.Lang).Distinct().ToDictionary(l => l, l => config with { Lang = l });
+            services.AddScoped(_ => byLang[Lang.Match(System.Globalization.CultureInfo.CurrentUICulture, languages) ?? options.Lang]);
+        }
+        else
+        {
+            services.AddSingleton(config);
+        }
         services.AddScoped<ToastService>();
         services.AddScoped<DialogService>();
         return services;

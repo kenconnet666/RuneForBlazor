@@ -21,6 +21,42 @@ public class LangTests : BunitContext
     }
 
     [Fact]
+    public void 按界面文化选语言包_先认完整代码_再认语言_沿父文化往上()
+    {
+        Lang[] both = [Lang.ZhCn, Lang.EnUs];
+        Assert.Same(Lang.EnUs, Lang.Match(new("en-US"), both));
+        Assert.Same(Lang.EnUs, Lang.Match(new("en-GB"), both));
+        Assert.Same(Lang.ZhCn, Lang.Match(new("zh-Hans-CN"), both));
+        Assert.Same(Lang.ZhCn, Lang.Match(new("zh"), both));
+        Assert.Null(Lang.Match(new("fr-FR"), both));
+        Assert.Null(Lang.Match(System.Globalization.CultureInfo.InvariantCulture, both));
+    }
+
+    [Fact]
+    public void 写了Languages时每个作用域按当时的界面文化取语言包()
+    {
+        var services = new ServiceCollection().AddRuneUI(o => o.Languages = [Lang.ZhCn, Lang.EnUs]).BuildServiceProvider();
+        var original = System.Globalization.CultureInfo.CurrentUICulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentUICulture = new("en-GB");
+            using var english = services.CreateScope();
+            var config = english.ServiceProvider.GetRequiredService<UIConfig>();
+            Assert.Same(Lang.EnUs, config.Lang);
+            // 同一作用域里是同一个对象：RuneProvider 据此判断配置没变
+            Assert.Same(config, english.ServiceProvider.GetRequiredService<UIConfig>());
+
+            System.Globalization.CultureInfo.CurrentUICulture = new("fr-FR");
+            using var french = services.CreateScope();
+            Assert.Same(Lang.ZhCn, french.ServiceProvider.GetRequiredService<UIConfig>().Lang);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentUICulture = original;
+        }
+    }
+
+    [Fact]
     public void 组件的文案默认取语言包_Provider可以换语言()
     {
         var chinese = Render<CloseButton>();
