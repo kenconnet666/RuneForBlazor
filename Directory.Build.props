@@ -22,10 +22,11 @@
   </PropertyGroup>
 
   <!--
-    本地构建不把提交号写进 InformationalVersion：否则每次提交后 AssemblyInfo 都变，所有项目都要重新编译，
-    源生成器重新编译后还要拷进 bin，而语言服务器（csharp-ls）加载着它、文件被锁，构建失败。CI 上照常带上提交号
+    本地构建不带提交号（InformationalVersion 里的、SourceLink 的源码地址里的）：它们是编译的输入，每次提交后所有项目都要重新编译，
+    源生成器重新编译后还要拷进 bin，而语言服务器（csharp-ls）加载着它、文件被锁，构建失败。本地调试用不上 SourceLink；CI 上照常
   -->
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' != 'true'">
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <EnableSourceLink>false</EnableSourceLink>
   </PropertyGroup>
 </Project>
