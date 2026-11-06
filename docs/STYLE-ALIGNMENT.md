@@ -19,7 +19,7 @@ vue-tsx-pro 在做一轮样式体系的联合改造（架构、整理、API、�
 | 阶段 2：外观词表 | `Tone`（6 个状态色）与 `TextTone`（含 muted、inherit）已经分开，正是 vue 的最终取舍 | **已跟进**：Skeleton `Variant` → `Shape`、Sparkline `Variant` → `Type`；Dialog / Drawer 的 `Size`（宽度）照 vue 的决定不改 |
 | 阶段 2：入口不再导出内部样式表 | 组件的 `XxxStyles` 多是 public（配方、部件枚举要给定制用），里面的单个样式多是 private / internal | 只留部件枚举与 `Of`（配方）public，其余 internal；有了 `Components` 入口后再收 |
 | 阶段 3 整理：共用片段、条件别名、裸值换 token | `SharedStyles`（ButtonReset、FocusRing、InteractionColors……）、`ItemStyles`、`ShimmerStyles` 已有；`When.*` 条件别名已统一；分析器 RUNE006 / RUNE007 管着类型化取值与 px | 按 vue 的片段清单补齐（pressable、disabled、disclosure 箭头、scrim / onScrim token……），裸值（Lightbox、Upload 的遮罩色）换 token |
-| 阶段 4 美学：token 与主题 | 主题由 `tools/theme-gen` 从 vue 的主题生成（`Themes.g.cs`） | **跟进了已完成的部分**（见第 3 节）：重新生成主题、跟随系统的增强对比度、elevated 卡片的边框；控件高度（xs 24 … xl 40）、中文字重、着色页面、标题阶梯等 vue 做完再跟。波纹 vue 最后保持默认开启，Rune 本来就是 |
+| 阶段 4 美学：token 与主题 | 主题由 `tools/theme-gen` 从 vue 的主题生成（`Themes.g.cs`） | **跟进了已完成的部分**（见第 3 节）：重新生成主题、跟随系统的增强对比度、elevated 卡片的边框、控件高度（xs 24 … xl 40）、中文字重、着色页面、表单标签与字段行距、小浮层的进出场；标题阶梯等 vue 做完再跟。波纹 vue 最后保持默认开启，Rune 本来就是 |
 | 阶段 5 文档 | `docs/DESIGN.md`、文档站的样式与主题页 | 同步规范与迁移说明 |
 
 ## 2. 改造前先做的性能准备（2026-11-06）
@@ -86,7 +86,7 @@ builder.Services.AddRuneUI(o => o.Components = new()
   但按钮的文字是主题的文字色，深色主题里白底浅字看不清；Rune 原来就用表面色，深浅主题都看得清）。
 - Table 与 DataTable 共用部件样式（vue d450fe3a）：Rune 还没有 DataTable，只有一个表格配方，没有可合并的。
 
-### 阶段 4：美学（2026-11-06 跟进 vue 已完成的部分，vue feat/style-overhaul 到 c340d084，PR #4 未合并）
+### 阶段 4：美学（2026-11-06 跟进 vue 已完成的部分，vue feat/style-overhaul 到 8a14554a，PR #4 未合并）
 
 vue 那边合并用快进、不 squash，提交号不变；CI 的 `VUE_TSX_PRO_REF` 指到当前跟进到的提交（样式属性表、主题、语言包同一版本）。
 
@@ -111,7 +111,11 @@ vue 那边合并用快进、不 squash，提交号不变；CI 的 `VUE_TSX_PRO_R
 - 亮色主题着色页面 + 白卡片（vue c340d084，重新生成）：亮色、森林、柠檬、樱花、喜庆、薰衣草、墨白的页面取原来的 surfaceMuted，
   surface / surfaceRaised 改白色，surfaceMuted 取页面与 fill 的中间，surfaceTranslucent 跟着页面；几套主题的图表系列色调深到 3:1。
   纸张、高对比、深色不动。开机脚本的底色取主题的 Background，自动跟着变。端到端测试里色块的期望值改成 `#ffffff`。
-- 字体只用系统字体栈、不带 web 字体（vue 的决定）：Rune 本来就是。
+- 组件库只用系统字体栈、不带 web 字体（vue 的决定）：Rune 本来就是。vue 的文档站另外默认用霞鹜文楷等宽（npm 包 rune-ui-wuxiawenkai，
+  挂载后才加载），Rune 的文档站还没跟。
+- 表单标签升到 14px（vue 5b471484）：Field 的标签 `FontSizes.Md`、中等字重，说明文字仍小一档、弱化色；FormSection 的字段行距 Md → Lg。
+- 小浮层的进出场更快（vue 5b471484）：新增 `OverlayTransitions.Pop`（进场 Sm + enter、离场 Xs），Popover、HoverCard、Menu、选项列表用它
+  （vue 的 anchoredPanelSx；Rune 还没有日期面板、Cascader、TreeSelect），对话框仍用 `Scale`。`Durations` 各档的注释按实际用处改写。
 
 ### 阶段 1：分段输出与级联层（2026-11-06 跟进）
 

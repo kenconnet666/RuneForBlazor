@@ -27,7 +27,7 @@ public static class ListPopoverStyles
                 FloatingStyles.Anchored,
                 FloatingStyles.Surface,
                 size is { } s ? ScaleStyles.FontSize(s) : null,
-                OverlayTransitions.Scale,
+                OverlayTransitions.Pop,
                 FloatingStyles.ScrollPanel,
                 Panel),
             ListPopoverPart.Header => Header,

@@ -15,7 +15,7 @@ public static class HoverCardStyles
     /// <summary>各部件的默认层；<paramref name="arrow"/> 时不裁掉伸出去的箭头。</summary>
     public static PartLayers<HoverCardPart> Of(bool arrow, ComponentStyles styles) =>
         Recipe.Of("hover-card", arrow, styles, static (bool arrow, HoverCardPart _) =>
-            Sx.Of(FloatingStyles.Anchored, FloatingStyles.Surface, Panel, OverlayTransitions.Scale, arrow ? FloatingStyles.WithArrow : null));
+            Sx.Of(FloatingStyles.Anchored, FloatingStyles.Surface, Panel, OverlayTransitions.Pop, arrow ? FloatingStyles.WithArrow : null));
 
     static Style Panel => Css.Define(static () => new Style
     {

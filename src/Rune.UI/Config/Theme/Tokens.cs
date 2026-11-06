@@ -397,16 +397,16 @@ public static class Durations
     /// <summary>0ms。</summary>
     public static readonly CssValue None = "var(--rune-durations-none)";
 
-    /// <summary>75ms：按下的反馈。</summary>
+    /// <summary>75ms：按下的反馈、小浮层离场。</summary>
     public static readonly CssValue Xs = "var(--rune-durations-xs)";
 
-    /// <summary>120ms：悬停、颜色变化、浮层离场。</summary>
+    /// <summary>120ms：悬停、颜色变化、小浮层进场、对话框离场。</summary>
     public static readonly CssValue Sm = "var(--rune-durations-sm)";
 
-    /// <summary>200ms：浮层进场、展开收起。</summary>
+    /// <summary>200ms：对话框进场、展开收起。</summary>
     public static readonly CssValue Md = "var(--rune-durations-md)";
 
-    /// <summary>300ms：大面积的移动（抽屉）。</summary>
+    /// <summary>300ms：抽屉滑入、图片淡入、骨架的扫光。</summary>
     public static readonly CssValue Lg = "var(--rune-durations-lg)";
 
     /// <summary>500ms：强调的动画。</summary>

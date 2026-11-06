@@ -106,7 +106,8 @@ public static class FieldStyles
         Display = Display.InlineFlex,
         AlignItems = AlignItems.Baseline,
         Gap = Space.Xs,
-        FontSize = FontSizes.Sm,
+        // 标签与控件里的文字一样大、字重高一档；说明文字小一档、弱化色，层级不只靠颜色
+        FontSize = FontSizes.Md,
         FontWeight = FontWeights.Medium,
         LineHeight = LineHeights.Tight,
         Color = Colors.Text,

@@ -72,6 +72,16 @@ public class OverlayTests : BunitContext
     }
 
     [Fact]
+    public void 弹出框的进出场比对话框快()
+    {
+        Render<Popover>(p => p.AddChildContent("内容"));
+        Render<Dialog>(p => p.Add(x => x.Title, "编辑订单"));
+
+        Assert.Contains(Registry.Rules, rule => rule.Contains("opacity var(--rune-durations-xs) var(--rune-easings-exit)"));
+        Assert.Contains(Registry.Rules, rule => rule.Contains("opacity var(--rune-durations-md) var(--rune-easings-enter)"));
+    }
+
+    [Fact]
     public void 菜单_菜单项不在Tab顺序里_不可用的点击无效()
     {
         var clicked = 0;

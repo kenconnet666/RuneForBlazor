@@ -47,7 +47,7 @@ public static class MenuStyles
     public static PartLayers<MenuPart> Of(ComponentStyles styles) =>
         Recipe.Of("menu", styles, static (MenuPart part) => part switch
         {
-            MenuPart.Root => Sx.Of(FloatingStyles.Anchored, FloatingStyles.Surface, OverlayTransitions.Scale, FloatingStyles.ScrollPanel, Root),
+            MenuPart.Root => Sx.Of(FloatingStyles.Anchored, FloatingStyles.Surface, OverlayTransitions.Pop, FloatingStyles.ScrollPanel, Root),
             MenuPart.Content => Content,
             _ => GroupLabel,
         });

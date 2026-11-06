@@ -126,13 +126,13 @@ public static class FormSectionStyles
 
     static Style Extra => Css.Define(static () => new Style { Display = Display.Flex, AlignItems = AlignItems.Center, Gap = Space.Sm, FlexShrink = 0 });
 
-    // 多列时列间距比行间距大：一眼看出哪几项是同一列
+    // 多列时列间距比行间距大：一眼看出哪几项是同一列；字段之间比字段内部（Xs）明显宽：一眼看出哪几行是一组
     static Style Body => Css.Define(static () => new Style
     {
         [ColumnGap.Name] = Space.Xl.ToString(),
         Display = Display.Grid,
         ColumnGap = ColumnGap,
-        RowGap = Space.Md,
+        RowGap = Space.Lg,
         GridTemplateColumns = "minmax(0, 1fr)",
         AlignItems = AlignItems.Start,
     });
