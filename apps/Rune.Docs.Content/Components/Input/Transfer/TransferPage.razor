@@ -9,6 +9,10 @@
         <Code>Searchable</Code> 时带搜索框，全选只管搜索后留下的项。<Code>@@bind-Value</Code> 是右边的值，按移过去的先后排列；选项的
         <Code>Disabled</Code> 勾不上也就移不动。移动后读屏播报移了几项。窄屏时两边上下排，按钮换成上下箭头。
     </Example>
+    <Example Id="tree" Title="左边是一棵树" Demo="typeof(DepartmentsExample)">
+        <Code>TreeTransfer</Code> 的左边是勾选的 <TextLink Href="components/tree">Tree</TextLink>（父子联动，勾上部门就是它下面的全部团队），只移叶子；
+        已经移过去的叶子在树上勾上且不可用。
+    </Example>
     <KeyboardReference Keys="@([
         ("Tab", "在全选框、搜索框、列表、按钮之间移动"),
         ("↑ / ↓ / Home / End", "列表里移动高亮（同 Listbox）"),
@@ -17,5 +21,5 @@
     ])">
         整个穿梭框是一组（role="group"，名称是 Field 的标签），两边的列表各以自己的标题为名，按钮的名称是“移到某一边”。
     </KeyboardReference>
-    <ApiReference Types="[typeof(Transfer<>)]" />
+    <ApiReference Types="[typeof(Transfer<>), typeof(TreeTransfer<>)]" />
 </DocPage>

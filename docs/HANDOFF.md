@@ -75,6 +75,8 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 - 旧路线图的 R、阶段 1 完成，阶段 2 做到 Image / Lightbox 与 Upload 的图片墙；中间暂停做了性能（`docs/PERFORMANCE.md`，基准 `tests/Rune.Benchmarks`）。
 - vue-tsx-pro 的样式体系改造（0.11）已跟进（`docs/STYLE-ALIGNMENT.md`）：分段输出与级联层、`Components` 一个定制入口、主题与对比度、
   控件高度、界面字重、着色页面 + 白卡片、表单标签、小浮层的进出场、Tabs 的逻辑属性、文档站的字体切换与页面底色的画布。
+- 阶段 0：公开面收口、OtpField 用输入框配方已做；全部页面的对照跑过一遍（报告在 artifacts/parity），差异多是两边示例结构不同造成的配对错位，逐页处理还没做。
+- 阶段 1：TreeData、Tree、TreeSelect、TreeTransfer 已做；剩 VirtualList 补齐。
 - 2026-11-06 用户恢复路线图并重新规划（阶段 0 → 9）：锁定对齐 vue-tsx-pro 0.12.0-dev（版本号同步），除了发布，原来不做的扩展也做（阶段 7）。
 - 单元测试 520 个全过；端到端在 CI 上跑。
 

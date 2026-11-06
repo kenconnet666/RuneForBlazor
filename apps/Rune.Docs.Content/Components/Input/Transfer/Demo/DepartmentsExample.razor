@@ -1,0 +1,27 @@
+@* 通知范围：左边是组织机构树，勾上部门就是它下面的全部团队；移过去的是团队（叶子），已经移过去的在树上勾上且不能再勾 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="通知范围">
+        <TreeTransfer Items="orgs" GetKey="o => o.Id" GetLabel="o => o.Name" GetChildren="o => o.Children" @bind-Value="teams"
+                      Titles="@(("组织机构", "通知的团队"))" Searchable="true" data-testid="departments" />
+    </Field>
+    <Small Tone="TextTone.Muted">值：@string.Join("、", teams ?? [])</Small>
+</Flex>
+
+@code {
+    sealed record Org(string Id, string Name, IReadOnlyList<Org>? Children = null);
+
+    static readonly Org[] orgs =
+    [
+        new("rd", "研发中心", [new("rd-fe", "前端组"), new("rd-be", "后端组"), new("rd-qa", "测试组")]),
+        new("mfg", "制造中心",
+        [
+            new("mfg-plant", "组装厂", [new("mfg-plant-1", "一车间"), new("mfg-plant-2", "二车间")]),
+            new("mfg-quality", "质量部"),
+        ]),
+        new("purchase", "采购部"),
+    ];
+
+    IReadOnlyList<string>? teams = ["rd-fe", "mfg-quality"];
+}
