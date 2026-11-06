@@ -99,6 +99,14 @@ public static class When
         : new($":is({state.Key} + *)");
 
     /// <summary>
+    /// 前面某个兄弟元素处于某个状态时（不必紧挨着）：<c>[When.AfterAny(When.Checked)]</c> 生成 <c>.x:is(:checked ~ *)</c>。
+    /// 开关的滑块与轨道里的文字隔着几层跟在 input 后面时用它。
+    /// </summary>
+    public static Condition AfterAny(Condition state) => state.IsAtRule
+        ? throw new ArgumentException($"兄弟元素的状态要是选择器片段，收到 @ 规则 {state.Key}", nameof(state))
+        : new($":is({state.Key} ~ *)");
+
+    /// <summary>
     /// 里面有符合选择器的元素时：<c>[When.Has("[aria-invalid=true]")]</c> 生成 <c>.x:has([aria-invalid=true])</c>。
     /// 输入框的外框按里面 input 的状态（校验未通过、不可用）变化时用它。
     /// </summary>

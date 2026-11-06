@@ -76,6 +76,24 @@ public class FormTests : BunitContext
     }
 
     [Fact]
+    public void 开关_轨道里的文字对读屏隐藏_切换中拦下点击并转圈()
+    {
+        var cut = Render<Switch>(p => p
+            .Add(x => x.CheckedContent, b => b.AddContent(0, "开"))
+            .Add(x => x.UncheckedContent, b => b.AddContent(0, "关"))
+            .AddUnmatched("aria-label", "暗色模式"));
+        var contents = cut.FindAll("label > span > span[aria-hidden=true]");
+        Assert.Equal(["开", "关"], contents.Select(c => c.TextContent));
+        Assert.Null(cut.Find("input").GetAttribute("aria-busy"));
+
+        cut.Render(p => p.Add(x => x.Loading, true));
+        Assert.Equal("true", cut.Find("input").GetAttribute("aria-busy"));
+        Assert.Equal("true", cut.Find("label").GetAttribute("data-loading"));
+        // 转圈推迟 200ms 才出现（同 DelayedLoading）
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("[role=switch] ~ span [data-scope=spinner]")), TimeSpan.FromSeconds(2));
+    }
+
+    [Fact]
     public void 字段不写Required时看绑定字段的Required标注_写了以它为准()
     {
         var model = new Model();

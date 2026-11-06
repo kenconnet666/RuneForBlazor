@@ -12,7 +12,8 @@
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="switch" Title="开关" Demo="typeof(SwitchExample)">
-                Switch 是立即生效的设置（需要提交才生效的用 Checkbox）。
+                Switch 是立即生效的设置（需要提交才生效的用 Checkbox）。切换要等接口时写 <Code>Loading</Code>：滑块里转圈、点击无效，
+                配合 <Code>ValueChanged</Code> 在接口回来后再改值。轨道里可以放图标或文字（<Code>CheckedContent</Code> / <Code>UncheckedContent</Code>），对读屏隐藏。
             </Example>
             <Example Id="radio" Title="单选" Demo="typeof(RadioExample)">
                 同一组的原生 radio 共用 name：Tab 只停在选中项，方向键在组内移动并选中，都是浏览器的原生行为。选项里可以放任意内容（说明、价格）；Orientation="Orientation.Horizontal" 横排。

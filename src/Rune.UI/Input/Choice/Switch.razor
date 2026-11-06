@@ -1,17 +1,30 @@
 @*
     开关：<Switch @bind-Value="notify">接收通知</Switch>
     立即生效的设置用开关；要和其他字段一起提交的用 Checkbox。原生 input（role="switch"），读屏读作“开 / 关”。
+    - 轨道里的文字：CheckedContent / UncheckedContent（“开 / 关”或图标），轨道随文字加宽；文字对读屏隐藏（开关状态由 role="switch" 读出）。
+    - Loading：切换中（保存设置）点击无效、带 aria-busy，滑块里转圈（推迟 200ms 才出现，很快完成的切换不闪）。
+    滑块与文字按原生 input 的勾选状态用 CSS 变化（前面兄弟元素的 :checked），静态 SSR 下点了也会变。
 *@
 @namespace Rune.UI
 @inherits FormControl<bool>
 @{ var parts = ChoiceStyles.Of(new ChoiceAppearance(ChoiceKind.Switch, Size, Tone, IsReadOnly), Config.Styles); }
 
 <label data-state="@(CurrentValue ? "checked" : "unchecked")" data-disabled="@(IsDisabled ? "true" : null)"
-       data-readonly="@(IsReadOnly ? "true" : null)" @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
+       data-readonly="@(IsReadOnly ? "true" : null)" data-loading="@(Loading ? "true" : null)" @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
     <span @attributes="Attrs.Merge(parts[ChoicePart.Control], PropsControl)">
-        <input type="checkbox" role="switch" @ref="Element" @attributes="Attrs.Merge(parts[ChoicePart.Input], NamedInputUserAttrs, InputManaged)" @onclick:preventDefault="IsReadOnly" />
-        @* 滑块紧跟在 input 后面：按 input 的勾选状态（相邻兄弟选择器）移到另一端 *@
-        <span @attributes="Attrs.Merge(parts[ChoicePart.Indicator], PropsThumb)"></span>
+        <input type="checkbox" role="switch" @ref="Element" @attributes="Attrs.Merge(parts[ChoicePart.Input], NamedInputUserAttrs, InputManaged)" @onclick:preventDefault="IsReadOnly || Loading" />
+        @if (Wide)
+        {
+            <span aria-hidden="true" @attributes="Attrs.Merge(ContentOnLayer, PropsContent)"><span @attributes="Attrs.Merge(ContentTextLayer, PropsContentText)">@CheckedContent</span></span>
+            <span aria-hidden="true" @attributes="Attrs.Merge(ContentOffLayer, PropsContent)"><span @attributes="Attrs.Merge(ContentTextLayer, PropsContentText)">@UncheckedContent</span></span>
+        }
+        @* 滑块跟在 input（与轨道里的文字）后面：按 input 的勾选状态移到另一端 *@
+        <span @attributes="Attrs.Merge(parts[ChoicePart.Indicator], PropsThumb)">
+            @if (spinner.Shown)
+            {
+                <Spinner @attributes="Attrs.MergeProps(null, PropsSpinner, SpinnerManaged)" />
+            }
+        </span>
     </span>
     @if (ChildContent is not null)
     {
@@ -20,13 +33,28 @@
 </label>
 
 @code {
-    Memo<(Attrs Control, bool Checked), Attrs> inputManaged;
+    static readonly Attrs ContentOnLayer = new() { Sx = ChoiceStyles.SwitchContentOn };
+    static readonly Attrs ContentOffLayer = new() { Sx = ChoiceStyles.SwitchContentOff };
+    static readonly Attrs ContentTextLayer = new() { Sx = ChoiceStyles.SwitchContentText };
+    static readonly Attrs SpinnerManaged = new() { ["PropsIcon"] = new Attrs { Sx = ChoiceStyles.SwitchSpinner } };
+
+    Memo<(Attrs Control, bool Checked, bool Wide, bool Loading), Attrs> inputManaged;
+    DelayedLoading? delayedSpinner;
 
     /// <summary>打开时的色调，默认品牌色。</summary>
     [Parameter] public Tone Tone { get; set; } = Tone.Accent;
 
     /// <summary>字号档位；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }
+
+    /// <summary>切换中（如保存设置）：点击无效、带 aria-busy，滑块里转圈。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>打开时轨道里的文字或图标（在滑块的另一侧）。</summary>
+    [Parameter] public RenderFragment? CheckedContent { get; set; }
+
+    /// <summary>关着时轨道里的文字或图标。</summary>
+    [Parameter] public RenderFragment? UncheckedContent { get; set; }
 
     /// <summary>文字。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -40,12 +68,41 @@
     /// <summary>滑块的部件属性。</summary>
     [Parameter] public Attrs? PropsThumb { get; set; }
 
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue), this,
+    /// <summary>轨道里文字的外层（span，打开、关着各一个）的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>轨道里文字的内层（span）的部件属性。</summary>
+    [Parameter] public Attrs? PropsContentText { get; set; }
+
+    /// <summary>切换中的转圈（交给 Spinner）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSpinner { get; set; }
+
+    bool Wide => CheckedContent is not null || UncheckedContent is not null;
+
+    DelayedLoading spinner => delayedSpinner ??= new(() => InvokeAsync(StateHasChanged));
+
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Wide, Loading), this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
         {
+            Sx = k.Wide ? ChoiceStyles.SwitchTrackWide : (Sx?)null,
             ["checked"] = k.Checked,
+            ["aria-busy"] = k.Loading ? "true" : null,
             // 勾上时提交 true（同 Blazor 的 InputCheckbox），绑得回 bool
             ["value"] = "true",
             ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync(e.Value is true)),
         }));
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        spinner.Update(Loading);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        base.OnDispose();
+        delayedSpinner?.Dispose();
+    }
 }

@@ -213,8 +213,61 @@ public static class ChoiceStyles
         BackgroundColor = Colors.Background,
         BoxShadow = Shadows.Sm,
         Transition = $"margin-inline-start {Durations.Sm} {Easings.Standard}",
-        [When.After(When.Checked)] = new() { MarginInlineStart = "calc(100% - 1.0625em)", BackgroundColor = SharedStyles.OnFillColor },
+        // 轨道里有文字时滑块与 input 之间隔着两段文字：按前面任一兄弟的勾选状态
+        [When.AfterAny(When.Checked)] = new() { MarginInlineStart = "calc(100% - 1.0625em)", BackgroundColor = SharedStyles.OnFillColor },
     });
+
+    /// <summary>开关轨道里有文字：宽度随文字（两段文字叠在同一格里，取较宽的，切换时宽度不跳）。</summary>
+    internal static Style SwitchTrackWide => Css.Define(static () => new Style { Width = CssLength.Percent(100), MinWidth = CssLength.Em(2.25) });
+
+    // 轨道里的文字：两段叠在 input 那一格里，用 flex 居中（按行内排会随行高落在基线上，比轨道中线偏下）
+    static Style SwitchContent => Css.Define(static () => new Style
+    {
+        GridArea = "1 / 1",
+        JustifySelf = JustifySelf.Stretch,
+        AlignSelf = AlignSelf.Center,
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        JustifyContent = JustifyContent.Center,
+        WhiteSpace = WhiteSpace.Nowrap,
+        PointerEvents = PointerEvents.None,
+    });
+
+    /// <summary>打开时的文字：在滑块的另一侧（起始边），按 input 的勾选状态显示。</summary>
+    internal static Sx SwitchContentOn => Sx.Of(SwitchContent, SwitchContentOnStyle);
+
+    /// <summary>关着时的文字：在滑块的另一侧（结束边），勾上后隐藏。</summary>
+    internal static Sx SwitchContentOff => Sx.Of(SwitchContent, SwitchContentOffStyle);
+
+    static Style SwitchContentOnStyle => Css.Define(static () => new Style
+    {
+        PaddingInlineStart = CssLength.Em(0.5),
+        PaddingInlineEnd = CssLength.Em(1.375),
+        Color = SharedStyles.OnFillColor,
+        Visibility = Visibility.Hidden,
+        [When.AfterAny(When.Checked)] = new() { Visibility = Visibility.Visible },
+    });
+
+    static Style SwitchContentOffStyle => Css.Define(static () => new Style
+    {
+        PaddingInlineStart = CssLength.Em(1.375),
+        PaddingInlineEnd = CssLength.Em(0.5),
+        Color = Colors.Text,
+        [When.AfterAny(When.Checked)] = new() { Visibility = Visibility.Hidden },
+    });
+
+    /// <summary>轨道里文字的内层：字号缩在这层，外层的内边距按开关的字号算，给滑块留的位置才够。</summary>
+    internal static Style SwitchContentText => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        FontSize = FontSizes.Xs,
+        FontWeight = FontWeights.Semibold,
+        LineHeight = 1,
+    });
+
+    /// <summary>切换中滑块里的转圈。</summary>
+    internal static Style SwitchSpinner => Css.Define(static () => new Style { Width = CssLength.Em(0.75), Height = CssLength.Em(0.75), Color = SharedStyles.FillColor });
 
     // 有说明时文字在上、说明在下
     static Style Label => Css.Define(static () => new Style { MinWidth = 0, Display = Display.Grid });

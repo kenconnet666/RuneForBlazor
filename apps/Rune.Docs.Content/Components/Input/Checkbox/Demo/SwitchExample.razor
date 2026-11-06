@@ -6,14 +6,28 @@
         <Separator />
         @SettingRow("每周摘要", "每周一早上发送上周数据", @<Switch @bind-Value="digest" Disabled="!notify" aria-label="每周摘要" />)
         <Separator />
-        @SettingRow("暗色模式", "轨道里可以放图标或文字", @<Switch @bind-Value="dark" Size="Size.Lg" aria-label="暗色模式" />)
+        @SettingRow("暗色模式", "轨道里可以放图标或文字", @<Switch @bind-Value="dark" Size="Size.Lg" aria-label="暗色模式"
+                                                                 CheckedContent="MoonIcon" UncheckedContent="SunIcon" />)
         <Separator />
-        @SettingRow("云端同步", "在所有设备上保持一致", @<Switch @bind-Value="sync" Tone="Tone.Success" aria-label="云端同步" />)
+        @SettingRow("云端同步", syncing ? "正在保存…" : "在所有设备上保持一致",
+                    @<Switch Value="sync" ValueChanged="ToggleSyncAsync" Loading="syncing" Tone="Tone.Success" aria-label="云端同步" />)
     </Flex>
 </Card>
 
 @code {
-    bool notify = true, digest, dark = true, sync;
+    static readonly RenderFragment MoonIcon = @<Icon Data="Lucide.Moon" />;
+    static readonly RenderFragment SunIcon = @<Icon Data="Lucide.Sun" />;
+
+    bool notify = true, digest, dark = true, sync, syncing;
+
+    // 切换要等接口：Loading 时滑块里转圈、点击无效，接口回来再写回
+    async Task ToggleSyncAsync(bool next)
+    {
+        syncing = true;
+        await Task.Delay(1200);
+        sync = next;
+        syncing = false;
+    }
 
     // 一行设置：标题与说明在起始边，开关在结束边
     static RenderFragment SettingRow(string title, string description, RenderFragment control) => @<Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Lg">
