@@ -46,6 +46,9 @@ public enum CardPart
     /// <summary>页脚：操作按钮，靠结束边排列，与正文之间有分隔线。</summary>
     Footer,
 
+    /// <summary>加载中的骨架（SkeletonText 组件）。</summary>
+    Skeleton,
+
     /// <summary>有装饰效果时外面定位用的一层：未声明的属性落在它上面，倾斜时整层转动。</summary>
     Frame,
 
@@ -122,6 +125,7 @@ public static class CardStyles
             CardPart.Header => Sx.Of(Header, a.HasExtra ? HeaderWithExtra : null, ScaleStyles.Padding(a.Padding)),
             CardPart.Body => ScaleStyles.Padding(a.Padding),
             CardPart.Footer => Sx.Of(Footer, ScaleStyles.Padding(a.Padding)),
+            CardPart.Skeleton => Sx.Of(),
             CardPart.Frame => Sx.Of(Frame, ScaleStyles.Radius(a.Radius), a.Effect == CardEffect.Tilt ? Tilt : null),
             CardPart.Effect => Sx.Of(Layer, a.Effect == CardEffect.Tilt ? Glare : SpotlightSurface),
             CardPart.Ring => Sx.Of(Layer, a.Effect == CardEffect.Beam ? BeamTrack : SpotlightRing),

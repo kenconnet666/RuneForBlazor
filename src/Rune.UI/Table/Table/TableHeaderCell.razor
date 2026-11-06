@@ -9,7 +9,7 @@
     var head = Section == TableSection.Head;
     var layer = head
         ? Attrs.Layer(parts[TablePart.HeaderCell], CellLayer)
-        : Attrs.Layer(parts[TablePart.Cell], Attrs.Layer(parts[TablePart.RowHeader], Section == TableSection.Foot ? parts[TablePart.FootCell] : null, CellLayer));
+        : Attrs.Layer(parts[TablePart.Cell], Attrs.Layer(parts[TablePart.RowHeader], Section == TableSection.Foot ? Part.Unmarked(parts[TablePart.FootCell]) : null, CellLayer));
 }
 
 <th scope="@Scope" @attributes="Attrs.Merge(layer, Rest)">@ChildContent</th>

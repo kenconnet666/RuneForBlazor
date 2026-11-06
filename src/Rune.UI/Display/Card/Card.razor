@@ -62,7 +62,7 @@ else
         <div @attributes="Attrs.Merge(parts[CardPart.Body], revealing && !indicator.Shown ? RevealLayer : null, PropsBody)">
             @if (indicator.Shown)
             {
-                <SkeletonText @attributes="Attrs.MergeProps(RevealLayer, PropsSkeleton)" />
+                <SkeletonText @attributes="Attrs.MergeProps(Attrs.Layer(parts[CardPart.Skeleton], RevealLayer), PropsSkeleton)" />
             }
             else
             {
