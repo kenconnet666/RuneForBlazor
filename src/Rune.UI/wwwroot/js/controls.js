@@ -176,3 +176,61 @@ export function autosize(textarea) {
   textarea.style.height = 'auto';
   textarea.style.height = `${textarea.scrollHeight}px`;
 }
+
+/**
+ * 分组显示的输入框（data-rune-format="3,4,4"，TextField 的 Format）：输入时取出原文（只留接受的字符、截到最长）、按组重排，
+ * 光标放回刚才那个字符的后面；赶在 Blazor 读值之前（捕获阶段），C# 拿到的是分好组的文字，再去掉分隔写回原文。
+ */
+export function formatInput(event) {
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement) || !input.hasAttribute('data-rune-format') || event.isComposing) return;
+  const format = textFormatOf(input);
+  const caret = input.selectionStart ?? input.value.length;
+  const before = format.parse(input.value.slice(0, caret)).length;
+  const raw = format.parse(input.value);
+  const shown = format.format(raw);
+  if (shown === input.value) return;
+  input.value = shown;
+  const position = displayPosition(format, raw, before);
+  input.setSelectionRange(position, position);
+}
+
+const textFormats = new WeakMap();
+
+function textFormatOf(input) {
+  const cached = textFormats.get(input);
+  const key = ['format', 'format-accept', 'format-max', 'format-separator', 'format-upper'].map((name) => input.getAttribute(`data-rune-${name}`)).join('|');
+  if (cached?.key === key) return cached;
+  const groups = input.getAttribute('data-rune-format').split(',').map(Number);
+  const accept = new RegExp(`^${input.getAttribute('data-rune-format-accept') || '[0-9]'}$`);
+  const max = Number(input.getAttribute('data-rune-format-max')) || groups.reduce((sum, size) => sum + size, 0);
+  const separator = input.getAttribute('data-rune-format-separator') ?? ' ';
+  const upper = input.hasAttribute('data-rune-format-upper');
+  const format = {
+    key,
+    parse: (text) => Array.from(upper ? text.toUpperCase() : text).filter((char) => accept.test(char)).slice(0, max).join(''),
+    format: (raw) => {
+      const parts = [];
+      for (let index = 0, rest = raw; rest; index++) {
+        const size = groups[Math.min(index, groups.length - 1)];
+        parts.push(rest.slice(0, size));
+        rest = rest.slice(size);
+      }
+      return parts.join(separator);
+    },
+  };
+  textFormats.set(input, format);
+  return format;
+}
+
+/** 原文里第 count 个字符之后，对应显示文字里的位置（同 vue-tsx-pro 的 displayPosition） */
+function displayPosition(format, raw, count) {
+  if (count <= 0) return 0;
+  const shown = format.format(raw);
+  let seen = 0;
+  for (let index = 0; index < shown.length; index++) {
+    if (format.parse(shown[index]) !== '') seen++;
+    if (seen === count) return index + 1;
+  }
+  return shown.length;
+}

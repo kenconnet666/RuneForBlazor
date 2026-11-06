@@ -11,6 +11,44 @@ public class InputTests : BunitContext
 {
     public InputTests() => Services.AddRuneUI();
 
+    [Fact]
+    public void 分组格式_去掉分隔过滤字符截到最长_按组显示()
+    {
+        Assert.Equal("13800001111", TextFormat.Phone.Parse("138 0000 1111 99"));
+        Assert.Equal("138 0000 1111", TextFormat.Phone.Apply("13800001111"));
+        Assert.Equal("11010519491231002X", TextFormat.IdCard.Parse("110105 19491231 002x"));
+        Assert.Equal("6222 0212 3456 7890 123", TextFormat.BankCard.Apply(TextFormat.BankCard.Parse("6222abc02123456789012345")));
+        Assert.Equal("12-345-678", new TextFormat([2, 3]) { Separator = "-" }.Apply("12345678"));
+    }
+
+    [Theory]
+    [InlineData("13800001111", true)]
+    [InlineData("12800001111", false)]
+    [InlineData("1380000111", false)]
+    [InlineData("", true)]
+    public void 手机号校验(string value, bool valid) => Assert.Equal(valid, new ChinaPhoneAttribute().IsValid(value));
+
+    [Theory]
+    [InlineData("11010519491231002X", true)]
+    [InlineData("110105194912310021", false)]
+    [InlineData("11010519490231002X", false)]
+    public void 身份证号校验_出生日期与校验码(string value, bool valid) => Assert.Equal(valid, IdCardAttribute.IsValidIdCard(value));
+
+    [Fact]
+    public void 文本框的格式_显示分组_写回原文()
+    {
+        string? value = "13800001111";
+        var cut = Render<TextField>(p => p
+            .Add(x => x.Value, value)
+            .Add(x => x.ValueChanged, EventCallback.Factory.Create<string?>(this, v => value = v))
+            .Add(x => x.Format, TextFormat.Phone));
+
+        var input = cut.Find("input");
+        Assert.Equal(("138 0000 1111", "3,4,4", "tel"), (input.GetAttribute("value"), input.GetAttribute("data-rune-format"), input.GetAttribute("inputmode")));
+        input.Change("139 1234 5678");
+        Assert.Equal("13912345678", value);
+    }
+
     [Theory]
     [InlineData("１２３．５", 123.5)]
     [InlineData("1,234.5", 1234.5)]

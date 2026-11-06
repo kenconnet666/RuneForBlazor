@@ -3,6 +3,7 @@
     默认失去焦点或回车时更新值；搜索框这类要边输边用的写 Immediate="true"（Server 模式下每次按键一次往返）。
     placeholder、name、autocomplete、maxlength 等落在 input 上；Sx 落在外壳上。放在 Field 里得到标签与错误信息。
     Type="password" 时有显示 / 隐藏密码的按钮（JS 初始化器切换，没有往返）；Clearable 有内容时显示清空按钮。
+    Format（手机号、身份证号、银行卡号）让输入时自动分组显示：值是去掉分隔的原文，分组与光标在 JS 里。
 *@
 @namespace Rune.UI
 @inherits InputControl<string?>
@@ -45,12 +46,15 @@
 </div>
 
 @code {
-    Memo<(Attrs Control, string? Value, bool Immediate, string? CountId), Attrs> inputManaged;
+    Memo<(Attrs Control, string? Value, bool Immediate, string? CountId, TextFormat? Format), Attrs> inputManaged;
     string? countId;
     Memo<string, Attrs> refocusInput, revealTarget;
 
     /// <summary>input 的 type：text（默认）、email、password、search、url、tel。</summary>
     [Parameter] public string Type { get; set; } = "text";
+
+    /// <summary>显示格式：输入时自动分组（TextFormat.Phone、IdCard、BankCard 或自己 new），值是去掉分隔的原文。</summary>
+    [Parameter] public TextFormat? Format { get; set; }
 
     /// <summary>每次输入都更新值；默认失去焦点或回车时更新。</summary>
     [Parameter] public bool? Immediate { get; set; }
@@ -113,11 +117,13 @@
     int? MaxLength => CharacterCounting.MaxLengthOf(AdditionalAttributes);
 
     // input 上由组件管理的属性：表单状态（ControlAttrs）、值与更新值的事件、字数计数的关联；输入不变时是同一个对象
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Immediate ?? Defaults?.Immediate ?? false, ShowCount ? CountId : null), this,
-        static (k, owner) => Attrs.Merge(k.Control, new Attrs
+    // 有 Format 时：显示分好组的文字，写回去掉分隔的原文
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Immediate ?? Defaults?.Immediate ?? false, ShowCount ? CountId : null, Format), this,
+        static (k, owner) => Attrs.Merge(k.Control, k.Format?.ToAttrs(), new Attrs
         {
-            ["value"] = k.Value,
-            [k.Immediate ? "oninput" : "onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync((string?)e.Value)),
+            ["value"] = k.Format is { } format ? format.Apply(k.Value) : k.Value,
+            [k.Immediate ? "oninput" : "onchange"] = (Func<ChangeEventArgs, Task>)(e =>
+                owner.SetValueAsync(k.Format is { } format ? format.Parse((string?)e.Value) : (string?)e.Value)),
             AriaDescribedBy = CharacterCounting.DescribedBy(k.Control.AriaDescribedBy, k.CountId),
             ["data-rune-count"] = k.CountId,
         }));

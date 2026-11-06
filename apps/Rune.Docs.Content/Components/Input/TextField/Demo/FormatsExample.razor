@@ -1,0 +1,38 @@
+@* 输入时自动分组：手机号、身份证号、银行卡号；值是去掉空格的原文，校验写在模型上 *@
+@inherits RuneComponent
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+
+<Form EditContext="context" ErrorSummary="false">
+    <Grid MinItemWidth="CssLength.Rem(15)" Gap="SpaceScale.Lg">
+        <Field Label="手机号">
+            <DescriptionContent>值：<Code>@(string.IsNullOrEmpty(model.Phone) ? "（空）" : model.Phone)</Code></DescriptionContent>
+            <ChildContent><TextField @bind-Value="model.Phone" Format="TextFormat.Phone" Icon="Lucide.Smartphone" /></ChildContent>
+        </Field>
+        <Field Label="身份证号" Description="18 位，最后一位可以是 X（自动转大写）">
+            <TextField @bind-Value="model.IdCard" Format="TextFormat.IdCard" Icon="Lucide.IdCard" />
+        </Field>
+        <Field Label="银行卡号" Description="每 4 位一组，最长 19 位">
+            <TextField @bind-Value="model.BankCard" Format="TextFormat.BankCard" Icon="Lucide.CreditCard" Clearable="true" />
+        </Field>
+    </Grid>
+</Form>
+
+@code {
+    readonly Contact model = new();
+    EditContext context = default!;
+
+    protected override void OnInitialized() => context = new EditContext(model);
+
+    sealed class Contact
+    {
+        [ChinaPhone(ErrorMessage = "请填写 11 位手机号")]
+        public string? Phone { get; set; } = "138000011";
+
+        [IdCard(ErrorMessage = "身份证号不对（出生日期或最后一位校验码）")]
+        public string? IdCard { get; set; } = "11010519491231002X";
+
+        [MinLength(16, ErrorMessage = "银行卡号至少 16 位")]
+        public string? BankCard { get; set; }
+    }
+}

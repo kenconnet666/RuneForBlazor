@@ -96,6 +96,8 @@
 //   data-rune-refocus="id"   点击后把焦点交给这个 id 的元素（清空按钮清空后回到输入框）
 //   data-rune-reveal="id"    显示密码按钮：切换这个 id 的输入框的 type（password / text）与按钮的 aria-pressed
 //   data-rune-count="id"     有字数计数的输入框：输入时更新这个 id 的计数（看得见的字数与超出上限的 data-over）
+//   data-rune-format="3,4,4" 分组显示的输入框（TextField 的 Format）：输入时只留接受的字符（data-rune-format-accept）、截到最长（-max）、
+//                            按组加分隔（-separator），光标留在刚输入的字符后面
 //   data-rune-autosize       多行文本框：输入时、值变了（属性值随之变化）时按 scrollHeight 设高度（上下限由 CSS 的 min/max-height 夹住）
 //   data-rune-check-draw     复选框：用户点击勾上时把后面的对勾一笔画出（初次渲染、外部改值不画）
 //   data-rune-draw="true"    图标的描线动画：插入时为 true、或由 false 变为 true 时一笔画出（减少动态效果时直接画好）
@@ -110,7 +112,7 @@
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
 // leave（离开确认）、toast（通知区域）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格）、shared（共用的小工具）。
 
-import { autosize, focusInvalid, focusOnShell, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
+import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, updateCount } from './js/controls.js';
 import { blockInert, copyFrom, drawIcon, startDismiss, startRipple } from './js/effects.js';
 import { guardLeave } from './js/leave.js';
 import { releasePointer, trackPointer } from './js/pointer.js';
@@ -248,6 +250,8 @@ function install(blazor) {
   }, true);
   // 验证码：赶在 Blazor 读值之前过滤
   document.addEventListener('input', onOtpInput, true);
+  // 分组显示的输入框（手机号、身份证号）：同样赶在 Blazor 读值之前重排
+  document.addEventListener('input', formatInput, true);
   document.addEventListener('compositionend', (event) => {
     if (event.target instanceof Element && event.target.matches('input[data-rune-list~="text"]')) event.target.dispatchEvent(new Event('input', { bubbles: true }));
   });

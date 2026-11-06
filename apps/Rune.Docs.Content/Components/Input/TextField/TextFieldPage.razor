@@ -20,6 +20,11 @@
             <Example Id="adornments" Title="图标、前后缀、清空与字数" Demo="typeof(AdornmentsExample)">
                 Icon / IconEnd 放在框的两头，Prefix / Suffix 是不算在值里的固定文字，Clearable 有内容时显示清空按钮。Field 的 Error 让框标红并把错误作为说明。自己做的输入组件用 CharacterCount 显示字数。
             </Example>
+            <Example Id="formats" Title="手机号、身份证号、银行卡号" Demo="typeof(FormatsExample)">
+                <Code>Format</Code> 让输入时自动分组显示（<Code>TextFormat.Phone</Code>、<Code>IdCard</Code>、<Code>BankCard</Code>，别的 new 一个 <Code>TextFormat</Code>）：
+                值是去掉分隔的原文，过滤掉不接受的字符、截到最长，在中间插字光标也不跳。只管显示，校验写在模型上：
+                <Code>[ChinaPhone]</Code> 看号段，<Code>[IdCard]</Code> 看出生日期与校验码。
+            </Example>
         </ExampleColumn>
     </Examples>
     <ApiReference Types="[typeof(CharacterCount), typeof(Textarea), typeof(TextField)]" />
