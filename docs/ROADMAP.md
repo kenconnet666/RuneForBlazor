@@ -153,7 +153,8 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 ## 阶段 2：布局与展示
 
 - [x] AsideLayout（FormSection 的 AdmissionExample 已换用）
-- [ ] 布局：Affix、BackTop、Prose、Splitter（JS 初始化器补尺寸变化：ResizeObserver）、ViewportFill
+- [x] Prose、ViewportFill（JS 量顶边写成变量）、Affix（CSS sticky + 哨兵）、BackTop（出现与滚回都在 JS 里）
+- [ ] Splitter（JS 初始化器补尺寸变化：ResizeObserver）
 - [x] Stat / StatGroup、AnimatedNumber（过渡在 JS 里逐帧改文字节点）、`NumberFormat`（同 vue 的 NumericFormat，decimal 格式化）、ValueChange、
   Timeline（操作人、收起旧的、查看详情、交替、进行中）；Skeleton 的 layouts 已换用 Stat
 - [ ] 展示：Ellipsis、ProportionBar、Checklist、Marquee、Watermark；Sparkline、Gauge 先做成独立的小 SVG，阶段 6 的底座做好后改用。
