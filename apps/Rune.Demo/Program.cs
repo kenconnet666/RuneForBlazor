@@ -11,6 +11,8 @@ builder.Services.AddRazorComponents()
 // 服务端渲染与 Interactive Server 用这里的服务；WebAssembly 用 Rune.Demo.Client/Program.cs 里的同一套
 builder.Services.AddRuneUI(o => o.ThemeChoices = ThemeChoices.Builtin);
 builder.Services.AddDocsContent();
+// 文档内容注册了授权（Can 页的 AuthorizeView），Web 应用会自动加上授权中间件，它要服务端完整的授权服务
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
