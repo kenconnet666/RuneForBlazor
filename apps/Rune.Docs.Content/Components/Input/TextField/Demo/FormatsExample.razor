@@ -29,7 +29,7 @@
         [Required(ErrorMessage = "请填写 11 位手机号"), ChinaPhone(ErrorMessage = "请填写 11 位手机号")]
         public string? Phone { get; set; } = "138000011";
 
-        [Required(ErrorMessage = "请填写身份证号"), IdCard(ErrorMessage = "身份证号不对（出生日期或最后一位校验码）")]
+        [IdCard(ErrorMessage = "身份证号不对（出生日期或最后一位校验码）")]
         public string? IdCard { get; set; } = "11010519491231002X";
 
         [Required(ErrorMessage = "请填写银行卡号"), MinLength(16, ErrorMessage = "银行卡号至少 16 位")]
