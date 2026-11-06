@@ -109,6 +109,13 @@
 //   data-rune-dismiss        可移除元素（data-rune-dismissible，如标签）里的移除按钮：元素先离场（data-dismissing），
 //                            结束后发出冒泡的 rune-dismiss（Blazor 里是 @onrunedismiss）；被移除时焦点交给同组的下一个
 //                            （没有就上一个）可聚焦元素，没被移除就重新显示
+//   data-rune-ready          根元素：初始化器装好了（端到端测试等它）
+//   data-rune-theme="名字"   RuneProvider 的包裹元素：所用主题的名字（只做标记，调试与测试看）
+//
+// 模块内部的结构标记（含义见各模块开头的注释）：scroll-area 的 data-rune-scroll-viewport / -scrollbar，tabs 的 data-rune-tab-scroll / -tab-close，
+// cascader 的 data-rune-cascader-trigger / -search / -column，mentions 的 data-rune-mentions-panel，hover-layers 的 data-rune-hover-panel，
+// floating 的 data-rune-submenu，highlight 的 data-rune-code-text，toast 的 data-rune-toast-close，theme 的 data-rune-choice-icon，
+// shared 的 data-rune-announcer（共用的播报区）；分组输入框另有 data-rune-format-upper（转大写）。
 //
 // 模态对话框打开时锁定页面滚动。
 //
