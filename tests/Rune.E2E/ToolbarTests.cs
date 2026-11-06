@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>工具栏：整栏一个 Tab 位置，方向键跨过里面切换按钮组的按钮；Tab 进入落在第一项；竖排用上下键。</summary>
-public class ToolbarTests(DemoServer demo)
+public class ToolbarTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 整栏一个Tab位置_方向键跨过切换按钮组_Tab进入落在第一项(string mode)
     {
-        var page = await demo.OpenAsync(mode, "toolbar");
+        var page = await OpenAsync(mode, "toolbar");
         var toolbar = page.GetByTestId("format");
 
         // 里面的切换按钮组不自己管焦点
@@ -28,7 +28,7 @@ public class ToolbarTests(DemoServer demo)
     [Fact]
     public async Task 竖排工具栏用上下键()
     {
-        var page = await demo.OpenAsync("server", "toolbar");
+        var page = await OpenAsync("server", "toolbar");
         var tools = page.GetByTestId("tools");
         await tools.GetByRole(AriaRole.Button, new() { Name = "选择" }).FocusAsync();
         await page.Keyboard.PressAsync("ArrowDown");

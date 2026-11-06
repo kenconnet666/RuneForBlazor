@@ -1,7 +1,7 @@
 namespace Rune.E2E;
 
 /// <summary>验证码：一个透明的 input 盖在格子上，JS 按它的当前值画格子；快速输入、粘贴不丢字。</summary>
-public class OtpFieldTests(DemoServer demo)
+public class OtpFieldTests(DemoServer demo) : E2ETest(demo)
 {
     static Task<string> Slots(ILocator input) => input.EvaluateAsync<string>(
         "input => [...input.parentElement.querySelectorAll('[data-index]')].map(s => s.dataset.char || '_').join('')");
@@ -11,7 +11,7 @@ public class OtpFieldTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 快速输入只留数字_填满自动校验_错了清空_对了登录(string mode)
     {
-        var page = await demo.OpenAsync(mode, "otp-field");
+        var page = await OpenAsync(mode, "otp-field");
         var input = page.GetByTestId("sms-code");
         var message = page.GetByTestId("sms-message");
 
@@ -33,7 +33,7 @@ public class OtpFieldTests(DemoServer demo)
     [Fact]
     public async Task 静态SSR下过滤并画格子_遮罩显示圆点_分组()
     {
-        var page = await demo.OpenAsync("static", "otp-field");
+        var page = await OpenAsync("static", "otp-field");
         var pin = page.GetByTestId("pin");
         var recovery = page.GetByTestId("recovery");
 

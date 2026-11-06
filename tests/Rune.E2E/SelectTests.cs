@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>下拉选择：开关与高亮由 JS 初始化器处理（焦点留在触发按钮或搜索框上），选中、过滤、移除由 C# 处理。</summary>
-public class SelectTests(DemoServer demo)
+public class SelectTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 方向键打开并高亮已选项_跳过不可用项_Enter选中后关闭(string mode)
     {
-        var page = await demo.OpenAsync(mode, "select");
+        var page = await OpenAsync(mode, "select");
         var trigger = page.GetByTestId("type");
         var list = page.Locator($"#{await trigger.GetAttributeAsync("aria-controls")}");
         var highlighted = list.Locator("[role=option][data-highlighted]");
@@ -39,7 +39,7 @@ public class SelectTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 关闭时按字母直接选中_上箭头打开并高亮最后一项(string mode)
     {
-        var page = await demo.OpenAsync(mode, "select");
+        var page = await OpenAsync(mode, "select");
         var trigger = page.GetByTestId("type");
         var list = page.Locator($"#{await trigger.GetAttributeAsync("aria-controls")}");
 
@@ -61,7 +61,7 @@ public class SelectTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 可搜索_焦点进搜索框_输入过滤并高亮第一项_选中后焦点回到触发按钮(string mode)
     {
-        var page = await demo.OpenAsync(mode, "select");
+        var page = await OpenAsync(mode, "select");
         var trigger = page.GetByTestId("supplier");
         var list = page.Locator($"#{await trigger.GetAttributeAsync("aria-controls")}");
         var search = page.Locator($"input[aria-controls='{await trigger.GetAttributeAsync("aria-controls")}']");
@@ -96,7 +96,7 @@ public class SelectTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 多选_点选项切换且不关闭_Backspace移除最后一项(string mode)
     {
-        var page = await demo.OpenAsync(mode, "select");
+        var page = await OpenAsync(mode, "select");
         var trigger = page.GetByTestId("tags");
         var list = page.Locator($"#{await trigger.GetAttributeAsync("aria-controls")}");
         var summary = page.GetByTestId("basic-summary");
@@ -119,7 +119,7 @@ public class SelectTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 新建_输入没有的标签后选新建_加进选项并选中(string mode)
     {
-        var page = await demo.OpenAsync(mode, "select");
+        var page = await OpenAsync(mode, "select");
         var trigger = page.GetByTestId("ticket-labels");
         var list = page.Locator($"#{await trigger.GetAttributeAsync("aria-controls")}");
         var search = page.Locator($"input[aria-controls='{await trigger.GetAttributeAsync("aria-controls")}']");
@@ -136,7 +136,7 @@ public class SelectTests(DemoServer demo)
     [Fact]
     public async Task 按宽度收起的标签_放不下的藏起来并显示加N()
     {
-        var page = await demo.OpenAsync("server", "select");
+        var page = await OpenAsync("server", "select");
         var row = page.Locator("[data-rune-overflow]").First;
         var rest = row.Locator("[data-rune-overflow-rest]");
 
@@ -155,7 +155,7 @@ public class SelectTests(DemoServer demo)
     [Fact]
     public async Task 静态SSR_点触发按钮打开_弹层贴着外壳同宽()
     {
-        var page = await demo.OpenAsync("static", "select");
+        var page = await OpenAsync("static", "select");
         var trigger = page.GetByTestId("type");
         var panel = page.Locator($"#{await trigger.GetAttributeAsync("popovertarget")}");
 

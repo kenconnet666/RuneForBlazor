@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>描述列表：自适应栏数随容器宽度变化（容器查询），跨栏按栏数封顶。</summary>
-public class DescriptionsTests(DemoServer demo)
+public class DescriptionsTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 自适应栏数随容器宽度变化_跨栏封顶(string mode)
     {
-        var page = await demo.OpenAsync(mode, "descriptions");
+        var page = await OpenAsync(mode, "descriptions");
         var box = page.GetByTestId("resizable");
         var list = page.GetByTestId("wide").Locator("dl");
         var address = list.Locator("> div").Last;

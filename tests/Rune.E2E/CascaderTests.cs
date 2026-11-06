@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>级联选择：列里的移动由列表的 JS 处理，列之间（→ ←）与进入后的聚焦由 cascader.js 处理，展开与选中由 C# 处理。</summary>
-public class CascaderTests(DemoServer demo)
+public class CascaderTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 键盘逐级进入与返回_Enter选中叶子后关闭(string mode)
     {
-        var page = await demo.OpenAsync(mode, "cascader");
+        var page = await OpenAsync(mode, "cascader");
         var trigger = page.GetByRole(AriaRole.Combobox, new() { Name = "开票地区" });
 
         await trigger.FocusAsync();

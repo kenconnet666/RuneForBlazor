@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>标签页：方向键切换、指示条跟随；关闭后焦点交给选中的标签；新建；放不下时的滚动按钮；Alt + ←→ 排序。</summary>
-public class TabsTests(DemoServer demo)
+public class TabsTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 方向键移动并切换_指示条跟到当前标签(string mode)
     {
-        var page = await demo.OpenAsync(mode, "tabs");
+        var page = await OpenAsync(mode, "tabs");
         var list = page.GetByTestId("orders");
         var all = list.GetByRole(AriaRole.Tab).First;
         await all.FocusAsync();
@@ -34,7 +34,7 @@ public class TabsTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task Delete关闭当前标签_焦点到下一个_新建与排序(string mode)
     {
-        var page = await demo.OpenAsync(mode, "tabs");
+        var page = await OpenAsync(mode, "tabs");
         var list = page.GetByTestId("pages");
         var first = list.GetByRole(AriaRole.Tab, new() { Name = "采购单 PO-2401" });
         await first.FocusAsync();
@@ -56,7 +56,7 @@ public class TabsTests(DemoServer demo)
     [Fact]
     public async Task 放不下时出现滚动按钮_滚到头的那边不可用()
     {
-        var page = await demo.OpenAsync("server", "tabs");
+        var page = await OpenAsync("server", "tabs");
         await page.SetViewportSizeAsync(560, 800);
         var bar = page.Locator("[data-rune-tabs]").Filter(new() { Has = page.GetByTestId("pages") });
         var back = bar.GetByRole(AriaRole.Button, new() { Name = "向前滚动标签" }).Or(bar.Locator("[data-rune-tab-scroll='-1']")).First;

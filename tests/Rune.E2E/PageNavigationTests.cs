@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>本页目录随滚动高亮当前节、点链接跳过去且不离开本页；顶部加载条延迟出现、完成后淡出，很快完成的不出现。</summary>
-public class PageNavigationTests(DemoServer demo)
+public class PageNavigationTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("static")]
     [InlineData("server")]
     public async Task 目录随滚动高亮当前节_点链接不离开本页(string mode)
     {
-        var page = await demo.OpenAsync(mode, "nav-list");
+        var page = await OpenAsync(mode, "nav-list");
         var toc = page.GetByTestId("toc");
         await toc.ScrollIntoViewIfNeededAsync();
         await Assertions.Expect(toc.GetByRole(AriaRole.Link, new() { Name = "安装", Exact = true })).ToHaveAttributeAsync("aria-current", "location");
@@ -27,7 +27,7 @@ public class PageNavigationTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 加载条延迟出现_完成后淡出_出错变危险色(string mode)
     {
-        var page = await demo.OpenAsync(mode, "loading-bar");
+        var page = await OpenAsync(mode, "loading-bar");
         var bar = page.GetByTestId("bar");
         await page.GetByRole(AriaRole.Tab, new() { Name = "库存台账" }).ClickAsync();
         await Assertions.Expect(bar).ToHaveAttributeAsync("data-state", "loading");

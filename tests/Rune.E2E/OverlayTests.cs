@@ -1,7 +1,7 @@
 namespace Rune.E2E;
 
 /// <summary>浮层的键盘与焦点：菜单、提示、气泡确认、对话框。JS 初始化器做的事在三种模式下都要一样。</summary>
-public class OverlayTests(DemoServer demo)
+public class OverlayTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("static")]
@@ -9,7 +9,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 菜单定位好后聚焦第一项_方向键跳过不可用项_Esc关闭并把焦点还给触发按钮(string mode)
     {
-        var page = await demo.OpenAsync(mode, "menu");
+        var page = await OpenAsync(mode, "menu");
         var trigger = page.GetByRole(AriaRole.Button, new() { Name = "更多操作" });
 
         await trigger.ClickAsync();
@@ -54,7 +54,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 选了菜单项就关闭并执行(string mode)
     {
-        var page = await demo.OpenAsync(mode, "menu");
+        var page = await OpenAsync(mode, "menu");
         await page.GetByRole(AriaRole.Button, new() { Name = "更多操作" }).ClickAsync();
         // 等焦点进了菜单再按键：否则方向键与 Enter 落在触发按钮上（Enter 把菜单关掉，什么也没选）
         await Assertions.Expect(page.GetByRole(AriaRole.Menuitem, new() { Name = "重命名" })).ToBeFocusedAsync();
@@ -71,7 +71,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("server")]
     public async Task 提示悬停一会儿后显示_键盘聚焦立即显示_Esc隐藏(string mode)
     {
-        var page = await demo.OpenAsync(mode, "popover");
+        var page = await OpenAsync(mode, "popover");
         var bold = page.GetByRole(AriaRole.Button, new() { Name = "加粗" }).First;
         var tooltip = page.GetByRole(AriaRole.Tooltip).Filter(new() { HasText = "Ctrl" }).First;
 
@@ -96,7 +96,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 气泡确认打开时聚焦取消_Esc算取消_确认后执行(string mode)
     {
-        var page = await demo.OpenAsync(mode, "popconfirm");
+        var page = await OpenAsync(mode, "popconfirm");
         var trigger = page.GetByRole(AriaRole.Button, new() { Name = "撤回（warning）" });
         await trigger.ClickAsync();
 
@@ -120,7 +120,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 气泡确认的异步确认_失败时保持打开_成功后关闭(string mode)
     {
-        var page = await demo.OpenAsync(mode, "popconfirm");
+        var page = await OpenAsync(mode, "popconfirm");
         await page.GetByRole(AriaRole.Button, new() { Name = "移出 周一航" }).ClickAsync();
         var failing = page.GetByRole(AriaRole.Alertdialog, new() { Name = "把 周一航 移出项目？" });
         await Assertions.Expect(failing.GetByRole(AriaRole.Button, new() { Name = "取消" })).ToBeFocusedAsync();
@@ -143,7 +143,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 命令式确认与对话框_焦点先在取消上_关上的原因报给CSharp(string mode)
     {
-        var page = await demo.OpenAsync(mode, "dialog");
+        var page = await OpenAsync(mode, "dialog");
 
         await page.GetByRole(AriaRole.Button, new() { Name = "退出登录（ConfirmAsync）" }).ClickAsync();
         var alert = page.GetByRole(AriaRole.Alertdialog);
@@ -165,7 +165,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 对话框打开时焦点在里面_Esc关闭后回到打开它的按钮(string mode)
     {
-        var page = await demo.OpenAsync(mode, "dialog");
+        var page = await OpenAsync(mode, "dialog");
         var opener = page.GetByTestId("open-edit");
         await opener.ClickAsync();
 
@@ -184,7 +184,7 @@ public class OverlayTests(DemoServer demo)
     [Fact]
     public async Task 静态渲染里用Trigger打开的对话框也能开关()
     {
-        var page = await demo.OpenAsync("static", "dialog");
+        var page = await OpenAsync("static", "dialog");
         var opener = page.GetByRole(AriaRole.Button, new() { Name = "阅读用户协议" });
         await opener.ClickAsync();
 
@@ -200,7 +200,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 对话框的确认_校验没过时保持打开_保存期间加载中_完成后关闭(string mode)
     {
-        var page = await demo.OpenAsync(mode, "dialog");
+        var page = await OpenAsync(mode, "dialog");
         await page.GetByTestId("open-edit").ClickAsync();
         var dialog = page.GetByTestId("edit-dialog");
         var name = dialog.GetByRole(AriaRole.Textbox, new() { Name = "姓名" });
@@ -223,7 +223,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 抽屉有未保存的改动时_Esc先确认_确认放弃才关(string mode)
     {
-        var page = await demo.OpenAsync(mode, "drawer");
+        var page = await OpenAsync(mode, "drawer");
         await page.GetByRole(AriaRole.Button, new() { Name = "编辑" }).ClickAsync();
         var drawer = page.GetByTestId("edit-drawer");
         await Assertions.Expect(drawer).ToBeVisibleAsync();
@@ -248,7 +248,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 悬停卡片_停留后打开_可以移到卡片上_键盘Tab进入卡片_Esc关闭(string mode)
     {
-        var page = await demo.OpenAsync(mode, "popover");
+        var page = await OpenAsync(mode, "popover");
         var link = page.GetByRole(AriaRole.Link, new() { Name = "@yihang" });
         var card = page.GetByTestId("card-yihang");
         var follow = card.GetByRole(AriaRole.Button, new() { Name = "关注" });
@@ -280,7 +280,7 @@ public class OverlayTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 通知_F8进入区域_Esc关闭焦点所在的一条(string mode)
     {
-        var page = await demo.OpenAsync(mode, "toast");
+        var page = await OpenAsync(mode, "toast");
         await page.GetByTestId("toast-success").ClickAsync();
         await page.GetByTestId("toast-info").ClickAsync();
         var open = page.Locator("[data-rune-toast][data-state=open]");

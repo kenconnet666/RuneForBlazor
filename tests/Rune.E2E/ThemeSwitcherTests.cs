@@ -1,7 +1,7 @@
 namespace Rune.E2E;
 
 /// <summary>主题切换：选了一套就换整页的主题并记住（刷新、换页都沿用），选中标记与按钮图标跟着变；跟随系统时按系统明暗。</summary>
-public class ThemeSwitcherTests(DemoServer demo)
+public class ThemeSwitcherTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("static")]
@@ -9,7 +9,7 @@ public class ThemeSwitcherTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 选一套主题_整页换掉并记住_跟随系统时按系统明暗(string mode)
     {
-        var page = await demo.OpenAsync(mode, "theme-switcher");
+        var page = await OpenAsync(mode, "theme-switcher");
         var root = page.Locator("html");
         var switcher = page.GetByTestId("switcher");
         var trigger = page.Locator($"[popovertarget='{await switcher.GetAttributeAsync("id")}']");

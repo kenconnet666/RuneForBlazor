@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>列表的键盘：JS 初始化器移动高亮（aria-activedescendant），Enter / 空格点击高亮项，C# 处理选中。</summary>
-public class ListTests(DemoServer demo)
+public class ListTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 列表框获得焦点时高亮已选项_方向键跳过不可用项_Enter选中(string mode)
     {
-        var page = await demo.OpenAsync(mode, "listbox");
+        var page = await OpenAsync(mode, "listbox");
         var list = page.GetByTestId("plans");
         var highlighted = list.Locator("[role=option][data-highlighted]");
 
@@ -33,7 +33,7 @@ public class ListTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 多选列表_按字母跳转_空格切换勾选(string mode)
     {
-        var page = await demo.OpenAsync(mode, "listbox");
+        var page = await OpenAsync(mode, "listbox");
         var list = page.GetByTestId("columns");
         var highlighted = list.Locator("[role=option][data-highlighted]");
 

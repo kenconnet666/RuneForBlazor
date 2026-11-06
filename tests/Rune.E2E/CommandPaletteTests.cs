@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>命令面板：快捷键打开、高亮第一项、输入过滤、方向键与回车执行、不可用项跳过；自定义过滤与远程结果。</summary>
-public class CommandPaletteTests(DemoServer demo)
+public class CommandPaletteTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 快捷键打开_过滤后回车执行(string mode)
     {
-        var page = await demo.OpenAsync(mode, "command-palette");
+        var page = await OpenAsync(mode, "command-palette");
         await page.Keyboard.PressAsync("Control+j");
         var dialog = page.GetByRole(AriaRole.Dialog, new() { Name = "命令" });
         await Assertions.Expect(dialog).ToBeVisibleAsync();
@@ -36,7 +36,7 @@ public class CommandPaletteTests(DemoServer demo)
     [Fact]
     public async Task 自定义过滤按邮箱搜_自定义触发按钮()
     {
-        var page = await demo.OpenAsync("server", "command-palette");
+        var page = await OpenAsync("server", "command-palette");
         await page.GetByRole(AriaRole.Button, new() { Name = "提及成员" }).ClickAsync();
         var dialog = page.GetByRole(AriaRole.Dialog, new() { Name = "提及成员" });
         await dialog.GetByRole(AriaRole.Combobox).PressSequentiallyAsync("HAORAN");

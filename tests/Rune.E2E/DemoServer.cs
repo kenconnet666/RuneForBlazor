@@ -8,7 +8,7 @@ namespace Rune.E2E;
 
 /// <summary>
 /// 整个测试程序共用的演示项目与浏览器：启动构建好的 Rune.Demo（Development 环境，静态资源走开发时的清单），
-/// 再启动一个无头 Chromium。每个测试用 <see cref="OpenAsync"/> 开一个新的浏览器上下文（互不影响）。
+/// 再启动一个无头 Chromium。测试类继承 <see cref="E2ETest"/>，用它的 OpenAsync 打开页面。
 /// </summary>
 public sealed class DemoServer : IAsyncLifetime
 {
@@ -52,24 +52,6 @@ public sealed class DemoServer : IAsyncLifetime
             throw new InvalidOperationException("Playwright 的 Chromium 安装失败");
         playwright = await Playwright.CreateAsync();
         Browser = await playwright.Chromium.LaunchAsync();
-    }
-
-    /// <summary>
-    /// 开一个新的浏览器上下文并打开演示页（<c>/{模式}/{演示}</c>）；交互模式下等到演示接管（data-demo-interactive）再返回。
-    /// 剪贴板权限已给（复制按钮的测试要读剪贴板）。
-    /// </summary>
-    public async Task<IPage> OpenAsync(string mode, string demo)
-    {
-        var context = await Browser.NewContextAsync(new() { BaseURL = BaseUrl, ViewportSize = new() { Width = 1280, Height = 900 } });
-        await context.GrantPermissionsAsync(["clipboard-read", "clipboard-write"]);
-        var page = await context.NewPageAsync();
-        // 各测试类并行、共用一个演示进程：CI 的机器忙时一页偶尔要三十多秒才加载完。等到 DOM 就绪即可（后面还等初始化器），时限放宽到 60 秒
-        await page.GotoAsync($"/{mode}/{demo}", new() { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 60_000 });
-        // JS 初始化器装好之前，浮层、复制这类客户端行为还没人处理
-        await page.WaitForSelectorAsync("html[data-rune-ready]", new() { State = WaitForSelectorState.Attached, Timeout = 60_000 });
-        if (mode != "static")
-            await page.WaitForSelectorAsync("[data-demo-interactive=true]", new() { Timeout = 60_000 });
-        return page;
     }
 
     /// <inheritdoc/>

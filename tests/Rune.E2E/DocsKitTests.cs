@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>文档站组件：示例卡片展开源码时上色；色块显示 token 在当前主题下的取值，换主题时跟着变。</summary>
-public class DocsKitTests(DemoServer demo)
+public class DocsKitTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 示例卡片展开源码_上色_再收起(string mode)
     {
-        var page = await demo.OpenAsync(mode, "code");
+        var page = await OpenAsync(mode, "code");
         var preview = page.GetByTestId("preview");
         var toggle = preview.GetByRole(AriaRole.Button, new() { Name = "显示代码" });
 
@@ -30,7 +30,7 @@ public class DocsKitTests(DemoServer demo)
     [InlineData("server")]
     public async Task 色块显示token的取值_换主题后跟着变(string mode)
     {
-        var page = await demo.OpenAsync(mode, "color-field");
+        var page = await OpenAsync(mode, "color-field");
         var surface = page.GetByTestId("swatches").Locator("[data-rune-token-value='--rune-colors-surface']");
         await Assertions.Expect(surface).ToHaveTextAsync("#fcfcfd");
 

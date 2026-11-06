@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>侧边导航：当前项随点击移动且锚点链接不离开本页；分组可以收起；紧凑时图标项有提示，分组悬停时子项弹出来。</summary>
-public class NavListTests(DemoServer demo)
+public class NavListTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 点击换当前项_锚点不离开本页_分组可以收起(string mode)
     {
-        var page = await demo.OpenAsync(mode, "nav-list");
+        var page = await OpenAsync(mode, "nav-list");
         var nav = page.GetByTestId("admin");
         var refund = nav.GetByRole(AriaRole.Link, new() { Name = "退款售后" });
 
@@ -27,7 +27,7 @@ public class NavListTests(DemoServer demo)
     [Fact]
     public async Task 紧凑时图标项悬停有提示_分组悬停弹出子项_关掉紧凑后显示文字()
     {
-        var page = await demo.OpenAsync("server", "nav-list");
+        var page = await OpenAsync("server", "nav-list");
         var nav = page.GetByTestId("compact");
 
         await nav.GetByRole(AriaRole.Link, new() { Name = "单价台账" }).HoverAsync();

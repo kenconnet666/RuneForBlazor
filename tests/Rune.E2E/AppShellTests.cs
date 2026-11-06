@@ -1,7 +1,7 @@
 namespace Rune.E2E;
 
 /// <summary>应用外壳：窄屏时侧栏在抽屉里（点链接、变宽时关上）；全屏隐藏顶栏与侧栏，Esc 或离开浏览器全屏时退出；侧栏可以收起成图标栏。</summary>
-public class AppShellTests(DemoServer demo)
+public class AppShellTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("static")]
@@ -9,7 +9,7 @@ public class AppShellTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 窄屏时菜单按钮打开抽屉_点了链接关上_窗口变宽时关上(string mode)
     {
-        var page = await demo.OpenAsync(mode, "frame/app-shell/admin");
+        var page = await OpenAsync(mode, "frame/app-shell/admin");
         await page.SetViewportSizeAsync(800, 700);
         var menu = page.GetByRole(AriaRole.Button, new() { Name = "打开导航" });
         var drawer = page.GetByRole(AriaRole.Dialog, new() { Name = "导航" });
@@ -33,7 +33,7 @@ public class AppShellTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 全屏隐藏顶栏与侧栏_退出按钮_离开浏览器全屏或按Esc时退出(string mode)
     {
-        var page = await demo.OpenAsync(mode, "frame/app-shell/fullscreen");
+        var page = await OpenAsync(mode, "frame/app-shell/fullscreen");
         var enter = page.GetByRole(AriaRole.Button, new() { Name = "全屏", Exact = true });
         var exit = page.GetByRole(AriaRole.Button, new() { Name = "退出全屏" });
         var sidebar = page.GetByRole(AriaRole.Navigation, new() { Name = "导航" }).First;
@@ -64,7 +64,7 @@ public class AppShellTests(DemoServer demo)
     [Fact]
     public async Task 收起侧栏成图标栏_悬停看名称_展开后恢复()
     {
-        var page = await demo.OpenAsync("server", "frame/app-shell/mixed");
+        var page = await OpenAsync("server", "frame/app-shell/mixed");
         var nav = page.GetByRole(AriaRole.Navigation, new() { Name = "采购" }).First;
         var quote = nav.GetByRole(AriaRole.Link, new() { Name = "询价比价" });
 

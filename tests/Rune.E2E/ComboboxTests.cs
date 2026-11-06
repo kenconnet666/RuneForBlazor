@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>组合框与自动完成：焦点一直在输入框里，开关与高亮由 JS 初始化器处理，过滤、选中、提交由 C# 处理。</summary>
-public class ComboboxTests(DemoServer demo)
+public class ComboboxTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 输入即过滤并高亮第一项_Enter选中后填入文字并关闭(string mode)
     {
-        var page = await demo.OpenAsync(mode, "combobox");
+        var page = await OpenAsync(mode, "combobox");
         var input = page.GetByTestId("city");
         var list = page.Locator($"#{await input.GetAttributeAsync("aria-controls")}");
 
@@ -36,7 +36,7 @@ public class ComboboxTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 失焦时文字不是选项就恢复_Esc先关闭再清空(string mode)
     {
-        var page = await demo.OpenAsync(mode, "combobox");
+        var page = await OpenAsync(mode, "combobox");
         var input = page.GetByTestId("city");
         var list = page.Locator($"#{await input.GetAttributeAsync("aria-controls")}");
 
@@ -65,7 +65,7 @@ public class ComboboxTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 远程搜索_输入停下后请求_选中结果(string mode)
     {
-        var page = await demo.OpenAsync(mode, "combobox");
+        var page = await OpenAsync(mode, "combobox");
         var input = page.GetByTestId("member");
         var list = page.Locator($"#{await input.GetAttributeAsync("aria-controls")}");
 
@@ -81,7 +81,7 @@ public class ComboboxTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 自由输入_失焦后保留文字_值为空(string mode)
     {
-        var page = await demo.OpenAsync(mode, "combobox");
+        var page = await OpenAsync(mode, "combobox");
         var input = page.GetByTestId("title");
 
         await input.FillAsync("架构师");
@@ -95,7 +95,7 @@ public class ComboboxTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 自动完成_有建议时弹出_Enter填入_没有建议时不弹出(string mode)
     {
-        var page = await demo.OpenAsync(mode, "autocomplete");
+        var page = await OpenAsync(mode, "autocomplete");
         var input = page.GetByTestId("email");
         var list = page.Locator($"#{await input.GetAttributeAsync("aria-controls")}");
 

@@ -1,7 +1,7 @@
 namespace Rune.E2E;
 
 /// <summary>滑块：拖动、点轨道、键盘在 JS 里算并当场画出来，值经 rune-slide 交给 C#；静态 SSR 下隐藏 input 跟着变。</summary>
-public class SliderTests(DemoServer demo)
+public class SliderTests(DemoServer demo) : E2ETest(demo)
 {
     static ILocator Thumbs(IPage page, string testId) => page.GetByTestId(testId);
 
@@ -10,7 +10,7 @@ public class SliderTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 拖动范围的低端_实时写回_松开时提交_不能越过高端(string mode)
     {
-        var page = await demo.OpenAsync(mode, "slider");
+        var page = await OpenAsync(mode, "slider");
         var thumbs = Thumbs(page, "price");
         var summary = page.GetByTestId("price-summary");
         var low = await thumbs.Nth(0).BoundingBoxAsync() ?? throw new InvalidOperationException("看不到滑块");
@@ -41,7 +41,7 @@ public class SliderTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 点轨道跳过去_方向键与PageUp_竖排上键增大_预设改值后跟着变(string mode)
     {
-        var page = await demo.OpenAsync(mode, "slider");
+        var page = await OpenAsync(mode, "slider");
         var position = Thumbs(page, "position");
         var elapsed = page.GetByTestId("elapsed");
         var track = position.Locator("xpath=..");
@@ -67,7 +67,7 @@ public class SliderTests(DemoServer demo)
     [Fact]
     public async Task 静态SSR下键盘改值_隐藏input跟着变_随表单提交()
     {
-        var page = await demo.OpenAsync("static", "slider");
+        var page = await OpenAsync("static", "slider");
         var form = page.GetByTestId("slider-form");
         var thumb = form.GetByRole(AriaRole.Slider).First;
 

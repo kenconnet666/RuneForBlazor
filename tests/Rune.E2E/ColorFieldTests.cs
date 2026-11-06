@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>颜色输入：输入任意写法回车后规范成 #hex；写不成颜色时标无效、失焦后恢复；原生取色器选色写回。</summary>
-public class ColorFieldTests(DemoServer demo)
+public class ColorFieldTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 输入写法规范成hex_无效时恢复_取色器写回(string mode)
     {
-        var page = await demo.OpenAsync(mode, "color-field");
+        var page = await OpenAsync(mode, "color-field");
         var field = page.GetByTestId("any");
         var value = page.GetByTestId("any-value");
 

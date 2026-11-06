@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>加载遮罩：外层立即 aria-busy，遮罩推迟出现、淡入到不透明，结束后淡出并移出排版。</summary>
-public class LoadingOverlayTests(DemoServer demo)
+public class LoadingOverlayTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 保存时盖上遮罩_淡入_结束后隐藏(string mode)
     {
-        var page = await demo.OpenAsync(mode, "progress");
+        var page = await OpenAsync(mode, "progress");
         var root = page.GetByTestId("overlay");
         var overlay = root.Locator("[data-part=overlay]");
         await Assertions.Expect(overlay).ToBeHiddenAsync();

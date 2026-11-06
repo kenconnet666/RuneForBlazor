@@ -1,7 +1,7 @@
 namespace Rune.E2E;
 
 /// <summary>标签输入：分隔符、Enter、粘贴、退格由 JS 转成命令或经输入事件交给 C#；建议列表的键盘同 Combobox。</summary>
-public class TagsInputTests(DemoServer demo)
+public class TagsInputTests(DemoServer demo) : E2ETest(demo)
 {
     static ILocator Tags(IPage page, string testId) =>
         page.GetByTestId(testId).Locator("xpath=..").Locator("[data-scope=badge][data-part=root]");
@@ -11,7 +11,7 @@ public class TagsInputTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 分隔符与Enter加标签_空时退格删最后一个_粘贴按分隔符拆开(string mode)
     {
-        var page = await demo.OpenAsync(mode, "tags-input");
+        var page = await OpenAsync(mode, "tags-input");
         var input = page.GetByTestId("keywords");
         var summary = page.GetByTestId("basic-summary");
 
@@ -45,7 +45,7 @@ public class TagsInputTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 从建议里选_只允许建议时自由文字不加(string mode)
     {
-        var page = await demo.OpenAsync(mode, "tags-input");
+        var page = await OpenAsync(mode, "tags-input");
         var input = page.GetByTestId("recipients");
         var list = page.Locator($"#{await input.GetAttributeAsync("aria-controls")}");
         var summary = page.GetByTestId("basic-summary");

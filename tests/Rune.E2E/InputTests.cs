@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>输入类组件的客户端行为：数字框的方向键与按住连续加减、文本框的显示密码与清空、复制按钮、标签移除、表单错误汇总。</summary>
-public class InputTests(DemoServer demo)
+public class InputTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 数字框方向键加减_Home到最小_提交时夹到范围(string mode)
     {
-        var page = await demo.OpenAsync(mode, "number-field");
+        var page = await OpenAsync(mode, "number-field");
         var quantity = page.GetByTestId("quantity");
 
         await quantity.FocusAsync();
@@ -34,7 +34,7 @@ public class InputTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 数字框的加号按住连续加_焦点留在输入框(string mode)
     {
-        var page = await demo.OpenAsync(mode, "number-field");
+        var page = await OpenAsync(mode, "number-field");
         var quantity = page.GetByTestId("quantity");
         await quantity.FocusAsync();
 
@@ -55,7 +55,7 @@ public class InputTests(DemoServer demo)
     [InlineData("server")]
     public async Task 显示密码切换输入框的类型(string mode)
     {
-        var page = await demo.OpenAsync(mode, "text-field");
+        var page = await OpenAsync(mode, "text-field");
         var password = page.GetByTestId("password");
         var reveal = page.GetByRole(AriaRole.Button, new() { Name = "显示密码" });
 
@@ -71,7 +71,7 @@ public class InputTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 清空后焦点回到输入框(string mode)
     {
-        var page = await demo.OpenAsync(mode, "text-field");
+        var page = await OpenAsync(mode, "text-field");
         var search = page.GetByTestId("search");
         await search.Locator("xpath=..").GetByRole(AriaRole.Button, new() { Name = "清空" }).ClickAsync();
 
@@ -84,7 +84,7 @@ public class InputTests(DemoServer demo)
     [InlineData("server")]
     public async Task 复制按钮写入剪贴板并显示对勾(string mode)
     {
-        var page = await demo.OpenAsync(mode, "icon-button");
+        var page = await OpenAsync(mode, "icon-button");
         var copy = page.GetByTestId("copy-key");
         await copy.ClickAsync();
 
@@ -97,7 +97,7 @@ public class InputTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 移除标签后焦点交给下一个标签的移除按钮(string mode)
     {
-        var page = await demo.OpenAsync(mode, "badge");
+        var page = await OpenAsync(mode, "badge");
         var filters = page.GetByTestId("filters");
         await Assertions.Expect(filters.Locator("[data-scope=badge][data-part=root]")).ToHaveCountAsync(6);
 
@@ -113,7 +113,7 @@ public class InputTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 表单提交未通过时列出错误_点一项跳到控件(string mode)
     {
-        var page = await demo.OpenAsync(mode, "form");
+        var page = await OpenAsync(mode, "form");
         await page.GetByTestId("submit").ClickAsync();
 
         var summary = page.GetByRole(AriaRole.Alert).First;
@@ -130,7 +130,7 @@ public class InputTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 没有错误汇总的表单提交未通过时聚焦第一个出错的控件(string mode)
     {
-        var page = await demo.OpenAsync(mode, "form");
+        var page = await OpenAsync(mode, "form");
         await page.GetByRole(AriaRole.Button, new() { Name = "注册" }).ClickAsync();
 
         await Assertions.Expect(page.GetByLabel("用户名", new() { Exact = true })).ToBeFocusedAsync();
@@ -141,7 +141,7 @@ public class InputTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 有未保存的改动时站内跳转先确认(string mode)
     {
-        var page = await demo.OpenAsync(mode, "form");
+        var page = await OpenAsync(mode, "form");
         await page.GetByLabel("一句话介绍").FillAsync("做组件库");
         await page.GetByLabel("一句话介绍").BlurAsync();
 

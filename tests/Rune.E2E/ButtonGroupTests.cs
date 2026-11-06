@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>按钮组：组里的按钮照常点击；放进工具栏时方向键跨过各组。</summary>
-public class ButtonGroupTests(DemoServer demo)
+public class ButtonGroupTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 翻页组照常点击_工具栏里方向键跨过各组(string mode)
     {
-        var page = await demo.OpenAsync(mode, "button");
+        var page = await OpenAsync(mode, "button");
         await page.GetByRole(AriaRole.Button, new() { Name = "下一页" }).ClickAsync();
         await Assertions.Expect(page.GetByTestId("page")).ToHaveTextAsync("第 4 页");
 

@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>切换按钮组（漫游焦点、滑块）、复选框组、组合输入（相连的圆角与边框）。</summary>
-public class GroupTests(DemoServer demo)
+public class GroupTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
     public async Task 切换按钮组_点选_滑块到选中项_整组一个Tab位置_方向键移动(string mode)
     {
-        var page = await demo.OpenAsync(mode, "toggle-group");
+        var page = await OpenAsync(mode, "toggle-group");
         var group = page.GetByTestId("view");
         var items = group.Locator("button");
         var summary = page.GetByTestId("view-summary");
@@ -50,7 +50,7 @@ public class GroupTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 多选的字形各自开关_必填的单选再点不弹起(string mode)
     {
-        var page = await demo.OpenAsync(mode, "toggle-group");
+        var page = await OpenAsync(mode, "toggle-group");
         var marks = page.GetByTestId("marks");
 
         await marks.GetByRole(AriaRole.Button, new() { Name = "斜体" }).ClickAsync();
@@ -68,7 +68,7 @@ public class GroupTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 复选框组_勾选进列表_全选框跟着变(string mode)
     {
-        var page = await demo.OpenAsync(mode, "checkbox");
+        var page = await OpenAsync(mode, "checkbox");
         var permissions = page.GetByTestId("permissions");
         var granted = page.GetByTestId("granted");
 
@@ -86,7 +86,7 @@ public class GroupTests(DemoServer demo)
     [InlineData("server")]
     public async Task 组合输入_相邻一侧没有圆角_聚焦的浮到上面(string mode)
     {
-        var page = await demo.OpenAsync(mode, "control-group");
+        var page = await OpenAsync(mode, "control-group");
         var group = page.GetByTestId("amount-group");
 
         // 每个子元素的外框（选择框的按钮、数字框的外壳、按钮）：[左上, 右上] 圆角

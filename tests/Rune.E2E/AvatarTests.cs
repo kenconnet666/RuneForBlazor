@@ -1,14 +1,14 @@
 namespace Rune.E2E;
 
 /// <summary>头像：图片的加载状态由 JS 写在图片上，加载失败时露出后备内容；没有往返，静态 SSR 也一样。</summary>
-public class AvatarTests(DemoServer demo)
+public class AvatarTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
     [InlineData("static")]
     [InlineData("server")]
     public async Task 图片加载好后盖住首字母_加载失败时露出首字母(string mode)
     {
-        var page = await demo.OpenAsync(mode, "avatar");
+        var page = await OpenAsync(mode, "avatar");
         var broken = page.GetByTestId("broken");
         await Assertions.Expect(broken.Locator("img")).ToHaveAttributeAsync("data-state", "error");
         await Assertions.Expect(broken.Locator("img")).ToBeHiddenAsync();
@@ -22,7 +22,7 @@ public class AvatarTests(DemoServer demo)
     [Fact]
     public async Task 角标计数随状态变化_清零后不显示()
     {
-        var page = await demo.OpenAsync("server", "avatar");
+        var page = await OpenAsync("server", "avatar");
         var unread = page.GetByTestId("unread");
         await Assertions.Expect(unread).ToContainTextAsync("8 条新消息");
         await page.GetByRole(AriaRole.Button, new() { Name = "来一条消息" }).ClickAsync();

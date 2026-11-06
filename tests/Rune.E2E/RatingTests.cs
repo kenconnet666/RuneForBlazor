@@ -1,7 +1,7 @@
 namespace Rune.E2E;
 
 /// <summary>评分：已选的填充按勾上的 radio 用 CSS 算，悬停预览由 JS 写在星上；再点一次清空要 C#。</summary>
-public class RatingTests(DemoServer demo)
+public class RatingTests(DemoServer demo) : E2ETest(demo)
 {
     /// <summary>各颗星填色那层的宽度（0、半颗、整颗）。</summary>
     static Task<string[]> Fills(ILocator rating) => rating.EvaluateAsync<string[]>("""
@@ -16,7 +16,7 @@ public class RatingTests(DemoServer demo)
     [InlineData("wasm")]
     public async Task 悬停预览_点选_再点清空(string mode)
     {
-        var page = await demo.OpenAsync(mode, "rating");
+        var page = await OpenAsync(mode, "rating");
         var service = page.GetByTestId("service");
         var fourth = service.GetByRole(AriaRole.Radio, new() { Name = "4 星", Exact = true });
 
@@ -39,7 +39,7 @@ public class RatingTests(DemoServer demo)
     [Fact]
     public async Task 静态SSR下点选_填充按勾上的radio变化()
     {
-        var page = await demo.OpenAsync("static", "rating");
+        var page = await OpenAsync("static", "rating");
         var delivery = page.GetByTestId("delivery");
 
         Assert.Equal(["full", "full", "full", "empty", "empty"], await Fills(delivery));
