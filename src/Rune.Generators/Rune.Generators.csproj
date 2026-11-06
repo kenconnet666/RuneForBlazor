@@ -13,11 +13,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- 诊断的发布记录（RS2008）：AnalyzerReleases.*.md 由 Microsoft.CodeAnalysis.Analyzers 自动加进 AdditionalFiles，新增诊断写进 Unshipped -->
   <ItemGroup>
     <InternalsVisibleTo Include="Rune.Tests" />
-    <!-- 诊断的发布记录（RS2008 要求）：新增诊断写进 Unshipped -->
-    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
-    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
 
 </Project>
