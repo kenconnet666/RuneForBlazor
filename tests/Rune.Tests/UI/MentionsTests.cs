@@ -99,8 +99,9 @@ public class MentionsTests : BunitContext
         await cut.Find("textarea").TriggerEventAsync("onrunecommand", new CommandEventArgs { Name = "mention-query", Text = "许" });
         cut.WaitForAssertion(() => Assert.Equal(["许悠"], Labels(cut)), TimeSpan.FromSeconds(2));
 
+        // 远程结果回来后的那次渲染在后台线程排队：同步的 Change 可能排在它后面才处理，等它
         cut.Find("textarea").Change("@周一航 你好");
-        Assert.Equal(["a"], mentioned);
+        cut.WaitForAssertion(() => Assert.Equal(["a"], mentioned), TimeSpan.FromSeconds(2));
     }
 
     [Fact]

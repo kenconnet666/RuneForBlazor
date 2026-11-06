@@ -181,11 +181,14 @@
         if (!next.SequenceEqual(Mentioned ?? [])) await MentionedChanged.InvokeAsync(next);
     }
 
-    // 选中了一项：记下它（远程结果换掉之后也认得出）；写名字由 JS 完成
-    void Pick(string value)
+    // 选中了一项：它显示过，已经记下了（见 OnAfterRender）；写名字由 JS 完成，之后的文字要重新认一遍
+    void Pick(string value) => computedFor = null;
+
+    /// <inheritdoc/>
+    protected override void OnAfterRender(bool firstRender)
     {
-        if (All.FirstOrDefault(e => e.Option.Value == value) is { } entry) known[value] = entry.Option;
-        computedFor = null;
+        // 显示过的选项都记下（远程结果换掉之后也认得出）：选中时这一批可能已经被下一次搜索换掉，按值在当前的结果里找不到
+        foreach (var entry in All) known.TryAdd(entry.Option.Value, entry.Option);
     }
 
     // JS 交来 @ 后面的文字
