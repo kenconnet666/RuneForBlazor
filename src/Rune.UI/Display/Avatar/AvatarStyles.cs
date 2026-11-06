@@ -105,7 +105,7 @@ public static partial class AvatarStyles
         [When.FirstChild] = new() { MarginInlineStart = 0 },
     });
 
-    // 盖在后备内容上；还没加载好时透明，加载失败时不显示
+    // 加载中盖在后备内容上、透明；加载好了回到正常流（同 vue-tsx-pro：加载中 absolute + 透明），加载失败时不显示
     static Style Image => Css.Define(static () => new Style
     {
         Position = Position.Absolute,
@@ -114,14 +114,16 @@ public static partial class AvatarStyles
         Height = CssLength.Percent(100),
         ObjectFit = ObjectFit.Cover,
         Opacity = 0,
-        [When.Attribute("""[data-state="loaded"]""")] = new() { Opacity = 1 },
+        [When.Attribute("""[data-state="loaded"]""")] = new() { Position = Position.Static, Opacity = 1 },
         [When.Attribute("""[data-state="error"]""")] = new() { Display = Display.None },
     });
 
+    // 图片加载好了就不显示（同 vue-tsx-pro 不再渲染后备内容）
     static Style Fallback => Css.Define(static () => new Style
     {
         FontWeight = FontWeights.Medium,
         LineHeight = 1,
         TextTransform = TextTransform.Uppercase,
+        [When.Parent(When.Has("""> img[data-state="loaded"]"""))] = new() { Display = Display.None },
     });
 }

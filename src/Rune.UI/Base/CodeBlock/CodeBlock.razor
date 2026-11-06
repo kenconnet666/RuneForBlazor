@@ -56,7 +56,7 @@
     </div>
     @if (collapsible)
     {
-        <button type="button" aria-expanded="@(expanded ? "true" : "false")" @onclick="() => expanded = !expanded"
+        <button type="button" aria-expanded="@(expanded ? "true" : "false")" data-rune-ripple="@(Config.Ripple ? true : null)" @onclick="() => expanded = !expanded"
                 @attributes="Attrs.Merge(parts[CodeBlockPart.Expand], PropsExpand)">
             @(expanded ? Config.Lang.CodeCollapse : Config.Lang.CodeExpand)
             <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(parts[CodeBlockPart.ExpandIcon], PropsExpandIcon, expanded ? OpenIcon : null)" />

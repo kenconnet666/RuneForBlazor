@@ -82,7 +82,8 @@ public static class CodeBlockStyles
             CodeBlockPart.Line => Line,
             CodeBlockPart.LineNumber => LineNumber,
             CodeBlockPart.Copy => a.CopyInCorner ? Copy : Sx.Of(),
-            CodeBlockPart.Expand => Sx.Of(Expand, SharedStyles.FocusRingInset),
+            // 同 vue-tsx-pro 建在 ButtonBase 上：去掉浏览器的按钮样式、颜色过渡、波纹
+            CodeBlockPart.Expand => Sx.Of(SharedStyles.ButtonReset, SharedStyles.FocusRingInset, SharedStyles.RippleHost, SharedStyles.InteractionColors, Expand),
             _ => ExpandIcon,
         });
 
@@ -220,16 +221,12 @@ public static class CodeBlockStyles
         Gap = Space.Xs,
         Width = CssLength.Percent(100),
         MinHeight = $"max({Sizes.Control}, {Sizes.MinTarget})",
-        Margin = 0,
-        BorderWidth = 0,
         BorderTopWidth = BorderWidths.Xs,
         BorderTopStyle = BorderStyle.Solid,
         BorderTopColor = Colors.BorderMuted,
         BackgroundColor = Colors.SurfaceMuted,
         Color = Colors.TextMuted,
-        FontFamily = CssWide.Inherit,
         FontSize = FontSizes.Sm,
-        Cursor = Cursor.Pointer,
         [When.Hover] = new() { BackgroundColor = Colors.Fill },
     });
 

@@ -118,12 +118,16 @@ function collect({ side, ids, props, canvasWidth, SEMANTIC_TAGS }) {
       return full;
     };
     for (const element of canvas.querySelectorAll('[data-scope]:not(svg)')) {
+      // 看不见的不配对：一边一开始就渲染了关着的浮层（或图片下面的后备内容）、另一边没渲染时，后面的序号会整体错开
+      if (!element.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
       add(element, `${element.dataset.scope}/${element.dataset.part ?? '?'}`);
     }
     // 语义元素另按标签配对：vue-tsx-pro 的 Kbd、Code、Mark、文字等没有部件标记；
     // 图标（svg）、只有文字的 span（Text、按钮的内容层）也一样，按出现的顺序配对
     for (const element of canvas.querySelectorAll(`${SEMANTIC_TAGS}, svg, span`)) {
       if (element.tagName === 'SPAN' && (element.childElementCount > 0 || !element.textContent.trim())) continue;
+      // 代码里高亮的词元：两边的示例代码不同（TSX 与 Razor），按顺序配不上，代码块本身仍按 pre / code 比
+      if (element.tagName === 'SPAN' && element.closest('pre, code')) continue;
       // 没显示的（关着的提示、浮层）不按顺序配对：两边放的位置不同，会把后面的顺序打乱
       if (!element.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
       add(element, `<${element.tagName.toLowerCase()}>`);
