@@ -36,7 +36,7 @@ vue-tsx-pro 在做一轮样式体系的联合改造（架构、整理、API、�
 已跟进（外观不变，计算样式快照比对过）：
 
 - 词表：`SkeletonVariant` / `Skeleton.Variant` → `SkeletonShape` / `Shape`，`SparklineVariant` / `Sparkline.Variant` → `SparklineType` / `Type`。
-  Rune 还没发布过（0.1.0-alpha），没有外部使用方，**直接改名、不留旧名**（vue 留一个版本，因为它已经发布）。
+  Rune 还没发布过，没有外部使用方，**直接改名、不留旧名**（vue 留一个版本，因为它已经发布）。
 - 共用档位进配方：Rune 的配方本来就把字号、圆角、色调放在配方里（按部件的定制排在后面，盖得住）；
   例外两处改了：Accordion 的字号（原来在受管层，会盖过定制）、Progress 轨道的圆角（同 vue，字号仍按布局放在外层或轨道上）。
 - 按钮家族的部件：Rune 的 `ButtonPart` 本来就有 Content、Icon、IconEnd、Spinner，都带 `data-part`、可定制，不用改。

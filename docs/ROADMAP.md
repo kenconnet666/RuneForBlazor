@@ -6,11 +6,13 @@
 
 ## 目标
 
-**1.0：vue-tsx-pro 组件库的 Blazor 版，成熟可用。**
+**vue-tsx-pro 组件库的 Blazor 版，成熟可用；锁定对齐 vue-tsx-pro 0.12（开发中的 `0.12.0-dev`），Rune 的版本号同步为 `0.12.0-dev`。**
+
+除了发布（NuGet、文档站上线由用户决定），vue-tsx-pro 有的都尽量做，包括原来列为“不做”的扩展（阶段 7）。
 
 - **外观与交互对齐 vue-tsx-pro**（`packages/ui`，约 220 个组件）：样式配方、键盘、焦点、aria、动效以它为准，`tools/parity` 的报告没有未解释的差异。
 - **写法是地道的 Blazor**：API 的形状按 Blazor 与 .NET 的习惯（见“Blazor 化的约定”），不照搬 Vue 的组合式写法；静态 SSR、Server、WebAssembly、Auto 四种渲染模式都能用。
-- **能接 .NET 后端**：表格与筛选栏的查询请求是一份普通的 C# 类型，EasyQuerySharp 的 `FilterBy` / `SortBy` 能直接消费（全栈示例见阶段 7）。
+- **能接 .NET 后端**：表格与筛选栏的查询请求是一份普通的 C# 类型，EasyQuerySharp 的 `FilterBy` / `SortBy` 能直接消费（全栈示例见阶段 8）。
 - **按可发布的标准做**：公共 API 冻结、文档站齐全、能打包；发不发、发到哪由用户决定。
 
 ## 现状（2026-11-06，跟进 vue 0.11 之后）
@@ -29,16 +31,16 @@
 | --- | ---- | ---- |
 | 1 | 外观 | 以 vue-tsx-pro 为准：token、主题由脚本生成；组件的配方按 vue-tsx-pro 对应组件**逐条移植**（尺寸、内边距、圆角、颜色 token、状态、过渡），不凭印象重画；做不到的写进 DESIGN |
 | 2 | 交互与无障碍 | 以 vue-tsx-pro 为准（键盘、焦点、aria、读屏播报、动效）；实现按 DESIGN 第 8 节：原生元素优先，JS 初始化器做事件委托，组件只写 data 属性 |
-| 3 | 依赖 | 运行时只依赖 ASP.NET Core；测试用 bUnit、xUnit、`Microsoft.Playwright`；生成器脚本只用 node 内置模块与 `npm pack`。其余依赖进“待决” |
+| 3 | 依赖 | 运行时只依赖 ASP.NET Core；测试用 bUnit、xUnit、`Microsoft.Playwright`；生成器脚本只用 node 内置模块与 `npm pack`。阶段 7 的扩展包可以随包带上 vue 用的同一个 JS 库（three.js、CodeMirror 等，经 `tools/vendor-gen` 固定版本、许可写进 NOTICE，只在用到时加载）；其余依赖进“待决” |
 | 4 | 包 | `Rune`（运行时）、`Rune.UI`（组件，含表格）、`Rune.Icons`（Lucide 全集）、`Rune.UI.Dates`、`Rune.Charts`（后两个 WebAssembly 下可以懒加载） |
 | 5 | 命名 | 组件名、参数名照 vue-tsx-pro（PascalCase），参数与事件的**形状**按“Blazor 化的约定”；与 Razor / HTML 冲突时改名并记在 DESIGN（TextSpan、TextLink、NativeSelect） |
-| 6 | 语言 | 组件里的文字进语言包（`UIConfig.Lang`），内置 zh-CN（默认）与 en-US，由 lang-gen 从 vue-tsx-pro 生成；拼音匹配不做（`UIConfig.TextMatcher` 留着接口） |
+| 6 | 语言 | 组件里的文字进语言包（`UIConfig.Lang`），内置 zh-CN（默认）与 en-US，由 lang-gen 从 vue-tsx-pro 生成；拼音匹配做成可选的扩展（阶段 7，接 `UIConfig.TextMatcher`） |
 | 7 | 演示 | 文档页的路由、示例的场景与顺序照 vue-tsx-pro 文档站，方便逐页对照；渲染模式测试台 Rune.Demo 保留，与文档站共用 Rune.Docs.Content 的页面 |
-| 8 | 不做 | vue-tsx-pro 的 code-editor、diagram、three、xlsx、演练场；mobile、mini、kit、flow 包。需要时另议 |
+| 8 | 范围（2026-11-06 修订） | 只有发布暂不做。code-editor、diagram、three、xlsx、演练场、拼音、storage、mobile、流程的前端都做（阶段 7）。mini（Vue 渲染器跑进微信、支付宝小程序）与 kit（Nitro 上的全栈框架）是 Vue / Node 专用的：kit 的角色由 Blazor Web App 本身与阶段 8 的全栈示例承担，mini 没有 Blazor 的对应物，不做 |
 | 9 | 地图数据 | 图表的 Map 用公有领域或许可明确的来源（如 Natural Earth）导出，来源与许可写进 NOTICE |
 | 10 | 部署 | 文档站导出静态文件，部署到 Cloudflare Workers 的静态资源；工作流只手动触发，令牌放仓库 secret `CLOUDFLARE_API_TOKEN`，由用户配置后自己运行 |
-| 11 | 发布 | NuGet 暂不发布，阶段 8 只做本地打包与安装试用 |
-| 12 | 全栈示例（2026-11-06） | 做阶段 7。EasyQuerySharp 只进示例，组件库不引用；`TableQuery` 到 `FilterBy` / `SortBy` 的接线先写在示例里、不单独出包；CI 按固定的提交检出 EasyQuerySharp（同 `VUE_TSX_PRO_REF`） |
+| 11 | 发布与版本 | NuGet 暂不发布，阶段 9 只做本地打包与安装试用；版本号跟 vue-tsx-pro 走（现在 `0.12.0-dev`），vue 发版时 Rune 同步改 |
+| 12 | 全栈示例（2026-11-06） | 做阶段 8。EasyQuerySharp 只进示例，组件库不引用；`TableQuery` 到 `FilterBy` / `SortBy` 的接线先写在示例里、不单独出包；CI 按固定的提交检出 EasyQuerySharp（同 `VUE_TSX_PRO_REF`） |
 
 ## Blazor 化的约定（2026-11-06）
 
@@ -103,7 +105,7 @@
 
 ## 执行顺序
 
-0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8。阶段 8 的质量项贯穿全程，在最后收尾；跟进 vue-tsx-pro 不单列阶段（见“自主执行的规矩”）。
+0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项贯穿全程，在最后收尾；跟进 vue-tsx-pro 不单列阶段（见“自主执行的规矩”）。
 
 - 树（1）在前：TreeSelect、TreeDataTable 都建在它上面；表格（3）在页面组合（6）之前：QueryTable、FilterBar 建在它上面。
 - 某一项进入待决时，跳到下一个不依赖它的项；日期（4）、图表（5）不依赖 1–3，前面卡住时可以先做，也可以在后台工作树里并行。
@@ -120,6 +122,8 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 - [ ] 0.2 OtpField 的格子用输入框的配方（有 variant、radius，同 vue）
 - [ ] 0.3 对照工具跑全部页面（亮、暗），改掉改造后的差异；之前留下的：transfer 的 members、progress、card 的 effects
   （dialog 的进出场用独立的 scale 属性、内容不同造成的宽度差、rating 的填色层不处理，DESIGN 写过）
+- [ ] 0.5 跟进 vue 0.12（它的 ROADMAP 阶段 24，按它的进度逐批跟）：部件补齐（内部节点补 `PropsXxx` 与 `data-part`，部件多却没有配方的改配方，
+  登记进 `Components`）、状态写法（Rune 的 `When.Selected` 等与 vue 的条件别名对应，组合状态的先后照 vue 定）、裸值换 token、文档站 API 小节列配方的部件与档位
 - [ ] 0.4 代码走查（单独提交）：过长或职责混杂的文件（`js/runtime.js`、`lists.js`、`overlays.js`、`Cascader.razor.cs`、`ToastService.cs`）、
   重复的样式片段与死代码；入口顶部的 data 属性总表与实际用到的核对一遍
 
@@ -171,13 +175,27 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 - [ ] AuthLayout、NotificationCenter、CommentThread（接 Mentions）、KanbanBoard（Sortable 多容器）、DeadlineBadge、SlideCaptcha
 - [ ] ThemeCustomizer、ThemeThumbnail，接着做文档站的主题定制页；ThemeSwitcher 的局部主题；Provider 页
 
-## 阶段 7：.NET 全栈示例（已定的决定第 12 条）
+## 阶段 7：扩展（原来列为“不做”的，2026-11-06 起做）
+
+各自成包或成可选模块，WebAssembly 下能懒加载；做之前先读 vue 对应包的现状（有的还在开发），照它的 API 与示例。
+
+- [ ] 拼音匹配：`UIConfig.TextMatcher` 的拼音实现（全拼、首字母、多音字），Select、Combobox、CommandPalette、Transfer 的搜索都能用；字表的来源与许可写进 NOTICE
+- [ ] 表格导出 xlsx（vue 的 xlsx：自己写 OOXML，不引第三方库；C# 用 `System.IO.Compression`）
+- [ ] 文档站的属性演练场（vue 的 PropsPlaygroundButton：改参数实时看效果，参数表从 API 文档生成）
+- [ ] 前端存储（vue 的 `@zerodep-dev/storage`）：IndexedDB / localStorage / 内存一个异步接口，上面一层 TTL 与过期后先用旧值再刷新的缓存
+- [ ] CodeEditor（CodeMirror，同 vue 的 code-editor）
+- [ ] Diagram、DiagramControls、DiagramLanes、DiagramMinimap、DiagramNode（同 vue 的 diagram）
+- [ ] three：ThreeCanvas、ModelViewer、Globe、ParticleField、ShaderBackground、MeshGradient、AuroraBackground、WaveGrid、EffectSurface、Confetti（three.js）
+- [ ] 流程的前端：流程设计与审批界面（vue ROADMAP 阶段 9、14 的前端部分），接阶段 8 的全栈示例
+- [ ] 移动端组件库 `Rune.Mobile`（vue 的 mobile，约 50 个组件，H5）：触控手势、安全区、下拉刷新、底部弹层等；文档站加移动端一栏
+
+## 阶段 8：.NET 全栈示例（已定的决定第 12 条）
 
 - [ ] `apps/Rune.Sample`（Blazor Web App，Auto 渲染模式）+ EasyQuerySharp + SQLite，走完一个后台模块：
   QueryTable 服务端分页、排序、筛选（`TableQuery` → `FilterBy` / `SortBy`）、FormDialog 新建与编辑（聚合根保存）、权限（`[Authorize]`、`Can`）、预渲染 + `[PersistentState]`；
   端到端测试在 Server、WebAssembly 下各跑一遍。示例里重复出现的接线到第三次时再收成包。
 
-## 阶段 8：质量与发布准备（贯穿全程，这里收尾）
+## 阶段 9：质量与发布准备（贯穿全程，这里收尾）
 
 - [ ] 端到端覆盖全部有键盘、焦点、拖动逻辑的组件；输入法用例（组字中的回车不提交、不选中：Combobox、TagsInput、Mentions、Textarea）；axe-core 无障碍检查跑全部示例（亮、暗主题）
 - [ ] 截图基线进 CI（固定的 Linux 容器，Chromium，亮、暗主题），变化时人工确认
@@ -197,4 +215,4 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 旧 4（对照工具与基础设施）→ R.2 与各阶段；旧 5 → 1（Upload）、2（TreeSelect、TreeTransfer）、7（PeoplePicker、ConditionBuilder）；旧 6 → 1；旧 7 → 2；
 旧 8 → 2（Lightbox）、3；旧 9 → 4；旧 10 → 5；旧 11 → 6；旧 12 → 7；旧 13（文档站）已基本完成，剩下的进 7（主题定制页）、9（键盘说明）；旧 14 → 9。
 
-第二次（跟进 vue 0.11 之后）：R 剩下的 → 0（R.3 的预渲染取数 → 3）；1 已完成；2 剩下的（Tree 一组、VirtualList）→ 1；3–9 依次 → 2–8。
+第二次（跟进 vue 0.11 之后）：R 剩下的 → 0（R.3 的预渲染取数 → 3）；1 已完成；2 剩下的（Tree 一组、VirtualList）→ 1；3–7 依次 → 2–6；8 → 8；9 → 9；新增阶段 7（原来不做的扩展）。
