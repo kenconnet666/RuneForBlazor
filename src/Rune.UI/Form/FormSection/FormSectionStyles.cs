@@ -93,7 +93,7 @@ public static class FormSectionStyles
     {
         Margin = 0,
         FontSize = FontSizes.Md,
-        FontWeight = FontWeights.Semibold,
+        FontWeight = FontWeights.Medium,
         LineHeight = LineHeights.Tight,
         Color = Colors.Text,
     });

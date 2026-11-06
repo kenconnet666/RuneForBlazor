@@ -86,9 +86,11 @@ builder.Services.AddRuneUI(o => o.Components = new()
   但按钮的文字是主题的文字色，深色主题里白底浅字看不清；Rune 原来就用表面色，深浅主题都看得清）。
 - Table 与 DataTable 共用部件样式（vue d450fe3a）：Rune 还没有 DataTable，只有一个表格配方，没有可合并的。
 
-### 阶段 4：美学（2026-11-06 跟进 vue 已完成的部分，vue feat/style-overhaul 9de32da3，PR #4 未合并）
+### 阶段 4：美学（2026-11-06 跟进 vue 已完成的部分，vue feat/style-overhaul 到 4f7770f9，PR #4 未合并）
 
-- 主题重新生成（CI 的 `VUE_TSX_PRO_REF` 指到 9de32da3，语言包同一版本）：去掉海洋、加高对比暗色 `Themes.HighContrastDark`（仍是 16 套，ThemeSwitcher 的图标用 eclipse）；
+vue 那边合并用快进、不 squash，提交号不变；CI 的 `VUE_TSX_PRO_REF` 指到当前跟进到的提交（样式属性表、主题、语言包同一版本）。
+
+- 主题重新生成（先到 9de32da3）：去掉海洋、加高对比暗色 `Themes.HighContrastDark`（仍是 16 套，ThemeSwitcher 的图标用 eclipse）；
   两套高对比文字到 7:1；占位文字改用次要文字色（4.5:1）；亮色的成功、警告、信息文字改中间调。
 - theme-gen 修了一处：vue 的遮罩 token 只写在 light.ts，其他主题取 defineVars 的默认值；生成器原来只把“主题之外的组”放进 `Themes.Base`，
   主题没写的颜色在 Rune 里就成了未定义的变量（`ThemeTests` 查出来）。现在各组的默认值都进 Base，主题只覆盖写了的，同 vue。
@@ -98,6 +100,14 @@ builder.Services.AddRuneUI(o => o.Components = new()
 - elevated 卡片加 `BorderMuted` 的边框（深色主题里阴影看不见）。
 - ButtonBase 继承字重：Rune 的 `SharedStyles.ButtonReset` 本来就是 `font: inherit`（含字重），不用改。
 - 删 Figma 设计资源：Rune 没有这块。
+- 控件高度取整到 4px 网格（vue 4cfe5a3e）：`Sizes.Control` 从 `2.25em` 改成 `round(nearest, 2.25em, 4px)`（重新生成）；字号档位
+  `ScaleStyles.FontSize`（同 vue 的 fontSizeStyles）连同这一档的控件高度一起给，Xs 用 2 倍：五档依次 24 / 28 / 32 / 36 / 40px。
+- 界面文字的字重 600 → 500（vue 3df7f9ee，微软雅黑没有 600，落成粗体显得笨重）：按钮、Accordion 的触发、Descriptions / Timeline / Alert / Banner /
+  Empty / Popconfirm / Transfer 的标题、FormSection 的标题、Listbox / Menu / NavList 的分组标签、表头。仍是 600 的同 vue：标题 H1–H6、数字
+  （Gauge、ProportionBar、Progress、OtpField、Indicator、表尾合计）、Result 的页面级标题。vue 改了而 Rune 还没有的组件（日历、看板、评论、
+  通知中心、泳道、图表、列设置、表单错误汇总）以后做时按 500。
+- H6 默认字号 Sm（vue 3df7f9ee），与 H5 分开。
+- Upload 图片墙小按钮的对比度（vue 4f7770f9）：vue 改成 Rune 原来的做法（半透明表面色），两边一致了。
 
 ### 阶段 1：分段输出与级联层（2026-11-06 跟进）
 

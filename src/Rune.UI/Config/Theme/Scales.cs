@@ -80,7 +80,14 @@ public enum Radius
 /// <summary>档位对应的样式：每个档位一段，组件把它放进部件的 Sx。</summary>
 public static class ScaleStyles
 {
-    /// <summary>字号档位的样式。</summary>
+    // var(--rune-sizes-control) → --rune-sizes-control：字号档位改写这一档的控件高度
+    static readonly string ControlVariable = Sizes.Control.ToString()[4..^1];
+
+    /// <summary>
+    /// 字号档位的样式，连同这一档的控件高度（<see cref="Sizes.Control"/>，同 vue-tsx-pro 的 fontSizeStyles）：
+    /// 字号的 2.25 倍取整到 4px（28 / 32 / 36 / 40px），Xs 用 2 倍（24px）、不与 Sm 同高；
+    /// 其余档也写上，嵌在 Xs 里的别的档不带着 Xs 的高度。
+    /// </summary>
     public static Style FontSize(Size size) => Css.Define(size, static size => new Style
     {
         FontSize = size switch
@@ -93,6 +100,7 @@ public static class ScaleStyles
             Size.Xxxl => FontSizes.Xxxl,
             _ => FontSizes.Md,
         },
+        [ControlVariable] = size == Size.Xs ? "round(nearest, 2em, 4px)" : "round(nearest, 2.25em, 4px)",
     });
 
     /// <summary>间隙（gap）。</summary>

@@ -55,7 +55,7 @@ public static class EmptyStyles
         StrokeWidth = StrokeWidths.Sm,
     });
 
-    static Style Title => Css.Define(static () => new Style { FontWeight = FontWeights.Semibold });
+    static Style Title => Css.Define(static () => new Style { FontWeight = FontWeights.Medium });
 
     static Style Description => Css.Define(static () => new Style { MaxWidth = CssLength.Em(32), Color = Colors.TextMuted });
 

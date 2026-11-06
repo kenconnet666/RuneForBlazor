@@ -129,7 +129,7 @@ public static class DescriptionsStyles
     // 容器查询的容器：dl 与各项按它的宽度决定栏数、跨度
     static Style Root => Css.Define(static () => new Style { ContainerType = ContainerType.InlineSize, Display = Display.Grid, Gap = Space.Md });
 
-    static Style Title => Css.Define(static () => new Style { FontWeight = FontWeights.Semibold, FontSize = FontSizes.Md });
+    static Style Title => Css.Define(static () => new Style { FontWeight = FontWeights.Medium, FontSize = FontSizes.Md });
 
     static Style List => Css.Define(static () => new Style
     {

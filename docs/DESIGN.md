@@ -121,6 +121,8 @@
 - **token 与内置主题同 vue-tsx-pro**：分组、命名、取值都对齐（颜色与阴影取自 Radix，间距与圆角用 em 随字号缩放，动效参考 Material 3）。
   16 套内置主题由 `tools/theme-gen` 从 vue-tsx-pro 的主题文件生成（`Themes.g.cs`），CI 校验两边一致；vue-tsx-pro 加了 token 而这边没有时脚本报错。
   各组 token 的默认值（vue 的 tokens.ts）进 `Themes.Base`，每套主题只覆盖写了的（同 vue 的 defineVars 默认值在 `:root`、主题类覆盖）。
+  单行控件的高度是 `Sizes.Control`：字号的 2.25 倍取整到 4px（整数像素的边框在 1 倍屏上不发虚），字号档位（`ScaleStyles.FontSize`）连同这一档的高度一起给，
+  Xs 用 2 倍，五档 24 / 28 / 32 / 36 / 40px；组件只要用字号档位。
   中性色调不另设 token，直接用反色表面、填充、文字、边框（同 vue-tsx-pro 的 tone-styles）。本库独有的只有层级（提示、消息提示不在顶层）。
 - **主题自己说是亮是暗**（`IsDark`）：容器上的 `color-scheme` 按主题写，固定用赛博朋克这类暗色主题时原生控件、滚动条也是暗色。
 - **条件取值**：`[Media.ReducedMotion] = new("…") { [Durations.Md] = "0ms" }`。用户要求减少动态效果时全部时长为 0，

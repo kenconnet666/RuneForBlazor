@@ -148,7 +148,7 @@ public static class AlertStyles
         Gap = Space.Xs,
     });
 
-    static Style Title => Css.Define(static () => new Style { FontWeight = FontWeights.Semibold });
+    static Style Title => Css.Define(static () => new Style { FontWeight = FontWeights.Medium });
 
     // 正文用正文色（标题、图标跟着色调）
     static Style Description => Css.Define(static () => new Style { Color = Colors.Text });

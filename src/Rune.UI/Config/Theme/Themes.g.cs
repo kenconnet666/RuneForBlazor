@@ -126,7 +126,7 @@ public static partial class Themes
         [Space.Md] = "0.75em",
         [Space.Lg] = "1em",
         [Space.Xl] = "1.5em",
-        [Sizes.Control] = "2.25em",
+        [Sizes.Control] = "round(nearest, 2.25em, 4px)",
         [Sizes.MinTarget] = "24px",
         [Sizes.Xs] = "30rem",
         [Sizes.Sm] = "40rem",

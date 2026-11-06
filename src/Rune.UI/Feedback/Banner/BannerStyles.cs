@@ -82,7 +82,7 @@ public static class BannerStyles
 
     static Style Content => Css.Define(static () => new Style { MinWidth = 0 });
 
-    static Style Title => Css.Define(static () => new Style { FontWeight = FontWeights.Semibold, MarginInlineEnd = Space.Sm });
+    static Style Title => Css.Define(static () => new Style { FontWeight = FontWeights.Medium, MarginInlineEnd = Space.Sm });
 
     static Style Action => Css.Define(static () => new Style { FlexShrink = 0, FontWeight = FontWeights.Medium });
 

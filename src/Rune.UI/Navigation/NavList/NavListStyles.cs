@@ -166,7 +166,7 @@ public static class NavListStyles
     static Style SectionText => Css.Define(static () => new Style
     {
         FontSize = FontSizes.Sm,
-        FontWeight = FontWeights.Semibold,
+        FontWeight = FontWeights.Medium,
         LetterSpacing = LetterSpacings.Wide,
     });
 

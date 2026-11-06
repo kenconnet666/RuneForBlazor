@@ -88,7 +88,7 @@ public static class TransferStyles
         BorderBlockEndColor = Colors.BorderMuted,
     });
 
-    static Style Title => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0, FontWeight = FontWeights.Semibold });
+    static Style Title => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0, FontWeight = FontWeights.Medium });
 
     static Style Search => Css.Define(static () => new Style { Padding = Space.Xs, FlexShrink = 0 });
 

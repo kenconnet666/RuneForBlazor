@@ -50,7 +50,7 @@ public static class PopconfirmStyles
     static Style Title => Css.Define(static () => new Style
     {
         GridColumn = "2",
-        FontWeight = FontWeights.Semibold,
+        FontWeight = FontWeights.Medium,
         LineHeight = LineHeights.Tight,
     });
 

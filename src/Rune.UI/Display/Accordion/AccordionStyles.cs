@@ -65,7 +65,7 @@ public static class AccordionStyles
         BorderRadius = Radii.Sm,
         BackgroundColor = CssColors.Transparent,
         Color = Colors.Text,
-        FontWeight = FontWeights.Semibold,
+        FontWeight = FontWeights.Medium,
         TextAlign = TextAlign.Start,
         [When.Hover] = new() { BackgroundColor = Colors.Fill },
     });

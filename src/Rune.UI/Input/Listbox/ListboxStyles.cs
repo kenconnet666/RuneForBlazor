@@ -65,7 +65,7 @@ public static class ListboxStyles
         PaddingBottom = Space.Xs,
         PaddingInline = Space.Sm,
         FontSize = FontSizes.Sm,
-        FontWeight = FontWeights.Semibold,
+        FontWeight = FontWeights.Medium,
     });
 
     static Style Content => Css.Define(static () => new Style

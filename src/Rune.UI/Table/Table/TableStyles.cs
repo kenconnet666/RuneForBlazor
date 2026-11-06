@@ -233,7 +233,7 @@ public static class TableStyles
         BackgroundColor = Colors.Fill,
         Color = Colors.TextMuted,
         FontSize = FontSizes.Sm,
-        FontWeight = FontWeights.Semibold,
+        FontWeight = FontWeights.Medium,
         TextAlign = TextAlign.Start,
         WhiteSpace = WhiteSpace.Nowrap,
         Overflow = Overflow.Hidden,

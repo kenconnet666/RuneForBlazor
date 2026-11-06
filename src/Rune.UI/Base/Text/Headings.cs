@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace Rune.UI;
 
 /// <summary>
-/// 标题 H1–H6 的基类：级别决定元素与默认字号（H1 Xxxl、H2 Xxl、H3 Xl、H4 Lg、H5–H6 Md），默认 Semibold、紧凑行高、各行长度均衡。
+/// 标题 H1–H6 的基类：级别决定元素与默认字号（H1 Xxxl、H2 Xxl、H3 Xl、H4 Lg、H5 Md、H6 Sm），默认 Semibold、紧凑行高、各行长度均衡。
 /// 视觉层级与文档结构分开：字号用 Size 改，级别要连续，不要为了字号跳级。
 /// </summary>
 public abstract class HeadingBase : TypographyBase
@@ -58,7 +58,8 @@ public abstract class HeadingBase : TypographyBase
         2 => UI.Size.Xxl,
         3 => UI.Size.Xl,
         4 => UI.Size.Lg,
-        _ => UI.Size.Md,
+        5 => UI.Size.Md,
+        _ => UI.Size.Sm,
     };
 
     /// <inheritdoc/>

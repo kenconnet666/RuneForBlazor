@@ -67,6 +67,20 @@ public class TypographyTests : BunitContext
     }
 
     [Fact]
+    public void H6默认比H5小一档_字号档位带上这一档的控件高度()
+    {
+        var h5 = Render<H5>(p => p.AddChildContent("配送方式"));
+        var h6 = Render<H6>(p => p.AddChildContent("备注"));
+
+        Assert.Contains("font-size:var(--rune-font-sizes-md)", RuleOf(h5.Find("h5").ClassName!));
+        var h6Rule = RuleOf(h6.Find("h6").ClassName!);
+        Assert.Contains("font-size:var(--rune-font-sizes-sm)", h6Rule);
+        // 字号的 2.25 倍取整到 4px；Xs 用 2 倍，不与 Sm 同高
+        Assert.Contains("--rune-sizes-control:round(nearest, 2.25em, 4px)", h6Rule);
+        Assert.Equal("round(nearest, 2em, 4px)", ScaleStyles.FontSize(Size.Xs)["--rune-sizes-control"]);
+    }
+
+    [Fact]
     public void 使用方的属性落到元素上()
     {
         var cut = Render<H3>(p => p.AddUnmatched("id", "install").AddChildContent("安装"));

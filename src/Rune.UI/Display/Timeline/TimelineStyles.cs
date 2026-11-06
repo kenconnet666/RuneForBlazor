@@ -121,7 +121,7 @@ public static class TimelineStyles
         [Narrow] = new() { GridColumn = "2", TextAlign = TextAlign.Start },
     });
 
-    static Style TitleStyle => Css.Define(static () => new Style { FontWeight = FontWeights.Semibold, Color = Colors.Text });
+    static Style TitleStyle => Css.Define(static () => new Style { FontWeight = FontWeights.Medium, Color = Colors.Text });
 
     // 操作人与时间：一行，放不下时换行
     static Style MetaStyle => Css.Define(static () => new Style

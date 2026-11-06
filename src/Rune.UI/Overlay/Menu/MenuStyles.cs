@@ -115,7 +115,7 @@ public static class MenuStyles
         PaddingInline = Space.Sm,
         Color = Colors.TextMuted,
         FontSize = FontSizes.Sm,
-        FontWeight = FontWeights.Semibold,
+        FontWeight = FontWeights.Medium,
     });
 }
 

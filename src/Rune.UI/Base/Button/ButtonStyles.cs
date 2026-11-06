@@ -194,7 +194,7 @@ public static class ButtonStyles
         BackgroundColor = CssColors.Transparent,
         Font = CssWide.Inherit,
         TextAlign = CssWide.Inherit,
-        FontWeight = FontWeights.Semibold,
+        FontWeight = FontWeights.Medium,
         LineHeight = LineHeights.Tight,
         WhiteSpace = WhiteSpace.Nowrap,
         TextDecorationLine = TextDecorationLine.None,
