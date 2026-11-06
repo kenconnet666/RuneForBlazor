@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（61 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（64 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -22,6 +22,8 @@ public static partial class BuiltInIcons
     public static IconData ArrowUpRight => field ??= new("arrow-up-right", "<path d=\"M7 7h10v10\"/><path d=\"M7 17 17 7\"/>");
     /// <summary>Lucide 图标 <c>asterisk</c>（symbol、mark、pointer、pencil、sign、alert、notification、indicator）。</summary>
     public static IconData Asterisk => field ??= new("asterisk", "<path d=\"M12 5v14\"/><path d=\"m18.065 8.496-12.125 7\"/><path d=\"m5.94 8.504 12.125 7\"/>");
+    /// <summary>Lucide 图标 <c>ban</c>（cancel、no、stop、forbidden、prohibited、error、incorrect、mistake）。</summary>
+    public static IconData Ban => field ??= new("ban", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M4.929 4.929 19.07 19.071\"/>");
     /// <summary>Lucide 图标 <c>chart-no-axes-combined</c>（diagram、graph、visualization、data、analytics、analysis、statistics、presentation）。</summary>
     public static IconData ChartNoAxesCombined => field ??= new("chart-no-axes-combined", "<path d=\"M12 16v5\"/><path d=\"M16 14.639V21\"/><path d=\"M20 10.656V21\"/><path d=\"m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15\"/><path d=\"M4 18.463V21\"/><path d=\"M8 14.656V21\"/>");
     /// <summary>Lucide 图标 <c>check</c>（checkmark、done、completed、finished、successful、confirmed、verified、validated）。</summary>
@@ -36,8 +38,12 @@ public static partial class BuiltInIcons
     public static IconData ChevronUp => field ??= new("chevron-up", "<path d=\"m18 15-6-6-6 6\"/>");
     /// <summary>Lucide 图标 <c>circle-check</c>（checkmark、done、completed、finished、successful、confirmed、verified、validated）。</summary>
     public static IconData CircleCheck => field ??= new("circle-check", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m16 9-5.5 5.5L8 12\"/>");
+    /// <summary>Lucide 图标 <c>circle-dashed</c>（pending、dot、progress、issue、draft、code、coding、version control）。</summary>
+    public static IconData CircleDashed => field ??= new("circle-dashed", "<path d=\"M10.1 2.182a10 10 0 0 1 3.8 0\"/><path d=\"M13.9 21.818a10 10 0 0 1-3.8 0\"/><path d=\"M17.609 3.721a10 10 0 0 1 2.69 2.7\"/><path d=\"M2.182 13.9a10 10 0 0 1 0-3.8\"/><path d=\"M20.279 17.609a10 10 0 0 1-2.7 2.69\"/><path d=\"M21.818 10.1a10 10 0 0 1 0 3.8\"/><path d=\"M3.721 6.391a10 10 0 0 1 2.7-2.69\"/><path d=\"M6.391 20.279a10 10 0 0 1-2.69-2.7\"/>");
     /// <summary>Lucide 图标 <c>circle-exclamation-point</c>（alert、warning、danger、caution、notice、error、risk、concern）。</summary>
     public static IconData CircleExclamationPoint => field ??= new("circle-exclamation-point", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"/><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"/>");
+    /// <summary>Lucide 图标 <c>circle-minus</c>（minus、remove、delete、cancel、erase、subtract、reduce、clear）。</summary>
+    public static IconData CircleMinus => field ??= new("circle-minus", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M8 12h8\"/>");
     /// <summary>Lucide 图标 <c>circle-x</c>（x、remove、delete、cancel、clear、close、discard、dismiss）。</summary>
     public static IconData CircleX => field ??= new("circle-x", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m15 9-6 6\"/><path d=\"m9 9 6 6\"/>");
     /// <summary>Lucide 图标 <c>citrus</c>（lemon、orange、grapefruit、fruit）。</summary>

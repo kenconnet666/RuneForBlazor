@@ -169,4 +169,43 @@ public class StatTests : BunitContext
         Assert.Equal("true", groups[1].GetAttribute("aria-hidden"));
         Assert.True(groups[1].HasAttribute("inert"));
     }
+
+    [Fact]
+    public void 完成清单_不适用的不算进度_受阻的不能勾_勾选报告新状态()
+    {
+        ChecklistItem[] items =
+        [
+            new("备份") { Status = ChecklistStatus.Done },
+            new("迁移"),
+            new("冒烟") { Status = ChecklistStatus.Blocked },
+            new("CDN") { Status = ChecklistStatus.Skipped },
+        ];
+        ChecklistCheck? checkedItem = null;
+        var cut = Render<Checklist>(p => p.Add(x => x.Items, items).Add(x => x.Summary, true).Add(x => x.OnCheckedChange, (ChecklistCheck c) => checkedItem = c));
+        Assert.Contains("已完成 1 / 3", cut.Markup);
+        var boxes = cut.FindAll("button[role=checkbox]");
+        Assert.Equal("true", boxes[0].GetAttribute("aria-checked"));
+        Assert.True(boxes[2].HasAttribute("disabled"));
+        Assert.True(boxes[3].HasAttribute("disabled"));
+        boxes[1].Click();
+        Assert.Equal(("迁移", true), (checkedItem!.Item.Label, checkedItem.Done));
+
+        var icons = Render<Checklist>(p => p.Add(x => x.Items, items).Add(x => x.Layout, ChecklistLayout.Icons));
+        Assert.Equal("备份已完成，迁移未完成，冒烟受阻，CDN不适用", icons.Find("[role=img]").GetAttribute("aria-label"));
+    }
+
+    [Fact]
+    public void 水印_选项写成JSON交给JS_整页且不包内容时只渲染那一层()
+    {
+        var cut = Render<Watermark>(p => p.Add(x => x.Lines, ["林小满", "2026-10-24"]).Add(x => x.Rotate, -30).AddChildContent("<p>报表</p>"));
+        var layer = cut.Find("[data-rune-watermark]");
+        Assert.Equal("true", layer.GetAttribute("aria-hidden"));
+        var options = layer.GetAttribute("data-rune-watermark")!;
+        Assert.Contains("\"lines\":[\"林小满\",\"2026-10-24\"]", options);
+        Assert.Contains("\"rotate\":-30", options);
+        Assert.DoesNotContain("\"image\"", options);
+
+        var page = Render<Watermark>(p => p.Add(x => x.Text, "内部资料").Add(x => x.Fullscreen, true));
+        Assert.Single(page.Nodes.OfType<AngleSharp.Dom.IElement>());
+    }
 }

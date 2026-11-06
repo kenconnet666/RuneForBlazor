@@ -1,0 +1,46 @@
+@* 项目结项前的清单：里程碑带完成日期与交付证据，超时的标红并给“催办”；结项材料写清缺的由谁出具。
+   Summary 在上面显示完成数与进度条，不适用的不算 *@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("22em")" Gap="SpaceScale.Lg">
+    <Card>
+        <Header><H3 Size="Size.Sm">里程碑与交付证据</H3></Header>
+        <ChildContent><Checklist Items="milestones" Summary="true" /></ChildContent>
+    </Card>
+    <Card>
+        <Header><H3 Size="Size.Sm">结项材料</H3></Header>
+        <Extra><Badge Tone="Tone.Warning">缺 2 项</Badge></Extra>
+        <ChildContent><Checklist Items="closing" Summary="true" /></ChildContent>
+    </Card>
+</Grid>
+
+@code {
+    static RenderFragment Evidence(string name) => @<TextLink Href="#"><Icon Data="Lucide.Paperclip" /> @name</TextLink>;
+
+    static readonly ChecklistItem[] milestones =
+    [
+        new("方案确定") { Status = ChecklistStatus.Done, Owner = "方圆", Date = "2026-08-12 完成", Evidence = Evidence("方案评审纪要.pdf") },
+        new("样品验收") { Status = ChecklistStatus.Done, Owner = "林小满", Date = "2026-09-20 完成", Evidence = Evidence("样品验收报告.pdf") },
+        new("批量切换")
+        {
+            Status = ChecklistStatus.Overdue,
+            Description = "生产线切换到新供应商的首批零件，附切换单",
+            Owner = "周宁",
+            Date = "计划 2026-10-15，已超 9 天",
+            Action = @<Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Danger" Icon="Lucide.BellRing">催办</Button>,
+        },
+    ];
+
+    static readonly ChecklistItem[] closing =
+    [
+        new("验收报告") { Status = ChecklistStatus.Done, Date = "2026-10-08", Evidence = Evidence("验收报告.pdf") },
+        new("财务复核意见")
+        {
+            Description = "测算锁定后出具",
+            Owner = "由财务部出具",
+            Action = @<Button Size="Size.Sm" Variant="ButtonVariant.Surface" Icon="Lucide.Upload">上传</Button>,
+        },
+        new("合同签订记录") { Status = ChecklistStatus.Blocked, Description = "等财务复核意见：合同价格要按复核后的金额", Owner = "由采购部出具" },
+        new("海关备案") { Status = ChecklistStatus.Skipped, Description = "国内供应商，不涉及" },
+    ];
+}

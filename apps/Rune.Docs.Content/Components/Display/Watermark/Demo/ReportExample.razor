@@ -1,0 +1,48 @@
+@* 内部报表：铺上“查看人 + 日期 + 内部资料”，截图外传时能看出是谁、什么时候看的；文字照常能选中、按钮照常能点。
+   打开“整页”后水印盖住整个窗口（position: fixed），离开示例页前记得关掉 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Switch @bind-Value="fullscreen">整页水印</Switch>
+    <Watermark Lines="lines" Fullscreen="fullscreen">
+        <Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm" Wrap="true">
+                    <H4>10 月库存周转报表</H4>
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Icon="Lucide.Download">导出</Button>
+                </Flex>
+                <Flex Gap="SpaceScale.Lg" Wrap="true">
+                    <Stat Label="库存总额" Value="101_520" Format="Money" />
+                    <Stat Label="周转天数" Value="23" Unit="天" Change="-0.12m" InvertChange="true" />
+                    <Stat Label="呆滞物料" Value="7" Unit="项" Tone="TextTone.Warning" />
+                </Flex>
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                    @foreach (var (warehouse, item, quantity, amount) in rows)
+                    {
+                        <Flex @key="item" Gap="SpaceScale.Md" Wrap="true">
+                            <Small Tone="TextTone.Muted" style="width: 4em">@warehouse</Small>
+                            <TextSpan Size="Size.Sm" style="flex: 1">@item</TextSpan>
+                            <TextSpan Size="Size.Sm" Mono="true">@quantity</TextSpan>
+                            <TextSpan Size="Size.Sm" Mono="true" style="width: 6em; text-align: end">@amount</TextSpan>
+                        </Flex>
+                    }
+                </Flex>
+            </Flex>
+        </Card>
+    </Watermark>
+</Flex>
+
+@code {
+    static readonly NumberFormat Money = new() { Style = NumberStyle.Currency };
+
+    static readonly (string Warehouse, string Item, string Quantity, string Amount)[] rows =
+    [
+        ("华东仓", "轴承 6205", "1 280 件", "¥ 38 400"),
+        ("华南仓", "密封圈 O-32", "9 600 件", "¥ 11 520"),
+        ("西南仓", "液压阀 HV-08", "86 件", "¥ 51 600"),
+    ];
+
+    // 本地日期
+    readonly string[] lines = ["林小满 · 采购部", DateTime.Now.ToString("yyyy-MM-dd"), "内部资料 请勿外传"];
+    bool fullscreen;
+}

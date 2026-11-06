@@ -1,0 +1,74 @@
+@*
+    水印（同 vue-tsx-pro 的 Watermark）：在内容上（或整页）铺满斜着的文字或图片，截图、拍屏时能看出来源（查看人、时间、密级）。
+    <Watermark Lines="@(["林小满", "2026-10-24"])">@report</Watermark>
+    <Watermark Text="内部资料" Fullscreen="true" />                       整页
+    <Watermark Image="/logo.svg" Width="120" Height="40">…</Watermark>
+    JS（data-rune-watermark）用 canvas 画一格（按设备像素比放大，高分屏不糊），作为一层盖在内容上的背景平铺：pointer-events: none，
+    不挡点击与选择；aria-hidden，读屏不念。默认颜色是半透明的灰，亮色、暗色主题上都看得见、不抢内容。
+    只是提示性的：前端的水印删得掉，真正的保密要靠服务端（导出时打水印、权限）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@if (Fullscreen && ChildContent is null)
+{
+    @Layer
+}
+else
+{
+    <div @attributes="Attrs.Merge(WatermarkStyles.Root, Rest)">
+        @ChildContent
+        @Layer
+    </div>
+}
+
+@code {
+    Memo<(string? Text, IReadOnlyList<string>? Lines, string? Image, int Width, int Height, int Rotate, int GapX, int GapY, int FontSize, string? Color), string> options;
+
+    /// <summary>一行文字。</summary>
+    [Parameter] public string? Text { get; set; }
+
+    /// <summary>多行文字（姓名、日期）；给了就不看 Text。</summary>
+    [Parameter] public IReadOnlyList<string>? Lines { get; set; }
+
+    /// <summary>图片地址：给了就画图片（同源或允许跨域的图片），不画文字。</summary>
+    [Parameter] public string? Image { get; set; }
+
+    /// <summary>图片的宽（px），默认 120。</summary>
+    [Parameter] public int Width { get; set; } = 120;
+
+    /// <summary>图片的高（px），默认 40。</summary>
+    [Parameter] public int Height { get; set; } = 40;
+
+    /// <summary>旋转角度（度），默认 -22。</summary>
+    [Parameter] public int Rotate { get; set; } = -22;
+
+    /// <summary>每格之间横向的空隙（px），默认 120。</summary>
+    [Parameter] public int GapX { get; set; } = 120;
+
+    /// <summary>每格之间竖向的空隙（px），默认 100。</summary>
+    [Parameter] public int GapY { get; set; } = 100;
+
+    /// <summary>字号（px），默认 14。</summary>
+    [Parameter] public int FontSize { get; set; } = 14;
+
+    /// <summary>颜色（CSS 颜色），默认半透明的灰。</summary>
+    [Parameter] public string? Color { get; set; }
+
+    /// <summary>盖住整页（position: fixed），而不只是包着的内容。</summary>
+    [Parameter] public bool Fullscreen { get; set; }
+
+    /// <summary>水印那一层的部件属性。</summary>
+    [Parameter] public Attrs? PropsLayer { get; set; }
+
+    /// <summary>被盖住的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 画法交给 JS：选项写成一个 JSON 属性，变了 JS 重画
+    string Options => options.Get((Text, Lines, Image, Width, Height, Rotate, GapX, GapY, FontSize, Color), static k => System.Text.Json.JsonSerializer.Serialize(
+        new WatermarkOptions(k.Lines ?? (k.Text is null ? [] : [k.Text]), k.Image, k.Width, k.Height, k.Rotate, [k.GapX, k.GapY], k.FontSize, k.Color),
+        WatermarkJson.Relaxed.WatermarkOptions));
+
+    RenderFragment Layer => @<div aria-hidden="true" data-rune-watermark="@Options"
+                                 @attributes="Attrs.Merge(Fullscreen ? WatermarkStyles.FullscreenLayer : WatermarkStyles.Layer, PropsLayer)"></div>;
+}

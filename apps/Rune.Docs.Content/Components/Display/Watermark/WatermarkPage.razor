@@ -1,0 +1,17 @@
+@page "/components/watermark"
+@attribute [DocMeta("Watermark 水印", "在内容上或整页铺满斜着的文字、图片：截图外传时能看出查看人、时间与密级。", DocCategory.Display, Order = 17)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Watermark.Demo
+
+<DocPage Meta="Meta">
+    <Example Id="report" Title="内部报表" Demo="typeof(ReportExample)">
+        <Code>Lines</Code> 是多行文字（查看人、日期、密级），一行写 <Code>Text</Code>。水印是盖在内容上的一层：<Code>pointer-events: none</Code>，
+        不挡点击与选择；<Code>aria-hidden</Code>，读屏不念。<Code>Fullscreen</Code> 盖住整个窗口；不包内容时只渲染那一层，放在布局里即可。
+        前端水印删得掉，只是提示，真正的保密靠服务端（导出时打水印、权限）。
+    </Example>
+    <Example Id="options" Title="文字、图片与间距" Demo="typeof(OptionsExample)">
+        JS 用 canvas 画一格再平铺（按设备像素比放大，高分屏不糊），所以改任何参数都只重画一格。<Code>Image</Code> 给了就画图片，要同源或允许跨域；
+        <Code>GapX</Code>、<Code>GapY</Code> 是每格之间的空隙。默认颜色是半透明的灰，亮色、暗色主题上都看得见、不抢内容。
+    </Example>
+    <ApiReference Types="[typeof(Watermark)]" />
+</DocPage>

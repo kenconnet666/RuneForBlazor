@@ -1,0 +1,20 @@
+@* 上线检查：可以勾选（OnCheckedChange），状态图标是复选按钮，名称就是这一项；不适用、受阻的不能勾。勾完全部，进度条变成成功色 *@
+@inherits RuneComponent
+
+<Card>
+    <Checklist Items="items" Summary="true" OnCheckedChange="Check" />
+</Card>
+
+@code {
+    IReadOnlyList<ChecklistItem> items =
+    [
+        new("数据库备份") { Key = "backup", Description = "上线前全量备份，保留 7 天", Status = ChecklistStatus.Done },
+        new("执行迁移脚本") { Key = "migration", Description = "V42__add_order_index.sql" },
+        new("核对生产配置") { Key = "config", Description = "对照配置清单逐项确认", Owner = "运维" },
+        new("冒烟测试") { Key = "smoke", Owner = "测试", Status = ChecklistStatus.Blocked, Date = "等迁移完成" },
+        new("刷新 CDN") { Key = "cdn", Status = ChecklistStatus.Skipped, Description = "这次没有静态资源改动" },
+    ];
+
+    void Check(ChecklistCheck check) =>
+        items = [.. items.Select(item => item.Key == check.Item.Key ? item with { Status = check.Done ? ChecklistStatus.Done : ChecklistStatus.Todo } : item)];
+}

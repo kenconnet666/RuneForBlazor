@@ -76,6 +76,10 @@ const BUILT_IN = [
   'trending-down',
   // BackTop
   'arrow-up',
+  // Checklist 的状态（完成、超时用已有的 circle-check、circle-exclamation-point）
+  'circle-dashed',
+  'ban',
+  'circle-minus',
   // Result 的常见状态：403、404、500
   'shield-x',
   'file-question-mark',

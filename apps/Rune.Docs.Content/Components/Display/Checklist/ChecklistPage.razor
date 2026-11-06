@@ -1,0 +1,28 @@
+@page "/components/checklist"
+@attribute [DocMeta("Checklist 完成清单", "一组要做完的事：每项的状态（完成、待办、超时、受阻、不适用）与上下文——说明、负责人、日期、证据、操作，带完成进度；可以勾选。", DocCategory.Display, Order = 14)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Checklist.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="closing" Title="里程碑与结项材料" Demo="typeof(ClosingExample)">
+        每项的 <Code>Status</Code> 决定图标与颜色：<Code>Done</Code> 完成、<Code>Todo</Code> 待办（默认）、<Code>Overdue</Code> 超时（日期标红）、
+        <Code>Blocked</Code> 受阻、<Code>Skipped</Code> 不适用（划掉，不算进进度）。名称下面是 <Code>Description</Code> 与一行
+        <Code>Owner</Code> · <Code>Date</Code> · <Code>Evidence</Code>，<Code>Action</Code> 在结束边（催办、上传）。<Code>Summary</Code> 显示完成数与进度条。
+        状态写在给读屏的文字里。
+    </Example>
+    <Examples>
+        <ExampleColumn>
+            <Example Id="launch" Title="可以勾选：上线检查" Demo="typeof(LaunchExample)">
+                给了 <Code>OnCheckedChange</Code> 时状态图标是复选按钮（<Code>role="checkbox"</Code>，名称是这一项），点了报告新的完成状态，
+                状态由使用方保存；不适用、受阻的不能勾。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="compact" Title="表格里与一行排开" Demo="typeof(CompactExample)">
+                <Code>Layout="ChecklistLayout.Icons"</Code> 只有一排状态图标，放在表格的格子里，悬停与读屏有每一项的说明；
+                <Code>Layout="ChecklistLayout.Inline"</Code> 一行排开、放不下换行，显示名称、日期与证据。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Checklist), typeof(ChecklistItem)]" />
+</DocPage>

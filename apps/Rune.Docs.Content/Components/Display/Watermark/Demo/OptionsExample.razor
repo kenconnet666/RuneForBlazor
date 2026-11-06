@@ -1,0 +1,42 @@
+@* 调整水印：文字或图片、角度、间距、字号、颜色 *@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("18rem")" Gap="SpaceScale.Lg">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <ToggleGroup @bind-Value="kind" Required="true" Size="Size.Sm" aria-label="水印内容">
+            <ToggleItem Value="text">文字</ToggleItem>
+            <ToggleItem Value="image">图片</ToggleItem>
+        </ToggleGroup>
+        @if (kind == "text")
+        {
+            <Field Label="文字"><TextField @bind-Value="text" /></Field>
+            <Field Label="@($"字号：{fontSize}px")"><Slider TValue="int" @bind-Value="fontSize" Min="10" Max="28" /></Field>
+            <Field Label="颜色"><ColorField @bind-Value="color" /></Field>
+        }
+        <Field Label="@($"角度：{rotate}°")"><Slider TValue="int" @bind-Value="rotate" Min="-90" Max="90" /></Field>
+        <Field Label="@($"间距：{gap}px")"><Slider TValue="int" @bind-Value="gap" Min="40" Max="240" Step="10" /></Field>
+    </Flex>
+    <Watermark Text="@(kind == "text" ? text : null)" Image="@(kind == "image" ? Logo : null)" Rotate="rotate" GapX="gap" GapY="@((int)Math.Round(gap * 0.8))"
+               FontSize="fontSize" Color="@color">
+        <Card style="height: 100%; min-height: 16rem">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <TextSpan Weight="Weight.Semibold">供应商评审纪要</TextSpan>
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">参会：采购部、质量部、生产部。结论：远山精密进入 A 类名录，海川液压整改后复审。</TextSpan>
+                <TextSpan Size="Size.Sm" Tone="TextTone.Muted">下次评审：11 月第二周。整改清单见附件，责任人按清单跟进，周五前反馈进度。</TextSpan>
+            </Flex>
+        </Card>
+    </Watermark>
+</Grid>
+
+@code {
+    // 示例自带的标志图（data URL，不跨域）
+    static readonly string Logo = "data:image/svg+xml," + Uri.EscapeDataString(
+        """<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40"><rect x="1" y="1" width="118" height="38" rx="8" fill="none" stroke="#6366f1" stroke-width="2" opacity="0.2"/><text x="60" y="26" font-size="16" font-family="sans-serif" text-anchor="middle" fill="#6366f1" opacity="0.2">ACME</text></svg>""");
+
+    string? kind = "text";
+    string? text = "仅供内部评审";
+    int rotate = -22;
+    int gap = 120;
+    int fontSize = 14;
+    string? color = "#80808033";
+}

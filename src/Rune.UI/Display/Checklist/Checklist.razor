@@ -1,0 +1,150 @@
+@*
+    完成清单（同 vue-tsx-pro 的 Checklist）：一组要做完的事，每项的状态（完成、待办、超时、不适用、受阻）与它的上下文——怎么做、谁负责、哪天、证据、去处理。
+    里程碑与交付证据、结项材料、上线检查、新用户的引导任务。参考 Shopify Polaris 的 Setup guide、GitHub 的任务列表。
+    <Checklist Summary="true" Items="items" />                               items = [new("验收报告") { Status = ChecklistStatus.Done, Date = "10-12" }, …]
+    <Checklist Layout="ChecklistLayout.Inline" Items="items" />              一行排开、放不下换行（详情行、卡片的一角）
+    <Checklist Layout="ChecklistLayout.Icons" Items="items" />               只有一排状态图标（表格的格子里），读屏念每一项
+    <Checklist Items="tasks" OnCheckedChange="SaveAsync" />                  可以勾选（上线检查、引导任务）
+    Summary 在上面显示“已完成 2 / 3”与进度条（不适用的不算）。没完成的名称是次要色，不适用的划掉；超时的日期用危险色。每项的状态写在给读屏的文字里。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@switch (Layout)
+{
+    case ChecklistLayout.Icons:
+        var label = Config.Lang.ChecklistIconsLabel([.. Items.Select(item => Config.Lang.ChecklistItemState(item.Label, StatusText(item.Status)))]);
+        <span role="img" aria-label="@label" title="@label" @attributes="Attrs.Merge(ChecklistStyles.Icons, SizeLayer, Rest)">
+            @foreach (var item in Items)
+            {
+                <span @key="KeyOf(item)">@StatusIcon(item)</span>
+            }
+        </span>
+        break;
+    case ChecklistLayout.Inline:
+        <ul @attributes="Attrs.Merge(ChecklistStyles.Inline, SizeLayer, Rest)">
+            @foreach (var item in Items)
+            {
+                var labelId = LabelId(item);
+                <li @key="KeyOf(item)" @attributes="ChecklistStyles.InlineItem">
+                    @Status(item, labelId)
+                    <span id="@labelId" @attributes="ChecklistStyles.Label(item.Status)">@item.Label</span>
+                    @if (item.Date is not null)
+                    {
+                        <span @attributes="item.Status == ChecklistStatus.Overdue ? ChecklistStyles.LateMeta : ChecklistStyles.Meta">@item.Date</span>
+                    }
+                    @item.Evidence
+                </li>
+            }
+        </ul>
+        break;
+    default:
+        var counted = Items.Where(item => item.Status != ChecklistStatus.Skipped).ToList();
+        var done = counted.Count(item => item.Status == ChecklistStatus.Done);
+        <div @attributes="Attrs.Merge(ChecklistStyles.Root, SizeLayer, Rest)">
+            @if (Summary && counted.Count > 0)
+            {
+                var summary = Config.Lang.ChecklistSummary(done, counted.Count);
+                <div @attributes="ChecklistStyles.Summary">
+                    <span>@summary</span>
+                    <Progress Value="done" Max="counted.Count" Size="UI.Size.Xs" Tone="@(done == counted.Count ? UI.Tone.Success : UI.Tone.Accent)" aria-label="@summary" />
+                </div>
+            }
+            <ul @attributes="ChecklistStyles.List">
+                @foreach (var item in Items)
+                {
+                    var labelId = LabelId(item);
+                    <li @key="KeyOf(item)" data-status="@item.Status.ToString().ToLowerInvariant()" @attributes="Attrs.Merge(ChecklistStyles.Item, PropsItem)">
+                        @Status(item, labelId)
+                        <div @attributes="ChecklistStyles.Body">
+                            <span id="@labelId" @attributes="ChecklistStyles.Label(item.Status)">@item.Label</span>
+                            @if (item.Description is not null)
+                            {
+                                <span @attributes="ChecklistStyles.Description">@item.Description</span>
+                            }
+                            @if (item.Owner is not null || item.Date is not null || item.Evidence is not null)
+                            {
+                                <span @attributes="ChecklistStyles.Meta">
+                                    @if (item.Owner is not null)
+                                    {
+                                        <span>@item.Owner</span>
+                                    }
+                                    @if (item.Date is not null)
+                                    {
+                                        <span @attributes="item.Status == ChecklistStatus.Overdue ? ChecklistStyles.Late : null">@item.Date</span>
+                                    }
+                                    @item.Evidence
+                                </span>
+                            }
+                        </div>
+                        @if (item.Action is not null)
+                        {
+                            <div @attributes="ChecklistStyles.Action">@item.Action</div>
+                        }
+                        else
+                        {
+                            <span></span>
+                        }
+                    </li>
+                }
+            </ul>
+        </div>
+        break;
+}
+
+@code {
+    static readonly Dictionary<ChecklistStatus, IconData> Icons = new()
+    {
+        [ChecklistStatus.Done] = BuiltInIcons.CircleCheck,
+        [ChecklistStatus.Todo] = BuiltInIcons.CircleDashed,
+        [ChecklistStatus.Overdue] = BuiltInIcons.CircleExclamationPoint,
+        [ChecklistStatus.Blocked] = BuiltInIcons.Ban,
+        [ChecklistStatus.Skipped] = BuiltInIcons.CircleMinus,
+    };
+
+    readonly string id = UniqueId.Next("checklist");
+    Memo<Size, Attrs> sizeLayers;
+
+    /// <summary>各项。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ChecklistItem> Items { get; set; } = [];
+
+    /// <summary>排法，默认一项一行。</summary>
+    [Parameter] public ChecklistLayout Layout { get; set; }
+
+    /// <summary>上面显示“已完成 2 / 3”与进度条（一项一行的排法）。</summary>
+    [Parameter] public bool Summary { get; set; }
+
+    /// <summary>字号档位；不写时继承。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>可以勾选：状态图标变成复选按钮，点了报告新的完成状态（不适用、受阻的不能勾）。</summary>
+    [Parameter] public EventCallback<ChecklistCheck> OnCheckedChange { get; set; }
+
+    /// <summary>每一项（li）的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    Attrs? SizeLayer => Size is { } size ? sizeLayers.Get(size, static s => new Attrs { Sx = ScaleStyles.FontSize(s) }) : null;
+
+    static string KeyOf(ChecklistItem item) => item.Key ?? item.Label;
+
+    string LabelId(ChecklistItem item) => $"{id}-{KeyOf(item).GetHashCode():x}";
+
+    string StatusText(ChecklistStatus status) => Config.Lang.ChecklistStatus[status.ToString().ToLowerInvariant()];
+
+    RenderFragment StatusIcon(ChecklistItem item) => @<Icon Data="Icons[item.Status]" @attributes="Attrs.MergeProps(ChecklistStyles.StatusIcon(item.Status))" />;
+
+    // 状态：可以勾选时是复选按钮（名称是这一项的名称），否则是图标加给读屏的状态文字
+    RenderFragment Status(ChecklistItem item, string labelId) => OnCheckedChange.HasDelegate
+        ? @<span @attributes="ChecklistStyles.Status">
+              <button type="button" role="checkbox" aria-checked="@(item.Status == ChecklistStatus.Done ? "true" : "false")" aria-labelledby="@labelId"
+                      aria-describedby="@($"{labelId}-status")" disabled="@(item.Status is ChecklistStatus.Skipped or ChecklistStatus.Blocked)"
+                      @onclick="() => OnCheckedChange.InvokeAsync(new(item, item.Status != ChecklistStatus.Done))" @attributes="ChecklistStyles.Toggle">
+                  @StatusIcon(item)
+              </button>
+              <VisuallyHidden id="@($"{labelId}-status")">@StatusText(item.Status)</VisuallyHidden>
+          </span>
+        : @<span @attributes="ChecklistStyles.Status">
+              @StatusIcon(item)
+              <VisuallyHidden>@StatusText(item.Status)</VisuallyHidden>
+          </span>;
+}
