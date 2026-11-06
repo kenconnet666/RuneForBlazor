@@ -13,7 +13,7 @@
 }
 
 <div @attributes="Attrs.Merge(shell[InputPart.Root], RootUserAttrs, ShellAttrs)">
-    <select @attributes="Attrs.Merge(parts[NativeSelectPart.Select], InputUserAttrs, SelectManaged)">
+    <select @ref="Element" @attributes="Attrs.Merge(parts[NativeSelectPart.Select], InputUserAttrs, SelectManaged)">
         @if (Placeholder is not null)
         {
             <option value="" disabled="@IsRequired">@Placeholder</option>

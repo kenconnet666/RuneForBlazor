@@ -6,7 +6,7 @@
 @inherits ButtonBase
 @{ var parts = Parts(ButtonShape.Square); }
 
-<button type="button" aria-pressed="false" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled), Managed)">
+<button type="button" aria-pressed="false" @ref="Element" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled), Managed)">
     <span @attributes="Attrs.Merge(parts[ButtonPart.Content], PropsContent)"><Icon Data="BuiltInIcons.Eye" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon, shownIcon)" /><Icon Data="BuiltInIcons.EyeOff" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon, hiddenIcon)" /></span>
 </button>
 

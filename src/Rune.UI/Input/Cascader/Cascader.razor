@@ -28,7 +28,7 @@
     {
         <Icon Data="Icon" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsIcon)" />
     }
-    <button @attributes="Attrs.Merge(select[SelectPart.Trigger], InputUserAttrs, TriggerManaged)">
+    <button @ref="Element" @attributes="Attrs.Merge(select[SelectPart.Trigger], InputUserAttrs, TriggerManaged)">
         <span @attributes="Attrs.Merge(select[SelectPart.Value], PropsValue)">
             @if (keys.Count == 0)
             {

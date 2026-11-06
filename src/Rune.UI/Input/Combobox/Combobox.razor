@@ -26,7 +26,7 @@
     {
         <Icon Data="Icon" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsIcon)" />
     }
-    @ValueElement.Input(null, Attrs.Merge(shell[InputPart.Input], InputUserAttrs, InputManaged))
+    @ValueElement.Input(null, Attrs.Merge(shell[InputPart.Input], InputUserAttrs, InputManaged), CaptureElement)
     @if (Clearable && Text.Length > 0 && Editable)
     {
         <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="ClearAsync" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusInput)" />

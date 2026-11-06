@@ -9,7 +9,7 @@
 @inherits ButtonBase
 @{ var parts = Parts(ButtonShape.Square); }
 
-<button type="button" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !IsLoading), Managed)" @onrunecopied="HandleCopied">
+<button type="button" @ref="Element" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !IsLoading), Managed)" @onrunecopied="HandleCopied">
     <span @attributes="Attrs.Merge(parts[ButtonPart.Content], PropsContent, IsLoading ? hiddenContent : null)"><Icon Data="BuiltInIcons.Copy" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon, idleIcon)" /><Icon Data="BuiltInIcons.Check" @attributes="Attrs.MergeProps(parts[ButtonPart.Icon], PropsIcon, copiedIcon)" /></span>
     @if (IsLoading)
     {

@@ -12,6 +12,8 @@ public partial class Slider<TValue>
     static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
 
     readonly string partLabelId = UniqueId.Next("slider-part");
+    // 滑块的元素：范围时两个，Element 是第一个（起点）
+    readonly ElementReference[] thumbs = new ElementReference[2];
     Memo<(TValue Min, TValue Max, TValue Step, TValue? BigStep, Orientation Orientation, string Values, double Start, double End, long Ack, bool Disabled, bool ReadOnly), Attrs> rootManaged;
     // 处理过的 JS 序号（见 SlideEventArgs.Seq）
     long acknowledged;
@@ -170,6 +172,9 @@ public partial class Slider<TValue>
     Attrs MarkPosition(SliderMark<TValue> mark) => new() { Vars = [SliderStyles.MarkAt.Set(Percent(PercentOf(mark.Value)))] };
 
     static CssLength Percent(double value) => $"{value.ToString(Invariant)}%";
+
+    /// <inheritdoc/>
+    protected override void OnAfterRender(bool firstRender) => Element = thumbs[0];
 
     // JS 发来的值：再夹一次范围、对齐步长（不信任客户端），变了才写回；一次操作结束时调用 OnValueCommit / OnRangeCommit
     async Task SlideAsync(SlideEventArgs e)

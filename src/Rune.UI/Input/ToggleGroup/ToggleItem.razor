@@ -15,7 +15,7 @@
         ChildContent is null ? ButtonShape.Square : ButtonShape.Normal), Config.Styles);
 }
 
-<button type="button" aria-pressed="@(pressed ? "true" : "false")" data-state="@(pressed ? "on" : "off")"
+<button type="button" @ref="Element" aria-pressed="@(pressed ? "true" : "false")" data-state="@(pressed ? "on" : "off")"
         @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!off), Managed(off, pressed))">
     @RenderInner(parts, ChildContent)
 </button>

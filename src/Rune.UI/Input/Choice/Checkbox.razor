@@ -10,7 +10,7 @@
 <label data-state="@(Indeterminate ? "indeterminate" : IsChecked ? "checked" : "unchecked")" data-disabled="@(IsDisabled ? "true" : null)"
        data-readonly="@(IsReadOnly ? "true" : null)" @attributes="Attrs.Merge(parts[ChoicePart.Root], RootUserAttrs)">
     <span @attributes="Attrs.Merge(parts[ChoicePart.Control], PropsControl)">
-        <input type="checkbox" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputUserAttrs, InputManaged)" @onclick:preventDefault="IsReadOnly" />
+        <input type="checkbox" @ref="Element" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputUserAttrs, InputManaged)" @onclick:preventDefault="IsReadOnly" />
         <Icon Data="@(Indeterminate ? BuiltInIcons.Minus : BuiltInIcons.Check)" StrokeWidth="3" @attributes="Attrs.MergeProps(parts[ChoicePart.Indicator], PropsIndicator)" />
     </span>
     @if (ChildContent is not null)

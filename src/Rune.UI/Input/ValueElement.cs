@@ -15,9 +15,11 @@ internal static class ValueElement
     /// <summary>渲染 input：值属性是 value；改值的事件有 oninput 时是它，否则是 onchange。</summary>
     /// <param name="type">input 的 type；null 时是文本。</param>
     /// <param name="attributes">其余属性。</param>
-    public static RenderFragment Input(string? type, Attrs attributes) => builder => Build(builder, type, attributes);
+    /// <param name="capture">元素引用（同 <c>@ref</c>）。</param>
+    public static RenderFragment Input(string? type, Attrs attributes, Action<ElementReference>? capture = null) =>
+        builder => Build(builder, type, attributes, capture);
 
-    static void Build(RenderTreeBuilder builder, string? type, Attrs attributes)
+    static void Build(RenderTreeBuilder builder, string? type, Attrs attributes, Action<ElementReference>? capture)
     {
         var pairs = attributes.ToList();
         var updatingEvent = pairs.Exists(static p => p.Key == "oninput") ? "oninput" : "onchange";
@@ -30,6 +32,8 @@ internal static class ValueElement
             // 登记要紧跟在处理器那一帧后面；空的 EventCallback 不会添加帧，这时不登记
             if (name == updatingEvent && HasHandler(value)) builder.SetUpdatesAttributeName("value");
         }
+        // 引用在属性之后、内容之前（同 Razor 生成的顺序）
+        if (capture is not null) builder.AddElementReferenceCapture(3, capture);
         builder.CloseElement();
     }
 

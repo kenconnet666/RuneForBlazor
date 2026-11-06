@@ -14,7 +14,7 @@
 <div @attributes="Attrs.Merge(parts[NumberRangeFieldPart.Root], Rest, RootManaged)">
     @* 两个框不拿 Field 的 id 与说明（组拿）：第一个框的 id 由这里给，点标签聚焦它 *@
     <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
-        <NumberField TValue="TValue" Value="CurrentValue.Low" ValueChanged="SetLowAsync" @attributes="Attrs.MergeProps(parts[NumberRangeFieldPart.Field], PropsStart, EndManaged(0))"
+        <NumberField @ref="start" TValue="TValue" Value="CurrentValue.Low" ValueChanged="SetLowAsync" @attributes="Attrs.MergeProps(parts[NumberRangeFieldPart.Field], PropsStart, EndManaged(0))"
                      Min="Min" Max="Max" Step="Step" Format="@Format" Scale="Scale" Prefix="Prefix" Suffix="Suffix" Stepper="false"
                      Variant="Variant" Size="Size" Radius="Radius" Disabled="IsDisabled" ReadOnly="IsReadOnly" Invalid="IsInvalid" Required="IsRequired" />
         <span aria-hidden="true" @attributes="Attrs.Merge(parts[NumberRangeFieldPart.Separator], PropsSeparator)">@(Separator ?? DefaultSeparator)</span>
@@ -28,6 +28,11 @@
     static readonly RenderFragment DefaultSeparator = builder => builder.AddContent(0, "–");
 
     Memo<(string? LabelledBy, string? DescribedBy, bool Disabled, bool Invalid), Attrs> rootManaged;
+    // 第一个框：Element（与 FocusAsync）是它的输入框
+    NumberField<TValue>? start;
+
+    /// <inheritdoc/>
+    protected override void OnAfterRender(bool firstRender) => Element = start?.Element;
 
     /// <summary>两端共同的最小值。</summary>
     [Parameter] public decimal? Min { get; set; }

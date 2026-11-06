@@ -28,7 +28,7 @@
     {
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsPrefix)">@Prefix</label>
     }
-    <input @key="version" type="text" inputmode="decimal" autocomplete="off"
+    <input @key="version" @ref="Element" type="text" inputmode="decimal" autocomplete="off"
            @attributes="Attrs.Merge(parts[InputPart.Input], VisibleUserAttrs, InputManaged)" />
     @if (Suffix is not null)
     {

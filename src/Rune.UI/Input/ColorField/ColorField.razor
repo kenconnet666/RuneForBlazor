@@ -22,7 +22,7 @@
         @* 原生取色器只认 #rrggbb *@
         <input type="color" @attributes="Attrs.Merge(own[ColorFieldPart.Picker], PropsPicker, PickerManaged(hex?[..7] ?? DefaultColor, editable))" />
     </label>
-    @ValueElement.Input("text", Attrs.Merge(Attrs.Layer(parts[InputPart.Input], MonoInput), InputUserAttrs, InputManaged))
+    @ValueElement.Input("text", Attrs.Merge(Attrs.Layer(parts[InputPart.Input], MonoInput), InputUserAttrs, InputManaged), CaptureElement)
 </div>
 
 @code {

@@ -38,6 +38,14 @@ public abstract partial class ButtonBase : UIComponent
     /// <summary>前置图标的部件属性（交给 Icon 组件）。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }
 
+    /// <summary>按钮元素（button 或 a），交互渲染之后才有值；用 <see cref="FocusAsync"/> 聚焦。</summary>
+    public ElementReference? Element { get; protected set; }
+
+    /// <summary>把焦点移到按钮上；静态渲染（没有交互）时什么也不做。</summary>
+    /// <param name="preventScroll">不把它滚动到可见范围。</param>
+    public ValueTask FocusAsync(bool preventScroll = false) =>
+        RendererInfo.IsInteractive && Element is { } element ? element.FocusAsync(preventScroll) : ValueTask.CompletedTask;
+
     /// <summary>后置图标的部件属性。</summary>
     [Parameter] public Attrs? PropsIconEnd { get; set; }
 

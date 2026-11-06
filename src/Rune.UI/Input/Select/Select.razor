@@ -38,7 +38,7 @@
         <SelectedTags Tags="@(chosen.Select(c => c.Option).ToList())" MaxTagCount="MaxTagCount" OnRemove="@(Locked ? default : RemoveCallback)" PropsTag="PropsTag"
                       @attributes="Attrs.MergeProps(null, PropsTags)" />
     }
-    <button @attributes="Attrs.Merge(parts[SelectPart.Trigger], InputUserAttrs, TriggerManaged(tagged))">
+    <button @ref="Element" @attributes="Attrs.Merge(parts[SelectPart.Trigger], InputUserAttrs, TriggerManaged(tagged))">
         <span @attributes="Attrs.Merge(parts[SelectPart.Value], PropsValue)">
             @if (tagged)
             {

@@ -6,7 +6,7 @@
 @inherits ButtonBase
 @{ var parts = Parts(ButtonShape.Square); }
 
-<button type="button" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!IsLoading && !Disabled), Managed)">
+<button type="button" @ref="Element" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!IsLoading && !Disabled), Managed)">
     @RenderInner(parts, null)
 </button>
 

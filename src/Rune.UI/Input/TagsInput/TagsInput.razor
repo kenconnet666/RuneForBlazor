@@ -32,7 +32,7 @@
         <Tag @key="tag" Variant="StatusVariant.Surface" OnRemove="@(Editable ? EventCallback.Factory.Create(this, () => RemoveAsync(tag)) : default)"
              @attributes="Attrs.MergeProps(null, PropsTag?.Invoke(tag))">@label</Tag>
     }
-    @ValueElement.Input(null, Attrs.Merge(shell[InputPart.Input], InputUserAttrs, InputManaged))
+    @ValueElement.Input(null, Attrs.Merge(shell[InputPart.Input], InputUserAttrs, InputManaged), CaptureElement)
     @if (Clearable && tags.Count > 0 && Editable)
     {
         <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="ClearAsync" @attributes="Attrs.MergeProps(shell[InputPart.Button], PropsClear, RefocusInput)" />

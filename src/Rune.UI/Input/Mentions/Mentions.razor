@@ -13,7 +13,7 @@
 @typeparam TItem
 @inherits UIComponent
 
-<Textarea Value="@Value" ValueChanged="SetTextAsync" ValueExpression="ValueExpression" Rows="Rows" MaxRows="MaxRows" Fixed="Fixed" ShowCount="ShowCount"
+<Textarea @ref="textarea" Value="@Value" ValueChanged="SetTextAsync" ValueExpression="ValueExpression" Rows="Rows" MaxRows="MaxRows" Fixed="Fixed" ShowCount="ShowCount"
           Variant="Variant" Size="Size" Radius="Radius" Disabled="Disabled" ReadOnly="ReadOnly" Required="Required" Invalid="Invalid"
           @attributes="Attrs.MergeProps(null, Rest, TextareaManaged)" />
 <ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@TextareaId" ListId="@ListId" OnToggle="Toggled" Size="Size" Label="@Config.Lang.MentionsList"
@@ -31,6 +31,14 @@
     string query = "";
     bool open;
     string? computedFor;
+    Textarea? textarea;
+
+    /// <summary>文本框元素，交互渲染之后才有值（同 Textarea 的 Element）。</summary>
+    public ElementReference? Element => textarea?.Element;
+
+    /// <summary>把焦点移到文本框上；静态渲染时什么也不做。</summary>
+    /// <param name="preventScroll">不把它滚动到可见范围。</param>
+    public ValueTask FocusAsync(bool preventScroll = false) => textarea?.FocusAsync(preventScroll) ?? ValueTask.CompletedTask;
 
     /// <summary>文字（<c>@bind-Value</c>）。</summary>
     [Parameter] public string? Value { get; set; }

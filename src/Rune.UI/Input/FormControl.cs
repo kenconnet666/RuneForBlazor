@@ -58,6 +58,20 @@ public abstract class FormControl<TValue> : UIComponent
 
     Bindable<TValue> value { get => field ??= new(this, () => Value, () => ValueChanged); }
 
+    /// <summary>
+    /// 控件的主元素（输入框、触发按钮、勾选框），交互渲染之后才有值；用 <see cref="FocusAsync"/> 聚焦（同 Blazor 的 <c>InputBase.Element</c>）。
+    /// 一组控件（RadioGroup、CheckboxGroup、ToggleGroup……）没有单一的主元素，是 null。
+    /// </summary>
+    public ElementReference? Element { get; protected set; }
+
+    /// <summary>把焦点移到控件上；静态渲染（没有交互）时什么也不做。</summary>
+    /// <param name="preventScroll">不把它滚动到可见范围。</param>
+    public virtual ValueTask FocusAsync(bool preventScroll = false) =>
+        RendererInfo.IsInteractive && Element is { } element ? element.FocusAsync(preventScroll) : ValueTask.CompletedTask;
+
+    /// <summary>交给 <see cref="ValueElement"/> 的元素引用回调：记进 <see cref="Element"/>。</summary>
+    protected Action<ElementReference> CaptureElement => field ??= element => Element = element;
+
     /// <summary>当前值（受控时是父级给的，非受控时是组件自己的）。</summary>
     protected TValue CurrentValue => value.Value;
 

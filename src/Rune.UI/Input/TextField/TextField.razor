@@ -21,7 +21,7 @@
     {
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsPrefix)">@Prefix</label>
     }
-    @ValueElement.Input(Type, Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged))
+    @ValueElement.Input(Type, Attrs.Merge(parts[InputPart.Input], InputUserAttrs, InputManaged), CaptureElement)
     @if (Suffix is not null)
     {
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsSuffix)">@Suffix</label>

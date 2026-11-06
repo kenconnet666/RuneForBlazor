@@ -29,7 +29,7 @@
     @for (var i = 0; i < shown.Count; i++)
     {
         var index = i;
-        <div @attributes="Attrs.Merge(parts[SliderPart.Thumb], InputUserAttrs, ThumbManaged(index, shown))">
+        <div @ref="thumbs[index]" @attributes="Attrs.Merge(parts[SliderPart.Thumb], InputUserAttrs, ThumbManaged(index, shown))">
             @if (PartLabelId(index, shown.Count) is { } partId)
             {
                 <VisuallyHidden id="@partId">@(index == 0 ? Config.Lang.SliderMin : Config.Lang.SliderMax)</VisuallyHidden>

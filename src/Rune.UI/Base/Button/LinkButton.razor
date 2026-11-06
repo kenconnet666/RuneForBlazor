@@ -7,7 +7,7 @@
 @inherits ButtonBase
 @{ var parts = Parts(FullWidth ? ButtonShape.FullWidth : ButtonShape.Normal); }
 
-<a @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !IsLoading), Managed)">
+<a @ref="Element" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !IsLoading), Managed)">
     @RenderInner(parts, External ? ExternalText : ChildContent)
 </a>
 
