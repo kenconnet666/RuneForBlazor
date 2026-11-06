@@ -53,7 +53,7 @@
 | 插槽 | `RenderFragment` / `RenderFragment<T>`，名字是 PascalCase 名词（`Title`、`Footer`、`ItemTemplate`） |
 | `items` / `columns` 数组 | 能声明的用子组件（`<TabPanel>`、`<DescriptionsItem>`、表格的 `<PropertyColumn>`）；数据驱动的用 `Items` + `ItemTemplate` |
 | 取远程数据的函数 | 委托：选项用 `OptionsLoader<T>`（已有）；表格、长列表用 `ItemsProvider`（同 Virtualize / QuickGrid：起始位置、条数、排序、`CancellationToken`） |
-| zod schema + `useForm` | `EditForm` / `EditContext` + DataAnnotations（或任意校验器）；字段名取 `[Display(Name)]`；值转换失败按 `InputBase` 的做法记进 `ValidationMessageStore` |
+| zod schema + `useForm` | `EditForm` / `EditContext` + DataAnnotations（或任意校验器）；字段名取 `[Display(Name)]`；提交的 name 在服务端渲染的表单里按字段生成（同 `InputBase`），静态 SSR 用 `[SupplyParameterFromForm]` 收；解析不了的输入恢复原值（同 vue），不留无效文字 |
 | `useToast()` / `useDialog()` 等组合式函数 | scoped 服务（`ToastService`、`DialogService`）+ 布局里放宿主（`Toaster`、`DialogHost`） |
 | `el.focus()` | 可聚焦的组件公开 `Element`（`ElementReference?`）与 `FocusAsync()`，同 `InputBase.Element` |
 | `createUi` / `Provider` | `AddRuneUI`（DI，服务端与 WebAssembly 各一次）+ `RuneProvider`（级联值） |
@@ -110,28 +110,28 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 
 ## R 整理与纠正（不加新组件）
 
-- [ ] R.1 CI 恢复全绿：
-  - 端到端任务最近 5 次失败：跑到约 5 分钟时 runner 收到关停信号，或打开页面超时，本地复现全过。现在全部用例共用一个演示服务与浏览器（程序集级夹具），xUnit 按测试类并行；
-    先在 CI 上记下内存与同时打开的浏览器上下文数，再决定限制并行、按渲染模式分片成几个任务，并给任务加 `timeout-minutes`；
-  - 补 Mentions 的 bUnit 与端到端用例（参照 `CascaderTests`、`TransferTests`）。
-- [ ] R.2 清单、文档与代码对齐：
-  - 代码里已有、旧路线图没勾的 CloseButton、CopyButton、IconLinkButton、Mark、Code、Blockquote，以及旧阶段 6 的“补齐已有组件”（Alert 的说明与额外内容分开、关闭时淡出；Switch 的加载中与轨道里的文字），
-    逐个按完成标准核对，缺的补进对应阶段；
-  - 文档站 54 页逐页核对是否跑过对照（旧阶段 4 的“已对齐”清单只覆盖一部分），没跑过的跑一遍；
-  - HANDOFF 的路径与“下一步”跟着本文改。
-- [ ] R.3 Blazor 化的 API 纠正（按“Blazor 化的约定”，1.0 之前一次改完，提交说明写清迁移）：
-  - 可聚焦的组件公开 `Element` 与 `FocusAsync()`：输入类（TextField、Textarea、NumberField、ColorField、OtpField、Select、Combobox、TagsInput、Mentions……）、按钮家族、Dialog / Drawer。
-    现在全库没有一处 `ElementReference`，使用方没法在 C# 里聚焦（例如提交失败后聚焦某个字段、打开对话框后聚焦指定的控件）；
-  - 表单：Field 不写 Label 时取绑定字段的 `[Display(Name)]`，错误汇总用同一个名字；能解析失败的控件（NumberField、ColorField，之后的日期）核对现在的行为，
-    统一成 `InputBase` 的做法：转换失败的文字记进 `ValidationMessageStore`、标 `aria-invalid`，不只是悄悄恢复；
-  - 静态 SSR 的表单：除了 `FormName`，核对 `[SupplyParameterFromForm]`、防伪令牌、`Enhance` 的转交，补一个静态 SSR 提交的端到端用例；
-  - `RuneComponent` 与 .NET 10 `ComponentBase` 对齐核对：`DispatchExceptionAsync`（`ErrorBoundary` 接得住异步异常）、`Assets`、`[PersistentState]`、`[SupplyParameterFromQuery]` 在 Rune 组件上都能用，各补一个测试；
-  - 预渲染不重复取数：定一个用 `[PersistentState]` 的共用做法写进 DESIGN（Select 的远程选项首屏、之后的表格与 QueryTable 用）；
-  - 命令式对话框：加 `DialogService.Open<TComponent>(parameters)`（正文是一个组件，同 `DynamicComponent`），组件里经级联的 `DialogHandle` 关闭并带结果（`Closed` 能拿到 `TResult`）；
-    现有的 `RenderFragment<DialogHandle>` 写法保留；
-  - 泛型推断：子组件要用父级类型参数的（CheckboxGroup、Select 一族、Tabs，之后的表格列）补 `[CascadingTypeParameter]`（现在只有 RadioGroup 有）；必填参数补 `[EditorRequired]`；
-  - 语言：`AddRuneUI` 加一个按 `CultureInfo.CurrentUICulture` 选语言包的选项（配合 ASP.NET Core 的 RequestLocalization），默认仍是 zh-CN；
-  - WebAssembly 裁剪：`Rune`、`Rune.UI`、`Rune.Icons` 打开 `IsTrimmable` 与裁剪分析器，修掉警告（反射只留在文档站的 API 表里）。
+- [x] R.1 CI 恢复全绿：根因是每个用例开的浏览器上下文从来不关，全部页面（WebAssembly 运行时、Server 电路）留到结束，CI 的机器跑到一半被关停。
+  测试类改继承 `E2ETest`，测试结束时关掉自己开的上下文；本地全部用例从约 5 分钟降到 3 分钟以内；任务加了 30 分钟时限。补了 Mentions 的 bUnit 与端到端用例。
+- [~] R.2 清单、文档与代码对齐：
+  - [x] CloseButton、CopyButton、IconLinkButton、Mark、Code、Blockquote 已在代码里（有文档页或示例、有测试）；Alert 已同 vue（说明与内容分开、经 dismiss 淡出）；
+    Switch 还缺 Loading、CheckedContent / UncheckedContent 与对应的部件属性，进阶段 1；
+  - [x] 文档站 54 页全部跑了对照（亮色）。修掉的系统性问题：部件名同 vue 保留 camelCase（`headerCell`，之前转成了连字符，多词部件从没配上对）；
+    对照工具跳过代码高亮的词元与看不见的元素；Avatar 图片加载后不再显示后备内容；CodeBlock 展开按钮建在按钮重置样式上；分页的页码按钮保留 Button 的标记；
+  - [ ] 剩下的差异逐页处理：form-section / form 的 admission 示例（等阶段 2 的 AsideLayout）、rating 的 review、menu 的 account、transfer、progress、skeleton（等 Stat）、
+    text-field 的 formats、checkbox 的 switch（等 Switch 补齐）、table 的 invoice 页脚、popconfirm、dialog 的进出场（vue 用 transform，这边用 scale 属性）；
+    部件标记与 vue 不同、配不上对的：Tabs（vue 的标签项是单独的 Tab 配方：`tab/root`、`tab/close`）、Card 的 skeleton、Table 的 rowHeader、输入框外壳的 input/*；
+  - [x] HANDOFF 的路径与“下一步”。
+- [~] R.3 Blazor 化的 API 纠正（按“Blazor 化的约定”）：
+  - [x] 可聚焦的组件公开 `Element` 与 `FocusAsync()`（输入类、按钮家族；NumberRangeField、Mentions 转给里面的；一组控件是 null）；
+  - [x] Field 不写 Label 时取 `[Display(Name)]` / `[DisplayName]`，错误汇总同名；解析不了的输入核对过：NumberField、ColorField 失焦时恢复原值（同 vue），不留无效文字，不需要转换错误；
+  - [x] 静态 SSR 的表单：每个控件一个 `Name`（原来有的用参数、有的用属性，统一了），服务端渲染的 EditForm 里按字段生成（同 InputBase），勾选框提交 true；Form 转交 `Enhance`；
+    测试台 `/static/form-post` 的端到端用例验证了回发、服务端校验与 `[SupplyParameterFromForm]` 绑回（RuneComponent 上的级联值供应同一套机制）；
+  - [x] `RuneComponent` 已有 `DispatchExceptionAsync`、`Assets`、`RendererInfo`、`AssignedRenderMode`；
+  - [ ] 预渲染不重复取数（`[PersistentState]`）：现在没有预渲染时取数的组件（Select 的远程选项在打开时才请求），做法随阶段 4 的表格一起定；
+  - [x] `DialogService.Open<TComponent>(options, parameters)`，正文经级联的 `DialogHandle` 用 `Close(结果)` 交回，`await handle.ResultAsync<T>()`；
+  - [x] 泛型推断核对过：只有 RadioGroup → Radio 需要 `[CascadingTypeParameter]`（已有），其他泛型组件靠数据传项；必填参数的 `[EditorRequired]` 已齐；
+  - [x] `RuneUIOptions.Languages`：按请求 / 电路的 `CurrentUICulture` 选语言包；
+  - [x] 三个库 `IsTrimmable`，裁剪分析 0 警告（能不用反射的改掉了，剩下的写明理由）。
 - [ ] R.4 代码走查（单独提交）：过长或职责混杂的文件（`Rune.UI.lib.module.js` 490 行、`lists.js`、`overlays.js`、`Cascader.razor.cs`、`ToastService.cs`）、重复的样式片段与死代码；
   入口顶部的 data 属性总表与实际用到的核对一遍。
 
@@ -143,7 +143,7 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 - [ ] 反馈：Banner（关闭同 Tag、Alert 的 `data-rune-dismiss`）、Result
 - [ ] FileDrop / Upload（拖放、粘贴、进度、列表、图片墙；vue：`input/FileDrop.tsx`、`input/Upload.tsx`）：选文件走 Blazor 的 `InputFile`（`IBrowserFile`），
   上传由使用方的函数完成并报告进度、支持取消；图片墙的预览等阶段 2 的 Lightbox、排序等 Sortable，做到时补
-- [ ] R.2 核对后剩下的已有组件补齐（Alert、Switch……）
+- [ ] Switch 补齐：Loading、CheckedContent / UncheckedContent（轨道里的文字）与对应的部件属性（同 vue-tsx-pro 的 Switch）
 
 ## 阶段 2：布局与展示
 
