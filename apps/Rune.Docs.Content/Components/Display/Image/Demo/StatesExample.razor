@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+@* 尺寸与填充：Fit 决定图片在框里怎么放（Cover 裁、Contain 留白）；圆角档位；地址错了时显示占位与 Alt（也可以自己给 Fallback） *@
+<Flex Gap="SpaceScale.Lg" Wrap="true" Align="ItemAlign.End">
+    @foreach (var fit in (ImageFit[])[ImageFit.Cover, ImageFit.Contain, ImageFit.None])
+    {
+        <Flex @key="fit" Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            @* 单张图片也能点开看大图：自己带一个预览 *@
+            <Image Src="@sample.Src" Alt="@($"{sample.Title}（{fit}）")" Width="140" Height="140" Fit="fit" Preview="@(fit == ImageFit.Cover)" />
+            <Small Tone="TextTone.Muted">Fit="ImageFit.@fit"</Small>
+        </Flex>
+    }
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Image Src="@Drawings.All[2].Src" Alt="圆形缩略图" Width="96" Height="96" Radius="Radius.Full" />
+        <Small Tone="TextTone.Muted">Radius="Radius.Full"</Small>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Image Src="/missing/drawing.png" Alt="不存在的图纸" Width="140" Height="105" data-testid="missing" />
+        <Small Tone="TextTone.Muted">加载失败</Small>
+    </Flex>
+</Flex>
+
+@code {
+    static readonly Drawing sample = Drawings.All[0];
+}

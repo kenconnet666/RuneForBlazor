@@ -1,0 +1,151 @@
+@*
+    图片预览（全屏的模态 dialog，同 vue-tsx-pro 的 Lightbox）：深色背景上看大图——缩放、拖动、旋转、还原、下载，几张图时左右切换。
+    Image 的 Preview 打开它（同一个 ImageGroup 里的图共用一个），也可以单独用：
+    <Lightbox @bind-Open="viewing" @bind-Index="at" Items="photos" />
+    平移、缩放、旋转都在 JS 里（data-rune-lightbox-viewport），当场改行内样式，没有往返：拖动平移，滚轮、触控板、捏合以指针为中心缩放，
+    双击放大、再双击放回视口；打开、换一张、旋转之后整张图放进视口（不超过原大）。换哪一张由 C# 管（上一张、下一张的按钮）。
+    键盘：← / → 上一张、下一张（图片放大到比视口宽时是平移），+ / − 缩放，0 还原，R 向右旋转，↑↓ 平移，Esc 关闭。
+    读屏：dialog 的名称是“图片预览”，图片区是 role="img"、名称是图片的 Alt；换一张时念出“第 2 张，共 5 张”。
+    别处的按钮写 data-rune-open="这个 Id" 也能直接打开它（单张图片的预览就这样开，静态 SSR 也能用）。未声明的属性落到 dialog 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var item = Current;
+    var total = Items.Count;
+    var at = CurrentIndex;
+    var button = Attrs.MergeProps(LightboxStyles.Button, PropsButton);
+}
+
+<dialog @attributes="Attrs.Merge(LightboxStyles.Root, Rest, Managed)" @onrunetoggle="HandleToggle">
+    <div @attributes="LightboxStyles.Toolbar">
+        <span aria-live="polite" @attributes="LightboxStyles.Counter">@(total > 1 ? Config.Lang.LightboxCounter(at + 1, total) : "")</span>
+        <IconButton Icon="BuiltInIcons.ZoomOut" Label="@Config.Lang.LightboxZoomOut" data-rune-lightbox-action="zoom-out" @attributes="button" />
+        @* 缩放比例由 JS 写 *@
+        <span aria-hidden="true" data-rune-lightbox-zoom @attributes="LightboxStyles.Zoom">100%</span>
+        <IconButton Icon="BuiltInIcons.ZoomIn" Label="@Config.Lang.LightboxZoomIn" data-rune-lightbox-action="zoom-in" @attributes="button" />
+        <IconButton Icon="BuiltInIcons.RotateCcw" Label="@Config.Lang.LightboxRotateLeft" data-rune-lightbox-action="rotate-left" @attributes="button" />
+        <IconButton Icon="BuiltInIcons.RotateCw" Label="@Config.Lang.LightboxRotateRight" data-rune-lightbox-action="rotate-right" @attributes="button" />
+        <IconButton Icon="BuiltInIcons.Undo2" Label="@Config.Lang.LightboxReset" data-rune-lightbox-action="reset" @attributes="button" />
+        @if (item is { Downloadable: true })
+        {
+            @* 下载而不是打开：download 是文件名，空字符串时用地址里的名字 *@
+            <IconLinkButton Href="@item.Src" Icon="BuiltInIcons.Download" Label="@Config.Lang.LightboxDownload" download="@(item.DownloadName ?? "")" @attributes="button" />
+        }
+        <IconButton Icon="BuiltInIcons.X" Label="@Config.Lang.Close" data-rune-close @attributes="button" />
+    </div>
+    @* 打开时焦点落在图片区：键盘直接能缩放、平移 *@
+    <div tabindex="0" role="img" aria-label="@item?.Alt" autofocus data-rune-lightbox-viewport @attributes="Attrs.Merge(LightboxStyles.Viewport, PropsViewport)">
+        @if (item is not null)
+        {
+            <div data-rune-lightbox-content @attributes="LightboxStyles.Content">
+                @* 懒加载：关着时（dialog 不显示）不下载大图 *@
+                <img @key="item.Src" src="@item.Src" alt="" draggable="false" loading="lazy" data-rune-image data-rune-lightbox-image @attributes="LightboxStyles.Image" />
+            </div>
+            <span aria-hidden="true" @attributes="LightboxStyles.Fallback">
+                <Icon Data="BuiltInIcons.ImageOff" Size="UI.Size.Xl" />
+                @Config.Lang.ImageError
+            </span>
+        }
+    </div>
+    @if (total > 1 && (Loop || at > 0))
+    {
+        <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@Config.Lang.LightboxPrevious" data-rune-lightbox-step="previous" @onclick="() => GoAsync(-1)"
+                    @attributes="Attrs.MergeProps(LightboxStyles.Previous, PropsButton)" />
+    }
+    @if (total > 1 && (Loop || at < total - 1))
+    {
+        <IconButton Icon="BuiltInIcons.ChevronRight" Label="@Config.Lang.LightboxNext" data-rune-lightbox-step="next" @onclick="() => GoAsync(1)"
+                    @attributes="Attrs.MergeProps(LightboxStyles.Next, PropsButton)" />
+    }
+    @if (item?.Caption is { } caption)
+    {
+        <div @attributes="Attrs.Merge(LightboxStyles.Caption, PropsCaption)">@caption</div>
+    }
+    @if (open.Value)
+    {
+        @* 预先加载前后两张：切换时不闪 *@
+        foreach (var neighbour in Neighbours(at))
+        {
+            <img @key="neighbour" src="@neighbour" alt="" hidden />
+        }
+    }
+</dialog>
+
+@code {
+    readonly string autoId = UniqueId.Next("lightbox");
+    Memo<(string Id, bool Open, string Label), Attrs> managed;
+
+    /// <summary>dialog 元素的 id，默认自动生成：别处的按钮写 <c>data-rune-open="这个 id"</c> 就能打开它。</summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>是否打开（<c>@bind-Open</c>）；Esc、关闭按钮会关上并写回。</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>打开或关闭后。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>用户打开、关上了预览，带原因：关闭按钮 Close、Esc Escape、data-rune-open 打开 Trigger；父级直接改 Open 时不报告。</summary>
+    [Parameter] public EventCallback<OverlayOpenChange> OnOpenChange { get; set; }
+
+    /// <summary>图片。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<LightboxItem> Items { get; set; } = [];
+
+    /// <summary>当前第几张，从 0 开始（<c>@bind-Index</c>）。</summary>
+    [Parameter] public int Index { get; set; }
+
+    /// <summary>换了一张（上一张、下一张）。</summary>
+    [Parameter] public EventCallback<int> IndexChanged { get; set; }
+
+    /// <summary>到头之后从另一头继续，默认 false。</summary>
+    [Parameter] public bool Loop { get; set; }
+
+    /// <summary>工具栏与左右切换按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsButton { get; set; }
+
+    /// <summary>图片区（视口）的部件属性。</summary>
+    [Parameter] public Attrs? PropsViewport { get; set; }
+
+    /// <summary>说明文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsCaption { get; set; }
+
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
+
+    Bindable<int> index { get => field ??= new(this, () => Index, () => IndexChanged); }
+
+    int CurrentIndex => Math.Clamp(index.Value, 0, Math.Max(0, Items.Count - 1));
+
+    LightboxItem? Current => Items.Count == 0 ? null : Items[CurrentIndex];
+
+    Attrs Managed => managed.Get((Id ?? autoId, open.Value, Config.Lang.LightboxLabel), static k => new Attrs
+    {
+        Id = k.Id,
+        AriaLabel = k.Label,
+        ["data-rune-overlay"] = true,
+        ["data-open"] = k.Open ? "true" : "false",
+    });
+
+    IEnumerable<string> Neighbours(int at)
+    {
+        if (at > 0) yield return Items[at - 1].Src;
+        if (at < Items.Count - 1) yield return Items[at + 1].Src;
+    }
+
+    async Task HandleToggle(OverlayToggleEventArgs e)
+    {
+        if (e.Open == open.Value) return;
+        await open.SetAsync(e.Open);
+        await OnOpenChange.InvokeAsync(new(e.Open, OverlayOpenChange.Parse(e.Reason, e.Open)));
+    }
+
+    Task GoAsync(int step)
+    {
+        var next = CurrentIndex + step;
+        if (next < 0 || next >= Items.Count)
+        {
+            if (!Loop) return Task.CompletedTask;
+            next = (next + Items.Count) % Items.Count;
+        }
+        return index.SetAsync(next);
+    }
+}

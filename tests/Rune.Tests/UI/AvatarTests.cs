@@ -28,7 +28,7 @@ public class AvatarTests : BunitContext
         var root = cut.Find("span");
         Assert.Equal(("img", "陈默"), (root.GetAttribute("role"), root.GetAttribute("aria-label")));
         Assert.Equal("", cut.Find("img").GetAttribute("alt"));
-        Assert.True(cut.Find("img").HasAttribute("data-rune-avatar-image"));
+        Assert.True(cut.Find("img").HasAttribute("data-rune-image"));
         Assert.Equal("默", cut.Find("[aria-hidden=true]").TextContent.Trim());
 
         var anonymous = Render<Avatar>();

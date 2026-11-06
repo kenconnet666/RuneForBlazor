@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+@* 图纸相册：组里的图共用一个预览，点哪张从哪张开始；大图里缩放（滚轮、+ −、双击）、拖动、旋转（R）、← → 切换、下载 *@
+<ImageGroup Loop="true">
+    @foreach (var drawing in Drawings.All)
+    {
+        <figure @key="drawing.Code" @attributes="Attrs.Merge(Figure)">
+            <Image Src="@drawing.Src" Alt="@($"{drawing.Title}（{drawing.Code}）")" Width="180" Height="135"
+                   Preview="true" DownloadName="@($"{drawing.Code}.svg")">
+                <Caption>@drawing.Code · @drawing.Title</Caption>
+            </Image>
+            <Flex Direction="LayoutDirection.Column">
+                <Small>@drawing.Title</Small>
+                <Small Tone="TextTone.Muted">@drawing.Code</Small>
+            </Flex>
+        </figure>
+    }
+</ImageGroup>
+
+@code {
+    static Style Figure => Css.Define(static () => new Style
+    {
+        Margin = 0,
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        Gap = CssLength.Rem(0.25),
+    });
+}

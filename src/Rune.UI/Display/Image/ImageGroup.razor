@@ -1,0 +1,46 @@
+@*
+    一组图片（div，同 vue-tsx-pro 的 ImageGroup）：里面可以预览的 Image 共用一个 Lightbox，大图里左右切换。
+    <ImageGroup>
+        @foreach (var photo in photos)
+        {
+            <Image Src="@photo.Thumb" Alt="@photo.Title" Preview="true" PreviewSrc="@photo.Url" />
+        }
+    </ImageGroup>
+    图片按登记（第一次渲染）的先后排；打开时取当时的一份。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(ImageStyles.Group, Rest)">
+    <CascadingValue Value="this" IsFixed="true">@ChildContent</CascadingValue>
+    <Lightbox @bind-Open="open" @bind-Index="index" Items="items" Loop="Loop" @attributes="Attrs.MergeProps(null, PropsLightbox)" />
+</div>
+
+@code {
+    readonly List<Image> members = [];
+    IReadOnlyList<LightboxItem> items = [];
+    bool open;
+    int index;
+
+    /// <summary>到头之后从另一头继续，默认 false。</summary>
+    [Parameter] public bool Loop { get; set; }
+
+    /// <summary>里面的 Image（也可以夹着别的内容）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>预览（交给 Lightbox）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLightbox { get; set; }
+
+    internal void Register(Image image) => members.Add(image);
+
+    internal void Release(Image image) => members.Remove(image);
+
+    /// <summary>从这一张打开预览。</summary>
+    internal void Open(Image image)
+    {
+        items = [.. members.Select(member => member.Item)];
+        index = members.IndexOf(image);
+        open = true;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,41 @@
+@page "/components/image"
+@attribute [DocMeta("Image 图片", "图片：懒加载、加载中扫光、失败占位；点开看大图（Lightbox）——缩放、拖动、旋转、下载，同一组的图左右切换。", DocCategory.Display, Order = 8)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Image.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <Example Id="gallery" Title="图纸相册：预览、缩放、旋转" Demo="typeof(GalleryExample)">
+            写了 <Code>Preview</Code> 的图片是按钮（名称“查看大图：Alt”），点了（或 <Kbd>Enter</Kbd>）打开 Lightbox：深色全屏，
+            滚轮、触控板、捏合以指针为中心缩放，拖动平移，双击放大 / 放回，旋转以 90° 为一档，打开、换一张、旋转后整张放进视口。
+            这些都在浏览器里算，Server 模式下也没有逐帧的往返。大图地址 <Code>PreviewSrc</Code>、说明 <Code>Caption</Code>、
+            下载的文件名 <Code>DownloadName</Code>。<Code>ImageGroup</Code> 里的图片共用一个预览，从点的那张开始，<Code>Loop</Code> 时到头从另一头继续。
+        </Example>
+        <ExampleColumn>
+            <Example Id="states" Title="尺寸、填充与加载失败" Demo="typeof(StatesExample)">
+                <Code>Width</Code>、<Code>Height</Code> 是框的大小（数字是 px），<Code>Fit</Code> 是图片在框里怎么放；
+                加载完之前框里是扫光的占位，加载完淡入；默认 <Code>loading="lazy"</Code>（滚到附近才加载）。
+                地址错了时显示占位与 Alt，读屏念出 Alt 与“图片加载失败”；<Code>Fallback</Code> 换成自己的内容。
+                加载状态由 JS 写在图片上，静态 SSR 也一样。第一张不在组里，也能点开：它自己带一个预览。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="attachments" Title="单独用 Lightbox" Demo="typeof(AttachmentsExample)">
+                附件列表里的“预览”：<Code>@@bind-Open</Code>、<Code>@@bind-Index</Code> 由页面管，<Code>Items</Code> 是一组 <Code>LightboxItem</Code>。
+                不在组里的单张图片自己带一个 Lightbox，由 JS 直接打开（<Code>data-rune-open</Code>），静态 SSR 也能看大图。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("Enter / Space", "在可以预览的图片上：打开大图"),
+        ("← / →", "大图里：上一张、下一张（从右到左排版时反过来）；图片放大到比视口宽时是平移"),
+        ("+ / −", "放大、缩小（焦点在图片区）"),
+        ("↑ / ↓", "上下平移（焦点在图片区）"),
+        ("0", "还原大小、位置与方向"),
+        ("R", "向右旋转 90°"),
+        ("Esc", "关闭大图，焦点回到打开它的图片"),
+    ])">
+        大图里的工具栏按钮都能用 <Kbd>Tab</Kbd> 走到；焦点在大图里循环（模态）。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(Rune.UI.Image), typeof(ImageGroup), typeof(Lightbox), typeof(LightboxItem)]" />
+</DocPage>

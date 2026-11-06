@@ -64,7 +64,7 @@ public static class ShimmerStyles
         ["100%"] = new() { Transform = "translateX(100%)" },
     });
 
-    static Keyframes FadeIn => Css.Define(static () => new Keyframes
+    internal static Keyframes FadeIn => Css.Define(static () => new Keyframes
     {
         ["from"] = new() { Opacity = 0 },
     });

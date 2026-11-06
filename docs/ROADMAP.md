@@ -163,7 +163,9 @@ R → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9。阶段 9 的质量项�
 - [x] Sortable（单列）：拖动时其余项用 transform 让位、松开才发 rune-reorder（Blazor 管元素，JS 不挪节点），顺序跟上后去掉位移；
   键盘拿起、挪动、取消，每步播报；拖到边缘自动滚动。多容器（分组、落点插入线、影子）随阶段 7 的 KanbanBoard 补；Upload 图片墙的排序用它
 - [ ] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动），紧接着 TreeSelect、TreeTransfer（Transfer 的树形）
-- [ ] Image 与 Lightbox（缩放、旋转、拖动），接着补 Upload 的图片墙（`ListType`：方形缩略图、点开预览、Ctrl + V 粘贴图片）
+- [x] Image / ImageGroup / Lightbox：加载状态由 JS 写在图片上（`data-rune-image`，Avatar 共用），平移、缩放、旋转在 JS 里改行内样式，换哪一张由 C# 管；
+  单张图片的预览由 `data-rune-open` 直接打开（静态 SSR 也能看大图）
+- [ ] Upload 的图片墙（`ListType`：方形缩略图、点开预览、Ctrl + V 粘贴图片、拖动排序）
 - [ ] VirtualList 补齐：随页面滚动、横向、骨架行、跳到第几项、可见范围变化的回调
 
 ## 阶段 3：浮层与导航

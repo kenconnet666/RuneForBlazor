@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+@* 单独用 Lightbox：附件列表里的“预览”按钮打开它，@bind-Open 与 @bind-Index 由页面管 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+    @for (var i = 0; i < attachments.Count; i++)
+    {
+        var at = i;
+        <Flex @key="attachments[at].Alt" Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <Icon Data="Lucide.FileImage" />
+            <TextSpan>@attachments[at].Alt</TextSpan>
+            <Button Variant="ButtonVariant.Ghost" Size="Size.Sm" @onclick="() => Show(at)">预览</Button>
+        </Flex>
+    }
+</Flex>
+<Lightbox @bind-Open="open" @bind-Index="index" Items="attachments" />
+
+@code {
+    static readonly IReadOnlyList<LightboxItem> attachments =
+    [
+        .. Drawings.All.Take(3).Select(d => new LightboxItem(d.Src, $"{d.Code}.svg") { DownloadName = $"{d.Code}.svg" }),
+    ];
+
+    bool open;
+    int index;
+
+    void Show(int at)
+    {
+        index = at;
+        open = true;
+    }
+}

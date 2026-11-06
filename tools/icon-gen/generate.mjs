@@ -82,6 +82,13 @@ const BUILT_IN = [
   'circle-minus',
   // Sortable 的把手
   'grip-vertical',
+  // Image 加载失败的占位，Lightbox 的工具栏
+  'image-off',
+  'zoom-in',
+  'zoom-out',
+  'rotate-ccw',
+  'undo-2',
+  'download',
   // Result 的常见状态：403、404、500
   'shield-x',
   'file-question-mark',

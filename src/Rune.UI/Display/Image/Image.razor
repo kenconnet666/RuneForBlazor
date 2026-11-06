@@ -1,0 +1,129 @@
+@*
+    图片（同 vue-tsx-pro 的 Image）：懒加载，加载时是扫光的占位，加载失败显示占位与原因；写了 Preview 时点击（或 Enter）看大图（Lightbox）。
+    同一个 ImageGroup 里的图片共用一个 Lightbox，大图里可以左右切换（相册、工单附件、验收照片）。
+    <Image Src="/photos/1-thumb.jpg" Alt="支架正面" Width="160" Height="120" Preview="true" PreviewSrc="/photos/1.jpg" />
+    加载状态由 JS 初始化器按图片的 load / error 写在图片的 data-state 上（同 Avatar），样式按它切换，没有往返，静态 SSR 也一样。
+    可以预览的图片是按钮：名称“查看大图：Alt”；不在组里时它直接打开自己的 Lightbox（data-rune-open，静态 SSR 也能看大图）。
+    缩略图加载失败时按钮仍在：大图是另一个地址，可能还看得到。未声明的属性落到 img 上；外层用 PropsRoot。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@if (Preview)
+{
+    <button type="button" aria-label="@Config.Lang.ImagePreview(Alt)"
+            @attributes="Attrs.Merge(Attrs.Layer(ImageStyles.Root(Radius, button: true), SizeVars), PropsRoot, TriggerAttrs)">
+        @Content
+    </button>
+    @if (Group is null)
+    {
+        <Lightbox Id="@lightboxId" Items="[Item]" @attributes="Attrs.MergeProps(null, PropsLightbox)" />
+    }
+}
+else
+{
+    <span @attributes="Attrs.Merge(Attrs.Layer(ImageStyles.Root(Radius, button: false), SizeVars), PropsRoot)">@Content</span>
+}
+
+@code {
+    static readonly Attrs ImageDefaults = new() { ["loading"] = "lazy", ["decoding"] = "async" };
+
+    readonly string lightboxId = UniqueId.Next("image-preview");
+    Memo<(CssLength? Width, CssLength? Height), Attrs> sizeVars;
+    Memo<string, Attrs> imageManaged;
+    Memo<string, Attrs> triggerAttrs;
+    Attrs? groupTrigger;
+
+    /// <summary>图片地址。</summary>
+    [Parameter, EditorRequired] public string Src { get; set; } = "";
+
+    /// <summary>图片的说明：读屏念它，加载失败时也显示。</summary>
+    [Parameter, EditorRequired] public string Alt { get; set; } = "";
+
+    /// <summary>宽度；不写时按图片。</summary>
+    [Parameter] public CssLength? Width { get; set; }
+
+    /// <summary>高度；不写时按图片。</summary>
+    [Parameter] public CssLength? Height { get; set; }
+
+    /// <summary>图片在框里怎么放，默认 Cover。</summary>
+    [Parameter] public ImageFit Fit { get; set; }
+
+    /// <summary>圆角档位，默认 Md。</summary>
+    [Parameter] public Radius Radius { get; set; } = UI.Radius.Md;
+
+    /// <summary>点击看大图。</summary>
+    [Parameter] public bool Preview { get; set; }
+
+    /// <summary>大图的地址；不写时用 Src。</summary>
+    [Parameter] public string? PreviewSrc { get; set; }
+
+    /// <summary>大图下方的说明。</summary>
+    [Parameter] public RenderFragment? Caption { get; set; }
+
+    /// <summary>大图里显示下载按钮，默认是。</summary>
+    [Parameter] public bool Downloadable { get; set; } = true;
+
+    /// <summary>下载时的文件名；不写时用地址里的名字。</summary>
+    [Parameter] public string? DownloadName { get; set; }
+
+    /// <summary>加载失败时显示的内容；默认是图标与 Alt。</summary>
+    [Parameter] public RenderFragment? Fallback { get; set; }
+
+    /// <summary>外层（span，可以预览时是 button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsRoot { get; set; }
+
+    /// <summary>加载失败的占位的部件属性。</summary>
+    [Parameter] public Attrs? PropsFallback { get; set; }
+
+    /// <summary>不在 ImageGroup 里时自己的预览（交给 Lightbox）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLightbox { get; set; }
+
+    /// <summary>所在的图片组：预览交给组。</summary>
+    [CascadingParameter] ImageGroup? Group { get; set; }
+
+    internal LightboxItem Item => new(PreviewSrc ?? Src, Alt)
+    {
+        Caption = Caption,
+        Downloadable = Downloadable,
+        DownloadName = DownloadName,
+    };
+
+    Attrs? SizeVars => Width is null && Height is null ? null : sizeVars.Get((Width, Height), static k => new Attrs
+    {
+        Vars = [.. Var(ImageStyles.WidthVar, k.Width), .. Var(ImageStyles.HeightVar, k.Height)],
+    });
+
+    // 在组里：点击时组从这一张打开共用的预览；不在组里：点击由 JS 直接打开自己的 Lightbox
+    Attrs TriggerAttrs => Group is not null
+        ? groupTrigger ??= new Attrs { ["aria-haspopup"] = "dialog", ["onclick"] = EventCallback.Factory.Create(this, () => Group?.Open(this)) }
+        : triggerAttrs.Get(lightboxId, static id => new Attrs { ["data-rune-open"] = id, ["aria-haspopup"] = "dialog" });
+
+    Attrs ImageManaged => imageManaged.Get(Alt, static alt => new Attrs { ["alt"] = alt, ["data-rune-image"] = true });
+
+    RenderFragment Content => __builder =>
+    {
+        <span @attributes="ImageStyles.Placeholder"></span>
+        <img @key="Src" src="@Src" @attributes="Attrs.Merge(Attrs.Layer(ImageStyles.Image(Fit), ImageDefaults), Rest, ImageManaged)" />
+        <span role="img" aria-label="@Alt" aria-description="@Config.Lang.ImageError" @attributes="Attrs.Merge(ImageStyles.Fallback, PropsFallback)">
+            @if (Fallback is not null)
+            {
+                @Fallback
+            }
+            else
+            {
+                <Icon Data="BuiltInIcons.ImageOff" />
+                <span aria-hidden="true">@Alt</span>
+            }
+        </span>
+    };
+
+    protected override void OnInitialized()
+    {
+        if (Preview) Group?.Register(this);
+    }
+
+    protected override void OnDispose() => Group?.Release(this);
+
+    static IEnumerable<CssVarValue> Var(CssVar<CssLength> variable, CssLength? value) => value is { } v ? [variable.Set(v)] : [];
+}
