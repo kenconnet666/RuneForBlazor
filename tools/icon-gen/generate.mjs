@@ -74,6 +74,8 @@ const BUILT_IN = [
   // Stat 的环比变化
   'trending-up',
   'trending-down',
+  // BackTop
+  'arrow-up',
   // Result 的常见状态：403、404、500
   'shield-x',
   'file-question-mark',

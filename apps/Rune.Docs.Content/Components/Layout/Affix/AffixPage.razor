@@ -1,0 +1,16 @@
+@page "/components/affix"
+@attribute [DocMeta("Affix 固钉与回到顶部", "滚动时贴住视口顶部或底部的操作条（Affix），长页面滚下去后出现的回到顶部按钮（BackTop）。", DocCategory.Layout, Order = 10)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Layout.Affix.Demo
+
+<DocPage Meta="Meta">
+    <Example Id="affix" Title="滚动面板里的操作条" Demo="typeof(ToolbarExample)">
+        <Code>Affix</Code> 用 CSS 的 <Code>position: sticky</Code>：在所在的那一层里贴住，不脱离文档流（不用占位、不用量宽度），那一层滚出去时跟着走。
+        <Code>OffsetTop</Code> 是贴住时离顶部多远（整页时让开顶栏），<Code>OffsetBottom</Code> 贴在底部（表单的提交栏）。
+        祖先里有 overflow 不是 visible 的元素（这里的示例面板）时，sticky 相对它贴住，把它的 id 写进 <Code>Target</Code>。
+        是否贴住由 JS 的 IntersectionObserver 看一个零高度的哨兵：贴住时加阴影、写 data-stuck；给了 <Code>OnChange</Code> 才把变化报给 C#。
+        <Code>BackTop</Code> 在整页（或 <Code>Target</Code> 给的容器）滚过 <Code>Threshold</Code> 后出现在右下角，点了平滑滚回顶部（减少动态效果时直接跳回），
+        焦点也回到开头；出现与滚回都在浏览器里，滚动时没有往返。
+    </Example>
+    <ApiReference Types="[typeof(Affix), typeof(BackTop)]" />
+</DocPage>

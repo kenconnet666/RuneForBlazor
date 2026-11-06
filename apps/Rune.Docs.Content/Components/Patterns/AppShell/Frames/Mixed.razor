@@ -41,7 +41,7 @@
             <Grid MinItemWidth="CssLength.Rem(10)" Gap="SpaceScale.Md">
                 @foreach (var stat in stats.GetValueOrDefault(current) ?? [])
                 {
-                    <Card @key="stat.Label"><DemoStat Label="@stat.Label" Text="@stat.Value" Unit="@stat.Unit" /></Card>
+                    <Card @key="stat.Label"><Stat Label="@stat.Label" Value="stat.Value" Unit="@stat.Unit" /></Card>
                 }
             </Grid>
             <Card>
@@ -53,7 +53,7 @@
 
 @code {
     sealed record SidePage(string Title, IconData Icon);
-    sealed record Stat(string Label, string Value, string? Unit = null);
+    sealed record Metric(string Label, decimal Value, string? Unit = null);
     sealed record Module(string Label, string Href, IconData Icon);
 
     static readonly Dictionary<string, SidePage> sidePages = new()
@@ -66,14 +66,14 @@
     };
 
     // 各页的几个指标：示例里页面只有标题与指标
-    static readonly Dictionary<string, Stat[]> stats = new()
+    static readonly Dictionary<string, Metric[]> stats = new()
     {
-        ["home"] = [new("待我审批", "6"), new("本月采购额", "1,284,000", "元"), new("在途订单", "23")],
-        ["po"] = [new("草稿", "4"), new("审批中", "9"), new("已下单", "57")],
-        ["quote"] = [new("进行中的询价", "2"), new("已收报价", "11"), new("平均降幅", "6.8", "%")],
-        ["contract"] = [new("生效中", "38"), new("30 天内到期", "3"), new("待盖章", "1")],
-        ["suppliers"] = [new("合格供应商", "142"), new("考察中", "7"), new("本季新增", "5")],
-        ["logistics"] = [new("今日到货", "8"), new("延误", "2"), new("待验收", "5")],
+        ["home"] = [new("待我审批", 6m), new("本月采购额", 1_284_000m, "元"), new("在途订单", 23m)],
+        ["po"] = [new("草稿", 4m), new("审批中", 9m), new("已下单", 57m)],
+        ["quote"] = [new("进行中的询价", 2m), new("已收报价", 11m), new("平均降幅", 6.8m, "%")],
+        ["contract"] = [new("生效中", 38m), new("30 天内到期", 3m), new("待盖章", 1m)],
+        ["suppliers"] = [new("合格供应商", 142m), new("考察中", 7m), new("本季新增", 5m)],
+        ["logistics"] = [new("今日到货", 8m), new("延误", 2m), new("待验收", 5m)],
     };
 
     // 顶栏的一级导航：各模块（示例里只有“采购”是做好的）

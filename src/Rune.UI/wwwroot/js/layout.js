@@ -1,4 +1,4 @@
-// 布局：网格里跨列的项按实际列数收窄。
+// 布局：网格里跨列的项按实际列数收窄；尺寸观察；占满到窗口底边的区域量出自己的顶边。
 
 /** 量网格实际有几列（计算后的 grid-template-columns 有几段），跨列多于它的项改成跨当前的列数 */
 const gridObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver((entries) => {
@@ -40,4 +40,31 @@ const sizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeOb
 /** 开始观察一个元素的宽度（插入时调用；重复调用无副作用） */
 export function watchSize(element) {
   sizeObserver?.observe(element);
+}
+
+// 占满到窗口底边（ViewportFill 的 data-rune-viewport-fill）：量出自己的顶边在文档里的位置（不随滚动变），写成 --rune-fill-top，
+// 高度由 CSS 按它算。窗口变化、上面的内容变高（查询栏换行、提示出现，文档的尺寸跟着变）时重新量
+const fills = new Set();
+let fillListening = false;
+
+function measureFills() {
+  for (const element of fills) {
+    if (!element.isConnected) {
+      fills.delete(element);
+      continue;
+    }
+    const top = `${Math.round(element.getBoundingClientRect().top + window.scrollY)}px`;
+    if (element.style.getPropertyValue('--rune-fill-top') !== top) element.style.setProperty('--rune-fill-top', top);
+  }
+}
+
+/** 开始量一个占满到窗口底边的区域（插入时调用；重复调用无副作用） */
+export function watchViewportFill(element) {
+  fills.add(element);
+  if (!fillListening) {
+    fillListening = true;
+    window.addEventListener('resize', measureFills);
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(measureFills).observe(document.body);
+  }
+  measureFills();
 }

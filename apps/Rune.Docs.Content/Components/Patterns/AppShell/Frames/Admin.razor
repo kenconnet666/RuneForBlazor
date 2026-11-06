@@ -43,10 +43,10 @@
                 <Paragraph Tone="TextTone.Muted">宽于 64rem 时侧栏常驻，更窄时收进抽屉（顶栏最前面出现菜单按钮）；宽于 80rem 时显示右侧栏。</Paragraph>
             </Flex>
             <Grid MinItemWidth="CssLength.Rem(11)" Gap="SpaceScale.Md">
-                <Card><DemoStat Label="今日销售额" Text="48,210" Unit="元" Change="0.124" /></Card>
-                <Card><DemoStat Label="订单数" Text="326" Change="0.058" /></Card>
-                <Card><DemoStat Label="新客户" Text="41" Change="-0.032" /></Card>
-                <Card><DemoStat Label="退款率" Text="1.8%" Change="-0.2" InvertChange="true" /></Card>
+                <Card><Stat Label="今日销售额" Value="48_210" Unit="元" Change="0.124m" /></Card>
+                <Card><Stat Label="订单数" Value="326" Change="0.058m" /></Card>
+                <Card><Stat Label="新客户" Value="41" Change="-0.032m" /></Card>
+                <Card><Stat Label="退款率" Value="0.018m" Format="Rate" Change="-0.2m" InvertChange="true" /></Card>
             </Grid>
             <Card>
                 <Header><Strong>最近订单</Strong></Header>
@@ -79,6 +79,8 @@
 </AppShell>
 
 @code {
+    static readonly NumberFormat Rate = new() { Style = NumberStyle.Percent, MaximumFractionDigits = 1 };
+
     sealed record Page(string Label, IconData? Icon);
     sealed record Order(string Id, string Customer, string Amount, Tone Tone, string Status);
 

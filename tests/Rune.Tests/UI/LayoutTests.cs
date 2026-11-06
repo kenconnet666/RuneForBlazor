@@ -13,6 +13,10 @@ public class LayoutTests : BunitContext
 
     string RuleOf(string className) => Assert.Single(Registry.Rules, rule => rule.Contains($".{className}{{"));
 
+    // 元素上各个类的规则连在一起（只看包含关系时不用管哪条在哪个类上）
+    string RulesOf(AngleSharp.Dom.IElement element) =>
+        string.Join(Environment.NewLine, Registry.Rules.Where(rule => element.ClassList.Any(c => rule.Contains($".{c}{{") || rule.Contains($".{c}:"))));
+
     [Fact]
     public void Flex的档位合成一个类()
     {
@@ -124,5 +128,58 @@ public class LayoutTests : BunitContext
         var svg = cut.Find("svg");
         Assert.Contains("font-size:40px", svg.GetAttribute("style"));
         Assert.Equal("true", svg.GetAttribute("data-rune-draw"));
+    }
+
+    [Fact]
+    public void 长文是article_默认限制行长_StatGroup的列宽有效()
+    {
+        var prose = Render<Prose>(p => p.AddChildContent("<p>正文</p>"));
+        Assert.Contains("max-width:70ch", RulesOf(prose.Find("article")));
+
+        // 列宽的变量在生成样式之前已经初始化：grid-template-columns 不能是空的
+        var rules = RulesOf(Render<StatGroup>().Find("div"));
+        Assert.Contains("grid-template-columns:repeat(auto-fit", rules);
+        Assert.Contains("--rune-stat-min-item-width", rules);
+    }
+
+    [Fact]
+    public void 占满到窗口底边_JS量顶边_高度按变量算()
+    {
+        var cut = Render<ViewportFill>(p => p.Add(x => x.MinHeight, CssLength.Rem(20)).AddChildContent("<p>表格</p>"));
+        var root = cut.Find("[data-rune-viewport-fill]");
+        Assert.Contains("--rune-fill-min-height:20rem", root.GetAttribute("style")!.Replace(" ", ""));
+        Assert.Contains("height:calc(100dvh - var(--rune-fill-top", RulesOf(root));
+    }
+
+    [Fact]
+    public void 固钉_哨兵在贴住的一侧_距离经变量_给了OnChange才报告()
+    {
+        var top = Render<Affix>(p => p.Add(x => x.OffsetTop, CssLength.Rem(4)).Add(x => x.Target, "panel").AddChildContent("<p>操作条</p>"));
+        var sticky = top.Find("[data-rune-affix]");
+        Assert.Equal("top", sticky.GetAttribute("data-rune-affix"));
+        Assert.Equal("panel", sticky.GetAttribute("data-target"));
+        Assert.True(sticky.PreviousElementSibling!.HasAttribute("data-rune-affix-sentinel"));
+        Assert.False(sticky.HasAttribute("data-rune-affix-report"));
+        Assert.Contains("--rune-affix-offset:4rem", sticky.GetAttribute("style")!.Replace(" ", ""));
+
+        bool? stuck = null;
+        var bottom = Render<Affix>(p => p.Add(x => x.OffsetBottom, CssLength.Rem(0)).Add(x => x.OnChange, (bool v) => stuck = v));
+        var bar = bottom.Find("[data-rune-affix]");
+        Assert.Equal("bottom", bar.GetAttribute("data-rune-affix"));
+        Assert.True(bar.NextElementSibling!.HasAttribute("data-rune-affix-sentinel"));
+        Assert.True(bar.HasAttribute("data-rune-affix-report"));
+        bar.TriggerEvent("onrunecommand", new CommandEventArgs { Name = "stick" });
+        Assert.True(stuck);
+    }
+
+    [Fact]
+    public void 回到顶部_一开始对读屏隐藏_阈值与容器交给JS()
+    {
+        var cut = Render<BackTop>(p => p.Add(x => x.Target, "panel").Add(x => x.Threshold, 200));
+        var button = cut.Find("button");
+        Assert.Equal("回到顶部", button.GetAttribute("aria-label"));
+        Assert.Equal("true", button.GetAttribute("aria-hidden"));
+        Assert.Equal("200", button.GetAttribute("data-rune-back-top"));
+        Assert.Equal("panel", button.GetAttribute("data-target"));
     }
 }

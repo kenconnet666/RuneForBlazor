@@ -1,0 +1,12 @@
+@page "/components/viewport-fill"
+@attribute [DocMeta("ViewportFill 占满到窗口底边", "从自己的顶边一直到视口底边，里面竖排：列表页让表格正好占满一屏、在表格里滚动，分页贴着窗口底边。", DocCategory.Layout, Order = 9)]
+@inherits DocPageBase
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="list-page" Title="列表页" Demo="typeof(Frames.ListPage)" Frame="32rem">
+        顶边的位置是量出来的（JS 写成 CSS 变量，没有往返）：上面的页头、页签、查询栏换行变高都跟着变，不用手算“视口高度减顶栏减内边距”。
+        <Code>Bottom</Code> 是离窗口底边留的间距（与外壳正文的内边距一致），窗口太矮时不小于 <Code>MinHeight</Code>、整页滚动。
+        里面要撑满剩下高度的一块写 <Code>flex: 1</Code> 与 <Code>min-height: 0</Code>，在它里面滚动。外壳是页面组合里的 AppShell。
+    </Example>
+    <ApiReference Types="[typeof(ViewportFill)]" />
+</DocPage>

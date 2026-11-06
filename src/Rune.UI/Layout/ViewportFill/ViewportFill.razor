@@ -1,0 +1,42 @@
+@*
+    占满到窗口底边（div，竖排的 Flex，同 vue-tsx-pro 的 ViewportFill）：从自己的顶边一直到视口底边（留出 Bottom 的间距）。
+    列表页让表格正好占满一屏、在表格里滚动，分页贴着窗口底边；收件箱的左右分栏占满剩下的高度。
+    <ViewportFill Gap="SpaceScale.Md"><Toolbar /><div style="flex: 1; min-height: 0">表格</div><Pagination /></ViewportFill>
+    顶边的位置由 JS 量出（data-rune-viewport-fill，写成 --rune-fill-top）：上面的页头、页签、查询栏换行变高都跟着变，不用手算“视口高度减顶栏减内边距”，
+    也没有往返。窗口太矮时不小于 MinHeight，整页滚动。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="Gap" data-rune-viewport-fill @attributes="Attrs.MergeProps(Attrs.Layer(Sized[(int)Bottom], MinHeightVar), Rest)">
+    @ChildContent
+</Flex>
+
+@code {
+    static readonly CssVar<CssLength> Top = CssVar.Length("rune-fill-top", "0px");
+    static readonly CssVar<CssLength> Min = CssVar.Length("rune-fill-min-height", "24rem");
+    static readonly Attrs[] Sized = [.. Enum.GetValues<SpaceScale>().Select(bottom => new Attrs { Sx = SizeStyle(bottom) })];
+
+    Memo<CssLength, Attrs> minHeightVar;
+
+    /// <summary>离视口底边留多少，默认 Xl（与 AppShell 正文的内边距一致：留得比它少，整页会多出一截滚动）。</summary>
+    [Parameter] public SpaceScale Bottom { get; set; } = SpaceScale.Xl;
+
+    /// <summary>最小高度：窗口太矮时整页滚动；默认 24rem。</summary>
+    [Parameter] public CssLength? MinHeight { get; set; }
+
+    /// <summary>里面各块之间的间距。</summary>
+    [Parameter] public SpaceScale? Gap { get; set; }
+
+    /// <summary>内容：撑满剩下高度的那一块写 flex: 1 与 min-height: 0。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    Attrs? MinHeightVar => MinHeight is { } height ? minHeightVar.Get(height, static h => new Attrs { Vars = [Min.Set(h)] }) : null;
+
+    static Style SizeStyle(SpaceScale bottom) => Css.Define(bottom, static bottom => new Style
+    {
+        MinWidth = 0,
+        Height = $"calc(100dvh - {Top} - {ScaleStyles.SpaceOf(bottom)})",
+        MinHeight = Min,
+    });
+}

@@ -1,0 +1,58 @@
+@*
+    固钉（div，同 vue-tsx-pro 的 Affix）：滚动到某个位置后贴住视口（或滚动容器）的顶部、底部不走，如表单的提交栏、长表格上方的筛选条、文章的目录。
+    <Affix OffsetTop="CssLength.Rem(4)"><FilterBar /></Affix>
+    <Affix OffsetBottom="CssLength.Zero" OnChange="stuck => …"><ActionBar /></Affix>
+    用 CSS position: sticky：在所在的滚动容器里贴住，不脱离文档流（不用占位、不用量宽度），容器滚出去时跟着走。
+    是否贴住由 JS 的 IntersectionObserver 看一个零高度的哨兵（data-rune-affix）：贴住时写 data-stuck、加阴影；给了 OnChange 才把变化报给 C#。
+    sticky 只在父元素的范围里生效，祖先里有 overflow 不是 visible 的元素时相对的是它：这时把它的 id 写进 Target。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@if (!AtBottom)
+{
+    <div aria-hidden="true" data-rune-affix-sentinel @attributes="AffixStyles.Sentinel"></div>
+}
+<div data-rune-affix="@(AtBottom ? "bottom" : "top")" data-target="@Target" data-rune-affix-report="@(OnChange.HasDelegate ? "" : null)"
+     @onrunecommand="OnCommandAsync" @attributes="Attrs.Merge(AffixStyles.Root(AtBottom, Shadow), OffsetVar, Rest)">
+    @ChildContent
+</div>
+@if (AtBottom)
+{
+    <div aria-hidden="true" data-rune-affix-sentinel @attributes="AffixStyles.Sentinel"></div>
+}
+
+@code {
+    Memo<CssLength, Attrs> offsetVar;
+
+    /// <summary>贴住时离顶部多远，默认 0；与 OffsetBottom 二选一。</summary>
+    [Parameter] public CssLength? OffsetTop { get; set; }
+
+    /// <summary>贴住时离底部多远：贴在底部。</summary>
+    [Parameter] public CssLength? OffsetBottom { get; set; }
+
+    /// <summary>sticky 相对的滚动容器的 id；不写时是视口。</summary>
+    [Parameter] public string? Target { get; set; }
+
+    /// <summary>贴住时加阴影，默认开。</summary>
+    [Parameter] public bool Shadow { get; set; } = true;
+
+    /// <summary>贴住（true）、离开（false）时。</summary>
+    [Parameter] public EventCallback<bool> OnChange { get; set; }
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    bool AtBottom => OffsetBottom is not null && OffsetTop is null;
+
+    Attrs? OffsetVar => (AtBottom ? OffsetBottom : OffsetTop) is { } offset
+        ? offsetVar.Get(offset, static o => new Attrs { Vars = [AffixStyles.Offset.Set(o)] })
+        : null;
+
+    Task OnCommandAsync(CommandEventArgs e) => e.Name switch
+    {
+        "stick" => OnChange.InvokeAsync(true),
+        "unstick" => OnChange.InvokeAsync(false),
+        _ => Task.CompletedTask,
+    };
+}

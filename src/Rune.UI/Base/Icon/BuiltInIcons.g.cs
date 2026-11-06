@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（60 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（61 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -16,6 +16,8 @@ public static partial class BuiltInIcons
     public static IconData ArrowLeft => field ??= new("arrow-left", "<path d=\"m12 19-7-7 7-7\"/><path d=\"M19 12H5\"/>");
     /// <summary>Lucide 图标 <c>arrow-right</c>（direction、movement、horizontal、rightward、rightwards、east、navigation、following）。</summary>
     public static IconData ArrowRight => field ??= new("arrow-right", "<path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/>");
+    /// <summary>Lucide 图标 <c>arrow-up</c>（direction、movement、vertical、upward、upwards、north、ascend、page up）。</summary>
+    public static IconData ArrowUp => field ??= new("arrow-up", "<path d=\"m5 12 7-7 7 7\"/><path d=\"M12 19V5\"/>");
     /// <summary>Lucide 图标 <c>arrow-up-right</c>（direction、movement、diagonal、northeast、north-east、north east）。</summary>
     public static IconData ArrowUpRight => field ??= new("arrow-up-right", "<path d=\"M7 7h10v10\"/><path d=\"M7 17 17 7\"/>");
     /// <summary>Lucide 图标 <c>asterisk</c>（symbol、mark、pointer、pencil、sign、alert、notification、indicator）。</summary>

@@ -1,0 +1,49 @@
+@* 长列表上方的操作条：在滚动面板里往下滚时贴在顶部，贴住时有阴影；滚下去后右下角出现“回到顶部” *@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.None">
+    @* 示例自己的滚动面板：sticky 相对它贴住，所以把它的 id 写进 Target *@
+    <ScrollArea style="height: 20rem" PropsViewport="@(new Attrs { Id = PanelId })">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" style="padding: 0 0.75em 0.75em">
+            <Small Tone="TextTone.Muted" style="padding-block: 0.75em">往下滚：操作条会贴在面板顶部</Small>
+            <Affix Target="@PanelId" OnChange="next => stuck = next">
+                <Card Padding="SpaceScale.Sm">
+                    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm" Wrap="true">
+                        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                            <TextSpan Weight="Weight.Semibold">待办任务</TextSpan>
+                            <Badge Size="Size.Xs" Variant="StatusVariant.Soft">@tasks.Length</Badge>
+                            @if (stuck)
+                            {
+                                <Small Tone="TextTone.Muted">已贴住</Small>
+                            }
+                        </Flex>
+                        <Flex Gap="SpaceScale.Xs">
+                            <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Icon="Lucide.Download">导出</Button>
+                            <Button Size="Size.Sm" Icon="Lucide.Plus">新建任务</Button>
+                        </Flex>
+                    </Flex>
+                </Card>
+            </Affix>
+            @foreach (var task in tasks)
+            {
+                <Flex @key="task.Code" Align="ItemAlign.Center" Gap="SpaceScale.Md" style="padding-inline: 0.75em">
+                    <TextSpan Mono="true" Size="Size.Sm" Tone="TextTone.Muted">@task.Code</TextSpan>
+                    <TextSpan Size="Size.Sm">@task.Title</TextSpan>
+                    <Small Tone="TextTone.Muted" style="margin-inline-start: auto">@task.Owner</Small>
+                </Flex>
+            }
+        </Flex>
+        @* 面板滚下去之后视口右下角出现，点了把面板滚回顶部 *@
+        <BackTop Target="@PanelId" Threshold="200" />
+    </ScrollArea>
+</Card>
+
+@code {
+    const string PanelId = "affix-demo-panel";
+    static readonly string[] titles = ["来料检验报告补录", "模具保养计划确认", "供应商对账", "工艺变更评审", "月度销售复盘"];
+    static readonly string[] owners = ["林小满", "周一航", "许悠", "韩笑"];
+    static readonly (string Code, string Title, string Owner)[] tasks =
+        [.. Enumerable.Range(0, 30).Select(i => ($"T-{101 + i:000}", titles[i % 5], owners[i % 4]))];
+
+    bool stuck;
+}

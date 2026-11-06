@@ -1,0 +1,34 @@
+@*
+    长文的容器（article，同 vue-tsx-pro 的 Prose）：段落、标题、列表、代码块、表格依次排下来时的间距、行长与行高。
+    <Prose><H1 id="intro" Anchor="true">介绍</H1><Paragraph>…</Paragraph><CodeBlock Code="…" Lang="cs" /></Prose>
+    样式里不写“相邻元素之间”的选择器，间距用 flex 的 gap 统一给：子元素各自不带外边距（本库的组件都是这样）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<article @attributes="Attrs.Merge(Measure ? Measured[(int)Gap] : Free[(int)Gap], Rest)">@ChildContent</article>
+
+@code {
+    static readonly Attrs[] Free = [.. Enum.GetValues<SpaceScale>().Select(gap => new Attrs { Sx = Sx.Of(RootStyle, ScaleStyles.Gap(gap)) })];
+    static readonly Attrs[] Measured = [.. Enum.GetValues<SpaceScale>().Select(gap => new Attrs { Sx = Sx.Of(RootStyle, ScaleStyles.Gap(gap), MeasureStyle) })];
+
+    /// <summary>块之间的间距，默认 Lg（1em）。</summary>
+    [Parameter] public SpaceScale Gap { get; set; } = SpaceScale.Lg;
+
+    /// <summary>限制行长（约 70 个字宽），默认开；放在窄栏里时可以关掉。</summary>
+    [Parameter] public bool Measure { get; set; } = true;
+
+    /// <summary>正文。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    static Style RootStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        MinWidth = 0,
+        LineHeight = LineHeights.Relaxed,
+        OverflowWrap = OverflowWrap.BreakWord,
+    });
+
+    static Style MeasureStyle => Css.Define(static () => new Style { MaxWidth = CssLength.Ch(70) });
+}
