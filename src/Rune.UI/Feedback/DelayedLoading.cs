@@ -20,7 +20,8 @@ public sealed class DelayedLoading(Func<Task> rerender) : IDisposable
     public static readonly TimeSpan MinDuration = TimeSpan.FromMilliseconds(500);
 
     bool? loading;
-    DateTime shownAt;
+    // 显示出来的时间戳（单调时钟，不受改系统时间影响）
+    long shownAt;
     CancellationTokenSource? pending;
 
     /// <summary>加载指示是否显示。</summary>
@@ -35,7 +36,7 @@ public sealed class DelayedLoading(Func<Task> rerender) : IDisposable
         if (first)
         {
             Shown = loading;
-            if (loading) shownAt = DateTime.UtcNow;
+            if (loading) shownAt = TimeProvider.System.GetTimestamp();
             return;
         }
         if (loading)
@@ -50,7 +51,7 @@ public sealed class DelayedLoading(Func<Task> rerender) : IDisposable
             Cancel();
             return;
         }
-        var remaining = shownAt + MinDuration - DateTime.UtcNow;
+        var remaining = MinDuration - TimeProvider.System.GetElapsedTime(shownAt);
         Schedule(remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero, false);
     }
 
@@ -75,7 +76,7 @@ public sealed class DelayedLoading(Func<Task> rerender) : IDisposable
             return;
         }
         Shown = shown;
-        if (shown) shownAt = DateTime.UtcNow;
+        if (shown) shownAt = TimeProvider.System.GetTimestamp();
         await rerender();
     }
 
