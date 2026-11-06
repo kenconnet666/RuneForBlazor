@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.AspNetCore.Components;
 using Rune.Styles;
@@ -101,10 +102,14 @@ internal static class ParameterChangeDetector
         || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(RenderFragment<>));
 
     // record 有编译器生成的 EqualityContract 属性
+    [UnconditionalSuppressMessage("Trimming", "IL2070",
+        Justification = "record 的 Equals 用到 EqualityContract，比较参数时会调用 Equals，所以它被保留；即使被裁掉也只是当作“变了”，多渲染一次。")]
     static bool IsRecord(Type type) =>
         type.GetProperty("EqualityContract", BindingFlags.NonPublic | BindingFlags.Instance) is not null;
 
     // 沿继承链逐层取：GetProperties 不返回基类的私有属性（基类里私有的级联参数也要认）
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "组件类型由 Razor 生成的 OpenComponent<T> 引用，Blazor 按组件的要求保留它的全部成员（同 ParameterView.SetParameterProperties）。")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "同上：组件的基类也是组件，成员一起保留。")]
     static IEnumerable<PropertyInfo> DeclaredProperties(Type type)
     {
         for (var current = type; current is not null && current != typeof(object); current = current.BaseType)

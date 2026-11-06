@@ -24,6 +24,8 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- WebAssembly 发布时会裁剪：声明可裁剪，同时打开裁剪分析器，用到反射的地方编译时就报出来 -->
+    <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsLibrary)' == 'true'">

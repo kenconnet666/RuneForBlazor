@@ -16,13 +16,14 @@ static class DisplayNames
     static readonly ConcurrentDictionary<(Type Model, string Field), PropertyInfo?> properties = new();
 
     /// <summary>字段的显示名；没有标注时为 null。</summary>
-    [UnconditionalSuppressMessage("Trimming", "IL2075",
-        Justification = "表单绑定的是 @bind-Value 的表达式（u => u.Email），表达式树引用了这个属性，裁剪时会保留它与它的特性。")]
     public static string? Of(FieldIdentifier field)
     {
-        var property = properties.GetOrAdd((field.Model.GetType(), field.FieldName),
-            static key => key.Model.GetProperty(key.Field, BindingFlags.Public | BindingFlags.Instance));
+        var property = properties.GetOrAdd((field.Model.GetType(), field.FieldName), static key => Find(key.Model, key.Field));
         // GetName 每次取：带资源类型时按当前的界面文化取文字
         return property?.GetCustomAttribute<DisplayAttribute>()?.GetName() ?? property?.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
     }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2070",
+        Justification = "控件绑定的是 @bind-Value 的表达式（() => model.Email），表达式树引用了这个属性，裁剪时会保留它与它的特性。")]
+    static PropertyInfo? Find(Type model, string name) => model.GetProperty(name, BindingFlags.Public | BindingFlags.Instance);
 }

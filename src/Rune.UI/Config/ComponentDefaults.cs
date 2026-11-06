@@ -4,10 +4,19 @@ namespace Rune.UI;
 
 /// <summary>一个组件的默认值（外观档位等），每个组件一个 record，属性都可空（null 表示不改）。</summary>
 /// <typeparam name="TSelf">自身类型。</typeparam>
-public interface IComponentDefaults<TSelf> where TSelf : class, IComponentDefaults<TSelf>
+public interface IComponentDefaults<TSelf> : IComponentDefaults where TSelf : class, IComponentDefaults<TSelf>
 {
     /// <summary>叠在外层的默认值上：自己写了的项覆盖外层，没写的沿用外层。</summary>
     TSelf Over(TSelf outer);
+
+    object IComponentDefaults.Over(object outer) => Over((TSelf)outer);
+}
+
+/// <summary>不带类型参数的 <see cref="IComponentDefaults{TSelf}"/>：<see cref="ComponentDefaults"/> 合并两层时按它调用，不用反射（WebAssembly 裁剪后也能用）。</summary>
+public interface IComponentDefaults
+{
+    /// <summary>叠在外层（同一类型）的默认值上。</summary>
+    object Over(object outer);
 }
 
 /// <summary>
@@ -43,12 +52,8 @@ public sealed class ComponentDefaults : IEnumerable
         return merged;
     }
 
-    // 内外两层是同一个 IComponentDefaults<T> 类型：按接口调用 Over
-    static object Over(object inner, object outer) =>
-        inner.GetType().GetInterfaces()
-            .Single(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IComponentDefaults<>))
-            .GetMethod(nameof(IComponentDefaults<>.Over))!
-            .Invoke(inner, [outer])!;
+    // 内外两层是同一个 IComponentDefaults<T> 类型
+    static object Over(object inner, object outer) => ((IComponentDefaults)inner).Over(outer);
 
     IEnumerator IEnumerable.GetEnumerator() => byComponent.Values.GetEnumerator();
 }

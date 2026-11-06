@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.AspNetCore.Components.Forms;
 
@@ -67,9 +68,12 @@ public sealed class FormState
     }
 
     // 属性的声明顺序（元数据记号按声明递增）；不是属性的字段名排在最后
-    static int PropertyRank(Type type, string name) =>
-        propertyRanks.GetOrAdd((type, name), static key =>
-            key.Item1.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault(p => p.Name == key.Item2) is { } property
-                ? property.MetadataToken
-                : int.MaxValue);
+    static int PropertyRank(Type type, string name) => propertyRanks.GetOrAdd((type, name), static key => FindRank(key.Item1, key.Item2));
+
+    [UnconditionalSuppressMessage("Trimming", "IL2070",
+        Justification = "字段来自控件绑定的表达式（() => model.Email），表达式树引用了这个属性，裁剪时会保留；找不到时排在最后，不会出错。")]
+    static int FindRank(Type type, string name) =>
+        type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault(p => p.Name == name) is { } property
+            ? property.MetadataToken
+            : int.MaxValue;
 }

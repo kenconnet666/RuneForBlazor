@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.AspNetCore.Components;
 
@@ -23,9 +24,13 @@ internal static class EventHandlerMerger
     public static object Combine(object first, object second)
     {
         var argsType = ArgsTypeOf(first) ?? ArgsTypeOf(second) ?? typeof(EventArgs);
-        var combine = combineByArgsType.GetOrAdd(argsType, type => combineTyped.MakeGenericMethod(type));
+        var combine = combineByArgsType.GetOrAdd(argsType, MakeCombine);
         return combine.Invoke(null, [first, second])!;
     }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "CombineTyped 的类型参数没有 DynamicallyAccessedMembers 的要求，裁剪不会影响它。")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "类型参数是事件参数类型（引用类型），共享同一份泛型代码，不需要运行时生成。")]
+    static MethodInfo MakeCombine(Type argsType) => combineTyped.MakeGenericMethod(argsType);
 
     static Func<TArgs, Task> CombineTyped<TArgs>(object first, object second) => async args =>
     {

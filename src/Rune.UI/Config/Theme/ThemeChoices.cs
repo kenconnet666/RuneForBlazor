@@ -37,16 +37,31 @@ public sealed record ThemeChoices(IReadOnlyList<Theme> Themes)
     /// 交给浏览器端的配置（JSON）：存储键、默认选择、跟随系统的两套，以及每套主题的底色、文字色与配色方案
     /// （页面显示前就把根元素的颜色设对，不闪一下默认主题）。
     /// </summary>
-    public string ToJson() => JsonSerializer.Serialize(new
+    public string ToJson()
     {
-        key = StorageKey,
-        fallback = Fallback,
-        system = new { light = SystemLight.Name, dark = SystemDark.Name },
-        themes = Themes.ToDictionary(t => t.Name, t => new
+        // 手写而不是序列化匿名对象：不用反射，WebAssembly 裁剪后也能用
+        using var buffer = new MemoryStream();
+        using (var json = new Utf8JsonWriter(buffer))
         {
-            background = t.ValueOf(Colors.Background.ToString()),
-            text = t.ValueOf(Colors.Text.ToString()),
-            colorScheme = t.IsDark ? "dark" : "light",
-        }),
-    });
+            json.WriteStartObject();
+            json.WriteString("key", StorageKey);
+            json.WriteString("fallback", Fallback);
+            json.WriteStartObject("system");
+            json.WriteString("light", SystemLight.Name);
+            json.WriteString("dark", SystemDark.Name);
+            json.WriteEndObject();
+            json.WriteStartObject("themes");
+            foreach (var theme in Themes)
+            {
+                json.WriteStartObject(theme.Name);
+                json.WriteString("background", theme.ValueOf(Colors.Background.ToString()));
+                json.WriteString("text", theme.ValueOf(Colors.Text.ToString()));
+                json.WriteString("colorScheme", theme.IsDark ? "dark" : "light");
+                json.WriteEndObject();
+            }
+            json.WriteEndObject();
+            json.WriteEndObject();
+        }
+        return global::System.Text.Encoding.UTF8.GetString(buffer.ToArray());
+    }
 }
