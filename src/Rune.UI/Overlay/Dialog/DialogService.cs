@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 
 namespace Rune.UI;
@@ -15,7 +16,10 @@ public abstract record OverlayOptions
     /// <summary>标题下的说明。</summary>
     public string? Description { get; init; }
 
-    /// <summary>正文：参数是句柄，正文里的按钮可以 <c>handle.Close()</c>、<c>handle.Update(…)</c>。</summary>
+    /// <summary>
+    /// 正文：参数是句柄，正文里的按钮可以 <c>handle.Close()</c>、<c>handle.Update(…)</c>；正文里的组件也能经级联参数拿到句柄
+    /// （<c>[CascadingParameter] DialogHandle? Dialog</c>）。正文是一个组件时用 <see cref="DialogService.Open{TComponent}"/>。
+    /// </summary>
     public RenderFragment<DialogHandle>? Content { get; init; }
 
     /// <summary>页脚（写了 OnConfirm 时排在“取消 / 确认”前面）。</summary>
@@ -125,18 +129,34 @@ public sealed class DialogHandle
     /// <summary>当前的选项。</summary>
     public OverlayOptions Options { get; private set; }
 
-    /// <summary>关上之后完成，得到关上的原因：确认是 Confirm，Esc、遮罩、关闭按钮、<see cref="Close"/> 各是 Escape、Outside、Close、Imperative。</summary>
+    /// <summary>关上之后完成，得到关上的原因：确认是 Confirm，Esc、遮罩、关闭按钮、<see cref="Close()"/> 各是 Escape、Outside、Close、Imperative。</summary>
     public Task<OverlayChangeReason> Closed => closed.Task;
 
     /// <summary>还开着。</summary>
     public bool IsOpen { get; private set; } = true;
 
+    /// <summary>关上时交回的结果（<see cref="Close(object?)"/> 给的）；用户取消、Esc、点遮罩关上时是 null。</summary>
+    public object? Result { get; private set; }
+
     /// <summary>关上（原因 Imperative）；已经关上时什么也不做。</summary>
-    public void Close()
+    public void Close() => Close(null);
+
+    /// <summary>关上并交回结果（原因 Imperative）：正文里选好了一项、填完了表单。已经关上时什么也不做。</summary>
+    /// <param name="result">结果，之后从 <see cref="Result"/> 或 <see cref="ResultAsync{TResult}"/> 取。</param>
+    public void Close(object? result)
     {
         if (!IsOpen) return;
+        Result = result;
         Options.OnOpenChange?.Invoke(new(false, OverlayChangeReason.Imperative));
         MarkClosed(OverlayChangeReason.Imperative);
+    }
+
+    /// <summary>等它关上，得到交回的结果；没有交回（取消、Esc）或类型不对时是 default。</summary>
+    /// <typeparam name="TResult">结果的类型。</typeparam>
+    public async Task<TResult?> ResultAsync<TResult>()
+    {
+        await Closed;
+        return Result is TResult result ? result : default;
     }
 
     /// <summary>改属性（标题、宽度、确认按钮的文字、正文……）：<c>handle.Update(o =&gt; o with { Title = "…" })</c>。</summary>
@@ -220,6 +240,27 @@ public sealed class DialogService
         options.OnOpenChange?.Invoke(new(true, OverlayChangeReason.Imperative));
         return handle;
     }
+
+    /// <summary>
+    /// 打开一个正文是组件的对话框或抽屉（同 Blazor 的 DynamicComponent：组件类型加参数字典）。组件经级联参数拿到句柄，
+    /// 用 <c>Dialog.Close(结果)</c> 关上并交回结果：
+    /// <code>
+    /// var handle = Dialogs.Open&lt;UserPicker&gt;(new DialogOptions { Title = "选择负责人" }, new() { ["Department"] = "采购部" });
+    /// var user = await handle.ResultAsync&lt;User&gt;();
+    /// </code>
+    /// </summary>
+    /// <param name="options">对话框（<see cref="DialogOptions"/>）或抽屉（<see cref="DrawerOptions"/>）的参数；其中的 Content 不用。</param>
+    /// <param name="parameters">交给组件的参数（名字是参数属性名）。</param>
+    /// <typeparam name="TComponent">正文组件。</typeparam>
+    public DialogHandle Open<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TComponent>(
+        OverlayOptions options, IReadOnlyDictionary<string, object?>? parameters = null) where TComponent : IComponent =>
+        Open(options with { Content = _ => builder =>
+        {
+            builder.OpenComponent<TComponent>(0);
+            if (parameters is not null)
+                foreach (var (name, value) in parameters) builder.AddComponentParameter(1, name, value);
+            builder.CloseComponent();
+        } });
 
     /// <summary>问一句：确认（OnConfirm 完成）得到 true，取消、Esc 得到 false。</summary>
     public async Task<bool> ConfirmAsync(ConfirmOptions options) => await AskAsync(options, null) is not null;

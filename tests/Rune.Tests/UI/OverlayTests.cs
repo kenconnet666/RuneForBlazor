@@ -331,6 +331,48 @@ public class OverlayTests : BunitContext
         host.WaitForAssertion(() => Assert.Empty(host.FindAll("dialog")), TimeSpan.FromSeconds(2));
     }
 
+    // 命令式对话框的正文组件：经级联参数拿到句柄，点一项就关上并交回它
+    sealed class Picker : ComponentBase
+    {
+        [CascadingParameter] public DialogHandle? Dialog { get; set; }
+
+        [Parameter] public IReadOnlyList<string> Choices { get; set; } = [];
+
+        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+        {
+            foreach (var choice in Choices)
+            {
+                builder.OpenElement(0, "button");
+                builder.AddAttribute(1, "data-choice", choice);
+                builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, () => Dialog!.Close(choice)));
+                builder.AddContent(3, choice);
+                builder.CloseElement();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task 命令式对话框_正文是组件_经级联的句柄关上并交回结果()
+    {
+        var host = Render<DialogHost>();
+        var dialogs = Services.GetRequiredService<DialogService>();
+
+        DialogHandle handle = null!;
+        await host.InvokeAsync(() => handle = dialogs.Open<Picker>(new DialogOptions { Title = "选择负责人" },
+            new Dictionary<string, object?> { [nameof(Picker.Choices)] = new[] { "周宁", "陆川" } }));
+        host.WaitForAssertion(() => Assert.Equal(2, host.FindAll("[data-choice]").Count));
+
+        var result = handle.ResultAsync<string>();
+        await host.InvokeAsync(() => host.Find("[data-choice='陆川']").Click());
+        Assert.Equal("陆川", await result.WaitAsync(TimeSpan.FromSeconds(5), Token));
+        Assert.Equal(OverlayChangeReason.Imperative, await handle.Closed);
+
+        // 用户自己关上（没有交回结果）：结果是 default
+        await host.InvokeAsync(() => handle = dialogs.Open<Picker>(new DialogOptions { Title = "再选一次" }));
+        await host.InvokeAsync(handle.Close);
+        Assert.Null(await handle.ResultAsync<string>().WaitAsync(TimeSpan.FromSeconds(5), Token));
+    }
+
     [Fact]
     public async Task 命令式确认_必填理由没填不关_填了得到理由()
     {

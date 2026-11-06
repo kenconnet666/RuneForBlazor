@@ -15,7 +15,7 @@
                     Title="@dialog.Title" Description="@dialog.Description" Closable="dialog.Closable" Dismissible="dialog.Dismissible"
                     ConfirmText="@dialog.ConfirmText" CancelText="@dialog.CancelText" Tone="dialog.Tone" BeforeClose="dialog.BeforeClose"
                     OnConfirm="ConfirmOf(dialog)" OnOpenChange="change => Report(handle, change)" Footer="dialog.Footer">
-                @dialog.Content?.Invoke(handle)
+                <CascadingValue Value="handle" IsFixed="true">@dialog.Content?.Invoke(handle)</CascadingValue>
             </Dialog>
             break;
         case DialogHandle { Options: DrawerOptions drawer } handle:
@@ -23,7 +23,7 @@
                     Title="@drawer.Title" Description="@drawer.Description" Closable="drawer.Closable" Dismissible="drawer.Dismissible"
                     ConfirmText="@drawer.ConfirmText" CancelText="@drawer.CancelText" Tone="drawer.Tone" BeforeClose="drawer.BeforeClose"
                     OnConfirm="ConfirmOf(drawer)" OnOpenChange="change => Report(handle, change)" Footer="drawer.Footer">
-                @drawer.Content?.Invoke(handle)
+                <CascadingValue Value="handle" IsFixed="true">@drawer.Content?.Invoke(handle)</CascadingValue>
             </Drawer>
             break;
         case ConfirmRequest request:
