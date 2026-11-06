@@ -1,0 +1,25 @@
+@page "/components/breadcrumbs"
+@attribute [DocMeta("Breadcrumbs 面包屑与步骤", "当前在哪：面包屑是页面在站点层级里的位置，步骤条是多步流程里的位置。都是有序列表，当前项带 aria-current。", DocCategory.Navigation, Order = 3)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Navigation.Breadcrumbs.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="breadcrumbs" Title="面包屑" Demo="typeof(PathsExample)">
+                最后一项是当前页（aria-current="page"），不是链接。路径太长时 <Code>MaxItems</Code> 把中间几级收进菜单（同 Radix Themes），不会把布局撑乱。
+                分隔符从右到左排版时翻转。应用内的层级（文件夹、组织架构的下钻）给 <Code>OnNavigate</Code>：没有地址的各级是按钮，当前一级标 aria-current="location"。
+            </Example>
+            <Example Id="steps" Title="下单流程" Demo="typeof(CheckoutExample)">
+                <Code>Current</Code> 是当前步骤的序号，可以 <Code>@@bind-Current</Code>；写了 <Code>Navigable</Code> 时已完成的步骤可以点回去，有 <Code>Href</Code> 的已完成步骤是链接。
+                已完成的显示对勾，当前步骤带 aria-current="step"，其余的状态另有读屏文字；图标可以自定义，<Code>Status</Code> 改写某一步的状态（出错的一步）。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="vertical" Title="竖排与出错" Demo="typeof(DeployExample)">
+                <Code>Orientation.Vertical</Code> 适合说明文字长的流程，步骤之间有竖的连接线；<Code>StepState.Error</Code> 标出出错的步骤，<Code>Disabled</Code> 的步骤不能点。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Breadcrumbs), typeof(Steps)]" />
+</DocPage>

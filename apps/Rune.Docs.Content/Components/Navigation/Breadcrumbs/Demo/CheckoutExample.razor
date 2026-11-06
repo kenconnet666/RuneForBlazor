@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Steps Items="Items" @bind-Current="step" Navigable="true" data-testid="checkout" />
+    <Card>
+        <Paragraph Sx="Body">
+            @(step < Items.Length - 1 ? $"第 {step + 1} 步：{Items[step].Title}。已完成的步骤可以点回去修改。" : "订单已提交，预计明天送达。")
+        </Paragraph>
+        <Flex Justify="ContentJustify.End" Gap="SpaceScale.Sm">
+            <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Disabled="@(step == 0)" @onclick="() => step--">上一步</Button>
+            <Button Disabled="@(step == Items.Length - 1)" @onclick="() => step++">@(step == Items.Length - 2 ? "提交订单" : "下一步")</Button>
+        </Flex>
+    </Card>
+</Flex>
+
+@code {
+    static readonly StepItem[] Items =
+    [
+        new("购物车", "3 件商品", Lucide.ShoppingCart),
+        new("收货地址", "上海市徐汇区", Lucide.MapPin),
+        new("支付", "微信 / 支付宝", Lucide.CreditCard),
+        new("完成", Icon: Lucide.PackageCheck),
+    ];
+
+    static Style Body => Css.Define(static () => new Style { MinHeight = CssLength.Rem(4) });
+
+    int step = 1;
+}

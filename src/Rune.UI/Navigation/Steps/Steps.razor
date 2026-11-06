@@ -1,0 +1,135 @@
+@*
+    步骤条（同 vue-tsx-pro 的 Steps，ol）：多步流程里的位置（下单、注册、配置向导、任务的流转）。当前步骤带 aria-current="step"，
+    已完成的步骤显示对勾，出错的步骤显示警示图标；已完成、未开始、出错另有读屏文字，不只靠颜色。
+    <Steps Current="1" Items="@([new("填写信息"), new("确认订单"), new("完成")])" />
+    <Steps @bind-Current="step" Items="items" Navigable="true" />               已完成的步骤可以点回去
+    <Steps Current="2" Items="@([new("概览", Href: "task/1"), …])" />           已完成的步骤是链接
+    每一步的状态默认按 Current 推出（之前已完成、当前、之后未开始），StepItem 的 Status 可以改：出错的一步、非线性的流程。
+    未声明的属性落到 ol 上；aria-label 是步骤条的名称。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var vertical = Orientation == Orientation.Vertical; }
+
+<FlexOrderedList Direction="@(vertical ? LayoutDirection.Column : LayoutDirection.Row)" Gap="@(vertical ? SpaceScale.Lg : SpaceScale.Sm)"
+                 data-orientation="@(vertical ? "vertical" : "horizontal")" @attributes="Attrs.MergeProps(SizeLayer, Rest)">
+    @for (var index = 0; index < Items.Count; index++)
+    {
+        var item = Items[index];
+        var at = index;
+        var state = item.Status ?? (index < current.Value ? StepState.Complete : index == current.Value ? StepState.Current : StepState.Upcoming);
+        var reachable = state == StepState.Complete && !item.Disabled;
+        var link = reachable && item.Href is not null;
+        var parts = StepsStyles.Of(new(Orientation, state, link), Config.Styles);
+        <li @key="@(item.Key ?? index.ToString(System.Globalization.CultureInfo.InvariantCulture))" aria-current="@(state == StepState.Current ? "step" : null)"
+            data-state="@StateName(state)" @attributes="Attrs.Merge(parts[StepsPart.Item], PropsItemFor?.Invoke(item, index) ?? PropsItem)">
+            @if (link)
+            {
+                <a href="@item.Href" @attributes="Attrs.Merge(parts[StepsPart.Trigger], PropsTrigger)">@Content(parts, item, at, state)</a>
+            }
+            else if (reachable && Navigable)
+            {
+                <ButtonBase @onclick="() => current.SetAsync(at)" @attributes="Attrs.MergeProps(parts[StepsPart.Trigger], PropsTrigger)">@Content(parts, item, at, state)</ButtonBase>
+            }
+            else
+            {
+                @Content(parts, item, at, state)
+            }
+            @if (index < Items.Count - 1)
+            {
+                <span aria-hidden="true" @attributes="Attrs.Merge(parts[StepsPart.Connector], PropsConnector)"></span>
+            }
+        </li>
+    }
+</FlexOrderedList>
+
+@code {
+    /// <summary>步骤。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<StepItem> Items { get; set; } = [];
+
+    /// <summary>当前步骤的序号，从 0 开始；配合 Navigable 点回已完成的步骤时写 <c>@bind-Current</c>。</summary>
+    [Parameter] public int Current { get; set; }
+
+    /// <summary>当前步骤变了（点回已完成的步骤）。</summary>
+    [Parameter] public EventCallback<int> CurrentChanged { get; set; }
+
+    /// <summary>方向，默认横排；竖排适合说明文字长的流程，步骤之间有竖的连接线。</summary>
+    [Parameter] public Orientation Orientation { get; set; }
+
+    /// <summary>字号档位：圆圈、文字随之缩放；不写时继承上下文字号。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>已完成的步骤可以点击回去：点了写回 Current。</summary>
+    [Parameter] public bool Navigable { get; set; }
+
+    /// <summary>每个步骤（li）的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    /// <summary>按项计算的每个步骤的部件属性（写了时代替 <see cref="PropsItem"/>）。</summary>
+    [Parameter] public Func<StepItem, int, Attrs?>? PropsItemFor { get; set; }
+
+    /// <summary>序号圆圈的部件属性。</summary>
+    [Parameter] public Attrs? PropsIndicator { get; set; }
+
+    /// <summary>可点回的步骤外层（按钮，或有 Href 时的链接）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    /// <summary>文字区（标题与说明的容器）的部件属性。</summary>
+    [Parameter] public Attrs? PropsText { get; set; }
+
+    /// <summary>标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>步骤之间连接线的部件属性。</summary>
+    [Parameter] public Attrs? PropsConnector { get; set; }
+
+    Bindable<int> current { get => field ??= new(this, () => Current, () => CurrentChanged); }
+
+    Attrs? SizeLayer => Size is { } size ? new Attrs { Sx = ScaleStyles.FontSize(size) } : null;
+
+    static string StateName(StepState state) => state switch
+    {
+        StepState.Complete => "complete",
+        StepState.Current => "current",
+        StepState.Error => "error",
+        _ => "upcoming",
+    };
+
+    RenderFragment Content(PartLayers<StepsPart> parts, StepItem item, int index, StepState state) => @<text>
+        <span aria-hidden="true" @attributes="Attrs.Merge(parts[StepsPart.Indicator], PropsIndicator)">
+            @if (state == StepState.Complete)
+            {
+                <Icon Data="BuiltInIcons.Check" />
+            }
+            else if (state == StepState.Error)
+            {
+                <Icon Data="Tones.StatusIcon(Tone.Danger)" />
+            }
+            else if (item.Icon is not null)
+            {
+                <Icon Data="item.Icon" />
+            }
+            else
+            {
+                @(index + 1)
+            }
+        </span>
+        <span @attributes="Attrs.Merge(parts[StepsPart.Text], PropsText)">
+            <span @attributes="Attrs.Merge(parts[StepsPart.Title], PropsTitle)">
+                @item.Title
+                @* 当前步骤由 aria-current 念出，其余的状态补一句文字：不只靠颜色与图标 *@
+                @if (state != StepState.Current)
+                {
+                    <VisuallyHidden>@Config.Lang.StepState(StateName(state))</VisuallyHidden>
+                }
+            </span>
+            @if (item.Description is not null)
+            {
+                <span @attributes="Attrs.Merge(parts[StepsPart.Description], PropsDescription)">@item.Description</span>
+            }
+        </span>
+    </text>;
+}

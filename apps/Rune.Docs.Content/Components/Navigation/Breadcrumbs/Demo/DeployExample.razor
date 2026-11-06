@@ -1,0 +1,9 @@
+@inherits RuneComponent
+
+<Steps Orientation="Orientation.Vertical" Size="Size.Sm" Current="2" data-testid="deploy" Items="@([
+    new("拉取代码", "main@3f9c2e1 · 12 秒"),
+    new("安装依赖", "pnpm install · 41 秒"),
+    new("运行测试", "978 个通过，2 个失败", Status: StepState.Error),
+    new("构建", "等待测试通过"),
+    new("发布到生产环境", "需要审批", Disabled: true),
+])" />

@@ -69,3 +69,13 @@ public sealed class FlexList : Flex
     /// <inheritdoc/>
     protected override bool IsList => true;
 }
+
+/// <summary>flex 布局的有序列表（ol，同 vue-tsx-pro 的 FlexOrderedList）：顺序有意义的一行（面包屑、步骤），去掉序号与缩进，保留列表语义；子元素用 li。</summary>
+public sealed class FlexOrderedList : Flex
+{
+    /// <inheritdoc/>
+    protected override string Tag => "ol";
+
+    /// <inheritdoc/>
+    protected override bool IsList => true;
+}

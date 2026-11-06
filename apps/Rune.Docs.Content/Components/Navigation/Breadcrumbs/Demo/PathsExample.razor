@@ -1,0 +1,32 @@
+@* 示例里的链接只写锚点：点了不离开文档 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">默认：最后一项是当前页，不是链接</Small>
+        <Breadcrumbs aria-label="订单位置" Items="@([new("首页", "#home", Lucide.House), new("订单", "#orders"), new("#10234")])" data-testid="order" />
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">MaxItems="4"：中间几级收进菜单</Small>
+        <Breadcrumbs aria-label="设计稿位置" Items="Deep" MaxItems="4" data-testid="deep" />
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">自定义分隔符与图标</Small>
+        <Breadcrumbs aria-label="代码位置"
+                     Items="@([new("vue-tsx-pro", "#repo", Lucide.Folder), new("packages", "#packages", Lucide.Folder), new("ui", "#ui", Lucide.Folder), new("src")])">
+            <SeparatorContent><Icon Data="Lucide.Slash" /></SeparatorContent>
+        </Breadcrumbs>
+    </Flex>
+</Flex>
+
+@code {
+    static readonly BreadcrumbItem[] Deep =
+    [
+        new("首页", "#home", Lucide.House),
+        new("项目", "#projects"),
+        new("官网改版", "#redesign"),
+        new("设计稿", "#designs"),
+        new("2026 秋季", "#autumn"),
+        new("首页 v3.fig"),
+    ];
+}

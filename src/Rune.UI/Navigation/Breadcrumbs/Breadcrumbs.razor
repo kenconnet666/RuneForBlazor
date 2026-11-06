@@ -1,0 +1,144 @@
+@*
+    面包屑（同 vue-tsx-pro 的 Breadcrumbs，nav > ol）：当前页在站点层级里的位置。最后一项是当前页（aria-current="page"，不是链接）。
+    <Breadcrumbs Items="@([new("首页", "/"), new("订单", "orders"), new("#1024")])" />
+    分隔符默认是 ChevronRight，从右到左排版时翻转。路径太长时用 MaxItems 折叠中间部分：折叠处是一个菜单按钮，
+    被折叠的各级在菜单里（链接菜单项，一直在 DOM 里），同 Radix Themes / shadcn 的做法；展开整条路径会把布局撑乱，菜单不会。
+    应用内的层级（文件夹、组织架构的下钻）没有地址：给 OnNavigate 时没有 Href 的各级是链接样式的按钮，点了交给它（参数是在 Items 里的位置）；
+    当前一级标 aria-current="location"（是“在哪一级”，不是“哪一页”）。未声明的属性落到 nav 上；aria-label 默认取语言包（面包屑）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = BreadcrumbsStyles.Of(Config.Styles);
+    var collapse = MaxItems is { } max && Items.Count > max;
+    // 折叠时保留第一项与最后两项，中间换成展开按钮
+    var shown = collapse ? [0, -1, Items.Count - 2, Items.Count - 1] : Enumerable.Range(0, Items.Count).ToArray();
+    var last = Items.Count - 1;
+}
+
+<nav aria-label="@Config.Lang.Breadcrumbs" @attributes="Rest">
+    <FlexOrderedList Wrap="true" Align="ItemAlign.Center" Gap="SpaceScale.Xs" @attributes="Attrs.MergeProps(parts[BreadcrumbsPart.List], PropsList)">
+        @for (var position = 0; position < shown.Length; position++)
+        {
+            var index = shown[position];
+            var separated = position < shown.Length - 1;
+            if (index < 0)
+            {
+                <li @key="@("collapsed")" @attributes="Attrs.Merge(parts[BreadcrumbsPart.Item], PropsCollapsedItem)">
+                    <Menu @attributes="Attrs.MergeProps(null, PropsMenu)">
+                        <Trigger Context="t">
+                            <IconButton Icon="BuiltInIcons.Ellipsis" Label="@Config.Lang.BreadcrumbsExpand" Size="Size.Sm" @attributes="Attrs.MergeProps(parts[BreadcrumbsPart.Expand], PropsExpand, t)" />
+                        </Trigger>
+                        <ChildContent>
+                            @for (var hidden = 1; hidden < Items.Count - 2; hidden++)
+                            {
+                                var item = Items[hidden];
+                                var at = hidden;
+                                if (item.Href is { } href)
+                                {
+                                    <MenuLinkItem @key="at" Href="@href" Icon="item.Icon">@item.Label</MenuLinkItem>
+                                }
+                                else
+                                {
+                                    <MenuItem @key="at" Icon="item.Icon" Disabled="@(!OnNavigate.HasDelegate)" @onclick="() => OnNavigate.InvokeAsync(at)">@item.Label</MenuItem>
+                                }
+                            }
+                        </ChildContent>
+                    </Menu>
+                    @Separator(parts)
+                </li>
+                continue;
+            }
+            var entry = Items[index];
+            var at2 = index;
+            <li @key="@(entry.Key ?? entry.Href ?? index.ToString(System.Globalization.CultureInfo.InvariantCulture))" @attributes="Attrs.Merge(parts[BreadcrumbsPart.Item], PropsItemFor?.Invoke(entry, index) ?? PropsItem)">
+                @if (index == last)
+                {
+                    <span aria-current="@(OnNavigate.HasDelegate ? "location" : "page")" @attributes="Attrs.Merge(parts[BreadcrumbsPart.Current], PropsCurrent)">@Label(parts, entry)</span>
+                }
+                else if (entry.Href is { } href)
+                {
+                    <TextLink Href="@href" Tone="TextTone.Muted" Underline="LinkUnderline.Hover" @attributes="Attrs.MergeProps(null, PropsLink)">@Label(parts, entry)</TextLink>
+                }
+                else if (OnNavigate.HasDelegate)
+                {
+                    <Button Variant="ButtonVariant.Link" @onclick="() => OnNavigate.InvokeAsync(at2)">@Label(parts, entry)</Button>
+                }
+                else
+                {
+                    @Label(parts, entry)
+                }
+                @if (separated)
+                {
+                    @Separator(parts)
+                }
+            </li>
+        }
+    </FlexOrderedList>
+</nav>
+
+@code {
+    /// <summary>路径，从根到当前页；最后一项是当前页。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<BreadcrumbItem> Items { get; set; } = [];
+
+    /// <summary>分隔符；不写时是右向的 chevron 图标。</summary>
+    [Parameter] public RenderFragment? SeparatorContent { get; set; }
+
+    /// <summary>超过这么多项时折叠中间部分（保留第一项与最后两项），被折叠的各级放进菜单。</summary>
+    [Parameter] public int? MaxItems { get; set; }
+
+    /// <summary>应用内的层级导航：给了时没有 Href 的各级是按钮，点了调用它（参数是在 Items 里的位置）。</summary>
+    [Parameter] public EventCallback<int> OnNavigate { get; set; }
+
+    /// <summary>列表（ol，FlexOrderedList）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>每一项（li）的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    /// <summary>按项计算的每一项的部件属性（写了时代替 <see cref="PropsItem"/>）。</summary>
+    [Parameter] public Func<BreadcrumbItem, int, Attrs?>? PropsItemFor { get; set; }
+
+    /// <summary>折叠处那一项（li，里面是折叠按钮与菜单）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCollapsedItem { get; set; }
+
+    /// <summary>链接（TextLink）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLink { get; set; }
+
+    /// <summary>每一项文字（图标加文字）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>当前页（最后一项）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCurrent { get; set; }
+
+    /// <summary>分隔符的部件属性。</summary>
+    [Parameter] public Attrs? PropsSeparator { get; set; }
+
+    /// <summary>折叠按钮（IconButton，菜单的触发器）的部件属性。</summary>
+    [Parameter] public Attrs? PropsExpand { get; set; }
+
+    /// <summary>被折叠各级的菜单（Menu）的部件属性。</summary>
+    [Parameter] public Attrs? PropsMenu { get; set; }
+
+    RenderFragment Label(PartLayers<BreadcrumbsPart> parts, BreadcrumbItem item) =>
+        @<span @attributes="Attrs.Merge(parts[BreadcrumbsPart.Label], PropsLabel)">
+            @if (item.Icon is not null)
+            {
+                <Icon Data="item.Icon" />
+            }
+            @item.Label
+        </span>;
+
+    // 每处各生成一个：分隔符只是装饰
+    RenderFragment Separator(PartLayers<BreadcrumbsPart> parts) =>
+        @<span aria-hidden="true" @attributes="Attrs.Merge(parts[BreadcrumbsPart.Separator], PropsSeparator)">
+            @if (SeparatorContent is null)
+            {
+                <Icon Data="BuiltInIcons.ChevronRight" FlipInRtl="true" />
+            }
+            else
+            {
+                @SeparatorContent
+            }
+        </span>;
+}
