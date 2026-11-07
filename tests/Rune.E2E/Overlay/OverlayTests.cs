@@ -224,7 +224,7 @@ public class OverlayTests(DemoServer demo) : E2ETest(demo)
     public async Task 抽屉有未保存的改动时_Esc先确认_确认放弃才关(string mode)
     {
         var page = await OpenAsync(mode, "drawer");
-        await page.GetByRole(AriaRole.Button, new() { Name = "编辑" }).ClickAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "编辑", Exact = true }).ClickAsync();
         var drawer = page.GetByTestId("edit-drawer");
         await Assertions.Expect(drawer).ToBeVisibleAsync();
         await drawer.GetByRole(AriaRole.Textbox, new() { Name = "项目名称" }).FillAsync("显示器支架一体成型");

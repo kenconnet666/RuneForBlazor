@@ -13,6 +13,8 @@ public class SliderTests(DemoServer demo) : E2ETest(demo)
         var page = await OpenAsync(mode, "slider");
         var thumbs = Thumbs(page, "price");
         var summary = page.GetByTestId("price-summary");
+        // 下面按坐标拖动：先滚进视口（示例在页面靠下时坐标落在视口外）
+        await thumbs.Nth(0).ScrollIntoViewIfNeededAsync();
         var low = await thumbs.Nth(0).BoundingBoxAsync() ?? throw new InvalidOperationException("看不到滑块");
         var high = await thumbs.Nth(1).BoundingBoxAsync() ?? throw new InvalidOperationException("看不到滑块");
         var y = low.Y + low.Height / 2;

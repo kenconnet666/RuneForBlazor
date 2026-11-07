@@ -34,7 +34,7 @@ public class ResizeHandleTests(DemoServer demo) : E2ETest(demo)
     public async Task 抽屉靠正文的一边可以拖宽_按键调整()
     {
         var page = await OpenAsync("server", "drawer");
-        await page.GetByRole(AriaRole.Button, new() { Name = "编辑" }).ClickAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "编辑", Exact = true }).ClickAsync();
         var drawer = page.GetByTestId("edit-drawer");
         await Assertions.Expect(drawer).ToBeVisibleAsync();
         var handle = drawer.GetByRole(AriaRole.Separator);
