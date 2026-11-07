@@ -28,8 +28,18 @@ public partial class DataTable<TItem>
     Bindable<ColumnSort?> sort { get => field ??= new(this, () => Sort, () => SortChanged); }
     Bindable<IReadOnlyList<ColumnSort>> sorts { get => field ??= new(this, () => Sorts ?? [], () => SortsChanged); }
     Bindable<IReadOnlyList<string>> selected { get => field ??= new(this, () => Selected ?? [], () => SelectedChanged); }
+    Bindable<IReadOnlyDictionary<string, IReadOnlyList<string>>> filters { get => field ??= new(this, () => Filters ?? NoFilters, () => FiltersChanged); }
+    Bindable<IReadOnlyList<string>> hiddenColumns { get => field ??= new(this, () => HiddenColumns ?? [], () => HiddenColumnsChanged); }
+    Bindable<IReadOnlyList<string>> columnOrder { get => field ??= new(this, () => ColumnOrder ?? [], () => ColumnOrderChanged); }
+    Bindable<IReadOnlyDictionary<string, ColumnSticky?>> columnPins { get => field ??= new(this, () => ColumnPins ?? NoPins, () => ColumnPinsChanged); }
+    Bindable<IReadOnlyDictionary<string, double>> columnWidths { get => field ??= new(this, () => ColumnWidths ?? NoWidths, () => ColumnWidthsChanged); }
 
-    Memo<(IReadOnlyList<TItem>, IReadOnlyList<ColumnSort>, IReadOnlyList<DataTableColumn<TItem>>, bool), IReadOnlyList<TItem>> rows;
+    static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> NoFilters = new Dictionary<string, IReadOnlyList<string>>();
+    static readonly IReadOnlyDictionary<string, ColumnSticky?> NoPins = new Dictionary<string, ColumnSticky?>();
+    static readonly IReadOnlyDictionary<string, double> NoWidths = new Dictionary<string, double>();
+
+    Memo<(IReadOnlyList<TItem>, IReadOnlyList<ColumnSort>, IReadOnlyList<DataTableColumn<TItem>>, IReadOnlyDictionary<string, IReadOnlyList<string>>, bool, bool), IReadOnlyList<TItem>> rows;
+    Memo<(IReadOnlyList<TItem>, IReadOnlyList<DataTableColumn<TItem>>), Dictionary<string, IReadOnlyList<ListboxOption>>> filterOptions;
     Memo<IReadOnlyList<string>, HashSet<string>> selectedSet;
     Memo<string?, SelectionRadios> radios;
 
@@ -67,6 +77,45 @@ public partial class DataTable<TItem>
 
     /// <summary>不在本地排序：只写回排序，数据由调用方按它取（服务端分页，绑 TableQueryState 的 Sort / Sorts）。</summary>
     [Parameter] public bool ManualSort { get; set; }
+
+    /// <summary>表头筛选：各列（写了 Filter 的列）选中的值，关键字筛选时是 [关键字]。</summary>
+    [Parameter] public IReadOnlyDictionary<string, IReadOnlyList<string>>? Filters { get; set; }
+
+    /// <summary>表头筛选变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyDictionary<string, IReadOnlyList<string>>> FiltersChanged { get; set; }
+
+    /// <summary>不在本地筛选：只写回筛选，数据由调用方按它取（绑 TableQueryState 的 ColumnFilters）。</summary>
+    [Parameter] public bool ManualFilter { get; set; }
+
+    /// <summary>列菜单：列标题结尾多一个 ⋮，排序、固定在开头 / 结尾、前后移动、隐藏，写回 ColumnPins、ColumnOrder、HiddenColumns。</summary>
+    [Parameter] public bool ColumnMenu { get; set; }
+
+    /// <summary>隐藏的列的 key。</summary>
+    [Parameter] public IReadOnlyList<string>? HiddenColumns { get; set; }
+
+    /// <summary>隐藏的列变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> HiddenColumnsChanged { get; set; }
+
+    /// <summary>列的顺序（列的 key）：没列到的按定义的顺序排在后面。</summary>
+    [Parameter] public IReadOnlyList<string>? ColumnOrder { get; set; }
+
+    /// <summary>列的顺序变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> ColumnOrderChanged { get; set; }
+
+    /// <summary>固定的列：key → 起始边 / 结束边（null 取消列定义里的固定）。</summary>
+    [Parameter] public IReadOnlyDictionary<string, ColumnSticky?>? ColumnPins { get; set; }
+
+    /// <summary>固定的列变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyDictionary<string, ColumnSticky?>> ColumnPinsChanged { get; set; }
+
+    /// <summary>列宽可以拖动或用键盘调整（列的 Resizable 优先）。</summary>
+    [Parameter] public bool Resizable { get; set; }
+
+    /// <summary>各列调整后的宽度（px）：可以保存到本地设置里。</summary>
+    [Parameter] public IReadOnlyDictionary<string, double>? ColumnWidths { get; set; }
+
+    /// <summary>列宽变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyDictionary<string, double>> ColumnWidthsChanged { get; set; }
 
     /// <summary>选择方式；不写时没有勾选列。多选时表头有全选。</summary>
     [Parameter] public SelectionMode? SelectionMode { get; set; }
@@ -179,9 +228,22 @@ public partial class DataTable<TItem>
 
     IReadOnlyList<ColumnSort> ActiveSorts => MultiSort ? sorts.Value : sort.Value is { } single ? [single] : [];
 
-    /// <summary>要显示的行：本地排序后的（ManualSort 时原样）。</summary>
-    IReadOnlyList<TItem> Rows => rows.Get((Items, ActiveSorts, columns.All, ManualSort), Config.Lang.Code,
-        static (k, culture) => k.Item4 ? k.Item1 : ColumnDisplay.Sort(k.Item1, k.Item3, k.Item2, culture));
+    /// <summary>要显示的行：本地筛选、排序后的（ManualFilter、ManualSort 时原样）。</summary>
+    IReadOnlyList<TItem> Rows => rows.Get((Items, ActiveSorts, columns.All, filters.Value, ManualFilter, ManualSort), Config,
+        static (k, config) =>
+        {
+            var kept = k.Item5 ? k.Item1 : ColumnDisplay.Filter(k.Item1, k.Item3, k.Item4, config.Matches);
+            return k.Item6 ? kept : ColumnDisplay.Sort(kept, k.Item3, k.Item2, config.Lang.Code);
+        });
+
+    /// <summary>显示中的列：按列菜单排好、去掉隐藏的，带上调整后的宽度与推断的值类型。</summary>
+    IReadOnlyList<ColumnView<TItem>> Shown => ColumnDisplay.Arrange(columns.All, Rows, columnOrder.Value, columnPins.Value, columnWidths.Value, hiddenColumns.Value);
+
+    /// <summary>表头筛选的选项：列出出现过的值时看全部行（不是筛过的）；行与列不变时不重算。</summary>
+    IReadOnlyList<ListboxOption> FilterOptionsOf(DataTableColumn<TItem> column) =>
+        column.FilterOptions ?? filterOptions.Get((Items, columns.All), Config.Lang.Code, static (k, culture) =>
+            k.Item2.Where(static c => c.Filter == ColumnFilterKind.Values && c.FilterOptions is null)
+                .ToDictionary(static c => c.ColumnKey, c => c.FilterOptionsFrom(k.Item1, culture))).GetValueOrDefault(column.ColumnKey, []);
 
     HashSet<string> SelectedKeys => selectedSet.Get(selected.Value, static keys => [.. keys]);
 
@@ -203,12 +265,8 @@ public partial class DataTable<TItem>
 
     bool Appending => indicator.Shown && OnRangeChange.HasDelegate && Rows.Count > 0;
 
-    bool HasSummary => columns.All.Any(static column => column.Summary is not null || column.SummaryContent is not null);
-
     double LeadingWidth => SelectionMode is null ? 0 : SelectWidth;
 
-    /// <summary>列的宽度（px）；没写时与其他没写宽度的列平分。</summary>
-    static double? WidthOf(DataTableColumn<TItem> column) => column.Width;
 
     // 滚动区域的视口：交给 JS 的选项、滚动请求与 range 命令
     Attrs ViewportManaged => new()
@@ -223,9 +281,9 @@ public partial class DataTable<TItem>
     };
 
     // table：名称、行数、忙碌；点行由 js/table.js 交给 C#（点在控件上的不算）
-    Attrs TableManaged(int rowCount) => new()
+    Attrs TableManaged(int rowCount, IReadOnlyList<ColumnView<TItem>> shown) => new()
     {
-        InlineStyle = $"min-width:{ColumnDisplay.Px(ColumnDisplay.MinWidth(columns.All, WidthOf, LeadingWidth))}",
+        InlineStyle = $"min-width:{ColumnDisplay.Px(ColumnDisplay.MinWidth(shown, LeadingWidth))}",
         ["aria-rowcount"] = rowCount,
         ["aria-busy"] = Loading ? "true" : null,
         ["data-rune-table"] = "",
@@ -276,6 +334,43 @@ public partial class DataTable<TItem>
             return sorts.SetAsync(ColumnSort.Next(own, key) is { } next ? [next] : []);
         }
         return sorts.SetAsync(ColumnSort.NextMultiple(sorts.Value, key));
+    }
+
+    Task SetFilterAsync(string key, IReadOnlyList<string> values) =>
+        filters.SetAsync(new Dictionary<string, IReadOnlyList<string>>(filters.Value) { [key] = values });
+
+    Task SetWidthAsync(string key, double width) =>
+        columnWidths.SetAsync(new Dictionary<string, double>(columnWidths.Value) { [key] = width });
+
+    Task SetSortAsync(string key, SortDirection? direction)
+    {
+        if (!MultiSort) return sort.SetAsync(direction is { } d ? new ColumnSort(key, d) : null);
+        var rest = sorts.Value.Where(item => item.Key != key);
+        return sorts.SetAsync(direction is { } dir ? [new(key, dir), .. rest] : [.. rest]);
+    }
+
+    /// <summary>列菜单里选了一项：排序、固定、前后移动（与相邻的可见列交换）、隐藏。</summary>
+    Task OnColumnActionAsync(ColumnView<TItem> view, IReadOnlyList<ColumnView<TItem>> shown, ColumnMenuAction action)
+    {
+        var key = view.Key;
+        switch (action)
+        {
+            case ColumnMenuAction.SortAscending: return SetSortAsync(key, SortDirection.Ascending);
+            case ColumnMenuAction.SortDescending: return SetSortAsync(key, SortDirection.Descending);
+            case ColumnMenuAction.Unsort: return SetSortAsync(key, null);
+            case ColumnMenuAction.Hide: return hiddenColumns.SetAsync([.. hiddenColumns.Value, key]);
+            case ColumnMenuAction.MoveBackward or ColumnMenuAction.MoveForward:
+                var position = shown.ToList().FindIndex(item => item.Key == key) + (action == ColumnMenuAction.MoveForward ? 1 : -1);
+                if (position < 0 || position >= shown.Count) return Task.CompletedTask;
+                // 全部列（含隐藏的）按当前的排列，与相邻的可见列交换位置
+                var keys = ColumnDisplay.Arrange(columns.All, Rows, columnOrder.Value, columnPins.Value, columnWidths.Value, []).Select(static item => item.Key).ToList();
+                var (from, to) = (keys.IndexOf(key), keys.IndexOf(shown[position].Key));
+                (keys[from], keys[to]) = (keys[to], keys[from]);
+                return columnOrder.SetAsync(keys);
+            default:
+                var side = action switch { ColumnMenuAction.PinStart => ColumnSticky.Start, ColumnMenuAction.PinEnd => ColumnSticky.End, _ => (ColumnSticky?)null };
+                return columnPins.SetAsync(new Dictionary<string, ColumnSticky?>(columnPins.Value) { [key] = side });
+        }
     }
 
     bool IsSelectable(TItem item) => IsRowSelectable?.Invoke(item) ?? true;
@@ -359,17 +454,17 @@ public partial class DataTable<TItem>
     }
 
     // 固定列：position: sticky 加上按列宽累加的偏移；挨着滚动列的那一列加一条竖线
-    static Attrs? StickyLayer(DataTableColumn<TItem> column, StickyOffsets offsets) => column.Sticky switch
+    static Attrs? StickyLayer(ColumnView<TItem> column, StickyOffsets offsets) => column.Sticky switch
     {
         ColumnSticky.Start => new()
         {
-            Sx = Sx.Of(DataTableStyles.Sticky, offsets.StartEdge == column.ColumnKey ? DataTableStyles.StickyStartEdge : null),
-            InlineStyle = $"inset-inline-start:{ColumnDisplay.Px(offsets.Start[column.ColumnKey])}",
+            Sx = Sx.Of(DataTableStyles.Sticky, offsets.StartEdge == column.Key ? DataTableStyles.StickyStartEdge : null),
+            InlineStyle = $"inset-inline-start:{ColumnDisplay.Px(offsets.Start[column.Key])}",
         },
         ColumnSticky.End => new()
         {
-            Sx = Sx.Of(DataTableStyles.Sticky, offsets.EndEdge == column.ColumnKey ? DataTableStyles.StickyEndEdge : null),
-            InlineStyle = $"inset-inline-end:{ColumnDisplay.Px(offsets.End[column.ColumnKey])}",
+            Sx = Sx.Of(DataTableStyles.Sticky, offsets.EndEdge == column.Key ? DataTableStyles.StickyEndEdge : null),
+            InlineStyle = $"inset-inline-end:{ColumnDisplay.Px(offsets.End[column.Key])}",
         },
         _ => null,
     };

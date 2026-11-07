@@ -77,6 +77,21 @@ public abstract class DataTableColumn<TItem> : ComponentBase
     /// <summary>固定在哪一侧。</summary>
     [Parameter] public ColumnSticky? Sticky { get; set; }
 
+    /// <summary>
+    /// 表头筛选：列标题上多一个筛选按钮。<see cref="ColumnFilterKind.Values"/> 勾选值（不写 <see cref="FilterOptions"/> 时列出这一列出现过的值），
+    /// <see cref="ColumnFilterKind.Keyword"/> 输入关键字。选中的值在 DataTable 的 Filters 里。
+    /// </summary>
+    [Parameter] public ColumnFilterKind? Filter { get; set; }
+
+    /// <summary>表头筛选的选项（值与文字）；不写时列出这一列出现过的值（按语言排序，状态列按状态的顺序、显示状态名）。</summary>
+    [Parameter] public IReadOnlyList<ListboxOption>? FilterOptions { get; set; }
+
+    /// <summary>这一行留不留（values 是选中的值，关键字筛选时是 [关键字]）；默认这一列的值在其中 / 文字包含关键字。</summary>
+    [Parameter] public Func<TItem, IReadOnlyList<string>, bool>? FilterBy { get; set; }
+
+    /// <summary>可以拖动调整宽度；不写时跟随表格的 Resizable。</summary>
+    [Parameter] public bool? Resizable { get; set; }
+
     /// <summary>内容可以换行；默认一行显示不下时省略。</summary>
     [Parameter] public bool Wrap { get; set; }
 
@@ -112,6 +127,27 @@ public abstract class DataTableColumn<TItem> : ComponentBase
 
     /// <summary>是状态列。</summary>
     internal virtual bool HasStatuses => false;
+
+    /// <summary>值在筛选里的文字（筛选状态里存它，与选项的值比较）。</summary>
+    internal static string FilterText(object? value) => value switch
+    {
+        null => "",
+        IFormattable formattable => formattable.ToString(null, System.Globalization.CultureInfo.InvariantCulture),
+        _ => value.ToString() ?? "",
+    };
+
+    /// <summary>没写 FilterOptions 时的选项：这一列出现过的值，按语言排序。</summary>
+    internal virtual IReadOnlyList<ListboxOption> FilterOptionsFrom(IEnumerable<TItem> items, string culture)
+    {
+        var seen = new Dictionary<string, object>();
+        foreach (var item in items)
+        {
+            if (ValueOf(item) is not { } value || FilterText(value) is not { Length: > 0 } text) continue;
+            seen.TryAdd(text, value);
+        }
+        var compare = Collation.Comparer(culture);
+        return [.. seen.OrderBy(static pair => pair.Value, Comparer<object>.Create((a, b) => compare(a, b))).Select(static pair => new ListboxOption(pair.Key, pair.Key))];
+    }
 
     /// <inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder) => Columns?.Add(this);

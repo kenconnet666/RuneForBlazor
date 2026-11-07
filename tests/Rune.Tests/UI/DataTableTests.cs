@@ -122,4 +122,61 @@ public class DataTableTests : BunitContext
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("tbody tr[aria-hidden]")), TimeSpan.FromSeconds(2));
         Assert.Equal("true", cut.Find("table").GetAttribute("aria-busy"));
     }
+
+    [Fact]
+    public void 表头筛选_列出出现过的值_状态按顺序显示名字_本地筛选()
+    {
+        IReadOnlyDictionary<string, IReadOnlyList<string>> filters = new Dictionary<string, IReadOnlyList<string>>();
+        var cut = Render<DataTable<Order>>(p =>
+        {
+            p.Add(x => x.Items, Orders).Add(x => x.GetKey, o => o.Id).Add(x => x.Filters, filters).Add(x => x.FiltersChanged, v => filters = v);
+            p.AddChildContent<PropertyColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Customer).Add(x => x.Filter, ColumnFilterKind.Values));
+            p.AddChildContent<StatusColumn<Order, Status>>(c => c.Add(x => x.Property, o => o.Status).Add(x => x.Statuses, Statuses).Add(x => x.Filter, ColumnFilterKind.Values));
+            p.AddChildContent<PropertyColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Id).Add(x => x.Filter, ColumnFilterKind.Keyword));
+        });
+
+        var buttons = cut.FindComponents<ColumnFilterButton>();
+        Assert.Equal(["安澜", "北辰", "启航"], buttons[0].Instance.Options!.Select(o => o.Label));
+        Assert.Equal(["草稿", "已付款"], buttons[1].Instance.Options!.Select(o => o.Label));
+        Assert.Null(buttons[2].Instance.Options);
+
+        cut.InvokeAsync(() => buttons[1].Instance.ValuesChanged.InvokeAsync(["Paid"]));
+        cut.Render(p => p.Add(x => x.Filters, filters));
+        Assert.Equal(["A-3", "A-2"], cut.FindAll("tbody tr[data-key]").Select(row => row.GetAttribute("data-key")));
+
+        cut.InvokeAsync(() => cut.FindComponents<ColumnFilterButton>()[2].Instance.ValuesChanged.InvokeAsync(["a-2"]));
+        cut.Render(p => p.Add(x => x.Filters, filters));
+        Assert.Equal(["A-2"], cut.FindAll("tbody tr[data-key]").Select(row => row.GetAttribute("data-key")));
+    }
+
+    [Fact]
+    public void 列菜单_固定到结尾_前后移动_隐藏_列宽盖过列定义()
+    {
+        IReadOnlyDictionary<string, ColumnSticky?> pins = new Dictionary<string, ColumnSticky?>();
+        IReadOnlyList<string> order = [];
+        IReadOnlyList<string> hidden = [];
+        var cut = RenderOrders(p => p.Add(x => x.ColumnMenu, true)
+            .Add(x => x.ColumnPins, pins).Add(x => x.ColumnPinsChanged, v => pins = v)
+            .Add(x => x.ColumnOrder, order).Add(x => x.ColumnOrderChanged, v => order = v)
+            .Add(x => x.HiddenColumns, hidden).Add(x => x.HiddenColumnsChanged, v => hidden = v)
+            .Add(x => x.ColumnWidths, new Dictionary<string, double> { ["customer"] = 200 }));
+        string[] Headers() => [.. cut.FindAll("thead th").Select(th => th.GetAttribute("data-column")!)];
+        Task Act(string key, ColumnMenuAction action) =>
+            cut.InvokeAsync(() => cut.FindComponents<ColumnMenuButton>().Single(m => m.Instance.Label == key).Instance.OnAction.InvokeAsync(action));
+
+        Assert.Equal("width:200px", cut.Find("col[data-column=customer]").GetAttribute("style"));
+
+        Act("客户", ColumnMenuAction.PinEnd);
+        cut.Render(p => p.Add(x => x.ColumnPins, pins));
+        Assert.Equal(["id", "amount", "status", "customer"], Headers());
+        Assert.Contains("inset-inline-end:0px", cut.Find("th[data-column=customer]").GetAttribute("style"));
+
+        Act("Amount", ColumnMenuAction.MoveForward);
+        cut.Render(p => p.Add(x => x.ColumnOrder, order));
+        Assert.Equal(["id", "status", "amount", "customer"], Headers());
+
+        Act("状态", ColumnMenuAction.Hide);
+        cut.Render(p => p.Add(x => x.HiddenColumns, hidden));
+        Assert.Equal(["id", "amount", "customer"], Headers());
+    }
 }

@@ -32,4 +32,31 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(page.GetByText("已选 1 单")).ToBeVisibleAsync();
         await Assertions.Expect(rows.First).ToHaveAttributeAsync("aria-selected", "true");
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 表头筛选_列菜单隐藏列_键盘调整列宽(string mode)
+    {
+        var page = await OpenAsync(mode, "data-table");
+        var table = page.GetByRole(AriaRole.Table, new() { Name = "采购单" });
+        var summary = page.GetByTestId("po-summary");
+
+        await table.GetByRole(AriaRole.Button, new() { Name = "筛选“状态”" }).ClickAsync();
+        await page.GetByRole(AriaRole.Dialog, new() { Name = "筛选“状态”" }).GetByRole(AriaRole.Checkbox, new() { Name = "已到货" }).CheckAsync();
+        await Assertions.Expect(summary).ToContainTextAsync("状态：已到货");
+        await Assertions.Expect(table.GetByRole(AriaRole.Button, new() { Name = "筛选“状态”（已筛选）" })).ToBeAttachedAsync();
+        foreach (var badge in await table.Locator("tbody [data-status]").AllAsync()) Assert.Equal("Received", await badge.GetAttributeAsync("data-status"));
+        await page.Keyboard.PressAsync("Escape");
+
+        await table.GetByRole(AriaRole.Button, new() { Name = "“品类”列的操作" }).ClickAsync();
+        await page.GetByRole(AriaRole.Menuitem, new() { Name = "隐藏这一列" }).ClickAsync();
+        await Assertions.Expect(table.Locator("th[data-column=category]")).ToHaveCountAsync(0);
+
+        var resizer = table.GetByRole(AriaRole.Separator, new() { Name = "调整“采购员”的列宽" });
+        await resizer.FocusAsync();
+        await page.Keyboard.PressAsync("ArrowRight");
+        await Assertions.Expect(table.Locator("col[data-column=buyer]")).ToHaveAttributeAsync("style", "width:156px");
+        await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "还原列设置" })).ToBeEnabledAsync();
+    }
 }

@@ -5,8 +5,23 @@ namespace Rune.UI;
 /// <summary>固定列的偏移（px，按列的 key）与挨着滚动列的那一列（画分隔线）。</summary>
 sealed record StickyOffsets(IReadOnlyDictionary<string, double> Start, IReadOnlyDictionary<string, double> End, string? StartEdge, string? EndEdge);
 
+/// <summary>显示中的一列：列菜单的固定、拖动后的宽度盖过列定义；值类型按数据推断好。</summary>
+/// <param name="Column">列。</param>
+/// <param name="Sticky">固定在哪一侧（列菜单改过的）。</param>
+/// <param name="Width">宽度（px，拖动调整过的）；没有时与其他没写宽度的列平分。</param>
+/// <param name="Type">值类型。</param>
+sealed record ColumnView<TItem>(DataTableColumn<TItem> Column, ColumnSticky? Sticky, double? Width, ColumnType Type)
+{
+    public string Key => Column.ColumnKey;
+
+    /// <summary>对齐：写了 Align 用它；状态列靠起始边；数字类靠结束边方便对比位数。</summary>
+    public TableAlign Align => Column.Align ?? (Column.HasStatuses || !ColumnDisplay.IsNumeric(Type) ? TableAlign.Start : TableAlign.End);
+
+    public double MinWidth => Column.MinWidth ?? ColumnDisplay.FlexMinWidth;
+}
+
 /// <summary>
-/// 列的计算（同 vue-tsx-pro 的 columns.ts、column-display.tsx）：值类型、对齐、默认的格式、合计、排序，固定列的偏移与表格的最小宽度。
+/// 列的计算（同 vue-tsx-pro 的 columns.ts、column-display.tsx）：值类型、默认的格式、合计、排序、筛选、列的排列，固定列的偏移与表格的最小宽度。
 /// </summary>
 static class ColumnDisplay
 {
@@ -31,9 +46,27 @@ static class ColumnDisplay
     /// <summary>数字类：默认靠结束边对齐，排序时十进制字符串按数值。</summary>
     public static bool IsNumeric(ColumnType type) => type is ColumnType.Number or ColumnType.Currency or ColumnType.Percent or ColumnType.FileSize;
 
-    /// <summary>列的对齐：写了 Align 用它；状态列靠起始边；数字类靠结束边方便对比位数。</summary>
-    public static TableAlign AlignOf<TItem>(DataTableColumn<TItem> column, ColumnType type) =>
-        column.Align ?? (column.HasStatuses || !IsNumeric(type) ? TableAlign.Start : TableAlign.End);
+    /// <summary>
+    /// 列的排列（列菜单、列设置）：order 是列 key 的顺序，没列到的按定义的顺序排在后面；pins 盖过列的 Sticky（null 取消固定）。
+    /// 固定在起始边的排到最前、结束边的排到最后：固定列要挨着表格的边。隐藏的列不在结果里。
+    /// </summary>
+    public static IReadOnlyList<ColumnView<TItem>> Arrange<TItem>(
+        IReadOnlyList<DataTableColumn<TItem>> columns, IReadOnlyList<TItem> items, IReadOnlyList<string> order,
+        IReadOnlyDictionary<string, ColumnSticky?> pins, IReadOnlyDictionary<string, double> widths, IReadOnlyCollection<string> hidden)
+    {
+        var rank = order.Select((key, index) => (key, index)).ToDictionary(static pair => pair.key, static pair => pair.index);
+        var arranged = columns
+            .Select((column, index) => (Column: column, Position: rank.TryGetValue(column.ColumnKey, out var at) ? at : rank.Count + index))
+            .OrderBy(static entry => entry.Position)
+            .Where(entry => !hidden.Contains(entry.Column.ColumnKey))
+            .Select(entry => new ColumnView<TItem>(
+                entry.Column,
+                pins.TryGetValue(entry.Column.ColumnKey, out var pin) ? pin : entry.Column.Sticky,
+                widths.TryGetValue(entry.Column.ColumnKey, out var width) ? width : entry.Column.Width,
+                TypeOf(entry.Column, items)))
+            .ToList();
+        return [.. arranged.Where(static view => view.Sticky == ColumnSticky.Start), .. arranged.Where(static view => view.Sticky is null), .. arranged.Where(static view => view.Sticky == ColumnSticky.End)];
+    }
 
     /// <summary>没写内容时单元格的文字：按值类型与语言格式化；值与类型对不上（数字列里的文字）时原样显示。</summary>
     public static string Format(object value, ColumnType type, NumberFormat? format, Lang lang)
@@ -74,23 +107,42 @@ static class ColumnDisplay
         foreach (var sort in sorts)
         {
             if (columns.FirstOrDefault(column => column.ColumnKey == sort.Key) is not { } column) continue;
-            // 数字类的列里，十进制字符串（"2.5"、"2.10"）按数值排：按文字比较时 "2.5" 在 "2.10" 前
             var numeric = IsNumeric(TypeOf(column, items));
             keys.Add((item => SortValue(column.ValueOf(item), numeric), sort.Direction));
         }
         return Collation.SortBy(items, keys, culture);
     }
 
+    // 数字类的列里，十进制字符串（"2.5"、"2.10"）按数值排：按文字比较时 "2.5" 在 "2.10" 前
     static object? SortValue(object? value, bool numeric) => numeric && value is string text && Decimal(text) is { } number ? number : value;
 
+    /// <summary>按表头筛选留下的行：filters 是各列选中的值（关键字筛选时是 [关键字]），空的不算；没有要筛的时原样返回。</summary>
+    public static IReadOnlyList<TItem> Filter<TItem>(IReadOnlyList<TItem> items, IReadOnlyList<DataTableColumn<TItem>> columns,
+        IReadOnlyDictionary<string, IReadOnlyList<string>> filters, Func<string, string, bool> matches)
+    {
+        var tests = new List<Func<TItem, bool>>();
+        foreach (var column in columns)
+        {
+            if (column.Filter is not { } kind || !filters.TryGetValue(column.ColumnKey, out var values) || values.Count == 0) continue;
+            if (column.FilterBy is { } filterBy) tests.Add(item => filterBy(item, values));
+            else if (kind == ColumnFilterKind.Keyword) tests.Add(item => matches(DataTableColumn<TItem>.FilterText(column.ValueOf(item)), values[0]));
+            else
+            {
+                var allowed = values.ToHashSet();
+                tests.Add(item => allowed.Contains(DataTableColumn<TItem>.FilterText(column.ValueOf(item))));
+            }
+        }
+        return tests.Count == 0 ? items : [.. items.Where(item => tests.TrueForAll(test => test(item)))];
+    }
+
     /// <summary>固定列的偏移：起始边的从 leading（勾选列的宽度）之后累加，结束边的从末尾往回累加。</summary>
-    public static StickyOffsets Offsets<TItem>(IReadOnlyList<DataTableColumn<TItem>> columns, Func<DataTableColumn<TItem>, double?> widthOf, double leading)
+    public static StickyOffsets Offsets<TItem>(IReadOnlyList<ColumnView<TItem>> columns, double leading)
     {
         var start = Accumulate(columns, ColumnSticky.Start, leading);
         var end = Accumulate(columns.Reverse(), ColumnSticky.End, 0);
         return new(start.Offsets, end.Offsets, start.Inner, end.Inner);
 
-        (Dictionary<string, double> Offsets, string? Inner) Accumulate(IEnumerable<DataTableColumn<TItem>> ordered, ColumnSticky side, double from)
+        static (Dictionary<string, double> Offsets, string? Inner) Accumulate(IEnumerable<ColumnView<TItem>> ordered, ColumnSticky side, double from)
         {
             var offsets = new Dictionary<string, double>();
             string? inner = null;
@@ -98,28 +150,28 @@ static class ColumnDisplay
             foreach (var column in ordered)
             {
                 if (column.Sticky != side) continue;
-                offsets[column.ColumnKey] = offset;
-                inner = column.ColumnKey;
-                offset += widthOf(column) ?? FlexMinWidth;
+                offsets[column.Key] = offset;
+                inner = column.Key;
+                offset += column.Width ?? FlexMinWidth;
             }
             return (offsets, inner);
         }
     }
 
     /// <summary>表格的最小宽度（px）：写了宽度的列按宽度，没写的按 MinWidth 或 120；放不下时横向滚动。</summary>
-    public static double MinWidth<TItem>(IReadOnlyList<DataTableColumn<TItem>> columns, Func<DataTableColumn<TItem>, double?> widthOf, double leading) =>
-        columns.Sum(column => widthOf(column) ?? column.MinWidth ?? FlexMinWidth) + leading;
+    public static double MinWidth<TItem>(IReadOnlyList<ColumnView<TItem>> columns, double leading) =>
+        columns.Sum(static column => column.Width ?? column.MinWidth) + leading;
 
     /// <summary>
     /// 没写宽度的列放在 col 上的宽度。table-layout: fixed 里没写宽度的 col 一律平分，各列最小宽度不一样时，写成“自己的最小宽度 + 平分多出来的部分”
     /// （100cqi 是外层的宽度，多出来的是负数时 max 保住最小宽度）；都一样时平分就对，返回 null。
     /// </summary>
-    public static string? FlexWidth<TItem>(DataTableColumn<TItem> column, IReadOnlyList<DataTableColumn<TItem>> columns, Func<DataTableColumn<TItem>, double?> widthOf, double leading)
+    public static string? FlexWidth<TItem>(ColumnView<TItem> column, IReadOnlyList<ColumnView<TItem>> columns, double leading)
     {
-        var flexible = columns.Where(item => widthOf(item) is null).ToList();
-        if (flexible.Select(static item => item.MinWidth ?? FlexMinWidth).Distinct().Count() <= 1) return null;
-        var min = Px(column.MinWidth ?? FlexMinWidth);
-        return $"max({min}, calc({min} + (100cqi - {Px(MinWidth(columns, widthOf, leading))}) / {flexible.Count}))";
+        var flexible = columns.Where(static item => item.Width is null).ToList();
+        if (flexible.Select(static item => item.MinWidth).Distinct().Count() <= 1) return null;
+        var min = Px(column.MinWidth);
+        return $"max({min}, calc({min} + (100cqi - {Px(MinWidth(columns, leading))}) / {flexible.Count}))";
     }
 
     /// <summary>像素值写成 CSS 文字。</summary>
@@ -132,8 +184,8 @@ static class ColumnDisplay
     {
         null => null,
         decimal number => number,
-        double number when double.IsFinite(number) => (decimal)number,
-        float number when float.IsFinite(number) => (decimal)number,
+        double number when double.IsFinite(number) && Math.Abs(number) < 7.9e28 => (decimal)number,
+        float number when float.IsFinite(number) && Math.Abs(number) < 7.9e28f => (decimal)number,
         string text when decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) => parsed,
         _ when IsNumber(value) => Convert.ToDecimal(value, CultureInfo.InvariantCulture),
         _ => null,

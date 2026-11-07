@@ -1,0 +1,26 @@
+@*
+    列宽调整手柄（同 vue-tsx-pro 的 ColumnResizer）：列标题结束边的 ResizeHandle，名称取语言包（调整“列名”的列宽），最小宽度默认 64。
+    宽度从所在单元格量起，所以要放在 th 里；th 与 col 都带 data-column 时拖动中 col 跟着变（table-layout: fixed 的列宽看 col）。
+    <th data-column="amount">…<ColumnResizer Label="金额" Width="widths.GetValueOrDefault("amount")" WidthChanged="…" /></th>
+    未声明的属性落到手柄（span）上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<ResizeHandle Width="Width" WidthChanged="OnWidthChanged" MinWidth="MinWidth" aria-label="@Config.Lang.TableResizeColumn(Label)" @attributes="Attrs.MergeProps(null, Rest)" />
+
+@code {
+    /// <summary>列名：手柄的名称取语言包（调整“列名”的列宽）。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>当前宽度（px）；没有时量所在单元格。</summary>
+    [Parameter] public double? Width { get; set; }
+
+    /// <summary>拖动或用键盘调整了宽度。</summary>
+    [Parameter] public EventCallback<double> WidthChanged { get; set; }
+
+    /// <summary>最小宽度（px），默认 64。</summary>
+    [Parameter] public double MinWidth { get; set; } = 64;
+
+    Task OnWidthChanged(double? width) => width is { } px ? WidthChanged.InvokeAsync(px) : Task.CompletedTask;
+}

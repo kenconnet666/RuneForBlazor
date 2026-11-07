@@ -1,0 +1,70 @@
+@*
+    列菜单（同 vue-tsx-pro 的 ColumnMenuButton）：列标题结尾的 ⋮，弹出排序、固定在开头 / 结尾、前后移动、隐藏，选了交给 OnAction。
+    DataTable 开了 ColumnMenu 时放进列标题；状态在外层，这里只管画与报告。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<Menu Placement="Placement.BottomEnd">
+    <Trigger Context="t">
+        <IconButton Icon="BuiltInIcons.EllipsisVertical" Size="Size.Xs" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.TableColumnMenu(Label)"
+                    @attributes="Attrs.MergeProps(new Attrs { Sx = ColumnFilterButton.TriggerStyle }, PropsTrigger, t)" />
+    </Trigger>
+    <ChildContent>
+        @if (Sortable)
+        {
+            <MenuItem Disabled="@(Sorted == SortDirection.Ascending)" @onclick="() => OnAction.InvokeAsync(ColumnMenuAction.SortAscending)">@Config.Lang.TableSortAscending</MenuItem>
+            <MenuItem Disabled="@(Sorted == SortDirection.Descending)" @onclick="() => OnAction.InvokeAsync(ColumnMenuAction.SortDescending)">@Config.Lang.TableSortDescending</MenuItem>
+            @if (Sorted is not null)
+            {
+                <MenuItem @onclick="() => OnAction.InvokeAsync(ColumnMenuAction.Unsort)">@Config.Lang.TableSortClear</MenuItem>
+            }
+            <MenuSeparator />
+        }
+        @if (Pinned != ColumnSticky.Start)
+        {
+            <MenuItem @onclick="() => OnAction.InvokeAsync(ColumnMenuAction.PinStart)">@Config.Lang.TablePinStart</MenuItem>
+        }
+        @if (Pinned != ColumnSticky.End)
+        {
+            <MenuItem @onclick="() => OnAction.InvokeAsync(ColumnMenuAction.PinEnd)">@Config.Lang.TablePinEnd</MenuItem>
+        }
+        @if (Pinned is not null)
+        {
+            <MenuItem @onclick="() => OnAction.InvokeAsync(ColumnMenuAction.Unpin)">@Config.Lang.TableUnpin</MenuItem>
+        }
+        <MenuSeparator />
+        <MenuItem Disabled="!CanMoveBackward" @onclick="() => OnAction.InvokeAsync(ColumnMenuAction.MoveBackward)">@Config.Lang.TableMoveBackward</MenuItem>
+        <MenuItem Disabled="!CanMoveForward" @onclick="() => OnAction.InvokeAsync(ColumnMenuAction.MoveForward)">@Config.Lang.TableMoveForward</MenuItem>
+        <MenuItem Disabled="!CanHide" @onclick="() => OnAction.InvokeAsync(ColumnMenuAction.Hide)">@Config.Lang.TableHideColumn</MenuItem>
+    </ChildContent>
+</Menu>
+
+@code {
+    /// <summary>列标题的文字：按钮的名称（“列名”的列菜单）。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>可以排序：菜单里有正序、倒序。</summary>
+    [Parameter] public bool Sortable { get; set; }
+
+    /// <summary>这一列当前的排序。</summary>
+    [Parameter] public SortDirection? Sorted { get; set; }
+
+    /// <summary>这一列当前固定在哪一侧。</summary>
+    [Parameter] public ColumnSticky? Pinned { get; set; }
+
+    /// <summary>能往前移（已经在头上时不能）。</summary>
+    [Parameter] public bool CanMoveBackward { get; set; }
+
+    /// <summary>能往后移（已经在尾上时不能）。</summary>
+    [Parameter] public bool CanMoveForward { get; set; }
+
+    /// <summary>能隐藏（只剩一列时不能）。</summary>
+    [Parameter] public bool CanHide { get; set; }
+
+    /// <summary>选了一项。</summary>
+    [Parameter] public EventCallback<ColumnMenuAction> OnAction { get; set; }
+
+    /// <summary>按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+}

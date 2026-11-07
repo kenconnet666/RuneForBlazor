@@ -1,0 +1,82 @@
+@*
+    表头筛选（同 vue-tsx-pro 的 ColumnFilterButton）：列标题结尾的漏斗按钮，弹出勾选的值（多于 8 项时可以搜索）或关键字输入框，改了立即生效。
+    DataTable 在列写了 Filter 时放进列标题；状态在外层，这里只管画与报告。
+    <ColumnFilterButton Label="状态" Options="statusOptions" @bind-Values="filter" />
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<Popover Placement="Placement.BottomEnd" aria-label="@Config.Lang.TableFilterColumn(Label, false)">
+    <Trigger Context="t">
+        <IconButton Icon="BuiltInIcons.Funnel" Size="Size.Xs" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.TableFilterColumn(Label, Active)"
+                    @attributes="Attrs.MergeProps(new Attrs { Sx = Sx.Of(TriggerStyle, Active ? ActiveStyle : null) }, PropsTrigger, t)" />
+    </Trigger>
+    <ChildContent>
+        <div @attributes="Attrs.Merge(Panel)">
+            @if (Options is null)
+            {
+                <TextField Value="@(Values.FirstOrDefault() ?? "")" ValueChanged="@((string? text) => SetAsync(string.IsNullOrEmpty(text) ? [] : [text]))" Immediate="true"
+                           Size="Size.Sm" Clearable="true" autofocus aria-label="@Config.Lang.TableFilterSearch" placeholder="@Config.Lang.TableFilterSearch" />
+            }
+            else
+            {
+                @if (Options.Count > SearchThreshold)
+                {
+                    <TextField @bind-Value="search" Immediate="true" Size="Size.Sm" Clearable="true"
+                               aria-label="@Config.Lang.TableFilterSearch" placeholder="@Config.Lang.TableFilterSearch" />
+                }
+                <ScrollArea Sx="OptionsScroll" PropsViewport="@(new Attrs { Role = "group", AriaLabel = Label })" PropsContent="OptionsLayer">
+                    @foreach (var option in Shown)
+                    {
+                        var value = option.Value;
+                        <Checkbox @key="value" Value="Values.Contains(value)" ValueChanged="@(on => ToggleAsync(value, on))">@option.Label</Checkbox>
+                    }
+                </ScrollArea>
+            }
+            <div @attributes="Attrs.Merge(Footer)">
+                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Disabled="!Active" @onclick="() => SetAsync([])">@Config.Lang.TableFilterClear</Button>
+            </div>
+        </div>
+    </ChildContent>
+</Popover>
+
+@code {
+    // 选项多于这么多时，多一个搜索框
+    const int SearchThreshold = 8;
+
+    static readonly Attrs Panel = new() { Sx = Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Sm, MinWidth = CssLength.Rem(12) }) };
+    static readonly Attrs OptionsLayer = new() { Sx = Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Xs, FontWeight = FontWeights.Normal, Color = Colors.Text }) };
+    static readonly Attrs Footer = new() { Sx = Css.Define(static () => new Style { Display = Display.Flex, JustifyContent = JustifyContent.FlexEnd }) };
+
+    string? search;
+
+    /// <summary>列标题的文字：按钮的名称（筛选“列名”）。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>可以勾选的值；null 时是关键字筛选（输入框，值是 [关键字]）。</summary>
+    [Parameter] public IReadOnlyList<ListboxOption>? Options { get; set; }
+
+    /// <summary>选中的值（关键字筛选时是 [关键字]）。</summary>
+    [Parameter] public IReadOnlyList<string> Values { get; set; } = [];
+
+    /// <summary>改了筛选。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> ValuesChanged { get; set; }
+
+    /// <summary>按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    /// <summary>列标题里的小按钮：比正文小一档，不撑高表头（列菜单的按钮也用）。</summary>
+    internal static Style TriggerStyle => Css.Define(static () => new Style { FlexShrink = 0, MarginBlock = CssLength.Em(-0.25) });
+
+    static Style ActiveStyle => Css.Define(static () => new Style { Color = Tones.Accent.Text });
+
+    static Style OptionsScroll => Css.Define(static () => new Style { MaxHeight = CssLength.Rem(16) });
+
+    bool Active => Values.Count > 0;
+
+    IEnumerable<ListboxOption> Shown => string.IsNullOrEmpty(search) ? Options ?? [] : (Options ?? []).Where(option => Config.Matches(option.Label, search));
+
+    Task SetAsync(IReadOnlyList<string> values) => ValuesChanged.InvokeAsync(values);
+
+    Task ToggleAsync(string value, bool on) => SetAsync(on ? [.. Values, value] : [.. Values.Where(item => item != value)]);
+}

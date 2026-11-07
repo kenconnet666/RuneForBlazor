@@ -10,6 +10,13 @@
         点可排序的列标题在正序、倒序、不排之间切换（本地按数字、日期、按语言的文字排，<Code>ManualSort</Code> 时交给服务端）；
         <Code>SelectionMode.Multiple</Code> 多一列勾选框；<Code>Sticky</Code> 的列横向滚动时固定在两侧。工具栏（搜索、批量操作、分页）用现有组件组合，不内置。
     </Example>
+    <Example Id="columns" Title="采购单：表头筛选、多列排序与列菜单" Demo="typeof(ColumnsExample)">
+        列写 <Code>Filter</Code> 时列标题上有筛选按钮：<Code>ColumnFilterKind.Values</Code> 列出这一列出现过的值（状态列按阶段顺序、显示状态名），也可以给 <Code>FilterOptions</Code>；
+        <Code>ColumnFilterKind.Keyword</Code> 是输入关键字。<Code>Filters</Code> 双向绑定各列选中的值，默认在本地筛，<Code>ManualFilter</Code> 时交给服务端。
+        <Code>MultiSort</Code> 时点列标题只按这一列排，按住 Shift 点是追加一列（列标题上标着次序），排序写在 <Code>Sorts</Code>。
+        <Code>ColumnMenu</Code> 在列标题结尾放 ⋮：排序、固定在开头 / 结尾、前后移动、隐藏，写回 <Code>ColumnPins</Code>、<Code>ColumnOrder</Code>、<Code>HiddenColumns</Code>；
+        <Code>Resizable</Code> 时可以拖动或用键盘调整列宽，写回 <Code>ColumnWidths</Code>。这几项都能双向绑定、存进各人的设置。
+    </Example>
     <Examples>
         <ExampleColumn>
             <Example Id="states" Title="加载、空状态与密度" Demo="typeof(StatesExample)">

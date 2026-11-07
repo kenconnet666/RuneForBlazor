@@ -68,6 +68,13 @@ public sealed class StatusColumn<TItem, TKey> : PropertyColumn<TItem, TKey> wher
 
     internal override bool HasStatuses => true;
 
+    // 状态按阶段的顺序、显示状态名；只列出现过的状态
+    internal override IReadOnlyList<ListboxOption> FilterOptionsFrom(IEnumerable<TItem> items, string culture)
+    {
+        var seen = items.Select(ValueOf).OfType<TKey>().ToHashSet();
+        return Statuses.Options(Statuses.Keys.Where(seen.Contains).Concat(seen.Where(key => Statuses.Order(key) < 0)));
+    }
+
     internal override RenderFragment? StatusContent(object value) => builder =>
     {
         builder.OpenComponent<StatusBadge<TKey>>(0);

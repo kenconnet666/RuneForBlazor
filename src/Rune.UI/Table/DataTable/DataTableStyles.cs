@@ -23,6 +23,12 @@ public enum DataTablePart
     /// <summary>勾选列的列标题，叠在 <see cref="HeaderCell"/> 上。</summary>
     SelectHeaderCell,
 
+    /// <summary>有表头筛选、列菜单按钮的列标题里的一行：文字（或排序按钮）占满剩下的宽度，按钮在结尾。</summary>
+    HeaderContent,
+
+    /// <summary>上面一行里的文字（或排序按钮）。</summary>
+    HeaderMain,
+
     /// <summary>可排序列标题里的排序按钮。</summary>
     SortButton,
 
@@ -120,6 +126,8 @@ public static class DataTableStyles
                 DataTablePart.Head => Head,
                 DataTablePart.HeaderCell => Sx.Of(TableStyles.HeaderCell, padding),
                 DataTablePart.SelectHeaderCell => ControlCell,
+                DataTablePart.HeaderContent => HeaderContent,
+                DataTablePart.HeaderMain => HeaderMain,
                 DataTablePart.SortButton => SortButton,
                 DataTablePart.SortLabel => Ellipsis,
                 DataTablePart.SortIcon => SortIcon,
@@ -192,6 +200,9 @@ public static class DataTableStyles
     /// <summary>有起始边的固定列时，勾选列也固定在最前面。</summary>
     internal static Style StickySelect => Css.Define(static () => new Style { Position = Position.Sticky, ZIndex = 1, InsetInlineStart = 0 });
 
+    /// <summary>靠结束边的列（数字）：文字靠结束边，按钮仍在最后。</summary>
+    internal static Style HeaderMainEnd => Css.Define(static () => new Style { TextAlign = TextAlign.End });
+
     /// <summary>排序中的列的箭头。</summary>
     internal static Style SortActive => Css.Define(static () => new Style { Color = Tones.Accent.Text });
 
@@ -212,6 +223,10 @@ public static class DataTableStyles
 
     // 勾选列的格（表头与各行）：控件居中，没有左右内边距
     static Style ControlCell => Css.Define(static () => new Style { PaddingInline = 0, TextAlign = TextAlign.Center, TextOverflow = TextOverflow.Clip });
+
+    static Style HeaderContent => Css.Define(static () => new Style { Display = Display.Flex, AlignItems = AlignItems.Center, Gap = Space.Xs, MinWidth = 0 });
+
+    static Style HeaderMain => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0, Overflow = Overflow.Hidden, TextOverflow = TextOverflow.Ellipsis });
 
     // 去掉按钮默认外观、焦点环、波纹由 ButtonBase 给出
     static Style SortButton => Css.Define(static () => new Style

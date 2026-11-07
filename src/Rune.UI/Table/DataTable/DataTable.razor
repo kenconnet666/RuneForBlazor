@@ -4,7 +4,7 @@
         <PropertyColumn Property="o => o.Id" Width="120" Sticky="ColumnSticky.Start" />
         <PropertyColumn Property="o => o.Customer" Sortable />
         <PropertyColumn Property="o => o.Amount" Type="ColumnType.Currency" Sortable Summary="ColumnSummary.Sum" />
-        <StatusColumn Property="o => o.Status" Statuses="OrderStatuses" />
+        <StatusColumn Property="o => o.Status" Statuses="OrderStatuses" Filter="ColumnFilterKind.Values" />
         <TemplateColumn Title="操作" Width="96" Sticky="ColumnSticky.End" Context="order"><Button Variant="ButtonVariant.Link">编辑</Button></TemplateColumn>
     </DataTable>
     - 结构：原生 table（读屏按表格念：第几行第几列、列标题）+ table-layout: fixed + colgroup 定列宽，外层是 ScrollArea（两个方向滚动）。
@@ -12,6 +12,9 @@
     - 虚拟滚动在 JS 里（js/virtual.js 的表格模式）：只渲染看得见的行，上下各一个占位行撑出滚动高度；行带 aria-rowindex，表格带 aria-rowcount。
     - 排序：点可排序的列标题在 正序 → 倒序 → 不排 之间切换；默认在本地排（Collation：数字、日期、按语言的文字），
       ManualSort 时只写回排序，由调用方向服务端要排好序的数据。MultiSort 时排序写在 Sorts，按住 Shift 点是追加一列。
+    - 表头筛选：列写 Filter 时列标题上有筛选按钮，Filters 是各列选中的值；默认在本地筛，ManualFilter 时只写回。
+    - 列菜单：ColumnMenu 时列标题结尾有 ⋮（排序、固定在开头 / 结尾、前后移动、隐藏），写回 ColumnPins、ColumnOrder、HiddenColumns。
+    - 列宽：Resizable 时可以拖动或用键盘调整，ColumnWidths 记录调整后的宽度。
     - 选择：SelectionMode 时多一列勾选框（单选是单选框），Selected 是已选行的 key。
     - 加载：只用骨架行：Loading 时表体换成骨架；滚动加载（OnRangeChange）已有数据时骨架接在末尾。
     - 合计：列写 Summary（Sum 精确相加）或 SummaryContent 时底部多一行吸底的合计。
@@ -46,29 +49,27 @@
     {
         var look = Look;
         var parts = DataTableStyles.Of(look, Config.Styles);
-        var shown = columns.All;
         var items = Rows;
-        var types = shown.Select(column => ColumnDisplay.TypeOf(column, items)).ToArray();
-        var offsets = ColumnDisplay.Offsets(shown, WidthOf, LeadingWidth);
-        var sortList = ActiveSorts;
+        var shown = Shown;
+        var offsets = ColumnDisplay.Offsets(shown, LeadingWidth);
         var span = shown.Count + (SelectionMode is null ? 0 : 1);
-        var summary = HasSummary && items.Count > 0 && !Replacing;
+        var summary = items.Count > 0 && !Replacing && shown.Any(static view => view.Column.Summary is not null || view.Column.SummaryContent is not null);
         // 有起始边的固定列时，勾选列也固定在最前面
         var stickySelectStyle = offsets.Start.Count > 0 ? DataTableStyles.StickySelect : null;
         Attrs? stickySelect = stickySelectStyle is null ? null : new Attrs { Sx = stickySelectStyle };
 
         <ScrollArea Axis="ScrollAxis.Both" Focusable="Virtual" PropsViewport="ViewportManaged"
                     @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.Root], Flexible ? DataTableStyles.Flexible : null as Attrs), PropsRoot)">
-            <table @attributes="Attrs.Merge(parts[DataTablePart.Table], Rest, TableManaged(items.Count + 1 + (summary ? 1 : 0)))">
+            <table @attributes="Attrs.Merge(parts[DataTablePart.Table], Rest, TableManaged(items.Count + 1 + (summary ? 1 : 0), shown))">
                 <colgroup>
                     @if (SelectionMode is not null)
                     {
                         <col style="width:@ColumnDisplay.Px(SelectWidth)" />
                     }
-                    @foreach (var column in shown)
+                    @foreach (var view in shown)
                     {
-                        var width = WidthOf(column) is { } px ? ColumnDisplay.Px(px) : ColumnDisplay.FlexWidth(column, shown, WidthOf, LeadingWidth);
-                        <col @key="column" style="@(width is null ? null : $"width:{width}")" />
+                        var width = view.Width is { } px ? ColumnDisplay.Px(px) : ColumnDisplay.FlexWidth(view, shown, LeadingWidth);
+                        <col @key="view.Column" data-column="@view.Key" style="@(width is null ? null : $"width:{width}")" />
                     }
                 </colgroup>
                 <thead @attributes="Attrs.Merge(parts[DataTablePart.Head])">
@@ -88,44 +89,16 @@
                                 }
                             </th>
                         }
-                        @for (var position = 0; position < shown.Count; position++)
+                        @foreach (var view in shown)
                         {
-                            var column = shown[position];
-                            var align = ColumnDisplay.AlignOf(column, types[position]);
-                            var priority = IndexOfSort(sortList, column.ColumnKey);
-                            var direction = priority >= 0 ? sortList[priority].Direction : (SortDirection?)null;
-                            <th @key="column" scope="col" data-sticky="@column.Sticky?.ToString().ToLowerInvariant()"
-                                aria-sort="@(column.Sortable ? (priority == 0 ? AriaSort(direction) : "none") : null)"
-                                @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], TableStyles.AlignOf(align), StickyLayer(column, offsets)))">
-                                @if (column.Sortable)
-                                {
-                                    <ButtonBase @attributes="Attrs.MergeProps(parts[DataTablePart.SortButton])" @onclick="e => OnSortClickAsync(column, e)">
-                                        <span @attributes="Attrs.Merge(parts[DataTablePart.SortLabel])">@Header(column)</span>
-                                        <Icon Data="@(direction switch { SortDirection.Ascending => BuiltInIcons.ArrowUp, SortDirection.Descending => BuiltInIcons.ArrowDown, _ => BuiltInIcons.ArrowUpDown })"
-                                              @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.SortIcon], direction is null ? null : (Attrs)DataTableStyles.SortActive))" />
-                                        @if (sortList.Count > 1 && priority >= 0)
-                                        {
-                                            <span aria-hidden="true" @attributes="Attrs.Merge(parts[DataTablePart.SortPriority])">@(priority + 1)</span>
-                                            @* aria-sort 只放在第一排序列上（ARIA 的要求），其余列的次序与方向写给读屏 *@
-                                            @if (priority > 0)
-                                            {
-                                                <VisuallyHidden>@Config.Lang.TableSortPriority(priority + 1, direction == SortDirection.Ascending ? Config.Lang.TableSortAscending : Config.Lang.TableSortDescending)</VisuallyHidden>
-                                            }
-                                        }
-                                    </ButtonBase>
-                                }
-                                else
-                                {
-                                    @Header(column)
-                                }
-                            </th>
+                            @HeaderCell(view, shown, parts, offsets)
                         }
                     </tr>
                 </thead>
                 <tbody data-rune-virtual-list @attributes="Attrs.Merge(parts[DataTablePart.Body])">
                     @if (Replacing)
                     {
-                        @SkeletonRows(SkeletonRowCount, parts, shown)
+                        @SkeletonRows(SkeletonRowCount, parts, shown.Count)
                     }
                     else if (items.Count == 0 && !Loading)
                     {
@@ -186,13 +159,13 @@
                                 }
                                 @for (var position = 0; position < shown.Count; position++)
                                 {
-                                    var column = shown[position];
+                                    var view = shown[position];
                                     var cellLayer = Attrs.Layer(rowParts[DataTablePart.Cell], new Attrs
                                     {
-                                        Sx = Sx.Of(TableStyles.AlignOf(ColumnDisplay.AlignOf(column, types[position])), column.Wrap ? TableStyles.Wrap : null,
+                                        Sx = Sx.Of(TableStyles.AlignOf(view.Align), view.Column.Wrap ? TableStyles.Wrap : null,
                                             active && position == 0 && SelectionMode is null ? DataTableStyles.ActiveEdge : null),
-                                    }, StickyLayer(column, offsets));
-                                    <td @key="column" @attributes="Attrs.Merge(cellLayer)">@CellOf(column, item, types[position])</td>
+                                    }, StickyLayer(view, offsets));
+                                    <td @key="view.Column" @attributes="Attrs.Merge(cellLayer)">@CellOf(view.Column, item, view.Type)</td>
                                 }
                             </tr>
                         }
@@ -203,7 +176,7 @@
                     }
                     @if (Appending)
                     {
-                        @SkeletonRows(MoreSkeletonRows, parts, shown)
+                        @SkeletonRows(MoreSkeletonRows, parts, shown.Count)
                     }
                 </tbody>
                 @if (summary)
@@ -216,10 +189,10 @@
                             }
                             @for (var position = 0; position < shown.Count; position++)
                             {
-                                var column = shown[position];
-                                <td @key="column" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell],
-                                        Attrs.Layer(TableStyles.AlignOf(ColumnDisplay.AlignOf(column, types[position])), StickyLayer(column, offsets))))">
-                                    @SummaryOf(column, position, types[position])
+                                var view = shown[position];
+                                <td @key="view.Column" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell],
+                                        Attrs.Layer(TableStyles.AlignOf(view.Align), StickyLayer(view, offsets))))">
+                                    @SummaryOf(view.Column, position, view.Type)
                                 </td>
                             }
                         </tr>
@@ -229,8 +202,76 @@
         </ScrollArea>
     };
 
+    // 一个列标题：可排序的是按钮；有表头筛选、列菜单时按钮在结尾；可以调整宽度时结束边有手柄
+    RenderFragment HeaderCell(ColumnView<TItem> view, IReadOnlyList<ColumnView<TItem>> shown, PartLayers<DataTablePart> parts, StickyOffsets offsets) => __builder =>
+    {
+        var column = view.Column;
+        var sortList = ActiveSorts;
+        var priority = IndexOfSort(sortList, view.Key);
+        var direction = priority >= 0 ? sortList[priority].Direction : (SortDirection?)null;
+        var actions = column.Filter is not null || ColumnMenu;
+        var position = IndexOfView(shown, view.Key);
+        <th @key="column" scope="col" data-column="@view.Key" data-sticky="@view.Sticky?.ToString().ToLowerInvariant()"
+            aria-sort="@(column.Sortable ? (priority == 0 ? AriaSort(direction) : "none") : null)"
+            @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], TableStyles.AlignOf(view.Align), StickyLayer(view, offsets)))">
+            @if (actions)
+            {
+                <div @attributes="Attrs.Merge(parts[DataTablePart.HeaderContent])">
+                    <span @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderMain], view.Align == TableAlign.End ? (Attrs)DataTableStyles.HeaderMainEnd : null))">
+                        @HeaderTitle(view, parts, priority, direction, sortList.Count)
+                    </span>
+                    @if (column.Filter is { } kind)
+                    {
+                        <ColumnFilterButton Label="@column.Label" Options="@(kind == ColumnFilterKind.Keyword ? null : FilterOptionsOf(column))"
+                                            Values="@filters.Value.GetValueOrDefault(view.Key, [])" ValuesChanged="@(values => SetFilterAsync(view.Key, values))" />
+                    }
+                    @if (ColumnMenu)
+                    {
+                        <ColumnMenuButton Label="@column.Label" Sortable="column.Sortable" Sorted="direction" Pinned="view.Sticky"
+                                          CanMoveBackward="@(position > 0 && shown[position - 1].Sticky == view.Sticky)"
+                                          CanMoveForward="@(position < shown.Count - 1 && shown[position + 1].Sticky == view.Sticky)"
+                                          CanHide="@(shown.Count > 1)" OnAction="@(action => OnColumnActionAsync(view, shown, action))" />
+                    }
+                </div>
+            }
+            else
+            {
+                @HeaderTitle(view, parts, priority, direction, sortList.Count)
+            }
+            @if (column.Resizable ?? Resizable)
+            {
+                <ColumnResizer Label="@column.Label" Width="view.Width" MinWidth="@(column.MinWidth ?? 64)" WidthChanged="@(width => SetWidthAsync(view.Key, width))" />
+            }
+        </th>
+    };
+
+    // 列标题的文字：可排序的是按钮（箭头、多列排序时的次序）
+    RenderFragment HeaderTitle(ColumnView<TItem> view, PartLayers<DataTablePart> parts, int priority, SortDirection? direction, int sortCount) => __builder =>
+    {
+        var column = view.Column;
+        if (!column.Sortable)
+        {
+            @Header(column)
+            return;
+        }
+        <ButtonBase @attributes="Attrs.MergeProps(parts[DataTablePart.SortButton])" @onclick="e => OnSortClickAsync(column, e)">
+            <span @attributes="Attrs.Merge(parts[DataTablePart.SortLabel])">@Header(column)</span>
+            <Icon Data="@(direction switch { SortDirection.Ascending => BuiltInIcons.ArrowUp, SortDirection.Descending => BuiltInIcons.ArrowDown, _ => BuiltInIcons.ArrowUpDown })"
+                  @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.SortIcon], direction is null ? null : (Attrs)DataTableStyles.SortActive))" />
+            @if (sortCount > 1 && priority >= 0)
+            {
+                <span aria-hidden="true" @attributes="Attrs.Merge(parts[DataTablePart.SortPriority])">@(priority + 1)</span>
+                @* aria-sort 只放在第一排序列上（ARIA 的要求），其余列的次序与方向写给读屏 *@
+                @if (priority > 0)
+                {
+                    <VisuallyHidden>@Config.Lang.TableSortPriority(priority + 1, direction == SortDirection.Ascending ? Config.Lang.TableSortAscending : Config.Lang.TableSortDescending)</VisuallyHidden>
+                }
+            }
+        </ButtonBase>
+    };
+
     // 一行骨架：同一行的单元格一起扫，行与行依次错开（一道波从上往下推过表格）
-    RenderFragment SkeletonRows(int count, PartLayers<DataTablePart> parts, IReadOnlyList<DataTableColumn<TItem>> shown) => __builder =>
+    RenderFragment SkeletonRows(int count, PartLayers<DataTablePart> parts, int columnCount) => __builder =>
     {
         for (var row = 0; row < count; row++)
         {
@@ -239,11 +280,10 @@
                 {
                     <td @attributes="Attrs.Merge(parts[DataTablePart.Cell])"></td>
                 }
-                @for (var position = 0; position < shown.Count; position++)
+                @for (var position = 0; position < columnCount; position++)
                 {
                     <td @attributes="Attrs.Merge(parts[DataTablePart.Cell])">
-                        <Skeleton Delay="@(row * ShimmerStyles.Stagger)"
-                                  @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.Skeleton], SkeletonWidth(row, position)), PropsSkeleton)" />
+                        <Skeleton Delay="@(row * ShimmerStyles.Stagger)" @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.Skeleton], SkeletonWidth(row, position)), PropsSkeleton)" />
                     </td>
                 }
             </tr>
@@ -260,6 +300,15 @@
         for (var at = 0; at < sorts.Count; at++)
         {
             if (sorts[at].Key == key) return at;
+        }
+        return -1;
+    }
+
+    static int IndexOfView(IReadOnlyList<ColumnView<TItem>> shown, string key)
+    {
+        for (var at = 0; at < shown.Count; at++)
+        {
+            if (shown[at].Key == key) return at;
         }
         return -1;
     }

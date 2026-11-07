@@ -1,0 +1,97 @@
+@inherits RuneComponent
+@using System.ComponentModel
+
+@* 采购单：表头筛选（列出出现过的值、状态、关键字）、多列排序（Shift 点追加）、列菜单（固定、前后移动、隐藏）；上方一行说明当前的筛选与排序 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true">
+        <Small Tone="TextTone.Muted" data-testid="po-summary">@Summary</Small>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Icon="Lucide.RotateCcw" Disabled="!Customized" @onclick="Reset">还原列设置</Button>
+    </Flex>
+    <DataTable Items="Orders" GetKey="o => o.Id" @bind-Filters="filters" MultiSort="true" @bind-Sorts="sorts" ColumnMenu="true" Resizable="true"
+               @bind-HiddenColumns="hidden" @bind-ColumnOrder="order" @bind-ColumnPins="pins" @bind-ColumnWidths="widths"
+               aria-label="采购单" PropsRoot="TableHeight">
+        <PropertyColumn Property="o => o.Id" Width="160" Sticky="ColumnSticky.Start" Filter="ColumnFilterKind.Keyword" />
+        <PropertyColumn Property="o => o.Supplier" Sortable="true" Filter="ColumnFilterKind.Values" />
+        <PropertyColumn Property="o => o.Category" Width="130" Sortable="true" Filter="ColumnFilterKind.Values" />
+        <PropertyColumn Property="o => o.Buyer" Width="140" Filter="ColumnFilterKind.Values" />
+        <StatusColumn Property="o => o.Status" Statuses="Statuses" Width="140" Filter="ColumnFilterKind.Values" />
+        <PropertyColumn Property="o => o.Amount" Width="150" Type="ColumnType.Currency" Sortable="true" />
+        <PropertyColumn Property="o => o.OrderedAt" Width="150" Type="ColumnType.Date" Sortable="true" />
+    </DataTable>
+</Flex>
+
+@code {
+    enum OrderStatus { Draft, Approving, Ordered, Received }
+
+    sealed record PurchaseOrder(
+        [property: DisplayName("采购单号")] string Id,
+        [property: DisplayName("供应商")] string Supplier,
+        [property: DisplayName("品类")] string Category,
+        [property: DisplayName("采购员")] string Buyer,
+        [property: DisplayName("状态")] OrderStatus Status,
+        [property: DisplayName("金额")] decimal Amount,
+        [property: DisplayName("下单日期")] DateOnly OrderedAt);
+
+    static readonly StatusMap<OrderStatus> Statuses = new()
+    {
+        [OrderStatus.Draft] = new("草稿"),
+        [OrderStatus.Approving] = new("审批中", Tone.Warning),
+        [OrderStatus.Ordered] = new("已下单", Tone.Info),
+        [OrderStatus.Received] = new("已到货", Tone.Success),
+    };
+
+    static readonly string[] Suppliers = ["华辰精密", "启航塑胶", "远山钣金", "恒通紧固件", "北辰电子"];
+    static readonly string[] Categories = ["机械件", "塑料件", "钣金件", "标准件", "线缆"];
+    static readonly string[] Buyers = ["林小满", "周一航", "陈默", "许悠", "王晴", "赵浩然"];
+    static readonly DateOnly Latest = new(2026, 10, 21);
+
+    static readonly PurchaseOrder[] Orders = [.. Enumerable.Range(0, 240).Select(index => new PurchaseOrder(
+        $"PO-2026-{1000 + index}",
+        Suppliers[index * 3 % Suppliers.Length],
+        Categories[index * 7 % Categories.Length],
+        Buyers[index * 5 % Buyers.Length],
+        Statuses.Keys[index * 11 % Statuses.Keys.Count],
+        index * 7919 % 90_000 + 1200,
+        Latest.AddDays(-(index * 13 % 60))))];
+
+    // 列标题：与列的 DisplayName 一致
+    static readonly Dictionary<string, string> Headers = new()
+    {
+        ["id"] = "采购单号", ["supplier"] = "供应商", ["category"] = "品类", ["buyer"] = "采购员",
+        ["status"] = "状态", ["amount"] = "金额", ["orderedAt"] = "下单日期",
+    };
+
+    static Attrs TableHeight => new() { Sx = Css.Define(static () => new Style { Height = CssLength.Rem(22) }) };
+
+    IReadOnlyDictionary<string, IReadOnlyList<string>> filters = new Dictionary<string, IReadOnlyList<string>>();
+    IReadOnlyList<ColumnSort> sorts = [new("orderedAt", SortDirection.Descending)];
+    // 各人的列设置：可以存进本地设置，下次打开还是这样
+    IReadOnlyList<string> hidden = [];
+    IReadOnlyList<string> order = [];
+    IReadOnlyDictionary<string, ColumnSticky?> pins = new Dictionary<string, ColumnSticky?>();
+    IReadOnlyDictionary<string, double> widths = new Dictionary<string, double>();
+
+    bool Customized => hidden.Count > 0 || order.Count > 0 || pins.Count > 0 || widths.Count > 0;
+
+    string Summary
+    {
+        get
+        {
+            var parts = filters.Where(static pair => pair.Value.Count > 0).Select(pair =>
+            {
+                var labels = pair.Key == "status" ? pair.Value.Select(static value => Statuses[Enum.Parse<OrderStatus>(value)].Label) : pair.Value;
+                return $"{Headers[pair.Key]}：{string.Join("、", labels)}";
+            }).ToList();
+            var sorting = sorts.Select((sort, index) => $"{index + 1}. {Headers[sort.Key]}{(sort.Direction == SortDirection.Ascending ? "↑" : "↓")}").ToList();
+            return $"{(parts.Count > 0 ? $"筛选 {string.Join("；", parts)}" : "没有筛选")} · {(sorting.Count > 0 ? $"排序 {string.Join(" ", sorting)}" : "没有排序")}";
+        }
+    }
+
+    void Reset()
+    {
+        hidden = [];
+        order = [];
+        pins = new Dictionary<string, ColumnSticky?>();
+        widths = new Dictionary<string, double>();
+    }
+}

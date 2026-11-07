@@ -35,8 +35,15 @@ function apply(handle, size) {
   } else {
     style.width = `${size}px`;
     style.maxWidth = 'none';
+    columnOf(handle.parentElement)?.style.setProperty('width', `${size}px`);
   }
   handle.setAttribute('aria-valuenow', String(size));
+}
+
+/** 表格的列标题（DataTable 的 ColumnResizer）：table-layout: fixed 下列宽看 col，跟着改（th 与 col 都带 data-column） */
+function columnOf(cell) {
+  const key = cell instanceof HTMLTableCellElement ? cell.dataset.column : undefined;
+  return key === undefined ? null : cell.closest('table')?.querySelector(`col[data-column="${CSS.escape(key)}"]`);
 }
 
 function commit(handle, size) {
