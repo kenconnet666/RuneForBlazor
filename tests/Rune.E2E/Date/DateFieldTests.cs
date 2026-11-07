@@ -1,6 +1,6 @@
 namespace Rune.E2E;
 
-/// <summary>分段输入：逐段键入写回、方向键加减、清空按钮、季度与周的排法；TimeField 的上午 / 下午。</summary>
+/// <summary>分段输入：逐段键入写回、方向键加减、清空按钮、各语言的排法；TimeField 的上午 / 下午（季度与周的排法见 DateSegmentsTests）。</summary>
 public class DateFieldTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
@@ -39,9 +39,6 @@ public class DateFieldTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(birthday.GetByRole(AriaRole.Spinbutton, new() { Name = "生日 年" })).ToBeFocusedAsync();
         await Assertions.Expect(birthday.GetByRole(AriaRole.Spinbutton, new() { Name = "生日 年" })).ToHaveAttributeAsync("aria-valuetext", "未填写");
 
-        // 季度、周按语言包的排法
-        await Assertions.Expect(page.GetByRole(AriaRole.Group, new() { Name = "季度" })).ToHaveTextAsync("2026年第4季度");
-        await Assertions.Expect(page.GetByRole(AriaRole.Group, new() { Name = "排班周" })).ToHaveTextAsync("2026年第43周");
         // 美国：月/日/年，时间 12 小时制
         await Assertions.Expect(page.GetByRole(AriaRole.Group, new() { Name = "English (US)" })).ToHaveTextAsync("10/20/2026, 2:30 PM");
     }
