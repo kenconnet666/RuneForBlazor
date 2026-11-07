@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+@* 同一组格式化与分页放在两种语言的 RuneProvider 里：数字、金额、百分比、文件大小、日期与“共 N 条”都随语言变 *@
+<Flex Gap="SpaceScale.Md" Wrap="true">
+    @foreach (var (title, lang) in Locales)
+    {
+        <Card @key="title" Padding="SpaceScale.Sm">
+            <RuneProvider Lang="lang">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                    <Strong>@title</Strong>
+                    <FormatSample />
+                </Flex>
+            </RuneProvider>
+        </Card>
+    }
+</Flex>
+
+@code {
+    static readonly (string Title, Lang Lang)[] Locales =
+    [
+        ("简体中文（ZhCn）", Lang.ZhCn),
+        ("English（EnUs）", Lang.EnUs),
+    ];
+}

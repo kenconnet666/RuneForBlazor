@@ -1,0 +1,51 @@
+@inherits RuneComponent
+
+@* 局部主题与默认值：中间一块把按钮、徽标、提示条的默认样式统一改掉（显式写的参数仍然优先），右边一块固定用纸张主题 *@
+<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Md">
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <Small Tone="TextTone.Muted">外层：站点的主题与默认值</Small>
+            @Sample
+        </Flex>
+    </Card>
+    <RuneProvider Components="Rounded">
+        <Card Padding="SpaceScale.Sm">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Small Tone="TextTone.Muted">RuneProvider 的 Components：按钮、徽标、提示条换了默认样式</Small>
+                @Sample
+            </Flex>
+        </Card>
+    </RuneProvider>
+    <RuneProvider Theme="Themes.Paper" DarkTheme="Themes.Paper">
+        <Card Padding="SpaceScale.Sm">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Small Tone="TextTone.Muted">RuneProvider 的 Theme：这一块固定用纸张主题</Small>
+                @Sample
+            </Flex>
+        </Card>
+    </RuneProvider>
+</Grid>
+
+@code {
+    // 一处统一改组件的默认外观；配置对象只建一次（Provider 按引用判断有没有变）
+    static readonly ComponentConfigs Rounded =
+    [
+        new ComponentConfig<ButtonDefaults, ButtonPart> { Defaults = new() { Variant = ButtonVariant.Outline, Radius = Radius.Full } },
+        new ComponentConfig<BadgeDefaults, BadgePart> { Defaults = new() { Variant = StatusVariant.Solid } },
+        new ComponentConfig<AlertDefaults, AlertPart> { Defaults = new() { Variant = AlertVariant.Outline } },
+    ];
+
+    bool notify = true;
+
+    RenderFragment Sample => @<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Flex Gap="SpaceScale.Sm" Wrap="true">
+            <Button Icon="Lucide.Check">保存</Button>
+            <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral">取消（显式写的 Variant）</Button>
+        </Flex>
+        <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+            <Badge Tone="Tone.Success">已发货</Badge>
+            <Switch @bind-Value="notify">接收通知</Switch>
+        </Flex>
+        <Alert Tone="Tone.Info" Icon="Lucide.Bell" Title="新版本可用" />
+    </Flex>;
+}

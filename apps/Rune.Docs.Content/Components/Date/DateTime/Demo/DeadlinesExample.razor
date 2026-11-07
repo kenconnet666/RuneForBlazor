@@ -1,0 +1,65 @@
+@inherits RuneComponent
+
+@* 工作日时限：开始日加 N 个工作日得出截止日，按工作日历跳过周末与法定节假日、算上调休补班；
+   DeadlineOf 给出剩余工作日与状态（还早、快到期、今天到期、超期、已完成），名字与色调来自状态映射 *@
+<Table aria-label="审批时限">
+    <TableHead>
+        <TableRow>
+            <TableHeaderCell>事项</TableHeaderCell>
+            <TableHeaderCell>开始</TableHeaderCell>
+            <TableHeaderCell>时限</TableHeaderCell>
+            <TableHeaderCell>截止</TableHeaderCell>
+            <TableHeaderCell>剩余</TableHeaderCell>
+            <TableHeaderCell>状态</TableHeaderCell>
+        </TableRow>
+    </TableHead>
+    <TableBody>
+        @foreach (var task in Tasks)
+        {
+            var (due, remaining, state) = Calendar.DeadlineOf(Calendar.AddWorkdays(task.Start, task.Workdays), Today, task.Done);
+            <TableRow @key="task.Name">
+                <TableCell>@task.Name</TableCell>
+                <TableCell><DateTimeText Value="task.Start" /></TableCell>
+                <TableCell>@task.Workdays 个工作日</TableCell>
+                <TableCell><DateTimeText Value="due" /></TableCell>
+                <TableCell><Small Tone="@(remaining < 0 ? TextTone.Danger : TextTone.Muted)">@Remaining(state, remaining)</Small></TableCell>
+                <TableCell><StatusBadge Statuses="States" Value="state" Radius="Radius.Full" /></TableCell>
+            </TableRow>
+        }
+    </TableBody>
+</Table>
+
+@code {
+    // 国庆放假与调休（应用里写在 AddRuneUI 的 WorkCalendar，所有页面共用；这里直接拿来算）
+    static readonly WorkCalendar Calendar = new()
+    {
+        Holidays = [.. WorkCalendar.Range(new(2026, 10, 1), new(2026, 10, 8))],
+        Workdays = [new(2026, 9, 27), new(2026, 10, 10)],
+    };
+
+    static readonly StatusMap<DeadlineState> States = new()
+    {
+        [DeadlineState.Pending] = new("还早", Tone.Neutral),
+        [DeadlineState.Soon] = new("快到期", Tone.Warning),
+        [DeadlineState.Due] = new("今天到期", Tone.Warning),
+        [DeadlineState.Overdue] = new("超期", Tone.Danger),
+        [DeadlineState.Done] = new("已完成", Tone.Success),
+    };
+
+    // 示例里的“今天”：固定下来，状态每次都一样
+    static readonly DateOnly Today = new(2026, 10, 21);
+
+    static readonly (string Name, DateOnly Start, int Workdays, DateOnly? Done)[] Tasks =
+    [
+        // 跨国庆：放假的日子不算、10 月 10 日（周六）调休算，10 个工作日后是 10 月 21 日
+        ("财务复核", new(2026, 9, 30), 10, null),
+        ("回填结算金额", new(2026, 10, 9), 5, null),
+        ("工程评估", new(2026, 10, 19), 4, null),
+        ("供应商报价", new(2026, 10, 9), 3, new(2026, 10, 12)),
+        ("方案评审", new(2026, 10, 15), 10, null),
+    ];
+
+    static string Remaining(DeadlineState state, int remaining) => state == DeadlineState.Done
+        ? remaining > 0 ? $"提前 {remaining} 天" : remaining == 0 ? "按时" : $"晚了 {-remaining} 天"
+        : remaining < 0 ? $"超 {-remaining} 天" : $"{remaining} 天";
+}

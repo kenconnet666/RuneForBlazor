@@ -4,9 +4,9 @@
 @using Rune.Docs.Components.Display.ValueChange.Demo
 
 <DocPage Meta="Meta" Wide="true">
-    <Example Id="basic" Title="原值与新值" Demo="typeof(BasicExample)">
-        原值是 <Code>del</Code>、新值是 <Code>ins</Code>，中间的箭头对读屏是“改为”；没有原值（新建）时只显示新值。
-        要放组件（标记、链接）时用 <Code>BeforeContent</Code>、<Code>AfterContent</Code>。整张字段对比表随阶段 4 的 FieldCompare 提供。
+    <Example Id="log" Title="操作记录" Demo="typeof(LogExample)">
+        <Code>Before</Code> 是原值，<Code>After</Code> 是新值；没有原值（新建）时只显示新值。原值是 del、新值是 ins，中间有给读屏的“改为”。
+        要放组件（标记、链接）时用 <Code>BeforeContent</Code>、<Code>AfterContent</Code>。整份记录按字段对比用 <Code>FieldCompare</Code>，表格里标出改过的格见 DataTable 的“数据修正”。
     </Example>
     <ApiReference Types="[typeof(ValueChange)]" />
 </DocPage>

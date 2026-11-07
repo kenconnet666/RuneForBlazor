@@ -1,0 +1,22 @@
+@inherits UIComponent
+
+@* LocalesExample 的内容：继承 UIComponent，Config.Lang 是所在 RuneProvider 的语言，LangFormat 按它格式化 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Descriptions Columns="1" Size="Size.Sm">
+        <DescriptionsItem Label="Number" Value="@LangFormat.Number(1234567.891m, NumberFormat.Default, Lang)" />
+        <DescriptionsItem Label="Currency" Value="@LangFormat.Number(19999.9m, Currency, Lang)" />
+        <DescriptionsItem Label="Percent" Value="@LangFormat.Number(0.1234m, Percent, Lang)" />
+        <DescriptionsItem Label="FileSize" Value="@LangFormat.FileSize(23_456_789, Lang.Code)" />
+        <DescriptionsItem Label="Date" Value="@LangFormat.Date(new DateOnly(2026, 10, 21), Lang, DateStyle.Full, null)" />
+    </Descriptions>
+    <Pagination Total="1286" PageSize="20" @bind-Page="page" ShowTotal="true" Size="Size.Sm" />
+</Flex>
+
+@code {
+    static readonly NumberFormat Currency = new() { Style = NumberStyle.Currency };
+    static readonly NumberFormat Percent = new() { Style = NumberStyle.Percent };
+
+    int page = 3;
+
+    Lang Lang => Config.Lang;
+}

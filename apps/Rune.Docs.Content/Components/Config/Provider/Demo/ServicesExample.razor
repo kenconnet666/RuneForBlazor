@@ -1,0 +1,44 @@
+@inherits RuneComponent
+
+@* RuneProvider 也能局部换掉代码高亮器（Highlighter）、关掉点击波纹（Ripple）；不写的配置沿用上一层 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <RuneProvider Highlighter="LogHighlighter">
+        <CodeBlock Code="@Log" Lang="log" Title="server.log" />
+    </RuneProvider>
+    <Card Padding="SpaceScale.Sm">
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+            <Switch @bind-Value="ripple">点击波纹</Switch>
+            <RuneProvider Ripple="ripple">
+                <Flex Gap="SpaceScale.Sm">
+                    <Button>保存</Button>
+                    <Button Variant="ButtonVariant.Soft">预览</Button>
+                </Flex>
+            </RuneProvider>
+            <Small Tone="TextTone.Muted">只影响这一层里的按钮</Small>
+        </Flex>
+    </Card>
+</Flex>
+
+@code {
+    const string Log = """
+        10:24:01 INFO  server started on :8080
+        10:24:07 WARN  slow query: 1.8s SELECT * FROM orders
+        10:24:09 ERROR payment callback timed out (order 1024)
+        10:24:12 INFO  retry succeeded
+        """;
+
+    static readonly Dictionary<string, CssColor> Levels = new()
+    {
+        ["ERROR"] = Tones.Danger.Text,
+        ["WARN"] = Tones.Warning.Text,
+        ["INFO"] = Tones.Accent.Text,
+    };
+
+    static readonly System.Text.RegularExpressions.Regex LevelPattern = new(@"\b(ERROR|WARN|INFO)\b");
+
+    // 只认日志级别的高亮器：返回只含 span 与 br 的 HTML，代码里的文字由它自己转义
+    static string LogHighlighter(string code, string lang) => string.Join("<br>", code.Split('\n').Select(line =>
+        LevelPattern.Replace(System.Net.WebUtility.HtmlEncode(line), match => $"""<span style="color:{Levels[match.Value]};font-weight:600">{match.Value}</span>""", 1)));
+
+    bool ripple = true;
+}

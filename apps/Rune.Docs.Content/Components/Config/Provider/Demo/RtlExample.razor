@@ -1,0 +1,23 @@
+@inherits RuneComponent
+
+@* 从右到左的语言：只改方向，文字仍用英文（示例里不放阿拉伯文、希伯来文） *@
+<Card Padding="SpaceScale.Sm">
+    <RuneProvider Lang="Rtl">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Small Tone="TextTone.Muted">dir="rtl"：布局、箭头、方向键都镜像过来</Small>
+            <Breadcrumbs aria-label="Location" Items="Trail" />
+            <Steps Current="1" Items="Checkout" />
+            <Slider TValue="int" @bind-Value="volume" aria-label="Volume" />
+        </Flex>
+    </RuneProvider>
+</Card>
+
+@code {
+    static readonly Lang Rtl = Lang.EnUs with { Code = "ar", Direction = "rtl" };
+
+    static readonly BreadcrumbItem[] Trail = [new("Home", "#home"), new("Orders", "#orders"), new("#1024")];
+
+    static readonly StepItem[] Checkout = [new("Cart"), new("Address"), new("Pay")];
+
+    int volume = 30;
+}

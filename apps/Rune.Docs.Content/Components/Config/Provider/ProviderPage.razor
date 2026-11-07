@@ -1,20 +1,41 @@
 @page "/components/provider"
-@attribute [DocMeta("Provider 配置", "主题、语言包、组件默认值、路由适配：应用级用 createUi 一次装好，局部用 Provider 覆盖；useFormat 按当前语言格式化数字、金额与日期。", DocCategory.Config, Order = 1)]
+@attribute [DocMeta("Provider 配置", "主题、语言包、组件默认值、代码高亮：应用级在 AddRuneUI 里一次配好，局部用 RuneProvider 覆盖；LangFormat 按当前语言格式化数字、金额与日期。", DocCategory.Config, Order = 1)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Config.Provider.Demo
 
 <DocPage Meta="Meta" Wide="true">
+    <CodeBlock Code="@Setup" Lang="csharp" Title="Program.cs" />
+    <Example Id="scoped" Title="局部主题与默认值" Demo="typeof(ScopedExample)">
+        <Code>RuneProvider</Code> 只覆盖写了的配置，其余沿用上一层。默认值的优先级：组件上显式写的参数 &gt; 最近一层 RuneProvider &gt; AddRuneUI &gt;
+        组件自己的默认值；只收外观类的选项（样式、尺寸、色调）。
+    </Example>
     <Examples>
         <ExampleColumn>
-            <Example Id="defaults" Title="组件默认值" Demo="typeof(DefaultsExample)" />
-            <Example Id="color-scheme" Title="亮暗模式" Demo="typeof(ColorSchemeExample)" />
+            <Example Id="locales" Title="语言包与 LangFormat" Demo="typeof(LocalesExample)">
+                语言包里是组件的全部文字与格式习惯（币种、一周从哪天开始、时区）；<Code>Lang.ZhCn with { … }</Code> 改其中几项。
+                <Code>LangFormat</Code> 按当前语言格式化，<Code>decimal</Code> 按十进制原样格式化，金额不丢精度。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
-            <Example Id="styles" Title="按部件定制样式" Demo="typeof(StylesExample)" />
-            <Example Id="variants" Title="按档位取值定制样式" Demo="typeof(VariantsExample)" />
-        </ExampleColumn>
-        <ExampleColumn>
-            <Example Id="themes" Title="内置主题（同 vue-tsx-pro，16 套）" Demo="typeof(ThemesExample)" />
+            <Example Id="rtl" Title="从右到左" Demo="typeof(RtlExample)">
+                语言包的 <Code>Direction</Code> 是 rtl 时，RuneProvider 写上 dir="rtl"：组件都用逻辑属性，布局、箭头与方向键自动镜像。
+            </Example>
+            <Example Id="services" Title="高亮器与波纹" Demo="typeof(ServicesExample)">
+                <Code>Highlighter</Code> 是代码 + 语言 → 只含 span 与 br 的 HTML（文字由它转义），CodeBlock 经它高亮；这里换成一个只认日志级别的小高亮器，
+                站点其余地方仍用 Shiki。<Code>Ripple</Code> 是点击波纹的开关，只影响这一层里的组件。
+            </Example>
         </ExampleColumn>
     </Examples>
+    <ApiReference Types="[typeof(RuneProvider)]" />
 </DocPage>
+
+@code {
+    const string Setup = """
+        builder.Services.AddRuneUI(o =>
+        {
+            o.ThemeChoices = ThemeChoices.Builtin;               // 用户可以选的主题：ThemeSwitcher 切换、记在浏览器里
+            o.Lang = Lang.ZhCn;
+            o.Components = [new ComponentConfig<ButtonDefaults, ButtonPart> { Defaults = new() { Radius = Radius.Full } }]; // 统一改组件的默认外观，还能追加样式：见样式指南
+        });
+        """;
+}

@@ -5,8 +5,14 @@
 
 <DocPage Meta="Meta" Wide="true">
     <Examples>
+        <ExampleColumn Wide="true">
+            <Example Id="detail" Title="详情：列表留在原处" Demo="typeof(DetailExample)">
+                点一行（或编号按钮，键盘也能打开）从结束边滑出详情：状态与时限、关键信息、流转记录，列表不跳走；正在看的那一行用 DataTable 的 <Code>ActiveKey</Code> 高亮。
+                <Code>Title</Code> 与 <Code>Description</Code> 是抽屉的名称与描述，<Code>Footer</Code> 放“打开完整详情”这类去处；关上后焦点回到打开它的按钮。
+            </Example>
+        </ExampleColumn>
         <ExampleColumn>
-            <Example Id="edit" Title="编辑：关闭前确认" Demo="typeof(EditExample)">
+            <Example Id="edit" Title="编辑：拖宽度与关闭前确认" Demo="typeof(EditExample)">
                 靠正文的一边可以拖宽、拖到几乎关上（<Code>@@bind-Width</Code> 记住宽度），聚焦手柄后按 ← / → 也行，双击回到打开时的宽度；<Code>Resizable="false"</Code> 关掉。<Code>OnConfirm</Code> 是保存：执行期间按钮加载中、关不掉。<Code>BeforeClose</Code> 在取消、关闭按钮、<Kbd>Esc</Kbd>、点遮罩时先问一次，返回 false 不关——有未保存的改动时确认。
             </Example>
             <Example Id="sides" Title="方向与宽度" Demo="typeof(SidesExample)">
