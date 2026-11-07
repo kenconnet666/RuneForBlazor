@@ -49,4 +49,16 @@ public class TableTests : BunitContext
         var row = cut.Find("tr").ClassName;
         Assert.Contains(Registry.Rules, rule => rule.Contains($".{row}:nth-child(even)"));
     }
+
+    [Fact]
+    public void 表头吸顶_第一列固定在起始边()
+    {
+        var cut = Render<Table>(p => p.Add(x => x.StickyHeader, true)
+            .AddChildContent<TableHead>(h => h.AddChildContent<TableRow>(r => r.AddChildContent<TableHeaderCell>(c => c.Add(x => x.Sticky, true)))));
+        var head = cut.Find("thead").ClassList;
+        var cell = cut.Find("th").ClassList;
+
+        Assert.Contains(Registry.Rules, rule => head.Any(c => rule.Contains($".{c}{{")) && rule.Contains("position:sticky") && rule.Contains("top:0"));
+        Assert.Contains(Registry.Rules, rule => cell.Any(c => rule.Contains($".{c}{{")) && rule.Contains("position:sticky") && rule.Contains("inset-inline-start:0"));
+    }
 }

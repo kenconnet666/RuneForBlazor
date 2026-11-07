@@ -55,4 +55,28 @@ public class ScrollAreaTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(list.Locator("[role=option][data-highlighted]")).ToBeInViewportAsync();
         Assert.True(await list.EvaluateAsync<bool>("l => !!l.closest('[data-rune-scroll-area]')"));
     }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("server")]
+    public async Task 明细表两个方向滚动后_表头贴顶边_行号贴起始边(string mode)
+    {
+        var page = await OpenAsync(mode, "scroll-area");
+        var table = page.GetByRole(AriaRole.Table, new() { Name = "销售明细表" });
+        await table.ScrollIntoViewIfNeededAsync();
+        var viewport = table.Locator("xpath=ancestor::*[@data-rune-scroll-viewport][1]");
+        await viewport.EvaluateAsync("v => { v.scrollTop = 200; v.scrollLeft = 300; }");
+
+        // 视口的顶边、起始边（左）与表头、第一列的格对齐（误差 1px）
+        var offsets = await viewport.EvaluateAsync<double[]>("""
+            v => {
+              const box = v.getBoundingClientRect();
+              const head = v.querySelector('thead').getBoundingClientRect();
+              const rowHeader = v.querySelector('tbody th').getBoundingClientRect();
+              return [head.top - box.top, rowHeader.left - box.left];
+            }
+            """);
+        Assert.InRange(offsets[0], -1, 1);
+        Assert.InRange(offsets[1], -1, 1);
+    }
 }

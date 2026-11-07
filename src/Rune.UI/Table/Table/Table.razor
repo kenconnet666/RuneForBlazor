@@ -28,13 +28,16 @@
     /// <summary>斑马纹：隔行浅色底。</summary>
     [Parameter] public bool? Striped { get; set; }
 
+    /// <summary>表头吸顶：外层的滚动区域限了高度、竖向滚动时表头一直看得到（PropsRoot 给 <c>Axis</c> 为两个方向与高度）。</summary>
+    [Parameter] public bool StickyHeader { get; set; }
+
     /// <summary>外层（横向滚动的 ScrollArea）的部件属性。</summary>
     [Parameter] public Attrs? PropsRoot { get; set; }
 
     /// <summary>TableCaption、TableHead、TableBody、TableFoot。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    Memo<(TableDensity, TableVariant, bool), TableAppearance> appearance;
+    Memo<(TableDensity, TableVariant, bool, bool), TableAppearance> appearance;
 
     // 外观不变时是同一个实例
     TableAppearance Appearance
@@ -43,8 +46,8 @@
         {
             var defaults = Config.Defaults.Get<TableDefaults>();
             return appearance.Get(
-                (Density ?? defaults?.Density ?? TableDensity.Standard, Variant ?? defaults?.Variant ?? TableVariant.Surface, Striped ?? defaults?.Striped ?? false),
-                static k => new TableAppearance(k.Item1, k.Item2, k.Item3));
+                (Density ?? defaults?.Density ?? TableDensity.Standard, Variant ?? defaults?.Variant ?? TableVariant.Surface, Striped ?? defaults?.Striped ?? false, StickyHeader),
+                static k => new TableAppearance(k.Item1, k.Item2, k.Item3, k.Item4));
         }
     }
 }

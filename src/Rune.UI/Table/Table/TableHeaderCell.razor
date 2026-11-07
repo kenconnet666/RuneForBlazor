@@ -21,6 +21,9 @@
     /// <summary>不换行（超出时省略号）；默认可以换行。</summary>
     [Parameter] public bool NoWrap { get; set; }
 
+    /// <summary>固定在起始边（第一列，常是行标题）：横向滚动时一直看得到。</summary>
+    [Parameter] public bool Sticky { get; set; }
+
     /// <summary>对应的方向，默认 col（列标题）；行标题写 row。</summary>
     [Parameter] public string Scope { get; set; } = "col";
 
@@ -37,7 +40,7 @@
     // 对齐、换行、列宽：叠在部件层之后
     Attrs CellLayer => new()
     {
-        Sx = Sx.Of(TableStyles.AlignOf(Align), NoWrap ? null : TableStyles.Wrap, Width is null ? null : TableStyles.Width),
+        Sx = Sx.Of(TableStyles.AlignOf(Align), NoWrap ? null : TableStyles.Wrap, Width is null ? null : TableStyles.Width, Sticky ? DataTableStyles.StickyStart : null, Sticky ? DataTableStyles.StickyStartEdge : null),
         Vars = Width is { } width ? [TableStyles.ColumnWidth.Set(width)] : [],
     };
 }

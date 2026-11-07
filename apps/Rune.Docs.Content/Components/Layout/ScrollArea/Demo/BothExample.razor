@@ -1,81 +1,39 @@
 @inherits RuneComponent
 
-<Card Padding="SpaceScale.None">
-    <ScrollArea Axis="ScrollAxis.Both" Sx="SheetArea" PropsViewport="SheetViewport">
-        <table @attributes="Attrs.Merge(SheetTable)">
-            <thead>
-                <tr>
-                    <th @attributes="Attrs.Merge(CornerCell)"><VisuallyHidden>行号</VisuallyHidden></th>
-                    @foreach (var column in columns)
-                    {
-                        <th @key="column" scope="col" @attributes="Attrs.Merge(HeadCell)">@column</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var row in rows)
+@* 两个方向都能滚的明细表：Table 外层本来就是 ScrollArea，PropsRoot 改成两个方向、限高；表头吸顶（StickyHeader），行号固定在起始边（Sticky），滚到哪都看得到 *@
+<Table aria-label="销售明细表" Density="TableDensity.Compact" StickyHeader="true" PropsRoot="SheetArea">
+    <TableHead>
+        <TableRow>
+            <TableHeaderCell Sticky="true" Width="CssLength.Rem(3)"><VisuallyHidden>行号</VisuallyHidden></TableHeaderCell>
+            @foreach (var column in columns)
+            {
+                <TableHeaderCell @key="column" Align="TableAlign.Center" Width="CssLength.Rem(5.5)">@column</TableHeaderCell>
+            }
+        </TableRow>
+    </TableHead>
+    <TableBody>
+        @foreach (var row in rows)
+        {
+            <TableRow @key="row">
+                <TableHeaderCell Scope="row" Sticky="true">@row</TableHeaderCell>
+                @for (var index = 0; index < columns.Length; index++)
                 {
-                    <tr @key="row">
-                        <th scope="row" @attributes="Attrs.Merge(RowHeadCell)">@row</th>
-                        @for (var index = 0; index < columns.Length; index++)
-                        {
-                            <td @attributes="Attrs.Merge(Cell)">@CellValue(row, index).ToString("0.00")</td>
-                        }
-                    </tr>
+                    var value = CellValue(row, index);
+                    <TableCell Align="TableAlign.End" NoWrap="true">@value.ToString("0.00")</TableCell>
                 }
-            </tbody>
-        </table>
-    </ScrollArea>
-</Card>
+            </TableRow>
+        }
+    </TableBody>
+</Table>
 
 @code {
     static readonly string[] columns = [.. Enumerable.Range(0, 14).Select(i => ((char)('A' + i)).ToString())];
 
     static readonly int[] rows = [.. Enumerable.Range(1, 30)];
 
-    static readonly Attrs SheetViewport = new() { ["aria-label"] = "销售明细表" };
+    static readonly Attrs SheetArea = new() { ["Axis"] = ScrollAxis.Both, Sx = Area };
 
     static double CellValue(int row, int column) => (row * 7919 + column * 104_729) % 100_000 / 100.0;
 
-    static readonly Attrs SheetTable = new() { Sx = TableStyle };
-
-    static readonly Attrs HeadCell = new() { Sx = Sx.Of(CellStyle, HeadStyle) };
-
-    static readonly Attrs RowHeadCell = new() { Sx = Sx.Of(CellStyle, HeadStyle, RowHeadStyle) };
-
-    static readonly Attrs CornerCell = new() { Sx = Sx.Of(CellStyle, HeadStyle, RowHeadStyle, CornerStyle) };
-
-    static readonly Attrs Cell = new() { Sx = CellStyle };
-
-    static Style SheetArea => Css.Define(static () => new Style { Height = CssLength.Rem(18) });
-
-    static Style TableStyle => Css.Define(static () => new Style { BorderCollapse = BorderCollapse.Collapse, FontSize = FontSizes.Sm, FontVariantNumeric = FontVariantNumeric.TabularNums });
-
-    static Style CellStyle => Css.Define(static () => new Style
-    {
-        MinWidth = CssLength.Rem(5.5),
-        PaddingBlock = Space.Xs,
-        PaddingInline = Space.Sm,
-        BorderWidth = BorderWidths.Xs,
-        BorderStyle = BorderStyle.Solid,
-        BorderColor = Colors.BorderMuted,
-        TextAlign = TextAlign.End,
-        WhiteSpace = WhiteSpace.Nowrap,
-    });
-
-    // 表头与行号固定：滚动时一直看得到
-    static Style HeadStyle => Css.Define(static () => new Style
-    {
-        Position = Position.Sticky,
-        Top = 0,
-        ZIndex = 1,
-        BackgroundColor = Colors.Fill,
-        Color = Colors.TextMuted,
-        TextAlign = TextAlign.Center,
-        FontWeight = FontWeights.Medium,
-    });
-
-    static Style RowHeadStyle => Css.Define(static () => new Style { Position = Position.Sticky, InsetInlineStart = 0, MinWidth = CssLength.Rem(3) });
-
-    static Style CornerStyle => Css.Define(static () => new Style { ZIndex = 2 });
+    static Style Area => Css.Define(static () => new Style { Height = CssLength.Rem(18) });
 }

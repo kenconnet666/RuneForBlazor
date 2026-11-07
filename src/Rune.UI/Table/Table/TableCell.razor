@@ -18,6 +18,9 @@
     /// <summary>不换行（超出时省略号）；默认可以换行。</summary>
     [Parameter] public bool NoWrap { get; set; }
 
+    /// <summary>固定在起始边（第一列，常是行标题）：横向滚动时一直看得到。</summary>
+    [Parameter] public bool Sticky { get; set; }
+
     /// <summary>内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -25,5 +28,5 @@
 
     [CascadingParameter] TableSection Section { get; set; }
 
-    Attrs CellLayer => new() { Sx = Sx.Of(TableStyles.AlignOf(Align), NoWrap ? null : TableStyles.Wrap) };
+    Attrs CellLayer => new() { Sx = Sx.Of(TableStyles.AlignOf(Align), NoWrap ? null : TableStyles.Wrap, Sticky ? DataTableStyles.StickyStart : null, Sticky ? DataTableStyles.StickyStartEdge : null) };
 }

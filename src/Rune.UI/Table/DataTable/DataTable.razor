@@ -64,7 +64,7 @@
         var bodyCount = BodyCount;
         var summary = items.Count > 0 && !Replacing && shown.Any(static view => view.Column.Summary is not null || view.Column.SummaryContent is not null);
         // 有起始边的固定列时，勾选列、详情列也固定在最前面
-        var stickySelectStyle = offsets.Start.Count > 0 ? DataTableStyles.StickySelect : null;
+        var stickySelectStyle = offsets.Start.Count > 0 ? DataTableStyles.StickyStart : null;
         Attrs? stickySelect = stickySelectStyle is null ? null : new Attrs { Sx = stickySelectStyle };
         Attrs? stickyDetail = offsets.Start.Count == 0 ? null : new Attrs
         {

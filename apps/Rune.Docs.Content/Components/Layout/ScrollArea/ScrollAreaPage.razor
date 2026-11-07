@@ -15,7 +15,7 @@
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="both" Title="两个方向" Demo="typeof(BothExample)">
-                <Code>ScrollAxis.Both</Code>：宽表格、电子表格。表头和行号用 position: sticky 固定，在原生滚动里照常生效。
+                <Code>ScrollAxis.Both</Code>：宽表格、电子表格。Table 的外层本来就是 ScrollArea，<Code>PropsRoot</Code> 把它改成两个方向、限高；表头吸顶（<Code>StickyHeader</Code>）、行号固定在起始边（<Code>Sticky</Code>）用的是 position: sticky，在原生滚动里照常生效。
             </Example>
             <Example Id="types" Title="什么时候显示滚动条" Demo="typeof(TypesExample)">
                 <Code>Visibility</Code> 三种显示时机；淡出前的停留时间是 <Code>HideDelay</Code>。整页的滚动条用 PageScrollbar（随 AppShell 做）。

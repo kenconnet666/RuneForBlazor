@@ -222,8 +222,8 @@ public static class DataTableStyles
         BorderInlineStartColor = Colors.BorderMuted,
     });
 
-    /// <summary>有起始边的固定列时，勾选列也固定在最前面。</summary>
-    internal static Style StickySelect => Css.Define(static () => new Style { Position = Position.Sticky, ZIndex = 1, InsetInlineStart = 0 });
+    /// <summary>固定在起始边、偏移 0：有起始边的固定列时的勾选列，静态表格固定的第一列。</summary>
+    internal static Style StickyStart => Css.Define(static () => new Style { Position = Position.Sticky, ZIndex = 1, InsetInlineStart = 0 });
 
     /// <summary>分组与相邻的列之间一条竖线（只在表头里）：看得出哪几列属于一组。</summary>
     internal static Style GroupDivider => Css.Define(static () => new Style

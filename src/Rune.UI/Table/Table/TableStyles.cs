@@ -113,7 +113,8 @@ public sealed record TableDefaults : IComponentDefaults<TableDefaults>
 /// <param name="Density">密度。</param>
 /// <param name="Variant">样式。</param>
 /// <param name="Striped">斑马纹。</param>
-public sealed record TableAppearance(TableDensity Density, TableVariant Variant, bool Striped) : IAppearance
+/// <param name="StickyHeader">表头吸顶。</param>
+public sealed record TableAppearance(TableDensity Density, TableVariant Variant, bool Striped, bool StickyHeader = false) : IAppearance
 {
     IEnumerable<Enum?> IAppearance.Variants => [Density, Variant];
 
@@ -137,6 +138,7 @@ public static class TableStyles
                 TablePart.Root => Sx.Of(Root, a.Variant == TableVariant.Ghost ? GhostRoot : SurfaceRoot),
                 TablePart.Table => Sx.Of(Table, a.Density == TableDensity.Compact ? CompactTable : null),
                 TablePart.Caption => Caption,
+                TablePart.Head => a.StickyHeader ? StickyHead : Sx.Of(),
                 TablePart.Row => Sx.Of(a.Variant == TableVariant.Ghost ? GhostRow : SurfaceRow, a.Striped ? StripedRow : null),
                 TablePart.HeaderCell => Sx.Of(HeaderCell, padding),
                 TablePart.RowHeader => RowHeader,
@@ -214,6 +216,9 @@ public static class TableStyles
         BackgroundColor = Colors.Background,
         [When.Hover] = new() { BackgroundColor = Colors.FillHover },
     });
+
+    // 表头在固定列之上（同 DataTable）
+    static Style StickyHead => Css.Define(static () => new Style { Position = Position.Sticky, Top = 0, ZIndex = 2 });
 
     static Style StripedRow => Css.Define(static () => new Style { [new Condition(":nth-child(even)")] = new() { BackgroundColor = Colors.Fill } });
 
