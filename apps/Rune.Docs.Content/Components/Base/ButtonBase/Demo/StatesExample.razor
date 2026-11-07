@@ -60,14 +60,14 @@
         PaddingInline = Space.Md,
         BorderRadius = Radii.Sm,
         TextAlign = TextAlign.Start,
-        [When.HoverEnabled] = new() { BackgroundColor = Colors.Fill },
+        [When.Hover] = new() { BackgroundColor = Colors.Fill },
         [When.Active] = new() { BackgroundColor = Colors.FillActive },
     });
 
     static Style DisabledRow => Css.Define(static () => new Style
     {
         Color = Colors.TextDisabled,
-        [When.HoverEnabled] = new() { BackgroundColor = CssColors.Transparent },
+        [When.Hover] = new() { BackgroundColor = CssColors.Transparent },
         [When.Active] = new() { BackgroundColor = CssColors.Transparent },
     });
 

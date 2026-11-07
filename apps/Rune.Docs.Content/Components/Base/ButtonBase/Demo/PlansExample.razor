@@ -56,14 +56,14 @@
         BorderRadius = Radii.Md,
         BackgroundColor = Colors.Surface,
         TextAlign = TextAlign.Start,
-        [When.HoverEnabled] = new() { BorderColor = Colors.BorderStrong, BackgroundColor = Colors.Fill },
+        [When.Hover] = new() { BorderColor = Colors.BorderStrong, BackgroundColor = Colors.Fill },
     });
 
     static Style Selected => Css.Define(static () => new Style
     {
         BorderColor = Tones.Accent.Solid,
         BackgroundColor = Tones.Accent.Soft,
-        [When.HoverEnabled] = new() { BorderColor = Tones.Accent.Solid, BackgroundColor = Tones.Accent.SoftHover },
+        [When.Hover] = new() { BorderColor = Tones.Accent.Solid, BackgroundColor = Tones.Accent.SoftHover },
     });
 
     static Style Head => Css.Define(static () => new Style

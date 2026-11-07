@@ -6,6 +6,9 @@ public class StyleCompilerTests
 {
     static CompiledStyle Compile(params Style[] styles) => StyleCompiler.Compile(styles)!;
 
+    // When.Hover、When.Active 排除不可用的元素
+    const string Enabled = """:where(:not(:disabled,[aria-disabled="true"],[data-disabled]))""";
+
     [Fact]
     public void 起始样式包在外面_排在同一选择器的普通规则后面()
     {
@@ -28,7 +31,7 @@ public class StyleCompilerTests
     {
         var compiled = Compile(new Style { [When.Parent(When.Hover)] = new() { Opacity = 1 } });
 
-        Assert.Contains($".{compiled.ClassName}:is(:hover > *){{opacity:1;}}", compiled.Css);
+        Assert.Contains($".{compiled.ClassName}:is(:hover{Enabled} > *){{opacity:1;}}", compiled.Css);
         Assert.Throws<ArgumentException>(() => When.Parent(Media.Up(768)));
     }
 
@@ -106,7 +109,7 @@ public class StyleCompilerTests
 
         Assert.DoesNotContain("red", compiled.Css);
         Assert.Contains($".{compiled.ClassName}{{color:green;}}", compiled.Css);
-        Assert.Contains($".{compiled.ClassName}:hover{{color:blue;}}", compiled.Css);
+        Assert.Contains($".{compiled.ClassName}:hover{Enabled}{{color:blue;}}", compiled.Css);
     }
 
     [Fact]
@@ -128,7 +131,7 @@ public class StyleCompilerTests
     {
         var compiled = Compile(new Style { [When.Hover] = new() { [Media.Up(768)] = new() { Color = "blue" } } });
 
-        Assert.Equal($"@layer rune.s0{{@media (min-width: 768px){{.{compiled.ClassName}:hover{{color:blue;}}}}}}", compiled.Css);
+        Assert.Equal($"@layer rune.s0{{@media (min-width: 768px){{.{compiled.ClassName}:hover{Enabled}{{color:blue;}}}}}}", compiled.Css);
     }
 
     [Fact]
@@ -149,17 +152,17 @@ public class StyleCompilerTests
     }
 
     [Fact]
-    public void 可用时的悬停不加特异性_按下排在它后面能盖过()
+    public void 悬停按下排除不可用_不加特异性_按下排在悬停后面()
     {
         var compiled = Compile(new Style
         {
             [When.Active] = new() { Opacity = 0.5 },
-            [When.HoverEnabled] = new() { Opacity = 0.8 },
+            [When.Hover] = new() { Opacity = 0.8 },
         });
         var c = compiled.ClassName;
 
-        var hover = compiled.Css.IndexOf($".{c}:hover:where(:not(:disabled,[aria-disabled=\"true\"])){{opacity:0.8;}}", StringComparison.Ordinal);
-        var active = compiled.Css.IndexOf($".{c}:active{{opacity:0.5;}}", StringComparison.Ordinal);
+        var hover = compiled.Css.IndexOf($".{c}:hover{Enabled}{{opacity:0.8;}}", StringComparison.Ordinal);
+        var active = compiled.Css.IndexOf($".{c}:active{Enabled}{{opacity:0.5;}}", StringComparison.Ordinal);
         Assert.True(hover >= 0 && active > hover);
     }
 }

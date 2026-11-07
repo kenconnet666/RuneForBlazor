@@ -134,7 +134,7 @@ public class ButtonTests : BunitContext
         Render<Button>(p => p.Add(x => x.Variant, ButtonVariant.Solid).Add(x => x.Tone, Tone.Danger).AddChildContent("删除"));
 
         Assert.Contains(Registry.Rules, rule => rule.Contains("background-color:var(--rune-tones-danger-solid)")
-                                                && rule.Contains("""hover:not(:disabled,[aria-disabled="true"]){background-color:var(--rune-tones-danger-solid-hover)"""));
+                                                && rule.Contains("""hover:where(:not(:disabled,[aria-disabled="true"],[data-disabled])){background-color:var(--rune-tones-danger-solid-hover)"""));
     }
 
     [Fact]

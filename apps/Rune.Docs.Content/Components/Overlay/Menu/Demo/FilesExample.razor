@@ -65,10 +65,10 @@
         PaddingBlock = Space.Md,
         BorderRadius = Radii.Md,
         FontSize = FontSizes.Sm,
-        [When.HoverEnabled] = new() { BackgroundColor = Colors.FillHover },
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
     });
 
-    static Style Selected => Css.Define(static () => new Style { BackgroundColor = Tones.Accent.Soft, [When.HoverEnabled] = new() { BackgroundColor = Tones.Accent.Soft } });
+    static Style Selected => Css.Define(static () => new Style { BackgroundColor = Tones.Accent.Soft, [When.Hover] = new() { BackgroundColor = Tones.Accent.Soft } });
 
     static Style FileIcon => Css.Define(static () => new Style { Color = Colors.TextMuted, FontSize = CssLength.Rem(2) });
 }

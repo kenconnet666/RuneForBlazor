@@ -42,11 +42,11 @@ internal static class FileDropStyles
         TextAlign = TextAlign.Center,
         Cursor = Cursor.Pointer,
         Transition = $"border-color {Durations.Sm} {Easings.Standard}, background-color {Durations.Sm} {Easings.Standard}",
-        [When.HoverEnabled] = new() { BorderColor = Tones.Accent.Solid },
+        [When.Hover] = new() { BorderColor = Tones.Accent.Solid },
         [When.Attribute("[data-dragging]")] = new() { BorderColor = Tones.Accent.Solid, BackgroundColor = Tones.Accent.Soft },
     });
 
-    static Style Invalid => Css.Define(static () => new Style { BorderColor = Tones.Danger.Solid, [When.HoverEnabled] = new() { BorderColor = Tones.Danger.Solid } });
+    static Style Invalid => Css.Define(static () => new Style { BorderColor = Tones.Danger.Solid, [When.Hover] = new() { BorderColor = Tones.Danger.Solid } });
 
     static Style Disabled => Css.Define(static () => new Style { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed });
 

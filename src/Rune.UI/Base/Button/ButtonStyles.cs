@@ -122,7 +122,6 @@ public static class ButtonStyles
 
     /// <summary>
     /// 某种样式 × 色调：颜色全部取色调的 token（<see cref="ToneColors"/>）。
-    /// 悬停用 <see cref="When.HoverEnabled"/>：不可用的按钮悬停时不变色。
     /// </summary>
     static Style Variant(ButtonVariant variant, Tone tone) => Css.Define((variant, tone), static key =>
     {
@@ -133,31 +132,31 @@ public static class ButtonStyles
             {
                 Color = t.Contrast,
                 BackgroundColor = t.Solid,
-                [When.HoverEnabled] = new() { BackgroundColor = t.SolidHover },
+                [When.Hover] = new() { BackgroundColor = t.SolidHover },
             },
             ButtonVariant.Soft => new Style
             {
                 Color = t.Text,
                 BackgroundColor = t.Soft,
-                [When.HoverEnabled] = new() { BackgroundColor = t.SoftHover },
+                [When.Hover] = new() { BackgroundColor = t.SoftHover },
             },
             ButtonVariant.Surface => new Style
             {
                 Color = t.Text,
                 BorderColor = t.Border,
                 BackgroundColor = t.Surface,
-                [When.HoverEnabled] = new() { BackgroundColor = t.SoftHover },
+                [When.Hover] = new() { BackgroundColor = t.SoftHover },
             },
             ButtonVariant.Outline => new Style
             {
                 Color = t.Text,
                 BorderColor = t.Border,
-                [When.HoverEnabled] = new() { BackgroundColor = t.QuietHover },
+                [When.Hover] = new() { BackgroundColor = t.QuietHover },
             },
             ButtonVariant.Ghost => new Style
             {
                 Color = t.Text,
-                [When.HoverEnabled] = new() { BackgroundColor = t.QuietHover },
+                [When.Hover] = new() { BackgroundColor = t.QuietHover },
             },
             // 像链接：不要最小高度与左右内边距，上下内边距、边框与圆角照旧（焦点环的形状与按钮一致）
             _ => new Style
@@ -167,7 +166,7 @@ public static class ButtonStyles
                 PaddingInline = 0,
                 FontWeight = FontWeights.Medium,
                 TextUnderlineOffset = CssLength.Em(0.2),
-                [When.HoverEnabled] = new() { TextDecorationLine = TextDecorationLine.Underline },
+                [When.Hover] = new() { TextDecorationLine = TextDecorationLine.Underline },
             },
         };
     });
