@@ -67,8 +67,6 @@
     DateOnly? anchor;
     bool started;
 
-    [Inject] IServiceProvider Services { get; set; } = null!;
-
     /// <summary>选中的季度（<c>@bind-Value</c>）：那个季度的第一天；没有时 null。</summary>
     [Parameter] public DateOnly? Value { get; set; }
 
@@ -98,14 +96,7 @@
 
     bool IsRange => RangeChanged.HasDelegate || Range is not null;
 
-    DateOnly Today
-    {
-        get
-        {
-            var time = Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
-            return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(time.GetUtcNow(), LangFormat.ZoneOf(Config.Lang)).DateTime);
-        }
-    }
+    DateOnly Today => LocalToday();
 
     // 已选的区间；选到一半时不画（从开始到悬停、焦点的预览在 JS 里画）
     DateRange? Selection => IsRange && anchor is null ? Range : null;

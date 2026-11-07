@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Rune.UI;
 
@@ -22,4 +23,15 @@ public abstract class UIComponent : RuneComponent
 
     /// <summary>是否在某个 RuneProvider 里面（同一渲染模式的区域内）。</summary>
     protected bool IsInsideProvider => ProvidedConfig is not null;
+
+    [Inject] IServiceProvider Services { get; set; } = default!;
+
+    /// <summary>“现在”的来源：DI 里注册了 <see cref="TimeProvider"/> 就用它（测试、截图给固定的时间），否则是系统时钟。</summary>
+    protected TimeProvider TimeSource => Services.GetService<TimeProvider>() ?? TimeProvider.System;
+
+    /// <summary>此刻在时区里的墙上时间，默认语言的时区。</summary>
+    protected DateTimeOffset LocalNow(TimeZoneInfo? zone = null) => TimeZoneInfo.ConvertTime(TimeSource.GetUtcNow(), zone ?? LangFormat.ZoneOf(Config.Lang));
+
+    /// <summary>今天：时区里的日期，默认语言的时区。</summary>
+    protected DateOnly LocalToday(TimeZoneInfo? zone = null) => DateOnly.FromDateTime(LocalNow(zone).DateTime);
 }

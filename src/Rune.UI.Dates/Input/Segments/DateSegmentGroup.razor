@@ -41,8 +41,6 @@
 @code {
     Memo<(DateSegmentType[], Lang, bool), SegmentPart[]> layouts;
 
-    [Inject] IServiceProvider Services { get; set; } = null!;
-
     /// <summary>这组的 id；每段是 <c>{Id}-{段名}</c>。</summary>
     [Parameter, EditorRequired] public string Id { get; set; } = "";
 
@@ -99,8 +97,7 @@
     {
         get
         {
-            var time = Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
-            var now = TimeZoneInfo.ConvertTime(time.GetUtcNow(), LangFormat.ZoneOf(Config.Lang));
+            var now = LocalNow();
             return now.ToString("yyyy-MM-ddTHH:mm:00", System.Globalization.CultureInfo.InvariantCulture);
         }
     }

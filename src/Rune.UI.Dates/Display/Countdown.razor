@@ -28,8 +28,6 @@
     Clock? clock;
     bool ended;
 
-    [Inject] IServiceProvider Services { get; set; } = null!;
-
     /// <summary>目标时刻：DateOnly、DateTime 或 DateTimeOffset。</summary>
     [Parameter, EditorRequired] public object To { get; set; } = null!;
 
@@ -42,11 +40,9 @@
     /// <summary>自定义显示：拿到拆好的天、时、分、秒。</summary>
     [Parameter] public RenderFragment<CountdownParts>? ChildContent { get; set; }
 
-    TimeProvider Time => Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
-
     DateTimeOffset Target => DateValues.ToInstant(To, LangFormat.ZoneOf(Config.Lang));
 
-    CountdownParts Parts => CountdownParts.Of(Target - (clock?.Now ?? Time.GetUtcNow()), Precision);
+    CountdownParts Parts => CountdownParts.Of(Target - (clock?.Now ?? TimeSource.GetUtcNow()), Precision);
 
     string Text
     {
@@ -64,7 +60,7 @@
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
-        clock ??= new Clock(Time, now => now >= Target ? null : Precision == CountdownPrecision.Minute ? TimeSpan.FromMinutes(1) : TimeSpan.FromSeconds(1), TickAsync);
+        clock ??= new Clock(TimeSource, now => now >= Target ? null : Precision == CountdownPrecision.Minute ? TimeSpan.FromMinutes(1) : TimeSpan.FromSeconds(1), TickAsync);
         // 挂载时已经过了：不调用 OnEnd
         ended = clock.Now >= Target;
         if (RendererInfo.IsInteractive) clock.Schedule();

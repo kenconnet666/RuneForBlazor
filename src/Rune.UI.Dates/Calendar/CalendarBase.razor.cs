@@ -15,8 +15,6 @@ public abstract partial class CalendarBase
     CalendarState state = null!;
     DateOnly? revealed;
 
-    [Inject] IServiceProvider Services { get; set; } = null!;
-
     /// <summary>最早可选的日期。</summary>
     [Parameter] public DateOnly? Min { get; set; }
 
@@ -113,14 +111,7 @@ public abstract partial class CalendarBase
     DayOfWeek FirstDay => FirstDayOfWeek ?? LangFormat.FirstDayOfWeek(Config.Lang);
 
     // 今天：语言时区里的日期
-    DateOnly Today
-    {
-        get
-        {
-            var time = Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
-            return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(time.GetUtcNow(), LangFormat.ZoneOf(Config.Lang)).DateTime);
-        }
-    }
+    DateOnly Today => LocalToday();
 
     Attrs? SizeLayer => Size is { } size ? new Attrs { Sx = ScaleStyles.FontSize(size) } : null;
 

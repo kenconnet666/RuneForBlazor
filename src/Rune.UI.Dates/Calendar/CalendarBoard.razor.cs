@@ -24,8 +24,6 @@ public partial class CalendarBoard<TItem>
     CalendarState state = null!;
     DateOnly? shownMonth;
 
-    [Inject] IServiceProvider Services { get; set; } = null!;
-
     /// <summary>选中的那一天（<c>@bind-Value</c>）；没有时 null。</summary>
     [Parameter] public DateOnly? Value { get; set; }
 
@@ -94,14 +92,7 @@ public partial class CalendarBoard<TItem>
 
     DayOfWeek FirstDay => FirstDayOfWeek ?? LangFormat.FirstDayOfWeek(Config.Lang);
 
-    DateOnly Today
-    {
-        get
-        {
-            var time = Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
-            return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(time.GetUtcNow(), LangFormat.ZoneOf(Config.Lang)).DateTime);
-        }
-    }
+    DateOnly Today => LocalToday();
 
     static Attrs ToneLayer(Tone tone) => new() { Sx = SharedStyles.StatusColors(StatusVariant.Soft, tone) };
 

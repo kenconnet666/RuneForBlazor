@@ -24,8 +24,6 @@ public sealed class DatePicker<TValue> : DateField<TValue>
     internal readonly string PopoverId = UniqueId.Next("date-picker");
     bool open;
 
-    [Inject] IServiceProvider Services { get; set; } = null!;
-
     /// <summary>快捷选项：日历旁边的一列按钮。</summary>
     [Parameter] public IReadOnlyList<DatePreset> Presets { get; set; } = [];
 
@@ -62,14 +60,7 @@ public sealed class DatePicker<TValue> : DateField<TValue>
     /// <summary>日历上选中的那一天（当前值所在的那一天）。</summary>
     internal DateOnly? CalendarValue => Wall(CurrentValue) is { } wall ? DateOnly.FromDateTime(wall) : null;
 
-    internal DateOnly Today
-    {
-        get
-        {
-            var time = Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
-            return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(time.GetUtcNow(), Zone).DateTime);
-        }
-    }
+    internal DateOnly Today => LocalToday(Zone);
 
     // 一天 → 它所在的那一段的 ISO（按粒度）；带时间时保留原来的时间
     string IsoOfDay(DateOnly day) => IsoOf(day.ToDateTime(TimeOnly.MinValue) + (WithTime && Wall(CurrentValue) is { } wall ? wall.TimeOfDay : TimeSpan.Zero));

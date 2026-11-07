@@ -24,8 +24,6 @@
     IReadOnlyList<string> hiddenState = [];
     IReadOnlyList<string> rowOrder = [];
 
-    [Inject] IServiceProvider Services { get; set; } = null!;
-
     // 画图用的一段：颜色、粗细、是不是轨道
     sealed record Segment(TimelineChartItem Item, Rune.Styles.CssColor Color, double Width, bool Track);
 
@@ -135,8 +133,7 @@
         var marks = new List<TimelineChartMarker>();
         if (ShowToday)
         {
-            var now = (Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System).GetUtcNow();
-            marks.Add(new TimelineChartMarker(Today ?? TimeZoneInfo.ConvertTime(now, LangFormat.ZoneOf(Config.Lang)).DateTime, Config.Lang.ChartToday) { Color = Tone.Danger });
+            marks.Add(new TimelineChartMarker(Today ?? LocalNow().DateTime, Config.Lang.ChartToday) { Color = Tone.Danger });
         }
         marks.AddRange(Markers ?? []);
         return marks;

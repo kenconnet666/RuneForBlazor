@@ -20,8 +20,6 @@ public sealed class TimePicker<TValue> : TimeField<TValue>
     internal readonly string PopoverId = UniqueId.Next("time-picker");
     bool open;
 
-    [Inject] IServiceProvider Services { get; set; } = null!;
-
     /// <summary>列表的间隔（分钟），默认 30。</summary>
     [Parameter] public int Step { get; set; } = 30;
 
@@ -72,8 +70,7 @@ public sealed class TimePicker<TValue> : TimeField<TValue>
     {
         get
         {
-            var clock = Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
-            var now = TimeZoneInfo.ConvertTime(clock.GetUtcNow(), Zone);
+            var now = LocalNow(Zone);
             return new TimeOnly(now.Hour, now.Minute);
         }
     }

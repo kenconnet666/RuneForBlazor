@@ -14,8 +14,6 @@
 @code {
     Clock? clock;
 
-    [Inject] IServiceProvider Services { get; set; } = null!;
-
     /// <summary>值：DateOnly、DateTime 或 DateTimeOffset。</summary>
     [Parameter, EditorRequired] public object Value { get; set; } = null!;
 
@@ -30,7 +28,7 @@
 
     DateTimeOffset Instant => DateValues.ToInstant(Value, LangFormat.ZoneOf(Config.Lang));
 
-    DateTimeOffset Current => Now ?? clock?.Now ?? (Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System).GetUtcNow();
+    DateTimeOffset Current => Now ?? clock?.Now ?? TimeSource.GetUtcNow();
 
     bool Absolute(DateTimeOffset now) => Threshold is { } limit && (Instant - now).Duration() > limit;
 
@@ -43,7 +41,7 @@
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
-        clock ??= new Clock(Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System, Interval, () => InvokeAsync(StateHasChanged));
+        clock ??= new Clock(TimeSource, Interval, () => InvokeAsync(StateHasChanged));
         if (RendererInfo.IsInteractive) clock.Schedule();
     }
 

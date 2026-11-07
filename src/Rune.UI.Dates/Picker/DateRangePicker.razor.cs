@@ -18,8 +18,6 @@ public partial class DateRangePicker
     string? endIso;
     DateRange? shownValue;
 
-    [Inject] IServiceProvider Services { get; set; } = null!;
-
     /// <summary>精确到哪一段：Day（默认）、Week、Month、Quarter、Year。</summary>
     [Parameter] public DateGranularity Granularity { get; set; } = DateGranularity.Day;
 
@@ -98,14 +96,7 @@ public partial class DateRangePicker
 
     EventCallback<DateRange?> QuarterPicked => EventCallback.Factory.Create<DateRange?>(this, range => range is { } picked ? PickAsync(picked) : Task.CompletedTask);
 
-    DateOnly Today
-    {
-        get
-        {
-            var time = Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
-            return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(time.GetUtcNow(), LangFormat.ZoneOf(Config.Lang)).DateTime);
-        }
-    }
+    DateOnly Today => LocalToday();
 
     static string? Join(string? a, string b) => a is null ? b : $"{a} {b}";
 
