@@ -2,7 +2,7 @@
 
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
     <Switch @bind-Value="loading">加载中</Switch>
-    <Grid MinItemWidth="CssLength.Em(11)" Gap="SpaceScale.Md">
+    <Grid MinItemWidth="CssLength.Em(11)" Balanced="true" Gap="SpaceScale.Md">
         @foreach (var padding in paddings)
         {
             <Card Padding="padding" Loading="loading">

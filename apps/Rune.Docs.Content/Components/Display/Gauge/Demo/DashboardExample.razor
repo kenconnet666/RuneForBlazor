@@ -2,7 +2,7 @@
    数值弧的颜色取它所在区间的色调；读屏按 meter 念数值与目标 *@
 @inherits RuneComponent
 
-<Grid MinItemWidth="@("12em")" Gap="SpaceScale.Md">
+<Grid MinItemWidth="@("12em")" Balanced="true" Gap="SpaceScale.Md">
     <Card Sx="Centered">
         <Gauge Value="0.82m" Max="1" ValueFormat="NumberFormat.Percent" Label="年度销售完成率" Target="0.9m"
                Bands="@([new(0.6m, Tone.Danger), new(0.9m, Tone.Warning), new(1, Tone.Success)])" />

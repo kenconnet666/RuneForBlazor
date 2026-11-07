@@ -156,6 +156,7 @@ const watched = [
   ['input[data-indeterminate="true"]', syncIndeterminate],
   ['svg[data-rune-draw="true"]', drawIcon],
   ['[data-rune-grid-span]', (element) => watchGrid(element.parentElement)],
+  ['[data-rune-balanced]', watchGrid],
   ['[data-rune-observe-size]', watchSize],
   ['textarea[data-rune-autosize]', autosize],
   ['[data-rune-overflow]', watchOverflow],
@@ -280,6 +281,8 @@ function onMutations(mutations) {
     if (row) rows.add(row);
   }
   rows.forEach(scheduleOverflow);
+  // 均衡换列的网格加减了项：列数跟着项数变
+  for (const target of changed) if (target.hasAttribute('data-rune-balanced')) watchGrid(target);
 }
 
 function onClick(event) {

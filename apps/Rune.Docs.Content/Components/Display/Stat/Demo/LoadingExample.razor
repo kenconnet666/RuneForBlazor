@@ -2,7 +2,7 @@
 
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
     <Switch @bind-Value="loading">加载中</Switch>
-    <Grid MinItemWidth="@("12em")" Gap="SpaceScale.Md">
+    <Grid MinItemWidth="@("12em")" Balanced="true" Gap="SpaceScale.Md">
         <Card><Stat Label="项目总数" Value="6" Unit="项" Icon="Lucide.ClipboardList" Loading="loading" /></Card>
         <Card>
             <Stat Label="实际销售额" Value="910.36m" Format="TwoDecimals" Unit="万元" Icon="Lucide.JapaneseYen" Change="0.123m" ChangeLabel="较上月" Loading="loading" />

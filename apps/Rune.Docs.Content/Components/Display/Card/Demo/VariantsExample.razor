@@ -1,6 +1,6 @@
 @inherits RuneComponent
 
-<Grid MinItemWidth="@("13em")" Gap="SpaceScale.Md">
+<Grid MinItemWidth="@("13em")" Balanced="true" Gap="SpaceScale.Md">
     @foreach (var (variant, description) in variants)
     {
         <Card Variant="variant" data-testid="@($"card-{variant}")">

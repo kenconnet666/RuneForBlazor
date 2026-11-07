@@ -3,7 +3,7 @@
 @* 限时抢购：自定义成一格一格的数字；待支付的订单：默认的“时:分:秒”；优惠券：Precision="CountdownPrecision.Minute" 精确到分、每分钟更新；
    验证码：60 秒后才能重发，到点时 OnEnd 恢复按钮。截止时刻相对页面打开的时刻，倒计时交互开始后才画（ClientOnly） *@
 <ClientOnly>
-    <Grid MinItemWidth="@("14rem")" Gap="SpaceScale.Md">
+    <Grid MinItemWidth="@("14rem")" Balanced="true" Gap="SpaceScale.Md">
         <Card Padding="SpaceScale.Md">
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
                 <Small Tone="TextTone.Muted">双十一抢购距开始</Small>

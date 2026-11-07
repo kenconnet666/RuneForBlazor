@@ -4,18 +4,58 @@ import { reducedMotion } from '../core/shared.js';
 
 /** 量网格实际有几列（计算后的 grid-template-columns 有几段），跨列多于它的项改成跨当前的列数 */
 const gridObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver((entries) => {
-  for (const { target } of entries) clampGridSpans(target);
+  for (const { target } of entries) layOutGrid(target);
 });
 
 const watchedGrids = new WeakSet();
 
+/** 开始观察一个网格（有跨列的项、或均衡换列时；重复调用无副作用），项数变了时也调用 */
 export function watchGrid(grid) {
   if (!grid || !gridObserver) return;
   if (!watchedGrids.has(grid)) {
     watchedGrids.add(grid);
     gridObserver.observe(grid);
   }
+  layOutGrid(grid);
+}
+
+function layOutGrid(grid) {
+  balanceGrid(grid);
   clampGridSpans(grid);
+}
+
+/**
+ * 均衡换列（Grid 的 Balanced，data-rune-balanced）：按宽度放得下几列与项数取列数，最后一行最多空一格
+ * （4 项放得下 3 列时排 2 + 2）。量出来之前（预渲染）照最小宽度自动换列。同 vue-tsx-pro 的 balancedColumns
+ */
+function balanceGrid(grid) {
+  if (!grid.hasAttribute('data-rune-balanced')) return;
+  const style = getComputedStyle(grid);
+  const min = lengthInPx(style.getPropertyValue('--rune-grid-min-item-width'), style.fontSize);
+  if (min == null) return;
+  const gap = parseFloat(style.columnGap) || 0;
+  const width = grid.clientWidth - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd);
+  const fits = Math.max(1, Math.floor((width + gap) / (Math.min(min, width) + gap)));
+  const template = `repeat(${balancedColumns(grid.children.length, fits)}, minmax(0, 1fr))`;
+  if (grid.style.gridTemplateColumns !== template) grid.style.gridTemplateColumns = template;
+}
+
+/** 放得下 fits 列、共 count 项时排几列：最后一行最多空一格（4 项、3 列 → 2 列；6 项、4 列 → 3 列） */
+export function balancedColumns(count, fits) {
+  for (let columns = Math.min(fits, count); columns > 1; columns--) {
+    const last = count % columns;
+    if (last === 0 || last >= columns - 1) return columns;
+  }
+  return 1;
+}
+
+/** CSS 长度换成 px（em 按元素自己的字号）；换算不了时 null */
+function lengthInPx(length, fontSize) {
+  const match = /^\s*([\d.]+)(px|rem|em)\s*$/.exec(length);
+  if (!match) return null;
+  const value = Number(match[1]);
+  if (match[2] === 'px') return value;
+  return value * parseFloat(match[2] === 'em' ? fontSize : getComputedStyle(document.documentElement).fontSize);
 }
 
 function clampGridSpans(grid) {

@@ -2,7 +2,7 @@
    读屏念成一句话（几个值、从哪到哪、最低最高），Label 写在前面 *@
 @inherits RuneComponent
 
-<Grid MinItemWidth="@("14em")" Gap="SpaceScale.Md">
+<Grid MinItemWidth="@("14em")" Balanced="true" Gap="SpaceScale.Md">
     <Card>
         <Stat Label="实际销售" Value="360" Unit="万元" Change="0.333m" ChangeLabel="较上月">
             <Sparkline Data="savings" Label="近 12 个月实际销售" ValueFormat="Wan" />

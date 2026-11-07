@@ -6,7 +6,7 @@
         <Switch @bind-Value="running">每 2 秒刷新</Switch>
         <Small Tone="TextTone.Muted">数值滚动到新值，变化量与上一次比较</Small>
     </Flex>
-    <Grid MinItemWidth="@("15em")" Gap="SpaceScale.Md">
+    <Grid MinItemWidth="@("15em")" Balanced="true" Gap="SpaceScale.Md">
         @foreach (var metric in metrics)
         {
             var value = metric.History[^1];

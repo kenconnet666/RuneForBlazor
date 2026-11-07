@@ -69,6 +69,16 @@ public class LayoutTests : BunitContext
     }
 
     [Fact]
+    public void Grid均衡换列_带标记交给浏览器量_没有最小宽度时不标()
+    {
+        var balanced = Render<Grid>(p => p.Add(x => x.MinItemWidth, "10em").Add(x => x.Balanced, true));
+        var fixedColumns = Render<Grid>(p => p.Add(x => x.Columns, 3).Add(x => x.Balanced, true));
+
+        Assert.True(balanced.Find("div").HasAttribute("data-rune-balanced"));
+        Assert.False(fixedColumns.Find("div").HasAttribute("data-rune-balanced"));
+    }
+
+    [Fact]
     public void GridItem跨列跨行与占满一行()
     {
         var span = Render<GridItem>(p => p.Add(x => x.Span, 2).Add(x => x.RowSpan, 3));

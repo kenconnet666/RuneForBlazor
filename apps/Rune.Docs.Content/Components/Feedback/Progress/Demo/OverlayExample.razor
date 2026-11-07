@@ -7,7 +7,7 @@
     <LoadingOverlay Loading="saving" Blur="blur" Label="正在保存" data-testid="overlay">
         <Card>
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
-                <Grid MinItemWidth="@CssLength.Em(12)" Gap="SpaceScale.Md">
+                <Grid MinItemWidth="@CssLength.Em(12)" Balanced="true" Gap="SpaceScale.Md">
                     <Field Label="项目名称">
                         <TextField @bind-Value="projectName" Disabled="saving" />
                     </Field>

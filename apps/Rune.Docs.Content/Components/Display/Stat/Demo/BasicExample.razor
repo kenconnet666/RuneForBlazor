@@ -1,7 +1,7 @@
 @* 接口给的金额以元为单位（decimal 不丢精度），卡片上按万元显示 *@
 @inherits RuneComponent
 
-<Grid MinItemWidth="@("14em")" Gap="SpaceScale.Md">
+<Grid MinItemWidth="@("14em")" Balanced="true" Gap="SpaceScale.Md">
     <Card><Stat Label="项目总数" Value="6" Unit="项" Icon="Lucide.ClipboardList" /></Card>
     <Card><Stat Label="预期销售额" Value="expected" Format="WanYuan" Unit="万元" Icon="Lucide.JapaneseYen" /></Card>
     <Card><Stat Label="实际销售额" Value="actual" Format="WanYuan" Unit="万元" Icon="Lucide.ChartColumn" /></Card>

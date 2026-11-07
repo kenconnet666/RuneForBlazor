@@ -1,7 +1,7 @@
 @inherits RuneComponent
 
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
-    <Grid MinItemWidth="@CssLength.Rem(9)" Gap="SpaceScale.Md">
+    <Grid MinItemWidth="@CssLength.Rem(9)" Balanced="true" Gap="SpaceScale.Md">
         @foreach (var (name, done, target, tone) in plants)
         {
             <Card @key="name">
