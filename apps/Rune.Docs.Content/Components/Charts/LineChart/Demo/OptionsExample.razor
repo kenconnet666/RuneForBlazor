@@ -1,0 +1,47 @@
+@inherits RuneComponent
+
+@* 线宽、图例、网格线、提示框、加载与空状态；CategoryText 把类目换成显示文字；HiddenSeries 双向绑定，按钮也能切换 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Align="ItemAlign.Center" Wrap="true">
+        <ToggleGroup @bind-Value="width" Required="true" Size="Size.Sm" aria-label="线宽">
+            <ToggleItem Value="1">细</ToggleItem>
+            <ToggleItem Value="2">中</ToggleItem>
+            <ToggleItem Value="4">粗</ToggleItem>
+        </ToggleGroup>
+        <Switch @bind-Value="legend">图例</Switch>
+        <Switch @bind-Value="grid">网格线</Switch>
+        <Switch @bind-Value="tooltip">提示框</Switch>
+        <Switch @bind-Value="loading">加载中</Switch>
+        <Switch @bind-Value="empty">没有数据</Switch>
+    </Flex>
+    <LineChart Items="Shown" Category="h => h.Hour" CategoryText="HourText" Series="Series" Unit="次/分"
+               LineWidth="double.Parse(width!)" Legend="legend" Grid="grid" Tooltip="tooltip" Loading="loading" @bind-HiddenSeries="hidden" aria-label="每小时请求量" />
+    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+        <Button Size="Size.Sm" Variant="ButtonVariant.Soft" @onclick="ToggleWeb">@(hidden.Contains("web") ? "显示网页" : "只看接口")</Button>
+    </Flex>
+</Flex>
+
+@code {
+    sealed record Requests(int Hour, decimal Api, decimal Web);
+
+    static readonly int[] Api = [120, 340, 410, 380, 450, 520, 300, 160];
+    static readonly int[] Web = [80, 210, 260, 240, 310, 290, 220, 140];
+
+    static readonly Requests[] Hours = [.. new[] { 8, 10, 12, 14, 16, 18, 20, 22 }.Select((hour, i) => new Requests(hour, Api[i], Web[i]))];
+
+    static readonly ChartSeries<Requests>[] Series = [new("api", "接口", h => h.Api), new("web", "网页", h => h.Web)];
+
+    static string HourText(Requests row) => $"{row.Hour}:00";
+
+    string? width = "2";
+    bool legend = true;
+    bool grid = true;
+    bool tooltip = true;
+    bool loading;
+    bool empty;
+    IReadOnlyList<string> hidden = [];
+
+    IReadOnlyList<Requests> Shown => empty ? [] : Hours;
+
+    void ToggleWeb() => hidden = hidden.Contains("web") ? [] : ["web"];
+}

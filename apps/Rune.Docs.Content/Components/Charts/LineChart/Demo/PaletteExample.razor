@@ -1,0 +1,19 @@
+@inherits RuneComponent
+
+<LineChart Items="Weeks" Category="w => w.Week" Series="Series" Unit="千人" Curve="LineCurve.Monotone" aria-label="各端周活跃用户" />
+
+@code {
+    sealed record Active(string Week, decimal Web, decimal Ios, decimal Android, decimal Mini, decimal Desktop);
+
+    static readonly Active[] Weeks = [.. Enumerable.Range(0, 10).Select(i => new Active(
+        $"第 {i + 1} 周", 40 + i * 6 + i % 3 * 4, 30 + i * 4 + i % 2 * 6, 35 + i * 5 - i % 4 * 3, 10 + i * 7, 20 + i * 2))];
+
+    static readonly ChartSeries<Active>[] Series =
+    [
+        new("web", "网页", w => w.Web),
+        new("ios", "iOS", w => w.Ios),
+        new("android", "Android", w => w.Android),
+        new("mini", "小程序", w => w.Mini),
+        new("desktop", "桌面端", w => w.Desktop),
+    ];
+}

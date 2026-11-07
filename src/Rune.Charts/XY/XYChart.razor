@@ -1,0 +1,412 @@
+@*
+    直角坐标图表的公共实现（见 XYChart.razor.cs）：外层交给 ChartFrame，绘图区里是一张 SVG 与提示框。
+    SVG 从下往上：区间、坐标轴与网格、零线、悬停的浅底、图形（Marks）、目标线与事件竖线、标注圈、十字线。
+    十字线、浅底、提示框由 C# 渲染成隐藏的骨架，charts.js 按 data-chart 里的数据改它们的位置与显示（不往返）。
+    未声明的属性落到外层 div（role="figure"）上；aria-label 是图表的名称。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits UIComponent
+@{
+    var layout = UseSize() && Items.Count > 0 ? ComputeLayout() : null;
+}
+
+<ChartFrame Unit="@(Percent ? null : Unit)" UnitEnd="@Secondary?.Unit" Height="Height" Legend="LegendItems" HiddenKeys="Hidden" OnLegendToggle="ToggleAsync"
+            Loading="Loading" Skeleton="SkeletonFragment" IsEmpty="Items.Count == 0" Empty="Empty" Table="@(BuildTable() ?? DefaultTable())"
+            PlotData="@(layout is null ? null : HoverData(layout))" OnPlotCommand="OnPlotCommandAsync" Clickable="OnItemClick.HasDelegate"
+            Plot="@(layout is null ? null : PlotFragment(layout))"
+            PropsHeader="PropsHeader" PropsUnit="PropsUnit" PropsLegend="PropsLegend" PropsLegendItem="PropsLegendItem" PropsPlot="PropsPlot" PropsTable="PropsTable"
+            @attributes="Rest" />
+
+@code {
+    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
+    static readonly Attrs GridLayer = new() { Sx = ChartSvgStyles.Grid };
+    static readonly Attrs BaselineLayer = new() { Sx = ChartSvgStyles.Baseline };
+    static readonly Attrs TickLayer = new() { Sx = ChartSvgStyles.Tick };
+    static readonly Attrs AxisTitleLayer = new() { Sx = ChartSvgStyles.Tick };
+    static readonly Attrs HoverBandLayer = new() { Sx = ChartSvgStyles.HoverBand };
+    static readonly Attrs CrosshairLayer = new() { Sx = ChartSvgStyles.Crosshair };
+    static readonly Attrs CrosshairDotLayer = new() { Sx = ChartSvgStyles.CrosshairDot };
+    static readonly Attrs BandFillLayer = new() { Sx = ChartSvgStyles.BandFill };
+    static readonly Attrs LabelMutedLayer = new() { Sx = ChartSvgStyles.LabelMuted };
+    static readonly Attrs TargetLineLayer = new() { Sx = ChartSvgStyles.TargetLine };
+    static readonly Attrs TargetLabelLayer = new() { Sx = Sx.Of(ChartSvgStyles.LabelColored, ChartSvgStyles.Halo) };
+    static readonly Attrs EventLineLayer = new() { Sx = ChartSvgStyles.EventLine };
+    static readonly Attrs EventLabelLayer = new() { Sx = Sx.Of(ChartSvgStyles.LabelMuted, ChartSvgStyles.Halo) };
+    static readonly Attrs MarkLayer = new() { Sx = ChartSvgStyles.Mark };
+    static readonly Attrs MarkLabelLayer = new() { Sx = Sx.Of(ChartSvgStyles.Label, ChartSvgStyles.Halo) };
+    static readonly Attrs TooltipLayer = new() { Sx = ChartStyles.Tooltip };
+    static readonly Attrs TooltipTitleLayer = new() { Sx = ChartStyles.TooltipTitle };
+    static readonly Attrs TooltipRowLayer = new() { Sx = ChartStyles.TooltipRow };
+    static readonly Attrs SwatchLayer = new() { Sx = ChartStyles.Swatch };
+    static readonly Attrs TooltipLabelLayer = new() { Sx = ChartStyles.TooltipLabel };
+    static readonly Attrs TooltipValueLayer = new() { Sx = ChartStyles.TooltipValue };
+    static readonly Attrs SkeletonBarsLayer = new() { Sx = XYChartStyles.SkeletonBars };
+    static readonly Attrs SkeletonBarsHorizontalLayer = new() { Sx = Sx.Of(XYChartStyles.SkeletonBars, XYChartStyles.SkeletonBarsHorizontal) };
+
+    // 骨架柱的高度（百分比）：高低错落，看起来像一组数据
+    static readonly int[] SkeletonHeights = [55, 80, 40, 70, 90, 50, 65];
+
+    static string N(double value) => SvgFormat.Number(value);
+
+    // 网格线落在像素中间：1px 的线不发虚
+    static string Crisp(double value) => N(Math.Floor(value + 0.5) + 0.5);
+
+    RenderFragment SkeletonFragment => __builder =>
+    {
+        if (!SkeletonBars)
+        {
+            <Skeleton Sx="XYChartStyles.SkeletonBlock" />
+            return;
+        }
+        <div aria-hidden="true" @attributes="Attrs.Merge(Horizontal ? SkeletonBarsHorizontalLayer : SkeletonBarsLayer)">
+            @foreach (var percent in SkeletonHeights)
+            {
+                <Skeleton @attributes="Attrs.MergeProps(XYChartStyles.SkeletonBar(percent, Horizontal))" />
+            }
+        </div>
+    };
+
+    RenderFragment PlotFragment(Layout layout) => __builder =>
+    {
+        var context = layout.Context;
+        var plot = context.Plot;
+        var horizontal = context.Horizontal;
+        var zero = context.Value(0);
+        var showZero = context.Domain.Start < 0 && context.Domain.End > 0;
+        <svg width="@(measured ? N(width) : "100%")" height="@(measured ? N(height) : "100%")" viewBox="@(measured ? null : $"0 0 {N(width)} {N(height)}")"
+             @attributes="Attrs.Merge(SvgLayer)">
+            @BandsFragment(context)
+            @Axis(horizontal ? AxisSide.Bottom : AxisSide.Left, layout.ValueTicks, plot, Grid)
+            @Axis(horizontal ? AxisSide.Left : AxisSide.Bottom, layout.CategoryTicks, plot, Continuous is not null && Grid)
+            @if (layout.SecondaryTicks.Count > 0)
+            {
+                @Axis(AxisSide.Right, layout.SecondaryTicks, plot, false)
+            }
+            @if (Continuous?.Title is { } title)
+            {
+                @ChartSvg.Text(title, plot.Left + plot.Width / 2, height - 2, AxisTitleLayer, "middle")
+            }
+            @if (showZero)
+            {
+                if (horizontal)
+                {
+                    <line x1="@Crisp(zero)" x2="@Crisp(zero)" y1="@N(plot.Top)" y2="@N(plot.Bottom)" @attributes="Attrs.Merge(BaselineLayer)" />
+                }
+                else
+                {
+                    <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@Crisp(zero)" y2="@Crisp(zero)" @attributes="Attrs.Merge(BaselineLayer)" />
+                }
+            }
+            @if (!PointTooltip && (Band || !CrosshairDots))
+            {
+                <rect data-part="hover-band" display="none" @attributes="Attrs.Merge(HoverBandLayer)" />
+            }
+            @Marks(context)
+            @LinesFragment(context)
+            @MarksFragment(context)
+            @if (!PointTooltip && CrosshairDots)
+            {
+                <g data-part="crosshair" display="none">
+                    @if (!Band)
+                    {
+                        <line y1="@N(plot.Top)" y2="@N(plot.Bottom)" @attributes="Attrs.Merge(CrosshairLayer)" />
+                    }
+                    @foreach (var item in context.Series.Where(DotsSeries))
+                    {
+                        <circle @key="item.Key" r="4.5" data-dot @attributes="Attrs.Merge(CrosshairDotLayer, item.ColorLayer)" />
+                    }
+                </g>
+            }
+        </svg>
+        @if (Tooltip)
+        {
+            <div data-part="tooltip" @attributes="Attrs.Merge(TooltipLayer)"></div>
+            @* 提示框的原型：charts.js 按每行的数据克隆、填字 *@
+            <div hidden data-tip-proto>
+                <div data-tip-title @attributes="Attrs.Merge(TooltipTitleLayer)"></div>
+                <div data-tip-row @attributes="Attrs.Merge(TooltipRowLayer)">
+                    <span @attributes="Attrs.Merge(SwatchLayer)"></span>
+                    <span @attributes="Attrs.Merge(TooltipLabelLayer)"></span>
+                    <span @attributes="Attrs.Merge(TooltipValueLayer)"></span>
+                </div>
+            </div>
+        }
+    };
+
+    private protected enum AxisSide { Left, Right, Bottom }
+
+    /// <summary>坐标轴：刻度文字，可带网格线（键是位置，更新时文字原地换）。</summary>
+    private protected static RenderFragment Axis(AxisSide side, IReadOnlyList<AxisTick> ticks, PlotRect plot, bool grid, double gap = TickGap) => __builder =>
+    {
+        <g>
+            @if (grid)
+            {
+                foreach (var tick in ticks)
+                {
+                    var p = Crisp(tick.Position);
+                    if (side == AxisSide.Bottom)
+                    {
+                        <line @key="@($"g{tick.Position}")" x1="@p" x2="@p" y1="@N(plot.Top)" y2="@N(plot.Bottom)" @attributes="Attrs.Merge(GridLayer)" />
+                    }
+                    else
+                    {
+                        <line @key="@($"g{tick.Position}")" x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@p" y2="@p" @attributes="Attrs.Merge(GridLayer)" />
+                    }
+                }
+            }
+            @foreach (var tick in ticks)
+            {
+                if (tick.Label.Length == 0) continue;
+                if (side == AxisSide.Bottom)
+                {
+                    @ChartSvg.Text(tick.Label, tick.Position, plot.Bottom + gap, TickLayer, "middle", "hanging", $"t{tick.Position}")
+                }
+                else
+                {
+                    @ChartSvg.Text(tick.Label, side == AxisSide.Left ? plot.Left - gap : plot.Right + gap, tick.Position, TickLayer, side == AxisSide.Left ? "end" : "start", "central", $"t{tick.Position}")
+                }
+            }
+        </g>
+    };
+
+    /// <summary>区间：浅色的带，文字在左下角（类目轴）或左上角（数值轴）。</summary>
+    RenderFragment BandsFragment(XYContext<TItem> context) => __builder =>
+    {
+        var plot = context.Plot;
+        var horizontal = context.Horizontal;
+        var position = 0;
+        foreach (var band in Bands ?? [])
+        {
+            position++;
+            var onIndex = band.Axis == ChartBandAxis.Index;
+            double from, to;
+            if (onIndex)
+            {
+                if (PositionOf(context, band.From) is not { } a || PositionOf(context, band.To) is not { } b) continue;
+                // 类目轴上的区间盖住两端的类目：往外各扩半格
+                var half = Continuous is not null ? 0 : context.Step / 2;
+                from = Math.Min(a.Position, b.Position) - half;
+                to = Math.Max(a.Position, b.Position) + half;
+            }
+            else
+            {
+                var (p, q) = (context.Value(ToDouble(band.From)), context.Value(ToDouble(band.To)));
+                (from, to) = (Math.Min(p, q), Math.Max(p, q));
+            }
+            var alongCategory = onIndex != horizontal;
+            var clampedFrom = Math.Max(from, alongCategory ? plot.Left : plot.Top);
+            var clampedTo = Math.Min(to, alongCategory ? plot.Right : plot.Bottom);
+            var (x, y, w, h) = alongCategory
+                ? (clampedFrom, plot.Top, clampedTo - clampedFrom, plot.Height)
+                : (plot.Left, clampedFrom, plot.Width, clampedTo - clampedFrom);
+            if (w <= 0 || h <= 0) continue;
+            var bottomLeft = onIndex && !horizontal;
+            <g @key="@($"band-{position}")" data-part="band">
+                <rect x="@N(x)" y="@N(y)" width="@N(w)" height="@N(h)" @attributes="Attrs.Merge(BandFillLayer, ChartFrame.ColorVar(ChartColor.Resolve(band.Color ?? Tone.Neutral, 0)))" />
+                @if (band.Label is { } label)
+                {
+                    @ChartSvg.Text(label, x + 6, bottomLeft ? y + h - 6 : y + 6, LabelMutedLayer, baseline: bottomLeft ? "auto" : "hanging")
+                }
+            </g>
+        }
+    };
+
+    /// <summary>目标线与事件竖线。</summary>
+    RenderFragment LinesFragment(XYContext<TItem> context) => __builder =>
+    {
+        var plot = context.Plot;
+        var horizontal = context.Horizontal;
+        var position = 0;
+        foreach (var target in Targets ?? [])
+        {
+            position++;
+            var color = ChartFrame.ColorVar(ChartColor.Resolve(target.Color ?? Tone.Danger, 0));
+            var at = N(context.Value((double)target.Value));
+            var label = target.Label is { } text ? $"{text} {ValueText(target.Value)}" : ValueText(target.Value);
+            var atValue = SvgFormat.Round(context.Value((double)target.Value));
+            <g @key="@($"target-{position}")" data-part="target">
+                @if (horizontal)
+                {
+                    <line x1="@at" x2="@at" y1="@N(plot.Top)" y2="@N(plot.Bottom)" @attributes="Attrs.Merge(TargetLineLayer, color)" />
+                }
+                else
+                {
+                    <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@at" y2="@at" @attributes="Attrs.Merge(TargetLineLayer, color)" />
+                }
+                @ChartSvg.Text(label, horizontal ? atValue + 4 : plot.Left + 4, horizontal ? plot.Top + 4 : atValue - 5, Attrs.Merge(TargetLabelLayer, color), baseline: horizontal ? "hanging" : "auto")
+            </g>
+        }
+        position = 0;
+        foreach (var item in Annotations ?? [])
+        {
+            position++;
+            if (item.Series is not null || PositionOf(context, item.At) is not { } found) continue;
+            var color = ChartFrame.ColorVar(ChartColor.Resolve(item.Color ?? Tone.Neutral, 0));
+            var p = SvgFormat.Round(found.Position);
+            <g @key="@($"event-{position}")" data-part="event">
+                @if (horizontal)
+                {
+                    <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@N(p)" y2="@N(p)" @attributes="Attrs.Merge(EventLineLayer, color)" />
+                }
+                else
+                {
+                    <line x1="@N(p)" x2="@N(p)" y1="@N(plot.Top)" y2="@N(plot.Bottom)" @attributes="Attrs.Merge(EventLineLayer, color)" />
+                }
+                @ChartSvg.Text(item.Label, horizontal ? plot.Right - 4 : p + 4, horizontal ? p - 4 : plot.Top + 4, EventLabelLayer, horizontal ? "end" : "start", horizontal ? "auto" : "hanging")
+            </g>
+        }
+    };
+
+    /// <summary>标注圈出的值：空心圈，文字在上方（横向图不画）。</summary>
+    RenderFragment MarksFragment(XYContext<TItem> context) => __builder =>
+    {
+        if (context.Horizontal) return;
+        var position = 0;
+        foreach (var item in Annotations ?? [])
+        {
+            position++;
+            if (item.Series is not { } key) continue;
+            var series = context.Series.FirstOrDefault(entry => entry.Key == key);
+            if (series is null || PositionOf(context, item.At) is not { } found) continue;
+            var row = context.Rows[found.Index];
+            if (context.Position(series, row, found.Index) is not { } value) continue;
+            var (x, y) = (SvgFormat.Round(found.Position), SvgFormat.Round(context.Value(value)));
+            var color = item.Color is { } custom ? ChartFrame.ColorVar(custom.Css) : series.ColorLayer;
+            // 文字居中在圈的上方；靠近绘图区两端时改成对齐圈的外沿，不伸出去
+            var half = ChartText.Width(item.Label, TickFont) / 2;
+            var anchor = x + half > context.Plot.Right ? "end" : x - half < context.Plot.Left ? "start" : "middle";
+            var textX = anchor == "end" ? x + 8 : anchor == "start" ? x - 8 : x;
+            <g @key="@($"mark-{position}")" data-part="mark">
+                <circle cx="@N(x)" cy="@N(y)" r="8" @attributes="Attrs.Merge(MarkLayer, color)" />
+                @ChartSvg.Text(item.Label, textX, y - 14, MarkLabelLayer, anchor)
+            </g>
+        }
+    };
+
+    // ───────── 图形（同 vue 的 marks.tsx）：柱从基线长出来、线从左往右描出、面积与点淡入（@starting-style，只在第一次出现时播放） ─────────
+
+    // 一个系列连续的几段点：(类目坐标, 数值, 第几行)；空值处断开
+    static List<List<(double Category, double Value, int Index)>> Segments(XYContext<TItem> context, Func<TItem, int, double?> value)
+    {
+        var result = new List<List<(double, double, int)>>();
+        var current = new List<(double, double, int)>();
+        for (var index = 0; index < context.Rows.Count; index++)
+        {
+            var row = context.Rows[index];
+            if (value(row, index) is { } v) current.Add((context.Category(row, index), v, index));
+            else if (current.Count > 0)
+            {
+                result.Add(current);
+                current = [];
+            }
+        }
+        if (current.Count > 0) result.Add(current);
+        return result;
+    }
+
+    /// <summary>一根柱：类目方向上从 start 起宽 width，数值方向上从 low 到 high；round 时末端是圆角，down 时朝下（横向时朝左）长。</summary>
+    private protected static (string D, Sx Grow) BarShape(XYContext<TItem> context, double start, double width, double low, double high, double radius, bool round, bool? down = null)
+    {
+        var negative = down ?? (high <= 0 && low < 0);
+        var (a, b) = (context.Value(low), context.Value(high));
+        var end = context.Horizontal ? negative ? BarEnd.Left : BarEnd.Right : negative ? BarEnd.Bottom : BarEnd.Top;
+        var d = context.Horizontal
+            ? ChartShapes.Bar(Math.Min(a, b), start, Math.Abs(b - a), width, radius, round ? end : BarEnd.None)
+            : ChartShapes.Bar(start, Math.Min(a, b), width, Math.Abs(b - a), radius, round ? end : BarEnd.None);
+        return (d, ChartSvgStyles.Bar(end));
+    }
+
+    /// <summary>分组（并排）或堆叠的柱：每根柱带 data-index（第几行），点击下钻按它找行。</summary>
+    private protected static RenderFragment BarMarks(XYContext<TItem> context, IReadOnlyList<ResolvedSeries<TItem>> series, bool stacked, double radius, double? fill = null, double? maxWidth = null) => __builder =>
+    {
+        if (series.Count == 0) return;
+        var groupWidth = Math.Min(context.Step * (fill ?? (stacked ? 0.6 : 0.7)), maxWidth ?? (stacked ? 48 : 96));
+        var values = series.Select(item => (IReadOnlyList<double?>)[.. context.Rows.Select(row => context.ValueOf(item, row))]).ToArray();
+        var stacks = stacked ? ChartStack.Of(values) : [];
+        // 堆叠时只给每一摞最外面的一段圆角（正负各一）
+        int Outermost(int index, bool negative)
+        {
+            for (var s = series.Count - 1; s >= 0; s--)
+                if (values[s][index] is { } value && value != 0 && value < 0 == negative) return s;
+            return -1;
+        }
+        var barWidth = stacked ? groupWidth : groupWidth / (series.Count + (series.Count - 1) * 0.1);
+        <g data-part="bars">
+            @for (var index = 0; index < context.Rows.Count; index++)
+            {
+                var groupStart = context.Category(context.Rows[index], index) - groupWidth / 2;
+                for (var s = 0; s < series.Count; s++)
+                {
+                    if (values[s][index] is not { } value || value == 0) continue;
+                    var segment = stacked ? stacks[s][index] : new StackSegment(Math.Min(0, value), Math.Max(0, value), value);
+                    var (d, grow) = BarShape(context, stacked ? groupStart : groupStart + s * barWidth * 1.1, barWidth, segment.Low, segment.High, radius,
+                        !stacked || Outermost(index, value < 0) == s);
+                    <path @key="@($"{series[s].Key}:{index}")" data-part="bar" data-index="@index" d="@d" @attributes="Attrs.Merge(new Attrs { Sx = grow }, series[s].ColorLayer)" />
+                }
+            }
+        </g>
+    };
+
+    /// <summary>每个系列一条线（空值处断开）。</summary>
+    private protected static RenderFragment LineMarks(XYContext<TItem> context, IReadOnlyList<ResolvedSeries<TItem>> series, LineCurve curve, double lineWidth) => __builder =>
+    {
+        <g data-part="lines">
+            @foreach (var item in series)
+            {
+                var d = string.Concat(Segments(context, (row, _) => context.ValueOf(item, row))
+                    .Select(part => ChartShapes.Line([.. part.Select(p => context.Point(p.Category, context.Value(p.Value)))], curve)));
+                if (d.Length == 0) continue;
+                <path @key="item.Key" data-part="line" d="@d" pathLength="1" stroke-width="@N(lineWidth)" @attributes="Attrs.Merge(LineLayer, item.ColorLayer)" />
+            }
+        </g>
+    };
+
+    /// <summary>每个系列一片面积，上沿描一条线；重叠时下沿是 0（或数值轴的下端），堆叠时是下面那一层。</summary>
+    private protected static RenderFragment AreaMarks(XYContext<TItem> context, IReadOnlyList<ResolvedSeries<TItem>> series, LineCurve curve, bool stacked, double opacity) => __builder =>
+    {
+        var floor = Math.Min(Math.Max(0, context.Domain.Start), context.Domain.End);
+        <g data-part="areas">
+            @foreach (var item in series)
+            {
+                var parts = AreaParts(context, item, stacked, floor);
+                List<(double X, double Y)> Edge(List<(double Low, double High, int Index)> part, bool high) =>
+                    [.. part.Select(p => context.Point(context.Category(context.Rows[p.Index], p.Index), context.Value(high ? p.High : p.Low)))];
+                var area = string.Concat(parts.Select(part => ChartShapes.Area(Edge(part, true), Edge(part, false), curve)));
+                var top = string.Concat(parts.Select(part => ChartShapes.Line(Edge(part, true), curve)));
+                <g @key="item.Key">
+                    <path data-part="area" d="@area" fill-opacity="@N(opacity)" @attributes="Attrs.Merge(AreaLayer, item.ColorLayer)" />
+                    <path data-part="line" d="@top" pathLength="1" stroke-width="2" @attributes="Attrs.Merge(LineLayer, item.ColorLayer)" />
+                </g>
+            }
+        </g>
+    };
+
+    // 面积的几段：每个点的下沿、上沿与第几行。堆叠时空值是 0 厚度（面积连续）；重叠时空值处断开，下沿是 floor
+    static List<List<(double Low, double High, int Index)>> AreaParts(XYContext<TItem> context, ResolvedSeries<TItem> item, bool stacked, double floor) =>
+        stacked && context.Stacks.TryGetValue(item.Key, out var stack)
+            ? [[.. stack.Select((segment, index) => (segment.Low, segment.High, index))]]
+            : [.. Segments(context, (row, _) => context.ValueOf(item, row)).Select(part => part.Select(p => (floor, p.Value, p.Index)).ToList())];
+
+    /// <summary>数据点：实心（描一圈表面色）或空心（表面色填充、系列色描边）；空值不画。</summary>
+    private protected static RenderFragment DotMarks(XYContext<TItem> context, IReadOnlyList<ResolvedSeries<TItem>> series, bool hollow) => __builder =>
+    {
+        var layer = hollow ? HollowDotLayer : FilledDotLayer;
+        <g data-part="dots">
+            @foreach (var item in series)
+            {
+                for (var index = 0; index < context.Rows.Count; index++)
+                {
+                    if (context.ValueOf(item, context.Rows[index]) is not { } value) continue;
+                    var (x, y) = context.Point(context.Category(context.Rows[index], index), context.Value(value));
+                    <circle @key="@($"{item.Key}:{index}")" data-part="dot" cx="@N(x)" cy="@N(y)" r="@(hollow ? "3.5" : "4")" @attributes="Attrs.Merge(layer, item.ColorLayer)" />
+                }
+            }
+        </g>
+    };
+
+    static readonly Attrs LineLayer = new() { Sx = ChartSvgStyles.Line };
+    static readonly Attrs AreaLayer = new() { Sx = ChartSvgStyles.Area };
+    static readonly Attrs HollowDotLayer = new() { Sx = ChartSvgStyles.HollowDot };
+    static readonly Attrs FilledDotLayer = new() { Sx = ChartSvgStyles.FilledDot };
+}

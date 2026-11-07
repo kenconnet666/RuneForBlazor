@@ -1,0 +1,20 @@
+@inherits RuneComponent
+
+@* 目标线与下钻：各团队的实现销售对着年度指标；点一个团队（实际项目里跳到筛好条件的台账） *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <BarChart Items="Teams" Category="t => t.Name" Series="Series" Unit="万元" Targets="Lines" OnItemClick="(ChartItemClick<Team> click) => picked = click.Item.Name"
+              aria-label="各团队的销售额对着指标" />
+    <Small Tone="TextTone.Muted">@(picked is null ? "点一组柱子试试" : $"点了：{picked}")</Small>
+</Flex>
+
+@code {
+    sealed record Team(string Name, decimal Committed, decimal Realized);
+
+    static readonly Team[] Teams = [new("华东大区", 420, 318), new("华南大区", 260, 274), new("华北大区", 310, 196), new("西南大区", 180, 142)];
+
+    static readonly ChartSeries<Team>[] Series = [new("committed", "承诺值", t => t.Committed), new("realized", "实现值", t => t.Realized)];
+
+    static readonly ChartTarget[] Lines = [new(300) { Label = "团队指标" }, new(200) { Label = "保底", Color = Tone.Warning }];
+
+    string? picked;
+}

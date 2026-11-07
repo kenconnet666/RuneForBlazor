@@ -1,0 +1,12 @@
+@inherits RuneComponent
+
+<BarChart Items="Departments" Category="d => d.Name" Series="Series" Unit="项" HorizontalBars="true" Height="220" aria-label="各部门提出的项目数" />
+
+@code {
+    sealed record Department(string Name, decimal Count);
+
+    static readonly Department[] Departments =
+        [new("结构设计部", 18), new("工艺研究所", 14), new("采购中心", 11), new("组装车间", 9), new("质量管理部", 6)];
+
+    static readonly ChartSeries<Department>[] Series = [new("count", "项目数", d => d.Count)];
+}

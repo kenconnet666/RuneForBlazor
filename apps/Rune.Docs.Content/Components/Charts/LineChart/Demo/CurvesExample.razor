@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ToggleGroup @bind-Value="curve" Required="true" Size="Size.Sm" aria-label="线的形状">
+        <ToggleItem Value="Linear">折线</ToggleItem>
+        <ToggleItem Value="Monotone">平滑</ToggleItem>
+        <ToggleItem Value="Step">阶梯</ToggleItem>
+    </ToggleGroup>
+    <LineChart Items="Days" Category="d => d.Day" Series="Series" Curve="Enum.Parse<LineCurve>(curve!)" Dots="LineDots.Filled" aria-label="一周访问量" />
+</Flex>
+
+@code {
+    sealed record Visits(string Day, decimal Count);
+
+    static readonly Visits[] Days =
+        [new("周一", 820), new("周二", 932), new("周三", 901), new("周四", 1290), new("周五", 1330), new("周六", 760), new("周日", 680)];
+
+    static readonly ChartSeries<Visits>[] Series = [new("visits", "访问量", d => d.Count)];
+
+    string? curve = "Monotone";
+}

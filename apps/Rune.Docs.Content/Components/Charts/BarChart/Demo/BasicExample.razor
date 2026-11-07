@@ -1,0 +1,17 @@
+@inherits RuneComponent
+
+<BarChart Items="Projects" Category="p => p.Name" Series="Series" Unit="万元" ValueFormat="TwoDigits" aria-label="各项目销售额" />
+
+@code {
+    sealed record Project(string Name, decimal Planned, decimal Actual);
+
+    static readonly Project[] Projects =
+    [
+        new("项目 01", 272, 438.4m), new("项目 02", 280, 438.4m), new("项目 03", 246, 257.4m),
+        new("项目 04", 252, 214.56m), new("项目 05", 157.5m, 210), new("项目 06", 160, 211),
+    ];
+
+    static readonly ChartSeries<Project>[] Series = [new("planned", "预期销售", p => p.Planned), new("actual", "实际销售", p => p.Actual)];
+
+    static readonly NumberFormat TwoDigits = new() { MaximumFractionDigits = 2 };
+}

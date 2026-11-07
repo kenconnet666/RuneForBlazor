@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+@* 堆叠：同一季度的成本叠成一根柱子看总量；切到“占比”是 ChartStacking.Percent，每根叠满 100%，只看构成的变化，提示框里同时有金额与占比 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <ToggleGroup @bind-Value="mode" Required="true" Size="Size.Sm" aria-label="显示方式">
+        <ToggleItem Value="amount">金额</ToggleItem>
+        <ToggleItem Value="percent">占比</ToggleItem>
+    </ToggleGroup>
+    <BarChart Items="Quarters" Category="q => q.Quarter" Series="Series" Unit="万元"
+              Stacking="@(mode == "percent" ? ChartStacking.Percent : ChartStacking.Stacked)" aria-label="各季度成本构成" />
+</Flex>
+
+@code {
+    sealed record Cost(string Quarter, decimal Material, decimal Labor, decimal Overhead);
+
+    static readonly Cost[] Quarters =
+        [new("一季度", 120, 80, 40), new("二季度", 150, 85, 45), new("三季度", 110, 90, 38), new("四季度", 170, 95, 52)];
+
+    static readonly ChartSeries<Cost>[] Series =
+    [
+        new("material", "材料", q => q.Material),
+        new("labor", "人工", q => q.Labor),
+        new("overhead", "制造费用", q => q.Overhead),
+    ];
+
+    string? mode = "amount";
+}

@@ -1,0 +1,16 @@
+@inherits RuneComponent
+
+@* 网站一周的访问：新访客与回访访客两片面积重叠、半透明，看得出谁多谁少 *@
+<AreaChart Items="Days" Category="d => d.Day" Series="Series" Unit="人次" aria-label="一周的访问量" />
+
+@code {
+    sealed record Visits(string Day, decimal Fresh, decimal Returning);
+
+    static readonly Visits[] Days =
+    [
+        new("周一", 3200, 2100), new("周二", 3600, 2400), new("周三", 3100, 2800), new("周四", 4200, 3000),
+        new("周五", 4800, 3300), new("周六", 5600, 2900), new("周日", 5200, 2600),
+    ];
+
+    static readonly ChartSeries<Visits>[] Series = [new("fresh", "新访客", d => d.Fresh), new("returning", "回访访客", d => d.Returning)];
+}

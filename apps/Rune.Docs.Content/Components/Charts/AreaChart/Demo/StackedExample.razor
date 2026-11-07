@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+@* 各渠道的销售额依次叠起：上沿是总额，每一层是一个渠道的贡献；点图例隐藏一个渠道，总额跟着变。切到“占比”叠满 100%，看线上的份额怎样逐月变大 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <ToggleGroup @bind-Value="mode" Required="true" Size="Size.Sm" aria-label="显示方式">
+        <ToggleItem Value="amount">金额</ToggleItem>
+        <ToggleItem Value="percent">占比</ToggleItem>
+    </ToggleGroup>
+    <AreaChart Items="Months" Category="m => m.Month" Series="Series" Unit="万元" Curve="LineCurve.Linear"
+               Stacking="@(mode == "percent" ? ChartStacking.Percent : ChartStacking.Stacked)" aria-label="各渠道销售额" />
+</Flex>
+
+@code {
+    sealed record Channels(string Month, decimal Online, decimal Store, decimal Partner);
+
+    static readonly Channels[] Months =
+    [
+        new("1月", 120, 80, 40), new("2月", 135, 76, 46), new("3月", 160, 90, 52), new("4月", 178, 88, 61),
+        new("5月", 190, 95, 70), new("6月", 230, 102, 78), new("7月", 246, 98, 85), new("8月", 260, 110, 92),
+    ];
+
+    static readonly ChartSeries<Channels>[] Series =
+    [
+        new("online", "线上商城", m => m.Online),
+        new("store", "门店", m => m.Store),
+        new("partner", "合作渠道", m => m.Partner),
+    ];
+
+    string? mode = "amount";
+}

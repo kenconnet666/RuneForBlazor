@@ -1,0 +1,57 @@
+@inherits RuneComponent
+
+@* 部件属性：看板卡片里的柱状图，图例挪到左边、做成胶囊按钮，单位做成右边的小标签，绘图区上沿一条虚线；PropsTable 落在给读屏的数据表上（看不见：给它一个名称） *@
+<Card>
+    <Header>
+        <div>
+            <Strong>季度采购额</Strong>
+            <Paragraph Size="Size.Sm" Tone="TextTone.Muted">计划与实际</Paragraph>
+        </div>
+    </Header>
+    <ChildContent>
+        <BarChart Items="Quarters" Category="q => q.Quarter" Series="Series" Unit="万元" Height="220"
+                  PropsHeader="HeaderProps" PropsLegend="LegendProps" PropsLegendItem="LegendItemProps" PropsUnit="UnitProps" PropsPlot="PlotProps"
+                  PropsTable="TableProps" aria-label="季度采购额" />
+    </ChildContent>
+</Card>
+
+@code {
+    sealed record Purchase(string Quarter, decimal Plan, decimal Actual);
+
+    static readonly Purchase[] Quarters = [new("Q1", 420, 380), new("Q2", 460, 472), new("Q3", 500, 455), new("Q4", 540, 568)];
+
+    static readonly ChartSeries<Purchase>[] Series = [new("plan", "计划", q => q.Plan) { Color = Tone.Neutral }, new("actual", "实际", q => q.Actual)];
+
+    // 单位在右、图例在左
+    static readonly Attrs HeaderProps = new() { Sx = Css.Define(static () => new Style { FlexDirection = FlexDirection.RowReverse }) };
+
+    static readonly Attrs LegendProps = new() { Sx = Css.Define(static () => new Style { JustifyContent = JustifyContent.FlexStart, MarginInlineStart = 0, MarginInlineEnd = CssLength.Auto }) };
+
+    static readonly Attrs LegendItemProps = new()
+    {
+        Sx = Css.Define(static () => new Style
+        {
+            PaddingBlock = 2,
+            PaddingInline = Space.Sm,
+            BorderRadius = Radii.Full,
+            BackgroundColor = Colors.Fill,
+            [When.Hover] = new() { BackgroundColor = Colors.FillHover },
+        }),
+    };
+
+    static readonly Attrs UnitProps = new() { Sx = Css.Define(static () => new Style { PaddingBlock = 1, PaddingInline = Space.Xs, BorderRadius = Radii.Sm, BackgroundColor = Colors.Fill }) };
+
+    // 绘图区上沿一条虚线，和标题行分开
+    static readonly Attrs PlotProps = new()
+    {
+        Sx = Css.Define(static () => new Style
+        {
+            BorderTopWidth = 1,
+            BorderTopStyle = BorderStyle.Dashed,
+            BorderTopColor = Colors.BorderMuted,
+            PaddingBlockStart = Space.Sm,
+        }),
+    };
+
+    static readonly Attrs TableProps = new() { ["aria-label"] = "季度采购额明细" };
+}

@@ -1,0 +1,43 @@
+@inherits RuneComponent
+
+@* 格式与坐标：类目的显示文字（CategoryText）、数值格式（百分比）、数值轴的范围；图例、网格线、提示框、加载中、没有数据的开关；HiddenSeries 双向绑定，点图例时写回 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="legend">图例</Switch>
+        <Switch @bind-Value="grid">网格线</Switch>
+        <Switch @bind-Value="tooltip">提示框</Switch>
+        <Switch @bind-Value="loading">加载中</Switch>
+        <Switch @bind-Value="empty">没有数据</Switch>
+    </Flex>
+    <AreaChart Items="Shown" Category="w => w.Date" CategoryText="DateText" Series="Series" ValueFormat="Percent" ValueMin="0" ValueMax="0.08"
+               Legend="legend" Grid="grid" Tooltip="tooltip" Loading="loading" @bind-HiddenSeries="hidden" Height="240" aria-label="每周转化率">
+        <Empty>这段时间还没有数据</Empty>
+    </AreaChart>
+    <Small Tone="TextTone.Muted">隐藏的系列：@(hidden.Count > 0 ? string.Join("、", hidden) : "无")（点图例切换）</Small>
+</Flex>
+
+@code {
+    sealed record Conversion(string Date, decimal Paid, decimal Trial);
+
+    static readonly Conversion[] Weeks =
+    [
+        new("2026-08-03", 0.021m, 0.048m), new("2026-08-10", 0.024m, 0.051m), new("2026-08-17", 0.022m, 0.055m),
+        new("2026-08-24", 0.028m, 0.058m), new("2026-08-31", 0.031m, 0.054m), new("2026-09-07", 0.029m, 0.061m),
+        new("2026-09-14", 0.034m, 0.066m),
+    ];
+
+    static readonly ChartSeries<Conversion>[] Series = [new("trial", "试用转化", w => w.Trial), new("paid", "付费转化", w => w.Paid)];
+
+    static readonly NumberFormat Percent = new() { Style = NumberStyle.Percent, MaximumFractionDigits = 1 };
+
+    static string DateText(Conversion row) => row.Date[5..].Replace('-', '/');
+
+    bool legend = true;
+    bool grid = true;
+    bool tooltip = true;
+    bool loading;
+    bool empty;
+    IReadOnlyList<string> hidden = [];
+
+    IReadOnlyList<Conversion> Shown => empty ? [] : Weeks;
+}

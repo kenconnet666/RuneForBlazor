@@ -1,0 +1,52 @@
+@page "/components/bar-chart"
+@attribute [DocMeta("BarChart 柱状图", "比较各类目的数值：分组或堆叠、竖向或横向，带目标线与下钻。C# 直接画 SVG，跟随主题，没有第三方依赖。", DocCategory.Charts, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.BarChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
+                <Code>Items</Code> 的每一行是一个类目，<Code>Category</Code> 取类目，<Code>Series</Code> 的每一项从一行里取一个数值
+                （<Code>decimal?</Code>：画图时换成 double，提示框与读屏的数据表按原值显示，金额不丢精度）。<Code>Unit</Code>
+                显示在数值轴上方，提示框里的数值也会带上；悬停一个类目时提示框列出这一组的全部系列。
+            </Example>
+            <Example Id="stacked" Title="堆叠" Demo="typeof(StackedExample)">
+                <Code>Stacking="ChartStacking.Stacked"</Code> 把同一类目的系列叠成一根柱子，看总量与构成；<Code>ChartStacking.Percent</Code> 按占比叠满
+                100%（数值轴是百分比），只看构成的变化，提示框里同时有数值与占比。面积图同样支持。
+            </Example>
+            <Example Id="horizontal" Title="横向" Demo="typeof(HorizontalExample)">
+                类目名较长或类目较多时用 <Code>HorizontalBars</Code>，名称不用折行或倾斜。
+            </Example>
+            <Example Id="options" Title="圆角、格式与坐标" Demo="typeof(OptionsExample)">
+                <Code>Radius</Code> 是柱子末端的圆角（px）；<Code>CategoryText</Code> 把类目换成显示文字（参数是整行数据），<Code>ValueFormat</Code>
+                是数值格式（这里是百分比）；<Code>ValueMin</Code>、<Code>ValueMax</Code> 固定数值轴的范围，柱子不必从 0 起时用。<Code>Grid</Code>、<Code>Tooltip</Code> 可以关掉。
+            </Example>
+            <Example Id="states" Title="加载与空状态" Demo="typeof(StatesExample)">
+                <Code>Loading</Code> 时绘图区显示一排高低不一的骨架柱并扫光（折线图是一整块），图表带 <Code>aria-busy</Code>；没有数据时显示“暂无数据”，
+                <Code>Empty</Code> 可以换成自己的内容（如带操作按钮的 Empty）。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="colors" Title="颜色" Demo="typeof(ColorsExample)">
+                系列默认按顺序取主题的图表色板（<Code>ChartColor.Series(1)</Code>–<Code>Series(8)</Code>，第一个跟随品牌色）；
+                <Code>Color</Code> 可以指定色板里的一个、语义色（<Code>Tone.Danger</Code>），或任意 CSS 颜色。
+            </Example>
+            <Example Id="legend" Title="图例" Demo="typeof(LegendExample)">
+                点图例隐藏、恢复系列；<Code>HiddenSeries</Code> 可以用 <Code>@@bind-HiddenSeries</Code> 双向绑定，记住用户的选择或由外部控制。
+                多于一个系列时才显示图例，<Code>Legend</Code> 可以强制显示或隐藏。
+            </Example>
+            <Example Id="targets" Title="目标线与下钻" Demo="typeof(TargetsExample)">
+                <Code>Targets</Code> 在数值轴上画虚线（横向图是竖线），标签后面带上数值，数值轴的范围会包含它；颜色默认 Danger，可以写语义色或色板。
+                <Code>OnItemClick</Code> 点一个类目下钻（指针是手形），参数是这一行与它的位置；点图是鼠标的捷径，同样的去处页面上还要有链接。
+                折线图、面积图、散点图、瀑布图同样支持。
+            </Example>
+            <Example Id="parts" Title="部件属性" Demo="typeof(PartsExample)">
+                每个节点都能单独加样式与属性：<Code>PropsHeader</Code>（单位与图例那一行）、<Code>PropsUnit</Code>、<Code>PropsLegend</Code>、
+                <Code>PropsLegendItem</Code>（图例的每个按钮）、<Code>PropsPlot</Code>（绘图区）、<Code>PropsTable</Code>（给读屏的数据表）。
+                这里图例挪到左边做成胶囊，单位做成右边的小标签，绘图区上沿加一条虚线。所有图表都有这几个部件属性。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(BarChart<>), typeof(ChartSeries<>), typeof(ChartTarget), typeof(ChartColor)]" />
+</DocPage>

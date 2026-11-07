@@ -42,6 +42,9 @@ public enum DocCategory
     /// <summary>页面组合。</summary>
     Patterns,
 
+    /// <summary>图表（Rune.Charts）。</summary>
+    Charts,
+
     /// <summary>配置。</summary>
     Config,
 }
@@ -125,6 +128,7 @@ public static class DocsCatalog
         DocCategory.Form => "表单",
         DocCategory.Table => "表格",
         DocCategory.Patterns => "页面组合",
+        DocCategory.Charts => "图表",
         DocCategory.Config => "配置",
         _ => category.ToString(),
     };

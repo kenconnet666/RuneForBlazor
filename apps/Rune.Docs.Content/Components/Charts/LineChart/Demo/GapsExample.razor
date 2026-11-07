@@ -1,0 +1,18 @@
+@inherits RuneComponent
+
+@* 6 月设备检修，没有数据：线在这里断开 *@
+<LineChart Items="Months" Category="m => m.Month" Series="Series" ValueFormat="Percent" ValueMin="0.9" ValueMax="1" Dots="LineDots.Filled" aria-label="月度良品率" />
+
+@code {
+    sealed record Yield(string Month, decimal? Rate);
+
+    static readonly Yield[] Months =
+    [
+        new("1月", 0.962m), new("2月", 0.958m), new("3月", 0.971m), new("4月", 0.968m),
+        new("5月", 0.975m), new("6月", null), new("7月", 0.981m), new("8月", 0.979m),
+    ];
+
+    static readonly ChartSeries<Yield>[] Series = [new("yield", "良品率", m => m.Rate)];
+
+    static readonly NumberFormat Percent = new() { Style = NumberStyle.Percent, MaximumFractionDigits = 1 };
+}

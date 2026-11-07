@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <BarChart Items="Regions" Category="r => r.Region" Series="Series" Unit="万元" @bind-HiddenSeries="hidden" aria-label="各区域年度销售额" />
+    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center" Wrap="true">
+        <TextSpan Tone="TextTone.Muted" Size="Size.Sm">已隐藏：@(hidden.Count > 0 ? string.Join("、", hidden) : "无")</TextSpan>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Disabled="hidden.Count == 0" @onclick="() => hidden = []">全部显示</Button>
+    </Flex>
+</Flex>
+
+@code {
+    sealed record Sales(string Region, decimal Y2024, decimal Y2025, decimal Y2026);
+
+    static readonly Sales[] Regions =
+        [new("华东", 320, 380, 410), new("华南", 260, 300, 290), new("华北", 210, 240, 280), new("西南", 150, 190, 230)];
+
+    static readonly ChartSeries<Sales>[] Series =
+    [
+        new("y2024", "2024 年", r => r.Y2024),
+        new("y2025", "2025 年", r => r.Y2025),
+        new("y2026", "2026 年", r => r.Y2026),
+    ];
+
+    IReadOnlyList<string> hidden = ["y2024"];
+}

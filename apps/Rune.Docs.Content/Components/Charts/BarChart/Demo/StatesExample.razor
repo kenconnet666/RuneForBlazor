@@ -1,0 +1,22 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="loading">加载中</Switch>
+        <Switch @bind-Value="empty">没有数据</Switch>
+    </Flex>
+    <BarChart Items="Shown" Category="r => r.Name" Series="Series" Loading="loading" Height="200" aria-label="示例数据" />
+</Flex>
+
+@code {
+    sealed record Item(string Name, decimal Value);
+
+    static readonly Item[] Data = [new("A", 40), new("B", 65), new("C", 52)];
+
+    static readonly ChartSeries<Item>[] Series = [new("value", "数值", r => r.Value)];
+
+    bool loading;
+    bool empty;
+
+    IReadOnlyList<Item> Shown => empty ? [] : Data;
+}

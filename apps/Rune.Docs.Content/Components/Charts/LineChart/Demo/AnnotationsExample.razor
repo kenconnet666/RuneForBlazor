@@ -1,0 +1,32 @@
+@inherits RuneComponent
+
+@* 标注与区间：单价走势上标出“换供应商”这类事件（竖线）、圈出最低点与异常值（圈出某个系列的值），试运行期是类目轴上的一段，目标单价区间是数值轴上的一段 *@
+<LineChart Items="Months" Category="m => m.Month" Series="Series" Unit="元" Dots="LineDots.Hollow" Height="280" ValueMin="105" ValueMax="135"
+           Annotations="Notes" Bands="Periods" aria-label="支架单价走势" />
+
+@code {
+    sealed record Price(string Month, decimal Paid, decimal Market);
+
+    static readonly Price[] Months =
+    [
+        new("1月", 128.6m, 131), new("2月", 127.9m, 130.5m), new("3月", 126.2m, 129.8m), new("4月", 121.4m, 129.2m),
+        new("5月", 119.35m, 128.4m), new("6月", 118.9m, 128.9m), new("7月", 124.6m, 129.6m), new("8月", 117.5m, 128.1m),
+        new("9月", 116.8m, 127.6m), new("10月", 116.8m, 127.2m), new("11月", 115.2m, 126.9m), new("12月", 114.9m, 126.5m),
+    ];
+
+    static readonly ChartSeries<Price>[] Series = [new("price", "采购单价", m => m.Paid), new("market", "市场均价", m => m.Market) { Color = Tone.Neutral }];
+
+    static readonly ChartAnnotation[] Notes =
+    [
+        new("4月", "换 6063-T5"),
+        new("8月", "新供应商切换"),
+        new("7月", "模具维修，临时外协") { Series = "price", Color = Tone.Danger },
+        new("12月", "年内最低 114.9") { Series = "price" },
+    ];
+
+    static readonly ChartBand[] Periods =
+    [
+        new("5月", "6月") { Label = "试运行期", Color = Tone.Info },
+        new(110, 116) { Axis = ChartBandAxis.Value, Label = "目标区间", Color = Tone.Success },
+    ];
+}

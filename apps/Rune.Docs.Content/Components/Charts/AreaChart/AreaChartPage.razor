@@ -1,0 +1,26 @@
+@page "/components/area-chart"
+@attribute [DocMeta("AreaChart 面积图", "看总量随时间的变化与构成：重叠、堆叠或按占比叠满。C# 直接画 SVG，跟随主题，没有第三方依赖。", DocCategory.Charts, Order = 3)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.AreaChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="traffic" Title="重叠" Demo="typeof(TrafficExample)">
+                默认各系列重叠、半透明（<Code>Opacity</Code> 默认 0.25），上沿描一条线；曲线默认平滑（<Code>Curve</Code> 同折线图）。
+                悬停时十字线在各片面积的上沿标出当前点。
+            </Example>
+            <Example Id="stacked" Title="堆叠" Demo="typeof(StackedExample)">
+                <Code>Stacking="ChartStacking.Stacked"</Code> 时依次叠起，最上面是总额；数值轴按叠起来的总和取范围。点图例隐藏一个系列，其余的重新叠起。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="options" Title="格式、坐标轴与状态" Demo="typeof(OptionsExample)">
+                <Code>CategoryText</Code> 把类目换成显示文字（参数是整行数据），<Code>ValueFormat</Code> 是数值格式（这里是百分比），
+                <Code>ValueMin</Code>、<Code>ValueMax</Code> 固定数值轴的范围；<Code>Grid</Code>、<Code>Tooltip</Code> 可以关掉。加载中（<Code>Loading</Code>）显示骨架，
+                没有数据时显示 <Code>Empty</Code>（默认“暂无数据”）。<Code>@@bind-HiddenSeries</Code> 双向绑定图例里隐藏的系列。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(AreaChart<>), typeof(ChartSeries<>)]" />
+</DocPage>

@@ -142,7 +142,7 @@ export function install(blazor, on) {
   Promise.allSettled([...loading]).then(() => document.documentElement.setAttribute('data-rune-ready', ''));
 }
 
-// 别的包（Rune.UI.Dates）的模块：第一次遇到它的元素时才加载，只用表格、表单的页面不下载。加载中的记在 loading 里（见 install）
+// 别的包（Rune.UI.Dates、Rune.Charts）的模块：第一次遇到它的元素时才加载，只用表格、表单的页面不下载。加载中的记在 loading 里（见 install）
 const loading = new Set();
 const lazy = (load, name) => (element) => {
   const pending = load().then((module) => module[name](element));
@@ -193,6 +193,7 @@ const watched = [
   ['template[data-rune-local-setting]', watchLocalSetting],
   ['[data-rune-date-segments]', lazy(() => import('../../../Rune.UI.Dates/js/date-segments.js'), 'watchDateSegments')],
   ['[data-rune-calendar]', lazy(() => import('../../../Rune.UI.Dates/js/calendar.js'), 'watchCalendar')],
+  ['[data-rune-chart]', lazy(() => import('../../../Rune.Charts/js/charts.js'), 'watchChart')],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 

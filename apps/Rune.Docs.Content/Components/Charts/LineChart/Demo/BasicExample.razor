@@ -1,0 +1,16 @@
+@inherits RuneComponent
+
+<LineChart Items="Months" Category="m => m.Month" Series="Series" Unit="万元" Dots="LineDots.Hollow" aria-label="月度销售趋势" />
+
+@code {
+    sealed record Sales(string Month, decimal Planned, decimal Actual);
+
+    static readonly Sales[] Months =
+    [
+        new("1月", 120, 40), new("2月", 120, 70), new("3月", 170, 150), new("4月", 190, 205),
+        new("5月", 200, 180), new("6月", 160, 150), new("7月", 200, 185), new("8月", 195, 150),
+        new("9月", 230, 190), new("10月", 250, 205), new("11月", 300, 270), new("12月", 330, 360),
+    ];
+
+    static readonly ChartSeries<Sales>[] Series = [new("planned", "预期销售", m => m.Planned), new("actual", "实际销售", m => m.Actual)];
+}

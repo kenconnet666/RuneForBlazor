@@ -1,0 +1,15 @@
+@inherits RuneComponent
+
+<BarChart Items="Months" Category="m => m.Month" Series="Series" Unit="万元" aria-label="月度收支" />
+
+@code {
+    sealed record Budget(string Month, decimal Income, decimal Expense);
+
+    static readonly Budget[] Months = [new("7月", 82, 64), new("8月", 95, 71), new("9月", 88, 93), new("10月", 104, 76)];
+
+    static readonly ChartSeries<Budget>[] Series =
+    [
+        new("income", "收入", m => m.Income) { Color = ChartColor.Series(7) },
+        new("expense", "支出", m => m.Expense) { Color = Tone.Danger },
+    ];
+}

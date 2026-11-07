@@ -1,0 +1,39 @@
+@page "/components/line-chart"
+@attribute [DocMeta("LineChart 折线图", "看数值随时间的变化趋势：直线、平滑或阶梯，可带数据点。C# 直接画 SVG，跟随主题，没有第三方依赖。", DocCategory.Charts, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.LineChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
+                每行是一个时间点，每个系列一条线。悬停时十字线在各条线上标出当前点，提示框列出各系列的值（在浏览器里画，不往返）；
+                <Code>Dots="LineDots.Hollow"</Code> 画出空心的数据点。
+            </Example>
+            <Example Id="curves" Title="线的形状" Demo="typeof(CurvesExample)">
+                <Code>Curve</Code>：<Code>Linear</Code> 折线、<Code>Monotone</Code> 平滑（不会越过数据点）、
+                <Code>Step</Code> 阶梯（值保持到下一个点才跳变）。
+            </Example>
+            <Example Id="gaps" Title="缺失的数据" Demo="typeof(GapsExample)">
+                值为 <Code>null</Code> 的点不画，线在这里断开，不会被当成 0。
+                <Code>ValueFormat</Code> 设成百分比，<Code>ValueMin</Code>、<Code>ValueMax</Code> 收窄数值轴，变化更明显。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="palette" Title="多个系列" Demo="typeof(PaletteExample)">
+                系列按顺序取图表色板的 8 种颜色，各色在亮色、暗色、纸张主题的背景上都满足 3:1 的图形对比度。
+            </Example>
+            <Example Id="options" Title="线宽、图例与状态" Demo="typeof(OptionsExample)">
+                <Code>LineWidth</Code> 是线宽（像素）；<Code>Legend</Code> 默认多于一个系列时显示，点图例隐藏、恢复系列；
+                <Code>Grid</Code>、<Code>Tooltip</Code> 可以关掉。加载中（<Code>Loading</Code>）显示骨架，没有数据时显示 <Code>Empty</Code>（默认“暂无数据”）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <Example Id="annotations" Title="标注与区间" Demo="typeof(AnnotationsExample)">
+        <Code>Annotations</Code> 的每一项标在一个类目（<Code>At</Code>，类目的值）上：只写文字时是一条竖线（换供应商、调价生效这类事件）；
+        写了 <Code>Series</Code> 时圈出这个系列在那里的值，文字在圈的上方。<Code>Bands</Code> 是浅色的带：默认在类目轴上（<Code>From</Code>、<Code>To</Code> 是类目，含两端），
+        <Code>Axis = ChartBandAxis.Value</Code> 时在数值轴上（目标区间，数值轴的范围会包含它）。颜色可以写语义色或色板。
+        柱状图、面积图、组合图同样支持，横向的柱状图只画竖线与区间。
+    </Example>
+    <ApiReference Types="[typeof(LineChart<>), typeof(ChartSeries<>), typeof(ChartAnnotation), typeof(ChartBand)]" />
+</DocPage>

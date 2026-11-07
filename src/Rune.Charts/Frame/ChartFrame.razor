@@ -1,0 +1,185 @@
+@*
+    各种图表共用的外层结构（同 vue-tsx-pro 的 ChartFrame）：外层 figure、单位与图例、绘图区（加载中的骨架、空状态、图表自己画的 SVG）、给读屏的数据表。
+    <ChartFrame Unit="万元" Legend="items" HiddenKeys="hidden" OnLegendToggle="Toggle" Loading="loading" IsEmpty="rows.Count == 0"
+                Table="table" PlotData="json" OnPlotCommand="OnCommand" Plot="@Svg" />
+    - 绘图区带 data-rune-chart：charts.js 量出它的大小、等它进入视口附近，以 rune-command size（"宽,高"）交给图表；
+      悬停（十字线、提示框）按 PlotData（data-chart 上的 JSON）在 JS 里画，不往返。绘图区对读屏隐藏，数据由同样内容的表格读出。
+    - 加载中、没有数据时换成另一个元素（@key 不同）：绘图区重新出现时是新的元素，大小重新量。
+    未声明的属性落到外层 div（role="figure"）上；aria-label 是图表的名称。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = ChartStyles.Of(Config.Styles);
+    var lang = Config.Lang;
+    var plotLayer = Attrs.Layer(parts[ChartPart.Plot], HeightVar);
+}
+
+<div @attributes="Attrs.Merge(parts[ChartPart.Root], Rest, RootManaged)">
+    @if (Unit is not null || UnitEnd is not null || Legend.Count > 0 || Actions is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[ChartPart.Header], PropsHeader)">
+            @if (Unit is not null)
+            {
+                <span @attributes="Attrs.Merge(parts[ChartPart.Unit], PropsUnit)">@Unit</span>
+            }
+            @if (Legend.Count > 0)
+            {
+                <div role="group" @attributes="Attrs.Merge(parts[ChartPart.Legend], PropsLegend)">
+                    @foreach (var item in Legend)
+                    {
+                        var off = HiddenKeys.Contains(item.Key);
+                        <ButtonBase @key="item.Key" Ripple="false" aria-pressed="@(off ? "false" : "true")" @onclick="() => OnLegendToggle.InvokeAsync(item.Key)"
+                                    @attributes="Attrs.MergeProps(parts[ChartPart.LegendItem], PropsLegendItem)">
+                            <span data-off="@off" @attributes="Attrs.Merge(SwatchLayer, ColorVar(item.Color))"></span>
+                            @item.Label
+                        </ButtonBase>
+                    }
+                </div>
+            }
+            @if (UnitEnd is not null)
+            {
+                <span @attributes="Attrs.Merge(parts[ChartPart.Unit], PropsUnit)">@UnitEnd</span>
+            }
+            @if (!IsEmpty && !Loading)
+            {
+                @Actions
+            }
+        </div>
+    }
+    @if (Loading)
+    {
+        <div @key="@("state")" @attributes="Attrs.Merge(plotLayer)">@Skeleton</div>
+    }
+    else if (IsEmpty)
+    {
+        <div @key="@("state")" @attributes="Attrs.Merge(plotLayer)">
+            <div @attributes="Attrs.Merge(CenterLayer)">
+                @if (Empty is not null)
+                {
+                    @Empty
+                }
+                else
+                {
+                    <Empty Size="UI.Size.Sm"><Title>@lang.ChartEmpty</Title></Empty>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div @key="@("plot")" aria-hidden="true" data-rune-chart data-chart="@PlotData" data-clickable="@Clickable" @onrunecommand="OnPlotCommand"
+             @attributes="Attrs.Merge(plotLayer, PropsPlot)">@Plot</div>
+        @Footer
+    }
+    @if (!IsEmpty)
+    {
+        <table @attributes="Attrs.Merge(parts[ChartPart.Table], PropsTable)">
+            <thead>
+                <tr>
+                    @foreach (var column in Table.Columns)
+                    {
+                        <th scope="col">@column</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Table.Rows)
+                {
+                    <tr>
+                        <th scope="row">@row.Header</th>
+                        @foreach (var cell in row.Cells)
+                        {
+                            <td>@cell</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    static readonly Attrs SwatchLayer = new() { Sx = ChartStyles.Swatch };
+    static readonly Attrs CenterLayer = new() { Sx = ChartStyles.Center };
+
+    Memo<CssLength, Attrs> heightVar;
+
+    /// <summary>单位：显示在左上方。</summary>
+    [Parameter] public string? Unit { get; set; }
+
+    /// <summary>第二数值轴的单位：显示在右上方（组合图）。</summary>
+    [Parameter] public string? UnitEnd { get; set; }
+
+    /// <summary>绘图区的高度，默认 240px。</summary>
+    [Parameter] public CssLength? Height { get; set; }
+
+    /// <summary>图例的各项；空时不显示图例。</summary>
+    [Parameter] public IReadOnlyList<ChartLegendItem> Legend { get; set; } = [];
+
+    /// <summary>图例里隐藏着的项。</summary>
+    [Parameter] public IReadOnlyCollection<string> HiddenKeys { get; set; } = [];
+
+    /// <summary>点了图例的一项：参数是它的标识。</summary>
+    [Parameter] public EventCallback<string> OnLegendToggle { get; set; }
+
+    /// <summary>加载中：绘图区显示 <see cref="Skeleton"/>，外层带 aria-busy。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>加载中显示的骨架。</summary>
+    [Parameter] public RenderFragment? Skeleton { get; set; }
+
+    /// <summary>没有数据：绘图区显示空状态，没有数据表。</summary>
+    [Parameter] public bool IsEmpty { get; set; }
+
+    /// <summary>空状态的内容，默认是“暂无数据”。</summary>
+    [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <summary>给读屏的数据表。</summary>
+    [Parameter, EditorRequired] public ChartTable Table { get; set; } = null!;
+
+    /// <summary>绘图区里的内容（图表画的 SVG、提示框）；同样对读屏隐藏。</summary>
+    [Parameter] public RenderFragment? Plot { get; set; }
+
+    /// <summary>悬停要用的数据（JSON，写在绘图区的 data-chart 上，charts.js 读）。</summary>
+    [Parameter] public string? PlotData { get; set; }
+
+    /// <summary>绘图区发来的命令：size（"宽,高"，量到的大小，进入视口附近之后才有）、activate（点了第几行）。</summary>
+    [Parameter] public EventCallback<CommandEventArgs> OnPlotCommand { get; set; }
+
+    /// <summary>图里的项能点（下钻）：绘图区的指针是手形。</summary>
+    [Parameter] public bool Clickable { get; set; }
+
+    /// <summary>绘图区下面的内容（缩放的滑块）。</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>上方一行右端的操作（导出菜单、缩放按钮）；加载中、没有数据时不显示。</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>上方一行（单位与图例）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>单位的部件属性。</summary>
+    [Parameter] public Attrs? PropsUnit { get; set; }
+
+    /// <summary>图例的部件属性。</summary>
+    [Parameter] public Attrs? PropsLegend { get; set; }
+
+    /// <summary>图例每一项（ButtonBase）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLegendItem { get; set; }
+
+    /// <summary>绘图区的部件属性。</summary>
+    [Parameter] public Attrs? PropsPlot { get; set; }
+
+    /// <summary>给读屏的数据表的部件属性。</summary>
+    [Parameter] public Attrs? PropsTable { get; set; }
+
+    Attrs? HeightVar => Height is { } h ? heightVar.Get(h, static v => new Attrs { Vars = [ChartStyles.PlotHeight.Set(v)] }) : null;
+
+    Attrs RootManaged => Loading ? BusyAttrs : FigureAttrs;
+
+    static readonly Attrs FigureAttrs = new() { ["role"] = "figure" };
+    static readonly Attrs BusyAttrs = new() { ["role"] = "figure", ["aria-busy"] = "true" };
+
+    internal static Attrs ColorVar(CssColor color) => new() { Vars = [ChartStyles.Color.Set(color)] };
+}

@@ -1,0 +1,34 @@
+@inherits RuneComponent
+
+@* 柱子的圆角、类目的显示文字（CategoryText）、数值格式与范围；网格线与提示框的开关 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Grid MinItemWidth="@("12rem")" Gap="SpaceScale.Lg" Align="ItemAlign.End">
+        <Field Label="@($"圆角：{radius}px")">
+            <Slider TValue="int" @bind-Value="radius" Min="0" Max="12" />
+        </Field>
+        <Flex Gap="SpaceScale.Lg" Wrap="true">
+            <Switch @bind-Value="grid">网格线</Switch>
+            <Switch @bind-Value="tooltip">提示框</Switch>
+        </Flex>
+    </Grid>
+    <BarChart Items="Months" Category="m => m.Month" CategoryText="MonthText" Series="Series" ValueFormat="NumberFormat.Percent" ValueMin="0.6" ValueMax="1"
+              Radius="radius" Grid="grid" Tooltip="tooltip" Height="240" aria-label="各月目标与完成率" />
+</Flex>
+
+@code {
+    sealed record Rate(string Month, decimal Target, decimal Actual);
+
+    static readonly Rate[] Months =
+    [
+        new("2026-04", 0.85m, 0.78m), new("2026-05", 0.85m, 0.83m), new("2026-06", 0.88m, 0.91m),
+        new("2026-07", 0.88m, 0.86m), new("2026-08", 0.9m, 0.94m), new("2026-09", 0.9m, 0.89m),
+    ];
+
+    static readonly ChartSeries<Rate>[] Series = [new("target", "目标", m => m.Target), new("actual", "完成", m => m.Actual)];
+
+    static string MonthText(Rate row) => $"{int.Parse(row.Month[5..])} 月";
+
+    int radius = 4;
+    bool grid = true;
+    bool tooltip = true;
+}
