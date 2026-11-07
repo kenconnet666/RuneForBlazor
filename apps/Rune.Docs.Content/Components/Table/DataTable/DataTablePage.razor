@@ -16,6 +16,7 @@
         <Code>MultiSort</Code> 时点列标题只按这一列排，按住 Shift 点是追加一列（列标题上标着次序），排序写在 <Code>Sorts</Code>。
         <Code>ColumnMenu</Code> 在列标题结尾放 ⋮：排序、固定在开头 / 结尾、前后移动、隐藏，写回 <Code>ColumnPins</Code>、<Code>ColumnOrder</Code>、<Code>HiddenColumns</Code>；
         <Code>Resizable</Code> 时可以拖动或用键盘调整列宽，写回 <Code>ColumnWidths</Code>。这几项都能双向绑定、存进各人的设置。
+        工具栏上的 <Code>ColumnSettings</Code> 列出全部的列（勾选显示、拖动排序、重置），与表格绑同一份 Hidden、Order。
     </Example>
     <Example Id="editable" Title="采购申请明细：就地编辑与校验" Demo="typeof(EditableExample)">
         列写 <Code>Editable</Code>（或按行判断的 <Code>IsEditable</Code>）时可以就地编辑，表格随之变成网格（role="grid"）：方向键在格之间走，只有一格能 Tab 进入；
@@ -70,5 +71,5 @@
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(DataTable<>), typeof(PropertyColumn<,>), typeof(StatusColumn<,>), typeof(TemplateColumn<>), typeof(SelectionBar), typeof(ColumnFilterButton), typeof(ColumnMenuButton), typeof(ColumnResizer)]" />
+    <ApiReference Types="[typeof(DataTable<>), typeof(PropertyColumn<,>), typeof(StatusColumn<,>), typeof(TemplateColumn<>), typeof(SelectionBar), typeof(ColumnSettings), typeof(ColumnFilterButton), typeof(ColumnMenuButton), typeof(ColumnResizer)]" />
 </DocPage>

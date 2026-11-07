@@ -1,0 +1,96 @@
+@*
+    列设置（同 vue-tsx-pro 的 ColumnSettings）：表格工具栏上的按钮，弹出全部的列——勾选显示哪些、拖动（或聚焦把手后用键盘）调整顺序，“重置”回到列定义。
+    写回的 Hidden、Order 与 DataTable 的 HiddenColumns、ColumnOrder 是同一份，两边双向绑定同一个状态即可：
+    <ColumnSettings Columns="columnOptions" @bind-Hidden="hidden" @bind-Order="order" />
+    <DataTable … @bind-HiddenColumns="hidden" @bind-ColumnOrder="order">…</DataTable>
+    Columns 是全部的列（列定义的顺序；值是列的 key，文字是列标题）。只剩一列可见时不能再隐藏。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<Popover Placement="Placement.BottomEnd" aria-label="@Config.Lang.TableColumnSettings" @attributes="Attrs.MergeProps(null, PropsPanel)">
+    <Trigger Context="t">
+        <IconButton Icon="BuiltInIcons.Columns3" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.TableColumnSettings"
+                    @attributes="Attrs.MergeProps(null, PropsTrigger, t)" />
+    </Trigger>
+    <ChildContent>
+        <div @attributes="Attrs.Merge(PanelLayer)">
+            <div @attributes="Attrs.Merge(HeaderLayer)">
+                <span @attributes="Attrs.Merge(TitleLayer)">@Config.Lang.TableColumnSettings</span>
+                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Disabled="@(hidden.Value.Count == 0 && order.Value.Count == 0)" @onclick="ResetAsync"
+                        @attributes="Attrs.MergeProps(null, PropsReset)">@Config.Lang.TableColumnSettingsReset</Button>
+            </div>
+            <ScrollArea Sx="ListScroll">
+                <Sortable Items="Arranged" ItemsChanged="@((IReadOnlyList<ListboxOption> next) => order.SetAsync([.. next.Select(static column => column.Value)]))"
+                          KeyOf="column => column.Value" LabelOf="column => column.Label" aria-label="@Config.Lang.TableColumnSettings"
+                          @attributes="Attrs.MergeProps(null, PropsList)" Context="column">
+                    @{ var visible = !hidden.Value.Contains(column.Value); }
+                    @* 只剩这一列可见时不能再隐藏 *@
+                    <Checkbox Value="visible" Disabled="@(visible && VisibleCount <= 1)" ValueChanged="@(on => ToggleAsync(column.Value, on))">@column.Label</Checkbox>
+                </Sortable>
+            </ScrollArea>
+        </div>
+    </ChildContent>
+</Popover>
+
+@code {
+    static readonly Attrs PanelLayer = new() { Sx = Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Sm, MinWidth = CssLength.Rem(14) }) };
+    static readonly Attrs HeaderLayer = new() { Sx = Css.Define(static () => new Style { Display = Display.Flex, AlignItems = AlignItems.Center, JustifyContent = JustifyContent.SpaceBetween, Gap = Space.Md }) };
+    static readonly Attrs TitleLayer = new() { Sx = Css.Define(static () => new Style { FontWeight = FontWeights.Medium, FontSize = FontSizes.Sm }) };
+
+    static Style ListScroll => Css.Define(static () => new Style { MaxHeight = CssLength.Rem(20) });
+
+    Bindable<IReadOnlyList<string>> hidden { get => field ??= new(this, () => Hidden ?? [], () => HiddenChanged); }
+    Bindable<IReadOnlyList<string>> order { get => field ??= new(this, () => Order ?? [], () => OrderChanged); }
+
+    /// <summary>全部的列（列定义的顺序）：值是列的 key，文字是列标题。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ListboxOption> Columns { get; set; } = [];
+
+    /// <summary>隐藏的列的 key：与 DataTable 的 HiddenColumns 绑同一个状态。</summary>
+    [Parameter] public IReadOnlyList<string>? Hidden { get; set; }
+
+    /// <summary>隐藏的列变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> HiddenChanged { get; set; }
+
+    /// <summary>列的顺序：与 DataTable 的 ColumnOrder 绑同一个状态。</summary>
+    [Parameter] public IReadOnlyList<string>? Order { get; set; }
+
+    /// <summary>列的顺序变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> OrderChanged { get; set; }
+
+    /// <summary>点了“重置”：显示与顺序回到列定义；要连列宽、固定一起还原时在这里清掉。</summary>
+    [Parameter] public EventCallback OnReset { get; set; }
+
+    /// <summary>触发按钮（交给 IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    /// <summary>弹出层（交给 Popover）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPanel { get; set; }
+
+    /// <summary>列表（交给 Sortable）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>“重置”按钮（交给 Button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsReset { get; set; }
+
+    int VisibleCount => Columns.Count(column => !hidden.Value.Contains(column.Value));
+
+    // 按当前顺序列出：顺序里没有的列按定义的顺序排在后面
+    IReadOnlyList<ListboxOption> Arranged
+    {
+        get
+        {
+            var rank = order.Value.Select((key, index) => (key, index)).ToDictionary(static pair => pair.key, static pair => pair.index);
+            return [.. Columns.Select((column, index) => (column, index)).OrderBy(entry => rank.TryGetValue(entry.column.Value, out var at) ? at : rank.Count + entry.index).Select(static entry => entry.column)];
+        }
+    }
+
+    Task ToggleAsync(string key, bool visible) => hidden.SetAsync(visible ? [.. hidden.Value.Where(item => item != key)] : [.. hidden.Value, key]);
+
+    async Task ResetAsync()
+    {
+        await hidden.SetAsync([]);
+        await order.SetAsync([]);
+        await OnReset.InvokeAsync();
+    }
+}

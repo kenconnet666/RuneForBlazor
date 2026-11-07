@@ -5,7 +5,11 @@
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
     <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true">
         <Small Tone="TextTone.Muted" data-testid="po-summary">@Summary</Small>
-        <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Icon="Lucide.RotateCcw" Disabled="!Customized" @onclick="Reset">还原列设置</Button>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+            <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Icon="Lucide.RotateCcw" Disabled="!Customized" @onclick="Reset">还原列设置</Button>
+            @* 列设置：勾选显示、拖动排序，与表格绑同一份 hidden、order *@
+            <ColumnSettings Columns="ColumnOptions" @bind-Hidden="hidden" @bind-Order="order" OnReset="Reset" />
+        </Flex>
     </Flex>
     <DataTable Items="Orders" GetKey="o => o.Id" @bind-Filters="filters" MultiSort="true" @bind-Sorts="sorts" ColumnMenu="true" Resizable="true"
                @bind-HiddenColumns="hidden" @bind-ColumnOrder="order" @bind-ColumnPins="pins" @bind-ColumnWidths="widths"
@@ -60,6 +64,8 @@
         ["id"] = "采购单号", ["supplier"] = "供应商", ["category"] = "品类", ["buyer"] = "采购员",
         ["status"] = "状态", ["amount"] = "金额", ["orderedAt"] = "下单日期",
     };
+
+    static readonly IReadOnlyList<ListboxOption> ColumnOptions = [.. Headers.Select(static pair => new ListboxOption(pair.Key, pair.Value))];
 
     static Attrs TableHeight => new() { Sx = Css.Define(static () => new Style { Height = CssLength.Rem(22) }) };
 

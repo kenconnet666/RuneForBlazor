@@ -327,4 +327,31 @@ public class DataTableTests : BunitContext
         await cut.InvokeAsync(() => cut.FindComponent<ColumnFilterButton>().Instance.ValuesChanged.InvokeAsync(["启航"]));
         Assert.Equal((1, "filter.customer=启航"), (queries[^1].Page, string.Join("&", queries[^1].ToParameters().Where(p => p.Key.StartsWith("filter.")).Select(p => $"{p.Key}={p.Value}"))));
     }
+
+    [Fact]
+    public void 列设置_按当前顺序列出_只剩一列可见时不能再隐藏_重置清空()
+    {
+        IReadOnlyList<string> hidden = ["b"];
+        IReadOnlyList<string> order = ["c"];
+        var reset = 0;
+        var cut = Render<ColumnSettings>(p => p.Add(x => x.Columns, [new("a", "甲"), new("b", "乙"), new("c", "丙")])
+            .Add(x => x.Hidden, hidden).Add(x => x.HiddenChanged, v => hidden = v)
+            .Add(x => x.Order, order).Add(x => x.OrderChanged, v => order = v)
+            .Add(x => x.OnReset, () => reset++)
+            // 弹出层的内容第一次打开才渲染：测试里直接渲染
+            .Add(x => x.PropsPanel, new Attrs { ["Lazy"] = false }));
+        var sortable = cut.FindComponent<Sortable<ListboxOption>>();
+
+        Assert.Equal(["c", "a", "b"], sortable.Instance.Items.Select(o => o.Value));
+        var boxes = cut.FindComponents<Checkbox>();
+        Assert.Equal([true, true, false], boxes.Select(b => b.Instance.Value));
+
+        cut.InvokeAsync(() => boxes[1].Instance.ValueChanged.InvokeAsync(false));
+        Assert.Equal(["b", "a"], hidden);
+        cut.Render(p => p.Add(x => x.Hidden, hidden));
+        Assert.True(cut.FindComponents<Checkbox>()[0].Instance.Disabled);
+
+        cut.FindAll("button").Single(b => b.TextContent.Trim() == "重置").Click();
+        Assert.Equal((0, 0, 1), (hidden.Count, order.Count, reset));
+    }
 }
