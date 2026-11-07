@@ -210,7 +210,7 @@ public static partial class ComponentApiReader
         return parts.Length >= 2 && cref.StartsWith("T:", StringComparison.Ordinal) is false ? $"{parts[^2]}.{parts[^1]}" : parts[^1];
     }
 
-    // 各个包（Rune.UI、Rune.UI.Dates）的注释接在一起建一个索引
+    // 各个包（Rune.UI、Rune.UI.Dates、Rune.Charts）的注释接在一起建一个索引
     static DocsIndex LoadDocs()
     {
         var assembly = typeof(ComponentApiReader).Assembly;

@@ -14,8 +14,9 @@
     <!-- 组件的样式表不公开（外观定制走 Components 入口与部件属性），测试与基准要直接核对 -->
     <InternalsVisibleTo Include="Rune.Tests" />
     <InternalsVisibleTo Include="Rune.Benchmarks" />
-    <!-- 日期包用组件库内部的样式工具（层、输入框与列表项的样式），不为分包把它们公开 -->
+    <!-- 分包（日期、图表）用组件库内部的样式工具（层、输入框与列表项的样式），不为分包把它们公开 -->
     <InternalsVisibleTo Include="Rune.UI.Dates" />
+    <InternalsVisibleTo Include="Rune.Charts" />
   </ItemGroup>
 
   <ItemGroup>

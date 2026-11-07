@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!-- 图表：LineChart、BarChart、DonutChart……单独成包，WebAssembly 下可以懒加载（DESIGN 第 15 节） -->
+  <PropertyGroup>
+    <IsLibrary>true</IsLibrary>
+    <!-- 公开成员必须写文档注释（CS1591 视为错误）；XML 文档也给文档站的 API 表用 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- 类型与 Rune.UI 同一个命名空间：引用了包就能用，不用另加 @using -->
+    <RootNamespace>Rune.UI</RootNamespace>
+    <Description>Rune.UI 的图表：折线、面积、柱状、组合、散点、环形、雷达、漏斗、矩形树图、瀑布、桑基、弦图、网络图、时间线、地图，C# 输出 SVG。</Description>
+    <PackageTags>$(PackageTags);chart;charts;svg</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+    <InternalsVisibleTo Include="Rune.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rune.UI\Rune.UI.csproj" />
+    <ProjectReference Include="..\Rune.Generators\Rune.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Rune.CodeFixes\Rune.CodeFixes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- 与 Rune.UI 同一套组件库的分析器级别 -->
+    <GlobalAnalyzerConfigFiles Include="..\Rune.UI\components.globalconfig" />
+  </ItemGroup>
+
+</Project>

@@ -487,3 +487,32 @@
   弹层是 role="dialog" 的原生 popover（贴着外壳定位，开关经 rune-toggle 报给 C#，内容只在打开时渲染），打开后焦点进日历当前那一格
   （overlays.js 认 `[role=grid] [tabindex=0]`）；分段里 Alt + ↓ 点打开按钮。
     Intl 选项之外的日期写法用 `LangFormat.Date(value, lang, "M月d日 ddd")`（.NET 的格式，文化与时区随语言）。
+
+## 15. 图表（`src/Rune.Charts`，阶段 5）
+
+同 vue-tsx-pro 的 `src/charts`。单独成包（同第 14 节的日期）：只用表格、表单的应用不带图表的代码，WebAssembly 下可以懒加载。
+
+- **底座**（`Foundation/`，纯函数，与 vue 逐字相同的输出）：比例尺与刻度 `ChartScale`、`LinearScale`（d3 的 ticks / nice / timeTicks）、
+  双数值轴的对齐 `AxisTicks.Aligned`、路径 `ChartShapes`（折线、单调平滑、阶梯、面积、圆角柱、扇区、弦、桑基的带子）、堆叠 `ChartStack`、
+  颜色 `ChartColor`（色板 `ChartColors.Series1–8`、语义色、任意 CSS 颜色）、文字宽度估算 `ChartText`、标签避让 `LabelLayout`。
+  SVG 里的数字都经 `SvgFormat.Number`（Rune.UI 内部，Gauge、Sparkline 共用）：三位小数、JS 的 Math.round 与数字写法，服务端、浏览器、vue 版一致。
+  单测的期望值抄 vue 的 `.test/*.test.ts`。
+- **谁画**：C# 按比例尺算好整张 SVG（坐标轴、网格、图形、标注都在渲染树里）。绘图区的宽高要量：
+  `charts.js` 用 ResizeObserver 量出绘图区的内容尺寸、IntersectionObserver 等它进入视口附近（同 vue 的 usePlotSeen，打印前全部画上），
+  再以 rune-command `size`（"宽,高"，取整，变了才发）交给 C#，C# 按尺寸重排。量到之前绘图区只占高度、不画（同 vue：服务端渲染时不画图形）；
+  给读屏的数据表、图例、单位不依赖尺寸，静态 SSR 也有。
+- **悬停不往返**：十字线、悬停的浅底、各系列的圆点、提示框、散点图的最近点、环形图的高亮都在 JS 里。
+  C# 在绘图区上写好 JS 要的数据（各行在类目轴上的位置、各系列圆点的坐标、每行提示框的标题与格式化好的数值，JSON 放在 data-* 上），
+  并渲染出空的十字线、圆点、提示框骨架与 `<template>` 原型行；JS 只改属性（位置、hidden）与提示框容器里自己克隆的节点（Blazor 没有往那个容器里渲染子节点）。
+  Server 模式下指针移动不产生往返，WebAssembly 下也不重渲染。
+- **点击下钻**：JS 按悬停的行（点在柱上时按那根柱的 `data-index`）发 rune-command `activate`，C# 调 `OnItemClick`。
+  图例的显示 / 隐藏、缩放滑块、导出菜单是普通的 Blazor 组件（按钮、Slider、Menu），会往返。
+- **组件结构**：`ChartFrame`（外层 figure、单位与图例、加载与空状态、读屏数据表、导出菜单）公开，自定义图表也能用；
+  直角坐标图表共用抽象的 `XYChart<TItem>`（比例尺、坐标轴、目标线、标注、区间、缩放、提示框数据），
+  `LineChart`、`AreaChart`、`BarChart`、`ComboChart`、`ScatterChart`、`WaterfallChart` 继承它，只覆盖“画什么”（同 vue 的 XYChartKind）。
+  其余图表（Donut、Radar、Funnel、Treemap、Sankey、Chord、Graph、Timeline、Map）各自继承 `ChartBase`（量尺寸、提示框数据、ChartFrame 接线）。
+- **系列与值**：`ChartSeries<TItem>(Key, Label, Value)`，`Value` 是 `Func<TItem, decimal?>`（同 Sparkline、NumberFormat：金额不经过浮点，
+  提示框、数据表按原值格式化）；画图时转成 double。类目是 `Func<TItem, object?>`，显示文字默认 `ToString()`，可另给 `CategoryText`；
+  标注、区间的位置按类目的值相等（`Equals`）匹配。
+- **样式**：同 vue 的 chartStyles / chartSvgStyles，颜色、字号走主题 tokens；系列颜色是 CSS 变量，换主题不用重画。
+  进场动画（淡入、柱子长出来）用 `@starting-style`，“减少动态效果”时时长为 0。
