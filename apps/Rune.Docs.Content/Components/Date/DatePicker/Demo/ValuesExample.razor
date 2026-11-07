@@ -1,0 +1,33 @@
+@inherits UIComponent
+
+@* 值的类型：DateOnly、DateTime、DateTimeOffset 都行，写回时还是同一种；name 让原生表单提交 ISO 文字 *@
+<form @onsubmit="Submit" @onsubmit:preventDefault data-enhance="false">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Grid MinItemWidth="@("15rem")" Gap="SpaceScale.Lg">
+            <Field Label="生日" Description="@(birthday is { } day ? $"{LangFormat.Date(day, Config.Lang, DateStyle.Full, null)}；一百天是 {LangFormat.Date(day.AddDays(100), Config.Lang, DateStyle.Medium, null)}" : "值是 DateOnly，可以直接 AddDays、比较")">
+                <DatePicker @bind-Value="birthday" name="birthday" />
+            </Field>
+            <Field Label="签到时刻" Description="DateTimeOffset：按语言的时区显示与写回">
+                <DatePicker @bind-Value="checkedIn" Granularity="DateGranularity.Minute" name="checkedIn" />
+            </Field>
+            <Field Label="入职日期" Description="name 随表单提交 ISO 文字"><DatePicker @bind-Value="joined" name="joined" /></Field>
+        </Grid>
+        <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center" Wrap="true">
+            <Button Type="submit" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">提交表单</Button>
+            @if (submitted is not null)
+            {
+                <Code>@submitted</Code>
+            }
+        </Flex>
+    </Flex>
+</form>
+
+@code {
+    DateOnly? birthday;
+    DateTimeOffset? checkedIn = new(2026, 10, 20, 1, 30, 0, TimeSpan.Zero);
+    DateOnly? joined = new(2021, 3, 15);
+    string? submitted;
+
+    // 和原生表单提交的一样：各个隐藏 input 里的 ISO 文字
+    void Submit() => submitted = $"birthday={birthday?.ToString("yyyy-MM-dd") ?? ""}, checkedIn={(checkedIn is { } at ? LangFormat.Date(at, Config.Lang, "yyyy-MM-ddTHH:mm") : "")}, joined={joined?.ToString("yyyy-MM-dd") ?? ""}";
+}

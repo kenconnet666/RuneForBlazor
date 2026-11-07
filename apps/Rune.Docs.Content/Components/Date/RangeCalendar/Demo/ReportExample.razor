@@ -1,0 +1,31 @@
+@inherits UIComponent
+
+@* 报表的统计区间：页脚放快捷区间（DateRange.Preset 按今天与语言的一周第一天算），今天之后不能选 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <RangeCalendar @bind-Value="range" VisibleMonths="2" Max="today" aria-label="统计区间">
+        <Footer>
+            @foreach (var preset in Presets)
+            {
+                var value = Preset(preset);
+                <Button @key="preset" Size="Size.Sm" Variant="@(range == value ? ButtonVariant.Soft : ButtonVariant.Ghost)" Tone="Tone.Neutral"
+                        Disabled="value.End > today" @onclick="() => range = value">@Config.Lang.DateRangePreset[Key(preset)]</Button>
+            }
+        </Footer>
+    </RangeCalendar>
+    <TextSpan Tone="TextTone.Muted">
+        @(range is { } r ? $"统计 {LangFormat.Date(r.Start, Config.Lang, DateStyle.Medium, null)} – {LangFormat.Date(r.End, Config.Lang, DateStyle.Medium, null)}" : "选一个区间")
+    </TextSpan>
+</Flex>
+
+@code {
+    static readonly DateRangePreset[] Presets = [DateRangePreset.Last7Days, DateRangePreset.Last30Days, DateRangePreset.ThisMonth, DateRangePreset.LastMonth];
+
+    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    DateRange? range;
+
+    protected override void OnInitialized() => range = Preset(DateRangePreset.Last7Days);
+
+    DateRange Preset(DateRangePreset preset) => DateRange.Preset(preset, today, LangFormat.FirstDayOfWeek(Config.Lang));
+
+    static string Key(DateRangePreset preset) => char.ToLowerInvariant(preset.ToString()[0]) + preset.ToString()[1..];
+}

@@ -39,6 +39,11 @@ for (const path of files(join(repoRoot, 'apps/Rune.Docs.Content/Components'), (n
   const slug = /@page "\/components\/([a-z0-9-]+)"/.exec(text)?.[1];
   const target = slug && vue.get(slug);
   const ours = columnsOf(text, /<Example\s+Id="([^"]+)"/g);
+  if (target && ours) {
+    const have = new Set(ours.flat());
+    const missing = target.flat().filter((id) => !have.has(id));
+    if (missing.length) console.log(`${slug} 还没有的示例：${missing.join(' ')}`);
+  }
   if (!target || !ours || target.length !== ours.length) continue;
   const known = new Set(ours.flat());
   // 照 vue 的分列：两边都有的按 vue 的列与顺序，本库多出来的接在原来那一列后面

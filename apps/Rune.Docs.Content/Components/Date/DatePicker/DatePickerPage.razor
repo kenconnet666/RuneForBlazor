@@ -26,6 +26,10 @@
                 <Code>Week</Code> 按 ISO 8601 的周选（日历周一开始、行首是周数，点哪天都是它那一周的周一）；到 <Code>Minute</Code> 时选日期保留原来的时间，
                 没有时间时是 00:00。
             </Example>
+            <Example Id="values" Title="值的类型与表单提交" Demo="typeof(ValuesExample)">
+                值可以是 <Code>DateOnly</Code>、<Code>DateTime</Code> 或 <Code>DateTimeOffset</Code>（可空的空着时为 null），写回时保持同一种类型；
+                <Code>DateTimeOffset</Code> 按语言包的时区显示与写回。<Code>name</Code> 让原生表单提交 ISO 文字。
+            </Example>
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="@([.. DateKeys.Segments, .. DateKeys.Picker, .. DateKeys.Calendar])" />

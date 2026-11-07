@@ -19,6 +19,10 @@
             <Example Id="leave" Title="跨过不可选的日子" Demo="typeof(LeaveExample)">
                 <Code>AllowsUnavailableInRange</Code> 允许区间跨过不可选的日子：周末不能作为请假的开始或结束，但可以被夹在中间。
             </Example>
+            <Example Id="presets" Title="页脚的快捷区间" Demo="typeof(ReportExample)">
+                <Code>Footer</Code> 放在网格下面；<Code>DateRange.Preset</Code> 按今天与语言的一周第一天算出“最近 7 天”“本月”。
+                外面改了值、新区间不在这一页时，日历自动翻过去。要输入框加弹出日历与快捷选项用 DateRangePicker。
+            </Example>
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="DateKeys.Calendar" />
