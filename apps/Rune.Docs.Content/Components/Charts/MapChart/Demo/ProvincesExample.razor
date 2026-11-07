@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+@* 各省的销售额：默认的等积圆锥投影以中国为中心，分成 5 档着色，图例是 5 个色块；省名写在区域上，仓库的点按产值定大小；可以拖动、按住 Ctrl 滚轮缩放；点一个省份在下面显示它 *@
+<MapChart Topology="ChartMaps.ChinaProvinces" Feature="provinces" Areas="Areas" Points="Points" Bins="5" AreaLabels="true" Unit="万元" ValueFormat="Whole"
+          Height="460" Zoomable="true" Exportable="true" OnAreaClick="(MapArea area) => picked = area" aria-label="各省销售额" />
+<Small Tone="TextTone.Muted">@(picked is { } area ? $"{area.Label}：{area.Value} 万元" : "点一个省份看它的金额；拖动、按住 Ctrl 滚轮或右上角的按钮缩放")</Small>
+
+@code {
+    static readonly MapArea[] Areas = [.. ChinaDemo.Provinces.Select((province, index) =>
+        new MapArea(province.Id, province.Name) { Value = ChinaDemo.SampleValue(index + (province.Region == "华东" ? 8 : 0), 640) })];
+
+    static readonly MapPoint[] Points =
+    [
+        new("sh", "上海总仓", 121.47, 31.23) { Value = 860 },
+        new("sy", "沈阳仓", 123.43, 41.8) { Value = 310 },
+        new("xa", "西安仓", 108.94, 34.34) { Value = 420 },
+        new("cd", "成都仓", 104.07, 30.67) { Value = 260 },
+        new("gz", "广州仓", 113.26, 23.13) { Value = 180 },
+    ];
+
+    static readonly NumberFormat Whole = new() { MaximumFractionDigits = 0 };
+
+    MapArea? picked;
+}

@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+@* 分类着色：区域写了 Color 时按它，不按数值（这里按所属的大区，颜色取色板）；所有区域都指定了颜色时不显示色带，图例自己写在下面 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <MapChart Topology="ChartMaps.ChinaProvinces" Feature="provinces" Areas="Areas" Height="320" aria-label="各大区" />
+    <Flex Gap="SpaceScale.Md" Wrap="true">
+        @foreach (var (region, index) in Regions.Select((region, index) => (region, index)))
+        {
+            <Flex @key="region" Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+                <span @attributes="Swatch(index)"></span>
+                <Small>@region</Small>
+            </Flex>
+        }
+    </Flex>
+</Flex>
+
+@code {
+    static readonly string[] Regions = ["华北", "东北", "华东", "华中", "华南", "西南", "西北"];
+
+    static readonly MapArea[] Areas = [.. ChinaDemo.Provinces.Select(province =>
+        new MapArea(province.Id, $"{province.Name}（{province.Region}）") { Color = ChartColor.Series(Array.IndexOf(Regions, province.Region) + 1) })];
+
+    static readonly CssVar<CssColor> SwatchColor = CssVar.Color("demo-region-color");
+
+    static Style SwatchStyle => Css.Define(static () => new Style { Width = CssLength.Rem(0.75), Height = CssLength.Rem(0.75), BorderRadius = CssLength.Rem(0.125), BackgroundColor = SwatchColor });
+
+    static Attrs Swatch(int index) => new() { Sx = SwatchStyle, Vars = [SwatchColor.Set(ChartColor.Series(index + 1).Css)] };
+}

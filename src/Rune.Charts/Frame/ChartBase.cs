@@ -219,6 +219,16 @@ public abstract class ChartBase : UIComponent
         if (Tooltip) WriteTips(json, tips);
     });
 
+    /// <summary>能平移缩放（网络图、地图）：缩放的范围与按钮、键盘每一档的倍数。</summary>
+    private protected static void WritePanZoom(Utf8JsonWriter json, double min, double max, double step)
+    {
+        json.WriteStartObject("panZoom");
+        json.WriteNumber("min", min);
+        json.WriteNumber("max", max);
+        json.WriteNumber("step", step);
+        json.WriteEndObject();
+    }
+
     // ───────── 尺寸与命令 ─────────
 
     /// <summary>

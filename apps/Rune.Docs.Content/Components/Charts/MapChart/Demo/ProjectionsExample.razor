@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+@* 投影对比：同一份中国地图换投影。Conic（默认）以中国为中心，正着；Mercator 北方被放大；NaturalEarth 是世界地图的投影，中国的北边偏扁；Orthographic 是从正上方看地球 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <ToggleGroup @bind-Value="projection" Required="true" Size="Size.Sm" aria-label="投影">
+        <ToggleItem Value="Conic">等积圆锥</ToggleItem>
+        <ToggleItem Value="Mercator">墨卡托</ToggleItem>
+        <ToggleItem Value="NaturalEarth">Natural Earth</ToggleItem>
+        <ToggleItem Value="Orthographic">地球仪</ToggleItem>
+    </ToggleGroup>
+    <MapChart Topology="ChartMaps.ChinaProvinces" Feature="provinces" Projection="Enum.Parse<MapProjectionKind>(projection!)" Areas="Areas"
+              Color="ChartColor.Series(3)" ValueFormat="Whole" Height="340" aria-label="投影对比" />
+</Flex>
+
+@code {
+    static readonly MapArea[] Areas = [.. ChinaDemo.Provinces.Select((province, index) => new MapArea(province.Id, province.Name) { Value = ChinaDemo.SampleValue(index, 100) })];
+
+    static readonly NumberFormat Whole = new() { MaximumFractionDigits = 0 };
+
+    string? projection = "Conic";
+}

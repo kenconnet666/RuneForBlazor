@@ -172,7 +172,7 @@
             json.WriteString("mode", "item");
             json.WriteBoolean("dim", false);
             json.WriteBoolean("select", true);
-            json.WriteBoolean("panZoom", Zoom);
+            if (Zoom) WritePanZoom(json, 0.3, 4, 1.25);
             if (Tooltip) WriteTips(json, tips);
         });
         return (Plot(placed, placedById), data);

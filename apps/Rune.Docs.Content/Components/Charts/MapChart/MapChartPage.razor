@@ -1,0 +1,40 @@
+@page "/components/map-chart"
+@attribute [DocMeta("MapChart 地图", "按区域着色（分省的金额、各国的采购额），标出地点与流向；地理数据是 TopoJSON，Rune.Charts.Maps 带着中国省份与世界各国。", DocCategory.Charts, Order = 11)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.MapChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="provinces" Title="各省的销售额：分级着色、省名、仓库" Demo="typeof(ProvincesExample)">
+        <Code>Topology</Code> 是 TopoJSON（<Code>Rune.Charts.Maps</Code> 包的 <Code>ChartMaps</Code> 带着 <Code>ChinaProvinces</Code> 与 <Code>WorldCountries</Code>，
+        也可以用 <Code>MapTopology.Parse</Code> 读自己的），<Code>Feature</Code> 是要画的那组要素（中国省份是 <Code>provinces</Code>）。
+        <Code>Areas</Code> 按要素的 Id 给名称与数值；<Code>Bins</Code> 分成几档着色，图例是几个色块（不写时连续着色，图例是色带），<Code>AreaLabels</Code> 把名称写在区域上。
+        <Code>Points</Code> 是经纬度上的地点，<Code>Value</Code> 决定大小（面积按比例）。<Code>Zoomable</Code> 可以拖动、按住 Ctrl 滚轮缩放（直接滚轮照常滚动页面），
+        右上角有放大、缩小、复位；<Code>OnAreaClick</Code>、<Code>OnPointClick</Code> 下钻。
+    </Example>
+    <Examples>
+        <ExampleColumn>
+            <Example Id="projections" Title="投影" Demo="typeof(ProjectionsExample)">
+                默认按地理数据的范围选投影：一个国家、一个地区用以它为中心的等积圆锥投影（<Code>Conic</Code>，中国地图常用的 Albers，正着、面积不失真），
+                跨了大半个地球时用 <Code>NaturalEarth</Code>。也可以指定 <Code>Mercator</Code>、<Code>EqualEarth</Code>、<Code>Equirectangular</Code>、<Code>Orthographic</Code>（地球仪）；
+                <Code>Center</Code> 改投影的中心。
+            </Example>
+            <Example Id="regions" Title="分类着色" Demo="typeof(RegionsExample)">
+                区域写了 <Code>Color</Code> 时按它着色、不按数值（所属大区、负责的团队）；所有区域都指定了颜色时不显示色带。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="change" Title="涨跌：发散配色" Demo="typeof(ChangeExample)">
+                <Code>Diverging</Code> 以 <Code>Midpoint</Code>（默认 0）为界，两头用 <Code>DivergingColors</Code>（默认 Danger、Success），离分界越远越深；色带中间是底色。
+            </Example>
+            <Example Id="sites" Title="只标地点" Demo="typeof(SitesExample)">
+                不给区域数值时区域是底色，只看 <Code>Points</Code>：<Code>Color</Code> 用语义色表示状态，大小按 <Code>Value</Code>；<Code>OnPointClick</Code> 看详情。
+                地点的名字自动避让：挤在一起时换到放得下的方位，再挤就往外退、画引线连回地点，数值大的先挑位置，放不下的不显示（悬停看）；压在名字、地点上的区域名会藏起来。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <Example Id="supply-chain" Title="全球供应链：流向" Demo="typeof(SupplyChainExample)">
+        世界地图（<Code>WorldCountries</Code>，ISO 两位国家代码）。<Code>Links</Code> 是地点之间的流向，粗细按 <Code>Value</Code>，<Code>Flow</Code> 时有流动的粒子；
+        地点的 <Code>Shape</Code> 与 <Code>Color</Code> 区分供应商与组装厂；<Code>Center</Code> 把中央经线放在东经 110°，中国在中间。悬停看名称与数值；读屏的数据表列出各区域、地点与流向。
+    </Example>
+    <ApiReference Types="[typeof(MapChart), typeof(MapArea), typeof(MapPoint), typeof(MapLink), typeof(ChartMaps)]" />
+</DocPage>

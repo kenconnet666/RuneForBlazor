@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 地图的地理数据（中国省份、世界各国的 TopoJSON，约 500 KB）：单独成包，只用图表、不画地图的应用不带它（同 vue-tsx-pro 的 /maps 子路径） -->
+  <PropertyGroup>
+    <IsLibrary>true</IsLibrary>
+    <!-- 公开成员必须写文档注释（CS1591 视为错误）；XML 文档也给文档站的 API 表用 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>Rune.UI</RootNamespace>
+    <Description>Rune.Charts 的 MapChart 用的地理数据：中国省份与世界各国（TopoJSON）。</Description>
+    <PackageTags>$(PackageTags);charts;map;topojson</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rune.Charts\Rune.Charts.csproj" />
+    <EmbeddedResource Include="Data\*.json" LogicalName="maps/%(Filename)%(Extension)" />
+    <!-- 数据的来源与许可（Natural Earth 公有领域，经 Unovis 整理，Apache-2.0），随包分发 -->
+    <None Include="NOTICE.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,35 @@
+@inherits RuneComponent
+
+@* 全球供应链：世界地图（ISO 两位国家代码）按各国的采购额着色，跨了大半个地球，默认用 Natural Earth 投影，Center 把中央经线放在东经 110°（中国在中间）；
+   供应商是方形的点、组装厂是圆点，流向连到上海，粗细按年采购额，Flow 时有流动的粒子 *@
+<MapChart Topology="ChartMaps.WorldCountries" Feature="countries" Areas="Areas" Points="Points" Links="Links" Flow="true" Center="(110, 20)"
+          Color="ChartColor.Series(5)" Unit="万美元" Height="380" Zoomable="true" aria-label="全球采购额与流向" />
+
+@code {
+    static readonly (string Id, string Label, double Longitude, double Latitude, decimal Value, string Country, string Name)[] Suppliers =
+    [
+        ("de", "斯图加特", 9.18, 48.78, 3200, "DE", "德国"),
+        ("fr", "图卢兹", 1.44, 43.6, 2800, "FR", "法国"),
+        ("us", "西雅图", -122.33, 47.61, 4100, "US", "美国"),
+        ("in", "班加罗尔", 77.59, 12.97, 1900, "IN", "印度"),
+        ("au", "墨尔本", 144.96, -37.81, 900, "AU", "澳大利亚"),
+        ("br", "圣若泽", -45.89, -23.18, 650, "BR", "巴西"),
+    ];
+
+    static readonly MapArea[] Areas =
+    [
+        .. Suppliers.Select(supplier => new MapArea(supplier.Country, supplier.Name) { Value = supplier.Value }),
+        new("GB", "英国") { Value = 1200 },
+        new("IT", "意大利") { Value = 700 },
+        new("CA", "加拿大") { Value = 1500 },
+    ];
+
+    static readonly MapPoint[] Points =
+    [
+        new("sh", "上海总仓", 121.47, 31.23) { Color = Tone.Accent },
+        .. Suppliers.Select(supplier => new MapPoint(supplier.Id, supplier.Label, supplier.Longitude, supplier.Latitude)
+            { Value = supplier.Value, Shape = MapPointShape.Square, Color = ChartColor.Series(2) }),
+    ];
+
+    static readonly MapLink[] Links = [.. Suppliers.Select(supplier => new MapLink(supplier.Id, "sh") { Value = supplier.Value })];
+}

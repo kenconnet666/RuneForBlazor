@@ -1,0 +1,11 @@
+@inherits RuneComponent
+
+@* 同比变化：Diverging 以 0 为界，降了用 Danger、涨了用 Success，离 0 越远越深；连续着色，色带中间是 0 *@
+<MapChart Topology="ChartMaps.ChinaProvinces" Feature="provinces" Areas="Areas" Diverging="true" ValueFormat="Change" Height="340" aria-label="各省采购额同比" />
+
+@code {
+    static readonly MapArea[] Areas = [.. ChinaDemo.Provinces.Select((province, index) =>
+        new MapArea(province.Id, province.Name) { Value = (decimal)(Math.Floor((Math.Sin(index * 2.3) * 0.28 + 0.06) * 1000 + 0.5) / 1000) })];
+
+    static readonly NumberFormat Change = new() { Style = NumberStyle.Percent, MaximumFractionDigits = 1, SignDisplay = SignDisplay.ExceptZero };
+}

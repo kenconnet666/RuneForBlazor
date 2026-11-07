@@ -209,7 +209,8 @@ function highlight(plot, data, current) {
  */
 function showTip(plot, state, tooltip, data, current) {
   const tip = data.tips[current.index];
-  if (!tip) return;
+  // 这一项没有提示（地图上没有数据的区域）
+  if (!tip) return tooltip.removeAttribute('data-open');
   if (state.tipRow !== current.index || state.tipData !== data || !tooltip.hasChildNodes()) {
     state.tipRow = current.index;
     state.tipData = data;
@@ -264,23 +265,33 @@ function onClick(plot, state, event) {
 // ───────── 平移缩放（网络图，同 vue-tsx-pro 的 usePanZoom）：拖动平移、按住 Ctrl 滚轮缩放、双击放大一档或回到全图 ─────────
 // 变换写在 g[data-pan-zoom] 的 transform 上（C# 渲染的初值不变，重画时不会被拉回）；只按滚轮时浮出提示，页面照常滚动
 
-const ZOOM_MIN = 0.3;
-const ZOOM_MAX = 4;
-const ZOOM_STEP = 1.25;
+// 缩放的范围与每一档的倍数：悬停数据的 panZoom（网络图 0.3–4、1.25 倍，地图 1–12、1.5 倍）
+const limitsOf = (plot, state) => dataOf(plot, state)?.panZoom ?? { min: 0.3, max: 4, step: 1.25 };
 
 function viewOf(state) {
   return (state.view ??= { x: 0, y: 0, scale: 1 });
 }
 
+/**
+ * 应用平移缩放：g[data-pan-zoom] 整个缩放（区域、连线；连线用 non-scaling-stroke 不变粗）；
+ * 带 data-follow-x、data-follow-y 的元素（地点、名字）只跟着移动、不变大
+ */
 function applyView(plot, state, next) {
   const view = viewOf(state);
   Object.assign(view, next);
-  plot.querySelector('[data-pan-zoom]')?.setAttribute('transform', `translate(${round(view.x)} ${round(view.y)}) scale(${round(view.scale)})`);
+  const transform = `translate(${round(view.x)} ${round(view.y)}) scale(${round(view.scale)})`;
+  plot.querySelectorAll('[data-pan-zoom]').forEach((element) => element.setAttribute('transform', transform));
+  for (const element of plot.querySelectorAll('[data-follow-x]')) {
+    const x = Number(element.dataset.followX);
+    const y = Number(element.dataset.followY);
+    element.setAttribute('transform', `translate(${round(x * (view.scale - 1) + view.x)} ${round(y * (view.scale - 1) + view.y)})`);
+  }
 }
 
 function zoomAround(plot, state, scale, origin) {
   const view = viewOf(state);
-  const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, scale));
+  const { min, max } = limitsOf(plot, state);
+  const next = Math.min(max, Math.max(min, scale));
   const ratio = next / view.scale;
   applyView(plot, state, { x: origin.x - (origin.x - view.x) * ratio, y: origin.y - (origin.y - view.y) * ratio, scale: next });
 }
@@ -294,7 +305,7 @@ function watchPanZoom(plot, state) {
   plot.addEventListener('wheel', (event) => {
     if (!enabled(event)) return;
     if (!event.ctrlKey && !event.metaKey) {
-      const hint = plot.querySelector('[data-part="wheel-hint"]');
+      const hint = plot.closest('[role="figure"]')?.querySelector('[data-part="wheel-hint"]');
       hint?.setAttribute('data-open', '');
       clearTimeout(state.hintTimer);
       state.hintTimer = setTimeout(() => hint?.removeAttribute('data-open'), 1500);
@@ -331,10 +342,24 @@ function watchPanZoom(plot, state) {
   plot.addEventListener('dblclick', (event) => {
     if (!enabled(event) || event.target.closest('[data-part="node"]')) return;
     const view = viewOf(state);
+    const { step } = limitsOf(plot, state);
     if (view.scale > 1) applyView(plot, state, { x: 0, y: 0, scale: 1 });
-    else zoomAround(plot, state, view.scale * ZOOM_STEP * ZOOM_STEP, local(event));
+    else zoomAround(plot, state, view.scale * step * step, local(event));
   });
 }
+
+// 缩放按钮（地图右上角）：data-chart-zoom 是 in、out、fit，作用在同一个 figure 的绘图区上
+document.addEventListener('click', (event) => {
+  const button = event.target instanceof Element ? event.target.closest('[data-chart-zoom]') : null;
+  const plot = button?.closest('[role="figure"]')?.querySelector('[data-rune-chart]');
+  const state = plot && states.get(plot);
+  if (!state) return;
+  const { step } = limitsOf(plot, state);
+  const center = { x: plot.clientWidth / 2, y: plot.clientHeight / 2 };
+  const action = button.dataset.chartZoom;
+  if (action === 'fit') applyView(plot, state, { x: 0, y: 0, scale: 1 });
+  else zoomAround(plot, state, viewOf(state).scale * (action === 'in' ? step : 1 / step), center);
+});
 
 // ───────── 导出（同 vue-tsx-pro 的 export.ts）：菜单项带 data-rune-chart-export，图表外层是它所在的 figure ─────────
 

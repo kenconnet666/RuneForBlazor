@@ -128,6 +128,28 @@ public class ChartTests(DemoServer demo) : E2ETest(demo)
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
+    public async Task 地图_缩放按钮_地点不变大_点省份下钻(string mode)
+    {
+        var page = await OpenAsync(mode, "map-chart");
+        var chart = page.Locator("[role=figure][aria-label=\"各省销售额\"]");
+        await chart.ScrollIntoViewIfNeededAsync();
+        await Assertions.Expect(chart.Locator("[data-part=feature]")).Not.ToHaveCountAsync(0);
+
+        // 放大一档：区域整体缩放 1.5 倍，地点只跟着移动（transform 只有平移）
+        await chart.GetByRole(AriaRole.Button, new() { Name = "放大" }).ClickAsync();
+        await Assertions.Expect(chart.Locator("[data-part=features]")).ToHaveAttributeAsync("transform", new System.Text.RegularExpressions.Regex(@"scale\(1\.5\)$"));
+        await Assertions.Expect(chart.Locator("[data-part=points] > g").First).ToHaveAttributeAsync("transform", new System.Text.RegularExpressions.Regex(@"^translate\([-\d.]+ [-\d.]+\)$"));
+        await chart.GetByRole(AriaRole.Button, new() { Name = "复位" }).ClickAsync();
+        await Assertions.Expect(chart.Locator("[data-part=features]")).ToHaveAttributeAsync("transform", "translate(0 0) scale(1)");
+
+        // 点第一个省份（甘肃，形状不规则：直接派发点击）：下面显示它的金额
+        await chart.Locator("[data-part=feature][data-index=\"0\"]").DispatchEventAsync("click");
+        await Assertions.Expect(page.GetByText(new System.Text.RegularExpressions.Regex(@"^甘肃：[\d.]+ 万元$"))).ToBeVisibleAsync();
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
     public async Task 柱状图_点柱子下钻(string mode)
     {
         var page = await OpenAsync(mode, "bar-chart");

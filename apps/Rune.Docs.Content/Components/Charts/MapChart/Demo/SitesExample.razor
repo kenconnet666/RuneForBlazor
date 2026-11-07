@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+@* 只标地点：区域不给数值时是底色；供应商按交付状态着色（语义色），大小按年采购额；长三角的地点挤在一起：名字自动换到放得下的方位，再挤就退到外一圈画引线，放不下的悬停看；点一个地点在下面显示它 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <MapChart Topology="ChartMaps.ChinaProvinces" Feature="provinces" Points="Sites" Unit="万元" Height="360" OnPointClick="(MapPoint point) => picked = point"
+              aria-label="供应商分布" />
+    <Small Tone="TextTone.Muted">@(picked is { } site ? $"{site.Label}：年采购 {site.Value} 万元，{Status[site.Id]}" : "绿色准时、黄色延误、红色有断供风险；点一个地点看详情")</Small>
+</Flex>
+
+@code {
+    static readonly (string Id, string Label, double Longitude, double Latitude, decimal Value, Tone Tone)[] Data =
+    [
+        ("hrb", "哈尔滨", 126.53, 45.8, 320, Tone.Success), ("tj", "天津", 117.2, 39.13, 540, Tone.Success), ("qd", "青岛", 120.38, 36.07, 280, Tone.Warning),
+        ("nj", "南京", 118.8, 32.06, 610, Tone.Success), ("sh", "上海", 121.47, 31.23, 820, Tone.Success), ("su", "苏州", 120.59, 31.3, 530, Tone.Success),
+        ("wx", "无锡", 120.31, 31.49, 240, Tone.Warning), ("cz", "常州", 119.97, 31.81, 170, Tone.Success), ("hz", "杭州", 120.16, 30.27, 480, Tone.Success),
+        ("jx", "嘉兴", 120.76, 30.75, 150, Tone.Danger), ("nb", "宁波", 121.55, 29.87, 450, Tone.Danger), ("xm", "厦门", 118.09, 24.48, 190, Tone.Success),
+        ("sz", "深圳", 114.06, 22.54, 720, Tone.Warning), ("wh", "武汉", 114.31, 30.59, 380, Tone.Success), ("cq", "重庆", 106.55, 29.56, 260, Tone.Danger),
+        ("km", "昆明", 102.83, 24.88, 110, Tone.Success), ("lz", "兰州", 103.83, 36.06, 140, Tone.Warning), ("urc", "乌鲁木齐", 87.62, 43.83, 90, Tone.Success),
+    ];
+
+    static readonly MapPoint[] Sites = [.. Data.Select(site => new MapPoint(site.Id, site.Label, site.Longitude, site.Latitude) { Value = site.Value, Color = site.Tone })];
+
+    static readonly Dictionary<string, string> Status = Data.ToDictionary(site => site.Id, site => site.Tone switch { Tone.Success => "准时", Tone.Warning => "延误", _ => "断供风险" });
+
+    MapPoint? picked;
+}

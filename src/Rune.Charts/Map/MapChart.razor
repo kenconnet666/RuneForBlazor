@@ -1,0 +1,432 @@
+@*
+    地图（同 vue-tsx-pro 的 MapChart）：按区域着色（分省的销售额、各国的采购额），标出地点（工厂、供应商）与它们之间的流向。
+    <MapChart Topology="ChartMaps.ChinaProvinces" Feature="provinces" Areas="areas" Points="points" Links="links" Bins="5" AreaLabels="true" aria-label="各省销售额" />
+    - 投影（MapProjection）：默认按地理数据的范围选，一个国家用以它为中心的等积圆锥，跨了大半个地球时用 Natural Earth。
+      地理数据先按绘图区的像素简化（看不出的点去掉），再投影、按绘图区缩放居中。
+    - 着色：按数值深浅（Diverging 时以 Midpoint 为界两头两种颜色）；Bins 分档（图例是几个色块），不写时连续（图例是色带）；区域写了 Color 时按它。
+    - 地点：Value 决定大小，名字自动避让（LabelLayout，数值大的先放，压住名字、地点的区域名藏起来）；Links 是地点之间的流向，Flow 时有流动的粒子。
+    - Zoomable 时能拖动、按住 Ctrl 滚轮缩放，右上角有放大、缩小、复位的按钮；区域放大，地点与文字只跟着移动（charts.js，不往返）。
+*@
+@namespace Rune.UI
+@inherits ChartBase
+
+@Frame
+
+@code {
+    // 地点名字的字号、区域名的字号（px）；地点的名字四周留的空；地图与绘图区边缘的距离
+    const double PointFont = 11;
+    const double AreaFont = 10;
+    const double LabelPadding = 3;
+    const double FitPadding = 8;
+
+    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
+    static readonly Attrs ViewportLayer = new() { Sx = MapStyles.Viewport };
+    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
+    static readonly Attrs SphereLayer = new() { Sx = MapStyles.Sphere };
+    static readonly Attrs FeatureLayer = new() { Sx = MapStyles.Feature };
+    static readonly Attrs ClickableFeatureLayer = new() { Sx = Sx.Of(MapStyles.Feature, MapStyles.Clickable) };
+    static readonly Attrs LinkLayer = new() { Sx = MapStyles.Link };
+    static readonly Attrs ParticleLayer = new() { Sx = MapStyles.Particle };
+    static readonly Attrs PointLayer = new() { Sx = MapStyles.Point };
+    static readonly Attrs ClickablePointLayer = new() { Sx = Sx.Of(MapStyles.Point, MapStyles.Clickable) };
+    static readonly Attrs NoPointerLayer = new() { Sx = MapStyles.NoPointer };
+    static readonly Attrs AreaLabelLayer = new() { Sx = Sx.Of(MapStyles.AreaLabel, ChartSvgStyles.Halo) };
+    static readonly Attrs PointLabelLayer = new() { Sx = Sx.Of(MapStyles.PointLabel, ChartSvgStyles.Halo) };
+    static readonly Attrs LeaderLayer = new() { Sx = MapStyles.Leader };
+    static readonly Attrs ZoomLayer = new() { Sx = MapStyles.Zoom };
+    static readonly Attrs HintLayer = new() { Sx = MapStyles.WheelHint };
+    static readonly Attrs LegendLayer = new() { Sx = MapStyles.Legend };
+    static readonly Attrs BinLayer = new() { Sx = MapStyles.Bin };
+    static readonly Attrs SwatchLayer = new() { Sx = MapStyles.Swatch };
+
+    Dictionary<string, MapArea> areaById = [];
+    (double Low, double High)? extent;
+
+    /// <summary>地理数据（TopoJSON），如 Rune.Charts.Maps 包的 ChartMaps.ChinaProvinces、ChartMaps.WorldCountries。</summary>
+    [Parameter, EditorRequired] public MapTopology Topology { get; set; } = null!;
+
+    /// <summary>画哪一组要素（TopoJSON 的 objects 里的名字），如中国省份是 "provinces"、世界是 "countries"。</summary>
+    [Parameter, EditorRequired] public string Feature { get; set; } = "";
+
+    /// <summary>投影；不写时按数据的范围选 Conic 或 NaturalEarth。</summary>
+    [Parameter] public MapProjectionKind? Projection { get; set; }
+
+    /// <summary>投影的中心（经度, 纬度）：中央经线（世界地图写 (150, 0) 以太平洋为中心），正射投影还用纬度；不写时取地理数据范围的中心。</summary>
+    [Parameter] public (double Longitude, double Latitude)? Center { get; set; }
+
+    /// <summary>各区域的数值。</summary>
+    [Parameter] public IReadOnlyList<MapArea> Areas { get; set; } = [];
+
+    /// <summary>地点。</summary>
+    [Parameter] public IReadOnlyList<MapPoint> Points { get; set; } = [];
+
+    /// <summary>地点之间的流向。</summary>
+    [Parameter] public IReadOnlyList<MapLink> Links { get; set; } = [];
+
+    /// <summary>以 <see cref="Midpoint"/> 为界两头两种颜色（同比的涨跌）；默认按数值深浅。</summary>
+    [Parameter] public bool Diverging { get; set; }
+
+    /// <summary>按数值深浅时的基色，默认 Accent。</summary>
+    [Parameter] public ChartColor? Color { get; set; }
+
+    /// <summary>Diverging 的两头（低, 高），默认 (Danger, Success)。</summary>
+    [Parameter] public (ChartColor Low, ChartColor High)? DivergingColors { get; set; }
+
+    /// <summary>Diverging 的分界，默认 0。</summary>
+    [Parameter] public double Midpoint { get; set; }
+
+    /// <summary>分成几档（分级着色）；不写时连续着色。</summary>
+    [Parameter] public int? Bins { get; set; }
+
+    /// <summary>在区域上写名字（区域够大时）。</summary>
+    [Parameter] public bool AreaLabels { get; set; }
+
+    /// <summary>流向上有流动的粒子（“减少动态效果”时不播）。</summary>
+    [Parameter] public bool Flow { get; set; }
+
+    /// <summary>可以拖动、按住 Ctrl 滚轮缩放，右上角有放大、缩小、复位的按钮；默认关（不抢页面的滚动）。</summary>
+    [Parameter] public bool Zoomable { get; set; }
+
+    /// <summary>点了一个有数据的区域。</summary>
+    [Parameter] public EventCallback<MapArea> OnAreaClick { get; set; }
+
+    /// <summary>点了一个地点。</summary>
+    [Parameter] public EventCallback<MapPoint> OnPointClick { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        areaById = [];
+        foreach (var item in Areas) areaById.TryAdd(item.Id, item);
+        var numbers = Areas.Where(item => item.Value is not null).Select(item => (double)item.Value!.Value).ToList();
+        extent = numbers.Count > 0 ? (numbers.Min(), numbers.Max()) : null;
+    }
+
+    private protected override CssLength? FrameHeight => Height ?? 400;
+    private protected override bool IsEmpty => false;
+    private protected override bool Clickable => OnAreaClick.HasDelegate || OnPointClick.HasDelegate;
+
+    // 混色：基色占 percent，其余透明（落在底色上）
+    static string Tint(Rune.Styles.CssColor color, double percent) => $"color-mix(in srgb, {color} {Math.Floor(percent + 0.5)}%, transparent)";
+
+    // 数值 → 颜色：按深浅时从 12% 到 100%；Diverging 两头各自从分界往外加深；分档时按档取
+    string ColorOf(double value)
+    {
+        var (low, high) = extent ?? (0, 0);
+        if (Diverging)
+        {
+            var (lowColor, highColor) = DivergingColors ?? (Tone.Danger, Tone.Success);
+            var reach = Math.Max(Midpoint - low, high - Midpoint) is var r && r != 0 ? r : 1;
+            var ratio = Math.Min(Math.Abs(value - Midpoint) / reach, 1);
+            if (Bins is { } bins) ratio = Math.Max(Math.Ceiling(ratio * bins), 1) / bins;
+            return Tint((value < Midpoint ? lowColor : highColor).Css, 12 + ratio * 88);
+        }
+        var share = high == low ? 1 : (value - low) / (high - low);
+        if (Bins is { } count) share = Math.Min(Math.Floor(share * count), count - 1) / Math.Max(count - 1, 1);
+        return Tint(ChartColor.Resolve(Color ?? Tone.Accent, 0), 12 + share * 88);
+    }
+
+    string? AreaColor(MapArea? item) => item is null ? null
+        : item.Color is { } color ? color.Css.ToString()
+        : item.Value is { } value ? ColorOf((double)value) : null;
+
+    static Rune.Styles.CssColor PointColor(MapPoint point) => ChartColor.Resolve(point.Color ?? Tone.Danger, 0);
+
+    private protected override ChartTable BuildTable()
+    {
+        var lang = Config.Lang;
+        var pointById = Points.DistinctBy(point => point.Id).ToDictionary(point => point.Id);
+        return new ChartTable(
+            [lang.ChartCategory, Unit is null ? lang.ChartValue : $"{lang.ChartValue}（{Unit}）"],
+            [
+                .. Areas.Select(item => new ChartTableRow(item.Label, [NumberText(item.Value)])),
+                .. Points.Select(point => new ChartTableRow(point.Label, [NumberText(point.Value)])),
+                .. Links.Select(link => new ChartTableRow(lang.ChartFlowLabel(pointById.GetValueOrDefault(link.From)?.Label ?? link.From, pointById.GetValueOrDefault(link.To)?.Label ?? link.To),
+                    [NumberText(link.Value)])),
+            ]);
+    }
+
+    /// <summary>缩放按钮：放大、缩小、复位；前面是滚轮的提示（charts.js 写 data-open）。</summary>
+    private protected override RenderFragment? ActionsContent => !Zoomable ? null : __builder =>
+    {
+        <span @attributes="Attrs.Merge(ZoomLayer)">
+            <span data-part="wheel-hint" role="status" @attributes="Attrs.Merge(HintLayer)">@Config.Lang.ChartZoomWheelHint</span>
+            <IconButton Icon="BuiltInIcons.Plus" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.ChartZoomIn" data-chart-zoom="in" />
+            <IconButton Icon="BuiltInIcons.Minus" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.ChartZoomOut" data-chart-zoom="out" />
+            <IconButton Icon="BuiltInIcons.Maximize" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.ChartZoomFit" data-chart-zoom="fit" />
+        </span>
+    };
+
+    string NumberOf(double value) => LangFormat.Number((decimal)value, ValueFormat ?? NumberFormat.Default, Config.Lang);
+
+    /// <summary>图例：分档时每档一个色块与范围，连续时一条色带两端写最小最大。</summary>
+    private protected override RenderFragment? FooterContent => extent is not { } range || Areas.All(item => item.Color is not null) ? null : __builder =>
+    {
+        var (low, high) = range;
+        <div aria-hidden="true" @attributes="Attrs.Merge(LegendLayer)">
+            @if (Bins is { } bins)
+            {
+                var step = (high - low) / bins;
+                for (var index = 0; index < bins; index++)
+                {
+                    var from = low + step * index;
+                    var to = index == bins - 1 ? high : from + step;
+                    <span @key="index" @attributes="Attrs.Merge(BinLayer)">
+                        <span @attributes="Attrs.Merge(SwatchLayer, ChartFrame.ColorVar(ColorOf((from + to) / 2)))"></span>
+                        @NumberOf(from) – @NumberOf(to)
+                    </span>
+                }
+            }
+            else
+            {
+                var stops = Diverging ? new[] { ColorOf(low), Colors.Fill.ToString(), ColorOf(high) } : [ColorOf(low), ColorOf(high)];
+                <span>@NumberOf(low)</span>
+                <span @attributes="MapStyles.Ramp(stops)"></span>
+                <span>@NumberOf(high)</span>
+            }
+        </div>
+    };
+
+    static string N(double value) => SvgFormat.Number(value);
+
+    // 一组环写成路径；坐标保留一位小数（像素）
+    static string RingsPath(IEnumerable<List<(double X, double Y)>> rings)
+    {
+        static string Round(double value) => (Math.Floor(value * 10 + 0.5) / 10 is var r && r == 0 ? 0 : r).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return string.Concat(rings.Select(ring => $"M{string.Join('L', ring.Select(p => $"{Round(p.X)},{Round(p.Y)}"))}Z"));
+    }
+
+    // 地点的标记：中心在 (x, y)、半径 r 的路径
+    static string MarkerPath(MapPointShape shape, double x, double y, double r)
+    {
+        var (cx, cy) = (SvgFormat.Round(x), SvgFormat.Round(y));
+        if (shape == MapPointShape.Square)
+        {
+            var half = SvgFormat.Round(r * 0.9);
+            return $"M{N(cx - half)},{N(cy - half)}h{N(half * 2)}v{N(half * 2)}h{N(-half * 2)}Z";
+        }
+        if (shape == MapPointShape.Triangle)
+        {
+            var h = SvgFormat.Round(r * 1.15);
+            return $"M{N(cx)},{N(cy - h)}L{N(cx + h)},{N(cy + h * 0.75)}L{N(cx - h)},{N(cy + h * 0.75)}Z";
+        }
+        return $"M{N(cx - r)},{N(cy)}A{N(r)},{N(r)},0,1,1,{N(cx + r)},{N(cy)}A{N(r)},{N(r)},0,1,1,{N(cx - r)},{N(cy)}Z";
+    }
+
+    sealed record Shape(string Id, string D, LabelRect? Box);
+
+    sealed record PlacedPoint(MapPoint Point, int Index, double X, double Y, double R);
+
+    sealed record LinkShape(MapLink Link, int Index, double Length, string D, double Width);
+
+    private protected override (RenderFragment Plot, string? Data)? Draw()
+    {
+        var (width, height) = (PlotWidth, PlotHeight);
+        var bounds = Topology.Bounds();
+        var (west, south, east, north) = bounds;
+        var center = Center ?? ((west + east) / 2, (south + north) / 2);
+        var projector = MapProjection.Create(Projection ?? (east - west > 180 ? MapProjectionKind.NaturalEarth : MapProjectionKind.Conic), center, bounds);
+
+        // 区域的路径：按绘图区里一像素对应的经纬度简化（三角形不到一平方像素的点去掉；能缩放时留到放大一倍也看不出折角）
+        var degreesPerPixel = width > 0 && height > 0 ? Math.Max((east - west) / width, (north - south) / height) / (Zoomable ? 2 : 1) : 0;
+        var features = Topology.Simplify(degreesPerPixel * degreesPerPixel).Features(Feature);
+        // 简化后只剩一两个点的环（很小的岛）画不出来，也不能算进适配的范围，否则地图四周留空
+        var projected = features.Select(item => (item.Id, Rings: item.Polygons.SelectMany(projector.Polygon).Where(ring => ring.Count > 2).ToList())).ToList();
+        var all = projected.SelectMany(item => item.Rings).SelectMany(ring => ring).ToList();
+        var fits = all.Count > 0 && all.Max(p => p.X) > all.Min(p => p.X) && all.Max(p => p.Y) > all.Min(p => p.Y);
+        var (x0, y0, x1, y1) = fits ? (all.Min(p => p.X), all.Min(p => p.Y), all.Max(p => p.X), all.Max(p => p.Y)) : (0, 0, 0, 0);
+        var k = fits ? Math.Min((width - FitPadding * 2) / (x1 - x0), (height - FitPadding * 2) / (y1 - y0)) : 1;
+        var tx = fits ? (width - (x1 - x0) * k) / 2 - x0 * k : 0;
+        var ty = fits ? (height - (y1 - y0) * k) / 2 - y0 * k : 0;
+        (double X, double Y) ToScreen((double X, double Y) p) => (p.X * k + tx, p.Y * k + ty);
+        var shapes = projected.Select(item =>
+        {
+            var screen = item.Rings.Select(ring => ring.Select(ToScreen).ToList()).ToList();
+            // 区域名写在最大的那一块的外接矩形中心
+            LabelRect? best = null;
+            foreach (var ring in screen)
+            {
+                var box = new LabelRect(ring.Min(p => p.X), ring.Min(p => p.Y), ring.Max(p => p.X) - ring.Min(p => p.X), ring.Max(p => p.Y) - ring.Min(p => p.Y));
+                if (best is not { } current || box.Width * box.Height > current.Width * current.Height) best = box;
+            }
+            return new Shape(item.Id, RingsPath(screen), best);
+        }).ToList();
+
+        // 地点在屏幕上的位置（面积按数值比例：半径 3–8 px）；看不见（地球背面）的不画
+        var pointMax = Points.Select(point => (double)(point.Value ?? 0)).DefaultIfEmpty(0).Max();
+        var placed = Points.Select((point, index) => (point, index, projected: projector.Point((point.Longitude, point.Latitude))))
+            .Where(item => item.projected is not null)
+            .Select(item =>
+            {
+                var (x, y) = ToScreen(item.projected!.Value);
+                var r = item.point.Value is not { } value || pointMax == 0 ? 4 : 3 + Math.Sqrt((double)value / pointMax) * 5;
+                return new PlacedPoint(item.point, item.index, x, y, r);
+            }).ToList();
+
+        // 地点的名字：LabelLayout 挪到放得下的方位（挤时画引线）；压住名字、地点的区域名藏起来
+        var anchors = placed.Select(item => new LabelAnchor(item.X, item.Y, item.R, ChartText.Width(item.Point.Label, PointFont) + LabelPadding * 2,
+            PointFont * 1.25 + LabelPadding * 2, (double)(item.Point.Value ?? 0))).ToList();
+        var areaBoxes = !AreaLabels ? [] : shapes.SelectMany(shape =>
+        {
+            if (!areaById.TryGetValue(shape.Id, out var info) || shape.Box is not { } box) return [];
+            var labelWidth = ChartText.Width(info.Label, AreaFont);
+            // 区域放不下名字时不写
+            if (box.Width < labelWidth + 4 || box.Height < AreaFont + 4) return [];
+            return new[] { (info.Label, Rect: new LabelRect(box.X + box.Width / 2 - labelWidth / 2, box.Y + box.Height / 2 - AreaFont / 2, labelWidth, AreaFont)) };
+        }).ToList();
+        var placements = LabelLayout.Place(anchors, new LabelRect(0, 0, width, height), [.. areaBoxes.Select(item => item.Rect)]);
+        var taken = anchors.Select(anchor => new LabelRect(anchor.X - anchor.Radius, anchor.Y - anchor.Radius, anchor.Radius * 2, anchor.Radius * 2))
+            .Concat(placements.OfType<LabelPlacement>().Select(placement => placement.Box)).ToList();
+        var areaLabels = areaBoxes.Where(item => !taken.Any(rect => rect.Overlaps(item.Rect))).ToList();
+
+        // 连线：两个地点之间往上拱起的弧，粗细按数值
+        var linkMax = Links.Select(link => (double)(link.Value ?? 0)).DefaultIfEmpty(0).Max();
+        var placedById = placed.DistinctBy(item => item.Point.Id).ToDictionary(item => item.Point.Id);
+        var links = Links.Select((link, index) => (link, index)).Where(pair => placedById.ContainsKey(pair.link.From) && placedById.ContainsKey(pair.link.To)).Select(pair =>
+        {
+            var (from, to) = (placedById[pair.link.From], placedById[pair.link.To]);
+            var (dx, dy) = (to.X - from.X, to.Y - from.Y);
+            var length = double.Hypot(dx, dy) is var h && h != 0 ? h : 1;
+            // 法线朝上的那一侧：弧往上拱
+            var (nx, ny) = dx >= 0 ? (dy / length, -dx / length) : (-dy / length, dx / length);
+            var bend = length * 0.2;
+            var (cx, cy) = ((from.X + to.X) / 2 + nx * bend, (from.Y + to.Y) / 2 + ny * bend);
+            var stroke = pair.link.Value is not { } value || linkMax == 0 ? 1.5 : 1 + (double)value / linkMax * 4;
+            return new LinkShape(pair.link, pair.index, length, $"M{N(from.X)},{N(from.Y)}Q{N(cx)},{N(cy)},{N(to.X)},{N(to.Y)}", stroke);
+        }).ToList();
+
+        var lang = Config.Lang;
+        var data = HoverJson(json =>
+        {
+            json.WriteString("mode", "item");
+            json.WriteBoolean("dim", false);
+            if (Zoomable) WritePanZoom(json, 1, 12, 1.5);
+            if (!Tooltip) return;
+            // 悬停的项：区域是 0…F-1（没有数据的没有提示），地点接在后面（F + 第几个）
+            json.WriteStartArray("tips");
+            foreach (var shape in shapes)
+            {
+                if (areaById.TryGetValue(shape.Id, out var info)) WriteTip(json, info.Label, new(lang.ChartValue, AreaColor(info) is { } color ? (Rune.Styles.CssColor?)color : null, ValueText(info.Value)));
+                else json.WriteNullValue();
+            }
+            for (var index = 0; index < Points.Count; index++)
+                WriteTip(json, Points[index].Label, new(lang.ChartValue, PointColor(Points[index]), ValueText(Points[index].Value)));
+            json.WriteEndArray();
+        });
+        return (Plot(shapes, projector.Sphere ? (tx, ty, k) : null, placed, placements, anchors, areaLabels, links), data);
+    }
+
+    static void WriteTip(System.Text.Json.Utf8JsonWriter json, string title, ChartTooltipItem item)
+    {
+        json.WriteStartArray();
+        json.WriteStringValue(title);
+        json.WriteStartArray();
+        json.WriteStartArray();
+        json.WriteStringValue(item.Label);
+        if (item.Color is { } color) json.WriteStringValue(color.ToString());
+        else json.WriteNullValue();
+        json.WriteStringValue(item.Value);
+        json.WriteEndArray();
+        json.WriteEndArray();
+        json.WriteEndArray();
+    }
+
+    RenderFragment Plot(List<Shape> shapes, (double Cx, double Cy, double R)? sphere, List<PlacedPoint> placed, LabelPlacement?[] placements, List<LabelAnchor> anchors,
+        List<(string Label, LabelRect Rect)> areaLabels, List<LinkShape> links) => __builder =>
+    {
+        <div data-chart-viewport @attributes="Attrs.Merge(ViewportLayer)">
+            <svg @attributes="Attrs.Merge(SvgLayer, SvgSize())">
+                <g data-part="features" data-pan-zoom transform="translate(0 0) scale(1)">
+                    <g @attributes="Attrs.Merge(FadeLayer)">
+                        @if (sphere is { } globe)
+                        {
+                            <circle cx="@N(globe.Cx)" cy="@N(globe.Cy)" r="@N(globe.R)" @attributes="Attrs.Merge(SphereLayer)" />
+                        }
+                        @for (var index = 0; index < shapes.Count; index++)
+                        {
+                            var shape = shapes[index];
+                            var info = areaById.GetValueOrDefault(shape.Id);
+                            <path @key="@($"{shape.Id}:{index}")" data-part="feature" data-index="@index" d="@shape.D" vector-effect="non-scaling-stroke"
+                                  @attributes="Attrs.Merge(info is not null && OnAreaClick.HasDelegate ? ClickableFeatureLayer : FeatureLayer, ChartFrame.ColorVar(AreaColor(info) ?? Colors.Fill.ToString()))" />
+                        }
+                    </g>
+                </g>
+                <g data-part="links" data-pan-zoom transform="translate(0 0) scale(1)">
+                    @foreach (var shape in links)
+                    {
+                        <path @key="shape.Index" data-part="link" d="@shape.D" stroke-width="@N(shape.Width)" vector-effect="non-scaling-stroke"
+                              @attributes="Attrs.Merge(LinkLayer, ChartFrame.ColorVar(ChartColor.Resolve(shape.Link.Color ?? Tone.Neutral, 0)))" />
+                    }
+                    @if (Flow)
+                    {
+                        foreach (var shape in links)
+                        {
+                            // 每 120px 一个粒子，速度约每秒 60px；错开起点，看起来连续流动
+                            var count = (int)Math.Max(1, Math.Floor(shape.Length / 120 + 0.5));
+                            var duration = Math.Max(1.5, shape.Length / 60);
+                            var tone = ChartFrame.ColorVar(ChartColor.Resolve(shape.Link.Color ?? Tone.Accent, 0));
+                            for (var k = 0; k < count; k++)
+                            {
+                                <circle @key="@($"{shape.Index}:{k}")" r="2" @attributes="Attrs.Merge(ParticleLayer, tone)">
+                                    <animateMotion dur="@($"{N(duration)}s")" begin="@($"{N(-(duration * k) / count)}s")" repeatCount="indefinite" path="@shape.D" />
+                                </circle>
+                            }
+                        }
+                    }
+                </g>
+                <g data-part="points">
+                    @foreach (var item in placed)
+                    {
+                        <g @key="item.Point.Id" data-follow-x="@N(item.X)" data-follow-y="@N(item.Y)">
+                            <path data-part="point" data-index="@(shapes.Count + item.Index)" d="@MarkerPath(item.Point.Shape, item.X, item.Y, item.R)"
+                                  @attributes="Attrs.Merge(OnPointClick.HasDelegate ? ClickablePointLayer : PointLayer, ChartFrame.ColorVar(PointColor(item.Point)))" />
+                        </g>
+                    }
+                </g>
+                <g data-part="area-labels" @attributes="Attrs.Merge(NoPointerLayer)">
+                    @foreach (var (label, rect) in areaLabels)
+                    {
+                        var (cx, cy) = (rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
+                        <g @key="label" data-follow-x="@N(cx)" data-follow-y="@N(cy)">
+                            @ChartSvg.Text(label, cx, cy, AreaLabelLayer, "middle", "central")
+                        </g>
+                    }
+                </g>
+                <g data-part="point-labels" @attributes="Attrs.Merge(NoPointerLayer)">
+                    @for (var index = 0; index < placed.Count; index++)
+                    {
+                        if (placements[index] is not { } placement) continue;
+                        var (anchor, item) = (anchors[index], placed[index]);
+                        var box = placement.Box;
+                        // 引线：从标记的边到名字矩形上离标记最近的点
+                        var toX = Math.Min(Math.Max(anchor.X, box.X), box.X + box.Width);
+                        var toY = Math.Min(Math.Max(anchor.Y, box.Y), box.Y + box.Height);
+                        var length = double.Hypot(toX - anchor.X, toY - anchor.Y) is var h && h != 0 ? h : 1;
+                        <g @key="item.Point.Id" data-follow-x="@N(anchor.X)" data-follow-y="@N(anchor.Y)">
+                            @if (placement.Leader)
+                            {
+                                <line x1="@N(anchor.X + (toX - anchor.X) / length * anchor.Radius)" y1="@N(anchor.Y + (toY - anchor.Y) / length * anchor.Radius)" x2="@N(toX)" y2="@N(toY)"
+                                      @attributes="Attrs.Merge(LeaderLayer)" />
+                            }
+                            @ChartSvg.Text(item.Point.Label, box.X + box.Width / 2, box.Y + box.Height / 2, PointLabelLayer, "middle", "central")
+                        </g>
+                    }
+                </g>
+            </svg>
+            @if (Tooltip)
+            {
+                @TooltipBox
+            }
+        </div>
+    };
+
+    private protected override async Task ActivateAsync(int index)
+    {
+        var features = Topology.Features(Feature);
+        if (index < features.Count)
+        {
+            if (areaById.TryGetValue(features[index].Id, out var info)) await OnAreaClick.InvokeAsync(info);
+        }
+        else if (index - features.Count < Points.Count) await OnPointClick.InvokeAsync(Points[index - features.Count]);
+    }
+}
