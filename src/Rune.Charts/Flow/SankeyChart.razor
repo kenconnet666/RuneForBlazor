@@ -15,8 +15,6 @@
     const double NodePadding = 16;
     const double Margin = 8;
 
-    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
-    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
     static readonly Attrs NodeLayer = new() { Sx = SankeyStyles.Node };
     static readonly Attrs LinkLayer = new() { Sx = SankeyStyles.Link };
     static readonly Attrs NameLayer = new() { Sx = Sx.Of(SankeyStyles.Name, ChartSvgStyles.Halo) };
@@ -64,8 +62,6 @@
             .Concat(nodes.Select((node, position) => node.SourceLinks.Concat(node.TargetLinks).Select(link => link.Index).Prepend(links.Count + position)));
         return (Plot(nodes, links), ItemHoverData(tips, groups: groups));
     }
-
-    static string N(double value) => SvgFormat.Number(value);
 
     RenderFragment Plot(IReadOnlyList<SankeyNode> nodes, IReadOnlyList<SankeyLink> links) => __builder =>
     {

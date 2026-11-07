@@ -11,7 +11,6 @@
 @Frame
 
 @code {
-    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
     static readonly Attrs BaselineLayer = new() { Sx = ChartSvgStyles.Baseline };
     static readonly Attrs AxisTitleLayer = new() { Sx = ChartSvgStyles.Tick };
     static readonly Attrs HoverBandLayer = new() { Sx = ChartSvgStyles.HoverBand };
@@ -30,8 +29,6 @@
 
     // 骨架柱的高度（百分比）：高低错落，看起来像一组数据
     static readonly int[] SkeletonHeights = [55, 80, 40, 70, 90, 50, 65];
-
-    static string N(double value) => SvgFormat.Number(value);
 
     // 网格线落在像素中间：1px 的线不发虚
     static string Crisp(double value) => N(Math.Floor(value + 0.5) + 0.5);

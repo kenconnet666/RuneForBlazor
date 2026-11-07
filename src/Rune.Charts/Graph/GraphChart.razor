@@ -19,10 +19,8 @@
     const double PanelTitle = 22;
     const double Arrow = 8;
 
-    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
     static readonly Attrs ViewportLayer = new() { Sx = GraphStyles.Viewport };
     static readonly Attrs BackgroundLayer = new() { Sx = GraphStyles.Background };
-    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
     static readonly Attrs PanelLayer = new() { Sx = GraphStyles.Panel };
     static readonly Attrs PanelLabelLayer = new() { Sx = GraphStyles.PanelLabel };
     static readonly Attrs LinkGroupLayer = new() { Sx = GraphStyles.Item };
@@ -31,7 +29,6 @@
     static readonly Attrs ArrowLayer = new() { Sx = GraphStyles.Arrow };
     static readonly Attrs LinkLabelBoxLayer = new() { Sx = GraphStyles.LinkLabelBox };
     static readonly Attrs LinkLabelLayer = new() { Sx = GraphStyles.LinkLabel };
-    static readonly Attrs NoPointerLayer = new() { Sx = DonutStyles.NoPointer };
     static readonly Attrs NodeLayer = new() { Sx = GraphStyles.Item };
     static readonly Attrs ClickableNodeLayer = new() { Sx = Sx.Of(GraphStyles.Item, GraphStyles.Clickable) };
     static readonly Attrs NodeShapeLayer = new() { Sx = GraphStyles.NodeShape };
@@ -177,8 +174,6 @@
         });
         return (Plot(placed, placedById), data);
     }
-
-    static string N(double value) => SvgFormat.Number(value);
 
     // 节点的形状：中心在原点、外接圆直径 size 的 SVG 路径
     static string ShapePath(GraphNodeShape shape, double size)

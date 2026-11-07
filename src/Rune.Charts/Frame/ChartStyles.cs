@@ -116,6 +116,16 @@ public static class ChartStyles
     /// <summary>绘图区的高度。</summary>
     internal static readonly CssVar<CssLength> PlotHeight = CssVar.Length("rune-chart-plot-height", "240px");
 
+    // 加载中的骨架：一个圆（环形图、雷达图、弦图）
+    internal static Style RoundSkeleton => Css.Define(static () => new Style
+    {
+        Display = Display.Block,
+        Height = CssLength.Percent(100),
+        AspectRatio = "1",
+        MarginInline = CssLength.Auto,
+        BorderRadius = CssLength.Percent(50),
+    });
+
     // 加载中的骨架：一整块
     internal static Style SkeletonBlock => Css.Define(static () => new Style { Display = Display.Block, Width = CssLength.Percent(100), Height = CssLength.Percent(100) });
 
@@ -164,6 +174,16 @@ public static class ChartStyles
 internal static class ChartSvgStyles
 {
     internal static Style Svg => Css.Define(static () => new Style { Display = Display.Block, Overflow = Overflow.Visible, UserSelect = UserSelect.None, TouchAction = TouchAction.PanY });
+
+    // 进场：整张图淡入
+    internal static Style FadeIn => Css.Define(static () => new Style
+    {
+        Opacity = 1,
+        [When.Starting] = new() { Opacity = 0 },
+        Transition = $"opacity {Durations.Lg} {Easings.Standard}",
+    });
+
+    internal static Style NoPointer => Css.Define(static () => new Style { PointerEvents = PointerEvents.None });
 
     internal static Style Grid => Css.Define(static () => new Style { Stroke = Colors.BorderMuted, StrokeWidth = 1, ShapeRendering = ShapeRendering.CrispEdges });
 

@@ -162,7 +162,7 @@ public abstract partial class XYChartBase<TItem>
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
-        Resolved = [.. SeriesSource.Select((item, index) => new ResolvedSeries<TItem>(item, ChartColor.Resolve(item.Color, index)))];
+        Resolved = ResolvedSeries<TItem>.Of(SeriesSource);
         var hidden = Hidden;
         Visible = [.. Resolved.Where(item => !hidden.Contains(item.Key))];
     }

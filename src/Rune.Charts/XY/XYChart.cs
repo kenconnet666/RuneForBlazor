@@ -51,7 +51,7 @@ public abstract class XYChart<TItem> : XYChartBase<TItem>
 
     private protected override async Task ToggleSeriesAsync(string key)
     {
-        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        var next = Toggled(Hidden, key);
         hiddenState = next;
         await HiddenSeriesChanged.InvokeAsync(next);
     }

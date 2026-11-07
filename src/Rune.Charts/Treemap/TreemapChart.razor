@@ -16,8 +16,6 @@
     const double GroupTitle = 20;
     const double Inset = 6;
 
-    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
-    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
     static readonly Attrs GroupLayer = new() { Sx = TreemapStyles.Group };
     static readonly Attrs TileLayer = new() { Sx = TreemapStyles.Tile };
     static readonly Attrs NameLayer = new() { Sx = TreemapStyles.Name };
@@ -70,7 +68,7 @@
 
     private protected override async Task ToggleLegendAsync(string key)
     {
-        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        var next = Toggled(Hidden, key);
         hiddenState = next;
         await HiddenGroupsChanged.InvokeAsync(next);
         if (HiddenGroups is null) OnParametersSet();
@@ -123,8 +121,6 @@
             [new(lang.ChartValue, ColorOfTop(node), ValueText((decimal)node.Value)), new(lang.ChartShare, null, ShareText(node.Value, total))]));
         return (Plot(branches, leaves), ItemHoverData(tips, dim: false));
     }
-
-    static string N(double value) => SvgFormat.Number(value);
 
     RenderFragment Plot(List<TreemapNode<TItem>> branches, List<TreemapNode<TItem>> leaves) => __builder =>
     {

@@ -50,8 +50,6 @@ internal static class MapStyles
 
     internal static Style Leader => Css.Define(static () => new Style { Stroke = Colors.TextMuted, StrokeWidth = 1 });
 
-    internal static Style NoPointer => Css.Define(static () => new Style { PointerEvents = PointerEvents.None });
-
     // 缩放按钮：在标题行的结束边（导出菜单前面）
     internal static Style Zoom => Css.Define(static () => new Style { Display = Display.InlineFlex, AlignItems = AlignItems.Center, Gap = CssLength.Rem(0.125), MarginInlineStart = CssLength.Auto });
 

@@ -15,8 +15,6 @@
     const double ArcGap = 3;
     const double PadAngle = 0.04;
 
-    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
-    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
     static readonly Attrs NodeLayer = new() { Sx = ChordStyles.Node };
     static readonly Attrs LinkLayer = new() { Sx = ChordStyles.Link };
     static readonly Attrs LabelLayer = new() { Sx = ChordStyles.Label };
@@ -59,7 +57,7 @@
 
     private protected override async Task ToggleLegendAsync(string key)
     {
-        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        var next = Toggled(Hidden, key);
         hiddenState = next;
         await HiddenNodesChanged.InvokeAsync(next);
         if (HiddenNodes is null) OnParametersSet();
@@ -67,7 +65,7 @@
 
     private protected override RenderFragment SkeletonContent => __builder =>
     {
-        <Skeleton Sx="DonutStyles.Skeleton" />
+        <Skeleton Sx="ChartStyles.RoundSkeleton" />
     };
 
     private protected override ChartTable BuildTable()
@@ -96,8 +94,6 @@
                 .Select(pair => pair.index).Prepend(flows.Count + position)));
         return (Plot(nodes, flows, groups, chords), ItemHoverData(tips, groups: related));
     }
-
-    static string N(double value) => SvgFormat.Number(value);
 
     RenderFragment Plot(List<ResolvedFlowNode> nodes, List<FlowLink> flows, IReadOnlyList<ChordGroup> groups, IReadOnlyList<ChordLink> chords) => __builder =>
     {

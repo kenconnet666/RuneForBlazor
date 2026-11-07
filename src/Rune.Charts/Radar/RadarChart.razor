@@ -20,7 +20,7 @@
     const double Radius = 108;
     const double LabelRadius = 124;
 
-    static readonly Attrs SvgLayer = new() { Sx = RadarStyles.Svg };
+    static readonly Attrs CanvasLayer = new() { Sx = RadarStyles.Svg };
     static readonly Attrs GridLayer = new() { Sx = RadarStyles.Grid };
     static readonly Attrs SpokeLayer = new() { Sx = RadarStyles.Spoke };
     static readonly Attrs TickLayer = new() { Sx = RadarStyles.Tick };
@@ -66,7 +66,7 @@
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
-        resolved = [.. Series.Select((item, index) => new ResolvedSeries<TItem>(item, ChartColor.Resolve(item.Color, index)))];
+        resolved = ResolvedSeries<TItem>.Of(Series);
         var hidden = Hidden;
         visible = [.. resolved.Where(item => !hidden.Contains(item.Key))];
     }
@@ -82,7 +82,7 @@
 
     private protected override async Task ToggleLegendAsync(string key)
     {
-        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        var next = Toggled(Hidden, key);
         hiddenState = next;
         await HiddenSeriesChanged.InvokeAsync(next);
         if (HiddenSeries is null) OnParametersSet();
@@ -90,7 +90,7 @@
 
     private protected override RenderFragment SkeletonContent => __builder =>
     {
-        <Skeleton Sx="DonutStyles.Skeleton" />
+        <Skeleton Sx="ChartStyles.RoundSkeleton" />
     };
 
     private protected override ChartTable BuildTable()
@@ -103,8 +103,6 @@
 
     // 少于三个维度画不成多边形：不画
     private protected override (RenderFragment Plot, string? Data)? Draw() => Items.Count < 3 ? null : (Plot, ItemHoverData([], dim: false));
-
-    static string N(double value) => SvgFormat.Number(value);
 
     // 第 index 个维度（共 count 个）、比例 ratio 处的点：第一个维度在正上方，顺时针
     static (double X, double Y, double Angle) Polar(double index, int count, double ratio)
@@ -121,7 +119,7 @@
         var top = Max ?? AxisTicks.NiceStep(Math.Max(values.DefaultIfEmpty(0).Max(), 1) / Levels) * Levels;
         double RatioOf(double value) => Math.Max(0, Math.Min(value / top, 1));
         string Ring(double ratio) => string.Join(' ', Enumerable.Range(0, count).Select(position => Polar(position, count, ratio)).Select(p => $"{N(p.X)},{N(p.Y)}"));
-        <svg viewBox="0 0 360 300" @attributes="Attrs.Merge(SvgLayer)">
+        <svg viewBox="0 0 360 300" @attributes="Attrs.Merge(CanvasLayer)">
             @for (var level = 0; level < Levels; level++)
             {
                 var ratio = (level + 1.0) / Levels;

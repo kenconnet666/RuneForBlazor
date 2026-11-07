@@ -11,13 +11,11 @@
 @Frame
 
 @code {
-    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
     static readonly Attrs RingLayer = new() { Sx = DonutStyles.Ring };
     static readonly Attrs BackgroundLayer = new() { Sx = DonutStyles.Background };
     static readonly Attrs SegmentLayer = new() { Sx = DonutStyles.Segment };
     static readonly Attrs CenterValueLayer = new() { Sx = DonutStyles.CenterValue };
     static readonly Attrs CenterLabelLayer = new() { Sx = DonutStyles.CenterLabel };
-    static readonly Attrs NoPointerLayer = new() { Sx = DonutStyles.NoPointer };
 
     IReadOnlyList<string> hiddenState = [];
     List<Slice> slices = [];
@@ -86,7 +84,7 @@
 
     private protected override async Task ToggleLegendAsync(string key)
     {
-        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        var next = Toggled(Hidden, key);
         hiddenState = next;
         await HiddenItemsChanged.InvokeAsync(next);
         if (HiddenItems is null) OnParametersSet();
@@ -99,7 +97,7 @@
 
     private protected override RenderFragment SkeletonContent => __builder =>
     {
-        <Skeleton Sx="DonutStyles.Skeleton" />
+        <Skeleton Sx="ChartStyles.RoundSkeleton" />
     };
 
     string Share(decimal? value) => value is { } v ? ShareText((double)v, total) : Config.Lang.EmptyValue;
@@ -136,8 +134,6 @@
             [new(lang.ChartValue, slice.Color, ValueText(slice.Value)), new(lang.ChartShare, null, Share(slice.Value))]));
         return (Plot, ItemHoverData(tips));
     }
-
-    static string N(double value) => SvgFormat.Number(value);
 
     RenderFragment Plot => __builder =>
     {

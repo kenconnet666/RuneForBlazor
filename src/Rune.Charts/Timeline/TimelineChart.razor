@@ -15,10 +15,8 @@
     const double LabelWidth = 160;
     static readonly TimeSpan Day = TimeSpan.FromDays(1);
 
-    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
     static readonly Attrs StripeLayer = new() { Sx = TimelineChartStyles.Stripe };
     static readonly Attrs LabelLayer = new() { Sx = ChartSvgStyles.Label };
-    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
     static readonly Attrs SegmentLayer = new() { Sx = TimelineChartStyles.Segment };
     static readonly Attrs MarkerLineLayer = new() { Sx = ChartSvgStyles.EventLine };
     static readonly Attrs MarkerLabelLayer = new() { Sx = Sx.Of(ChartSvgStyles.LabelColored, ChartSvgStyles.Halo) };
@@ -93,7 +91,7 @@
 
     private protected override async Task ToggleLegendAsync(string key)
     {
-        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        var next = Toggled(Hidden, key);
         hiddenState = next;
         await HiddenSeriesChanged.InvokeAsync(next);
     }
@@ -170,8 +168,6 @@
         });
         return (Plot(shown), ItemHoverData(tips, dim: false));
     }
-
-    static string N(double value) => SvgFormat.Number(value);
 
     RenderFragment Plot(List<Segment> shown) => __builder =>
     {

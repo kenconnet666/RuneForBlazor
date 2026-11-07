@@ -131,6 +131,24 @@ public abstract class ChartBase : UIComponent
         builder.CloseComponent();
     };
 
+    // ───────── 共用的层与小工具 ─────────
+
+    /// <summary>图表的 SVG。</summary>
+    private protected static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
+
+    /// <summary>整张图淡入。</summary>
+    private protected static readonly Attrs FadeLayer = new() { Sx = ChartSvgStyles.FadeIn };
+
+    /// <summary>不接指针（文字、标签）。</summary>
+    private protected static readonly Attrs NoPointerLayer = new() { Sx = ChartSvgStyles.NoPointer };
+
+    /// <summary>SVG 里的数字：三位小数。</summary>
+    private protected static string N(double value) => SvgFormat.Number(value);
+
+    /// <summary>图例里点了一项：在隐藏的列表里加上或去掉它。</summary>
+    private protected static IReadOnlyList<string> Toggled(IReadOnlyList<string> hidden, string key) =>
+        hidden.Contains(key) ? [.. hidden.Where(item => item != key)] : [.. hidden, key];
+
     // ───────── 文字 ─────────
 
     /// <summary>按格式与单位写一个数值；没有值时是语言包的 EmptyValue。</summary>

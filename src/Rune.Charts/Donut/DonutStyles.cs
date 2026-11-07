@@ -31,15 +31,4 @@ internal static class DonutStyles
     internal static Style CenterValue => Css.Define(static () => new Style { Fill = Colors.Text, FontSize = FontSizes.Xl, FontWeight = FontWeights.Semibold });
 
     internal static Style CenterLabel => Css.Define(static () => new Style { Fill = Colors.TextMuted, FontSize = FontSizes.Xs });
-
-    internal static Style NoPointer => Css.Define(static () => new Style { PointerEvents = PointerEvents.None });
-
-    internal static Style Skeleton => Css.Define(static () => new Style
-    {
-        Display = Display.Block,
-        Height = CssLength.Percent(100),
-        AspectRatio = "1",
-        MarginInline = CssLength.Auto,
-        BorderRadius = CssLength.Percent(50),
-    });
 }

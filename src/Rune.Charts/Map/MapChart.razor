@@ -19,9 +19,7 @@
     const double LabelPadding = 3;
     const double FitPadding = 8;
 
-    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
     static readonly Attrs ViewportLayer = new() { Sx = MapStyles.Viewport };
-    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
     static readonly Attrs SphereLayer = new() { Sx = MapStyles.Sphere };
     static readonly Attrs FeatureLayer = new() { Sx = MapStyles.Feature };
     static readonly Attrs ClickableFeatureLayer = new() { Sx = Sx.Of(MapStyles.Feature, MapStyles.Clickable) };
@@ -29,7 +27,6 @@
     static readonly Attrs ParticleLayer = new() { Sx = MapStyles.Particle };
     static readonly Attrs PointLayer = new() { Sx = MapStyles.Point };
     static readonly Attrs ClickablePointLayer = new() { Sx = Sx.Of(MapStyles.Point, MapStyles.Clickable) };
-    static readonly Attrs NoPointerLayer = new() { Sx = MapStyles.NoPointer };
     static readonly Attrs AreaLabelLayer = new() { Sx = Sx.Of(MapStyles.AreaLabel, ChartSvgStyles.Halo) };
     static readonly Attrs PointLabelLayer = new() { Sx = Sx.Of(MapStyles.PointLabel, ChartSvgStyles.Halo) };
     static readonly Attrs LeaderLayer = new() { Sx = MapStyles.Leader };
@@ -186,8 +183,6 @@
             }
         </div>
     };
-
-    static string N(double value) => SvgFormat.Number(value);
 
     // 一组环写成路径；坐标保留一位小数（像素）
     static string RingsPath(IEnumerable<List<(double X, double Y)>> rings)

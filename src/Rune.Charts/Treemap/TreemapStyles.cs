@@ -5,13 +5,6 @@ namespace Rune.UI;
 /// <summary>矩形树图的样式（同 vue-tsx-pro 的 treemapChartStyles）：悬停的块由 charts.js 写 data-active。</summary>
 internal static class TreemapStyles
 {
-    internal static Style FadeIn => Css.Define(static () => new Style
-    {
-        Opacity = 1,
-        [When.Starting] = new() { Opacity = 0 },
-        Transition = $"opacity {Durations.Lg} {Easings.Standard}",
-    });
-
     internal static Style Group => Css.Define(static () => new Style { Fill = ChartStyles.Color, Stroke = Stroke.None });
 
     // 悬停的块描一圈正文色
