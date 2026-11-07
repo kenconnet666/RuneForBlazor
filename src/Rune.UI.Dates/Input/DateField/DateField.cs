@@ -33,38 +33,19 @@ public class DateField<TValue> : SegmentedField<TValue>
     /// <summary>带时间时不可选的时刻（午休、非营业时间）；参数是时间与那一天，周末与平日可以不一样。</summary>
     [Parameter] public Func<TimeOnly, DateOnly, bool>? IsTimeUnavailable { get; set; }
 
-    private protected bool WithTime => Granularity is DateGranularity.Hour or DateGranularity.Minute or DateGranularity.Second;
+    private protected bool WithTime => DateSegments.HasTime(Granularity);
 
     private protected override DateSegmentType[] Fields => DateSegments.FieldsOf(Granularity);
 
     private protected override string? CurrentIso => Wall(CurrentValue) is { } wall ? IsoOf(wall) : null;
 
     // 值 → 语言时区里的日期时间（墙上时间）
-    private protected DateTime? Wall(object? value) => value switch
-    {
-        null => null,
-        DateOnly date => date.ToDateTime(TimeOnly.MinValue),
-        DateTime { Kind: DateTimeKind.Utc } utc => TimeZoneInfo.ConvertTimeFromUtc(utc, Zone),
-        DateTime time => time,
-        DateTimeOffset offset => TimeZoneInfo.ConvertTime(offset, Zone).DateTime,
-        _ => throw new InvalidOperationException($"DateField 的值要是 DateOnly、DateTime 或 DateTimeOffset，不是 {value.GetType()}。"),
-    };
+    private protected DateTime? Wall(object? value) => DateValues.Wall(value, Zone);
 
-    private protected string IsoOf(DateTime wall) => Granularity switch
-    {
-        DateGranularity.Hour => wall.ToString("yyyy-MM-ddTHH:00", CultureInfo.InvariantCulture),
-        DateGranularity.Minute => wall.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture),
-        DateGranularity.Second => wall.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture),
-        _ => DateSegments.PeriodIso(DateOnly.FromDateTime(wall), Granularity),
-    };
+    private protected string IsoOf(DateTime wall) => DateSegments.WallIso(wall, Granularity);
 
     // 填好的段 → 那一段的第一天（带时间时加上时分秒）
-    DateTime? WallOf(string iso)
-    {
-        if (DateSegments.FromIso(iso, Fields) is not { } parts || DateSegments.PeriodStart(parts, Granularity) is not { } day) return null;
-        var date = day.ToDateTime(TimeOnly.MinValue);
-        return WithTime ? date.Add(new TimeSpan(parts.Hour ?? 0, parts.Minute ?? 0, parts.Second ?? 0)) : date;
-    }
+    DateTime? WallOf(string iso) => DateSegments.WallOf(iso, Granularity);
 
     private protected override bool TryFromIso(string? iso, out TValue value)
     {
@@ -74,14 +55,7 @@ public class DateField<TValue> : SegmentedField<TValue>
         // 只显示日期时，原来的时分秒不丢（同 vue 的 like.set）
         if (!WithTime && Wall(CurrentValue) is { } previous) wall = wall.Date + previous.TimeOfDay;
         var type = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
-        object result = type switch
-        {
-            _ when type == typeof(DateOnly) => DateOnly.FromDateTime(wall),
-            _ when type == typeof(DateTimeOffset) => new DateTimeOffset(wall, Zone.GetUtcOffset(wall)),
-            _ when CurrentValue is DateTime { Kind: DateTimeKind.Utc } => TimeZoneInfo.ConvertTimeToUtc(wall, Zone),
-            _ => wall,
-        };
-        value = (TValue)result;
+        value = (TValue)DateValues.FromWall(wall, type, Zone, CurrentValue is DateTime { Kind: DateTimeKind.Utc });
         return true;
     }
 

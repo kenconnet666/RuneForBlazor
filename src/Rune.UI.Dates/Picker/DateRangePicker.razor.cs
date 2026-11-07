@@ -4,7 +4,8 @@ using Rune.Styles;
 namespace Rune.UI;
 
 /// <summary>日期区间选择器：一个输入框里开始、结束两组分段，按钮弹出区间日历（用法见 DateRangePicker.razor 顶部）。</summary>
-public partial class DateRangePicker
+/// <typeparam name="TValue">两端的类型：DateOnly（按天、周、月、季度、年），带时间的粒度用 DateTime 或 DateTimeOffset。</typeparam>
+public partial class DateRangePicker<TValue> where TValue : struct, IComparable<TValue>
 {
     static readonly Attrs HiddenLayer = new() { Sx = SharedStyles.VisuallyHidden };
     static readonly Attrs SeparatorLayer = new() { Sx = Css.Define(static () => new Style { FlexShrink = 0, PaddingInline = Space.Xs, Color = Colors.TextMuted }) };
@@ -13,12 +14,14 @@ public partial class DateRangePicker
     readonly string StartLabelId = UniqueId.Next("date-range-start");
     readonly string EndLabelId = UniqueId.Next("date-range-end");
     bool open;
+    // 带时间时日历里选好了日期：关上后焦点去开始那组的“时”接着输入（同 vue-tsx-pro）
+    bool editTime;
     // 两组各自填好的那一端（ISO 文字）：只填了一端时值是 null，但这一端还在
     string? startIso;
     string? endIso;
-    DateRange? shownValue;
+    DateRange<TValue>? shownValue;
 
-    /// <summary>精确到哪一段：Day（默认）、Week、Month、Quarter、Year。</summary>
+    /// <summary>精确到哪一段：Day（默认）、Week、Month、Quarter、Year；Hour、Minute、Second 是日期时间区间（两端带时间，TValue 用 DateTime 或 DateTimeOffset）。</summary>
     [Parameter] public DateGranularity Granularity { get; set; } = DateGranularity.Day;
 
     /// <summary>最早可选的日期。</summary>
@@ -94,9 +97,31 @@ public partial class DateRangePicker
         _ => DateUnit.Day,
     };
 
-    EventCallback<DateRange?> QuarterPicked => EventCallback.Factory.Create<DateRange?>(this, range => range is { } picked ? PickAsync(picked) : Task.CompletedTask);
+    EventCallback<DateRange<DateOnly>?> QuarterPicked => EventCallback.Factory.Create<DateRange<DateOnly>?>(this, range => range is { } picked ? PickAsync(picked) : Task.CompletedTask);
 
-    DateOnly Today => LocalToday();
+    TimeZoneInfo Zone => LangFormat.ZoneOf(Config.Lang);
+
+    bool WithTime => DateSegments.HasTime(Granularity);
+
+    DateOnly Today => LocalToday(Zone);
+
+    // 日历上的区间（按天）：两端所在的那一天
+    DateRange<DateOnly>? CalendarValue => CurrentValue is { } range && DateValues.Wall(range.Start, Zone) is { } start && DateValues.Wall(range.End, Zone) is { } end
+        ? new(DateOnly.FromDateTime(start), DateOnly.FromDateTime(end))
+        : null;
+
+    string? IsoOf(TValue value) => DateValues.Wall(value, Zone) is { } wall ? DateSegments.WallIso(wall, Granularity) : null;
+
+    // 墙上时间 → 一端的值；原来的值是 UTC 的 DateTime 时仍写回 UTC
+    TValue ValueOf(DateTime wall) => (TValue)DateValues.FromWall(wall, typeof(TValue), Zone, CurrentValue?.Start is DateTime { Kind: DateTimeKind.Utc });
+
+    // 带时间时，结束那天默认到最后一刻（同 vue-tsx-pro）：按小时是 23:00，按分是 23:59，按秒是 23:59:59
+    TimeSpan EndOfDay => Granularity switch
+    {
+        DateGranularity.Hour => new(23, 0, 0),
+        DateGranularity.Second => new(23, 59, 59),
+        _ => new(23, 59, 0),
+    };
 
     static string? Join(string? a, string b) => a is null ? b : $"{a} {b}";
 
@@ -107,15 +132,17 @@ public partial class DateRangePicker
         // 值从外面变了（或刚写回）：两组跟着它；没变时留着只填了一端的那一组
         if (CurrentValue == shownValue && (startIso is not null || endIso is not null || CurrentValue is null)) return;
         shownValue = CurrentValue;
-        startIso = CurrentValue is { } range ? DateSegments.PeriodIso(range.Start, Granularity) : null;
-        endIso = CurrentValue is { } r ? DateSegments.PeriodIso(r.End, Granularity) : null;
+        startIso = CurrentValue is { } range ? IsoOf(range.Start) : null;
+        endIso = CurrentValue is { } r ? IsoOf(r.End) : null;
     }
 
-    // 一组的 ISO 文字 → 那一段的第一天（开始）或最后一天（结束）
-    DateOnly? DayOf(string? iso, bool end) =>
-        iso is not null && DateSegments.FromIso(iso, DateSegments.FieldsOf(Granularity)) is { } parts && DateSegments.PeriodStart(parts, Granularity) is { } start
-            ? end ? DateSegments.PeriodEnd(start, Granularity) : start
-            : null;
+    // 一组的 ISO 文字 → 一端的值：开始是那一段的第一天（带时间时加上时分秒），结束是最后一天
+    TValue? EndOf(string? iso, bool end)
+    {
+        if (DateSegments.WallOf(iso, Granularity) is not { } wall) return null;
+        if (end && !WithTime) wall = DateSegments.PeriodEnd(DateOnly.FromDateTime(wall), Granularity).ToDateTime(TimeOnly.MinValue);
+        return ValueOf(wall);
+    }
 
     Task StartChangedAsync(string? iso)
     {
@@ -132,30 +159,42 @@ public partial class DateRangePicker
     // 两端都填好才写回；删掉了一段写回 null
     async Task WriteAsync()
     {
-        DateRange? next = DayOf(startIso, false) is { } start && DayOf(endIso, true) is { } end ? new DateRange(start, end) : null;
+        DateRange<TValue>? next = EndOf(startIso, false) is { } start && EndOf(endIso, true) is { } end ? new DateRange<TValue>(start, end) : null;
         if (next == CurrentValue) return;
         shownValue = next;
         await SetValueAsync(next);
     }
 
-    /// <summary>选了一个区间（日历、快捷选项）：写回，关闭弹层。</summary>
-    async Task PickAsync(DateRange range)
+    /// <summary>
+    /// 选了一个区间（日历、快捷选项，按天）：写回，关闭弹层。带时间时两端保留原来的时间（没有时开始是 0 点、结束是那天的最后一刻），
+    /// 之后在分段里改时间。
+    /// </summary>
+    async Task PickAsync(DateRange<DateOnly> days)
     {
         if (IsDisabled || IsReadOnly) return;
-        startIso = DateSegments.PeriodIso(range.Start, Granularity);
-        endIso = DateSegments.PeriodIso(range.End, Granularity);
+        var start = days.Start.ToDateTime(TimeOnly.MinValue);
+        var end = days.End.ToDateTime(TimeOnly.MinValue);
+        if (WithTime)
+        {
+            start += CurrentValue is { } before && DateValues.Wall(before.Start, Zone) is { } a ? a.TimeOfDay : TimeSpan.Zero;
+            end += CurrentValue is { } previous && DateValues.Wall(previous.End, Zone) is { } b ? b.TimeOfDay : EndOfDay;
+        }
+        var range = new DateRange<TValue>(ValueOf(start), ValueOf(end));
+        startIso = IsoOf(range.Start);
+        endIso = IsoOf(range.End);
         shownValue = range;
         await SetValueAsync(range);
+        editTime = WithTime;
         open = false;
     }
 
     /// <summary>区间能不能选：两端在范围内；不允许夹着不可选的日期时中间没有。</summary>
-    bool Selectable(DateRange range) =>
+    bool Selectable(DateRange<DateOnly> range) =>
         !(Min is { } min && range.Start < min) && !(Max is { } max && range.End > max)
         && (AllowsUnavailableInRange || IsDateUnavailable is not { } unavailable || !Enumerable.Range(0, range.Days).Any(offset => unavailable(range.Start.AddDays(offset))));
 
     // 结束早于开始、超出范围、夹着不可选的日期
-    bool OutOfRange => CurrentValue is { } range && (range.End < range.Start || !Selectable(range));
+    bool OutOfRange => CurrentValue is { } range && (range.End.CompareTo(range.Start) < 0 || CalendarValue is { } days && !Selectable(days));
 
     Attrs ShellManaged(string? labelled, bool invalid) => new()
     {
@@ -169,5 +208,6 @@ public partial class DateRangePicker
     };
 
     Attrs PopoverManaged => PickerParts.Popover(PopoverId, Config.Lang.DatePickerOpen, Placement, open, ControlId, false,
-        EventCallback.Factory.Create<OverlayToggleEventArgs>(this, (OverlayToggleEventArgs e) => open = e.Open));
+        EventCallback.Factory.Create<OverlayToggleEventArgs>(this, (OverlayToggleEventArgs e) => (open, editTime) = (e.Open, e.Open && editTime)),
+        editTime ? $"{ControlId}-start-hour" : null);
 }

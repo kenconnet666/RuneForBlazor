@@ -7,7 +7,7 @@
     <Examples>
         <ExampleColumn>
             <Example Id="report" Title="基础用法与快捷区间" Demo="typeof(ReportExample)">
-                值是 <Code>DateRange?</Code>（两端都含），两组都填好才写回，删掉一段写回 <Code>null</Code>；开始那组填满时焦点自动进结束那组。
+                值是 <Code>DateRange&lt;DateOnly&gt;?</Code>（两端都含），两组都填好才写回，删掉一段写回 <Code>null</Code>；开始那组填满时焦点自动进结束那组。
                 <Code>Presets</Code> 是内置的快捷区间（<Code>DateRangePreset</Code>：今天、最近 7 天、本月……，按今天与语言的一周第一天算；
                 同一套算法也可以单独用 <Code>DateRange.Preset</Code>），超出范围的不可用。默认区间里不能夹着不可选的日期（订满的那晚）。
                 <Code>StartName</Code>、<Code>EndName</Code> 让原生表单提交两端的 ISO 文字。
@@ -17,12 +17,13 @@
             </Example>
         </ExampleColumn>
         <ExampleColumn>
-            <Example Id="periods" Title="按月、按年、按季度与按周" Demo="typeof(PeriodsExample)">
-                <Code>Granularity</Code> 决定两组的段与日历选什么：按月、按年时日历选整月、整年，按季度时弹出季度面板（QuarterCalendar），周按 ISO 8601（周一开始、行首是周数）；
-                写回的仍是日期：开始是那一段的第一天，结束是最后一天。
+            <Example Id="periods" Title="按月、按年与日期时间" Demo="typeof(PeriodsExample)">
+                <Code>Granularity</Code> 同 DateField：按月、按年时日历选整月、整年，按季度时弹出季度面板（QuarterCalendar），周按 ISO 8601（周一开始、行首是周数）；
+                写回的是日期：开始是那一段的第一天，结束是最后一天。到 <Code>Minute</Code> 时是日期时间区间（值是 <Code>DateRange&lt;DateTime&gt;</Code>）：
+                日历里选日期，开始补 00:00、结束补 23:59（已经填了的时间不变），选好后焦点去开始的“时”接着输入。
             </Example>
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="@([.. DateKeys.Segments, .. DateKeys.Picker, .. DateKeys.Calendar])" />
-    <ApiReference Types="[typeof(DateRangePicker), typeof(DateRange), typeof(DateRangePreset)]" />
+    <ApiReference Types="[typeof(DateRangePicker<>), typeof(DateRange<DateOnly>), typeof(DateRangePreset)]" />
 </DocPage>

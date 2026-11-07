@@ -91,7 +91,7 @@
 - API：TextField 等输入框的 Sx 落在外框上（DESIGN 的约定），vue 的 sx 落在 input 上，同样写 16rem 时 vue 的外框宽 44px；
   DateTimeText 没有 Intl 的 `options`（date-time/formats 的后两行）；DateRangePicker 的值是日期区间而不是期间文字（periods 示例的值显示不同）。
 - vue 的问题（已报给 vue 的会话）：DataTable 勾选列的负外边距落在 input 上没有生效，vue 的表头与带勾选框的行高出约 4px，本库按它注释里的意图。
-- 还没做的：DateRangePicker 带时间的区间（periods 示例的“维护窗口”），见待决。
+- DateRangePicker 带时间的区间已做（`DateRangePicker<TValue>`，periods 示例的“维护窗口”）。
 ### P4 正式上线前
 
 - [ ] 程序集懒加载：Charts、Charts.Maps（地图数据大）、Dates 只在用到的页面下载（`BlazorWebAssemblyLazyLoad` + `Router.OnNavigateAsync`）；
@@ -117,8 +117,7 @@
    `PersistentComponentState`、HttpClient 的用法），页名不同，侧栏位置对齐。
 3. **导入行的写法**（P1 第一项）：包名 + 命名空间，还是只写命名空间。
 4. **因参数名不同造成的文字差异**（`Size="Md"` 对 `size="md"`）：按有意的差别处理（倾向），还是示例文字改写成等宽。
-5. **DateRangePicker 带时间的区间**（阶段 4 留下的一项）：现在的值是 `DateRange`（两个 DateOnly）。两种做法：改成泛型 `DateRangePicker<TValue>`（同 `DatePicker<TValue>`，
-   值是 `DateRange<TValue>`，DateOnly / DateTime / DateTimeOffset），或者新增 `DateTimeRange` 与一个参数。都会改公共 API（RangeCalendar、快捷区间一起动），
-   倾向泛型（与 DatePicker 一致）。
+5. ~~DateRangePicker 带时间的区间~~：已按推荐做成泛型 `DateRangePicker<TValue>`（2026-11-07 用户确认）。`DateRange` 改成 `DateRange<T>`，
+   静态类 `DateRange` 放 `Of`、`Preset` 与 `DateRange<DateOnly>` 的 `Days`、`Contains`（C# 14 扩展成员）；日历与快捷区间按天，用 `DateRange<DateOnly>`。
 
 已定（2026-11-07）：导入行写包名（`dotnet add package …`）；Data 指南写 Blazor 的话题；代码演练场、属性演练场按钮、示例的“编辑”、顶栏的 ORM 链接暂不做。

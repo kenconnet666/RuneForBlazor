@@ -12,6 +12,29 @@ static class DateValues
     public static bool TryParseIso(string? text, out DateOnly date) =>
         DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
 
+    /// <summary>值 → 时区里的日期时间（墙上时间）：DateOnly 是那天的 0 点，UTC 的 DateTime 与 DateTimeOffset 换到 <paramref name="zone"/>。</summary>
+    public static DateTime? Wall(object? value, TimeZoneInfo zone) => value switch
+    {
+        null => null,
+        DateOnly date => date.ToDateTime(TimeOnly.MinValue),
+        DateTime { Kind: DateTimeKind.Utc } utc => TimeZoneInfo.ConvertTimeFromUtc(utc, zone),
+        DateTime time => time,
+        DateTimeOffset offset => TimeZoneInfo.ConvertTime(offset, zone).DateTime,
+        _ => throw new InvalidOperationException($"日期的值要是 DateOnly、DateTime 或 DateTimeOffset，不是 {value.GetType()}。"),
+    };
+
+    /// <summary>
+    /// 墙上时间 → <paramref name="type"/>（DateOnly、DateTime、DateTimeOffset）：DateTimeOffset 带上时区的偏移；
+    /// <paramref name="utc"/> 时（原来的值是 UTC 的 DateTime）换回 UTC。
+    /// </summary>
+    public static object FromWall(DateTime wall, Type type, TimeZoneInfo zone, bool utc) => type switch
+    {
+        _ when type == typeof(DateOnly) => DateOnly.FromDateTime(wall),
+        _ when type == typeof(DateTimeOffset) => new DateTimeOffset(wall, zone.GetUtcOffset(wall)),
+        _ when utc => TimeZoneInfo.ConvertTimeToUtc(wall, zone),
+        _ => wall,
+    };
+
     /// <summary>值里有没有时间：DateTime、DateTimeOffset、TimeOnly 有，DateOnly 没有。</summary>
     public static bool HasTime(object value) => value is not DateOnly;
 

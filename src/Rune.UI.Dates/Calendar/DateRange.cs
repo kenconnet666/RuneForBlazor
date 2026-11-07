@@ -13,25 +13,35 @@ public enum DateUnit
     Year,
 }
 
-/// <summary>日期区间，两端都包含。</summary>
+/// <summary>
+/// 区间，两端都包含（同 vue-tsx-pro 的 DateRange）：日历与按天的区间选择器用 <c>DateRange&lt;DateOnly&gt;</c>，
+/// 带时间的区间（DateRangePicker 的 Granularity 是 Hour、Minute、Second）用 <c>DateRange&lt;DateTime&gt;</c> 或 <c>DateRange&lt;DateTimeOffset&gt;</c>。
+/// 排序、天数、快捷区间见 <see cref="DateRange"/>。
+/// </summary>
 /// <param name="Start">开始（含）。</param>
 /// <param name="End">结束（含）。</param>
-public readonly record struct DateRange(DateOnly Start, DateOnly End)
+public readonly record struct DateRange<T>(T Start, T End) where T : struct, IComparable<T>;
+
+/// <summary>区间的辅助：两端排好序、日期区间的天数与包含、按今天算的快捷区间。</summary>
+public static class DateRange
 {
-    /// <summary>两个日期排成区间：先的在前。</summary>
-    public static DateRange Of(DateOnly a, DateOnly b) => a <= b ? new(a, b) : new(b, a);
+    /// <summary>两端排成区间：先的在前。</summary>
+    public static DateRange<T> Of<T>(T a, T b) where T : struct, IComparable<T> => a.CompareTo(b) <= 0 ? new(a, b) : new(b, a);
 
-    /// <summary>一共几天（含两端）。</summary>
-    public int Days => End.DayNumber - Start.DayNumber + 1;
+    extension(DateRange<DateOnly> range)
+    {
+        /// <summary>一共几天（含两端）。</summary>
+        public int Days => range.End.DayNumber - range.Start.DayNumber + 1;
 
-    /// <summary>某天在不在区间里。</summary>
-    public bool Contains(DateOnly date) => date >= Start && date <= End;
+        /// <summary>某天在不在区间里。</summary>
+        public bool Contains(DateOnly date) => date >= range.Start && date <= range.End;
+    }
 
     /// <summary>
     /// 按今天算出快捷区间（同 vue-tsx-pro 的 presetRange）：<c>DateRange.Preset(DateRangePreset.Last7Days, today, DayOfWeek.Monday)</c>。
     /// 本周按一周的第一天算。
     /// </summary>
-    public static DateRange Preset(DateRangePreset preset, DateOnly today, DayOfWeek firstDayOfWeek)
+    public static DateRange<DateOnly> Preset(DateRangePreset preset, DateOnly today, DayOfWeek firstDayOfWeek)
     {
         var month = new DateOnly(today.Year, today.Month, 1);
         return preset switch
@@ -84,12 +94,12 @@ public sealed class RangePreset
 {
     readonly DateRangePreset? builtIn;
     readonly string? label;
-    readonly Func<DateRange>? range;
+    readonly Func<DateRange<DateOnly>>? range;
 
-    /// <summary>自己的快捷区间：每次打开按当时算（跟着今天变）。</summary>
+    /// <summary>自己的快捷区间：每次打开按当时算（跟着今天变）。带时间的区间选择器里，开始取那天的第一刻、结束取最后一刻。</summary>
     /// <param name="label">按钮上的文字。</param>
-    /// <param name="range">区间。</param>
-    public RangePreset(string label, Func<DateRange> range)
+    /// <param name="range">区间（按天）。</param>
+    public RangePreset(string label, Func<DateRange<DateOnly>> range)
     {
         this.label = label;
         this.range = range;
@@ -104,6 +114,6 @@ public sealed class RangePreset
     internal string LabelIn(Lang lang) => builtIn is { } preset ? lang.DateRangePreset[char.ToLowerInvariant(preset.ToString()[0]) + preset.ToString()[1..]] : label!;
 
     /// <summary>这个快捷区间现在是哪一段。</summary>
-    internal DateRange RangeOn(DateOnly today, DayOfWeek firstDayOfWeek) => builtIn is { } preset ? DateRange.Preset(preset, today, firstDayOfWeek) : range!();
+    internal DateRange<DateOnly> RangeOn(DateOnly today, DayOfWeek firstDayOfWeek) => builtIn is { } preset ? DateRange.Preset(preset, today, firstDayOfWeek) : range!();
 }
 

@@ -1,6 +1,7 @@
 @inherits RuneComponent
 
-@* 按月的预算期间、按年的对比区间、滚动四个季度、排班周：Granularity 决定两端的形式与日历选什么；开始是那一段的第一天，结束是最后一天 *@
+@* 按月的预算期间、按年的对比区间、滚动四个季度、排班周、精确到分钟的维护窗口：Granularity 决定两端的形式与日历选什么；
+   按段时开始是那一段的第一天、结束是最后一天，带时间时两端是 DateTime *@
 <Grid MinItemWidth="@("20rem")" Gap="SpaceScale.Lg">
     <Field Label="预算期间（按月）" DescriptionContent="@Show(budget)">
         <DateRangePicker @bind-Value="budget" Granularity="DateGranularity.Month"
@@ -9,13 +10,17 @@
     <Field Label="对比区间（按年）" DescriptionContent="@Show(years)"><DateRangePicker @bind-Value="years" Granularity="DateGranularity.Year" /></Field>
     <Field Label="滚动四个季度" DescriptionContent="@Show(quarters)"><DateRangePicker @bind-Value="quarters" Granularity="DateGranularity.Quarter" /></Field>
     <Field Label="排班周（按 ISO 周）" DescriptionContent="@Show(weeks)"><DateRangePicker @bind-Value="weeks" Granularity="DateGranularity.Week" VisibleMonths="1" /></Field>
+    <Field Label="维护窗口" DescriptionContent="@Show(maintenance)"><DateRangePicker @bind-Value="maintenance" Granularity="DateGranularity.Minute" VisibleMonths="1" /></Field>
 </Grid>
 
 @code {
-    DateRange? budget = new(new(2026, 1, 1), new(2026, 6, 30));
-    DateRange? years = new(new(2023, 1, 1), new(2026, 12, 31));
-    DateRange? quarters = new(new(2025, 10, 1), new(2026, 9, 30));
-    DateRange? weeks;
+    DateRange<DateOnly>? budget = new(new(2026, 1, 1), new(2026, 6, 30));
+    DateRange<DateOnly>? years = new(new(2023, 1, 1), new(2026, 12, 31));
+    DateRange<DateOnly>? quarters = new(new(2025, 10, 1), new(2026, 9, 30));
+    DateRange<DateOnly>? weeks;
+    DateRange<DateTime>? maintenance = new(new(2026, 10, 24, 22, 0, 0), new(2026, 10, 25, 6, 0, 0));
 
-    static RenderFragment Show(DateRange? range) => @<Code>@(range is { } r ? $"{r.Start:yyyy-MM-dd} – {r.End:yyyy-MM-dd}" : "null")</Code>;
+    static RenderFragment Show(DateRange<DateOnly>? range) => @<Code>@(range is { } r ? $"{r.Start:yyyy-MM-dd} – {r.End:yyyy-MM-dd}" : "null")</Code>;
+
+    static RenderFragment Show(DateRange<DateTime>? range) => @<Code>@(range is { } r ? $"{r.Start:yyyy-MM-ddTHH:mm} – {r.End:yyyy-MM-ddTHH:mm}" : "null")</Code>;
 }

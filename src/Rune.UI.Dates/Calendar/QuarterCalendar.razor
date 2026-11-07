@@ -74,10 +74,10 @@
     [Parameter] public EventCallback<DateOnly?> ValueChanged { get; set; }
 
     /// <summary>选中的区间（<c>@bind-Range</c>，写了它就是选区间）：开始季度的第一天到结束季度的最后一天。</summary>
-    [Parameter] public DateRange? Range { get; set; }
+    [Parameter] public DateRange<DateOnly>? Range { get; set; }
 
     /// <summary>选中的区间变了。</summary>
-    [Parameter] public EventCallback<DateRange?> RangeChanged { get; set; }
+    [Parameter] public EventCallback<DateRange<DateOnly>?> RangeChanged { get; set; }
 
     /// <summary>最早可选的日期：整个季度都早于它时不可用。</summary>
     [Parameter] public DateOnly? Min { get; set; }
@@ -99,7 +99,7 @@
     DateOnly Today => LocalToday();
 
     // 已选的区间；选到一半时不画（从开始到悬停、焦点的预览在 JS 里画）
-    DateRange? Selection => IsRange && anchor is null ? Range : null;
+    DateRange<DateOnly>? Selection => IsRange && anchor is null ? Range : null;
 
     static DateOnly Start(DateOnly day) => new(day.Year, (day.Month - 1) / 3 * 3 + 1, 1);
 
@@ -164,7 +164,7 @@
         }
         anchor = null;
         var picked = DateRange.Of(first, start);
-        Range = new DateRange(picked.Start, DateSegments.PeriodEnd(picked.End, DateGranularity.Quarter));
+        Range = new DateRange<DateOnly>(picked.Start, DateSegments.PeriodEnd(picked.End, DateGranularity.Quarter));
         await RangeChanged.InvokeAsync(Range);
         await OnPick.InvokeAsync();
     }

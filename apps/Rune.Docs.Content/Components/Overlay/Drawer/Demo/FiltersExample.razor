@@ -43,7 +43,7 @@
         public string? Team { get; set; }
         public IReadOnlyList<string> Statuses { get; set; } = [];
         public NumberRange<decimal?> Saving { get; set; }
-        public DateRange? Period { get; set; }
+        public DateRange<DateOnly>? Period { get; set; }
 
         public int Count => (Team is null ? 0 : 1) + (Statuses.Count > 0 ? 1 : 0) + (Saving.Low is null && Saving.High is null ? 0 : 1) + (Period is null ? 0 : 1);
 

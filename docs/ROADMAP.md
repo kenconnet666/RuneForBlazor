@@ -177,7 +177,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 - [x] CalendarBoard（整页日历）
 - [x] DatePicker（日、周、月、季、年，快捷项、“今天”、禁用的时间段；季度暂在月份视图里选，QuarterCalendar 做好后换上）
 - [x] TimePicker
-- [x] DateRangePicker（内置快捷区间；vue 的自定义快捷区间 `{ label, value }` 与带时间的区间还没做）
+- [x] DateRangePicker（内置与自定义快捷区间；2026-11-07 改成泛型 `DateRangePicker<TValue>`，值是 `DateRange<TValue>`，Hour / Minute / Second 是带时间的区间）
 - [x] RelativeTime、Countdown
 - [ ] WebAssembly 下程序集懒加载（`BlazorWebAssemblyLazyLoad`）验证
 

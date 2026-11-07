@@ -94,6 +94,26 @@ static partial class DateSegments
         };
     }
 
+    /// <summary>粒度带不带时间（Hour、Minute、Second）。</summary>
+    public static bool HasTime(DateGranularity granularity) => granularity is DateGranularity.Hour or DateGranularity.Minute or DateGranularity.Second;
+
+    /// <summary>墙上时间 → 分段的 ISO 文字：带时间的粒度写到时、分、秒，其余是所在那一段（<see cref="PeriodIso"/>）。</summary>
+    public static string WallIso(DateTime wall, DateGranularity granularity) => granularity switch
+    {
+        DateGranularity.Hour => wall.ToString("yyyy-MM-ddTHH:00", CultureInfo.InvariantCulture),
+        DateGranularity.Minute => wall.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture),
+        DateGranularity.Second => wall.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture),
+        _ => PeriodIso(DateOnly.FromDateTime(wall), granularity),
+    };
+
+    /// <summary>分段的 ISO 文字 → 那一段第一天的墙上时间（带时间的粒度加上时分秒）；没填完时 null。</summary>
+    public static DateTime? WallOf(string? iso, DateGranularity granularity)
+    {
+        if (FromIso(iso, FieldsOf(granularity)) is not { } parts || PeriodStart(parts, granularity) is not { } day) return null;
+        var date = day.ToDateTime(TimeOnly.MinValue);
+        return HasTime(granularity) ? date.Add(new TimeSpan(parts.Hour ?? 0, parts.Minute ?? 0, parts.Second ?? 0)) : date;
+    }
+
     /// <summary>那一段的最后一天（年末、季末、月末、周日；按日时就是这一天）。</summary>
     public static DateOnly PeriodEnd(DateOnly start, DateGranularity granularity) => granularity switch
     {

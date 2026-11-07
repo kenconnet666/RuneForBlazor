@@ -28,7 +28,7 @@
 
     readonly DateOnly today = DemoClock.Today;
     HashSet<DateOnly> booked = [];
-    DateRange? stay;
+    DateRange<DateOnly>? stay;
 
     int Nights => stay is { } range ? range.Days - 1 : 0;
 

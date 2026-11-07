@@ -28,7 +28,7 @@ static class PickerParts
     };
 
     /// <summary>弹层上由组件管理的属性：popover、贴着外壳定位（列表与外壳同宽）、开关报给组件。</summary>
-    public static Attrs Popover(string id, string label, Placement placement, bool open, string anchorId, bool matchWidth, EventCallback<OverlayToggleEventArgs> toggled) =>
+    public static Attrs Popover(string id, string label, Placement placement, bool open, string anchorId, bool matchWidth, EventCallback<OverlayToggleEventArgs> toggled, string? returnFocus = null) =>
         Attrs.Merge(Floating.Placed(placement, null), new Attrs
         {
             Id = id,
@@ -40,5 +40,7 @@ static class PickerParts
             ["data-anchor"] = anchorId,
             ["data-match-width"] = matchWidth ? true : null,
             ["onrunetoggle"] = toggled,
+            // 关上后焦点去哪（不写时回到打开它的按钮）
+            ["data-return-focus"] = returnFocus,
         });
 }

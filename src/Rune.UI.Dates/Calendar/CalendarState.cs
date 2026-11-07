@@ -61,7 +61,7 @@ sealed class CalendarState
     public IEnumerable<DateOnly> Months => View == DateUnit.Day ? Enumerable.Range(0, VisibleMonths).Select(Page.AddMonths) : [Page];
 
     /// <summary>已选的区间（区间模式、两端都有时）。</summary>
-    public DateRange? SelectedRange => Range && Selected is [var start, var end, ..] ? DateRange.Of(start, end) : null;
+    public DateRange<DateOnly>? SelectedRange => Range && Selected is [var start, var end, ..] ? DateRange.Of(start, end) : null;
 
     /// <summary>已选的日期有不能选的（范围外、不可选，或区间里夹着不可选的日期）。</summary>
     public bool Invalid =>

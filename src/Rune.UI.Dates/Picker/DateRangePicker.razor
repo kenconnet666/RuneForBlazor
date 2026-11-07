@@ -2,14 +2,17 @@
     日期区间选择器（同 vue-tsx-pro 的 DateRangePicker）：一个输入框里两组分段（开始 – 结束），按钮弹出区间日历，旁边可以放快捷区间。
     <Field Label="统计区间"><DateRangePicker @bind-Value="range" Max="today" Presets="[DateRangePreset.Last7Days, DateRangePreset.ThisMonth]" /></Field>
     <DateRangePicker @bind-Value="months" Granularity="DateGranularity.Month" aria-label="预算期间" />
-    值是 DateRange（两端都含），两组都填好才写回，删掉一段写回 null。Granularity 同 DateField 的年、季度、月、周、日：
+    <DateRangePicker @bind-Value="window" Granularity="DateGranularity.Minute" aria-label="维护窗口" />   （window 是 DateRange<DateTime>?）
+    值是 DateRange<TValue>（两端都含），两组都填好才写回，删掉一段写回 null。Granularity 同 DateField 的年、季度、月、周、日：
     按月、按年、按季度时开始是那一段的第一天、结束是最后一天（日历里选整月、整年，季度弹出季度面板）。
+    Hour、Minute、Second 是日期时间区间：两组分段带时间，日历里选好日期后保留原来的时间（新选时开始 0 点、结束是那天的最后一刻），再在分段里改。
     结束早于开始、超出范围、夹着不可选的日期（AllowsUnavailableInRange 为 false 时）时外壳显示出错，值照样写回，由表单校验决定能不能提交。
     开始那组填满时焦点自动进结束那组；日历里点开始、再点结束后关闭，焦点回到按钮。Esc、点外部关闭，分段里 Alt + ↓ 打开。
     未声明的属性落到外壳（role="group"）上。写了 StartName、EndName 时两端各用一个隐藏的 input 随表单提交 ISO 文字。
 *@
 @namespace Rune.UI
-@inherits InputControl<DateRange?>
+@typeparam TValue where TValue : struct, IComparable<TValue>
+@inherits InputControl<DateRange<TValue>?>
 @{
     var parts = InputStyles.Of(Appearance, Config.Styles);
     var own = SegmentedFieldStyles.Of(Config.Styles);
@@ -53,7 +56,7 @@
                 @foreach (var preset in Presets)
                 {
                     var range = preset.RangeOn(today, first);
-                    var active = CurrentValue == range;
+                    var active = CalendarValue == range;
                     <Button @key="preset.LabelIn(lang)" Size="UI.Size.Sm" Variant="@(active ? ButtonVariant.Soft : ButtonVariant.Ghost)" Tone="Tone.Neutral"
                             aria-pressed="@(active ? "true" : "false")" Disabled="!Selectable(range)"
                             @onclick="() => PickAsync(range)" @attributes="Attrs.MergeProps(picker[PickerPart.Preset])">@preset.LabelIn(lang)</Button>
@@ -62,11 +65,11 @@
         }
         @if (Granularity == DateGranularity.Quarter)
         {
-            <QuarterCalendar Range="CurrentValue" RangeChanged="QuarterPicked" Min="Min" Max="Max" aria-label="@lang.DatePickerOpen" />
+            <QuarterCalendar Range="CalendarValue" RangeChanged="QuarterPicked" Min="Min" Max="Max" aria-label="@lang.DatePickerOpen" />
         }
         else
         {
-        <RangeCalendar Value="CurrentValue" OnPick="PickAsync" Granularity="CalendarUnit" Min="Min" Max="Max" IsDateUnavailable="IsDateUnavailable"
+        <RangeCalendar Value="CalendarValue" OnPick="PickAsync" Granularity="CalendarUnit" Min="Min" Max="Max" IsDateUnavailable="IsDateUnavailable"
                        AllowsUnavailableInRange="AllowsUnavailableInRange" VisibleMonths="VisibleMonths" Size="Size"
                        FirstDayOfWeek="@(Granularity == DateGranularity.Week ? DayOfWeek.Monday : null)" ShowWeekNumbers="@(Granularity == DateGranularity.Week)"
                        aria-label="@lang.DatePickerOpen" @attributes="Attrs.MergeProps(null, PropsCalendar)" />

@@ -13,9 +13,9 @@
 </Flex>
 
 @code {
-    DateRange? leave;
+    DateRange<DateOnly>? leave;
 
     static bool Weekend(DateOnly date) => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
 
-    static int Workdays(DateRange range) => Enumerable.Range(0, range.Days).Count(offset => !Weekend(range.Start.AddDays(offset)));
+    static int Workdays(DateRange<DateOnly> range) => Enumerable.Range(0, range.Days).Count(offset => !Weekend(range.Start.AddDays(offset)));
 }

@@ -7,7 +7,7 @@
     <Examples>
         <ExampleColumn>
             <Example Id="hotel" Title="入住与离店" Demo="typeof(HotelExample)">
-                值是 <Code>DateRange?</Code>（两端都含），反着点也会排好序。默认区间里不能夹着不可选的日子：点了入住之后，越过订满那晚的一侧都变成不可选；
+                值是 <Code>DateRange&lt;DateOnly&gt;?</Code>（两端都含），反着点也会排好序。默认区间里不能夹着不可选的日子：点了入住之后，越过订满那晚的一侧都变成不可选；
                 选到一半按 <Kbd>Esc</Kbd> 取消。悬停时的预览在浏览器里画，没有往返。
             </Example>
             <Example Id="display" Title="显示与只读" Demo="typeof(DisplayExample)">
@@ -26,5 +26,5 @@
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="DateKeys.Calendar" />
-    <ApiReference Types="[typeof(RangeCalendar), typeof(CalendarBase), typeof(DateRange)]" />
+    <ApiReference Types="[typeof(RangeCalendar), typeof(CalendarBase), typeof(DateRange<DateOnly>)]" />
 </DocPage>

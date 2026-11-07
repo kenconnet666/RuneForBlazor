@@ -84,10 +84,26 @@ export function onPopoverToggle(event) {
   if (!opened) {
     listPopoverClosed(overlay);
     restoreContextFocus(overlay);
+    returnFocus(overlay);
   }
   syncTriggerExpanded(overlay, opened);
   // 悬停卡片也要让 C# 知道开关（第一次打开才渲染内容）；它不是 data-rune-overlay：打开时焦点不移进去
   if (overlay.matches('[popover][data-rune-overlay], [popover][data-rune-hover-panel="card"]')) announce(overlay, opened);
+}
+
+/**
+ * 关上后焦点去 data-return-focus 指的元素（区间选择器选好日期后去开始那组的“时”）：浏览器先把焦点还给打开它的按钮，下一帧再移过去；
+ * 焦点已经被用户移到别处时不动
+ */
+function returnFocus(overlay) {
+  const id = overlay.getAttribute('data-return-focus');
+  if (!id) return;
+  const before = document.activeElement;
+  requestAnimationFrame(() => {
+    const active = document.activeElement;
+    if (active === before || active === document.body || overlay.contains(active) || active?.matches('[popovertarget]'))
+      document.getElementById(id)?.focus({ preventScroll: true });
+  });
 }
 
 // 打开时还没有可聚焦内容的浮层（Server 模式下第一次打开时内容由 C# 随后渲染）：内容插进来时再聚焦一次

@@ -35,4 +35,21 @@ public class DateRangePickerTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(dialog).ToHaveCountAsync(0);
         await Assertions.Expect(page.GetByText($"{today.AddDays(-29):yyyy-MM-dd} – {today:yyyy-MM-dd}", new() { Exact = true })).ToBeVisibleAsync();
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 带时间的区间_日历里换日期保留时间_焦点去开始的时(string mode)
+    {
+        var page = await OpenAsync(mode, "date-range-picker");
+        var window = page.GetByRole(AriaRole.Group, new() { Name = "维护窗口", Exact = true });
+        await window.ScrollIntoViewIfNeededAsync();
+        await window.GetByRole(AriaRole.Button, new() { Name = "选择日期" }).ClickAsync();
+        var dialog = page.GetByRole(AriaRole.Dialog).Filter(new() { Visible = true });
+        await dialog.Locator("[data-date='2026-10-26']").ClickAsync();
+        await dialog.Locator("[data-date='2026-10-27']").ClickAsync();
+        await Assertions.Expect(dialog).ToHaveCountAsync(0);
+        await Assertions.Expect(page.GetByText("2026-10-26T22:00 – 2026-10-27T06:00", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(window.GetByRole(AriaRole.Spinbutton, new() { Name = "维护窗口 开始日期 小时" })).ToBeFocusedAsync();
+    }
 }

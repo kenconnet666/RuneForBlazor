@@ -21,11 +21,11 @@
     static readonly DateRangePreset[] Presets = [DateRangePreset.Last7Days, DateRangePreset.Last30Days, DateRangePreset.ThisMonth, DateRangePreset.LastMonth];
 
     readonly DateOnly today = DemoClock.Today;
-    DateRange? range;
+    DateRange<DateOnly>? range;
 
     protected override void OnInitialized() => range = Preset(DateRangePreset.Last7Days);
 
-    DateRange Preset(DateRangePreset preset) => DateRange.Preset(preset, today, LangFormat.FirstDayOfWeek(Config.Lang));
+    DateRange<DateOnly> Preset(DateRangePreset preset) => DateRange.Preset(preset, today, LangFormat.FirstDayOfWeek(Config.Lang));
 
     static string Key(DateRangePreset preset) => char.ToLowerInvariant(preset.ToString()[0]) + preset.ToString()[1..];
 }
