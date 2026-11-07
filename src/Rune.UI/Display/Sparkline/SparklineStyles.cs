@@ -29,6 +29,9 @@ internal static class SparklineStyles
     internal static readonly Attrs Line = new() { Sx = LineStyle };
     internal static readonly Attrs Area = new() { Sx = AreaStyle };
     internal static readonly Attrs Bar = new() { Sx = BarStyle };
+    // 标出最后一个值时：前面的柱淡下去，最新的一根实色
+    internal static readonly Attrs BarBefore = new() { Sx = Sx.Of(BarStyle, BarBeforeStyle) };
+    internal static readonly Attrs BarLast = new() { Sx = Sx.Of(BarStyle, BarLastStyle) };
     internal static readonly Attrs Last = new() { Sx = LastStyle };
 
     static readonly Attrs[] Roots = [.. Enum.GetValues<Tone>().Select(tone => new Attrs { Sx = Sx.Of(RootStyle, SharedStyles.ToneFill(tone)) })];
@@ -49,6 +52,10 @@ internal static class SparklineStyles
     static Style AreaStyle => Css.Define(static () => new Style { Fill = SharedStyles.FillColor, FillOpacity = 0.15, Stroke = Stroke.None });
 
     static Style BarStyle => Css.Define(static () => new Style { Fill = SharedStyles.FillColor, FillOpacity = 0.85 });
+
+    static Style BarBeforeStyle => Css.Define(static () => new Style { FillOpacity = 0.4 });
+
+    static Style BarLastStyle => Css.Define(static () => new Style { FillOpacity = 1 });
 
     // 一圈表面色把点与线分开
     static Style LastStyle => Css.Define(static () => new Style

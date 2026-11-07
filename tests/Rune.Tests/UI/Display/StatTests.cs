@@ -231,6 +231,10 @@ public class StatTests : BunitContext
         var bars = Render<Sparkline>(p => p.Add(x => x.Data, [3m, null, 4m]).Add(x => x.Type, SparklineType.Bar));
         Assert.Equal(2, bars.FindAll("rect").Count);
         Assert.Empty(bars.FindAll("span[aria-hidden]"));
+        // 最新的一根与前面的柱不同类（实色、淡下去）；不标最后一个值时都一样
+        Assert.NotEqual(bars.FindAll("rect")[0].ClassName, bars.FindAll("rect")[1].ClassName);
+        var plain = Render<Sparkline>(p => p.Add(x => x.Data, [3m, null, 4m]).Add(x => x.Type, SparklineType.Bar).Add(x => x.ShowLast, false));
+        Assert.Equal(plain.FindAll("rect")[0].ClassName, plain.FindAll("rect")[1].ClassName);
     }
 
     [Fact]

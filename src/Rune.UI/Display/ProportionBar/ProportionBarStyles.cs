@@ -53,8 +53,7 @@ internal static class ProportionBarStyles
     {
         Display = Display.Flex,
         FlexWrap = FlexWrap.Wrap,
-        JustifyContent = JustifyContent.SpaceBetween,
-        ColumnGap = Space.Md,
+        ColumnGap = Space.Lg,
         RowGap = Space.Xs,
         Margin = 0,
         Padding = 0,

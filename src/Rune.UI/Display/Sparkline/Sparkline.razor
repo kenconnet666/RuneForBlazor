@@ -28,7 +28,7 @@
             {
                 if (Data[i] is not { } value) continue;
                 var y = YOf((double)value);
-                <rect x="@N(i + 0.15)" width="0.7" y="@N(Math.Min(y, zero))" height="@N(Math.Abs(y - zero))" @attributes="SparklineStyles.Bar" />
+                <rect x="@N(i + 0.15)" width="0.7" y="@N(Math.Min(y, zero))" height="@N(Math.Abs(y - zero))" @attributes="BarOf(i, lastIndex)" />
             }
         }
         else
@@ -62,7 +62,7 @@
     /// <summary>高度，默认 2em。</summary>
     [Parameter] public CssLength? Height { get; set; }
 
-    /// <summary>标出最后一个点（折线、面积），默认开。</summary>
+    /// <summary>标出最后一个值，默认开：折线、面积画一个点，柱是最新的一根实色、前面的淡下去。</summary>
     [Parameter] public bool ShowLast { get; set; } = true;
 
     /// <summary>纵向范围的下限；不写时按数据取（柱从 0 起）。</summary>
@@ -82,6 +82,9 @@
     Attrs? HeightVar => Height is { } h ? heightVar.Get(h, static v => new Attrs { Vars = [SparklineStyles.HeightVar.Set(v)] }) : null;
 
     // 最后一个点：HTML 圆点按百分比定位（SVG 拉伸时圆不变形）
+    Attrs BarOf(int index, int lastIndex) =>
+        !ShowLast ? SparklineStyles.Bar : index == lastIndex ? SparklineStyles.BarLast : SparklineStyles.BarBefore;
+
     Attrs? LastVars(int lastIndex, int width, Func<double, double> yOf) => ShowLast && Type != SparklineType.Bar && lastIndex >= 0
         ? new Attrs { Vars = [SparklineStyles.LastX.Set(CssLength.Percent(lastIndex * 100.0 / width)), SparklineStyles.LastY.Set(CssLength.Percent(yOf((double)Data[lastIndex]!.Value)))] }
         : null;
