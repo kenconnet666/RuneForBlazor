@@ -261,4 +261,22 @@ public class DataTableTests : BunitContext
         Assert.Empty(cut.FindAll("td[data-editing]"));
         Assert.EndsWith(":A-1customer", cut.Find("table").GetAttribute("data-focus-cell"));
     }
+
+    [Fact]
+    public void 滚动只换可见范围时不重新排序()
+    {
+        var reads = 0;
+        var cut = Render<DataTable<Order>>(p =>
+        {
+            p.Add(x => x.Items, Orders).Add(x => x.GetKey, o => o.Id).Add(x => x.Sort, new ColumnSort("amount", SortDirection.Descending));
+            p.AddChildContent<TemplateColumn<Order>>(c => c.Add(x => x.Key, "amount").Add(x => x.Sortable, true)
+                .Add(x => x.Value, o => { reads++; return o.Amount; }).Add(x => x.ChildContent, o => b => b.AddContent(0, o.Id)));
+        });
+        var afterFirstRender = reads;
+
+        cut.Find("[data-rune-virtual]").TriggerEvent("onrunecommand", new CommandEventArgs { Name = "range", Text = "0:2:0:1" });
+        cut.Find("[data-rune-virtual]").TriggerEvent("onrunecommand", new CommandEventArgs { Name = "range", Text = "0:2:0:2" });
+
+        Assert.Equal(afterFirstRender, reads);
+    }
 }

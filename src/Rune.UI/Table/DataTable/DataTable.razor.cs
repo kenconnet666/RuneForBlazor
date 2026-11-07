@@ -44,6 +44,8 @@ public partial class DataTable<TItem>
 
     Memo<(IReadOnlyList<TItem>, IReadOnlyList<ColumnSort>, IReadOnlyList<DataTableColumn<TItem>>, IReadOnlyDictionary<string, IReadOnlyList<string>>, bool, bool), IReadOnlyList<TItem>> rows;
     Memo<(IReadOnlyList<TItem>, IReadOnlyList<DataTableColumn<TItem>>), Dictionary<string, IReadOnlyList<ListboxOption>>> filterOptions;
+    Memo<ColumnSort?, IReadOnlyList<ColumnSort>> singleSort;
+    Memo<(IReadOnlyList<DataTableColumn<TItem>>, IReadOnlyList<TItem>, IReadOnlyList<string>, IReadOnlyDictionary<string, ColumnSticky?>, IReadOnlyDictionary<string, double>, IReadOnlyList<string>), IReadOnlyList<ColumnView<TItem>>> shown;
     Memo<IReadOnlyList<string>, HashSet<string>> selectedSet;
     Memo<(IReadOnlyList<TItem>, IReadOnlyList<string>, bool), BodyEntry[]> entries;
     Memo<string?, SelectionRadios> radios;
@@ -267,7 +269,10 @@ public partial class DataTable<TItem>
 
     bool IsStriped => Striped ?? Config.Defaults.Get<DataTableDefaults>()?.Striped ?? false;
 
-    IReadOnlyList<ColumnSort> ActiveSorts => MultiSort ? sorts.Value : sort.Value is { } single ? [single] : [];
+    // 同一个排序是同一个列表：Rows 按它缓存，换成新列表就会每次渲染都重新排一遍
+    IReadOnlyList<ColumnSort> ActiveSorts => MultiSort
+        ? sorts.Value
+        : singleSort.Get(sort.Value, static single => single is { } value ? [value] : []);
 
     /// <summary>要显示的行：本地筛选、排序后的（ManualFilter、ManualSort 时原样）。</summary>
     IReadOnlyList<TItem> Rows => rows.Get((Items, ActiveSorts, columns.All, filters.Value, ManualFilter, ManualSort), Config,
@@ -278,7 +283,8 @@ public partial class DataTable<TItem>
         });
 
     /// <summary>显示中的列：按列菜单排好、去掉隐藏的，带上调整后的宽度与推断的值类型。</summary>
-    IReadOnlyList<ColumnView<TItem>> Shown => ColumnDisplay.Arrange(columns.All, Rows, columnOrder.Value, columnPins.Value, columnWidths.Value, hiddenColumns.Value);
+    IReadOnlyList<ColumnView<TItem>> Shown => shown.Get((columns.All, Rows, columnOrder.Value, columnPins.Value, columnWidths.Value, hiddenColumns.Value),
+        static k => ColumnDisplay.Arrange(k.Item1, k.Item2, k.Item3, k.Item4, k.Item5, k.Item6));
 
     /// <summary>表头筛选的选项：列出出现过的值时看全部行（不是筛过的）；行与列不变时不重算。</summary>
     IReadOnlyList<ListboxOption> FilterOptionsOf(DataTableColumn<TItem> column) =>
