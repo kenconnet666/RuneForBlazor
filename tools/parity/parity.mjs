@@ -313,9 +313,19 @@ for (const theme of options.themes.split(',')) {
     if (lines.length > 40) console.log(`    ……另有 ${lines.length - 40} 处，见报告`);
     report.push(`### ${id}`, '', `配对 ${paired} 个元素，${lines.length} 处差异`, '', ...lines.map((line) => `- ${line}`), '');
     if (options.shots) {
+      // 只截效果区（两边同宽的排布网格）：不含标题与说明，说明文字折行不同不会让整张图上下错开
       for (const [side, { page }] of [['vue', vue], ['rune', rune]]) {
-        const heading = page.locator(`[id="${id}"]`).locator('xpath=..');
-        await heading.screenshot({ path: join(outDir, `${id}-${theme}-${side}.png`) });
+        const marked = await page.evaluate(({ id, side }) => {
+          const section = document.getElementById(id)?.parentElement;
+          if (!section) return false;
+          let canvas = side === 'rune' ? section.querySelector('[data-demo-canvas]') : section.querySelector('[role=group]');
+          while (side === 'vue' && canvas && !(getComputedStyle(canvas).display === 'grid' && canvas.firstElementChild)) canvas = canvas.firstElementChild;
+          document.querySelectorAll('[data-parity-shot]').forEach((element) => element.removeAttribute('data-parity-shot'));
+          canvas?.setAttribute('data-parity-shot', '');
+          return !!canvas;
+        }, { id, side });
+        const target = marked ? page.locator('[data-parity-shot]') : page.locator(`[id="${id}"]`).locator('xpath=..');
+        await target.screenshot({ path: join(outDir, `${id}-${theme}-${side}.png`) });
       }
     }
   }

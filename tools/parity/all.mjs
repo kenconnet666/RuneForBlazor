@@ -1,5 +1,5 @@
 // 对照全部页面（两边都有的组件页），亮色主题各跑一遍 parity.mjs，汇总每页的差异数到 artifacts/parity/summary.md。
-// 用法：node tools/parity/all.mjs [--from=<演示名>]（从某一页接着跑）；准备同 README.md（两边的服务都开着）。
+// 用法：node tools/parity/all.mjs [--from=<演示名>]（从某一页接着跑）[--shots]（各示例的截图也存下来，给 shots.py 比较）；准备同 README.md（两边的服务都开着）。
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -10,6 +10,7 @@ const { values: options } = parseArgs({
   options: {
     vue: { type: 'string', default: resolve(repoRoot, '../../IdeaProjects/vue-tsx-pro') },
     from: { type: 'string' },
+    shots: { type: 'boolean', default: false },
   },
 });
 
@@ -43,7 +44,7 @@ const rows = [];
 for (const page of pages.slice(Math.max(start, 0))) {
   let output = '';
   try {
-    output = execFileSync('node', [join(repoRoot, 'tools/parity/parity.mjs'), page, '--themes=light'], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 180_000 });
+    output = execFileSync('node', [join(repoRoot, 'tools/parity/parity.mjs'), page, '--themes=light', ...(options.shots ? ['--shots'] : [])], { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 180_000 });
   } catch (error) {
     output = `${error.stdout ?? ''}${error.stderr ?? ''}`;
   }
