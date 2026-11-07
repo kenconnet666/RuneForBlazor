@@ -21,7 +21,7 @@ import { watchVirtual } from '../table/virtual.js';
 import { keyTour, watchTour } from '../overlay/tour.js';
 import { watchTable } from '../table/table.js';
 import { watchLocalSetting } from './storage.js';
-import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from '../input/lists.js';
+import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell, watchListEnd } from '../input/lists.js';
 import { watchIndicator } from '../layout/indicator.js';
 import { scheduleOverflow, watchOverflow } from '../layout/overflow.js';
 import { moveRoving, noteRovingFocus, watchRoving } from './roving.js';
@@ -161,6 +161,7 @@ const watched = [
   ['svg[data-rune-draw="true"]', drawIcon],
   ['[data-rune-grid-span]', (element) => watchGrid(element.parentElement)],
   ['[data-rune-balanced]', watchGrid],
+  ['[data-rune-list-end]', watchListEnd],
   ['[data-rune-observe-size]', watchSize],
   ['textarea[data-rune-autosize]', autosize],
   ['[data-rune-overflow]', watchOverflow],

@@ -46,6 +46,16 @@ public partial class Combobox<TItem>
     /// <summary>远程选项：打开时与输入停下 300 ms 后按输入调用，结果代替 Items；只采用最后一次，被顶掉的请求取消。</summary>
     [Parameter] public OptionsLoader<TItem>? Load { get; set; }
 
+    /// <summary>
+    /// 分页的远程选项（代替 Load）：搜索词与第几页（从 1 起）→ 这一页；滚到列表末尾时取下一页，按选项的值去重，取下一页时骨架接在末尾。
+    /// </summary>
+    [Parameter] public PagedOptionsLoader<TItem>? LoadPage { get; set; }
+
+    // 有远程选项时由服务端按输入过滤
+    bool Remote => Load is not null || LoadPage is not null;
+    // 分页且还有下一页时，列表滚到末尾取下一页
+    EventCallback ReachEnd => LoadPage is null || !options.HasMore ? default : EventCallback.Factory.Create(this, options.LoadMore);
+
     /// <summary>允许输入不在选项里的文字：失焦时保留，Value 为 null、文字在 InputValue 里。</summary>
     [Parameter] public bool AllowCustomValue { get; set; }
 
@@ -129,7 +139,7 @@ public partial class Combobox<TItem>
 
     // 列表里的选项：本地按输入过滤；有 Load、关掉本地过滤时由服务端过滤
     IReadOnlyList<ListEntry<TItem>> ShownEntries =>
-        Load is null && LocalFilter ? options.Filter(AllEntries, query, Filter, Config) : AllEntries;
+        !Remote && LocalFilter ? options.Filter(AllEntries, query, Filter, Config) : AllEntries;
 
     string SelectedLabel => SelectedValue is { } value ? options.Chosen(AllEntries, [value])[0].Option.Label : "";
 
@@ -195,7 +205,7 @@ public partial class Combobox<TItem>
         var text = e.Value as string ?? "";
         query = text;
         await SetTextAsync(text);
-        if (open) options.Request(Load, text, debounce: true);
+        if (open) options.Request(Load, LoadPage, ToOption, text, debounce: true);
     }
 
     async Task PickAsync(string value)
@@ -255,7 +265,7 @@ public partial class Combobox<TItem>
     {
         if (open == e.Open) return;
         open = e.Open;
-        if (open) options.Request(Load, query, debounce: false);
+        if (open) options.Request(Load, LoadPage, ToOption, query, debounce: false);
         else options.Cancel();
         await OpenChanged.InvokeAsync(open);
     }

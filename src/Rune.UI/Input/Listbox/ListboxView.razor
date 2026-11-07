@@ -19,22 +19,19 @@
 
 @if (OwnScroll)
 {
-    <ScrollArea Focusable="false" PropsViewport="Attrs.Layer(parts[ListboxPart.Root], Rest, RootManaged)">@Body(parts, rows)</ScrollArea>
+    <ScrollArea Focusable="false" PropsViewport="Attrs.Layer(parts[ListboxPart.Root], Rest, Managed)">@Body(parts, rows)</ScrollArea>
 }
 else
 {
-    <div @attributes="Attrs.Merge(parts[ListboxPart.Root], Rest, RootManaged)">@Body(parts, rows)</div>
+    <div @attributes="Attrs.Merge(parts[ListboxPart.Root], Rest, Managed)">@Body(parts, rows)</div>
 }
 
 @code {
     // 列表里的内容：骨架、空状态，或选项（多时虚拟滚动）
     RenderFragment Body(PartLayers<ListboxPart> parts, ListRow[] rows) => @<text>
-    @if (indicator.Shown)
+    @if (indicator.Shown && !(appending && Entries.Count > 0))
     {
-        for (var row = 0; row < SkeletonRows; row++)
-        {
-            <Skeleton @key="row" Delay="@(row * ShimmerStyles.Stagger)" @attributes="Attrs.MergeProps(parts[ListboxPart.Skeleton], SkeletonWidths[row], PropsSkeleton)" />
-        }
+        @Skeletons(parts, SkeletonRows)
     }
     else if (Entries.Count == 0)
     {
@@ -55,6 +52,26 @@ else
             @RenderRow(row, parts)
         }
     }
+    @if (Entries.Count > 0 && (appending || !indicator.Shown))
+    {
+        @* 远程分页取下一页：已有的选项留着，骨架接在末尾 *@
+        if (indicator.Shown)
+        {
+            @Skeletons(parts, MoreSkeletonRows)
+        }
+        @* 末尾的哨兵：滚到离它不远时 JS 发 rune-command（more）；按项数换一个元素，接上一页后还看得见时再报一次 *@
+        if (OnReachEnd.HasDelegate)
+        {
+            <div @key="@($"end-{Entries.Count}")" data-rune-list-end aria-hidden="true"></div>
+        }
+    }
+    </text>;
+
+    RenderFragment Skeletons(PartLayers<ListboxPart> parts, int count) => @<text>
+    @for (var row = 0; row < count; row++)
+    {
+        <Skeleton @key="@($"skeleton-{row}")" Delay="@(row * ShimmerStyles.Stagger)" @attributes="Attrs.MergeProps(parts[ListboxPart.Skeleton], SkeletonWidths[row], PropsSkeleton)" />
+    }
     </text>;
 }
 
@@ -67,8 +84,9 @@ else
     // 一行的估计高度（px）：虚拟滚动据此算占位，渲染后以实际高度为准
     const float EstimatedRowHeight = 36;
 
-    // 加载中显示几行骨架，一行比一行短
+    // 加载中显示几行骨架，一行比一行短；取下一页时接在末尾的少几行
     const int SkeletonRows = 4;
+    const int MoreSkeletonRows = 2;
     static readonly Attrs[] SkeletonWidths = [.. Enumerable.Range(0, SkeletonRows).Select(row => new Attrs { InlineStyle = $"width:{85 - row * 15}%" })];
 
     RenderFragment? defaultEmpty;
@@ -82,6 +100,10 @@ else
     Memo<IReadOnlyList<ListEntry<TItem>>, string> optionTable;
     Memo<IReadOnlyList<string>, HashSet<string>> selectedSet;
     Memo<(string Id, bool Multiple, bool Loading, string? Options, int Selected), Attrs> rootManaged;
+    Attrs? commandAttrs;
+    Memo<(Attrs, Attrs), Attrs> managed;
+    // 骨架在加载结束后还会多留一会儿（防闪烁）：这期间按最后一次加载的方式（换掉选项还是接在末尾）显示
+    bool appending;
 
     /// <summary>列表的 id：选项的 id 由它拼出（{Id}-{序号}），宿主的 aria-controls 指向它。</summary>
     [Parameter, EditorRequired] public string Id { get; set; } = "";
@@ -97,6 +119,12 @@ else
 
     /// <summary>加载中：选项换成骨架行（很快返回时不显示），列表带 aria-busy。</summary>
     [Parameter] public bool Loading { get; set; }
+
+    /// <summary>取下一页（远程分页）：已有的选项留着，骨架接在末尾，列表带 aria-busy。</summary>
+    [Parameter] public bool LoadingMore { get; set; }
+
+    /// <summary>滚到接近末尾（远程分页时取下一页）：列表末尾放一个哨兵，JS 看到它进入可见范围附近时调用。</summary>
+    [Parameter] public EventCallback OnReachEnd { get; set; }
 
     /// <summary>列表自己滚动（单独使用的 Listbox，最高 20em）；放在会滚动的浮层里时不要。</summary>
     [Parameter] public bool OwnScroll { get; set; }
@@ -151,7 +179,7 @@ else
     }
 
     // 列表上由组件管理的属性：角色、多选、加载中、交给 JS 的选项表
-    Attrs RootManaged => rootManaged.Get((Id, Multiple, Loading, OptionTable, FirstSelectedIndex()), static k => new Attrs
+    Attrs RootManaged => rootManaged.Get((Id, Multiple, Loading || LoadingMore, OptionTable, FirstSelectedIndex()), static k => new Attrs
     {
         Id = k.Id,
         Role = "listbox",
@@ -197,8 +225,21 @@ else
 
     string GroupLabelId(int start) => $"{Id}-group-{start}";
 
+    // 受管的属性加上接 JS 命令的那一个；受管的不变时是同一个对象
+    Attrs Managed => managed.Get((RootManaged, CommandAttrs), static k => Attrs.Merge(k.Item1, k.Item2));
+
+    // JS 交来的“滚到末尾了”；只建一次
+    Attrs CommandAttrs => commandAttrs ??= new Attrs
+    {
+        ["onrunecommand"] = EventCallback.Factory.Create<CommandEventArgs>(this, e => e.Name == "more" ? OnReachEnd.InvokeAsync() : Task.CompletedTask),
+    };
+
     /// <inheritdoc/>
-    protected override void OnParametersSet() => indicator.Update(Loading);
+    protected override void OnParametersSet()
+    {
+        if (Loading || LoadingMore) appending = LoadingMore && !Loading;
+        indicator.Update(Loading || LoadingMore);
+    }
 
     /// <inheritdoc/>
     protected override void OnDispose() => delayedLoading?.Dispose();

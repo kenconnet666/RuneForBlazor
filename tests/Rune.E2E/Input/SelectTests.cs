@@ -172,4 +172,30 @@ public class SelectTests(DemoServer demo) : E2ETest(demo)
     // 点外壳里标签那一行的左上角（行的内边距，不在标签与移除按钮上）：与点触发按钮一样切换打开
     static Task ClickTagRowAsync(ILocator trigger) =>
         trigger.Locator("xpath=..").Locator("[data-scope=selected-tags]").ClickAsync(new() { Position = new() { X = 1, Y = 1 } });
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 远程分页_滚到末尾取下一页_换搜索词从第一页重来(string mode)
+    {
+        var page = await OpenAsync(mode, "select");
+        var trigger = page.GetByTestId("suppliers");
+        await trigger.ScrollIntoViewIfNeededAsync();
+        var listId = await trigger.GetAttributeAsync("aria-controls");
+        var list = page.Locator($"#{listId}");
+        var search = page.Locator($"input[aria-controls='{listId}']");
+
+        await trigger.ClickAsync();
+        await Assertions.Expect(list.Locator("[role=option]")).ToHaveCountAsync(20);
+
+        // 滚到末尾：骨架接在后面，下一页接上
+        await list.Locator("[role=option]").Last.ScrollIntoViewIfNeededAsync();
+        await Assertions.Expect(list.Locator("[role=option]")).ToHaveCountAsync(40);
+        Assert.Equal(40, await list.Locator("[role=option]").EvaluateAllAsync<int>("options => new Set(options.map(o => o.dataset.label)).size"));
+
+        // 搜索：从第一页重来（“苏州”共 40 家，先给 20 家）
+        await search.FillAsync("苏州");
+        await Assertions.Expect(list.Locator("[role=option]")).ToHaveCountAsync(20);
+        await Assertions.Expect(list.Locator("[role=option]").First).ToHaveAttributeAsync("data-label", "苏州恒精工有限公司");
+    }
 }

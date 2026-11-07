@@ -20,6 +20,10 @@
             <Example Id="custom" Title="异步加载与自定义显示" Demo="typeof(CustomExample)">
                 <Code>Load(搜索词, 取消令牌)</Code> 在打开时请求（Searchable 时搜索词停下 300 ms 再请求），只采用最后一次，请求期间列表里是骨架行，失败时提示重试；<Code>Items</Code> 是第一次结果之前的选项（编辑页放上已选的那几项）。<Code>RenderValue</Code> 自定义触发框里的已选内容（这里是头像叠放加名字），没有选择时显示占位文字；分组来自选项的 <Code>Group</Code>。
             </Example>
+            <Example Id="paged" Title="远程搜索与分页" Demo="typeof(SuppliersExample)">
+                选项太多、要分页取时写 <Code>LoadPage(搜索词, 第几页, 取消令牌)</Code>（页码从 1 开始），返回 <Code>InfinitePage(Items, Next, HasNext)</Code>：滚到列表末尾时取下一页，已有的选项留着、骨架接在后面；
+                换了搜索词从第一页重来，翻页时重复的项不会出现两次。和 <TextLink Href="/guide/data#infinite-list">InfiniteList</TextLink> 是同一套。
+            </Example>
             <Example Id="appearance" Title="图标、外观与状态" Demo="typeof(AppearanceExample)">
                 <Code>Icon</Code>、<Code>Variant</Code>、<Code>Size</Code>、<Code>Radius</Code> 与其他输入框同一套。只读时能聚焦、能看到已选的内容，不能打开、不能清空；Field 上的 <Code>Required</Code>、<Code>ReadOnly</Code>、<Code>Disabled</Code>、<Code>Error</Code> 都交给里面的 Select。
             </Example>

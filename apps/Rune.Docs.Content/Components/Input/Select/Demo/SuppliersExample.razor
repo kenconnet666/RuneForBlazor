@@ -1,0 +1,35 @@
+@inherits RuneComponent
+
+@* 远程搜索加分页：LoadPage 拿到搜索词与第几页，返回这一页；滚到列表末尾时取下一页，骨架接在已有的选项后面 *@
+<Field Label="供应商" Description="@($"共 {suppliers.Length} 家，每次取 {Page} 家")">
+    <Select TItem="Supplier" LoadPage="FetchSuppliersAsync" Searchable="true" ToOption="@(s => new ListboxOption(s.Code, s.Name))"
+            @bind-Value="picked" Clearable="true" Placeholder="搜索名称或编码" data-testid="suppliers">
+        @context.Item.Name <TextSpan Size="Size.Sm" Tone="TextTone.Muted" Mono="true">@context.Item.Code</TextSpan>
+    </Select>
+</Field>
+
+@code {
+    sealed record Supplier(string Code, string Name);
+
+    const int Page = 20;
+
+    static readonly string[] cities = ["苏州", "宁波", "东莞", "成都", "西安", "沈阳", "青岛", "无锡"];
+    static readonly string[] marks = ["恒", "华", "瑞", "鑫", "永"];
+    static readonly string[] trades = ["精工", "液压", "紧固件", "电子", "包装", "模具", "轴承", "铸造"];
+    static readonly Supplier[] suppliers =
+    [
+        .. cities.SelectMany((city, c) => marks.SelectMany((mark, m) => trades.Select((trade, t) =>
+            new Supplier($"S{c * 40 + m * 8 + t + 1:D4}", $"{city}{mark}{trade}有限公司")))),
+    ];
+
+    string? picked;
+
+    // 假的供应商接口：按名称或编码搜索，每页 20 条，500 ms 后返回；被顶掉、关掉弹层时取消
+    static async Task<InfinitePage<Supplier, int>> FetchSuppliersAsync(string query, int page, CancellationToken cancellation)
+    {
+        await Task.Delay(500, cancellation);
+        var keyword = query.Trim().ToUpperInvariant();
+        var matched = suppliers.Where(s => s.Name.Contains(keyword) || s.Code.Contains(keyword)).ToList();
+        return new([.. matched.Skip((page - 1) * Page).Take(Page)], page + 1, page * Page < matched.Count);
+    }
+}

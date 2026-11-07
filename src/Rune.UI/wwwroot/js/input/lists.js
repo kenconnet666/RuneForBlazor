@@ -448,3 +448,28 @@ export function doubleClickOption(event) {
   const list = option?.closest('[role="listbox"][data-rune-option-dblclick]');
   if (list) sendCommand(list, 'move', String(indexOfOption(option)));
 }
+
+// 远程分页的列表末尾的哨兵（data-rune-list-end，ListboxView 的 OnReachEnd）：进入滚动容器可见范围下方约 5 行以内时，
+// 在列表上发 rune-command（more），C# 取下一页。哨兵按项数换一个元素：接上一页后它还在范围里时新元素再报一次
+// 按滚动容器各一个观察者（容器没了跟着回收）；没有滚动容器时按视口
+const endObservers = new WeakMap();
+let viewportEndObserver;
+
+export function watchListEnd(sentinel) {
+  const list = sentinel.closest('[role="listbox"]');
+  if (!list) return;
+  const root = sentinel.closest('[data-rune-scroll-viewport]');
+  let observer = root ? endObservers.get(root) : viewportEndObserver;
+  if (!observer) {
+    observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting || !entry.target.isConnected) continue;
+        const owner = entry.target.closest('[role="listbox"]');
+        if (owner) sendCommand(owner, 'more');
+      }
+    }, { root, rootMargin: '0px 0px 180px 0px' });
+    if (root) endObservers.set(root, observer);
+    else viewportEndObserver = observer;
+  }
+  observer.observe(sentinel);
+}

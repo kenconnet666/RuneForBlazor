@@ -186,6 +186,35 @@ public class SelectTests : BunitContext
     }
 
     [Fact]
+    public async Task 远程分页_滚到末尾取下一页_按值去重_骨架接在末尾()
+    {
+        var calls = new List<(string Query, int Page, TaskCompletionSource<InfinitePage<string, int>> Result)>();
+        var cut = Render<Select<string>>(p => p.Add(x => x.LoadPage, (query, page, _) =>
+        {
+            var result = new TaskCompletionSource<InfinitePage<string, int>>();
+            calls.Add((query, page, result));
+            return result.Task;
+        }));
+
+        Toggle(cut, true);
+        Assert.Equal(1, calls[0].Page);
+        calls[0].Result.SetResult(new(["a", "b"], 2, true));
+        await cut.InvokeAsync(() => { });
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("[role=option]").Count), TimeSpan.FromSeconds(5));
+        Assert.NotNull(cut.Find("[data-rune-list-end]"));
+
+        // JS 看到末尾的哨兵：取第 2 页，已有的选项留着、骨架接在后面；重复的 b 只留一个
+        cut.Find("[role=listbox]").TriggerEvent("onrunecommand", new CommandEventArgs { Name = "more" });
+        Assert.Equal(2, calls[1].Page);
+        Assert.Equal("true", cut.Find("[role=listbox]").GetAttribute("aria-busy"));
+        Assert.Equal(2, cut.FindAll("[role=option]").Count);
+        calls[1].Result.SetResult(new(["b", "c"], 3, false));
+        await cut.InvokeAsync(() => { });
+        cut.WaitForAssertion(() => Assert.Equal(["a", "b", "c"], cut.FindAll("[role=option]").Select(o => o.GetAttribute("data-label"))), TimeSpan.FromSeconds(5));
+        Assert.Empty(cut.FindAll("[data-rune-list-end]"));
+    }
+
+    [Fact]
     public async Task 远程选项_打开时请求_结果代替Items_已选项文字取自结果()
     {
         var calls = new List<string>();

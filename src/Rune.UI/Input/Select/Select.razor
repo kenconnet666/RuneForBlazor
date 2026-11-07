@@ -69,7 +69,7 @@
 <ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@ShellId" ListId="@ListId" Placement="Placement" Open="Open" OnToggle="ToggledAsync" Size="Size"
              LabelledBy="@(AriaLabel is null ? Field?.LabelId : null)" Label="@AriaLabel" Header="@(WithSearch ? SearchHeader : null)"
              Query="@(WithSearch ? SearchText : null)" Results="@Results(shown.Entries.Count)" Entries="shown.Entries" Selected="values" Multiple="Multiple"
-             Loading="@(Loading || options.Loading)" OnPick="PickAsync" ChildContent="OptionContent" Empty="@(EmptyText is null ? Empty : null)"
+             Loading="@(Loading || options.Loading)" LoadingMore="options.LoadingMore" OnReachEnd="ReachEnd" OnPick="PickAsync" ChildContent="OptionContent" Empty="@(EmptyText is null ? Empty : null)"
              EmptyText="@EmptyText" PropsPopover="PropsPopover" PropsListbox="PropsListbox" />
 
 @code {

@@ -64,6 +64,16 @@ public partial class Select<TItem>
     [Parameter] public OptionsLoader<TItem>? Load { get; set; }
 
     /// <summary>
+    /// 分页的远程选项（代替 Load）：搜索词与第几页（从 1 起）→ 这一页；滚到列表末尾时取下一页，按选项的值去重，取下一页时骨架接在末尾。
+    /// </summary>
+    [Parameter] public PagedOptionsLoader<TItem>? LoadPage { get; set; }
+
+    // 有远程选项时由服务端按输入过滤
+    bool Remote => Load is not null || LoadPage is not null;
+    // 分页且还有下一页时，列表滚到末尾取下一页
+    EventCallback ReachEnd => LoadPage is null || !options.HasMore ? default : EventCallback.Factory.Create(this, options.LoadMore);
+
+    /// <summary>
     /// 可以新建选项（自带搜索框）：输入的文字没有对应的选项时，列表末尾多一项“新建“…””，选中后值就是这段文字。
     /// 在 <see cref="OnCreate"/> 里把它加进 Items（或存到服务端）；不加时触发框里照样显示这段文字。
     /// </summary>
@@ -155,7 +165,7 @@ public partial class Select<TItem>
         get
         {
             var all = AllEntries;
-            var filtered = WithSearch && Load is null && LocalFilter ? options.Filter(all, SearchText, Filter, Config) : all;
+            var filtered = WithSearch && !Remote && LocalFilter ? options.Filter(all, SearchText, Filter, Config) : all;
             return shown.Get((filtered, all, SearchText, Creatable), this, static (k, owner) => owner.Compute(k.Filtered, k.All, k.Query, k.Creatable));
         }
     }
@@ -253,7 +263,7 @@ public partial class Select<TItem>
     async Task SetSearchAsync(string? text)
     {
         await search.SetAsync(text);
-        if (open) options.Request(Load, text ?? "", debounce: true);
+        if (open) options.Request(Load, LoadPage, ToOption, text ?? "", debounce: true);
     }
 
     async Task ToggledAsync(OverlayToggleEventArgs e)
@@ -263,7 +273,7 @@ public partial class Select<TItem>
         if (open)
         {
             // 打开就按当前搜索词请求，不等防抖
-            options.Request(Load, SearchText, debounce: false);
+            options.Request(Load, LoadPage, ToOption, SearchText, debounce: false);
         }
         else
         {

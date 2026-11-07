@@ -18,7 +18,7 @@
           @attributes="Attrs.MergeProps(null, Rest, TextareaManaged)" />
 <ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@TextareaId" ListId="@ListId" OnToggle="Toggled" Size="Size" Label="@Config.Lang.MentionsList"
              Query="@query" Results="@(open ? OptionSource<TItem>.Results(Config.Lang, query.Length > 0 ? query : Prefix, Shown.Count) : null)"
-             Entries="Shown" Loading="@(Loading || options.Loading)" OnPick="Pick" ChildContent="ChildContent" Empty="Empty"
+             Entries="Shown" Loading="@(Loading || options.Loading)" LoadingMore="options.LoadingMore" OnReachEnd="ReachEnd" OnPick="Pick" ChildContent="ChildContent" Empty="Empty"
              EmptyText="@(options.Failed ? Config.Lang.ListLoadFailed : Empty is null ? Config.Lang.MentionsEmpty : null)"
              PropsPopover="@Attrs.Layer(PanelLayer, PropsPopover, PanelManaged)" PropsListbox="PropsListbox" />
 
@@ -94,6 +94,16 @@
     /// <summary>远程搜索：按 @ 后面的文字调用，停下 300 ms 后请求，只采用最后一次。</summary>
     [Parameter] public OptionsLoader<TItem>? Load { get; set; }
 
+    /// <summary>
+    /// 分页的远程选项（代替 Load）：搜索词与第几页（从 1 起）→ 这一页；滚到列表末尾时取下一页，按选项的值去重，取下一页时骨架接在末尾。
+    /// </summary>
+    [Parameter] public PagedOptionsLoader<TItem>? LoadPage { get; set; }
+
+    // 有远程选项时由服务端按输入过滤
+    bool Remote => Load is not null || LoadPage is not null;
+    // 分页且还有下一页时，列表滚到末尾取下一页
+    EventCallback ReachEnd => LoadPage is null || !options.HasMore ? default : EventCallback.Factory.Create(this, options.LoadMore);
+
     /// <summary>触发的字符，默认 @。</summary>
     [Parameter] public string Prefix { get; set; } = "@";
 
@@ -137,7 +147,7 @@
 
     IReadOnlyList<ListEntry<TItem>> All => options.All(Items, ToOption);
 
-    IReadOnlyList<ListEntry<TItem>> Shown => Load is null && LocalFilter ? options.Filter(All, query, Filter, Config) : All;
+    IReadOnlyList<ListEntry<TItem>> Shown => !Remote && LocalFilter ? options.Filter(All, query, Filter, Config) : All;
 
     // 文本框：交给 JS 的约定（触发字符、弹层、列表）与 combobox 的无障碍属性
     Attrs TextareaManaged => new()
@@ -196,7 +206,7 @@
     {
         if (e.Name != "mention-query") return;
         query = e.Text ?? "";
-        options.Request(Load, query, debounce: true);
+        options.Request(Load, LoadPage, ToOption, query, debounce: true);
         await OnQuery.InvokeAsync(query);
     }
 

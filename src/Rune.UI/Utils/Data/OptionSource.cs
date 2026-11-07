@@ -14,8 +14,14 @@ sealed class OptionSource<TItem>(Func<Task> changed) : IDisposable
     readonly Dictionary<string, ListEntry<TItem>> seen = [];
     RemoteItems<TItem>? remote;
 
-    /// <summary>正在远程加载。</summary>
+    /// <summary>正在远程加载（第一页）。</summary>
     public bool Loading => remote?.Loading == true;
+
+    /// <summary>正在取下一页（分页的远程选项）：已有的选项留着，骨架接在末尾。</summary>
+    public bool LoadingMore => remote?.LoadingMore == true;
+
+    /// <summary>分页的远程选项还有下一页：列表滚到末尾时调用 <see cref="LoadMore"/>。</summary>
+    public bool HasMore => remote?.HasMore == true;
 
     /// <summary>最后一次远程加载失败了。</summary>
     public bool Failed => remote?.Failed == true;
@@ -57,12 +63,28 @@ sealed class OptionSource<TItem>(Func<Task> changed) : IDisposable
         return result;
     }
 
-    /// <summary>远程加载（没有 <paramref name="load"/> 时什么都不做）：刚打开时立即请求，输入中 <paramref name="debounce"/> 等停下再请求。请求自己处理失败，不用等它。</summary>
-    public void Request(OptionsLoader<TItem>? load, string query, bool debounce)
+    /// <summary>
+    /// 远程加载（两种都没给时什么都不做）：刚打开时立即请求，输入中 <paramref name="debounce"/> 等停下再请求。请求自己处理失败，不用等它。
+    /// 给了 <paramref name="loadPage"/> 时分页：先取第一页，滚到末尾时 <see cref="LoadMore"/>，按选项的值去重。
+    /// </summary>
+    public void Request(OptionsLoader<TItem>? load, PagedOptionsLoader<TItem>? loadPage, Func<TItem, ListboxOption>? toOption, string query, bool debounce)
     {
-        if (load is null) return;
-        remote ??= new(changed);
-        _ = remote.RequestAsync(load, query, debounce);
+        if (loadPage is not null)
+        {
+            remote ??= new(changed);
+            _ = remote.RequestPageAsync(loadPage, item => ListState.OptionOf(item, toOption).Value, query, debounce);
+        }
+        else if (load is not null)
+        {
+            remote ??= new(changed);
+            _ = remote.RequestAsync(load, query, debounce);
+        }
+    }
+
+    /// <summary>取下一页（列表滚到末尾）；没分页、正在取、取完了时什么都不做。</summary>
+    public void LoadMore()
+    {
+        if (remote is not null) _ = remote.LoadMoreAsync();
     }
 
     /// <summary>取消还在进行的请求（弹层关上）。</summary>
