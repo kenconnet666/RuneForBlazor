@@ -15,11 +15,9 @@
                 <Code>Bordered</Code> 是表格样式，<Code>DescriptionsLayout.Vertical</Code> 标签在上，<Code>DescriptionsLayout.Inline</Code> 各项一行排开、放不下换行（详情页页头里的编号、团队、主办），<Code>Size</Code> 跟字号档位缩放。
             </Example>
         </ExampleColumn>
-        <ExampleColumn>
-            <Example Id="auto" Title="自适应栏数与复制：供应商档案" Demo="typeof(AutoExample)">
-                写了 <Code>MinItemWidth</Code> 时按容器的宽度定栏数：每栏不窄于它（vue-tsx-pro 的 columns="auto" 默认 240px），最多 <Code>MaxColumns</Code>（默认 4）栏，同一份详情放在抽屉、整页里各自合适；跨列（<Code>Span</Code>）按算出的栏数封顶。都是容器查询，不量宽度。项写 <Code>Copyable</Code> 时值后面有复制按钮（名称“复制 + 标签”），复制的是 <Code>Value</Code>，要复制完整写法时用 <Code>CopyText</Code> 指定。
-            </Example>
-        </ExampleColumn>
     </Examples>
+    <Example Id="auto" Title="自适应栏数与复制：供应商档案" Demo="typeof(AutoExample)">
+        写了 <Code>MinItemWidth</Code> 时按容器的宽度定栏数：每栏不窄于它（vue-tsx-pro 的 columns="auto" 默认 240px），最多 <Code>MaxColumns</Code>（默认 4）栏，同一份详情放在抽屉、整页里各自合适；跨列（<Code>Span</Code>）按算出的栏数封顶。都是容器查询，不量宽度。项写 <Code>Copyable</Code> 时值后面有复制按钮（名称“复制 + 标签”），复制的是 <Code>Value</Code>，要复制完整写法时用 <Code>CopyText</Code> 指定。
+    </Example>
     <ApiReference Types="[typeof(Descriptions)]" />
 </DocPage>
