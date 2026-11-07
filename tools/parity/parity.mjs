@@ -250,6 +250,8 @@ async function readStates(page, keys) {
     if (!interactive || !(await locator.isVisible())) continue;
     const read = () =>
       locator.evaluate((element, props) => {
+        // 颜色过渡跑完再读：否则读到的是过渡半路的值，两边时间差一点就成了差异
+        for (const animation of element.getAnimations()) if (animation instanceof CSSTransition) animation.finish();
         const style = getComputedStyle(element);
         return Object.fromEntries(props.map((prop) => [prop, window.parityNormalize(style.getPropertyValue(prop))]));
       }, STATE_PROPS);
