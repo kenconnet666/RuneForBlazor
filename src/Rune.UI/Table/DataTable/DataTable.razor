@@ -240,7 +240,7 @@
                                         {
                                             <IconButton Icon="BuiltInIcons.ChevronRight" Size="Size.Sm" Radius="Radius.Full" Label="@Config.Lang.TableRowDetails(RowLabel(item, shown))"
                                                         PropsIcon="@(isExpanded ? ExpandedIcon : CollapsedIcon)" aria-expanded="@(isExpanded ? "true" : "false")" aria-controls="@(isExpanded ? detailId : null)"
-                                                        @onclick="() => ToggleDetailAsync(key)" @attributes="Attrs.MergeProps(rowParts[DataTablePart.DetailToggle])" />
+                                                        @onclick="DetailClick(key)" @attributes="Attrs.MergeProps(rowParts[DataTablePart.DetailToggle])" />
                                         }
                                     </td>
                                 }
@@ -346,7 +346,7 @@
             @Header(column)
             return;
         }
-        <ButtonBase @attributes="Attrs.MergeProps(parts[DataTablePart.SortButton])" @onclick="e => OnSortClickAsync(column, e)">
+        <ButtonBase @attributes="Attrs.MergeProps(parts[DataTablePart.SortButton])" @onclick="SortClick(column)">
             <span @attributes="Attrs.Merge(parts[DataTablePart.SortLabel])">@Header(column)</span>
             <Icon Data="@(direction switch { SortDirection.Ascending => BuiltInIcons.ArrowUp, SortDirection.Descending => BuiltInIcons.ArrowDown, _ => BuiltInIcons.ArrowUpDown })"
                   @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.SortIcon], direction is null ? null : (Attrs)DataTableStyles.SortActive))" />

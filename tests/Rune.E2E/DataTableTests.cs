@@ -22,6 +22,7 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         Assert.InRange(await rows.CountAsync(), 1, 50);
 
         await table.EvaluateAsync("table => table.closest('[data-rune-virtual]').scrollTop = 0");
+        await Assertions.Expect(rows.First).ToHaveAttributeAsync("data-key", "SO100000");
         await table.GetByRole(AriaRole.Button, new() { Name = "订单号" }).ClickAsync();
         await Assertions.Expect(table.Locator("th[aria-sort='ascending']")).ToContainTextAsync("订单号");
         await Assertions.Expect(rows.First).ToHaveAttributeAsync("data-key", "SO100000");

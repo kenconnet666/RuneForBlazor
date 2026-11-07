@@ -297,6 +297,20 @@ public partial class DataTable<TItem>
 
     BodyEntry EntryAt(int position) => Entries is { } list ? list[position] : new(position, false);
 
+    // 同 SortClick：每行一个不变的处理函数；数据换了时重新建
+    readonly Dictionary<string, Func<MouseEventArgs, Task>> detailClicks = [];
+    IReadOnlyList<TItem>? detailClicksFor;
+
+    Func<MouseEventArgs, Task> DetailClick(string key)
+    {
+        if (!ReferenceEquals(detailClicksFor, Items))
+        {
+            detailClicks.Clear();
+            detailClicksFor = Items;
+        }
+        return detailClicks.TryGetValue(key, out var click) ? click : detailClicks[key] = _ => ToggleDetailAsync(key);
+    }
+
     Task ToggleDetailAsync(string key) =>
         expandedRows.SetAsync(expandedRows.Value.Contains(key) ? [.. expandedRows.Value.Where(item => item != key)] : [.. expandedRows.Value, key]);
 
@@ -376,6 +390,13 @@ public partial class DataTable<TItem>
         var row = Rows.FirstOrDefault(item => GetKey(item) == key);
         if (row is not null) await OnRowClick.InvokeAsync(row);
     }
+
+    // 每列一个不变的点击处理：滚动时表格随可见范围重新渲染，处理函数变了的话浏览器那边会换一个事件编号，
+    // 正好在两次渲染之间点下去的那一次（Server 模式）就落到已经作废的编号上、被丢掉
+    readonly Dictionary<DataTableColumn<TItem>, Func<MouseEventArgs, Task>> sortClicks = [];
+
+    Func<MouseEventArgs, Task> SortClick(DataTableColumn<TItem> column) =>
+        sortClicks.TryGetValue(column, out var click) ? click : sortClicks[column] = e => OnSortClickAsync(column, e);
 
     Task OnSortClickAsync(DataTableColumn<TItem> column, MouseEventArgs e)
     {
