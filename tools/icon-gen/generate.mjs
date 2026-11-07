@@ -119,6 +119,9 @@ const BUILT_IN = [
   'funnel',
   'ellipsis-vertical',
   'columns-3',
+  // 日期、时间选择器的打开按钮（Rune.UI.Dates）
+  'calendar-days',
+  'clock',
 ];
 
 /** 文档注释里最多列几个关键词 */
