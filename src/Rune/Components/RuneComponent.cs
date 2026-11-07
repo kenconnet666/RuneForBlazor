@@ -173,6 +173,8 @@ public abstract class RuneComponent : IComponent, IHandleEvent, IHandleAfterRend
         var changed = !initialized
                       || renderHandle.IsRenderingOnMetadataUpdate
                       || ParameterChangeDetector.HasChanged(this, parameters, AdditionalAttributes);
+        // 没有未声明的属性时 Blazor 不写这个属性，上一次的会留下来（父级去掉了 data-changed，元素上却还在）：先清空再设
+        AdditionalAttributes = null;
         parameters.SetParameterProperties(this);
         if (!initialized)
         {

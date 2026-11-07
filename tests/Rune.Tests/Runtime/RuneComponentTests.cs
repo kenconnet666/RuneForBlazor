@@ -93,4 +93,15 @@ public class RuneComponentTests : BunitContext
         Assert.Equal(2, child.RenderCount);
         Assert.Equal(1, host.Instance.Renders);
     }
+
+    [Fact]
+    public void 父级去掉了全部未声明的属性_元素上也去掉()
+    {
+        var cut = Render<TextSpan>(p => p.AddUnmatched("data-changed", "").AddChildContent("值"));
+        Assert.True(cut.Find("span").HasAttribute("data-changed"));
+
+        // Blazor 在没有未声明的属性时不写 AdditionalAttributes：不清空的话上一次的会留下来
+        cut.Render(p => p.AddChildContent("值"));
+        Assert.False(cut.Find("span").HasAttribute("data-changed"));
+    }
 }
