@@ -1,0 +1,11 @@
+@inherits UIComponent
+
+@* 排期总览：并排三个月，翻页一次翻三个月；并排时补齐的日期留空，同一天不会出现两次 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Calendar @bind-Value="launch" VisibleMonths="3" aria-label="上线日期" />
+    <TextSpan Tone="TextTone.Muted">上线日期：@(launch is { } day ? LangFormat.Date(day, Config.Lang, DateStyle.Full, null) : "未定")</TextSpan>
+</Flex>
+
+@code {
+    DateOnly? launch = DateOnly.FromDateTime(DateTime.Today);
+}

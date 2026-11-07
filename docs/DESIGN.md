@@ -478,4 +478,9 @@
   JS 只改 Blazor 渲染的属性与文字节点本身（不换节点）：Blazor 只在自己的输出变了时写 DOM，写回了（值变了、晚到的渲染）就按草稿重画；
   `data-value` 是自己刚交出去的值时草稿留着（删掉一段后其余段还在），不是时以它为准。DateField、TimeField 继承抽象的 `SegmentedField<TValue>`。
   JS 由 Rune.UI 的初始化器在第一次遇到 `[data-rune-date-segments]` 时动态 import（`../../Rune.UI.Dates/js/…`），不用日期组件的页面不下载。
-- **日历网格**：二维方向键、Page Up / Down 翻月、Home / End 到周首周尾在 JS（同 Tree、表格的网格导航），选中、翻页交给 C#。
+- **日历网格**：状态（视图、焦点日期、页、区间的开始）在 C# 的 `CalendarState`（移植 calendar-state.ts）；`js/calendar.js` 按键算出要去的日期，
+  在这一页里就当场移焦点，再交给 C#（rune-command focus），翻页、夹到可选范围由 C# 定，渲染后焦点跟到 `[data-focused]`。
+  点格子是一条 activate 命令（几百个格子不各挂委托）。区间选到一半时的悬停预览在 JS 里画（`data-preview*`，C# 不写这几个属性），没有往返。
+  格子的状态都写成 data-*，样式跟着属性走。月份、年份视图里聚焦某格时保留原来的日（vue 点击时会变成 1 日，键盘不会；这里两者一致）。
+  一周的第一天同小时制，按 CLDR weekData（`LangFormat.FirstDayOfWeek`），不取 CultureInfo 的。
+  Intl 选项之外的日期写法用 `LangFormat.Date(value, lang, "M月d日 ddd")`（.NET 的格式，文化与时区随语言）。

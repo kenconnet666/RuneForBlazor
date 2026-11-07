@@ -1,0 +1,51 @@
+@page "/components/calendar"
+@attribute [DocMeta("Calendar 日历", "WAI-ARIA 日期网格：选一天或多天，并排几个月、显示周数、自定义格子、切到月份与年份视图；嵌在页面里，不带弹层。", DocCategory.Date, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Date.Calendar.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
+                值是 <Code>DateOnly?</Code>（<Code>@@bind-Value</Code>）；<Code>Min</Code> 之前的日子不能选，翻页按钮到头不可用。
+                外面改了值、新日期不在这一页时，日历自动翻过去（右边的快捷日期）。
+            </Example>
+            <Example Id="prices" Title="自定义格子" Demo="typeof(PricesExample)">
+                <Code>ChildContent</Code> 拿到这一格的 <Code>CalendarDay</Code>（日期、选中、今天、不可选、在不在本月）：价格日历、标记点、农历都在这里放。
+                读屏先念完整日期，再念格子里的文字（房价也能听到）；重复的日期数字加 <Code>aria-hidden</Code> 不再念一遍。
+            </Example>
+            <Example Id="multiple" Title="多选" Demo="typeof(MultipleExample)">
+                <Code>SelectionMode.Multiple</Code> 时值是 <Code>@@bind-Values</Code>，每天独立切换；<Code>ShowWeekNumbers</Code> 在每行前显示一年里的第几周
+                （周一开始按 ISO 8601，周日开始按含 1 月 1 日的那周）。
+            </Example>
+            <Example Id="months" Title="并排几个月" Demo="typeof(MonthsExample)">
+                <Code>VisibleMonths</Code> 并排显示，放不下时自动换行；翻页按钮在两端，一次翻同样的月数，键盘移出当前页时也会翻页。
+            </Example>
+            <Example Id="views" Title="月份与年份视图" Demo="typeof(ViewsExample)">
+                点标题切到月份、再到年份视图，选好后逐级回到日期，焦点保留原来的那一天；<Code>Granularity</Code> 为 <Code>Month</Code> / <Code>Year</Code>
+                时选择就停在那一级，值是那个月 / 那年的第一天。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="locales" Title="跟随语言" Demo="typeof(LocalesExample)">
+                月份名、星期名、读屏念的“2026年10月20日星期二”按当前语言生成；一周从哪天开始按地区惯例（中国周一、美国周日），
+                语言包的 <Code>FirstDayOfWeek</Code> 或组件上的同名参数可以覆盖。
+            </Example>
+            <Example Id="sizes" Title="尺寸与状态" Demo="typeof(SizesExample)">
+                <Code>Size</Code> 对应主题的字号档位，格子、按钮按比例缩放，点击区域不小于 24px。
+            </Example>
+            <Example Id="footer" Title="页脚、DefaultFocused 与 OnPick" Demo="typeof(FooterExample)">
+                <Code>Footer</Code> 放在网格下面（快捷操作、图例）；每个月默认显示六行，翻页时高度不跳（<Code>FixedWeeks="false"</Code> 按实际行数）；
+                <Code>DefaultFocused</Code> 是没有选择时先显示哪个月；<Code>OnPick</Code> 在每次点选时调用，再点已选的那天也会——日期选择器据此关闭弹层。
+            </Example>
+            <Example Id="unavailable" Title="不可选的日期" Demo="typeof(UnavailableExample)">
+                <Code>IsDateUnavailable</Code> 标出约满、放假的日子：画删除线、不能选，但方向键仍能经过，读屏会念出来。
+                <Code>Min</Code>、<Code>Max</Code> 之外的日期变淡，焦点也进不去。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="DateKeys.Calendar">
+        整个月是一个网格（role="grid"），只有聚焦的那一格在 Tab 顺序里；移出当前显示的月份时自动翻页。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(Rune.UI.Calendar), typeof(CalendarBase)]" />
+</DocPage>

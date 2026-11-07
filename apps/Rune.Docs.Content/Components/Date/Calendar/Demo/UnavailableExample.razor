@@ -1,0 +1,41 @@
+@inherits UIComponent
+
+@* 会议室预约：只能约今天起 30 天内的工作日，节假日与已约满的日子不可选（仍能用方向键经过，读屏念“不可用”） *@
+<Flex Gap="SpaceScale.Xl" Wrap="true" Align="ItemAlign.Start">
+    <Calendar @bind-Value="picked" Min="today" Max="last" IsDateUnavailable="date => Reason(date) is not null" aria-label="预约日期" />
+    <Card Sx="Side">
+        <Header><Strong>3 号会议室 · 12 人</Strong></Header>
+        <ChildContent>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <TextSpan>@(picked is { } day ? $"已选：{LangFormat.Date(day, Config.Lang, DateStyle.Full, null)}" : "选一个可预约的工作日")</TextSpan>
+                <TextSpan Tone="TextTone.Muted" Size="Size.Sm">可预约：@LangFormat.Date(today, Config.Lang, DateStyle.Long, null) 至 @LangFormat.Date(last, Config.Lang, DateStyle.Long, null)</TextSpan>
+                <Flex Gap="SpaceScale.Sm" Wrap="true">
+                    <Badge Variant="StatusVariant.Soft" Tone="Tone.Neutral">周末不开放</Badge>
+                    <Badge Variant="StatusVariant.Soft" Tone="Tone.Warning">@holiday.ToString("M/d") 节假日</Badge>
+                    <Badge Variant="StatusVariant.Soft" Tone="Tone.Danger">@fullyBooked.Count 天已约满</Badge>
+                </Flex>
+            </Flex>
+        </ChildContent>
+    </Card>
+</Flex>
+
+@code {
+    static Style Side => Css.Define(static () => new Style { FlexGrow = 1, FlexBasis = CssLength.Rem(16) });
+
+    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    DateOnly last;
+    DateOnly holiday;
+    HashSet<DateOnly> fullyBooked = [];
+    DateOnly? picked;
+
+    // 演示数据：从今天往后数的第 3、4、11 个日子已约满，第 8 天是节假日
+    protected override void OnInitialized()
+    {
+        last = today.AddDays(30);
+        holiday = today.AddDays(8);
+        fullyBooked = [today.AddDays(3), today.AddDays(4), today.AddDays(11)];
+    }
+
+    string? Reason(DateOnly date) =>
+        date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? "周末" : date == holiday ? "节假日" : fullyBooked.Contains(date) ? "已约满" : null;
+}

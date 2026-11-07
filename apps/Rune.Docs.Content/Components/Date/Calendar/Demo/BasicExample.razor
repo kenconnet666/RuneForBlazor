@@ -1,0 +1,45 @@
+@inherits UIComponent
+
+@* 机票的出发日期：今天之前不能选；旁边是选中日期的说明与几个快捷日期 *@
+<Flex Gap="SpaceScale.Xl" Wrap="true" Align="ItemAlign.Start">
+    <Calendar @bind-Value="departure" Min="today" aria-label="出发日期" />
+    <Card Sx="Side">
+        <Header><Strong>上海 → 成都</Strong></Header>
+        <ChildContent>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <Icon Data="Lucide.PlaneTakeoff" />
+                    <TextSpan>@(departure is { } day ? LangFormat.Date(day, Config.Lang, DateStyle.Full, null) : "还没选出发日期")</TextSpan>
+                </Flex>
+                @if (departure is { } picked)
+                {
+                    var days = picked.DayNumber - today.DayNumber;
+                    <TextSpan Tone="TextTone.Muted" Size="Size.Sm">@(days == 0 ? "今天出发" : $"{days} 天后出发")</TextSpan>
+                }
+                <Flex Gap="SpaceScale.Sm" Wrap="true">
+                    @foreach (var (label, date) in Quick)
+                    {
+                        <Button @key="label" Size="Size.Sm" Variant="@(departure == date ? ButtonVariant.Solid : ButtonVariant.Soft)" @onclick="() => departure = date">@label</Button>
+                    }
+                </Flex>
+            </Flex>
+        </ChildContent>
+    </Card>
+</Flex>
+
+@code {
+    static Style Side => Css.Define(static () => new Style { FlexGrow = 1, FlexBasis = CssLength.Rem(16) });
+
+    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    DateOnly? departure;
+
+    (string Label, DateOnly Date)[] Quick =>
+    [
+        ("今天", today),
+        ("明天", today.AddDays(1)),
+        ("下周一", today.AddDays(8 - (today.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)today.DayOfWeek))),
+        ("一个月后", today.AddMonths(1)),
+    ];
+
+    protected override void OnInitialized() => departure = today.AddDays(3);
+}

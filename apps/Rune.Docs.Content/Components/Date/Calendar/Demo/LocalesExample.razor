@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+@* 跟随语言：月份名、星期名、读屏念的完整日期按语言；一周从哪天开始按地区惯例，也可以用 FirstDayOfWeek 指定 *@
+<Grid MinItemWidth="@("15rem")" Gap="SpaceScale.Xl">
+    @foreach (var (label, lang, first) in Cases)
+    {
+        <Flex @key="label" Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Small Tone="TextTone.Muted">@label</Small>
+            <RuneProvider Lang="lang">
+                <Calendar @bind-Value="day" FirstDayOfWeek="first" ShowWeekNumbers="@(lang.Code == "de-DE")" aria-label="@label" />
+            </RuneProvider>
+        </Flex>
+    }
+</Grid>
+
+@code {
+    static readonly (string Label, Lang Lang, DayOfWeek? First)[] Cases =
+    [
+        ("简体中文：周一开始", Lang.ZhCn, null),
+        ("English (US)：周日开始", Lang.EnUs, null),
+        ("Deutsch：周一开始，显示周数", Lang.EnUs with { Code = "de-DE" }, null),
+        ("日本語：周日开始", Lang.EnUs with { Code = "ja-JP" }, null),
+        ("简体中文，FirstDayOfWeek=Sunday", Lang.ZhCn, DayOfWeek.Sunday),
+    ];
+
+    DateOnly? day = DateOnly.FromDateTime(DateTime.Today);
+}

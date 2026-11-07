@@ -172,7 +172,8 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 - [x] 取值与格式：`DateOnly` / `TimeOnly` / `DateTime` / `DateTimeOffset`，格式、周起始、月份名取 `CultureInfo`，“现在”取 `TimeProvider`；
   对照 vue 的 `DateTime.tsx`、`date-locale.ts`、`date-segments.ts`，行为差异写进 DESIGN（DateTimeText、LangFormat.Date 的详略、时区与小时制）
 - [x] DateField、TimeField、SegmentedField（DateSegmentGroup 先内联在 SegmentedField 里，DateRangePicker 要两组时再拆出来）
-- [ ] Calendar、RangeCalendar、QuarterCalendar、CalendarBoard / CalendarView（整页日历的二维方向键：JS 初始化器补网格焦点）
+- [x] Calendar、RangeCalendar（CalendarView 是抽象的 CalendarBase）
+- [ ] QuarterCalendar、CalendarBoard（整页日历）；RangeCalendar 的快捷区间示例等 DateRangePicker 的 presets
 - [ ] DatePicker（日、周、月、季、年，快捷项、“今天”、禁用的时间段）、DateRangePicker、TimePicker
 - [x] RelativeTime、Countdown
 - [ ] WebAssembly 下程序集懒加载（`BlazorWebAssemblyLazyLoad`）验证

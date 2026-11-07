@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+@* 尺寸与状态：Size 改字号，格子按 em 等比缩放；只读能翻页、不能改；不可用整个变淡 *@
+<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Xl" Align="ItemAlign.Start">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">Size.Sm：侧栏、筛选面板</Small>
+        <Calendar @bind-Value="day" Size="Size.Sm" aria-label="小号" />
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">Size.Lg：触屏、大屏</Small>
+        <Calendar @bind-Value="day" Size="Size.Lg" aria-label="大号" />
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">ReadOnly：能翻页、不能改</Small>
+        <Calendar Value="day" ReadOnly="true" aria-label="只读" />
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">Disabled</Small>
+        <Calendar Value="day" Disabled="true" aria-label="不可用" />
+    </Flex>
+</Grid>
+
+@code {
+    DateOnly? day = DateOnly.FromDateTime(DateTime.Today);
+}

@@ -1,0 +1,44 @@
+@inherits UIComponent
+
+@* 订酒店：并排两个月选入住与离店，订满的晚上不能被夹在中间；右侧算出几晚、总价 *@
+<Flex Gap="SpaceScale.Xl" Wrap="true" Align="ItemAlign.Start">
+    <RangeCalendar @bind-Value="stay" VisibleMonths="2" Min="today" IsDateUnavailable="booked.Contains" aria-label="入住与离店" />
+    <Card Sx="Side">
+        <Header><Strong>湖景大床房</Strong></Header>
+        <ChildContent>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <Icon Data="Lucide.BedDouble" />
+                    <TextSpan>@(stay is { } range ? $"{Day(range.Start)} 入住 → {Day(range.End)} 离店" : "先点入住，再点离店")</TextSpan>
+                </Flex>
+                @if (Nights > 0)
+                {
+                    <TextSpan Tone="TextTone.Muted" Size="Size.Sm">@Nights 晚 × @Money(Nightly)</TextSpan>
+                }
+                <Strong Size="Size.Lg">@Money(Nights * Nightly)</Strong>
+                <Button Disabled="Nights == 0">预订</Button>
+            </Flex>
+        </ChildContent>
+    </Card>
+</Flex>
+
+@code {
+    const decimal Nightly = 688;
+    static Style Side => Css.Define(static () => new Style { FlexGrow = 1, FlexBasis = CssLength.Rem(16) });
+
+    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    HashSet<DateOnly> booked = [];
+    DateRange? stay;
+
+    int Nights => stay is { } range ? range.Days - 1 : 0;
+
+    protected override void OnInitialized()
+    {
+        booked = [today.AddDays(9), today.AddDays(10), today.AddDays(23)];
+        stay = new(today.AddDays(2), today.AddDays(5));
+    }
+
+    string Day(DateOnly date) => LangFormat.Date(date, Config.Lang, "M月d日 ddd");
+
+    string Money(decimal amount) => LangFormat.Number(amount, new NumberFormat { Style = NumberStyle.Currency }, Config.Lang);
+}

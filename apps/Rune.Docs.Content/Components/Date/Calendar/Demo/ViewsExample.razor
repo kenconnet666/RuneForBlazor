@@ -1,0 +1,28 @@
+@inherits UIComponent
+
+@* 三种视图：点标题从日期切到月份、再到年份，跨年份找日期很快；Granularity 让选择停在月份或年份（账期、入学年份） *@
+<Grid MinItemWidth="@("15rem")" Gap="SpaceScale.Xl">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">生日：点标题“1995年6月”切到月份、年份视图</Small>
+        <Calendar @bind-Value="birthday" Max="new DateOnly(2026, 12, 31)" aria-label="生日" />
+        <TextSpan Size="Size.Sm">@(birthday is { } day ? LangFormat.Date(day, Config.Lang, DateStyle.Long, null) : "")</TextSpan>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">账期：Granularity="DateUnit.Month"</Small>
+        <Calendar Granularity="DateUnit.Month" @bind-Value="period" aria-label="账期" />
+        <TextSpan Size="Size.Sm">@(period is { } month ? CalendarText(month) : "选一个月")</TextSpan>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">入学年份：Granularity="DateUnit.Year"</Small>
+        <Calendar Granularity="DateUnit.Year" @bind-Value="entry" Min="new DateOnly(2000, 1, 1)" aria-label="入学年份" />
+        <TextSpan Size="Size.Sm">@(entry is { } year ? $"{year.Year} 年" : "选一年")</TextSpan>
+    </Flex>
+</Grid>
+
+@code {
+    DateOnly? birthday = new(1995, 6, 18);
+    DateOnly? period;
+    DateOnly? entry;
+
+    string CalendarText(DateOnly month) => LangFormat.Date(month, Config.Lang, "Y");
+}

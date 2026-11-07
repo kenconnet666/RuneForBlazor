@@ -186,6 +186,7 @@ const watched = [
   ['table[data-rune-table]', watchTable],
   ['template[data-rune-local-setting]', watchLocalSetting],
   ['[data-rune-date-segments]', lazy(() => import('../../Rune.UI.Dates/js/date-segments.js'), 'watchDateSegments')],
+  ['[data-rune-calendar]', lazy(() => import('../../Rune.UI.Dates/js/calendar.js'), 'watchCalendar')],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 

@@ -1,0 +1,26 @@
+@page "/components/range-calendar"
+@attribute [DocMeta("RangeCalendar 区间日历", "先点开始、再点结束，中间悬停时预览；酒店的入住与离店、报表的起止日期。", DocCategory.Date, Order = 2)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Date.RangeCalendar.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="hotel" Title="入住与离店" Demo="typeof(HotelExample)">
+                值是 <Code>DateRange?</Code>（两端都含），反着点也会排好序。默认区间里不能夹着不可选的日子：点了入住之后，越过订满那晚的一侧都变成不可选；
+                选到一半按 <Kbd>Esc</Kbd> 取消。悬停时的预览在浏览器里画，没有往返。
+            </Example>
+            <Example Id="display" Title="显示与只读" Demo="typeof(DisplayExample)">
+                <Code>FirstDayOfWeek</Code> 一周从哪天开始（不写时取语言包），<Code>ShowWeekNumbers</Code> 在行首显示周数，<Code>FixedWeeks="false"</Code>
+                按实际行数显示；<Code>ReadOnly</Code> 能翻页、移动焦点，不能改。<Code>DefaultFocused</Code> 决定先显示哪个月；<Code>OnPick</Code> 每选完一个区间调用一次。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="leave" Title="跨过不可选的日子" Demo="typeof(LeaveExample)">
+                <Code>AllowsUnavailableInRange</Code> 允许区间跨过不可选的日子：周末不能作为请假的开始或结束，但可以被夹在中间。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="DateKeys.Calendar" />
+    <ApiReference Types="[typeof(RangeCalendar), typeof(CalendarBase), typeof(DateRange)]" />
+</DocPage>

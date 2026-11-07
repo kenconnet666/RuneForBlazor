@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+@* 显示与只读：FirstDayOfWeek 一周从哪天开始、ShowWeekNumbers 周数、FixedWeeks="false" 按实际行数；ReadOnly 能翻页不能改。
+   DefaultFocused 没有值时先显示哪个月；OnPick 每选完一个区间调用 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Align="ItemAlign.Center" Wrap="true">
+        <ToggleGroup @bind-Value="firstDay" Required="true" Size="Size.Sm" aria-label="一周的第一天">
+            <ToggleItem Value="@nameof(DayOfWeek.Monday)">周一开始</ToggleItem>
+            <ToggleItem Value="@nameof(DayOfWeek.Sunday)">周日开始</ToggleItem>
+        </ToggleGroup>
+        <Switch @bind-Checked="weekNumbers">周数</Switch>
+        <Switch @bind-Checked="fixedWeeks">固定 6 行</Switch>
+        <Switch @bind-Checked="readOnly">只读</Switch>
+    </Flex>
+    <RangeCalendar @bind-Value="range" DefaultFocused="nextMonth" FirstDayOfWeek="Enum.Parse<DayOfWeek>(firstDay)" ShowWeekNumbers="weekNumbers"
+                   FixedWeeks="fixedWeeks" ReadOnly="readOnly" OnPick="() => picks++" aria-label="活动档期" />
+    <Small Tone="TextTone.Muted">@(range is { } r ? $"{r.Start:yyyy-MM-dd} – {r.End:yyyy-MM-dd}" : "还没选") · 选完 @picks 次</Small>
+</Flex>
+
+@code {
+    readonly DateOnly nextMonth = DateOnly.FromDateTime(DateTime.Today.AddMonths(1)) is var day ? new(day.Year, day.Month, 1) : default;
+    string firstDay = nameof(DayOfWeek.Monday);
+    bool weekNumbers = true;
+    bool fixedWeeks = true;
+    bool readOnly;
+    DateRange? range;
+    int picks;
+}

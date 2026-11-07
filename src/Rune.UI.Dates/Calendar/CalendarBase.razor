@@ -1,0 +1,168 @@
+@*
+    日历的界面（同 vue-tsx-pro 的 CalendarView，WAI-ARIA 的日期网格）：页头（上一页、标题、下一页）、并排的月份网格、月份视图与年份视图、页脚。
+    Calendar、RangeCalendar 继承它（只差选择的方式与值的类型）。
+    - 每个月一张 table role="grid"，日期格是 td role="gridcell"（aria-selected）里的按钮；焦点日期那一格 tabindex=0。
+      方向键、Page Up / Down、Home / End 在 JS（js/calendar.js）里算出要去的日期，当场把焦点移过去再交给 C#（翻页、夹到范围由这里定）。
+    - 读屏名称是格子里看不见的完整日期（今天另外说明）；标题按钮切到月份视图、再切到年份视图（不比选择的粒度更细）；翻页时 aria-live 播报新的标题。
+    - 并排几个月时只显示本月的日期（补齐的上下月留空）；只有一个月时补齐的日期变淡、可以点。
+    未声明的属性落到根元素上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = CalendarStyles.Of(Config.Styles);
+    var lang = Config.Lang;
+    var view = state.View;
+    var months = state.Months.ToArray();
+    var coarser = view switch { DateUnit.Day => DateUnit.Month, DateUnit.Month => DateUnit.Year, _ => (DateUnit?)null };
+    var (previousLabel, nextLabel) = view switch
+    {
+        DateUnit.Day => (lang.CalendarPreviousMonth, lang.CalendarNextMonth),
+        DateUnit.Month => (lang.CalendarPreviousYear, lang.CalendarNextYear),
+        _ => (lang.CalendarPreviousDecade, lang.CalendarNextDecade),
+    };
+}
+
+<div @attributes="Attrs.Merge(Attrs.Layer(parts[CalendarPart.Root], SizeLayer), Rest, RootManaged)" @onrunecommand="OnCommandAsync">
+    <div @attributes="Attrs.Merge(parts[CalendarPart.Months], PropsMonths)">
+        @for (var index = 0; index < months.Length; index++)
+        {
+            var month = months[index];
+            var title = CalendarText.Title(month, view, lang);
+            <div @key="month" @attributes="Attrs.Merge(MonthLayer)">
+                <div @attributes="Attrs.Merge(parts[CalendarPart.Header], PropsHeader)">
+                    @if (index == 0)
+                    {
+                        <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@previousLabel" PropsIcon="FlipIcon" Disabled="@(Disabled || !state.CanTurnPage(-1))"
+                                    @onclick="() => state.TurnPage(-1)" @attributes="Attrs.MergeProps(null, PropsPrevious)" />
+                    }
+                    else
+                    {
+                        <span @attributes="Attrs.Merge(SpacerLayer)"></span>
+                    }
+                    @if (coarser is { } up && !Disabled)
+                    {
+                        <button type="button" aria-label="@(up == DateUnit.Month ? lang.CalendarChooseMonth(title) : lang.CalendarChooseYear(title))"
+                                @onclick="() => state.SetView(up)" @attributes="Attrs.Merge(parts[CalendarPart.Heading], PropsHeading)">@title</button>
+                    }
+                    else
+                    {
+                        <span data-static @attributes="Attrs.Merge(parts[CalendarPart.Heading], PropsHeading)">@title</span>
+                    }
+                    @if (index == months.Length - 1)
+                    {
+                        <IconButton Icon="BuiltInIcons.ChevronRight" Label="@nextLabel" PropsIcon="FlipIcon" Disabled="@(Disabled || !state.CanTurnPage(1))"
+                                    @onclick="() => state.TurnPage(1)" @attributes="Attrs.MergeProps(null, PropsNext)" />
+                    }
+                    else
+                    {
+                        <span @attributes="Attrs.Merge(SpacerLayer)"></span>
+                    }
+                </div>
+                <table role="grid" aria-label="@title" aria-multiselectable="@(Multiple || Range ? "true" : null)" data-view="@ViewName(view)"
+                       @attributes="Attrs.Merge(parts[CalendarPart.Grid], PropsGrid)">
+                    @if (view == DateUnit.Day)
+                    {
+                        <thead aria-hidden="true">
+                            <tr>
+                                @if (ShowWeekNumbers)
+                                {
+                                    <th scope="col" @attributes="Attrs.Merge(parts[CalendarPart.WeekNumber], PropsWeekNumber)">@lang.CalendarWeek</th>
+                                }
+                                @foreach (var (narrow, full) in CalendarText.Weekdays(FirstDay, lang))
+                                {
+                                    <th scope="col" title="@full" @attributes="Attrs.Merge(parts[CalendarPart.Weekday], PropsWeekday)">@narrow</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var week in CalendarText.MonthGrid(month, FirstDay, FixedWeeks))
+                            {
+                                <tr @key="week[0]">
+                                    @if (ShowWeekNumbers)
+                                    {
+                                        var number = CalendarText.WeekOfYear(week[0], FirstDay);
+                                        <th scope="row" aria-label="@lang.CalendarWeekNumber(number)" @attributes="Attrs.Merge(parts[CalendarPart.WeekNumber], PropsWeekNumber)">@number</th>
+                                    }
+                                    @foreach (var date in week)
+                                    {
+                                        // 并排几个月时补齐的日期留空：同一天不在两张网格里重复出现
+                                        if (date.Month != month.Month && months.Length > 1)
+                                        {
+                                            <td @key="date" @attributes="Attrs.Merge(parts[CalendarPart.Cell])"></td>
+                                            continue;
+                                        }
+                                        @Cell(parts, date, month, LangFormat.Date(date, lang, DateStyle.Full, null), null)
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    }
+                    else
+                    {
+                        <tbody>
+                            @foreach (var row in PeriodCells(month).Chunk(3))
+                            {
+                                <tr @key="row[0]">
+                                    @foreach (var date in row)
+                                    {
+                                        @Cell(parts, date, null,
+                                              view == DateUnit.Month ? CalendarText.YearMonth(date, lang) : CalendarText.Year(date.Year, lang),
+                                              view == DateUnit.Month ? CalendarText.MonthShort(date.Month, lang) : CalendarText.Year(date.Year, lang))
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    }
+                </table>
+            </div>
+        }
+    </div>
+    @* 翻页、换视图时播报新的标题；不放在标题按钮上，免得聚焦按钮时重复念 *@
+    <span aria-live="polite" @attributes="Attrs.Merge(HiddenLayer)">@string.Join("，", months.Select(m => CalendarText.Title(m, view, lang)))</span>
+    @if (state.Anchor is not null)
+    {
+        <span id="@HintId" @attributes="Attrs.Merge(HiddenLayer)">@lang.CalendarPickEnd</span>
+    }
+    @if (Footer is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[CalendarPart.Footer], PropsFooter)">@Footer</div>
+    }
+</div>
+
+@code {
+    // 一格：td + 按钮。读屏名称来自按钮里看不见的完整日期（今天另外说明），看得见的数字对读屏隐藏；
+    // 自定义内容（房价、标记点）跟在完整日期后面一起念。content 为 null 时是日期格（数字或自定义内容），否则是月份、年份格
+    RenderFragment Cell(PartLayers<CalendarPart> parts, DateOnly date, DateOnly? month, string label, string? content)
+    {
+        var cell = state.Cell(date, month);
+        var off = Disabled || cell.Disabled;
+        var ends = Range && (cell.RangeStart || cell.RangeEnd);
+        var marked = Range ? ends : cell.Selected;
+        var focusable = cell.Focused && !cell.Outside;
+        var iso = date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        return @<td @key="date" role="gridcell" aria-selected="@(cell.Selected ? "true" : "false")" aria-disabled="@(off ? "true" : null)"
+                    data-in-range="@(cell.InRange ? true : null)" data-range-start="@(cell.RangeStart ? true : null)" data-range-end="@(cell.RangeEnd ? true : null)"
+                    @attributes="Attrs.Merge(parts[CalendarPart.Cell], PropsCell)">
+            <button type="button" tabindex="@(focusable ? "0" : "-1")" aria-disabled="@(off ? "true" : null)" aria-describedby="@(state.Anchor is null ? null : HintId)"
+                    data-date="@iso" data-focused="@(focusable ? true : null)" data-selected="@(marked ? true : null)" data-today="@(cell.Today ? true : null)"
+                    data-outside="@(cell.Outside ? true : null)" data-unavailable="@(cell.Unavailable ? true : null)" data-anchor="@(cell.Anchor ? true : null)"
+                    data-in-range="@(cell.InRange ? true : null)" data-period="@(content is null ? null : true)"
+                    @attributes="Attrs.Merge(parts[CalendarPart.CellButton], PropsCellButton)">
+                <span @attributes="Attrs.Merge(HiddenLayer)">@(cell.Today ? Config.Lang.CalendarToday(label) : label)</span>
+                @if (content is not null)
+                {
+                    <span aria-hidden="true">@content</span>
+                }
+                else if (ChildContent is { } custom)
+                {
+                    @custom(new CalendarDay(date, cell.Selected, off, cell.Today, cell.Outside, cell.InRange))
+                }
+                else
+                {
+                    <span aria-hidden="true">@date.Day</span>
+                }
+            </button>
+        </td>;
+    }
+}

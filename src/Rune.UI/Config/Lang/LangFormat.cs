@@ -102,15 +102,7 @@ public static class LangFormat
     /// </summary>
     public static string Date(object value, Lang lang, DateStyle? dateStyle, TimeStyle? timeStyle)
     {
-        var dateTime = value switch
-        {
-            DateOnly date => date.ToDateTime(TimeOnly.MinValue),
-            TimeOnly time => DateOnly.MinValue.ToDateTime(time),
-            DateTimeOffset offset => TimeZoneInfo.ConvertTime(offset, ZoneOf(lang)).DateTime,
-            DateTime { Kind: DateTimeKind.Utc } utc => TimeZoneInfo.ConvertTimeFromUtc(utc, ZoneOf(lang)),
-            DateTime time => time,
-            _ => throw new ArgumentException($"不是日期：{value.GetType()}", nameof(value)),
-        };
+        var dateTime = WallOf(value, lang);
         var culture = lang.Code;
         var info = CultureOf(culture).DateTimeFormat;
         var english = culture.StartsWith("en", StringComparison.OrdinalIgnoreCase);
@@ -122,6 +114,23 @@ public static class LangFormat
         var joiner = !english ? " " : dateStyle is DateStyle.Full or DateStyle.Long ? " at " : ", ";
         return day + joiner + clock;
     }
+
+    /// <summary>
+    /// 按 .NET 的日期时间格式写（<c>"M月d日 ddd"</c>、<c>"Y"</c> 年月）：月份名、星期名取语言的文化，时刻按语言的时区。
+    /// 详略之外的写法（vue-tsx-pro 里 format.date 传 Intl 选项的那些）用它。
+    /// </summary>
+    public static string Date(object value, Lang lang, string pattern) => WallOf(value, lang).ToString(pattern, CultureOf(lang.Code));
+
+    // 值 → 要显示的日期时间：时刻（DateTimeOffset、UTC 的 DateTime）换到语言的时区，其余原样
+    static DateTime WallOf(object value, Lang lang) => value switch
+    {
+        DateOnly date => date.ToDateTime(TimeOnly.MinValue),
+        TimeOnly time => DateOnly.MinValue.ToDateTime(time),
+        DateTimeOffset offset => TimeZoneInfo.ConvertTime(offset, ZoneOf(lang)).DateTime,
+        DateTime { Kind: DateTimeKind.Utc } utc => TimeZoneInfo.ConvertTimeFromUtc(utc, ZoneOf(lang)),
+        DateTime time => time,
+        _ => throw new ArgumentException($"不是日期：{value.GetType()}", nameof(value)),
+    };
 
     static string DatePattern(DateTimeFormatInfo info, DateStyle style, string culture)
     {
@@ -188,6 +197,30 @@ public static class LangFormat
         "MY", "NA", "NI", "NZ", "OM", "PA", "PE", "PG", "PH", "PK", "PR", "PS", "PW", "QA", "SA", "SB", "SD", "SG", "SL", "SO",
         "SS", "SV", "SY", "SZ", "TC", "TD", "TN", "TO", "TT", "TW", "UM", "US", "VC", "VE", "VG", "VI", "VU", "WS", "YE",
     }.ToFrozenSet();
+
+    /// <summary>
+    /// 一周的第一天：语言包的 <see cref="Lang.FirstDayOfWeek"/>（0 表示周日）；不写时按地区惯例（同 Intl 的 weekInfo）。
+    /// 不取 CultureInfo 的：WebAssembly 的精简 ICU 没有地区数据。
+    /// </summary>
+    internal static DayOfWeek FirstDayOfWeek(Lang lang)
+    {
+        if (lang.FirstDayOfWeek is { } own) return (DayOfWeek)(((own % 7) + 7) % 7);
+        var region = RegionOf(lang.Code);
+        return SundayRegions.Contains(region) ? DayOfWeek.Sunday
+            : SaturdayRegions.Contains(region) ? DayOfWeek.Saturday
+            : region == "MV" ? DayOfWeek.Friday
+            : DayOfWeek.Monday;
+    }
+
+    // CLDR 49 supplemental/weekData 的 firstDay：其余地区是周一
+    static readonly FrozenSet<string> SundayRegions = new[]
+    {
+        "AG", "AS", "BD", "BR", "BS", "BT", "BW", "BZ", "CA", "CO", "DM", "DO", "ET", "GT", "GU", "HK", "HN", "ID", "IL", "IN",
+        "IS", "JM", "JP", "KE", "KH", "KR", "LA", "MH", "MM", "MO", "MT", "MX", "MZ", "NI", "NP", "PA", "PE", "PH", "PK", "PR",
+        "PT", "PY", "SA", "SG", "SV", "TH", "TT", "TW", "UM", "US", "VE", "VI", "WS", "YE", "ZA", "ZW",
+    }.ToFrozenSet();
+
+    static readonly FrozenSet<string> SaturdayRegions = new[] { "AF", "BH", "DJ", "DZ", "EG", "IQ", "IR", "JO", "KW", "LY", "OM", "QA", "SD", "SY" }.ToFrozenSet();
 
     /// <summary>语言的时区（IANA 名称，如 Asia/Shanghai）；没写或找不到时是本地时区。</summary>
     internal static TimeZoneInfo ZoneOf(Lang lang)

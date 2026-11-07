@@ -1,0 +1,35 @@
+@inherits UIComponent
+
+@* 排班：多选这个月要值班的日子，右侧按日期列出，可以单独移除；并排两个月、显示周数 *@
+<Flex Gap="SpaceScale.Xl" Wrap="true" Align="ItemAlign.Start">
+    <Calendar SelectionMode="SelectionMode.Multiple" @bind-Values="shifts" VisibleMonths="2" ShowWeekNumbers="true" aria-label="值班日期" />
+    <Card Sx="Side">
+        <Header>
+            <Flex Justify="ContentJustify.Between" Align="ItemAlign.Center">
+                <Strong>值班 @shifts.Count 天</Strong>
+                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Disabled="shifts.Count == 0" @onclick="() => shifts = []">清空</Button>
+            </Flex>
+        </Header>
+        <ChildContent>
+            @if (shifts.Count > 0)
+            {
+                <Flex Gap="SpaceScale.Xs" Wrap="true">
+                    @foreach (var date in shifts.Order())
+                    {
+                        <Tag @key="date" OnRemove="() => shifts = [.. shifts.Where(item => item != date)]">@LangFormat.Date(date, Config.Lang, "M月d日 ddd")</Tag>
+                    }
+                </Flex>
+            }
+            else
+            {
+                <TextSpan Tone="TextTone.Muted">点日历上的日子加入排班，再点一次取消</TextSpan>
+            }
+        </ChildContent>
+    </Card>
+</Flex>
+
+@code {
+    static Style Side => Css.Define(static () => new Style { FlexGrow = 1, FlexBasis = CssLength.Rem(14) });
+
+    IReadOnlyList<DateOnly> shifts = [];
+}

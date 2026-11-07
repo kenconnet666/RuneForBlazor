@@ -13,4 +13,15 @@ static class DateKeys
         ("Home / End", "这一段取最小 / 最大值"),
         ("Backspace / Delete", "删一位；删空后回到上一段"),
     ];
+
+    /// <summary>日历网格（Calendar、RangeCalendar 与选择器弹出的日历）。</summary>
+    public static readonly (string Key, string Action)[] Calendar =
+    [
+        ("← / →", "前一天 / 后一天（从右到左排版时反过来）；月份、年份视图里是前一格 / 后一格"),
+        ("↑ / ↓", "上一周 / 下一周；月份、年份视图里是上一行 / 下一行"),
+        ("PageUp / PageDown", "上一个月 / 下一个月；月份、年份视图里翻一页"),
+        ("Shift+PageUp / Shift+PageDown", "上一年 / 下一年"),
+        ("Home / End", "这周的第一天 / 最后一天（按地区的一周第一天）"),
+        ("Enter / Space", "选中聚焦的日期；区间日历里先选开始、再选结束"),
+    ];
 }

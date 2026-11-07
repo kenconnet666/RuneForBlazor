@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+@* 页脚放快捷操作；DefaultFocused 是没有选择时先显示哪个月；OnPick 在每次点选时调用（再点已选的那天也会） *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Align="ItemAlign.Start">
+    <Card Padding="SpaceScale.Sm">
+        <Calendar @bind-Value="date" DefaultFocused="new DateOnly(2026, 12, 1)" OnPick="() => picks++" aria-label="提醒日期">
+            <Footer>
+                <Flex Gap="SpaceScale.Xs" Justify="ContentJustify.Between">
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => date = DateOnly.FromDateTime(DateTime.Today)">今天</Button>
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Disabled="date is null" @onclick="() => date = null">清空</Button>
+                </Flex>
+            </Footer>
+        </Calendar>
+    </Card>
+    <Small Tone="TextTone.Muted">@(date?.ToString("yyyy-MM-dd") ?? "没有选择（一开始显示 2026 年 12 月）") · 点选了 @picks 次</Small>
+</Flex>
+
+@code {
+    DateOnly? date;
+    int picks;
+}

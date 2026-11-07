@@ -1,0 +1,41 @@
+@inherits UIComponent
+
+@* 酒店的价格日历：日期格里加上当天的房价，最低价用成功色标出；周五、周六更贵，售罄的日子不可选 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Calendar @bind-Value="night" PropsCellButton="BigCell" Min="today" Max="today.AddDays(34)" IsDateUnavailable="soldOut.Contains" aria-label="入住日期" Context="cell">
+        <span @attributes="Attrs.Merge(DayLayer)">
+            @* 读屏已经念了完整日期，数字不重复念；价格照常念 *@
+            <span aria-hidden="true">@cell.Date.Day</span>
+            @if (!cell.Disabled && !cell.Outside)
+            {
+                <span @attributes="Attrs.Merge(PriceLayer(PriceOf(cell.Date) == Lowest, cell.Selected))">@(soldOut.Contains(cell.Date) ? "满" : $"¥{PriceOf(cell.Date)}")</span>
+            }
+        </span>
+    </Calendar>
+    <TextSpan Tone="TextTone.Muted">
+        @(night is { } day ? $"{LangFormat.Date(day, Config.Lang, DateStyle.Long, null)} 入住，一晚 ¥{PriceOf(day)}" : $"最低 ¥{Lowest} 起，周五、周六更贵")
+    </TextSpan>
+</Flex>
+
+@code {
+    // 格子放得下价格：比默认的 2.25em 宽、高一些
+    static readonly Attrs BigCell = new() { Sx = Css.Define(static () => new Style { Width = CssLength.Em(3.25), Height = CssLength.Em(3.25) }) };
+    static readonly Attrs DayLayer = new() { Sx = Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, AlignItems = AlignItems.Center, LineHeight = LineHeights.Tight }) };
+    static Style Price => Css.Define(static () => new Style { FontSize = CssLength.Em(0.7), Color = Colors.TextMuted });
+    static Style LowestPrice => Css.Define(static () => new Style { Color = Tones.Success.Text, FontWeight = FontWeights.Semibold });
+    // 选中的格子是品牌色实底：价格跟着用实底上的文字色
+    static Style OnSelected => Css.Define(static () => new Style { Color = CssWide.Inherit });
+
+    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    HashSet<DateOnly> soldOut = [];
+    DateOnly? night;
+
+    int Lowest => Enumerable.Range(0, 35).Min(days => PriceOf(today.AddDays(days)));
+
+    protected override void OnInitialized() => soldOut = [today.AddDays(5), today.AddDays(6)];
+
+    // 按日期给一点起伏，演示数据确定不变
+    static int PriceOf(DateOnly date) => (date.DayOfWeek is DayOfWeek.Friday or DayOfWeek.Saturday ? 699 : 459) + date.Day % 4 * 20;
+
+    static Attrs PriceLayer(bool lowest, bool selected) => new() { Sx = Sx.Of(Price, lowest ? LowestPrice : null, selected ? OnSelected : null) };
+}

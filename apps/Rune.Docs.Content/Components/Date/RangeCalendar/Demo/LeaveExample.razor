@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+@* 请假：周末不可选，但请假区间可以跨过周末（AllowsUnavailableInRange），只算工作日 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <RangeCalendar @bind-Value="leave" VisibleMonths="2" IsDateUnavailable="Weekend" AllowsUnavailableInRange="true" aria-label="请假日期" />
+    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+        <TextSpan>@(leave is { } range ? $"{range.Start:yyyy-MM-dd} 至 {range.End:yyyy-MM-dd}" : "选开始与结束的工作日")</TextSpan>
+        @if (leave is { } picked)
+        {
+            <Badge Variant="StatusVariant.Soft">共 @Workdays(picked) 个工作日</Badge>
+        }
+    </Flex>
+</Flex>
+
+@code {
+    DateRange? leave;
+
+    static bool Weekend(DateOnly date) => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    static int Workdays(DateRange range) => Enumerable.Range(0, range.Days).Count(offset => !Weekend(range.Start.AddDays(offset)));
+}
