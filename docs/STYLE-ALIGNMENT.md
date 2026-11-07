@@ -142,3 +142,19 @@ vue 的规则（STYLE-ENGINE.md §11）照搬，按 Rune 的结构落在这几�
 | 定制的段数 | 每层扩展（`createUi`、每层 Provider）各一段 | 合成一段 | `ComponentStyles.Then` 已经按嵌套顺序合好；语义相同，只是嵌套定制多时类不再细分 |
 | 受管层 | 使用方写了 sx 时才分出去 | 一律按层分段 | `Attrs.Layer` / `MergeProps` 也用于组件内部的组合（第二个参数不一定是使用方）；语义相同，类多几个 |
 | 宿主 CSS | 不分层的盖过整个组件库 | 同 | 演示项目删掉了 Blazor 模板留下的表单校验规则（`.invalid { outline }` 这类，分层后会稳定地盖过组件），文档站的标题焦点规则收窄到 `h1` |
+
+### 阶段 25（vue 0.12 开发线，2026-11-07 跟进第一、二批，vue master 到 a6ffbb54）
+
+| vue | Rune |
+| --- | ---- |
+| `_hover`、`_active` 排除不可用（0fc803a6） | `When.Hover`、`When.Active` 同样排除（写在 `:where` 里），删掉 `When.HoverEnabled` |
+| 部件一律 border-box（313f0e23，`css.globalRule`） | 新增 `GlobalRule`（最前面的级联层 `rune.base`，DI 单例，登记表创建时登记）；`AddRuneUI` 注册 `:where([data-part]) { box-sizing: border-box }` |
+| 外壳只在点到空白处时转交焦点（1cc605e3） | `focusOnShell`：点在框里任何可聚焦的元素（含 `[tabindex]`、`[contenteditable]`）上照常；只认框里的，外层滚动区域的 tabindex 不算 |
+| Grid / GridList 的 `balanced`（b0baadf5） | `Balanced` 参数：浏览器里量出放得下几列、数子元素，写列数（`data-rune-balanced`，layout.js）；最小宽度只认 px、rem、em。vue 用到的 13 个示例同样加上 |
+| Sparkline 的柱标出最新一根（b0baadf5） | 同；Rune 没有已废弃的 `Variant` |
+| 静态 Table 的 `stickyHeader`、单元格 `sticky`（9a57a058） | 同；DataTable 的 `StickySelect` 改名 `StickyStart`；ScrollArea 的“两个方向”示例改用 Table |
+| ProportionBar 图例从起始边排开（92468893） | 同 |
+| ErrorBoundary、CSP nonce、FilterBar / QueryTable、CommentThread / NotificationCenter 的 RelativeTime | 没跟：Rune 还没有这几个组件；Blazor 自带 ErrorBoundary，CSP 等阶段计划时再定 |
+| 文档站合并组件页（137 → 119） | 等 vue 的阶段 25 做完、通知整体跟进时一起重排（见 DOCS-SITE.md） |
+
+CI 的 `VUE_TSX_PRO_REF` 没跟着前移：vue 的语言包新增了 errorTitle、errorRetry（ErrorBoundary），前移要等 Rune 也有对应的文案。
