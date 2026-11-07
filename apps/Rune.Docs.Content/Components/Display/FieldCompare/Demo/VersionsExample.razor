@@ -1,0 +1,62 @@
+@inherits RuneComponent
+
+@* 测算版本对比：选两个版本，字段、原值、新值、变化四列；金额是 decimal，变化量精确计算。
+   单价、年度金额越低越好（Better="CompareBetter.Lower"），利润率越高越好；没改的字段淡显，勾上“只看改动”只列改了的 *@
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Flex Gap="SpaceScale.Md" Wrap="true" Align="ItemAlign.Center">
+            <ToggleGroup @bind-Value="from" aria-label="原版本" Required="true" Size="Size.Sm">
+                @foreach (var version in Versions)
+                {
+                    <ToggleItem @key="version.Version" Value="@version.Version">@version.Version</ToggleItem>
+                }
+            </ToggleGroup>
+            <span aria-hidden="true">→</span>
+            <ToggleGroup @bind-Value="to" aria-label="对比版本" Required="true" Size="Size.Sm">
+                @foreach (var version in Versions)
+                {
+                    <ToggleItem @key="version.Version" Value="@version.Version">@version.Version</ToggleItem>
+                }
+            </ToggleGroup>
+            <Checkbox @bind-Value="onlyChanged">只看改动</Checkbox>
+        </Flex>
+        <FieldCompare Before="Pick(from)" After="Pick(to)" OnlyChanged="onlyChanged" PropsTable="@(new Attrs { AriaLabel = $"测算 {from} 与 {to} 对比" })">
+            <PropertyColumn Property="e => e.UnitPrice" Title="单价" Type="ColumnType.Currency" Better="CompareBetter.Lower" />
+            <PropertyColumn Property="e => e.AnnualVolume" Title="年用量（件）" Type="ColumnType.Number" />
+            <PropertyColumn Property="e => e.UnitPrice * e.AnnualVolume" Key="annualCost" Title="年度金额（万元）" Type="ColumnType.Number" Format="Wan" Better="CompareBetter.Lower" />
+            <PropertyColumn Property="e => e.SavingRate" Title="利润率" Type="ColumnType.Percent" Better="CompareBetter.Higher" />
+            <PropertyColumn Property="e => e.Material" Title="材料" />
+            <PropertyColumn Property="e => e.Supplier" Title="供应商" />
+            <PropertyColumn Property="e => e.ValidUntil" Title="报价有效期" Type="ColumnType.Date" />
+            <StatusColumn Property="e => e.Status" Title="状态" Statuses="Statuses" />
+        </FieldCompare>
+    </Flex>
+</Card>
+
+@code {
+    enum EstimateStatus { Draft, Reviewing, Approved }
+
+    sealed record Estimate(string Version, decimal UnitPrice, int AnnualVolume, decimal SavingRate, string Material, string Supplier, DateOnly ValidUntil, EstimateStatus Status);
+
+    static readonly StatusMap<EstimateStatus> Statuses = new()
+    {
+        [EstimateStatus.Draft] = new("草稿"),
+        [EstimateStatus.Reviewing] = new("评审中", Tone.Info),
+        [EstimateStatus.Approved] = new("已通过", Tone.Success),
+    };
+
+    static readonly Estimate[] Versions =
+    [
+        new("V1", 128.60m, 42_000, 0.062m, "6061-T6 铝合金", "华辰精密", new(2026, 12, 31), EstimateStatus.Draft),
+        new("V2", 119.35m, 42_000, 0.129m, "6063-T5 铝合金", "华辰精密", new(2026, 12, 31), EstimateStatus.Reviewing),
+        new("V3", 116.80m, 45_500, 0.148m, "6063-T5 铝合金", "恒远五金", new(2027, 6, 30), EstimateStatus.Approved),
+    ];
+
+    static readonly NumberFormat Wan = new() { Scale = 10_000, MaximumFractionDigits = 2 };
+
+    string from = "V1";
+    string to = "V3";
+    bool onlyChanged;
+
+    static Estimate Pick(string version) => Versions.First(item => item.Version == version);
+}

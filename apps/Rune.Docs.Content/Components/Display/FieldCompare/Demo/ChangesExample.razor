@@ -1,0 +1,65 @@
+@inherits RuneComponent
+
+@* 编辑前后：Layout="FieldCompareLayout.List" 一行一个字段，只列改了的——原值划掉、箭头、新值，数值字段跟着变化量。
+   放在保存前的确认、审批意见、通知这类地方；没有原记录（新建）时只列新值，点“还原”后什么都没改，显示“没有改动” *@
+<Grid MinItemWidth="@("20em")" Gap="SpaceScale.Lg">
+    <Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <H3>编辑订单 SO-1024</H3>
+            <Field Label="客户"><TextField Value="@draft.Customer" ValueChanged="@(text => draft = draft with { Customer = text ?? "" })" /></Field>
+            <Grid Columns="2" Gap="SpaceScale.Sm">
+                <Field Label="数量"><NumberField Value="draft.Quantity" ValueChanged="@((int quantity) => draft = WithAmount(draft with { Quantity = quantity }))" Min="0" /></Field>
+                <Field Label="折扣"><NumberField Value="draft.Discount" ValueChanged="@((decimal discount) => draft = WithAmount(draft with { Discount = discount }))" Min="0" Max="0.5m" Step="0.01m" Format="P0" /></Field>
+            </Grid>
+            <Field Label="优先级">
+                <Select Items="Priorities.Options()" Value="@draft.Priority.ToString()" ValueChanged="@(value => draft = draft with { Priority = Enum.Parse<Priority>(value ?? nameof(Priority.Normal)) })" />
+            </Field>
+            <Flex Justify="ContentJustify.End"><Button Variant="ButtonVariant.Surface" @onclick="() => draft = Saved">还原</Button></Flex>
+        </Flex>
+    </Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+        <Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <H3>保存前确认</H3>
+                <FieldCompare Before="Saved" After="draft" Layout="FieldCompareLayout.List">@Fields</FieldCompare>
+            </Flex>
+        </Card>
+        <Card>
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <H3>新建的订单</H3>
+                <FieldCompare TItem="Order" Before="null" After="@(Saved with { Customer = "北辰电子", Priority = Priority.Urgent })" Layout="FieldCompareLayout.List">@Fields</FieldCompare>
+            </Flex>
+        </Card>
+    </Flex>
+</Grid>
+
+@code {
+    enum Priority { Normal, Urgent }
+
+    sealed record Order(string Customer, int Quantity, decimal Discount, decimal Amount, DateOnly Delivery, Priority Priority);
+
+    static readonly StatusMap<Priority> Priorities = new()
+    {
+        [Priority.Normal] = new("普通"),
+        [Priority.Urgent] = new("加急", Tone.Warning),
+    };
+
+    static readonly Order Saved = new("远航物流", 120, 0.05m, 22_800m, new(2026, 11, 8), Priority.Normal);
+
+    // 金额跟着数量与折扣算：单价 200
+    static Order WithAmount(Order order) => order with { Amount = Math.Round(order.Quantity * 200 * (1 - order.Discount)) };
+
+    // 已经改了几处：数量、折扣（金额跟着变）与优先级
+    Order draft = WithAmount(Saved with { Quantity = 150, Discount = 0.08m, Priority = Priority.Urgent });
+
+    // 两处对比用同一组字段
+    static readonly RenderFragment Fields = __builder =>
+    {
+        <PropertyColumn TItem="Order" TValue="string" Property="o => o.Customer" Title="客户" />
+        <PropertyColumn TItem="Order" TValue="int" Property="o => o.Quantity" Title="数量" Type="ColumnType.Number" />
+        <PropertyColumn TItem="Order" TValue="decimal" Property="o => o.Discount" Title="折扣" Type="ColumnType.Percent" />
+        <PropertyColumn TItem="Order" TValue="decimal" Property="o => o.Amount" Title="金额" Type="ColumnType.Currency" />
+        <PropertyColumn TItem="Order" TValue="DateOnly" Property="o => o.Delivery" Title="交期" Type="ColumnType.Date" />
+        <StatusColumn TItem="Order" TKey="Priority" Property="o => o.Priority" Title="优先级" Statuses="Priorities" />
+    };
+}

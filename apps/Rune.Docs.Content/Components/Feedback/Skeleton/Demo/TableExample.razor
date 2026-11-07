@@ -1,0 +1,40 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Wrap="true">
+        <Switch @bind-Value="loading">加载中</Switch>
+        <Button Variant="ButtonVariant.Soft" Size="Size.Sm" @onclick="ReloadAsync">重新加载（1.8 秒）</Button>
+    </Flex>
+    <DataTable aria-label="订单" Items="@(loading ? [] : Orders)" GetKey="o => o.Id" Loading="loading">
+        <PropertyColumn Property="o => o.Id" Title="订单号" Width="110" />
+        <PropertyColumn Property="o => o.Customer" Title="客户" />
+        <PropertyColumn Property="o => o.City" Title="城市" Width="90" />
+        <TemplateColumn Key="status" Title="状态" Width="100" Value="o => o.Status" Context="order">
+            <Badge Tone="@(order.Status switch { "已付款" => Tone.Success, "待发货" => Tone.Warning, _ => Tone.Neutral })">@order.Status</Badge>
+        </TemplateColumn>
+        <PropertyColumn Property="o => o.Amount" Title="金额" Width="110" Type="ColumnType.Currency" />
+    </DataTable>
+</Flex>
+
+@code {
+    sealed record Order(string Id, string Customer, string City, string Status, decimal Amount);
+
+    static readonly IReadOnlyList<Order> Orders =
+    [
+        new("A-1024", "林小满", "杭州", "已付款", 1280m),
+        new("A-1025", "陈一舟", "成都", "待发货", 356m),
+        new("A-1026", "王若曦", "北京", "已付款", 4210m),
+        new("A-1027", "赵知远", "广州", "已退款", 98m),
+    ];
+
+    bool loading = true;
+
+    // 模拟一次请求：1.8 秒后完成
+    async Task ReloadAsync()
+    {
+        loading = true;
+        StateHasChanged();
+        await Task.Delay(1800);
+        loading = false;
+    }
+}

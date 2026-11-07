@@ -17,6 +17,9 @@
             <Example Id="layouts" Title="常见布局" Demo="typeof(LayoutsExample)">
                 按真实布局拼骨架：文章（配图、标题、段落）、消息列表（头像加两行文字）、看板、表单。Card 自带 <Code>Loading</Code>；自己拼的骨架换成内容时给内容加 <Code>ShimmerStyles.Reveal</Code> 淡入，不要硬切，并在整块区域上加 <Code>aria-busy</Code>。
             </Example>
+            <Example Id="table" Title="表格" Demo="typeof(TableExample)">
+                DataTable 加载时（首次加载与刷新一样）表体换成骨架行，每列长短不一，光带一行接一行往下推；不另加进度条。
+            </Example>
         </ExampleColumn>
     </Examples>
     <ApiReference Types="[typeof(Skeleton), typeof(SkeletonText)]" />

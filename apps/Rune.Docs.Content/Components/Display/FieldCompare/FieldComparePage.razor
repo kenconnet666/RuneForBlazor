@@ -1,0 +1,18 @@
+@page "/components/field-compare"
+@attribute [DocMeta("FieldCompare 字段对比", "两份记录按字段列出原值与新值（测算版本对比、编辑前后、审批前后），数值字段带变化量与变化率，按好坏着色。", DocCategory.Display, Order = 8)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.FieldCompare.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="versions" Title="版本对比：表格" Demo="typeof(VersionsExample)">
+        字段的写法与表格的列相同（<Code>PropertyColumn</Code>、<Code>StatusColumn</Code>、<Code>TemplateColumn</Code>；<Code>Title</Code>、<Code>Type</Code>、<Code>Format</Code>），
+        表格里的列可以直接拿来用。默认是字段、原值、新值、变化四列，列出全部字段、没改的淡显，<Code>OnlyChanged</Code> 只列改了的。
+        两边都是数值时给出变化量（按字段的格式、带正负号，decimal 精确计算）与变化率；列的 <Code>Better</Code> 写 <Code>Lower</Code>（成本、单价）或 <Code>Higher</Code>（利润率、产量）时按好坏着色。
+        比较建在 <Code>Diff</Code> 上，要自己排版时直接用 <Code>Diff.Fields</Code>、<Code>Diff.Rows</Code>。
+    </Example>
+    <Example Id="changes" Title="编辑前后：列表" Demo="typeof(ChangesExample)">
+        <Code>FieldCompareLayout.List</Code> 一行一个字段：原值划掉、箭头、新值（<Code>ValueChange</Code>，要自己排版时单独用），默认只列改了的，放在保存前的确认、审批意见、时间线的一项里。
+        原值是 del、新值是 ins，中间有给读屏的“改为”；<Code>Before</Code> 为空（新建）时只列新值，什么都没改时显示“没有改动”（语言包可改）。
+    </Example>
+    <ApiReference Types="[typeof(FieldCompare<>)]" />
+</DocPage>

@@ -25,6 +25,12 @@ public class PropertyColumn<TItem, TValue> : DataTableColumn<TItem>
     [Parameter, EditorRequired] public Expression<Func<TItem, TValue>> Property { get; set; } = null!;
 
     /// <summary>
+    /// 单元格的内容（Context 是这一行）；不写时按类型格式化属性的值。写了时排序、筛选、合计、编辑仍按属性的值
+    /// （编辑过的格写出原值这类：<c>&lt;PropertyColumn Property="r =&gt; r.Name" Editable Context="row"&gt;&lt;ValueChange … /&gt;&lt;/PropertyColumn&gt;</c>）。
+    /// </summary>
+    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+
+    /// <summary>
     /// 可以就地编辑（DataTable 的 OnCellChange 写回）：表格随之变成可以用方向键走格的网格。默认编辑器按值类型选：
     /// 状态列是 Select，数字是 NumberField，文字是 TextField；别的类型写 <see cref="Editor"/>。
     /// </summary>
@@ -112,6 +118,8 @@ public class PropertyColumn<TItem, TValue> : DataTableColumn<TItem>
     private protected override string? DefaultTitle => title;
 
     internal override object? ValueOf(TItem item) => read(item);
+
+    internal override RenderFragment? CellContent(TItem item) => ChildContent?.Invoke(item);
 
     /// <inheritdoc/>
     protected override void OnParametersSet()

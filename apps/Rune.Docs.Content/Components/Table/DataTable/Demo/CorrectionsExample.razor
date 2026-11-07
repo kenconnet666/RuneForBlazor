@@ -1,0 +1,79 @@
+@inherits RuneComponent
+
+@* 数据修正：主要用来改数据的表写 EditTrigger.Click，单击就进入编辑；Diff.Rows 和原来的数据比，
+   改过的行着色（RowTone）、改过的格写出原值（ValueChange），删除的行留在最后，点“还原”回到原来的数据 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+        <Small Tone="TextTone.Muted">@(Changed > 0 ? $"改动了 {Changed} 行" : "单击单元格修改")</Small>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Icon="Lucide.RotateCcw" Disabled="Changed == 0" @onclick="() => suppliers = Original">还原</Button>
+    </Flex>
+    <DataTable Items="Rows" GetKey="row => row.Key" EditTrigger="EditTrigger.Click" Density="TableDensity.Compact" aria-label="供应商"
+               RowTone="@(row => row.Change switch { RowChange.Inserted => Tone.Success, RowChange.Updated => Tone.Warning, RowChange.Deleted => Tone.Danger, _ => null })"
+               OnCellChange="@((CellChange<RowDiff<Supplier>> change) => Save(change))">
+        <PropertyColumn Property="row => row.Row.Id" Key="id" Title="编号" Width="110" />
+        <PropertyColumn Property="row => row.Row.Name" Key="name" Title="供应商" IsEditable="@(row => row.Change != RowChange.Deleted)"
+                        Validate="@((value, _) => string.IsNullOrEmpty(value) ? "名称不能为空" : null)" Context="row">
+            @Field(row, "name", row.Row.Name, row.Before?.Name)
+        </PropertyColumn>
+        <PropertyColumn Property="row => row.Row.City" Key="city" Title="城市" IsEditable="@(row => row.Change != RowChange.Deleted)" Context="row">
+            @Field(row, "city", row.Row.City, row.Before?.City)
+        </PropertyColumn>
+        <PropertyColumn Property="row => row.Row.Rating" Key="rating" Title="评分" Type="ColumnType.Number" IsEditable="@(row => row.Change != RowChange.Deleted)"
+                        Validate="@((value, _) => value is >= 0 and <= 100 ? null : "评分是 0 到 100")" Context="row">
+            @Field(row, "rating", row.Row.Rating.ToString(), row.Before?.Rating.ToString())
+        </PropertyColumn>
+        <TemplateColumn Key="remove" Title="操作" Width="72" Context="row">
+            @if (row.Change != RowChange.Deleted)
+            {
+                <IconButton Size="Size.Sm" Variant="ButtonVariant.Ghost" Icon="Lucide.Trash" Label="@($"删除 {row.Row.Name}")"
+                            @onclick="() => suppliers = [.. suppliers.Where(item => item.Id != row.Row.Id)]" />
+            }
+        </TemplateColumn>
+    </DataTable>
+</Flex>
+
+@code {
+    sealed record Supplier(string Id, string Name, string City, int Rating);
+
+    static readonly IReadOnlyList<Supplier> Original =
+    [
+        new("S-101", "华东精密", "苏州", 92),
+        new("S-102", "北辰机械", "天津", 78),
+        new("S-103", "南方电子", "深圳", 85),
+        new("S-104", "西部材料", "成都", 70),
+    ];
+
+    IReadOnlyList<Supplier> suppliers = Original;
+
+    IReadOnlyList<RowDiff<Supplier>> Rows => Diff.Rows(Original, suppliers, row => row.Id);
+
+    int Changed => Rows.Count(row => row.Change is not null);
+
+    // 一格：改过的写出原值
+    static RenderFragment Field(RowDiff<Supplier> row, string key, string now, string? before) => builder =>
+    {
+        if (row.ChangedFields?.Contains(key) == true)
+        {
+            builder.OpenComponent<ValueChange>(0);
+            builder.AddComponentParameter(1, nameof(ValueChange.Before), before);
+            builder.AddComponentParameter(2, nameof(ValueChange.After), now);
+            builder.CloseComponent();
+        }
+        else
+        {
+            builder.AddContent(3, now);
+        }
+    };
+
+    void Save(CellChange<RowDiff<Supplier>> change)
+    {
+        var id = change.Item.Row.Id;
+        suppliers = [.. suppliers.Select(item => item.Id != id ? item : change.Key switch
+        {
+            "name" => item with { Name = (string)change.Value! },
+            "city" => item with { City = (string)change.Value! },
+            "rating" => item with { Rating = (int)change.Value! },
+            _ => item,
+        })];
+    }
+}

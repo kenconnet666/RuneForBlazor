@@ -28,6 +28,16 @@ public enum ColumnType
     DateTime,
 }
 
+/// <summary>数值变化往哪个方向算好（FieldCompare 按它给变化量着色）。</summary>
+public enum CompareBetter
+{
+    /// <summary>越高越好：利润率、产量。</summary>
+    Higher,
+
+    /// <summary>越低越好：成本、耗时。</summary>
+    Lower,
+}
+
 /// <summary>固定在哪一侧（横向滚动时不动）。</summary>
 public enum ColumnSticky
 {
@@ -91,6 +101,9 @@ public abstract class DataTableColumn<TItem> : ComponentBase
 
     /// <summary>可以拖动调整宽度；不写时跟随表格的 Resizable。</summary>
     [Parameter] public bool? Resizable { get; set; }
+
+    /// <summary>FieldCompare 里数值变化的好坏：Higher 越高越好（升是绿、降是红），Lower 越低越好（成本、耗时）；不写时不着色。</summary>
+    [Parameter] public CompareBetter? Better { get; set; }
 
     /// <summary>
     /// 分组表头的组标题：相邻的几列写同一个组标题时，上方共用一个标题（如“调整前”下的型号、单价、数量），表头变成两行，没分组的列跨两行。

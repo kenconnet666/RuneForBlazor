@@ -25,6 +25,11 @@
         列的 <Code>Validate</Code> 拦下不合理的值，<Code>OnCellChange</Code> 写回，不接受时（接口拒绝）调用 <Code>Reject</Code>，编辑器留着并显示原因；
         <Code>ValidateRow</Code> 返回整行的问题，标在对应的格上（红框，悬停与读屏都能知道原因）。<Code>EditTrigger.Click</Code> 时单击就进入编辑。
     </Example>
+    <Example Id="corrections" Title="数据修正：单击就改，看得到改了什么" Demo="typeof(CorrectionsExample)">
+        主要用来改数据的表写 <Code>EditTrigger.Click</Code>，单击就进入编辑，格上的光标也提示能改；点开别的格时前一格照常提交。
+        <Code>Diff.Rows</Code> 按 key 和原来的数据比，给出新增、修改（带 <Code>ChangedFields</Code>）、删除的行，配合 <Code>RowTone</Code> 着色；
+        PropertyColumn 写了内容（<Code>ChildContent</Code>）时照常能编辑，这里用 <Code>ValueChange</Code> 写出原值，删除的行留在最后。
+    </Example>
     <Example Id="reorder" Title="需求排期：拖动行" Demo="typeof(PriorityExample)">
         给了 <Code>OnReorder</Code> 时第一个数据列前面有把手：按下拖动，或聚焦后空格拿起、↑↓ 移动、空格放下（每一步读屏都会播报），拖完拿到新的顺序。
         排序、筛选时显示的顺序不是数据的顺序，把手收起，取消后又能拖。

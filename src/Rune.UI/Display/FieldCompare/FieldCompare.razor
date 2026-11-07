@@ -1,0 +1,191 @@
+@*
+    字段对比（同 vue-tsx-pro 的 FieldCompare）：两份记录（编辑前后、测算的两个版本、审批前后）按字段列出原值与新值，数值字段带上变化量与变化率。
+    建在 Diff 上；字段的写法同表格的列（PropertyColumn、StatusColumn、TemplateColumn：标题、类型、格式、状态、空值），表格里已有的列可以直接拿来用：
+    <FieldCompare Before="v1" After="v2">
+        <PropertyColumn Property="e => e.UnitPrice" Type="ColumnType.Currency" Better="CompareBetter.Lower" />…
+    </FieldCompare>
+    Layout 是 Table（默认，字段、原值、新值、变化四列，没改的淡显）或 List（一行一个字段：原值 → 新值 变化，默认只列改了的，放在时间线、通知、审批意见里）；
+    OnlyChanged 可以改。数值字段的变化量按字段的类型、格式显示，带正负号；写了 Better 时按好坏着色。
+    读屏：列表里原值是 del、新值是 ins，两者之间有“改为”（画面上是箭头）。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@inherits UIComponent
+
+<CascadingValue Value="columns" IsFixed="true">
+    @{ columns.Start(); }
+    @ChildContent
+    @Deferred
+</CascadingValue>
+
+@code {
+    readonly DataTableColumns<TItem> columns = new();
+
+    static readonly Attrs ListLayer = new() { Sx = Css.Define(static () => new Style
+    {
+        // 字段名一列、值一列：多项时字段名对齐
+        Display = Display.Grid,
+        GridTemplateColumns = "auto 1fr",
+        ColumnGap = Space.Md,
+        RowGap = Space.Xs,
+        Margin = 0,
+    }) };
+    static readonly Attrs ItemLayer = new() { Sx = Css.Define(static () => new Style { Display = Display.Contents }) };
+    static readonly Attrs LabelLayer = new() { Sx = Css.Define(static () => new Style { Color = Colors.TextMuted }) };
+    static readonly Attrs ValueLayer = new() { Sx = Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        FlexWrap = FlexWrap.Wrap,
+        AlignItems = AlignItems.Baseline,
+        ColumnGap = Space.Xs,
+        Margin = 0,
+        MinWidth = 0,
+        OverflowWrap = OverflowWrap.Anywhere,
+    }) };
+    static readonly Rune.Styles.Sx ChangeStyle = Rune.Styles.Sx.Of(Css.Define(static () => new Style { FontSize = FontSizes.Sm, FontVariantNumeric = FontVariantNumeric.TabularNums }));
+    // 表格里没改的字段淡显，改了的新值加粗
+    static readonly Attrs UnchangedLayer = new() { Sx = Css.Define(static () => new Style { Color = Colors.TextMuted }) };
+    static readonly Attrs ChangedLayer = new() { Sx = Css.Define(static () => new Style { FontWeight = FontWeights.Medium }) };
+
+    /// <summary>原来的记录；没有（新建）时每个字段都当作空。</summary>
+    [Parameter] public TItem? Before { get; set; }
+
+    /// <summary>现在的记录。</summary>
+    [Parameter] public TItem? After { get; set; }
+
+    /// <summary>字段：PropertyColumn、StatusColumn、TemplateColumn（按这个顺序）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>表格（默认）或列表。</summary>
+    [Parameter] public FieldCompareLayout Layout { get; set; }
+
+    /// <summary>只列改了的字段；默认表格列出全部、列表只列改了的。</summary>
+    [Parameter] public bool? OnlyChanged { get; set; }
+
+    /// <summary>表格（交给 ColumnTable）的部件属性：名称（aria-label）写在这里。</summary>
+    [Parameter] public Attrs? PropsTable { get; set; }
+
+    /// <summary>列表（dl）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>字段名（dt）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>值（dd）的部件属性。</summary>
+    [Parameter] public Attrs? PropsValue { get; set; }
+
+    // 内容在各字段把自己交给这里之后才渲染（同 DataTable）
+    RenderFragment Deferred => builder =>
+    {
+        builder.OpenComponent<Defer>(0);
+        builder.AddComponentParameter(1, nameof(Defer.ChildContent), (RenderFragment)(inner =>
+        {
+            if (columns.Finish()) StateHasChanged();
+            inner.AddContent(0, Body);
+        }));
+        builder.CloseComponent();
+    };
+
+    /// <summary>对比的一行：字段、两份的值、变没变、数值的差与变化率。</summary>
+    sealed record CompareRow(DataTableColumn<TItem> Field, ColumnType Type, object? Before, object? After, bool Changed, decimal? Delta, decimal? Ratio)
+    {
+        public string Key => Field.ColumnKey;
+    }
+
+    IReadOnlyList<CompareRow> Rows
+    {
+        get
+        {
+            IReadOnlyList<TItem> records = [.. new[] { Before, After }.Where(static record => record is not null).Cast<TItem>()];
+            var all = columns.All.Select(column =>
+            {
+                var from = Before is null ? null : column.ValueOf(Before);
+                var to = After is null ? null : column.ValueOf(After);
+                var type = ColumnDisplay.TypeOf(column, records);
+                if (Numeric.Of(from) is { } a && Numeric.Of(to) is { } b)
+                {
+                    var delta = b - a;
+                    return new CompareRow(column, type, from, to, a != b, delta, a == 0 ? null : delta / a);
+                }
+                return new CompareRow(column, type, from, to, !Diff.Same(from, to), null, null);
+            });
+            return [.. (OnlyChanged ?? Layout == FieldCompareLayout.List) ? all.Where(static row => row.Changed) : all];
+        }
+    }
+
+    RenderFragment Body => __builder =>
+    {
+        var rows = Rows;
+        <div @attributes="Attrs.Merge(null, Rest)">
+            @if (rows.Count == 0)
+            {
+                <Small Tone="TextTone.Muted">@Config.Lang.FieldCompareNone</Small>
+            }
+            else if (Layout == FieldCompareLayout.List)
+            {
+                <dl @attributes="Attrs.Merge(ListLayer, PropsList)">
+                    @foreach (var row in rows)
+                    {
+                        <div @key="row.Key" @attributes="Attrs.Merge(ItemLayer)">
+                            <dt @attributes="Attrs.Merge(LabelLayer, PropsLabel)">@row.Field.Label</dt>
+                            <dd @attributes="Attrs.Merge(ValueLayer, PropsValue)">
+                                <ValueChange BeforeContent="@(Before is null ? null : Shown(row, Before))" AfterContent="@(After is null ? null : Shown(row, After))" />
+                                @Change(row)
+                            </dd>
+                        </div>
+                    }
+                </dl>
+            }
+            else
+            {
+                var headers = Config.Lang.FieldCompareHeaders;
+                var numeric = rows.Any(static row => row.Changed && row.Delta is not null);
+                <ColumnTable TItem="CompareRow" Items="rows" GetKey="row => row.Key" Density="TableDensity.Compact"
+                             PropsRowFor="@((row, _) => row.Changed ? ChangedRow : null)" @attributes="Attrs.MergeProps(null, PropsTable)">
+                    <TemplateColumn TItem="CompareRow" Key="field" Title="@headers[0]" Context="row">@row.Field.Label</TemplateColumn>
+                    <TemplateColumn TItem="CompareRow" Key="before" Title="@headers[1]" Context="row">
+                        <span @attributes="Attrs.Merge(UnchangedLayer)">@SideOf(row, Before)</span>
+                    </TemplateColumn>
+                    <TemplateColumn TItem="CompareRow" Key="after" Title="@headers[2]" Context="row">
+                        <span @attributes="Attrs.Merge(row.Changed ? ChangedLayer : UnchangedLayer)">@SideOf(row, After)</span>
+                    </TemplateColumn>
+                    @if (numeric)
+                    {
+                        <TemplateColumn TItem="CompareRow" Key="change" Title="@headers[3]" Context="row">@Change(row)</TemplateColumn>
+                    }
+                </ColumnTable>
+            }
+        </div>
+    };
+
+    static readonly Attrs ChangedRow = new() { ["data-changed"] = "" };
+
+    // 一份记录里这个字段的显示：列自己写的内容优先，否则按类型格式化（同表格）
+    RenderFragment Shown(CompareRow row, TItem record) => ColumnDisplay.Cell(row.Field, record, row.Type, Config.Lang);
+
+    // 表格里一边的值：没有这一份（新建）时是空值的符号
+    RenderFragment SideOf(CompareRow row, TItem? record) => record is null ? builder => builder.AddContent(0, Config.Lang.EmptyValue) : Shown(row, record);
+
+    // 数值字段的变化：变化量（按字段的格式，带正负号）与变化率；没变或不是数值时没有
+    RenderFragment? Change(CompareRow row)
+    {
+        if (!row.Changed || row.Delta is not { } delta) return null;
+        var type = row.Type == ColumnType.Text ? ColumnType.Number : row.Type;
+        var signed = (row.Field.Format ?? (type == ColumnType.Percent ? new NumberFormat { Style = NumberStyle.Percent, MaximumFractionDigits = 1 } : new NumberFormat())) with { SignDisplay = SignDisplay.ExceptZero };
+        var text = ColumnDisplay.Format(delta, type, signed, Config.Lang);
+        // 百分比字段的变化量本身就是百分点，不再给变化率
+        if (row.Ratio is { } ratio && type != ColumnType.Percent)
+            text += $"（{LangFormat.Number(ratio, new NumberFormat { Style = NumberStyle.Percent, MaximumFractionDigits = 1, SignDisplay = SignDisplay.ExceptZero }, Config.Lang)}）";
+        var sign = Math.Sign(delta);
+        var tone = row.Field.Better is not { } better || sign == 0 ? TextTone.Muted : sign > 0 == (better == CompareBetter.Higher) ? TextTone.Success : TextTone.Danger;
+        return builder =>
+        {
+            builder.OpenComponent<TextSpan>(0);
+            builder.AddComponentParameter(1, nameof(TextSpan.Tone), tone);
+            builder.AddComponentParameter(2, nameof(TextSpan.Sx), ChangeStyle);
+            builder.AddComponentParameter(3, nameof(TextSpan.ChildContent), (RenderFragment)(content => content.AddContent(0, text)));
+            builder.CloseComponent();
+        };
+    }
+}

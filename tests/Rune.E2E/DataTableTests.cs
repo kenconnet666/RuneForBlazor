@@ -219,4 +219,30 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         await table.GetByRole(AriaRole.Button, new() { Name = "研发部 的子项" }).ClickAsync();
         await Assertions.Expect(table.Locator("tr[data-key=fe]")).ToHaveCountAsync(0);
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 单击编辑_改过的格写出原值_删除的行留在最后_还原(string mode)
+    {
+        var page = await OpenAsync(mode, "data-table");
+        var grid = page.GetByRole(AriaRole.Grid, new() { Name = "供应商" });
+        var city = grid.Locator("tr[data-key='S-102'] td[data-column=city]");
+
+        await city.ClickAsync();
+        var editor = city.GetByRole(AriaRole.Textbox);
+        await Assertions.Expect(editor).ToBeFocusedAsync();
+        await editor.FillAsync("北京");
+        await page.Keyboard.PressAsync("Enter");
+        await Assertions.Expect(city.Locator("del")).ToHaveTextAsync("天津");
+        await Assertions.Expect(city.Locator("ins")).ToHaveTextAsync("北京");
+        await Assertions.Expect(grid.Locator("tr[data-key='S-102']")).ToHaveAttributeAsync("data-tone", "warning");
+
+        await grid.GetByRole(AriaRole.Button, new() { Name = "删除 华东精密" }).ClickAsync();
+        await Assertions.Expect(grid.Locator("tbody tr[data-key]").Last).ToHaveAttributeAsync("data-key", "S-101");
+        await Assertions.Expect(page.GetByText("改动了 2 行", new() { Exact = true })).ToBeVisibleAsync();
+
+        await page.GetByRole(AriaRole.Button, new() { Name = "还原", Exact = true }).ClickAsync();
+        await Assertions.Expect(page.GetByText("单击单元格修改", new() { Exact = true })).ToBeVisibleAsync();
+    }
 }

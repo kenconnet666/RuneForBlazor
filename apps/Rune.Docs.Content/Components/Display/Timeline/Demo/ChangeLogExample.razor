@@ -1,5 +1,5 @@
-@* 报价单的操作记录：新的在前，每项有操作人（头像或首字母）与时间，改了哪些字段列在项里，完整的字段对比收在“查看详情”里。
-   记录多，只显示最新的 4 条，其余在“展开其余 N 条”后面。（完整的字段对比等阶段 4 的 FieldCompare 做好后换用它） *@
+@* 报价单的操作记录：新的在前，每项有操作人（头像或首字母）与时间，改了哪些字段用 FieldCompare 列在项里，完整的字段对比收在“查看详情”里。
+   记录多，只显示最新的 4 条，其余在“展开其余 N 条”后面 *@
 @inherits RuneComponent
 
 <Card>
@@ -33,36 +33,21 @@
         ];
     }
 
-    // 一次修改：项里列改了的字段，详情里是全部字段
+    // 一次修改：项里列改了的字段，详情里是全部字段的对比表
     static TimelineItem Change(TimelineItem item, Quote before, Quote after) => item with
     {
-        DescriptionContent =
-            @<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
-                @foreach (var field in Fields(before, after).Where(f => f.Before != f.After))
-                {
-                    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Baseline" Wrap="true">
-                        <Small Tone="TextTone.Muted">@field.Name</Small>
-                        <ValueChange Before="@field.Before" After="@field.After" />
-                    </Flex>
-                }
-            </Flex>,
-        Details =
-            @<Descriptions Columns="1">
-                @foreach (var field in Fields(before, after))
-                {
-                    <DescriptionsItem Label="@field.Name">@(field.Before == field.After ? field.After : $"{field.Before} → {field.After}")</DescriptionsItem>
-                }
-            </Descriptions>,
+        DescriptionContent = Compare(before, after, FieldCompareLayout.List, null),
+        Details = Compare(before, after, FieldCompareLayout.Table, new Attrs { AriaLabel = "修改前后全部字段" }),
     };
 
-    static (string Name, string Before, string After)[] Fields(Quote before, Quote after) =>
-    [
-        ("单价", $"¥{before.UnitPrice:0.00}", $"¥{after.UnitPrice:0.00}"),
-        ("数量", $"{before.Quantity:#,0}", $"{after.Quantity:#,0}"),
-        ("交期（天）", $"{before.LeadDays}", $"{after.LeadDays}"),
-        ("供应商", before.Supplier, after.Supplier),
-        ("备注", before.Remark, after.Remark),
-    ];
+    static RenderFragment Compare(Quote before, Quote after, FieldCompareLayout layout, Attrs? table) =>
+        @<FieldCompare Before="before" After="after" Layout="layout" PropsTable="table">
+            <PropertyColumn Property="q => q.UnitPrice" Title="单价" Type="ColumnType.Currency" Better="CompareBetter.Lower" />
+            <PropertyColumn Property="q => q.Quantity" Title="数量" Type="ColumnType.Number" />
+            <PropertyColumn Property="q => q.LeadDays" Title="交期（天）" Type="ColumnType.Number" Better="CompareBetter.Lower" />
+            <PropertyColumn Property="q => q.Supplier" Title="供应商" />
+            <PropertyColumn Property="q => q.Remark" Title="备注" />
+        </FieldCompare>;
 
     sealed record Quote(decimal UnitPrice, int Quantity, int LeadDays, string Supplier, string Remark);
 }
