@@ -124,4 +124,10 @@ public class RuneProviderChoicesTests : BunitContext
         Assert.NotEqual(choices, paper);
         Assert.Equal(paper, WrapperClass(Themes.Paper));
     }
+
+    [Fact]
+    public void 组件库注册了部件一律border_box的基础规则()
+    {
+        Assert.Contains(Services.GetRequiredService<StyleRegistry>().Rules, rule => rule.StartsWith("@layer rune.base{:where([data-part]){box-sizing:border-box;}", StringComparison.Ordinal));
+    }
 }

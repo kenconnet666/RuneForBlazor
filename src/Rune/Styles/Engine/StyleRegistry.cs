@@ -25,8 +25,14 @@ public sealed class StyleRegistry
     readonly List<string> rules = [];
     readonly Lock rulesLock = new();
 
-    /// <summary>创建登记表（由 DI 按作用域创建），并绑定到当前渲染器。</summary>
+    /// <summary>创建登记表，并绑定到当前渲染器。</summary>
     public StyleRegistry() => BindToRenderer();
+
+    /// <summary>由 DI 按作用域创建：先登记应用注册的基础规则（<see cref="GlobalRule"/>），每个作用域输出的第一块样式里就有它们。</summary>
+    public StyleRegistry(IEnumerable<GlobalRule> globalRules) : this()
+    {
+        foreach (var rule in globalRules) Add(rule.Compiled);
+    }
 
     /// <summary>新登记了规则。</summary>
     public event Action? Changed;

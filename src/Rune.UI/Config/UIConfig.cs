@@ -89,6 +89,8 @@ public sealed class RuneUIOptions
 /// <summary>注册组件库的服务。</summary>
 public static class RuneUIServiceCollectionExtensions
 {
+    static readonly GlobalRule PartBoxSizing = new(":where([data-part])", new Style { BoxSizing = BoxSizing.BorderBox });
+
     /// <summary>
     /// 注册组件库（含 Rune 运行时）与应用级配置。服务端项目与 WebAssembly 项目各调用一次，配置要一致：
     /// <code>
@@ -111,6 +113,8 @@ public static class RuneUIServiceCollectionExtensions
         {
             services.AddSingleton(config);
         }
+        // 部件一律 border-box：使用方给部件写的宽高就是整个部件的宽高（同 vue-tsx-pro 313f0e23）
+        services.AddSingleton(PartBoxSizing);
         services.AddScoped<ToastService>();
         services.AddScoped<DialogService>();
         return services;

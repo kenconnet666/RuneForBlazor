@@ -67,7 +67,7 @@ public class SegmentTests
 
     [Fact]
     public void 层的顺序_主题变量最低_各段依次往上() =>
-        Assert.Equal("@layer rune.vars,rune.s0,rune.s1,rune.s2,rune.s3,rune.s4,rune.s5,rune.s6,rune.s7;", StyleCompiler.LayerOrder);
+        Assert.Equal("@layer rune.base,rune.vars,rune.s0,rune.s1,rune.s2,rune.s3,rune.s4,rune.s5,rune.s6,rune.s7;", StyleCompiler.LayerOrder);
 
     [Fact]
     public void 超过8段的并进最后一段()

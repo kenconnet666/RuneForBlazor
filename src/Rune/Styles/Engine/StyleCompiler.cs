@@ -26,7 +26,7 @@ internal sealed class CompiledStyle(string className, string css)
 /// </summary>
 /// <remarks>
 /// <para>
-/// 级联层（同 vue-tsx-pro 的分段输出）：每块样式表开头声明 <see cref="LayerOrder"/>，主题变量在 <c>rune.vars</c>，第 k 段的规则在 <c>rune.s{k}</c>，
+/// 级联层（同 vue-tsx-pro 的分段输出）：每块样式表开头声明 <see cref="LayerOrder"/>，基础规则在 <c>rune.base</c>，主题变量在 <c>rune.vars</c>，第 k 段的规则在 <c>rune.s{k}</c>，
 /// 后面的段不论特异性都盖过前面的段。第 k 段（k &gt; 0）输出它改到的属性所在的属性族（<see cref="FamilyOf"/>）在前 k + 1 段合并后的完整取值，
 /// 含它没改的条件值：每个属性族最高的那一层里总有这一族完整的合并结果，层里排出的规则与合成一个类时相同，语义逐字一致。
 /// 简写与长属性分在不同的段时靠属性族一起带（前段写 <c>outline</c>、后段写 <c>outline-color</c>，后段带上那条简写，顺序照常）。
@@ -57,7 +57,10 @@ internal static class StyleCompiler
 
     /// <summary>级联层的顺序：每块样式表最前面声明（重复声明同样的顺序不改变什么）。</summary>
     internal static readonly string LayerOrder =
-        "@layer rune.vars," + string.Join(',', Enumerable.Range(0, MaxSegments).Select(k => $"rune.s{k}")) + ";";
+        $"@layer {BaseLayer},{VarsLayer}," + string.Join(',', Enumerable.Range(0, MaxSegments).Select(k => $"rune.s{k}")) + ";";
+
+    /// <summary>基础规则（<see cref="GlobalRule"/>）所在的层：最前面，什么都盖得过它。</summary>
+    internal const string BaseLayer = "rune.base";
 
     /// <summary>主题变量所在的层。</summary>
     internal const string VarsLayer = "rune.vars";

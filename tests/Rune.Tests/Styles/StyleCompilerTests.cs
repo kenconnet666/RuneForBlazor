@@ -165,4 +165,14 @@ public class StyleCompilerTests
         var active = compiled.Css.IndexOf($".{c}:active{Enabled}{{opacity:0.5;}}", StringComparison.Ordinal);
         Assert.True(hover >= 0 && active > hover);
     }
+
+    [Fact]
+    public void 基础规则按选择器输出在最前面的层_登记表创建时就有()
+    {
+        var rule = new GlobalRule(":where([data-part])", new Style { BoxSizing = BoxSizing.BorderBox, [When.Hover] = new() { Opacity = 1 } });
+        var registry = new StyleRegistry([rule]);
+
+        Assert.Equal($"@layer rune.base{{:where([data-part]){{box-sizing:border-box;}}:where([data-part]):hover{Enabled}{{opacity:1;}}}}", Assert.Single(registry.Rules));
+        Assert.StartsWith("@layer rune.base,", StyleCompiler.LayerOrder);
+    }
 }
