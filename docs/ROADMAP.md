@@ -156,7 +156,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
   - [ ] 列设置记在浏览器里（vue 的 usePersistentState，Rune 还没有对应的工具；示例先放在组件里）
   - [x] 网格方向键与单元格编辑（列校验、行校验、接口拒绝）
   - [x] 行拖动（OnReorder，复用 js/sortable.js）
-  - [ ] 服务端数据（接 TableQueryState）的示例
+  - [x] 服务端数据：ManualSort、ManualFilter 直接绑 TableQueryState 的 Sort / ColumnFilters（有测试；示例随阶段 6 的 QueryTable，同 vue）
 - [ ] ColumnHeaderActions、ColumnResizer、ColumnSettings、SelectionBar、ColumnTable、TreeDataTable、PivotTable、CSV 导出（vue 的 `csv.ts`；xlsx 见阶段 7）
 - [ ] FieldCompare（字段写法同列定义；列表布局用已有的 ValueChange），接着 Timeline 的 change-log 示例换用它
 - [ ] 预渲染不重复取数（`[PersistentState]`）：表格的 `ItemsProvider` 在预渲染时取的数交给交互后的渲染，不再请求一次

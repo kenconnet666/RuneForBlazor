@@ -298,4 +298,33 @@ public class DataTableTests : BunitContext
         Assert.Empty(cut.FindAll("[data-rune-sortable-handle]"));
         Assert.Null(cut.Find("tbody").GetAttribute("data-rune-sortable"));
     }
+
+    [Fact]
+    public async Task 服务端数据_表头排序与筛选写回TableQueryState_回到第一页并按新条件取数()
+    {
+        var queries = new List<TableQuery<NoFilters>>();
+        var state = new TableQueryState<Order, NoFilters>((query, _) =>
+        {
+            queries.Add(query);
+            return Task.FromResult(new TablePage<Order>([.. Orders.Take(2)], 30));
+        }, new() { Filters = NoFilters.Instance });
+        await state.RefreshAsync();
+        state.Page = 3;
+
+        var cut = Render<DataTable<Order>>(p =>
+        {
+            p.Add(x => x.Items, state.Rows).Add(x => x.GetKey, o => o.Id).Add(x => x.ManualSort, true).Add(x => x.ManualFilter, true)
+                .Add(x => x.Sort, state.Sort).Add(x => x.SortChanged, v => state.Sort = v)
+                .Add(x => x.Filters, state.ColumnFilters).Add(x => x.FiltersChanged, v => state.ColumnFilters = v);
+            p.AddChildContent<PropertyColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Customer).Add(x => x.Sortable, true)
+                .Add(x => x.Filter, ColumnFilterKind.Values).Add(x => x.FilterOptions, [new ListboxOption("启航", "启航")]));
+        });
+
+        cut.Find("thead button").Click();
+        Assert.Equal((1, "customer"), (queries[^1].Page, ColumnSort.Format(queries[^1].Sorts)));
+
+        state.Page = 2;
+        await cut.InvokeAsync(() => cut.FindComponent<ColumnFilterButton>().Instance.ValuesChanged.InvokeAsync(["启航"]));
+        Assert.Equal((1, "filter.customer=启航"), (queries[^1].Page, string.Join("&", queries[^1].ToParameters().Where(p => p.Key.StartsWith("filter.")).Select(p => $"{p.Key}={p.Value}"))));
+    }
 }
