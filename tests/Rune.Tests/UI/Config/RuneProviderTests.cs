@@ -107,3 +107,21 @@ public class RuneProviderTests : BunitContext
         Assert.Equal(1, child.RenderCount);
     }
 }
+
+/// <summary>应用配置了可选主题（ThemeChoices）时最外层的 RuneProvider。</summary>
+public class RuneProviderChoicesTests : BunitContext
+{
+    public RuneProviderChoicesTests() => Services.AddRuneUI(o => o.ThemeChoices = ThemeChoices.Builtin);
+
+    string WrapperClass(Theme? theme) =>
+        Render<RuneProvider>(p => p.Add(x => x.Theme, theme).Add(x => x.DarkTheme, theme)).Find("[data-rune-theme]").GetAttribute("class")!;
+
+    [Fact]
+    public void 最外层写了Theme时按它_不写时用可选主题()
+    {
+        var choices = WrapperClass(null);
+        var paper = WrapperClass(Themes.Paper);
+        Assert.NotEqual(choices, paper);
+        Assert.Equal(paper, WrapperClass(Themes.Paper));
+    }
+}

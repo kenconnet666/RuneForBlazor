@@ -73,8 +73,9 @@
         (AppliesTheme ? ThemeClass : null, AppliesTheme ? ThemeLabel : null, config.Lang.Code, config.Lang.Direction),
         static k => new Attrs { Class = k.Class, ["data-rune-theme"] = k.Label, ["lang"] = k.Code, ["dir"] = k.Direction });
 
-    // 有可选主题时跟随系统的几套取它的，另输出每套主题按 data-theme 取用的变量
-    string ThemeClass => (Choices ?? (IsInsideProvider ? null : config.ThemeChoices)) is { } choices
+    // 有可选主题时跟随系统的几套取它的，另输出每套主题按 data-theme 取用的变量。应用级的可选主题只用在最外层、且没有显式写主题时：
+    // 示例、局部区域放在最外层也要按写的 Theme 显示
+    string ThemeClass => (Choices ?? (IsInsideProvider || Theme is not null || DarkTheme is not null ? null : config.ThemeChoices)) is { } choices
         ? ThemeStyles.ClassFor(choices.SystemLight, choices.SystemDark, Rune.Styles.ColorScheme.System, choices.Themes, choices.SystemContrast)
         : ThemeStyles.ClassFor(config.Theme, config.DarkTheme, config.ColorScheme);
 
