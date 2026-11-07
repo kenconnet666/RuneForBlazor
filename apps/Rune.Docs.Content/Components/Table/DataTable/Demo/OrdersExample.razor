@@ -22,7 +22,7 @@
         </TemplateColumn>
         <PropertyColumn Property="o => o.PlacedAt" Width="180" Type="ColumnType.DateTime" Sortable="true" />
         <TemplateColumn Title="操作" Width="64" Sticky="ColumnSticky.End" Context="order">
-            <IconButton Icon="Lucide.Ellipsis" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="Size.Sm" Label="@($"{order.Id} 的更多操作")" />
+            <IconButton Icon="Lucide.Ellipsis" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@($"{order.Id} 的更多操作")" />
         </TemplateColumn>
     </DataTable>
 </Flex>
