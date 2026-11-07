@@ -453,3 +453,25 @@
   页码、条数、排序由状态读回，筛选条件由页面用 `[SupplyParameterFromQuery]` 读出来作为初始的 `Filters`（vue 用 useQueryStates 的编解码器，
   Blazor 自带按名字、按类型从地址取值，不另造一套）。
 - 预渲染时取的数交给交互后的渲染（`[PersistentState]`）在阶段 8 的全栈示例里定：状态对象由使用方持有，组件库只给可序列化的 `TablePage`。
+
+## 14. 日期（`src/Rune.UI.Dates`，阶段 4）
+
+同 vue-tsx-pro 的 `src/date`（DateField、Calendar、DatePicker……）与 `utils/data/date.ts`。单独成包：只用表格、表单的应用不带日期的代码，WebAssembly 下可以懒加载。
+
+- **包**：`Rune.UI.Dates` 引用 `Rune.UI`，Rune.UI 用 `InternalsVisibleTo` 让它用内部的样式工具（Attrs 的层、InputStyles、ItemStyles……），
+  不为了分包把这些变成公开 API。JS 放在它自己的 `wwwroot/js`，由 Rune.UI 的初始化器按选择器加载（同其他 `js/*.js`）。
+- **值的类型**：日期是 `DateOnly`，时间是 `TimeOnly`，日期时间是 `DateTime`（不带时区）或 `DateTimeOffset`（带时区）。
+  vue 用 @internationalized/date 的 CalendarDate / CalendarDateTime / ZonedDateTime 与 ISO 字符串，C# 直接用 BCL 的类型，不另造；
+  组件的值类型是泛型（`DateField<TValue>`，同 NumberField），写回时保持传入的类型（vue 的 writeDateLike）。
+- **地区设置**：月份名、星期名、日期的排法、上午 / 下午取 `CultureInfo`（按语言包的 `Code`）；一周的第一天取语言包的 `FirstDayOfWeek`，
+  没有时取 `CultureInfo.DateTimeFormat.FirstDayOfWeek`；12 / 24 小时制取语言包的 `HourCycle`，没有时看文化的短时间格式里有没有 `h`。
+  日历系统只做公历（vue 的 calendar 选项：语言包的 `Calendar` 都是 gregory；别的历法等有需要再说）。
+- **“现在”**：取 `TimeProvider`（DI 里有就用，没有时 `TimeProvider.System`），时区取语言包的 `TimeZone`，没有时是服务器 / 浏览器的本地时区；
+  测试、截图、服务端渲染时给固定的 TimeProvider。RelativeTime、Countdown 的定时更新也走它（对齐到整秒、整分，同 vue 的 useNow）。
+- **相对时间的措辞**：.NET 没有 Intl.RelativeTimeFormat，vue 的语言包也不带这些文字（靠 Intl）。Rune 在 Lang 里补一组相对时间的说法
+  （秒、分、时、天、周、月、年的“前 / 后”，以及“刚刚、昨天、明天、上周、下个月、去年……”这类 numeric: auto 的写法），
+  zh-CN、en-US 按 CLDR 的写法手写；单位的取法同 vue 的 relativeUnit（45 秒以内用秒，45 分钟以内用分……）。
+- **分段输入**（DateField、TimeField 的年、月、日、时、分……）：状态机在 JS（`date-segments.js`，移植 vue 的 date-segments.ts），
+  每段是 role="spinbutton"，打字、↑↓、Page Up / Down、Backspace、段之间的焦点都不往返；所有段填齐（或删掉已填的一段）时把 ISO 文字交给 C#，
+  C# 解析成 TValue 写回。段的顺序、分隔符、占位文字由 C# 按文化算好写进 data-* 属性（JS 不再查 Intl，两边结果一致）。
+- **日历网格**：二维方向键、Page Up / Down 翻月、Home / End 到周首周尾在 JS（同 Tree、表格的网格导航），选中、翻页交给 C#。

@@ -163,7 +163,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 - [x] CSV 导出（DataTable.ToCsv；下载成文件随阶段 6 的 DataImport，xlsx 见阶段 7）
 - [x] PivotTable（Pivot.Compute 与 ColumnTable；热力图）
 - [x] FieldCompare（字段写法同表格的列；Diff.Fields / Diff.Rows），Timeline 的 change-log 示例换用它；DataTable 的数据修正示例（Diff.Rows、单击编辑）
-- [ ] 预渲染不重复取数（`[PersistentState]`）：表格的 `ItemsProvider` 在预渲染时取的数交给交互后的渲染，不再请求一次
+- [→ 阶段 8] 预渲染不重复取数（`[PersistentState]`）：TableQueryState 在预渲染时取的那页交给交互后的渲染，不再请求一次（DESIGN §13：状态由页面持有，随全栈示例定）
 - 示例缺口：Drawer 的 imperative 与 detail 示例（detail 用 DataTable、Timeline、DeadlineBadge；DeadlineBadge 随阶段 6）。
   （Skeleton 的 table、Table 的 column-table 已补；Badge 的表格状态示例 vue 也用静态 Table，已一致）
 
