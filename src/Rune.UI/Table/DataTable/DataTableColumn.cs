@@ -92,6 +92,12 @@ public abstract class DataTableColumn<TItem> : ComponentBase
     /// <summary>可以拖动调整宽度；不写时跟随表格的 Resizable。</summary>
     [Parameter] public bool? Resizable { get; set; }
 
+    /// <summary>
+    /// 分组表头的组标题：相邻的几列写同一个组标题时，上方共用一个标题（如“调整前”下的型号、单价、数量），表头变成两行，没分组的列跨两行。
+    /// 组里的列被移开时，后一段另起一格、重复组标题。
+    /// </summary>
+    [Parameter] public string? Group { get; set; }
+
     /// <summary>内容可以换行；默认一行显示不下时省略。</summary>
     [Parameter] public bool Wrap { get; set; }
 

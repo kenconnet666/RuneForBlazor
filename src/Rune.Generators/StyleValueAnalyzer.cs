@@ -27,7 +27,7 @@ public sealed class StyleValueAnalyzer : DiagnosticAnalyzer
     static readonly Regex UnitLength = new(@"^(-?(?:\d+\.?\d*|\.\d+))(em|rem|%|vw|dvh|ch)$", RegexOptions.CultureInvariant);
     static readonly Dictionary<string, string> UnitMethods = new()
     {
-        ["em"] = "Em", ["rem"] = "Rem", ["%"] = "Percent", ["vw"] = "Vw", ["dvh"] = "Dvh", ["ch"] = "Ch",
+        ["em"] = "Em", ["rem"] = "Rem", ["%"] = "Percent", ["vw"] = "Vw", ["dvh"] = "Dvh", ["ch"] = "Ch", ["cqi"] = "Cqi",
     };
 
     // 角度 → CssValue 的方法

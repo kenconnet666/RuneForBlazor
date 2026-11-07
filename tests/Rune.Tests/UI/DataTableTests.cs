@@ -179,4 +179,45 @@ public class DataTableTests : BunitContext
         cut.Render(p => p.Add(x => x.HiddenColumns, hidden));
         Assert.Equal(["id", "amount", "customer"], Headers());
     }
+
+    [Fact]
+    public void 分组表头_相邻同组的列共用标题_没分组的列跨两行()
+    {
+        var cut = Render<DataTable<Order>>(p =>
+        {
+            p.Add(x => x.Items, Orders).Add(x => x.GetKey, o => o.Id);
+            p.AddChildContent<PropertyColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Id));
+            p.AddChildContent<PropertyColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Customer).Add(x => x.Group, "基本"));
+            p.AddChildContent<PropertyColumn<Order, decimal>>(c => c.Add(x => x.Property, o => o.Amount).Add(x => x.Group, "基本"));
+        });
+
+        var rows = cut.FindAll("thead tr");
+        Assert.Equal(2, rows.Count);
+        Assert.Equal(("2", "Id"), (rows[0].Children[0].GetAttribute("rowspan"), rows[0].Children[0].TextContent.Trim()));
+        Assert.Equal(("colgroup", "2", "基本"), (rows[0].Children[1].GetAttribute("scope"), rows[0].Children[1].GetAttribute("colspan"), rows[0].Children[1].TextContent.Trim()));
+        Assert.Equal(["客户", "Amount"], rows[1].Children.Select(th => th.TextContent.Trim()));
+        Assert.Equal("3", cut.Find("tbody tr[data-key]").GetAttribute("aria-rowindex"));
+    }
+
+    [Fact]
+    public void 详情行_展开按钮指向详情_没有详情的行不能展开()
+    {
+        IReadOnlyList<string> expanded = [];
+        var cut = RenderOrders(p => p.Add(x => x.DetailContent, o => b => b.AddContent(0, $"{o.Id} 的详情"))
+            .Add(x => x.HasDetail, o => o.Status == Status.Paid)
+            .Add(x => x.ExpandedRows, expanded).Add(x => x.ExpandedRowsChanged, v => expanded = v));
+
+        var toggles = cut.FindAll("tbody button[aria-expanded]");
+        Assert.Equal(2, toggles.Count);
+        toggles[0].Click();
+        Assert.Equal(["A-3"], expanded);
+
+        cut.Render(p => p.Add(x => x.ExpandedRows, expanded));
+        var detail = cut.Find("tbody tr[data-detail] td");
+        Assert.Equal("A-3 的详情", detail.TextContent.Trim());
+        Assert.Equal(detail.Id, cut.Find("tbody button[aria-expanded=true]").GetAttribute("aria-controls"));
+        // 详情也算一行：后面的行号顺延
+        Assert.Equal("4", cut.FindAll("tbody tr[data-key]")[1].GetAttribute("aria-rowindex"));
+        Assert.Equal("6", cut.Find("table").GetAttribute("aria-rowcount"));
+    }
 }

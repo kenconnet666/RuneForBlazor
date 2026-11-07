@@ -1,0 +1,39 @@
+@inherits RuneComponent
+
+@* 采购方案调整：调整前、调整后各一组表头（型号、单价、数量），节省 = 调整前金额 − 调整后金额，底部合计；调整后反而更贵时节省标红 *@
+<DataTable Items="Changes" GetKey="c => c.No.ToString()" Density="TableDensity.Compact" aria-label="采购方案调整"
+           PropsCellFor="@((change, key) => key == "saving" && Saving(change) < 0 ? Increase : null)">
+    <PropertyColumn Property="c => c.No" Title="序号" Width="64" Sticky="ColumnSticky.Start" />
+    <PropertyColumn Property="c => c.Name" Title="物品" Width="140" Sticky="ColumnSticky.Start" />
+    <PropertyColumn Property="c => c.Before.Part" Title="型号" Width="88" Group="调整前" />
+    <PropertyColumn Property="c => c.Before.Price" Title="单价（元）" Width="112" Format="Money" Group="调整前" />
+    <PropertyColumn Property="c => c.Before.Quantity" Title="数量" Width="72" Group="调整前" />
+    <PropertyColumn Property="c => c.After.Part" Title="型号" Width="88" Group="调整后" />
+    <PropertyColumn Property="c => c.After.Price" Title="单价（元）" Width="112" Format="Money" Group="调整后" />
+    <PropertyColumn Property="c => c.After.Quantity" Title="数量" Width="72" Group="调整后" />
+    <PropertyColumn Property="c => Saving(c)" Key="saving" Title="节省（元）" Width="132" Format="Money" Summary="ColumnSummary.Sum" />
+</DataTable>
+
+@code {
+    sealed record Side(string Part, decimal Price, int Quantity)
+    {
+        public decimal Amount => Price * Quantity;
+    }
+
+    sealed record Change(int No, string Name, Side Before, Side After);
+
+    static readonly Change[] Changes =
+    [
+        new(1, "笔记本电脑", new("LT-14", 4520.00m, 20), new("LT-15", 3980.00m, 20)),
+        new(2, "显示器", new("MN-27", 1260.00m, 40), new("MN-27S", 1080.00m, 40)),
+        new(3, "键盘鼠标套装", new("KB-200", 129.00m, 60), new("KB-210", 99.00m, 56)),
+        new(4, "办公椅", new("CH-01", 860.00m, 30), new("CH-01", 860.00m, 24)),
+        new(5, "打印机", new("PR-6", 2380.00m, 4), new("PR-8", 2650.00m, 4)),
+    ];
+
+    static readonly NumberFormat Money = new() { MinimumFractionDigits = 2, MaximumFractionDigits = 2 };
+
+    static readonly Attrs Increase = new() { Sx = Css.Define(static () => new Style { Color = Tones.Danger.Text }) };
+
+    static decimal Saving(Change change) => change.Before.Amount - change.After.Amount;
+}

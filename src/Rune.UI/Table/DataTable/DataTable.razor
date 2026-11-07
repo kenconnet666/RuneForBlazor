@@ -15,6 +15,9 @@
     - 表头筛选：列写 Filter 时列标题上有筛选按钮，Filters 是各列选中的值；默认在本地筛，ManualFilter 时只写回。
     - 列菜单：ColumnMenu 时列标题结尾有 ⋮（排序、固定在开头 / 结尾、前后移动、隐藏），写回 ColumnPins、ColumnOrder、HiddenColumns。
     - 列宽：Resizable 时可以拖动或用键盘调整，ColumnWidths 记录调整后的宽度。
+    - 分组表头：列写 Group 时相邻、同组的列上方共用一个标题（th scope="colgroup"），表头两行，没分组的列跨两行。
+    - 详情行：DetailContent 给出一行的详情，多一列展开按钮（aria-expanded、aria-controls），展开的行下面多一行跨全部列的详情，
+      在虚拟滚动里也算一行（测量真实高度），内容贴着视口的起始边，横向滚动时不跟着滚走。
     - 选择：SelectionMode 时多一列勾选框（单选是单选框），Selected 是已选行的 key。
     - 加载：只用骨架行：Loading 时表体换成骨架；滚动加载（OnRangeChange）已有数据时骨架接在末尾。
     - 合计：列写 Summary（Sum 精确相加）或 SummaryContent 时底部多一行吸底的合计。
@@ -33,6 +36,8 @@
 </CascadingValue>
 
 @code {
+    readonly string detailIdPrefix = UniqueId.Next("data-table-detail");
+
     // 表格在各列把自己交给表格之后才渲染：排到渲染队列的末尾（Defer 是内部组件，不能写成标记）
     RenderFragment Deferred => builder =>
     {
@@ -51,20 +56,34 @@
         var parts = DataTableStyles.Of(look, Config.Styles);
         var items = Rows;
         var shown = Shown;
+        var layout = ColumnDisplay.HeaderLayout(shown);
+        var headerRows = layout is null ? 1 : 2;
+        var hasDetail = DetailContent is not null;
         var offsets = ColumnDisplay.Offsets(shown, LeadingWidth);
-        var span = shown.Count + (SelectionMode is null ? 0 : 1);
+        var span = shown.Count + (SelectionMode is null ? 0 : 1) + (hasDetail ? 1 : 0);
+        var bodyCount = BodyCount;
         var summary = items.Count > 0 && !Replacing && shown.Any(static view => view.Column.Summary is not null || view.Column.SummaryContent is not null);
-        // 有起始边的固定列时，勾选列也固定在最前面
+        // 有起始边的固定列时，勾选列、详情列也固定在最前面
         var stickySelectStyle = offsets.Start.Count > 0 ? DataTableStyles.StickySelect : null;
         Attrs? stickySelect = stickySelectStyle is null ? null : new Attrs { Sx = stickySelectStyle };
+        Attrs? stickyDetail = offsets.Start.Count == 0 ? null : new Attrs
+        {
+            Sx = DataTableStyles.Sticky,
+            InlineStyle = $"inset-inline-start:{ColumnDisplay.Px(SelectionMode is null ? 0 : SelectWidth)}",
+        };
+        var rowSpan = headerRows > 1 ? headerRows : (int?)null;
 
         <ScrollArea Axis="ScrollAxis.Both" Focusable="Virtual" PropsViewport="ViewportManaged"
                     @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.Root], Flexible ? DataTableStyles.Flexible : null as Attrs), PropsRoot)">
-            <table @attributes="Attrs.Merge(parts[DataTablePart.Table], Rest, TableManaged(items.Count + 1 + (summary ? 1 : 0), shown))">
+            <table @attributes="Attrs.Merge(parts[DataTablePart.Table], Rest, TableManaged(bodyCount + headerRows + (summary ? 1 : 0), shown))">
                 <colgroup>
                     @if (SelectionMode is not null)
                     {
                         <col style="width:@ColumnDisplay.Px(SelectWidth)" />
+                    }
+                    @if (hasDetail)
+                    {
+                        <col style="width:@ColumnDisplay.Px(DetailWidth)" />
                     }
                     @foreach (var view in shown)
                     {
@@ -76,7 +95,7 @@
                     <tr aria-rowindex="1" @attributes="Attrs.Merge(parts[DataTablePart.HeadRow])">
                         @if (SelectionMode is not null)
                         {
-                            <th scope="col" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.SelectHeaderCell], stickySelect))">
+                            <th scope="col" rowspan="@rowSpan" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.SelectHeaderCell], stickySelect))">
                                 @if (SelectionMode == UI.SelectionMode.Multiple)
                                 {
                                     var state = SelectAllState;
@@ -89,11 +108,52 @@
                                 }
                             </th>
                         }
-                        @foreach (var view in shown)
+                        @if (hasDetail)
                         {
-                            @HeaderCell(view, shown, parts, offsets)
+                            <th scope="col" rowspan="@rowSpan" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.DetailHeaderCell], stickyDetail))">
+                                <VisuallyHidden>@Config.Lang.TableDetails</VisuallyHidden>
+                            </th>
+                        }
+                        @if (layout is null)
+                        {
+                            foreach (var view in shown)
+                            {
+                                @HeaderCell(view, shown, parts, offsets, 1, false)
+                            }
+                        }
+                        else
+                        {
+                            for (var position = 0; position < layout.Count; position++)
+                            {
+                                var cell = layout[position];
+                                // 分组与相邻的列之间一条竖线
+                                var divider = position > 0 && (cell.Group is not null || layout[position - 1].Group is not null);
+                                if (cell.Group is { } group)
+                                {
+                                    <th @key="@($"{group}-{position}")" scope="colgroup" colspan="@cell.Columns.Count"
+                                        @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.GroupHeaderCell], GroupLayer(cell.Columns, offsets, divider)))">@group</th>
+                                }
+                                else
+                                {
+                                    @HeaderCell(cell.Columns[0], shown, parts, offsets, 2, divider)
+                                }
+                            }
                         }
                     </tr>
+                    @if (layout is not null)
+                    {
+                        <tr aria-rowindex="2" @attributes="Attrs.Merge(parts[DataTablePart.HeadRow])">
+                            @for (var position = 0; position < layout.Count; position++)
+                            {
+                                var cell = layout[position];
+                                if (cell.Group is null) continue;
+                                for (var member = 0; member < cell.Columns.Count; member++)
+                                {
+                                    @HeaderCell(cell.Columns[member], shown, parts, offsets, 1, member == 0 && position > 0)
+                                }
+                            }
+                        </tr>
+                    }
                 </thead>
                 <tbody data-rune-virtual-list @attributes="Attrs.Merge(parts[DataTablePart.Body])">
                     @if (Replacing)
@@ -119,16 +179,32 @@
                     {
                         var (from, to) = RenderedRange;
                         var selectedKeys = SelectedKeys;
+                        var expanded = expandedRows.Value;
                         @if (Virtual)
                         {
                             <tr data-rune-virtual-before aria-hidden="true"><td colspan="@span" @attributes="Attrs.Merge(parts[DataTablePart.Spacer])"></td></tr>
                         }
-                        @for (var index = from; index <= to; index++)
+                        @for (var position = from; position <= to; position++)
                         {
+                            var entry = EntryAt(position);
+                            var index = entry.Index;
                             var item = items[index];
                             var key = GetKey(item);
+                            var detailId = $"{detailIdPrefix}-{index}";
+                            if (entry.Detail)
+                            {
+                                // 详情：一行一个跨全部列的格；内容让过勾选列与展开列，和第一个数据列对齐
+                                <tr @key="@($"{key}\u0000detail")" data-index="@position" data-virtual-key="@($"{key}#detail")" data-detail aria-rowindex="@(position + headerRows + 1)"
+                                    @attributes="Attrs.Merge(parts[DataTablePart.DetailRow])">
+                                    <td id="@detailId" colspan="@span" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.DetailCell]))">
+                                        <div @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.DetailContent], DetailIndent))">@DetailContent!(item)</div>
+                                    </td>
+                                </tr>
+                                continue;
+                            }
                             var number = index + 1;
                             var isSelected = SelectionMode is not null && selectedKeys.Contains(key);
+                            var isExpanded = hasDetail && expanded.Contains(key);
                             var active = ActiveKey is not null && ActiveKey == key;
                             var tone = RowTone?.Invoke(item);
                             var rowParts = IsStriped && index % 2 == 1 ? DataTableStyles.Of(look with { Striped = true }, Config.Styles) : parts;
@@ -137,8 +213,8 @@
                                 Sx = Sx.Of(tone is { } t ? DataTableStyles.ToneOf(t) : null, isSelected ? DataTableStyles.Selected : null,
                                     active ? DataTableStyles.Active : null, OnRowClick.HasDelegate ? DataTableStyles.Clickable : null),
                             });
-                            <tr @key="key" data-index="@index" data-key="@key" data-state="@(isSelected ? "selected" : null)" data-tone="@tone?.ToString().ToLowerInvariant()"
-                                aria-rowindex="@(index + 2)" aria-selected="@(SelectionMode is null ? null : isSelected ? "true" : "false")" aria-current="@(active ? "true" : null)"
+                            <tr @key="key" data-index="@position" data-key="@key" data-state="@(isSelected ? "selected" : null)" data-tone="@tone?.ToString().ToLowerInvariant()"
+                                aria-rowindex="@(position + headerRows + 1)" aria-selected="@(SelectionMode is null ? null : isSelected ? "true" : "false")" aria-current="@(active ? "true" : null)"
                                 @attributes="Attrs.Merge(rowLayer, PropsRowFor?.Invoke(item, index) ?? PropsRow)">
                                 @if (SelectionMode is not null)
                                 {
@@ -157,15 +233,26 @@
                                         }
                                     </td>
                                 }
-                                @for (var position = 0; position < shown.Count; position++)
+                                @if (hasDetail)
                                 {
-                                    var view = shown[position];
+                                    <td @attributes="Attrs.Merge(Attrs.Layer(rowParts[DataTablePart.Cell], rowParts[DataTablePart.DetailToggleCell], Attrs.Layer(stickyDetail, active && SelectionMode is null ? (Attrs)DataTableStyles.ActiveEdge : null)))">
+                                        @if (HasDetail?.Invoke(item) ?? true)
+                                        {
+                                            <IconButton Icon="BuiltInIcons.ChevronRight" Size="Size.Sm" Radius="Radius.Full" Label="@Config.Lang.TableRowDetails(RowLabel(item, shown))"
+                                                        PropsIcon="@(isExpanded ? ExpandedIcon : CollapsedIcon)" aria-expanded="@(isExpanded ? "true" : "false")" aria-controls="@(isExpanded ? detailId : null)"
+                                                        @onclick="() => ToggleDetailAsync(key)" @attributes="Attrs.MergeProps(rowParts[DataTablePart.DetailToggle])" />
+                                        }
+                                    </td>
+                                }
+                                @for (var column = 0; column < shown.Count; column++)
+                                {
+                                    var view = shown[column];
                                     var cellLayer = Attrs.Layer(rowParts[DataTablePart.Cell], new Attrs
                                     {
                                         Sx = Sx.Of(TableStyles.AlignOf(view.Align), view.Column.Wrap ? TableStyles.Wrap : null,
-                                            active && position == 0 && SelectionMode is null ? DataTableStyles.ActiveEdge : null),
+                                            active && column == 0 && SelectionMode is null && !hasDetail ? DataTableStyles.ActiveEdge : null),
                                     }, StickyLayer(view, offsets));
-                                    <td @key="view.Column" @attributes="Attrs.Merge(cellLayer)">@CellOf(view.Column, item, view.Type)</td>
+                                    <td @key="view.Column" @attributes="Attrs.Merge(cellLayer, PropsCellFor?.Invoke(item, view.Key))">@CellOf(view.Column, item, view.Type)</td>
                                 }
                             </tr>
                         }
@@ -182,10 +269,14 @@
                 @if (summary)
                 {
                     <tfoot @attributes="Attrs.Merge(parts[DataTablePart.Foot])">
-                        <tr aria-rowindex="@(items.Count + 2)">
+                        <tr aria-rowindex="@(bodyCount + headerRows + 1)">
                             @if (SelectionMode is not null)
                             {
                                 <td @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell], stickySelect))"></td>
+                            }
+                            @if (hasDetail)
+                            {
+                                <td @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell], stickyDetail))"></td>
                             }
                             @for (var position = 0; position < shown.Count; position++)
                             {
@@ -202,8 +293,9 @@
         </ScrollArea>
     };
 
-    // 一个列标题：可排序的是按钮；有表头筛选、列菜单时按钮在结尾；可以调整宽度时结束边有手柄
-    RenderFragment HeaderCell(ColumnView<TItem> view, IReadOnlyList<ColumnView<TItem>> shown, PartLayers<DataTablePart> parts, StickyOffsets offsets) => __builder =>
+    // 一个列标题：可排序的是按钮；有表头筛选、列菜单时按钮在结尾；可以调整宽度时结束边有手柄。
+    // rowSpan 是没分组的列在两行表头里跨两行，divider 是与分组相邻的竖线
+    RenderFragment HeaderCell(ColumnView<TItem> view, IReadOnlyList<ColumnView<TItem>> shown, PartLayers<DataTablePart> parts, StickyOffsets offsets, int rowSpan, bool divider) => __builder =>
     {
         var column = view.Column;
         var sortList = ActiveSorts;
@@ -211,9 +303,9 @@
         var direction = priority >= 0 ? sortList[priority].Direction : (SortDirection?)null;
         var actions = column.Filter is not null || ColumnMenu;
         var position = IndexOfView(shown, view.Key);
-        <th @key="column" scope="col" data-column="@view.Key" data-sticky="@view.Sticky?.ToString().ToLowerInvariant()"
+        <th @key="column" scope="col" rowspan="@(rowSpan > 1 ? rowSpan : null)" data-column="@view.Key" data-sticky="@view.Sticky?.ToString().ToLowerInvariant()"
             aria-sort="@(column.Sortable ? (priority == 0 ? AriaSort(direction) : "none") : null)"
-            @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], TableStyles.AlignOf(view.Align), StickyLayer(view, offsets)))">
+            @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], new Attrs { Sx = Sx.Of(TableStyles.AlignOf(view.Align), divider ? DataTableStyles.GroupDivider : null) }, StickyLayer(view, offsets)))">
             @if (actions)
             {
                 <div @attributes="Attrs.Merge(parts[DataTablePart.HeaderContent])">
@@ -280,6 +372,10 @@
                 {
                     <td @attributes="Attrs.Merge(parts[DataTablePart.Cell])"></td>
                 }
+                @if (DetailContent is not null)
+                {
+                    <td @attributes="Attrs.Merge(parts[DataTablePart.Cell])"></td>
+                }
                 @for (var position = 0; position < columnCount; position++)
                 {
                     <td @attributes="Attrs.Merge(parts[DataTablePart.Cell])">
@@ -290,8 +386,34 @@
         }
     };
 
+    static readonly Attrs CollapsedIcon = new() { Sx = DisclosureStyles.Icon, ["FlipInRtl"] = true };
+    static readonly Attrs ExpandedIcon = new() { Sx = Sx.Of(DisclosureStyles.Icon, DisclosureStyles.Turn), ["FlipInRtl"] = true };
+
+    // 详情内容让过勾选列与展开列，和第一个数据列对齐；宽度不超过视口
+    Attrs DetailIndent => new() { InlineStyle = $"margin-inline-start:{ColumnDisplay.Px(LeadingWidth)};max-width:calc(100cqi - {ColumnDisplay.Px(LeadingWidth)})" };
+
     // 骨架条的长短错落：90%、75%、60%、45%
     static Attrs SkeletonWidth(int row, int position) => new() { InlineStyle = $"width:{90 - (row + position) % 4 * 15}%" };
+
+    // 分组标题的固定：组里的列都固定在同一侧时跟着固定，偏移取最靠外的一列；含挨着滚动列的那一列时也画竖线
+    static Attrs GroupLayer(IReadOnlyList<ColumnView<TItem>> members, StickyOffsets offsets, bool divider)
+    {
+        var dividerStyle = divider ? DataTableStyles.GroupDivider : null;
+        var side = members[0].Sticky;
+        if (side is null || members.Any(member => member.Sticky != side)) return new() { Sx = Sx.Of(dividerStyle) };
+        var (outer, inner) = side == ColumnSticky.Start ? (members[0], members[^1]) : (members[^1], members[0]);
+        return side == ColumnSticky.Start
+            ? new()
+            {
+                Sx = Sx.Of(dividerStyle, DataTableStyles.Sticky, offsets.StartEdge == inner.Key ? DataTableStyles.StickyStartEdge : null),
+                InlineStyle = $"inset-inline-start:{ColumnDisplay.Px(offsets.Start[outer.Key])}",
+            }
+            : new()
+            {
+                Sx = Sx.Of(dividerStyle, DataTableStyles.Sticky, offsets.EndEdge == inner.Key ? DataTableStyles.StickyEndEdge : null),
+                InlineStyle = $"inset-inline-end:{ColumnDisplay.Px(offsets.End[outer.Key])}",
+            };
+    }
 
     RenderFragment Header(DataTableColumn<TItem> column) => column.HeaderContent ?? (builder => builder.AddContent(0, column.Label));
 

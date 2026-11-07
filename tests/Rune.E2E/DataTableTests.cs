@@ -59,4 +59,25 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(table.Locator("col[data-column=buyer]")).ToHaveAttributeAsync("style", "width:156px");
         await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "还原列设置" })).ToBeEnabledAsync();
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 展开详情_分组表头两行(string mode)
+    {
+        var page = await OpenAsync(mode, "data-table");
+        var proposals = page.GetByRole(AriaRole.Table, new() { Name = "供应商改进建议" });
+
+        await Assertions.Expect(proposals.GetByText("强度裕度由 1.42 降到 1.31")).ToBeVisibleAsync();
+        var toggle = proposals.Locator("tr[data-key='GYS-2026-034'] button[aria-expanded]");
+        await toggle.ClickAsync();
+        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-expanded", "true");
+        var detail = proposals.Locator("#" + await toggle.GetAttributeAsync("aria-controls"));
+        await Assertions.Expect(detail).ToContainTextAsync("引入第二供应商");
+        await Assertions.Expect(proposals.Locator("tr[data-key='GYS-2026-040'] button[aria-expanded]")).ToHaveCountAsync(0);
+
+        var changes = page.GetByRole(AriaRole.Table, new() { Name = "采购方案调整" });
+        await Assertions.Expect(changes.Locator("thead tr")).ToHaveCountAsync(2);
+        await Assertions.Expect(changes.Locator("th[scope=colgroup]")).ToHaveTextAsync(["调整前", "调整后"]);
+    }
 }

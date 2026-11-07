@@ -127,7 +127,8 @@ class Virtualizer {
     const fresh = [];
     for (const element of this.list?.children ?? []) {
       if (!element.hasAttribute('data-index')) continue;
-      this.keys.set(Number(element.getAttribute('data-index')), element.getAttribute('data-key'));
+      // 测量按 key 缓存；表格的详情行没有行的 key，用 data-virtual-key
+      this.keys.set(Number(element.getAttribute('data-index')), element.getAttribute('data-virtual-key') ?? element.getAttribute('data-key'));
       if (element.__runeMeasured) continue;
       element.__runeMeasured = true;
       this.itemObserver.observe(element);

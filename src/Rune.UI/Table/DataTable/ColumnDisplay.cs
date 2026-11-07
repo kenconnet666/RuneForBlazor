@@ -20,6 +20,11 @@ sealed record ColumnView<TItem>(DataTableColumn<TItem> Column, ColumnSticky? Sti
     public double MinWidth => Column.MinWidth ?? ColumnDisplay.FlexMinWidth;
 }
 
+/// <summary>表头第一行的一格：一个分组（跨组里的几列），或没有分组的一列（跨两行）。</summary>
+/// <param name="Group">组标题；没有分组的一列时为 null。</param>
+/// <param name="Columns">这一格下面的列（没有分组时是一列）。</param>
+sealed record HeaderGroup<TItem>(string? Group, IReadOnlyList<ColumnView<TItem>> Columns);
+
 /// <summary>
 /// 列的计算（同 vue-tsx-pro 的 columns.ts、column-display.tsx）：值类型、默认的格式、合计、排序、筛选、列的排列，固定列的偏移与表格的最小宽度。
 /// </summary>
@@ -66,6 +71,20 @@ static class ColumnDisplay
                 TypeOf(entry.Column, items)))
             .ToList();
         return [.. arranged.Where(static view => view.Sticky == ColumnSticky.Start), .. arranged.Where(static view => view.Sticky is null), .. arranged.Where(static view => view.Sticky == ColumnSticky.End)];
+    }
+
+    /// <summary>按分组排出表头第一行：相邻、组标题相同的列合成一格；没有任何分组时返回 null（表头只有一行）。</summary>
+    public static IReadOnlyList<HeaderGroup<TItem>>? HeaderLayout<TItem>(IReadOnlyList<ColumnView<TItem>> columns)
+    {
+        if (!columns.Any(static view => view.Column.Group is not null)) return null;
+        var cells = new List<(string? Group, List<ColumnView<TItem>> Columns)>();
+        foreach (var view in columns)
+        {
+            var group = view.Column.Group;
+            if (group is not null && cells.Count > 0 && cells[^1].Group == group) cells[^1].Columns.Add(view);
+            else cells.Add((group, [view]));
+        }
+        return [.. cells.Select(static cell => new HeaderGroup<TItem>(cell.Group, cell.Columns))];
     }
 
     /// <summary>没写内容时单元格的文字：按值类型与语言格式化；值与类型对不上（数字列里的文字）时原样显示。</summary>

@@ -1,0 +1,79 @@
+@inherits RuneComponent
+@using System.ComponentModel
+
+@* 供应商改进建议：点行首的箭头展开详情（建议内容、影响评估、附件），草稿还没有内容，不能展开 *@
+<DataTable Items="Proposals" GetKey="p => p.Code" DetailContent="Detail" HasDetail="p => p.Content is not null" @bind-ExpandedRows="expanded"
+           aria-label="供应商改进建议">
+    <PropertyColumn Property="p => p.Code" Width="132" Sticky="ColumnSticky.Start" />
+    <PropertyColumn Property="p => p.Supplier" Width="112" />
+    <PropertyColumn Property="p => p.Part" Width="140" />
+    <PropertyColumn Property="p => p.Kind" Width="104" />
+    <PropertyColumn Property="p => p.Saving" Width="156" Format="Money" />
+    <StatusColumn Property="p => p.Status" Statuses="Statuses" Width="112" />
+</DataTable>
+
+@code {
+    enum ProposalStatus { Draft, Reviewing, Accepted, Rejected }
+
+    sealed record Proposal(
+        [property: DisplayName("建议编号")] string Code,
+        [property: DisplayName("供应商")] string Supplier,
+        [property: DisplayName("零件")] string Part,
+        [property: DisplayName("类型")] string Kind,
+        [property: DisplayName("预计单价（元）")] decimal Saving,
+        [property: DisplayName("状态")] ProposalStatus Status,
+        string? Content = null,
+        string? Impact = null,
+        IReadOnlyList<string>? Files = null,
+        string? Submitted = null);
+
+    static readonly StatusMap<ProposalStatus> Statuses = new()
+    {
+        [ProposalStatus.Draft] = new("草稿"),
+        [ProposalStatus.Reviewing] = new("评估中", Tone.Info),
+        [ProposalStatus.Accepted] = new("已采纳", Tone.Success),
+        [ProposalStatus.Rejected] = new("未采纳", Tone.Danger),
+    };
+
+    static readonly NumberFormat Money = new() { MinimumFractionDigits = 2, MaximumFractionDigits = 2 };
+
+    static readonly Proposal[] Proposals =
+    [
+        new("GYS-2026-031", "供应商甲", "显示器支架", "材料替代", 5600m, ProposalStatus.Reviewing,
+            "支架材料由 7050 铝合金改为 2024 铝合金，加工余量减少 30%，单件工时由 6.5 h 降到 4.8 h。",
+            "强度裕度由 1.42 降到 1.31，仍满足设计要求；需补做一项静力试验。", ["材料对比报告.pdf", "工时测算.xlsx"], "2026-10-08 张工"),
+        new("GYS-2026-034", "供应商乙", "包装纸箱", "供应商切换", 2380.5m, ProposalStatus.Accepted,
+            "引入第二供应商，年采购量 1,200 件分两家，单价由 186 元降到 162 元。", "新供应商需完成样品验收，预计 8 周。", ["报价单.pdf"], "2026-09-21 李工"),
+        new("GYS-2026-037", "供应商丙", "线束支架", "流程优化", 980m, ProposalStatus.Rejected,
+            "钣金件由数控铣改为冲压成形。", "批量不足 500 件，模具费摊销后不降反升，未采纳。", Submitted: "2026-09-15 王工"),
+        new("GYS-2026-040", "供应商甲", "机柜面板", "产品改进", 0m, ProposalStatus.Draft),
+    ];
+
+    static Style FileIcon => Css.Define(static () => new Style { Color = Colors.TextMuted });
+
+    IReadOnlyList<string> expanded = ["GYS-2026-031"];
+
+    RenderFragment<Proposal> Detail => proposal => @<Descriptions Columns="2" Size="Size.Sm">
+        <DescriptionsItem Label="建议内容" Value="@proposal.Content" Span="2" />
+        <DescriptionsItem Label="影响评估" Value="@proposal.Impact" Span="2" />
+        <DescriptionsItem Label="附件">
+            @if (proposal.Files is { Count: > 0 } files)
+            {
+                <Flex Gap="SpaceScale.Md" Wrap="true">
+                    @foreach (var file in files)
+                    {
+                        <Flex @key="file" Inline="true" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                            <Icon Data="Lucide.Paperclip" Sx="FileIcon" />
+                            <TextLink Href="#">@file</TextLink>
+                        </Flex>
+                    }
+                </Flex>
+            }
+            else
+            {
+                <Small Tone="TextTone.Muted">无</Small>
+            }
+        </DescriptionsItem>
+        <DescriptionsItem Label="提交" Value="@proposal.Submitted" />
+    </Descriptions>;
+}

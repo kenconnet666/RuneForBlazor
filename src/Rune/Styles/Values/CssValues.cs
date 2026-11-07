@@ -91,6 +91,9 @@ public readonly record struct CssLength
     /// <summary>视口宽度的百分之几。</summary>
     public static CssLength Vw(double value) => Unit(value, "vw");
 
+    /// <summary>最近的容器查询容器（container-type）行内方向尺寸的百分之几。</summary>
+    public static CssLength Cqi(double value) => Unit(value, "cqi");
+
     /// <summary>视口高度的百分之几（动态视口：手机地址栏收起、展开时跟着变）。</summary>
     public static CssLength Dvh(double value) => Unit(value, "dvh");
 

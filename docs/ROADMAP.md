@@ -152,7 +152,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
   - [x] 核心：列的子组件（PropertyColumn、StatusColumn、TemplateColumn）、单列与多列排序（本地 / ManualSort）、单选与多选、虚拟滚动（virtual.js 的表格模式）、
     骨架与空状态、固定列、合计行、行的色调、主从视图的当前行与点行
   - [x] 表头筛选与列菜单（ColumnFilterButton、ColumnMenuButton）、列宽调整（ColumnResizer）
-  - [ ] 分组表头、详情行
+  - [x] 分组表头（列的 Group）、详情行（DetailContent）、按行与列的单元格属性（PropsCellFor）
   - [ ] 列设置记在浏览器里（vue 的 usePersistentState，Rune 还没有对应的工具；示例先放在组件里）
   - [ ] 网格方向键与单元格编辑（行校验）、行拖动、服务端数据（接 TableQueryState）
 - [ ] ColumnHeaderActions、ColumnResizer、ColumnSettings、SelectionBar、ColumnTable、TreeDataTable、PivotTable、CSV 导出（vue 的 `csv.ts`；xlsx 见阶段 7）

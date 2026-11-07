@@ -9,8 +9,11 @@ namespace Rune.UI;
 /// <typeparam name="TItem">一行的类型。</typeparam>
 public partial class DataTable<TItem>
 {
-    // 勾选列的宽度（px）
+    // 勾选列、详情列（展开按钮）的宽度（px）
     const double SelectWidth = 44;
+    const double DetailWidth = 40;
+    // 详情行的估计高度（px），渲染后以实际高度为准
+    const double DetailHeight = 160;
     // 加载中铺几行骨架；滚动加载（已有数据）时接在末尾几行
     const int SkeletonRowCount = 10;
     const int MoreSkeletonRows = 3;
@@ -32,6 +35,7 @@ public partial class DataTable<TItem>
     Bindable<IReadOnlyList<string>> hiddenColumns { get => field ??= new(this, () => HiddenColumns ?? [], () => HiddenColumnsChanged); }
     Bindable<IReadOnlyList<string>> columnOrder { get => field ??= new(this, () => ColumnOrder ?? [], () => ColumnOrderChanged); }
     Bindable<IReadOnlyDictionary<string, ColumnSticky?>> columnPins { get => field ??= new(this, () => ColumnPins ?? NoPins, () => ColumnPinsChanged); }
+    Bindable<IReadOnlyList<string>> expandedRows { get => field ??= new(this, () => ExpandedRows ?? [], () => ExpandedRowsChanged); }
     Bindable<IReadOnlyDictionary<string, double>> columnWidths { get => field ??= new(this, () => ColumnWidths ?? NoWidths, () => ColumnWidthsChanged); }
 
     static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> NoFilters = new Dictionary<string, IReadOnlyList<string>>();
@@ -41,6 +45,7 @@ public partial class DataTable<TItem>
     Memo<(IReadOnlyList<TItem>, IReadOnlyList<ColumnSort>, IReadOnlyList<DataTableColumn<TItem>>, IReadOnlyDictionary<string, IReadOnlyList<string>>, bool, bool), IReadOnlyList<TItem>> rows;
     Memo<(IReadOnlyList<TItem>, IReadOnlyList<DataTableColumn<TItem>>), Dictionary<string, IReadOnlyList<ListboxOption>>> filterOptions;
     Memo<IReadOnlyList<string>, HashSet<string>> selectedSet;
+    Memo<(IReadOnlyList<TItem>, IReadOnlyList<string>, bool), BodyEntry[]> entries;
     Memo<string?, SelectionRadios> radios;
 
     // JS 报告的要渲染的那一段；还没报告时是开头的 InitialCount 行
@@ -156,6 +161,21 @@ public partial class DataTable<TItem>
     /// <summary>可见行范围变化（不含 overscan）：接近末尾时加载更多。</summary>
     [Parameter] public EventCallback<VisibleRange> OnRangeChange { get; set; }
 
+    /// <summary>行的详情：写了时多一列展开按钮，展开的行下面多一行跨全部列的详情（虚拟滚动按真实高度测量）。</summary>
+    [Parameter] public RenderFragment<TItem>? DetailContent { get; set; }
+
+    /// <summary>这一行有没有详情：没有的不显示展开按钮；默认都有。</summary>
+    [Parameter] public Func<TItem, bool>? HasDetail { get; set; }
+
+    /// <summary>展开了详情的行的 key。</summary>
+    [Parameter] public IReadOnlyList<string>? ExpandedRows { get; set; }
+
+    /// <summary>展开的行变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> ExpandedRowsChanged { get; set; }
+
+    /// <summary>按行与列（key）计算的每个单元格的部件属性：节省是负数时标红这类。</summary>
+    [Parameter] public Func<TItem, string, Attrs?>? PropsCellFor { get; set; }
+
     /// <summary>行的色调：导入校验的错误行、即将超期的行整行着浅色底（不透明，固定列也盖得住）。</summary>
     [Parameter] public Func<TItem, Tone?>? RowTone { get; set; }
 
@@ -210,6 +230,8 @@ public partial class DataTable<TItem>
             break;
         }
         if (index < 0) return false;
+        // 有展开的详情时，序号换成在表体里的位置
+        if (Entries is { } list) index = list.ToList().FindIndex(entry => !entry.Detail && entry.Index == index);
         scrollRequest = (index, align, scrollRequest.Sequence + 1);
         StateHasChanged();
         return true;
@@ -250,13 +272,45 @@ public partial class DataTable<TItem>
     // 交互模式下才虚拟滚动（JS 排位置）；静态 SSR、预渲染时在普通流里输出开头几行
     bool Virtual => RendererInfo.IsInteractive;
 
+    /// <summary>表体里的一行：数据行，或某一行展开的详情。</summary>
+    /// <param name="Index">数据行在 Rows 里的序号。</param>
+    /// <param name="Detail">是这一行的详情。</param>
+    readonly record struct BodyEntry(int Index, bool Detail);
+
+    /// <summary>表体里的各行：展开了详情的行后面跟它的详情；没有展开的详情时为 null（直接用 Rows）。</summary>
+    IReadOnlyList<BodyEntry>? Entries => entries.Get((Rows, expandedRows.Value, DetailContent is not null), this, static (k, owner) =>
+    {
+        if (!k.Item3 || k.Item2.Count == 0) return [];
+        var expanded = k.Item2.ToHashSet();
+        var list = new List<BodyEntry>();
+        for (var index = 0; index < k.Item1.Count; index++)
+        {
+            var item = k.Item1[index];
+            list.Add(new(index, false));
+            // 展开记录里可能留着已经没有详情的行（数据变了）：只给还有详情的行出详情
+            if (expanded.Contains(owner.GetKey(item)) && (owner.HasDetail?.Invoke(item) ?? true)) list.Add(new(index, true));
+        }
+        return [.. list];
+    }) is { Length: > 0 } list ? list : null;
+
+    int BodyCount => Entries?.Count ?? Rows.Count;
+
+    BodyEntry EntryAt(int position) => Entries is { } list ? list[position] : new(position, false);
+
+    Task ToggleDetailAsync(string key) =>
+        expandedRows.SetAsync(expandedRows.Value.Contains(key) ? [.. expandedRows.Value.Where(item => item != key)] : [.. expandedRows.Value, key]);
+
+    /// <summary>行的名称（展开按钮用）：第一列的文字，没有时用行的 key。</summary>
+    string RowLabel(TItem item, IReadOnlyList<ColumnView<TItem>> shown) =>
+        shown.Count > 0 && shown[0].Column.ValueOf(item) is { } value && DataTableColumn<TItem>.FilterText(value) is { Length: > 0 } text ? text : GetKey(item);
+
     (int From, int To) RenderedRange
     {
         get
         {
-            var last = Rows.Count - 1;
+            var last = BodyCount - 1;
             if (Virtual && reported is { } range) return (Math.Min(range.From, last), Math.Min(range.To, last));
-            return (0, Math.Min(InitialCount, Rows.Count) - 1);
+            return (0, Math.Min(InitialCount, BodyCount) - 1);
         }
     }
 
@@ -265,14 +319,14 @@ public partial class DataTable<TItem>
 
     bool Appending => indicator.Shown && OnRangeChange.HasDelegate && Rows.Count > 0;
 
-    double LeadingWidth => SelectionMode is null ? 0 : SelectWidth;
+    double LeadingWidth => (SelectionMode is null ? 0 : SelectWidth) + (DetailContent is null ? 0 : DetailWidth);
 
 
     // 滚动区域的视口：交给 JS 的选项、滚动请求与 range 命令
     Attrs ViewportManaged => new()
     {
         ["data-rune-virtual"] = Virtual
-            ? FormattableString.Invariant($$"""{"count":{{Rows.Count}},"estimate":{{EstimateRowHeight ?? RowHeights[Look.Density]}},"overscan":8,"table":true}""")
+            ? FormattableString.Invariant($$"""{"count":{{BodyCount}},"estimate":{{EstimateRowHeight ?? RowHeights[Look.Density]}},"overscan":8,"table":true}""")
             : null,
         ["data-rune-virtual-scroll"] = scrollRequest.Sequence == 0
             ? null

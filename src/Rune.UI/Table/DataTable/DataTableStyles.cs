@@ -23,6 +23,12 @@ public enum DataTablePart
     /// <summary>勾选列的列标题，叠在 <see cref="HeaderCell"/> 上。</summary>
     SelectHeaderCell,
 
+    /// <summary>分组标题（th，跨组里的几列），叠在 <see cref="HeaderCell"/> 上。</summary>
+    GroupHeaderCell,
+
+    /// <summary>详情列的列标题（文字只给读屏），叠在 <see cref="HeaderCell"/> 上。</summary>
+    DetailHeaderCell,
+
     /// <summary>有表头筛选、列菜单按钮的列标题里的一行：文字（或排序按钮）占满剩下的宽度，按钮在结尾。</summary>
     HeaderContent,
 
@@ -61,6 +67,21 @@ public enum DataTablePart
 
     /// <summary>每行的单选框（单选）。</summary>
     SelectRadio,
+
+    /// <summary>每行展开按钮所在的格，叠在 <see cref="Cell"/> 上。</summary>
+    DetailToggleCell,
+
+    /// <summary>展开按钮。</summary>
+    DetailToggle,
+
+    /// <summary>详情行（tr）。</summary>
+    DetailRow,
+
+    /// <summary>详情所在的格（跨全部列），叠在 <see cref="Cell"/> 上。</summary>
+    DetailCell,
+
+    /// <summary>详情的内容：贴着视口的起始边，宽度不超过视口，横向滚动时不跟着滚走。</summary>
+    DetailContent,
 
     /// <summary>加载中的骨架条。</summary>
     Skeleton,
@@ -125,7 +146,11 @@ public static class DataTableStyles
                 DataTablePart.Table => Sx.Of(Table, a.Density == TableDensity.Compact ? TableStyles.CompactTable : null),
                 DataTablePart.Head => Head,
                 DataTablePart.HeaderCell => Sx.Of(TableStyles.HeaderCell, padding),
-                DataTablePart.SelectHeaderCell => ControlCell,
+                DataTablePart.SelectHeaderCell or DataTablePart.DetailHeaderCell or DataTablePart.DetailToggleCell => ControlCell,
+                DataTablePart.GroupHeaderCell => GroupHeaderCell,
+                DataTablePart.DetailToggle => DetailToggle,
+                DataTablePart.DetailCell => DetailCell,
+                DataTablePart.DetailContent => DetailContent,
                 DataTablePart.HeaderContent => HeaderContent,
                 DataTablePart.HeaderMain => HeaderMain,
                 DataTablePart.SortButton => SortButton,
@@ -200,6 +225,14 @@ public static class DataTableStyles
     /// <summary>有起始边的固定列时，勾选列也固定在最前面。</summary>
     internal static Style StickySelect => Css.Define(static () => new Style { Position = Position.Sticky, ZIndex = 1, InsetInlineStart = 0 });
 
+    /// <summary>分组与相邻的列之间一条竖线（只在表头里）：看得出哪几列属于一组。</summary>
+    internal static Style GroupDivider => Css.Define(static () => new Style
+    {
+        BorderInlineStartWidth = BorderWidths.Xs,
+        BorderInlineStartStyle = BorderStyle.Solid,
+        BorderInlineStartColor = Colors.BorderMuted,
+    });
+
     /// <summary>靠结束边的列（数字）：文字靠结束边，按钮仍在最后。</summary>
     internal static Style HeaderMainEnd => Css.Define(static () => new Style { TextAlign = TextAlign.End });
 
@@ -252,6 +285,30 @@ public static class DataTableStyles
     {
         BackgroundColor = Colors.Fill,
         [When.Hover] = new() { BackgroundColor = Colors.FillHover },
+    });
+
+    // 分组标题居中，下边线淡一些：与下面一行的列标题仍是一个表头
+    static Style GroupHeaderCell => Css.Define(static () => new Style { TextAlign = TextAlign.Center, BorderBottomColor = Colors.BorderMuted });
+
+    static Style DetailToggle => Css.Define(static () => new Style
+    {
+        Width = CssLength.Rem(1.5),
+        Height = CssLength.Rem(1.5),
+        MinHeight = CssLength.Rem(1.5),
+        MarginBlock = CssLength.Rem(-0.1875),
+    });
+
+    // 详情：浅底、可以换行；内边距放在内容上
+    static Style DetailCell => Css.Define(static () => new Style { PaddingBlock = 0, PaddingInline = 0, WhiteSpace = WhiteSpace.Normal, BackgroundColor = Colors.Fill });
+
+    static Style DetailContent => Css.Define(static () => new Style
+    {
+        Position = Position.Sticky,
+        InsetInlineStart = 0,
+        BoxSizing = BoxSizing.BorderBox,
+        MaxWidth = CssLength.Cqi(100),
+        PaddingBlock = Space.Md,
+        PaddingInline = Space.Md,
     });
 
     static Style Skeleton => Css.Define(static () => new Style { Display = Display.Block, Height = CssLength.Em(1) });
