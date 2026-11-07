@@ -1,5 +1,6 @@
 @*
-    文档页的骨架（同 vue-tsx-pro 文档站的 DocPage）：标题、简介，后面是各个示例与 API。组件页与指南页都用它。
+    文档页的骨架（同 vue-tsx-pro 文档站的 DocPage）：标题、简介、安装哪个包（组件页），后面是各个示例与 API。组件页与指南页都用它。
+    vue 的组件页在简介下写一行 import；组件都在 Rune.UI 命名空间里，这里对应的是装哪个包（按分类推出，地图页这类另要包的写 Package）。
     组件页写 Wide：内容区放宽，示例（Examples）在宽屏时分两列；指南页保持适合阅读的宽度。
     <DocPage Meta="Meta" Wide="true">…</DocPage>          （页面继承 DocPageBase，Meta 取自页面的 [DocMeta]）
 *@
@@ -8,7 +9,7 @@
 
 <PageTitle>@Meta.Title · Rune</PageTitle>
 <Container Size="@(Wide ? ContainerSize.Xl : ContainerSize.Md)" Padding="SpaceScale.None">
-    <DocArticle Title="@Meta.Title" Description="@Meta.Description" Lead="Lead">@ChildContent</DocArticle>
+    <DocArticle Title="@Meta.Title" Description="@Meta.Description" Lead="Install">@ChildContent</DocArticle>
 </Container>
 
 @code {
@@ -18,9 +19,17 @@
     /// <summary>宽版面：组件页用，示例在宽屏时分两列。</summary>
     [Parameter] public bool Wide { get; set; }
 
-    /// <summary>简介下面、正文之前的内容。</summary>
-    [Parameter] public RenderFragment? Lead { get; set; }
+    /// <summary>组件页要装的 NuGet 包，默认按分类：日期 Rune.UI.Dates、图表 Rune.Charts，其余 Rune.UI；指南页不写。</summary>
+    [Parameter] public string? Package { get; set; }
 
     /// <summary>正文。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    RenderFragment? Install => (Package ?? Meta.Category switch
+    {
+        DocCategory.Guide => null,
+        DocCategory.Date => "Rune.UI.Dates",
+        DocCategory.Charts => "Rune.Charts",
+        _ => "Rune.UI",
+    }) is { } package ? @<CodeBlock Code="@($"dotnet add package {package}")" Lang="bash" /> : null;
 }
