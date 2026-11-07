@@ -1,0 +1,20 @@
+@inherits RuneComponent
+
+@* 外观（Variant、Size、Radius、图标）与状态（只读、不可用、出错、必填）：与其他输入框同一套 *@
+<Grid MinItemWidth="@("15rem")" Gap="SpaceScale.Lg">
+    <Field Label="Variant.Soft · Size.Sm"><DatePicker @bind-Value="due" Variant="InputVariant.Soft" Size="Size.Sm" /></Field>
+    <Field Label="Radius.Full · Size.Lg 加图标"><DatePicker @bind-Value="due" Radius="Radius.Full" Size="Size.Lg" Icon="Lucide.CalendarClock" /></Field>
+    <Field Label="只读" ReadOnly="true" Description="能聚焦、能复制，不能改，也不弹日历"><DatePicker Value="October" /></Field>
+    <Field Label="不可用" Disabled="true"><DatePicker Value="October" /></Field>
+    <Field Label="交付日期" Required="true" Error="@(delivery is null ? "请选择交付日期" : null)" Description="必填；选好后错误消失">
+        <DatePicker @bind-Value="delivery" Clearable="true" />
+    </Field>
+    <Field Label="日历弹在上方、并排两个月"><DatePicker @bind-Value="later" Placement="Placement.TopStart" VisibleMonths="2" /></Field>
+</Grid>
+
+@code {
+    static readonly DateOnly October = new(2026, 10, 1);
+    DateOnly? due = new(2026, 10, 30);
+    DateOnly? delivery;
+    DateOnly? later;
+}

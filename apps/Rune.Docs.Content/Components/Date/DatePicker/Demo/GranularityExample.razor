@@ -1,0 +1,23 @@
+@inherits RuneComponent
+
+@* 选年份、季度、月份、周、日期，或日期加时间：Granularity 决定输入框的段与弹出的选择；会议只能约在 9:00–18:00 *@
+<Grid MinItemWidth="@("15rem")" Gap="SpaceScale.Lg">
+    <Field Label="财年" DescriptionContent="@Show(year)"><DatePicker @bind-Value="year" Granularity="DateGranularity.Year" /></Field>
+    <Field Label="考核季度" DescriptionContent="@Show(quarter)"><DatePicker @bind-Value="quarter" Granularity="DateGranularity.Quarter" /></Field>
+    <Field Label="账期" DescriptionContent="@Show(month)"><DatePicker @bind-Value="month" Granularity="DateGranularity.Month" /></Field>
+    <Field Label="周报" DescriptionContent="@Show(week)"><DatePicker @bind-Value="week" Granularity="DateGranularity.Week" /></Field>
+    <Field Label="会议开始" Description="只能约在 9:00–18:00">
+        @* 工作时间之外键入时显示出错 *@
+        <DatePicker @bind-Value="start" Granularity="DateGranularity.Minute" IsTimeUnavailable="(time, _) => time < new TimeOnly(9, 0) || time >= new TimeOnly(18, 0)" />
+    </Field>
+</Grid>
+
+@code {
+    DateOnly? year = new(2026, 1, 1);
+    DateOnly? quarter = new(2026, 10, 1);
+    DateOnly? month = new(2026, 10, 1);
+    DateOnly? week = new(2026, 10, 19);
+    DateTime? start = new(2026, 10, 23, 14, 30, 0);
+
+    static RenderFragment Show(DateOnly? value) => @<Code>@(value?.ToString("yyyy-MM-dd") ?? "null")</Code>;
+}

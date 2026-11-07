@@ -1,0 +1,24 @@
+@inherits UIComponent
+
+@* 预约门诊：只能约今天起 30 天内的工作日，已约满的日子不可选；可以直接键入，也可以点按钮翻日历 *@
+<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Lg">
+    <Field Label="就诊日期" Required="true" Description="@(visit is { } day ? LangFormat.Date(day, Config.Lang, DateStyle.Full, null) : "30 天内的工作日，周末与约满的日子不可选")">
+        <DatePicker @bind-Value="visit" Min="today" Max="today.AddDays(30)" IsDateUnavailable="Unavailable" name="visit" />
+    </Field>
+    <Field Label="出生日期" Description="年份久远时直接键入比翻日历快">
+        <DatePicker @bind-Value="birthday" Max="today" name="birthday" Clearable="true" />
+    </Field>
+    <TextSpan Tone="TextTone.Muted" Size="Size.Sm">提交的值：visit=@(visit?.ToString("yyyy-MM-dd") ?? "null")，birthday=@(birthday?.ToString("yyyy-MM-dd") ?? "null")</TextSpan>
+</Grid>
+
+@code {
+    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    HashSet<DateOnly> fullyBooked = [];
+    DateOnly? visit;
+    DateOnly? birthday = new(1992, 8, 16);
+
+    // 演示数据：从今天往后数的第 3、4、11 天已约满
+    protected override void OnInitialized() => fullyBooked = [today.AddDays(3), today.AddDays(4), today.AddDays(11)];
+
+    bool Unavailable(DateOnly date) => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday || fullyBooked.Contains(date);
+}

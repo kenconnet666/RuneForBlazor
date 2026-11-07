@@ -1,0 +1,80 @@
+@*
+    DatePicker 的弹层（role="dialog" 的原生 popover，贴着输入框外壳）：快捷选项、日历与“今天”。
+    由打开按钮的 popovertarget 打开（静态 SSR 也能打开），Esc、点外部关闭，开关经 rune-toggle 报给 DatePicker；内容只在打开时渲染。
+    打开后焦点进日历当前的那一格（已选或今天）；选好后 DatePicker 写回、关闭，焦点回到按钮。
+*@
+@namespace Rune.UI
+@typeparam TValue
+@inherits UIComponent
+@{
+    var parts = PickerStyles.Of(Picker.Size, Config.Styles);
+    var lang = Picker.Lang;
+}
+
+<div @attributes="Attrs.Merge(parts[PickerPart.Popover], Picker.PropsPopover, Managed)">
+    @if (Picker.IsOpen)
+    {
+        @if (Picker.Presets.Count > 0)
+        {
+            <div role="group" aria-label="@lang.DatePickerPresets" @attributes="Attrs.Merge(parts[PickerPart.Presets])">
+                @foreach (var preset in Picker.Presets)
+                {
+                    var day = preset.Date();
+                    var active = Picker.IsCurrent(day);
+                    <Button @key="preset.Label" Size="UI.Size.Sm" Variant="@(active ? ButtonVariant.Soft : ButtonVariant.Ghost)" Tone="Tone.Neutral"
+                            aria-pressed="@(active ? "true" : "false")" Disabled="!Picker.Selectable(day)" @onclick="() => Picker.PickAsync(day)"
+                            @attributes="Attrs.MergeProps(parts[PickerPart.Preset])">@preset.Label</Button>
+                }
+            </div>
+        }
+        <div @attributes="Attrs.Merge(parts[PickerPart.Main])">
+            @* 选周：按 ISO 8601 的周（周一开始）排，行首是第几周，与值的周一致 *@
+            <Calendar Value="Picker.CalendarValue" ValueChanged="Picked" Granularity="Picker.CalendarUnit" Min="MinDay" Max="MaxDay"
+                      IsDateUnavailable="Picker.IsDateUnavailable" VisibleMonths="Picker.VisibleMonths" Size="Picker.Size"
+                      FirstDayOfWeek="@(Week ? DayOfWeek.Monday : null)" ShowWeekNumbers="Week" aria-label="@lang.DatePickerOpen"
+                      @attributes="Attrs.MergeProps(null, Picker.PropsCalendar)" />
+            @if (Picker.ShowToday)
+            {
+                var today = Picker.Today;
+                <div @attributes="Attrs.Merge(parts[PickerPart.Footer])">
+                    <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Disabled="!Picker.Selectable(today)" @onclick="() => Picker.PickAsync(today)">@Picker.TodayLabel</Button>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>所属的日期选择器：弹层的内容与选好后的写回都由它管。</summary>
+    [Parameter, EditorRequired] public DatePicker<TValue> Picker { get; set; } = null!;
+
+    bool Week => Picker.Granularity == DateGranularity.Week;
+
+    // 日历只按日期比较：带时间的 Min、Max 取那一天（同一天里的时间由输入框判断）
+    DateOnly? MinDay => Picker.Min is { } min ? Day(min) : null;
+
+    DateOnly? MaxDay => Picker.Max is { } max ? Day(max) : null;
+
+    static DateOnly Day(object value) => value switch
+    {
+        DateOnly date => date,
+        DateTime time => DateOnly.FromDateTime(time),
+        DateTimeOffset offset => DateOnly.FromDateTime(offset.DateTime),
+        _ => throw new ArgumentException($"Min、Max 要是 DateOnly、DateTime 或 DateTimeOffset，不是 {value.GetType()}。"),
+    };
+
+    // 日历里的单选：选了一天就写回（再点已选的那天也关闭）
+    EventCallback<DateOnly?> Picked => EventCallback.Factory.Create<DateOnly?>(this, day => day is { } picked ? Picker.PickAsync(picked) : Task.CompletedTask);
+
+    Attrs Managed => Attrs.Merge(Floating.Placed(Picker.Placement, null), new Attrs
+    {
+        Id = Picker.PopoverId,
+        Role = "dialog",
+        AriaLabel = Picker.Lang.DatePickerOpen,
+        ["popover"] = "auto",
+        ["data-rune-overlay"] = true,
+        ["data-open"] = Picker.IsOpen ? "true" : "false",
+        ["data-anchor"] = Picker.AnchorId,
+        ["onrunetoggle"] = EventCallback.Factory.Create<OverlayToggleEventArgs>(this, Picker.Toggled),
+    });
+}

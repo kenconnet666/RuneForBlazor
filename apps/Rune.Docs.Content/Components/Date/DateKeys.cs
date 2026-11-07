@@ -24,4 +24,11 @@ static class DateKeys
         ("Home / End", "这周的第一天 / 最后一天（按地区的一周第一天）"),
         ("Enter / Space", "选中聚焦的日期；区间日历里先选开始、再选结束"),
     ];
+
+    /// <summary>弹出选择器的开关（DatePicker、DateRangePicker、TimePicker）。</summary>
+    public static readonly (string Key, string Action)[] Picker =
+    [
+        ("Alt+↓", "在输入框里：打开弹层，焦点落在已选（或今天）那一格"),
+        ("Esc", "关闭弹层，焦点回到打开它的按钮"),
+    ];
 }

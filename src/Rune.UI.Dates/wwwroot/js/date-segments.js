@@ -292,6 +292,15 @@ class SegmentState {
   }
 
   onKeydown(event) {
+    // Alt + ↓ 打开选择器的弹层（同原生 select）：点外壳里的打开按钮
+    if (event.altKey && event.key === 'ArrowDown') {
+      const trigger = this.root.parentElement?.querySelector(':scope > [popovertarget]');
+      if (trigger && !trigger.disabled) {
+        event.preventDefault();
+        trigger.click();
+      }
+      return;
+    }
     // Enter 同原生的输入框：交出没打满的年份，再提交所在的表单
     if (event.key === 'Enter') {
       event.preventDefault();

@@ -22,7 +22,7 @@
     var editable = !IsDisabled && !IsReadOnly;
 }
 
-<div @attributes="Attrs.Merge(parts[InputPart.Root], RootUserAttrs, ShellAttrs)" data-invalid="@(invalid ? true : null)" data-disabled="@(IsDisabled ? true : null)">
+<div id="@ShellId" @attributes="Attrs.Merge(parts[InputPart.Root], RootUserAttrs, ShellAttrs)" data-invalid="@(invalid ? true : null)" data-disabled="@(IsDisabled ? true : null)">
     @if (Icon is not null)
     {
         <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[InputPart.Icon], PropsIcon)" />
@@ -54,7 +54,9 @@
                      @attributes="Attrs.MergeProps(Attrs.Layer(parts[InputPart.Button], own[SegmentedFieldPart.Clear]), PropsClear)" />
     }
     @Suffix
+    @Trigger
 </div>
+@Popover
 
 @code {
     Memo<(SegmentType[], Lang, bool), SegmentPart[]> layouts;
@@ -100,7 +102,22 @@
     /// <summary>值超出范围、不可选：外壳显示出错，值照样写回（由表单校验决定能不能提交）。</summary>
     private protected abstract bool IsOutOfRange(string iso);
 
-    /// <summary>语言包的时区（DateTimeOffset 的值按它显示与写回）。</summary>
+    /// <summary>输入框外壳的 id：选择器的弹层贴着它定位。</summary>
+    private protected string ShellId { get; } = UniqueId.Next("segmented-field");
+
+    /// <summary>外壳里最后的打开按钮（选择器）；没有时 null。</summary>
+    private protected virtual RenderFragment? Trigger => null;
+
+    /// <summary>外壳后面的弹层（选择器）；没有时 null。</summary>
+    private protected virtual RenderFragment? Popover => null;
+
+    /// <summary>可以改值（不是不可用、只读）。</summary>
+    private protected bool Editable => !IsDisabled && !IsReadOnly;
+
+    /// <summary>写回一个值（选择器在弹层里选好了）。</summary>
+    private protected Task WriteAsync(TValue value) => SetValueAsync(value);
+
+        /// <summary>语言包的时区（DateTimeOffset 的值按它显示与写回）。</summary>
     private protected TimeZoneInfo Zone => LangFormat.ZoneOf(Config.Lang);
 
     async Task OnCommandAsync(CommandEventArgs args)

@@ -174,7 +174,8 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 - [x] DateField、TimeField、SegmentedField（DateSegmentGroup 先内联在 SegmentedField 里，DateRangePicker 要两组时再拆出来）
 - [x] Calendar、RangeCalendar（CalendarView 是抽象的 CalendarBase）
 - [ ] QuarterCalendar、CalendarBoard（整页日历）；RangeCalendar 的快捷区间示例等 DateRangePicker 的 presets
-- [ ] DatePicker（日、周、月、季、年，快捷项、“今天”、禁用的时间段）、DateRangePicker、TimePicker
+- [x] DatePicker（日、周、月、季、年，快捷项、“今天”、禁用的时间段；季度暂在月份视图里选，QuarterCalendar 做好后换上）
+- [ ] DateRangePicker（快捷区间 presets）、TimePicker
 - [x] RelativeTime、Countdown
 - [ ] WebAssembly 下程序集懒加载（`BlazorWebAssemblyLazyLoad`）验证
 

@@ -1,0 +1,33 @@
+@page "/components/date-picker"
+@attribute [DocMeta("DatePicker 日期选择器", "输入框加弹出的日历：可以键入也可以点选；选年份、季度、月份、周、日期或日期加时间，带快捷选项与“今天”。", DocCategory.Date, Order = 5)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Date.DatePicker.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="booking" Title="基础用法" Demo="typeof(BookingExample)">
+                输入框就是 DateField，分段键入；按钮或 <Kbd>Alt</Kbd> + <Kbd>↓</Kbd> 弹出日历，焦点落在已选（或今天）那一格，点选后关闭、焦点回到按钮。
+                <Code>Min</Code>、<Code>Max</Code>、<Code>IsDateUnavailable</Code> 同时作用于输入框与日历；写了 <Code>name</Code> 时随表单提交 ISO 文字。
+            </Example>
+            <Example Id="presets" Title="快捷选项与“今天”" Demo="typeof(PresetsExample)">
+                <Code>Presets</Code> 列在日历旁边：<Code>new DatePreset(label, () =&gt; date)</Code>，每次打开按当时算；超出范围的不可用，当前值对应的那一项按下。
+                日历下方的“今天”（选月份时“本月”、选年份时“今年”）不在范围内时不可用，<Code>ShowToday="false"</Code> 去掉。
+            </Example>
+            <Example Id="states" Title="外观与状态" Demo="typeof(StatesExample)">
+                <Code>Variant</Code>、<Code>Size</Code>、<Code>Radius</Code>、<Code>Icon</Code> 与其他输入框同一套。只读时能聚焦、能复制，不弹日历；
+                Field 上的 <Code>Disabled</Code>、<Code>ReadOnly</Code>、<Code>Required</Code> 与 <Code>Error</Code> 会交给里面的选择器。
+                <Code>Placement</Code> 改弹出位置，<Code>VisibleMonths</Code> 并排显示几个月。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="granularity" Title="年份、季度、月份、周与时间" Demo="typeof(GranularityExample)">
+                <Code>Granularity</Code> 是 <Code>Year</Code>、<Code>Month</Code> 时弹出年份、月份的选择；<Code>Quarter</Code> 在月份视图里选（写回所在季度的第一天），
+                <Code>Week</Code> 按 ISO 8601 的周选（日历周一开始、行首是周数，点哪天都是它那一周的周一）；到 <Code>Minute</Code> 时选日期保留原来的时间，
+                没有时间时是 00:00。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([.. DateKeys.Segments, .. DateKeys.Picker, .. DateKeys.Calendar])" />
+    <ApiReference Types="[typeof(DatePicker<>), typeof(DatePreset), typeof(DateField<>), typeof(SegmentedField<>)]" />
+</DocPage>

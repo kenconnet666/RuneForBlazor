@@ -90,7 +90,7 @@ export function onPopoverToggle(event) {
 
 // 打开时还没有可聚焦内容的浮层（Server 模式下第一次打开时内容由 C# 随后渲染）：内容插进来时再聚焦一次
 const awaitingFocus = new WeakSet();
-// 打开、定位好之后（之前不可见、聚焦不了）焦点移进去：菜单到第一项，对话框类的到 autofocus 或第一个可聚焦元素
+// 打开、定位好之后（之前不可见、聚焦不了）焦点移进去：菜单到第一项，对话框类的到 autofocus、网格（日历）当前的那一格，或第一个可聚焦元素
 function focusInto(overlay) {
   awaitingFocus.delete(overlay);
   // 指针停留打开的子菜单：焦点留在原处
@@ -98,7 +98,7 @@ function focusInto(overlay) {
   if (!overlay.matches(':popover-open') || overlay.contains(document.activeElement)) return;
   const target = overlay.matches('[role="menu"]')
     ? menuFocusTarget(overlay)
-    : overlay.querySelector('[autofocus]') ?? overlay.querySelector(TABBABLE);
+    : overlay.querySelector('[autofocus]') ?? overlay.querySelector('[role="grid"] [tabindex="0"]') ?? overlay.querySelector(TABBABLE);
   if (target) target.focus();
   else awaitingFocus.add(overlay);
 }

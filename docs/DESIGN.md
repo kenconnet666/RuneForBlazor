@@ -483,4 +483,7 @@
   点格子是一条 activate 命令（几百个格子不各挂委托）。区间选到一半时的悬停预览在 JS 里画（`data-preview*`，C# 不写这几个属性），没有往返。
   格子的状态都写成 data-*，样式跟着属性走。月份、年份视图里聚焦某格时保留原来的日（vue 点击时会变成 1 日，键盘不会；这里两者一致）。
   一周的第一天同小时制，按 CLDR weekData（`LangFormat.FirstDayOfWeek`），不取 CultureInfo 的。
-  Intl 选项之外的日期写法用 `LangFormat.Date(value, lang, "M月d日 ddd")`（.NET 的格式，文化与时区随语言）。
+- **选择器**（DatePicker，之后的 DateRangePicker、TimePicker）：继承输入框（DatePicker 继承 DateField），外壳里加打开按钮（popovertarget）、外壳后面接弹层；
+  弹层是 role="dialog" 的原生 popover（贴着外壳定位，开关经 rune-toggle 报给 C#，内容只在打开时渲染），打开后焦点进日历当前那一格
+  （overlays.js 认 `[role=grid] [tabindex=0]`）；分段里 Alt + ↓ 点打开按钮。
+    Intl 选项之外的日期写法用 `LangFormat.Date(value, lang, "M月d日 ddd")`（.NET 的格式，文化与时区随语言）。

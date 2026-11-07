@@ -16,7 +16,7 @@ namespace Rune.UI;
 /// 键盘：数字逐段输入（满了自动跳段），↑↓ 加减，Page Up / Down 大步，Home / End 最小 / 最大，Backspace 删一位（删空回到上一段），←→ 与 Tab 换段。
 /// </summary>
 /// <typeparam name="TValue">值的类型：DateOnly、DateTime、DateTimeOffset 或它们的可空类型。</typeparam>
-public sealed class DateField<TValue> : SegmentedField<TValue>
+public class DateField<TValue> : SegmentedField<TValue>
 {
     /// <summary>精确到哪一段，默认到日；到时、分、秒时是日期加时间。</summary>
     [Parameter] public DateGranularity Granularity { get; set; } = DateGranularity.Day;
@@ -33,14 +33,14 @@ public sealed class DateField<TValue> : SegmentedField<TValue>
     /// <summary>带时间时不可选的时刻（午休、非营业时间）；参数是时间与那一天，周末与平日可以不一样。</summary>
     [Parameter] public Func<TimeOnly, DateOnly, bool>? IsTimeUnavailable { get; set; }
 
-    bool WithTime => Granularity is DateGranularity.Hour or DateGranularity.Minute or DateGranularity.Second;
+    private protected bool WithTime => Granularity is DateGranularity.Hour or DateGranularity.Minute or DateGranularity.Second;
 
     private protected override SegmentType[] Fields => DateSegments.FieldsOf(Granularity);
 
     private protected override string? CurrentIso => Wall(CurrentValue) is { } wall ? IsoOf(wall) : null;
 
     // 值 → 语言时区里的日期时间（墙上时间）
-    DateTime? Wall(object? value) => value switch
+    private protected DateTime? Wall(object? value) => value switch
     {
         null => null,
         DateOnly date => date.ToDateTime(TimeOnly.MinValue),
@@ -50,7 +50,7 @@ public sealed class DateField<TValue> : SegmentedField<TValue>
         _ => throw new InvalidOperationException($"DateField 的值要是 DateOnly、DateTime 或 DateTimeOffset，不是 {value.GetType()}。"),
     };
 
-    string IsoOf(DateTime wall) => Granularity switch
+    private protected string IsoOf(DateTime wall) => Granularity switch
     {
         DateGranularity.Year => wall.ToString("yyyy", CultureInfo.InvariantCulture),
         DateGranularity.Month => wall.ToString("yyyy-MM", CultureInfo.InvariantCulture),
