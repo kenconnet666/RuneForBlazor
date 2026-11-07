@@ -53,8 +53,9 @@ public static partial class ComponentApiReader
     }
 
     // record 主构造的参数：对应的属性是必填的
-    static HashSet<string> PrimaryParameters(Type type) => type.GetConstructor(Type.EmptyTypes) is null
-        ? [.. type.GetConstructors().OrderBy(c => c.GetParameters().Length).First().GetParameters().Select(p => p.Name!)]
+    // 没有公开构造的（枚举）没有
+    static HashSet<string> PrimaryParameters(Type type) => type.GetConstructor(Type.EmptyTypes) is null && type.GetConstructors() is [_, ..] constructors
+        ? [.. constructors.OrderBy(c => c.GetParameters().Length).First().GetParameters().Select(p => p.Name!)]
         : [];
 
     // 泛型组件随便取一个满足约束的类型参数（只读参数、默认值，不渲染）：数字组件（Slider<TValue>）要数字
