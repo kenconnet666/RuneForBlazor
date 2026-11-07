@@ -24,7 +24,7 @@ public sealed class VisualServer : IAsyncLifetime
 }
 
 /// <summary>
-/// 截图基线：每个文档页（静态 SSR）的每个示例效果区截一张，与 Visual/Baselines/{页}/{示例}.png 比较，防止样式改动意外改了画面。
+/// 截图基线：每个文档页（静态 SSR）的每个示例效果区在亮、暗两套主题下各截一张，与 Visual/Baselines/{页}/{示例}-{light,dark}.png 比较，防止样式改动意外改了画面。
 /// 基线在 CI 的 Linux 上生成（字体与渲染随系统不同），所以只在 Linux 上比；手动运行 CI 并勾选更新基线时（RUNE_VISUAL_UPDATE=1）重新截，
 /// 作为构件上传，人工看过后提交。不一致时实际的截图写到 artifacts/visual/{页}/，CI 上传以便对照。
 /// </summary>
@@ -59,23 +59,15 @@ public partial class VisualTests(DemoServer demo, VisualServer visual) : IClassF
         var expected = Path.Combine(Baselines, page);
         Assert.SkipUnless(Updating || Directory.Exists(expected), $"{page} 还没有基线（手动运行 CI 并勾选更新基线）");
 
-        var context = await demo.Browser.NewContextAsync(new()
-        {
-            BaseURL = visual.BaseUrl,
-            ViewportSize = new() { Width = 1280, Height = 900 },
-            DeviceScaleFactor = 1,
-            Locale = "en-US",
-            ReducedMotion = ReducedMotion.Reduce,
-        });
+        // 亮、暗两套（站点跟随系统的明暗）：基线按 {示例}-{主题}.png 存
+        var shots = new List<(string Name, byte[] Png)>();
+        foreach (var scheme in new[] { ColorScheme.Light, ColorScheme.Dark })
+            shots.AddRange((await ShootPageAsync(page, scheme)).Select(shot => ($"{shot.Name}-{scheme.ToString().ToLowerInvariant()}", shot.Png)));
+
+        var context = await demo.Browser.NewContextAsync();
         try
         {
-            await context.Clock.SetFixedTimeAsync(DateTime.Parse(VisualServer.FixedNow, null, System.Globalization.DateTimeStyles.AdjustToUniversal));
             var tab = await context.NewPageAsync();
-            await tab.GotoAsync($"/static/{page}", new() { WaitUntil = WaitUntilState.NetworkIdle, Timeout = 60_000 });
-            await tab.WaitForSelectorAsync("html[data-rune-ready]", new() { State = WaitForSelectorState.Attached });
-            await tab.EvaluateAsync("document.fonts.ready");
-
-            var shots = await ShootAsync(tab);
             if (Updating)
             {
                 if (Directory.Exists(expected)) Directory.Delete(expected, recursive: true);
@@ -110,7 +102,33 @@ public partial class VisualTests(DemoServer demo, VisualServer visual) : IClassF
         }
     }
 
-    // 每个示例的效果区（排布格，data-demo-canvas）截一张，按小节的锚点命名；整页示例（iframe）等它加载完
+    // 打开一页（静态 SSR，“现在”固定）：每个示例的效果区（排布格，data-demo-canvas）截一张，按小节的锚点命名；整页示例（iframe）等它加载完
+    async Task<List<(string Name, byte[] Png)>> ShootPageAsync(string page, ColorScheme scheme)
+    {
+        var context = await demo.Browser.NewContextAsync(new()
+        {
+            BaseURL = visual.BaseUrl,
+            ViewportSize = new() { Width = 1280, Height = 900 },
+            DeviceScaleFactor = 1,
+            Locale = "en-US",
+            ColorScheme = scheme,
+            ReducedMotion = ReducedMotion.Reduce,
+        });
+        try
+        {
+            await context.Clock.SetFixedTimeAsync(DateTime.Parse(VisualServer.FixedNow, null, System.Globalization.DateTimeStyles.AdjustToUniversal));
+            var tab = await context.NewPageAsync();
+            await tab.GotoAsync($"/static/{page}", new() { WaitUntil = WaitUntilState.NetworkIdle, Timeout = 60_000 });
+            await tab.WaitForSelectorAsync("html[data-rune-ready]", new() { State = WaitForSelectorState.Attached });
+            await tab.EvaluateAsync("document.fonts.ready");
+            return await ShootAsync(tab);
+        }
+        finally
+        {
+            await context.CloseAsync();
+        }
+    }
+
     static async Task<List<(string Name, byte[] Png)>> ShootAsync(IPage tab)
     {
         var shots = new List<(string, byte[])>();
