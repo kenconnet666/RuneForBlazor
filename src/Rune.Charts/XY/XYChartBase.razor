@@ -12,9 +12,7 @@
 
 @code {
     static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
-    static readonly Attrs GridLayer = new() { Sx = ChartSvgStyles.Grid };
     static readonly Attrs BaselineLayer = new() { Sx = ChartSvgStyles.Baseline };
-    static readonly Attrs TickLayer = new() { Sx = ChartSvgStyles.Tick };
     static readonly Attrs AxisTitleLayer = new() { Sx = ChartSvgStyles.Tick };
     static readonly Attrs HoverBandLayer = new() { Sx = ChartSvgStyles.HoverBand };
     static readonly Attrs CrosshairLayer = new() { Sx = ChartSvgStyles.Crosshair };
@@ -79,11 +77,11 @@
         var showZero = context.Domain.Start < 0 && context.Domain.End > 0;
         <svg @attributes="Attrs.Merge(SvgLayer, SvgSize())">
             @BandsFragment(context)
-            @Axis(horizontal ? AxisSide.Bottom : AxisSide.Left, layout.ValueTicks, plot, Grid)
-            @Axis(horizontal ? AxisSide.Left : AxisSide.Bottom, layout.CategoryTicks, plot, Continuous is not null && Grid)
+            @ChartAxis.Render(horizontal ? AxisSide.Bottom : AxisSide.Left, layout.ValueTicks, plot, Grid)
+            @ChartAxis.Render(horizontal ? AxisSide.Left : AxisSide.Bottom, layout.CategoryTicks, plot, Continuous is not null && Grid)
             @if (layout.SecondaryTicks.Count > 0)
             {
-                @Axis(AxisSide.Right, layout.SecondaryTicks, plot, false)
+                @ChartAxis.Render(AxisSide.Right, layout.SecondaryTicks, plot, false)
             }
             @if (Continuous?.Title is { } title)
             {
@@ -125,42 +123,6 @@
         {
             @TooltipBox
         }
-    };
-
-    private protected enum AxisSide { Left, Right, Bottom }
-
-    /// <summary>坐标轴：刻度文字，可带网格线（键是位置，更新时文字原地换）。</summary>
-    private protected static RenderFragment Axis(AxisSide side, IReadOnlyList<AxisTick> ticks, PlotRect plot, bool grid, double gap = TickGap) => __builder =>
-    {
-        <g>
-            @if (grid)
-            {
-                foreach (var tick in ticks)
-                {
-                    var p = Crisp(tick.Position);
-                    if (side == AxisSide.Bottom)
-                    {
-                        <line @key="@($"g{tick.Position}")" x1="@p" x2="@p" y1="@N(plot.Top)" y2="@N(plot.Bottom)" @attributes="Attrs.Merge(GridLayer)" />
-                    }
-                    else
-                    {
-                        <line @key="@($"g{tick.Position}")" x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@p" y2="@p" @attributes="Attrs.Merge(GridLayer)" />
-                    }
-                }
-            }
-            @foreach (var tick in ticks)
-            {
-                if (tick.Label.Length == 0) continue;
-                if (side == AxisSide.Bottom)
-                {
-                    @ChartSvg.Text(tick.Label, tick.Position, plot.Bottom + gap, TickLayer, "middle", "hanging", $"t{tick.Position}")
-                }
-                else
-                {
-                    @ChartSvg.Text(tick.Label, side == AxisSide.Left ? plot.Left - gap : plot.Right + gap, tick.Position, TickLayer, side == AxisSide.Left ? "end" : "start", "central", $"t{tick.Position}")
-                }
-            }
-        </g>
     };
 
     /// <summary>区间：浅色的带，文字在左下角（类目轴）或左上角（数值轴）。</summary>

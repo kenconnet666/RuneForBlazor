@@ -1,0 +1,29 @@
+@inherits RuneComponent
+
+@* 设备的排班（按小时）：刻度写成“时:分”；每个系列一种用途（生产、换模、保养），同一台设备一天里排几段 *@
+<TimelineChart Items="Items" Series="Series" RowHeight="28" TickFormat="HourText" aria-label="设备排班" />
+
+@code {
+    static DateTime At(int hour, int minute) => new(2026, 10, 24, hour, minute, 0);
+
+    static readonly TimelineChartItem[] Items =
+    [
+        new("1 号压铸机", At(8, 0), At(11, 30)) { Series = "run" },
+        new("1 号压铸机", At(11, 30), At(12, 15)) { Series = "setup" },
+        new("1 号压铸机", At(12, 15), At(17, 0)) { Series = "run" },
+        new("2 号压铸机", At(8, 0), At(10, 0)) { Series = "maintain" },
+        new("2 号压铸机", At(10, 0), At(18, 30)) { Series = "run" },
+        new("数控 5 轴", At(9, 0), At(13, 0)) { Series = "run" },
+        new("数控 5 轴", At(13, 0), At(13, 40)) { Series = "setup" },
+        new("数控 5 轴", At(13, 40), At(20, 0)) { Series = "run" },
+    ];
+
+    static readonly TimelineChartSeries[] Series =
+    [
+        new("run", "生产"),
+        new("setup", "换模") { Color = Tone.Warning },
+        new("maintain", "保养") { Color = Tone.Info },
+    ];
+
+    static string HourText(DateTime time) => time.ToString("HH:mm");
+}

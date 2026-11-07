@@ -22,7 +22,7 @@ public abstract partial class XYChartBase<TItem>
     // 刻度文字的字号（px）：主题的 xs
     private protected const double TickFont = 12;
     // 刻度文字与绘图区的距离
-    const double TickGap = 8;
+    const double TickGap = ChartAxis.Gap;
     // 散点图找最近的点时，离指针多远以内算悬停在点上（px）
     const double PointReach = 24;
 
@@ -226,9 +226,6 @@ public abstract partial class XYChartBase<TItem>
     static int TickCount(double length, bool horizontal) => (int)Math.Max(2, Math.Min(6, Math.Round(length / (horizontal ? 90 : 45), MidpointRounding.AwayFromZero)));
 
     static double Widest(IEnumerable<string> labels) => labels.Select(label => ChartText.Width(label, TickFont)).DefaultIfEmpty(0).Max();
-
-    /// <summary>坐标轴上的一个刻度：位置（竖轴是纵坐标，横轴是横坐标）与文字（空串时只画网格线）。</summary>
-    private protected readonly record struct AxisTick(double Position, string Label);
 
     sealed record Layout(
         XYContext<TItem> Context,

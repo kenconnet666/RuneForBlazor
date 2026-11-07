@@ -1,0 +1,16 @@
+@page "/components/timeline-chart"
+@attribute [DocMeta("TimelineChart 时间条图", "甘特图式的时间条：每行一个任务，横轴是时间；计划画成浅色轨道、实际画在上面，标出今天与里程碑。", DocCategory.Charts, Order = 10.5)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.TimelineChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="projects" Title="项目进度：计划与实际" Demo="typeof(ProjectsExample)">
+        <Code>Items</Code> 的每一项是一段：所在的行、开始与结束（<Code>DateTime</Code>；用 <Code>DateOnly</Code> 构造时结束含这一天）、系列。
+        <Code>Series</Code> 的 <Code>Track</Code> 画成宽而浅的轨道、在下面（计划），默认的实心条画在上面（实际）；单独一段可以用 <Code>Color</Code> 标红。
+        <Code>ShowToday</Code> 画出今天（<Code>Today</Code> 可以给一个时刻），<Code>Markers</Code> 是里程碑、截止日的竖线。悬停一段看起止与天数，点图例隐藏系列；读屏的数据表列出每一段。
+    </Example>
+    <Example Id="shifts" Title="按小时：设备排班" Demo="typeof(ShiftsExample)">
+        时间带时分时按墙上时间画；<Code>TickFormat</Code> 决定刻度的写法（这里是“时:分”），<Code>RowHeight</Code> 是行高，图的高度按行数算。
+    </Example>
+    <ApiReference Types="[typeof(TimelineChart), typeof(TimelineChartItem), typeof(TimelineChartSeries)]" />
+</DocPage>

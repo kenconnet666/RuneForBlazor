@@ -1,0 +1,228 @@
+@*
+    时间条图（同 vue-tsx-pro 的 TimelineChart，甘特图式）：每行一个任务（项目、设备、人），横轴是时间，每项一段时间条；
+    计划画成宽而浅的轨道、实际画在上面，一眼看出提前还是拖期。可以标出“今天”与里程碑。
+    <TimelineChart Items="items" Series="[new(&quot;plan&quot;, &quot;计划&quot;) { Track = true }, new(&quot;actual&quot;, &quot;实际&quot;)]" ShowToday="true" aria-label="项目进度" />
+    行按 Rows 的顺序，没给时按第一次出现。左侧是行名，底下是整齐的时间刻度（月初、周、日、整点，见 ChartScale.TimeTicks）；
+    悬停一段显示名称、起止与天数（charts.js，不往返）；读屏的数据表列出每一项。
+*@
+@namespace Rune.UI
+@inherits ChartBase
+
+@Frame
+
+@code {
+    // 行名最宽多少（px），更长的截短
+    const double LabelWidth = 160;
+    static readonly TimeSpan Day = TimeSpan.FromDays(1);
+
+    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
+    static readonly Attrs StripeLayer = new() { Sx = TimelineChartStyles.Stripe };
+    static readonly Attrs LabelLayer = new() { Sx = ChartSvgStyles.Label };
+    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
+    static readonly Attrs SegmentLayer = new() { Sx = TimelineChartStyles.Segment };
+    static readonly Attrs MarkerLineLayer = new() { Sx = ChartSvgStyles.EventLine };
+    static readonly Attrs MarkerLabelLayer = new() { Sx = Sx.Of(ChartSvgStyles.LabelColored, ChartSvgStyles.Halo) };
+
+    IReadOnlyList<string> hiddenState = [];
+    IReadOnlyList<string> rowOrder = [];
+
+    [Inject] IServiceProvider Services { get; set; } = null!;
+
+    // 画图用的一段：颜色、粗细、是不是轨道
+    sealed record Segment(TimelineChartItem Item, Rune.Styles.CssColor Color, double Width, bool Track);
+
+    /// <summary>各段时间条。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TimelineChartItem> Items { get; set; } = [];
+
+    /// <summary>系列：颜色、图例与画法；不写时所有条同一个颜色。</summary>
+    [Parameter] public IReadOnlyList<TimelineChartSeries> Series { get; set; } = [];
+
+    /// <summary>行的顺序；不写时按第一次出现。</summary>
+    [Parameter] public IReadOnlyList<string>? Rows { get; set; }
+
+    /// <summary>标出今天（竖线）。</summary>
+    [Parameter] public bool ShowToday { get; set; }
+
+    /// <summary>“今天”是哪个时刻；不写时取现在（语言包的时区，TimeProvider 给的时间）。</summary>
+    [Parameter] public DateTime? Today { get; set; }
+
+    /// <summary>里程碑、截止日：竖线带文字。</summary>
+    [Parameter] public IReadOnlyList<TimelineChartMarker>? Markers { get; set; }
+
+    /// <summary>每行的高度（px），默认 32。</summary>
+    [Parameter] public double RowHeight { get; set; } = 32;
+
+    /// <summary>刻度上日期的写法；不写时按刻度的间隔选（几个月一格写“4月”，几天一格写“10/24”，几小时一格写“14:00”）。</summary>
+    [Parameter] public Func<DateTime, string>? TickFormat { get; set; }
+
+    /// <summary>隐藏的系列：点图例时写回，可以 <c>@bind-HiddenSeries</c>。</summary>
+    [Parameter] public IReadOnlyList<string>? HiddenSeries { get; set; }
+
+    /// <summary>点图例隐藏、恢复了系列。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> HiddenSeriesChanged { get; set; }
+
+    IReadOnlyList<string> Hidden => HiddenSeries ?? hiddenState;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => rowOrder = Rows ?? [.. Items.Select(item => item.Row).Distinct()];
+
+    int SeriesIndex(string? key)
+    {
+        for (var i = 0; i < Series.Count; i++)
+            if (Series[i].Key == key) return i;
+        return -1;
+    }
+
+    Rune.Styles.CssColor ColorOf(string? key) => SeriesIndex(key) is var position && position >= 0
+        ? ChartColor.Resolve(Series[position].Color, position)
+        : ChartColor.Resolve(null, 0);
+
+    // 轨道（计划）的颜色：系列色调浅
+    static string TrackColor(Rune.Styles.CssColor color) => $"color-mix(in srgb, {color} 30%, transparent)";
+
+    // 行数 × 行高，加上时间轴
+    private protected override CssLength? FrameHeight => rowOrder.Count * RowHeight + 36;
+    private protected override bool IsEmpty => Items.Count == 0;
+    private protected override IReadOnlyCollection<string> HiddenKeys => Hidden;
+
+    private protected override IReadOnlyList<ChartLegendItem> LegendItems => [.. Series.Select((item, position) =>
+    {
+        var color = ChartColor.Resolve(item.Color, position);
+        return new ChartLegendItem(item.Key, item.Label, item.Track ? TrackColor(color) : color);
+    })];
+
+    private protected override async Task ToggleLegendAsync(string key)
+    {
+        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        hiddenState = next;
+        await HiddenSeriesChanged.InvokeAsync(next);
+    }
+
+    // 画图的各段：轨道先画（在下面），同一行里按开始时间
+    List<Segment> Segments()
+    {
+        var hidden = Hidden;
+        var rowIndex = rowOrder.Select((row, position) => (row, position)).DistinctBy(pair => pair.row).ToDictionary(pair => pair.row, pair => pair.position);
+        return [.. Items
+            .Where(item => item.Series is null || !hidden.Contains(item.Series))
+            .Select(item =>
+            {
+                var track = SeriesIndex(item.Series) is var position && position >= 0 && Series[position].Track;
+                return new Segment(item, item.Color is { } color ? color.Css : ColorOf(item.Series), track ? RowHeight * 0.62 : RowHeight * 0.32, track);
+            })
+            .OrderBy(segment => rowIndex.GetValueOrDefault(segment.Item.Row, -1))
+            .ThenByDescending(segment => segment.Track)
+            .ThenBy(segment => segment.Item.Start)];
+    }
+
+    string DateText(DateTime time) => LangFormat.Date(time, Config.Lang, DateStyle.Medium, null);
+
+    string DaysText(Segment segment) => Config.Lang.ChartDays((int)Math.Round((segment.Item.End - segment.Item.Start) / Day, MidpointRounding.AwayFromZero));
+
+    // 结束是开区间（只有日期时是第二天 0 点）：显示时往前一刻
+    static DateTime LastMoment(DateTime end) => end.AddMilliseconds(-1);
+
+    private protected override ChartTable BuildTable()
+    {
+        var lang = Config.Lang;
+        return new ChartTable(
+            [lang.ChartCategory, lang.ChartSeries, lang.ChartStart, lang.ChartEnd, lang.ChartDuration],
+            [.. Segments().Select(segment => new ChartTableRow(segment.Item.Label ?? segment.Item.Row,
+                [Series.FirstOrDefault(entry => entry.Key == segment.Item.Series)?.Label ?? lang.EmptyValue, DateText(segment.Item.Start), DateText(LastMoment(segment.Item.End)), DaysText(segment)]))]);
+    }
+
+    // 竖线：今天与里程碑
+    List<TimelineChartMarker> AllMarkers()
+    {
+        var marks = new List<TimelineChartMarker>();
+        if (ShowToday)
+        {
+            var now = (Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System).GetUtcNow();
+            marks.Add(new TimelineChartMarker(Today ?? TimeZoneInfo.ConvertTime(now, LangFormat.ZoneOf(Config.Lang)).DateTime, Config.Lang.ChartToday) { Color = Tone.Danger });
+        }
+        marks.AddRange(Markers ?? []);
+        return marks;
+    }
+
+    // 按刻度的间隔选日期的写法：几个月一格写月，几天一格写月日，不到一天写时分（同 vue 的 Intl 选项）
+    Func<DateTime, string> AutoFormat(IReadOnlyList<DateTime> ticks)
+    {
+        var step = ticks.Count > 1 ? ticks[1] - ticks[0] : Day;
+        var culture = System.Globalization.CultureInfo.GetCultureInfo(Config.Lang.Code);
+        if (step >= 28 * Day) return tick => culture.DateTimeFormat.AbbreviatedMonthNames[tick.Month - 1];
+        if (step >= Day) return tick => $"{tick.Month}/{tick.Day}";
+        return tick => tick.ToString(LangFormat.TwelveHour(Config.Lang) ? "hh:mm tt" : "HH:mm", culture);
+    }
+
+    static double Ms(DateTime time) => time.Ticks / (double)TimeSpan.TicksPerMillisecond;
+
+    private protected override (RenderFragment Plot, string? Data)? Draw()
+    {
+        var shown = Segments();
+        var lang = Config.Lang;
+        var tips = shown.Select(segment =>
+        {
+            var name = Series.FirstOrDefault(entry => entry.Key == segment.Item.Series)?.Label;
+            return (segment.Item.Label ?? segment.Item.Row, (IReadOnlyList<ChartTooltipItem>)[
+                .. name is null ? Array.Empty<ChartTooltipItem>() : [new ChartTooltipItem(name, segment.Color, DaysText(segment))],
+                new(lang.ChartStart, null, DateText(segment.Item.Start)),
+                new(lang.ChartEnd, null, DateText(LastMoment(segment.Item.End)))]);
+        });
+        return (Plot(shown), ItemHoverData(tips, dim: false));
+    }
+
+    static string N(double value) => SvgFormat.Number(value);
+
+    RenderFragment Plot(List<Segment> shown) => __builder =>
+    {
+        var width = PlotWidth;
+        var rowsHeight = rowOrder.Count * RowHeight;
+        var labelWidth = Math.Min(LabelWidth, rowOrder.Select(row => ChartText.Width(row)).DefaultIfEmpty(0).Max() + 16);
+        var marks = AllMarkers();
+        var times = shown.SelectMany(segment => new[] { segment.Item.Start, segment.Item.End }).Concat(marks.Select(mark => mark.At)).ToList();
+        var (low, high) = times.Count > 0 ? (times.Min(), times.Max()) : (DateTime.UnixEpoch, DateTime.UnixEpoch + Day);
+        var (start, end) = low == high ? (low - Day, high + Day) : (low, high);
+        var scale = new LinearScale((Ms(start), Ms(end)), (labelWidth + 8, Math.Max(labelWidth + 9, width - 16)));
+        var ticks = ChartScale.TimeTicks(start, end, (int)Math.Max(2, Math.Round((width - labelWidth) / 110, MidpointRounding.AwayFromZero)));
+        var format = TickFormat ?? AutoFormat(ticks);
+        var plot = new PlotRect(labelWidth + 8, 0, Math.Max(0, width - labelWidth - 24), rowsHeight);
+        var rowIndex = rowOrder.Select((row, position) => (row, position)).DistinctBy(pair => pair.row).ToDictionary(pair => pair.row, pair => pair.position);
+        <svg @attributes="Attrs.Merge(SvgLayer, SvgSize())">
+            @for (var position = 0; position < rowOrder.Count; position += 2)
+            {
+                <rect @key="@($"stripe:{rowOrder[position]}")" x="0" y="@N(position * RowHeight)" width="@N(width)" height="@N(RowHeight)" @attributes="Attrs.Merge(StripeLayer)" />
+            }
+            @ChartAxis.Render(AxisSide.Bottom, [.. ticks.Select(tick => new AxisTick(scale.Map(Ms(tick)), format(tick)))], plot, true)
+            @for (var position = 0; position < rowOrder.Count; position++)
+            {
+                @ChartSvg.Text(ChartText.Truncate(rowOrder[position], labelWidth - 12), 0, position * RowHeight + RowHeight / 2, LabelLayer, baseline: "central", key: $"label:{rowOrder[position]}")
+            }
+            <g @attributes="Attrs.Merge(FadeLayer)">
+                @for (var index = 0; index < shown.Count; index++)
+                {
+                    var segment = shown[index];
+                    if (!rowIndex.TryGetValue(segment.Item.Row, out var row)) continue;
+                    var x = scale.Map(Ms(segment.Item.Start));
+                    var length = Math.Max(segment.Width, scale.Map(Ms(segment.Item.End)) - x);
+                    <rect @key="index" data-part="segment" data-index="@index" x="@N(x)" y="@N(row * RowHeight + (RowHeight - segment.Width) / 2)" width="@N(length)"
+                          height="@N(segment.Width)" rx="@N(segment.Width / 2)"
+                          @attributes="Attrs.Merge(SegmentLayer, ChartFrame.ColorVar(segment.Track ? TrackColor(segment.Color) : segment.Color))" />
+                }
+            </g>
+            @for (var position = 0; position < marks.Count; position++)
+            {
+                var marker = marks[position];
+                var x = Math.Floor(scale.Map(Ms(marker.At)) + 0.5) + 0.5;
+                var color = ChartFrame.ColorVar(ChartColor.Resolve(marker.Color ?? Tone.Neutral, 0));
+                <g @key="@($"marker:{position}")" data-part="marker">
+                    <line x1="@N(x)" x2="@N(x)" y1="0" y2="@N(rowsHeight)" @attributes="Attrs.Merge(MarkerLineLayer, color)" />
+                    @ChartSvg.Text(marker.Label, x + 4, 4, Attrs.Merge(MarkerLabelLayer, color), baseline: "hanging")
+                </g>
+            }
+        </svg>
+        @if (Tooltip)
+        {
+            @TooltipBox
+        }
+    };
+}
