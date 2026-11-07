@@ -27,7 +27,8 @@ internal static class ChartAxis
 
     static string N(double value) => SvgFormat.Number(value);
 
-    static string Crisp(double value) => N(Math.Floor(value + 0.5) + 0.5);
+    /// <summary>1px 的横竖线落在像素中间（x.5），不糊成两像素宽。</summary>
+    internal static string Crisp(double value) => N(Math.Floor(value + 0.5) + 0.5);
 
     public static RenderFragment Render(AxisSide side, IReadOnlyList<AxisTick> ticks, PlotRect plot, bool grid, double gap = Gap) => builder =>
     {

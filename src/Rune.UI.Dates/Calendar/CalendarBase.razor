@@ -140,7 +140,7 @@
         var ends = Range && (cell.RangeStart || cell.RangeEnd);
         var marked = Range ? ends : cell.Selected;
         var focusable = cell.Focused && !cell.Outside;
-        var iso = date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        var iso = DateValues.Iso(date);
         return @<td @key="date" role="gridcell" aria-selected="@(cell.Selected ? "true" : "false")" aria-disabled="@(off ? "true" : null)"
                     data-in-range="@(cell.InRange ? true : null)" data-range-start="@(cell.RangeStart ? true : null)" data-range-end="@(cell.RangeEnd ? true : null)"
                     @attributes="Attrs.Merge(parts[CalendarPart.Cell], PropsCell)">

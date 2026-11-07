@@ -79,7 +79,7 @@ static partial class DateSegments
         DateGranularity.Month => day.ToString("yyyy-MM", CultureInfo.InvariantCulture),
         DateGranularity.Quarter => $"{day.Year:D4}-Q{(day.Month + 2) / 3}",
         DateGranularity.Week => $"{ISOWeek.GetYear(day.ToDateTime(TimeOnly.MinValue)):D4}-W{ISOWeek.GetWeekOfYear(day.ToDateTime(TimeOnly.MinValue)):D2}",
-        _ => day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        _ => DateValues.Iso(day),
     };
 
     /// <summary>填好的各段 → 那一段的第一天（周是周一）；没有年时 null。</summary>

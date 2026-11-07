@@ -38,7 +38,7 @@
                         data-range-end="@(range is { } t && DateSegments.PeriodEnd(start, DateGranularity.Quarter) == t.End ? true : null)"
                         @attributes="Attrs.Merge(parts[CalendarPart.Cell])">
                         <button type="button" tabindex="@(focusable ? "0" : "-1")" aria-disabled="@(off ? "true" : null)" aria-describedby="@(anchor is null ? null : HintId)"
-                                data-date="@Iso(start)" data-focused="@(focusable ? true : null)" data-selected="@((IsRange ? ends : selected) ? true : null)"
+                                data-date="@DateValues.Iso(start)" data-focused="@(focusable ? true : null)" data-selected="@((IsRange ? ends : selected) ? true : null)"
                                 data-today="@(Start(Today) == start ? true : null)" data-anchor="@(anchor == start ? true : null)" data-in-range="@(inRange ? true : null)" data-period
                                 @attributes="Attrs.Merge(parts[CalendarPart.CellButton])">
                             <span @attributes="Attrs.Merge(HiddenLayer)">@QuarterLabel(year, quarter)</span>
@@ -112,8 +112,6 @@
 
     static DateOnly Start(DateOnly day) => new(day.Year, (day.Month - 1) / 3 * 3 + 1, 1);
 
-    static string Iso(DateOnly date) => date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
-
     string QuarterLabel(int year, int quarter) =>
         Config.Lang.DateFieldPeriodPatterns.TryGetValue("quarter", out var pattern)
             ? pattern.Replace("{year}", year.ToString(System.Globalization.CultureInfo.InvariantCulture)).Replace("{quarter}", quarter.ToString(System.Globalization.CultureInfo.InvariantCulture))
@@ -138,8 +136,8 @@
         Role = "group",
         ["data-rune-calendar"] = true,
         ["data-view"] = "quarter",
-        ["data-focused-date"] = Iso(focused),
-        ["data-anchor"] = anchor is { } start ? Iso(start) : null,
+        ["data-focused-date"] = DateValues.Iso(focused),
+        ["data-anchor"] = anchor is { } start ? DateValues.Iso(start) : null,
         ["data-disabled"] = Disabled ? true : null,
     };
 
@@ -152,7 +150,7 @@
             anchor = null;
             return;
         }
-        if (!DateOnly.TryParseExact(args.Text, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var date)) return;
+        if (!DateValues.TryParseIso(args.Text, out var date)) return;
         focused = Start(date);
         year = focused.Year;
         if (args.Name == "activate") await PickAsync(focused);

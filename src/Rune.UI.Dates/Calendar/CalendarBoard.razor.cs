@@ -103,8 +103,6 @@ public partial class CalendarBoard<TItem>
         }
     }
 
-    static string Iso(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-
     static Attrs ToneLayer(Tone tone) => new() { Sx = SharedStyles.StatusColors(StatusVariant.Soft, tone) };
 
     /// <inheritdoc/>
@@ -149,7 +147,7 @@ public partial class CalendarBoard<TItem>
         Role = "group",
         ["data-rune-calendar"] = true,
         ["data-view"] = "day",
-        ["data-focused-date"] = Iso(state.Focused),
+        ["data-focused-date"] = DateValues.Iso(state.Focused),
         ["data-first-day"] = ((int)FirstDay).ToString(CultureInfo.InvariantCulture),
     };
 
@@ -177,7 +175,7 @@ public partial class CalendarBoard<TItem>
     // js/calendar.js 交来的：焦点移到某天（focus）、点了日期、格子的空白处、“还有 N 项”（activate）
     async Task OnCommandAsync(CommandEventArgs args)
     {
-        if (!DateOnly.TryParseExact(args.Text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) return;
+        if (!DateValues.TryParseIso(args.Text, out var date)) return;
         if (args.Name == "focus") state.Focus(date);
         else if (args.Name == "activate" && state.Activate(date) is [var picked, ..])
         {

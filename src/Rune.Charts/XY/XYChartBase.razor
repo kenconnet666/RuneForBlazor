@@ -31,8 +31,6 @@
     static readonly int[] SkeletonHeights = [55, 80, 40, 70, 90, 50, 65];
 
     // 网格线落在像素中间：1px 的线不发虚
-    static string Crisp(double value) => N(Math.Floor(value + 0.5) + 0.5);
-
     static readonly Attrs ZoomLayer = new() { Sx = XYChartStyles.Zoom };
     static readonly Attrs ZoomSliderLayer = new() { Sx = XYChartStyles.ZoomSlider };
 
@@ -88,11 +86,11 @@
             {
                 if (horizontal)
                 {
-                    <line x1="@Crisp(zero)" x2="@Crisp(zero)" y1="@N(plot.Top)" y2="@N(plot.Bottom)" @attributes="Attrs.Merge(BaselineLayer)" />
+                    <line x1="@ChartAxis.Crisp(zero)" x2="@ChartAxis.Crisp(zero)" y1="@N(plot.Top)" y2="@N(plot.Bottom)" @attributes="Attrs.Merge(BaselineLayer)" />
                 }
                 else
                 {
-                    <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@Crisp(zero)" y2="@Crisp(zero)" @attributes="Attrs.Merge(BaselineLayer)" />
+                    <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@ChartAxis.Crisp(zero)" y2="@ChartAxis.Crisp(zero)" @attributes="Attrs.Merge(BaselineLayer)" />
                 }
             }
             @if (!PointTooltip && (Band || !CrosshairDots))

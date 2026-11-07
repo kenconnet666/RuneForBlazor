@@ -126,8 +126,6 @@ public abstract partial class CalendarBase
 
     static string ViewName(DateUnit view) => view.ToString().ToLowerInvariant();
 
-    static string Iso(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
@@ -164,9 +162,9 @@ public abstract partial class CalendarBase
         Role = "group",
         ["data-rune-calendar"] = true,
         ["data-view"] = ViewName(state.View),
-        ["data-focused-date"] = Iso(state.Focused),
+        ["data-focused-date"] = DateValues.Iso(state.Focused),
         ["data-first-day"] = ((int)FirstDay).ToString(CultureInfo.InvariantCulture),
-        ["data-anchor"] = state.Anchor is { } anchor ? Iso(anchor) : null,
+        ["data-anchor"] = state.Anchor is { } anchor ? DateValues.Iso(anchor) : null,
         ["data-disabled"] = Disabled ? true : null,
         ["data-invalid"] = state.Invalid ? true : null,
     };
@@ -180,7 +178,7 @@ public abstract partial class CalendarBase
             state.CancelRange();
             return;
         }
-        if (!DateOnly.TryParseExact(args.Text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) return;
+        if (!DateValues.TryParseIso(args.Text, out var date)) return;
         if (args.Name == "focus") state.Focus(date);
         else if (args.Name == "activate" && state.Activate(date) is { } picked) await OnChangeAsync(picked);
     }

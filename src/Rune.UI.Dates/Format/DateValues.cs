@@ -1,18 +1,27 @@
+using System.Globalization;
+
 namespace Rune.UI;
 
-/// <summary>日期组件共用的取值工具：值里有没有时间、换成时刻、time 元素的 datetime。</summary>
+/// <summary>日期组件共用的取值工具：值里有没有时间、换成时刻、time 元素的 datetime、日历格子上的 ISO 日期。</summary>
 static class DateValues
 {
+    /// <summary>ISO 日期（yyyy-MM-dd）：日历格子的 data 属性、与 JS 往来的日期。</summary>
+    public static string Iso(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    /// <summary>读回 <see cref="Iso"/> 写的日期。</summary>
+    public static bool TryParseIso(string? text, out DateOnly date) =>
+        DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+
     /// <summary>值里有没有时间：DateTime、DateTimeOffset、TimeOnly 有，DateOnly 没有。</summary>
     public static bool HasTime(object value) => value is not DateOnly;
 
     /// <summary>time 元素的 datetime（机器可读的 ISO 8601）。</summary>
     public static string Machine(object value) => value switch
     {
-        DateOnly date => date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
-        TimeOnly time => time.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture),
-        DateTimeOffset offset => offset.ToString("O", System.Globalization.CultureInfo.InvariantCulture),
-        DateTime time => time.ToString(time.Kind == DateTimeKind.Unspecified ? "yyyy-MM-ddTHH:mm:ss" : "O", System.Globalization.CultureInfo.InvariantCulture),
+        DateOnly date => Iso(date),
+        TimeOnly time => time.ToString("HH:mm:ss", CultureInfo.InvariantCulture),
+        DateTimeOffset offset => offset.ToString("O", CultureInfo.InvariantCulture),
+        DateTime time => time.ToString(time.Kind == DateTimeKind.Unspecified ? "yyyy-MM-ddTHH:mm:ss" : "O", CultureInfo.InvariantCulture),
         _ => throw new ArgumentException($"不是日期：{value.GetType()}", nameof(value)),
     };
 

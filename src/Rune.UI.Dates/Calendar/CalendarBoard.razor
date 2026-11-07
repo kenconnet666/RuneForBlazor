@@ -52,7 +52,7 @@
                         var shown = list.Take(Math.Max(0, MaxEvents)).ToList();
                         var focusable = cell.Focused && !cell.Outside;
                         var label = LangFormat.Date(day, lang, DateStyle.Full, null);
-                        var iso = day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+                        var iso = DateValues.Iso(day);
                         <td @key="day" role="gridcell" aria-selected="@(cell.Selected ? "true" : "false")" aria-disabled="@(cell.Disabled ? "true" : null)"
                             data-board-cell="@iso" data-outside="@(cell.Outside ? true : null)" data-weekend="@(weekend ? true : null)" data-readonly="@(ReadOnly ? true : null)"
                             @attributes="Attrs.Merge(parts[CalendarBoardPart.Cell], PropsCell)">
