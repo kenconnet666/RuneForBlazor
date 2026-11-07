@@ -1,0 +1,101 @@
+@*
+    整页的月历（同 vue-tsx-pro 的 CalendarBoard）：一个月铺满一页，每天一个大格子，格子里放日程、排班、节假日这类按天的内容。
+    要在输入框里选日期用 DatePicker，小日历用 Calendar。
+    <CalendarBoard Events="meetings" EventDate="m => m.Date" EventLabel="m => m.Title" @bind-Value="day" aria-label="会议日程" />
+    - 数据按天放进格子：EventDate 是哪一天，EventEnd 给了时跨天的每一天都有它；每天最多显示 MaxEvents 条，其余收成“还有 N 项”
+      （点了选中那一天，由页面在旁边列出全部）。EventContent 自定义一条的显示（默认是带色调的一行文字），DayContent 往格子里加别的内容
+      （排班、价格），DayNote 是日期旁边的小字（节假日、“休”“班”）。
+    - 键盘与 Calendar 一致（js/calendar.js）：每天的日期数字是一个按钮，焦点在当前日期上，←→ 一天、↑↓ 一周、Page Up / Down 一个月、
+      Home / End 到这周两端，Enter / 空格选中；点格子的空白处也选中那一天。读屏念完整日期与有几项日程；格子里的日程可以是链接、按钮，Tab 照常进去。
+    - 页头：标题（翻页时播报）、Toolbar（筛选、视图切换）、“今天”、上个月 / 下个月；Month 可以双向绑定（翻页写回）。
+    未声明的属性落到根元素上；aria-label 是整个月历的名称。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits UIComponent
+@{
+    var parts = CalendarBoardStyles.Of(Config.Styles);
+    var lang = Config.Lang;
+    var page = state.Page;
+    var title = CalendarText.YearMonth(page, lang);
+    var first = FirstDay;
+    var byDay = ByDay();
+    var info = LangFormat.CultureOf(lang.Code).DateTimeFormat;
+}
+
+<div @attributes="Attrs.Merge(parts[CalendarBoardPart.Root], Rest, RootManaged)" @onrunecommand="OnCommandAsync">
+    <div @attributes="Attrs.Merge(parts[CalendarBoardPart.Header])">
+        <span id="@TitleId" @attributes="Attrs.Merge(parts[CalendarBoardPart.Title])">@title</span>
+        @Toolbar
+        <Button Size="UI.Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Neutral" @onclick="TodayAsync" @attributes="Attrs.MergeProps(null, PropsToday)">@lang.DateRangePreset["today"]</Button>
+        <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@lang.CalendarPreviousMonth" PropsIcon="FlipIcon" Size="UI.Size.Sm" Disabled="!state.CanTurnPage(-1)" @onclick="() => TurnAsync(-1)" />
+        <IconButton Icon="BuiltInIcons.ChevronRight" Label="@lang.CalendarNextMonth" PropsIcon="FlipIcon" Size="UI.Size.Sm" Disabled="!state.CanTurnPage(1)" @onclick="() => TurnAsync(1)" />
+    </div>
+    <table role="grid" aria-labelledby="@TitleId" @attributes="Attrs.Merge(parts[CalendarBoardPart.Grid])">
+        <thead>
+            <tr>
+                @for (var index = 0; index < 7; index++)
+                {
+                    <th scope="col" @attributes="Attrs.Merge(parts[CalendarBoardPart.Weekday])">@info.AbbreviatedDayNames[((int)first + index) % 7]</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var week in CalendarText.MonthGrid(page, first, fixedWeeks: false))
+            {
+                <tr @key="week[0]">
+                    @foreach (var day in week)
+                    {
+                        var cell = state.Cell(day, page);
+                        var weekend = day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+                        var list = byDay.TryGetValue(day, out var items) ? items : [];
+                        var shown = list.Take(Math.Max(0, MaxEvents)).ToList();
+                        var focusable = cell.Focused && !cell.Outside;
+                        var label = LangFormat.Date(day, lang, DateStyle.Full, null);
+                        var iso = day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+                        <td @key="day" role="gridcell" aria-selected="@(cell.Selected ? "true" : "false")" aria-disabled="@(cell.Disabled ? "true" : null)"
+                            data-board-cell="@iso" data-outside="@(cell.Outside ? true : null)" data-weekend="@(weekend ? true : null)" data-readonly="@(ReadOnly ? true : null)"
+                            @attributes="Attrs.Merge(parts[CalendarBoardPart.Cell], PropsCell)">
+                            <div @attributes="Attrs.Merge(DayHeadLayer)">
+                                <button type="button" tabindex="@(focusable ? "0" : "-1")" aria-disabled="@(cell.Disabled ? "true" : null)"
+                                        aria-label="@(string.Join("，", new[] { cell.Today ? lang.CalendarToday(label) : label, list.Count > 0 ? lang.CalendarBoardCount(list.Count) : null }.OfType<string>()))"
+                                        data-date="@iso" data-focused="@(focusable ? true : null)" data-today="@(cell.Today ? true : null)"
+                                        @attributes="Attrs.Merge(parts[CalendarBoardPart.DayButton])">@day.Day</button>
+                                @if (DayNote?.Invoke(day) is { } note)
+                                {
+                                    <span @attributes="Attrs.Merge(parts[CalendarBoardPart.Note])">@note</span>
+                                }
+                            </div>
+                            @if (shown.Count > 0)
+                            {
+                                <ul @attributes="Attrs.Merge(parts[CalendarBoardPart.Events])">
+                                    @for (var index = 0; index < shown.Count; index++)
+                                    {
+                                        var item = shown[index];
+                                        <li @key="@(EventKey?.Invoke(item) ?? index.ToString(System.Globalization.CultureInfo.InvariantCulture))">
+                                            @if (EventContent is not null)
+                                            {
+                                                @EventContent(item)
+                                            }
+                                            else
+                                            {
+                                                <span @attributes="Attrs.Merge(Attrs.Layer(parts[CalendarBoardPart.Event], ToneLayer(EventTone?.Invoke(item) ?? Tone.Accent)))">@EventLabel?.Invoke(item)</span>
+                                            }
+                                        </li>
+                                    }
+                                    @if (list.Count > shown.Count)
+                                    {
+                                        <li><button type="button" data-activate="@iso" @attributes="Attrs.Merge(parts[CalendarBoardPart.More])">@lang.CalendarBoardMore(list.Count - shown.Count)</button></li>
+                                    }
+                                </ul>
+                            }
+                            @DayContent?.Invoke(new CalendarBoardDay(day, cell.Today, cell.Outside, cell.Selected, weekend, cell.Disabled))
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+    @* 翻页时播报新的月份 *@
+    <span aria-live="polite" @attributes="Attrs.Merge(HiddenLayer)">@title</span>
+</div>

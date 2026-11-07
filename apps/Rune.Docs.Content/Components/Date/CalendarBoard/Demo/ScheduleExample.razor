@@ -1,0 +1,70 @@
+@inherits UIComponent
+
+@* 项目日程：会议、评审、出差（跨天）铺在格子里，每天最多三条；点一天，右边列出那天的全部日程 *@
+<Flex Gap="SpaceScale.Md" Wrap="true" Align="ItemAlign.Start">
+    @* 宽的时候左右排，窄了右边那张卡片换到下面 *@
+    <CalendarBoard TItem="Meeting" Sx="BoardLayout" Events="Shown" EventDate="m => m.Date" EventEnd="m => m.End ?? m.Date" EventKey="m => m.Id"
+                   EventLabel="m => m.Title" EventTone="m => Kinds[m.Kind].Tone" @bind-Value="day" @bind-Month="month" aria-label="项目日程">
+        <Toolbar>
+            <Select Items="KindOptions" @bind-Value="kind" Size="Size.Sm" aria-label="日程类型" />
+        </Toolbar>
+    </CalendarBoard>
+    <Card Padding="SpaceScale.Sm" Sx="SideLayout">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <TextSpan Weight="Weight.Semibold">@(day is { } d ? LangFormat.Date(d, Config.Lang, "M月d日 ddd") : "选一天")</TextSpan>
+            @if (OnDay.Count == 0)
+            {
+                <Small Tone="TextTone.Muted">这天没有日程</Small>
+            }
+            @foreach (var meeting in OnDay)
+            {
+                <Flex @key="meeting.Id" Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <Badge Size="Size.Xs" Variant="StatusVariant.Soft" Tone="Kinds[meeting.Kind].Tone">@Kinds[meeting.Kind].Label</Badge>
+                    <TextSpan Size="Size.Sm">@meeting.Title</TextSpan>
+                </Flex>
+            }
+        </Flex>
+    </Card>
+</Flex>
+
+@code {
+    enum Kind { Meeting, Review, Trip, Deadline }
+
+    sealed record Meeting(string Id, string Title, DateOnly Date, Kind Kind, DateOnly? End = null);
+
+    static readonly Dictionary<Kind, (string Label, Tone Tone)> Kinds = new()
+    {
+        [Kind.Meeting] = ("会议", Tone.Accent),
+        [Kind.Review] = ("评审", Tone.Warning),
+        [Kind.Trip] = ("出差", Tone.Info),
+        [Kind.Deadline] = ("截止", Tone.Danger),
+    };
+
+    static readonly Meeting[] Meetings =
+    [
+        new("1", "09:30 周会", new(2026, 10, 12), Kind.Meeting),
+        new("2", "14:00 供应商比价评审", new(2026, 10, 12), Kind.Review),
+        new("3", "杭州工厂审核", new(2026, 10, 14), Kind.Trip, new(2026, 10, 16)),
+        new("4", "09:30 周会", new(2026, 10, 19), Kind.Meeting),
+        new("5", "10:30 改进方案对齐", new(2026, 10, 19), Kind.Meeting),
+        new("6", "15:00 模具保养计划", new(2026, 10, 19), Kind.Review),
+        new("7", "17:00 预算复盘", new(2026, 10, 19), Kind.Meeting),
+        new("8", "季度报表提交", new(2026, 10, 23), Kind.Deadline),
+        new("9", "09:30 周会", new(2026, 10, 26), Kind.Meeting),
+        new("10", "工艺变更评审", new(2026, 10, 28), Kind.Review),
+        new("11", "月度销售复盘", new(2026, 10, 30), Kind.Meeting),
+    ];
+
+    static readonly ListboxOption[] KindOptions = [new("all", "全部类型"), .. Kinds.Select(k => new ListboxOption(k.Key.ToString(), k.Value.Label))];
+
+    static Style BoardLayout => Css.Define(static () => new Style { Flex = "3 1 32rem" });
+    static Style SideLayout => Css.Define(static () => new Style { Flex = "1 1 14rem" });
+
+    DateOnly? day = new(2026, 10, 19);
+    DateOnly? month = new(2026, 10, 1);
+    string? kind = "all";
+
+    IEnumerable<Meeting> Shown => Meetings.Where(m => kind == "all" || m.Kind.ToString() == kind);
+
+    List<Meeting> OnDay => day is { } d ? [.. Shown.Where(m => m.Date <= d && d <= (m.End ?? m.Date))] : [];
+}

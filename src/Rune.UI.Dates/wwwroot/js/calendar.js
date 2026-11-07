@@ -15,7 +15,20 @@ export function watchCalendar(root) {
   root.addEventListener('keydown', (event) => onKeydown(root, state, event));
   root.addEventListener('click', (event) => {
     const button = cellOf(root, event.target);
-    if (button && button.getAttribute('aria-disabled') !== 'true') sendCommand(root, 'activate', button.dataset.date);
+    if (button) {
+      if (button.getAttribute('aria-disabled') !== 'true') sendCommand(root, 'activate', button.dataset.date);
+      return;
+    }
+    // 整页月历（CalendarBoard）：“还有 N 项”、点格子的空白处也选中那一天（点里面的链接、按钮时照常）
+    const more = event.target.closest?.('[data-activate]');
+    if (more && root.contains(more)) {
+      sendCommand(root, 'activate', more.dataset.activate);
+      return;
+    }
+    const cell = event.target.closest?.('[data-board-cell]');
+    if (cell && root.contains(cell) && cell.getAttribute('aria-disabled') !== 'true' && !event.target.closest('a, button, input, [role="button"]')) {
+      sendCommand(root, 'activate', cell.dataset.boardCell);
+    }
   });
   // 点击、程序聚焦到别的格子时，键盘从这一格接着走
   root.addEventListener('focusin', (event) => {

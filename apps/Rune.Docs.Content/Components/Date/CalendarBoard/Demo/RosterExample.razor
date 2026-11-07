@@ -1,0 +1,46 @@
+@inherits RuneComponent
+
+@* 车间排班：每天早、中、夜三个班的值班人（DayContent），节假日与调休写在日期旁边（DayNote），休息日不排班 *@
+<CalendarBoard TItem="object" Month="new DateOnly(2026, 10, 1)" DayNote="date => Notes.GetValueOrDefault(date)" ReadOnly="true" aria-label="车间排班" Context="day">
+    <DayContent>
+        @* 补齐的上下月、放假的日子、周末（调休上班的除外）不排班 *@
+        @if (!day.Outside && !Holidays.Contains(day.Date) && !(day.Weekend && Notes.GetValueOrDefault(day.Date) != "班"))
+        {
+            <Flex Direction="LayoutDirection.Column">
+                @foreach (var (name, tone, person) in OnDuty(day.Date))
+                {
+                    <Flex @key="name" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                        <TextSpan Size="Size.Xs" Weight="Weight.Semibold" Tone="tone">@name</TextSpan>
+                        <Small>@person</Small>
+                    </Flex>
+                }
+            </Flex>
+        }
+    </DayContent>
+</CalendarBoard>
+
+@code {
+    static readonly Dictionary<DateOnly, string> Notes = new()
+    {
+        [new(2026, 10, 1)] = "国庆节",
+        [new(2026, 10, 2)] = "休",
+        [new(2026, 10, 3)] = "休",
+        [new(2026, 10, 4)] = "休",
+        [new(2026, 10, 5)] = "休",
+        [new(2026, 10, 6)] = "休",
+        [new(2026, 10, 7)] = "休",
+        [new(2026, 10, 10)] = "班",
+        [new(2026, 10, 29)] = "重阳节",
+    };
+
+    // 放假的日子：国庆节与“休”
+    static readonly HashSet<DateOnly> Holidays = [.. Notes.Where(n => n.Value is "国庆节" or "休").Select(n => n.Key)];
+
+    static readonly string[] People = ["林小满", "周一航", "许悠", "韩笑", "陈默", "宋知遥"];
+
+    static readonly (string Name, TextTone Tone)[] Shifts = [("早", TextTone.Success), ("中", TextTone.Warning), ("夜", TextTone.Accent)];
+
+    // 按日期轮换值班人：同一天的三个班不重复
+    static IEnumerable<(string Name, TextTone Tone, string Person)> OnDuty(DateOnly date) =>
+        Shifts.Select((shift, index) => (shift.Name, shift.Tone, People[(date.Day + index * 2) % People.Length]));
+}

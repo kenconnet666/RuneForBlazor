@@ -1,0 +1,20 @@
+@page "/components/calendar-board"
+@attribute [DocMeta("CalendarBoard 整页月历", "一个月铺满一页，每天一个大格子，放日程、排班、节假日。在输入框里选日期用 DatePicker，小日历用 Calendar。", DocCategory.Date, Order = 3)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Date.CalendarBoard.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="schedule" Title="日程" Demo="typeof(ScheduleExample)">
+        <Code>Events</Code> 按 <Code>EventDate</Code> 放进格子，给了 <Code>EventEnd</Code> 的跨天的每一天都有（出差）；默认显示带色调（<Code>EventTone</Code>）的一行文字，
+        <Code>EventContent</Code> 自定义。每天最多 <Code>MaxEvents</Code> 条，其余收成“还有 N 项”，点了选中那一天，由页面在旁边列出全部。
+        <Code>@@bind-Value</Code> 是选中的那一天，<Code>@@bind-Month</Code> 是显示的月份，<Code>Toolbar</Code> 放在页头（筛选、视图切换）。
+    </Example>
+    <Example Id="roster" Title="排班与节假日" Demo="typeof(RosterExample)">
+        <Code>DayContent</Code> 往格子里加别的内容（这里是三个班的值班人），拿到这一天是不是周末、补齐的上下月；
+        <Code>DayNote</Code> 是日期旁边的小字（节假日、调休的“休”“班”）。周末的格子默认是浅色底。<Code>ReadOnly</Code> 时只能翻页、移动焦点，不能选。
+    </Example>
+    <KeyboardReference Keys="DateKeys.Calendar">
+        键盘与 Calendar 一致：每天的日期数字是一个按钮，焦点在当前日期上，读屏念完整日期与有几项日程；格子里的日程可以是链接、按钮，Tab 照常进去。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(CalendarBoard<>), typeof(CalendarBoardDay)]" />
+</DocPage>
