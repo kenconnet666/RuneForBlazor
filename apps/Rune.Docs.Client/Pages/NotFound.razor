@@ -1,10 +1,8 @@
-@* 找不到页面 *@
+@* 找不到页面（同 vue-tsx-pro 文档站：Result 的 404，标题与说明用它默认的） *@
 @page "/not-found"
 @inherits RuneComponent
 
 <PageTitle>找不到页面 · Rune</PageTitle>
-<Empty Icon="Lucide.FileQuestionMark">
-    <Title>找不到页面</Title>
-    <Description>地址可能写错了，或者页面已经搬走。</Description>
+<Result Status="ResultStatus.NotFound">
     <Action><LinkButton Href="">回到首页</LinkButton></Action>
-</Empty>
+</Result>

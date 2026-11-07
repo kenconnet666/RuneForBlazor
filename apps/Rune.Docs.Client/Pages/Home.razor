@@ -108,13 +108,8 @@
         new(Lucide.Palette, "C# 里写样式与多套主题", "原子化 CSS、类型安全的 token；亮色、暗色、纸张等 16 套主题，对比度逐对检查。"),
     ];
 
-    // 指南页的图标，按地址对应；没写的用 BookOpen
-    static IconData GuideIcon(DocEntry entry) => entry.Slug switch
-    {
-        "theming" => Lucide.SwatchBook,
-        "styling" => Lucide.Paintbrush,
-        _ => Lucide.BookOpen,
-    };
+    // 指南页的图标（同 vue）：主题定制是色卡，其余是书
+    static IconData GuideIcon(DocEntry entry) => entry.Slug == "theming" ? Lucide.SwatchBook : Lucide.BookOpen;
 
     // “Button 按钮” → 英文名与中文名
     static (string Name, string Label) SplitTitle(string title) =>
