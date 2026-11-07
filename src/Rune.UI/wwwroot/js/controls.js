@@ -156,7 +156,15 @@ export function focusOnShell(event) {
     if (button.hasAttribute('data-rune-repeat')) repeatWhileHeld(button);
     return;
   }
-  if (target.closest('input, textarea, select, button, a')) return;
+  if (target.closest('input, textarea, select, button, a, [role="spinbutton"]')) return;
+  // 分段输入（DateField、TimeField）：焦点进第一个没填的段（都填了时第一段）
+  const segments = shell.querySelector(':scope > [data-rune-date-segments]');
+  if (segments) {
+    if (segments.getAttribute('aria-disabled') === 'true') return;
+    event.preventDefault();
+    (segments.querySelector('[role="spinbutton"][data-placeholder]') ?? segments.querySelector('[role="spinbutton"]'))?.focus();
+    return;
+  }
   const control = shell.querySelector(':scope > :is(input, textarea, select, button[role="combobox"])');
   if (!control || control.disabled) return;
   event.preventDefault();

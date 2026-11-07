@@ -141,6 +141,9 @@ export function install(blazor, on) {
   document.documentElement.setAttribute('data-rune-ready', '');
 }
 
+// 别的包（Rune.UI.Dates）的模块：第一次遇到它的元素时才加载，只用表格、表单的页面不下载
+const lazy = (load, name) => (element) => load().then((module) => module[name](element));
+
 // 插入时（第一次渲染就带着状态）要处理的元素：选择器与处理函数，一处登记
 const watched = [
   ['[data-rune-overlay][data-open="true"]', syncOpen],
@@ -182,6 +185,7 @@ const watched = [
   ['dialog[data-rune-tour]', watchTour],
   ['table[data-rune-table]', watchTable],
   ['template[data-rune-local-setting]', watchLocalSetting],
+  ['[data-rune-date-segments]', lazy(() => import('../../Rune.UI.Dates/js/date-segments.js'), 'watchDateSegments')],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 

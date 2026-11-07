@@ -140,7 +140,7 @@ public static class LangFormat
 
     // 24 小时制的时补零（Intl 的 zh-CN 是 09:05，.NET 的模式是 H:mm）；新版 ICU 在“AM”前用窄不换行空格（U+202F），浏览器的 Intl 用普通空格
     // 小时制以语言包（或地区惯例）为准，文化模式里的只取写法：WebAssembly 的精简 ICU 没有地区的小时制数据，zh-CN 也给出“下午2:30”
-    static string TimePattern(DateTimeFormatInfo info, TimeStyle style, bool twelveHour, string culture)
+    internal static string TimePattern(DateTimeFormatInfo info, TimeStyle style, bool twelveHour, string culture)
     {
         var pattern = (style == TimeStyle.Medium ? info.LongTimePattern : info.ShortTimePattern).Replace('\u202F', ' ');
         var patternTwelveHour = pattern.Contains('h', StringComparison.Ordinal);
@@ -157,7 +157,7 @@ public static class LangFormat
     /// <summary>
     /// 12 小时制：语言包的 <see cref="Lang.HourCycle"/>（h11、h12 是，h23、h24 不是）；不写时按地区惯例（同 Intl 的默认）。
     /// </summary>
-    static bool TwelveHour(Lang lang) => lang.HourCycle switch
+    internal static bool TwelveHour(Lang lang) => lang.HourCycle switch
     {
         "h11" or "h12" => true,
         "h23" or "h24" => false,
@@ -203,7 +203,7 @@ public static class LangFormat
         }
     }
 
-    static CultureInfo CultureOf(string name) => cultures.GetOrAdd(name, static name =>
+    internal static CultureInfo CultureOf(string name) => cultures.GetOrAdd(name, static name =>
     {
         try
         {

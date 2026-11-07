@@ -1,0 +1,168 @@
+@*
+    分段输入框（同 vue-tsx-pro 的 SegmentedField 与 DateSegmentGroup）：输入框外壳（同 TextField）里一组日期分段，可选的前置图标、清空按钮与尾部内容。
+    DateField、TimeField 继承它（只差有哪些段、值的类型与怎样算超出范围）。
+    - 每段是 role="spinbutton" 的 contenteditable（inputmode="numeric"：手机上弹出数字键盘，输入法打的全角数字也收得到），在 Tab 顺序里；
+      读屏名称是“标签 + 段名”，没填的段念“未填写”。输入在 JS 里（js/date-segments.js），所有段填齐（或删掉已填的一段）时才交给 C#。
+    - 段的顺序、分隔符、占位文字在这里按语言算好；点外壳的空白处时焦点进第一个没填的段。
+    - 写了 name 时用隐藏的 input 随表单提交 ISO 文字。未声明的属性落到这组段上；Sx 落在外壳上。
+*@
+@namespace Rune.UI
+@typeparam TValue
+@inherits InputControl<TValue>
+@{
+    var parts = InputStyles.Of(Appearance, Config.Styles);
+    var own = SegmentedFieldStyles.Of(Config.Styles);
+    var iso = CurrentIso;
+    var fields = Fields;
+    var draft = DateSegments.FromIso(iso, fields) ?? new DateParts();
+    var hour12 = fields.Contains(SegmentType.Hour) && DateSegments.TwelveHour(HourCycle, Config.Lang);
+    var layout = layouts.Get((fields, Config.Lang, hour12), static k => DateSegments.Layout(k.Item1, k.Item2, k.Item3));
+    var periods = DateSegments.Periods(Config.Lang);
+    var invalid = IsInvalid || (iso is not null && IsOutOfRange(iso));
+    var editable = !IsDisabled && !IsReadOnly;
+}
+
+<div @attributes="Attrs.Merge(parts[InputPart.Root], RootUserAttrs, ShellAttrs)" data-invalid="@(invalid ? true : null)" data-disabled="@(IsDisabled ? true : null)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(parts[InputPart.Icon], PropsIcon)" />
+    }
+    <div @attributes="Attrs.Merge(own[SegmentedFieldPart.Group], InputUserAttrs, GroupManaged(iso, fields, hour12, periods, invalid))" @onrunecommand="OnCommandAsync">
+        @for (var index = 0; index < layout.Length; index++)
+        {
+            var part = layout[index];
+            if (part.Type is not { } type)
+            {
+                <span aria-hidden="true" @attributes="Attrs.Merge(own[SegmentedFieldPart.Literal], PropsLiteral)">@part.Literal</span>
+                continue;
+            }
+            var value = DateSegments.Shown(type, draft, hour12);
+            var text = DateSegments.Text(type, value, hour12, periods);
+            var range = DateSegments.Range(type, draft, hour12);
+            var next = index + 1 < layout.Length ? layout[index + 1].Literal : null;
+            var empty = DateSegments.Placeholder(type, next, Config.Lang);
+            <span @key="type" @attributes="Attrs.Merge(own[SegmentedFieldPart.Segment], PropsSegment, SegmentManaged(type, value, text, range, empty, invalid, editable))">@(text ?? empty)</span>
+        }
+        @if (FieldName is { } name)
+        {
+            <input type="hidden" name="@name" value="@(iso ?? "")" disabled="@IsDisabled" />
+        }
+    </div>
+    @if (Clearable && editable)
+    {
+        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" tabindex="-1" data-rune-segments-clear hidden="@(iso is null)"
+                     @attributes="Attrs.MergeProps(Attrs.Layer(parts[InputPart.Button], own[SegmentedFieldPart.Clear]), PropsClear)" />
+    }
+    @Suffix
+</div>
+
+@code {
+    Memo<(SegmentType[], Lang, bool), SegmentPart[]> layouts;
+
+    [Inject] IServiceProvider Services { get; set; } = null!;
+
+    /// <summary>12 / 24 小时制（有时的段时）；不写时取语言包的，再不写按地区惯例。</summary>
+    [Parameter] public HourCycle? HourCycle { get; set; }
+
+    /// <summary>有值时显示清空按钮。</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>清空按钮的名称，默认取语言包的“清空”。</summary>
+    [Parameter] public string? ClearLabel { get; set; }
+
+    /// <summary>前置图标。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>框里最后的内容（日期选择器打开日历的按钮、图标）。</summary>
+    [Parameter] public RenderFragment? Suffix { get; set; }
+
+    /// <summary>前置图标的部件属性。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>每段的部件属性；角色、名称、取值由组件管理。</summary>
+    [Parameter] public Attrs? PropsSegment { get; set; }
+
+    /// <summary>分隔符的部件属性。</summary>
+    [Parameter] public Attrs? PropsLiteral { get; set; }
+
+    /// <summary>清空按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsClear { get; set; }
+
+    /// <summary>有哪些段，按年 → 秒的顺序（显示顺序按语言）。</summary>
+    private protected abstract SegmentType[] Fields { get; }
+
+    /// <summary>当前值的 ISO 文字（形式随段）；没有值时 null。</summary>
+    private protected abstract string? CurrentIso { get; }
+
+    /// <summary>填好的 ISO 文字 → 值（null 是删掉了一段）；值的类型写不了 null 时返回 false，值不变。</summary>
+    private protected abstract bool TryFromIso(string? iso, out TValue value);
+
+    /// <summary>值超出范围、不可选：外壳显示出错，值照样写回（由表单校验决定能不能提交）。</summary>
+    private protected abstract bool IsOutOfRange(string iso);
+
+    /// <summary>语言包的时区（DateTimeOffset 的值按它显示与写回）。</summary>
+    private protected TimeZoneInfo Zone => LangFormat.ZoneOf(Config.Lang);
+
+    async Task OnCommandAsync(CommandEventArgs args)
+    {
+        if (args.Name != "change" || !TryFromIso(string.IsNullOrEmpty(args.Text) ? null : args.Text, out var value)) return;
+        await SetValueAsync(value);
+    }
+
+    // 空段 ↑↓ 的起点：语言时区的此刻（到分，渲染之间不变）
+    string Start
+    {
+        get
+        {
+            var time = Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
+            var now = TimeZoneInfo.ConvertTime(time.GetUtcNow(), Zone);
+            return now.ToString("yyyy-MM-ddTHH:mm:00", System.Globalization.CultureInfo.InvariantCulture);
+        }
+    }
+
+    Attrs GroupManaged(string? iso, SegmentType[] fields, bool hour12, (string Am, string Pm) periods, bool invalid) => Attrs.Merge(GroupAttrs("group", Orientation.Horizontal), new Attrs
+    {
+        ["data-rune-date-segments"] = true,
+        ["data-fields"] = string.Join(' ', fields.Select(DateSegments.Name)),
+        ["data-hour12"] = hour12 ? true : null,
+        ["data-value"] = iso ?? "",
+        ["data-start"] = Start,
+        ["data-periods"] = $"{periods.Am}|{periods.Pm}",
+        ["data-empty-text"] = Config.Lang.DateFieldEmpty,
+        ["data-invalid"] = invalid ? true : null,
+    });
+
+    Attrs SegmentManaged(SegmentType type, int? value, string? text, (int Min, int Max) range, string empty, bool invalid, bool editable)
+    {
+        var name = DateSegments.Name(type);
+        var id = $"{ControlId}-{name}";
+        var labelledBy = AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId;
+        return new Attrs
+        {
+            Id = id,
+            Role = "spinbutton",
+            AriaLabel = DateSegments.Label(type, Config.Lang.Code),
+            // 读屏念“生日 年”：外部标签加上这一段的名称
+            AriaLabelledBy = labelledBy is null ? null : $"{labelledBy} {id}",
+            AriaDescribedBy = Field?.DescribedBy,
+            ["tabindex"] = IsDisabled ? "-1" : "0",
+            ["contenteditable"] = editable ? "true" : null,
+            ["inputmode"] = type == SegmentType.DayPeriod ? "text" : "numeric",
+            ["spellcheck"] = "false",
+            ["autocapitalize"] = "off",
+            ["autocorrect"] = "off",
+            ["enterkeyhint"] = "next",
+            ["aria-valuenow"] = value?.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["aria-valuemin"] = range.Min.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["aria-valuemax"] = range.Max.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["aria-valuetext"] = text ?? Config.Lang.DateFieldEmpty,
+            ["aria-required"] = IsRequired ? "true" : null,
+            ["aria-invalid"] = invalid ? "true" : null,
+            ["aria-readonly"] = IsReadOnly ? "true" : null,
+            AriaDisabled = IsDisabled ? true : null,
+            ["data-type"] = name,
+            ["data-placeholder"] = text is null ? true : null,
+            ["data-empty"] = empty,
+        };
+    }
+}

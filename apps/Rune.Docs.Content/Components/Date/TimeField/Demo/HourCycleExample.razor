@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+@* 12 / 24 小时制：默认跟随语言（中文 24 小时、美国 12 小时加 AM / PM），HourCycle 可以指定；值总是 TimeOnly *@
+<Grid MinItemWidth="@("13rem")" Gap="SpaceScale.Lg">
+    <Field Label="简体中文（24 小时制）" DescriptionContent="@Show(time)">
+        <TimeField @bind-Value="time" />
+    </Field>
+    <Field Label="HourCycle.H12" Description="中文的上午 / 下午">
+        <TimeField @bind-Value="time" HourCycle="HourCycle.H12" />
+    </Field>
+    <RuneProvider Lang="Lang.EnUs">
+        <Field Label="English (US)" Description="Type a / p in the last segment">
+            <TimeField @bind-Value="time" />
+        </Field>
+    </RuneProvider>
+    <Field Label="TimeGranularity.Second">
+        <TimeField @bind-Value="precise" Granularity="TimeGranularity.Second" />
+    </Field>
+    <Field Label="TimeGranularity.Hour">
+        <TimeField @bind-Value="hour" Granularity="TimeGranularity.Hour" />
+    </Field>
+</Grid>
+
+@code {
+    TimeOnly? time = new(19, 45);
+    TimeOnly? precise = new(8, 30, 15);
+    TimeOnly? hour = new(8, 0);
+
+    static RenderFragment Show(TimeOnly? value) => @<Code>@(value?.ToString("HH:mm") ?? "null")</Code>;
+}

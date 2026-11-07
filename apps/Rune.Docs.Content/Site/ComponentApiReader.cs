@@ -112,6 +112,8 @@ public static partial class ComponentApiReader
     // 实例上的值与类型的默认值（null、false、0）相同时不列；枚举总是列出（第一项也是有意义的默认）
     static string? DefaultOf(PropertyInfo property, object? instance)
     {
+        // 抽象的基类（SegmentedField）没有实例：默认值列在子类的表里
+        if (instance is null) return null;
         object? value;
         try
         {

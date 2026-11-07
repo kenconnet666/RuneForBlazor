@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+@* 精确到哪一段：年、年月、年月日、季度、周、日期加时分（同原生的 month、date、week、datetime-local），写回那一段的第一天 *@
+<Grid MinItemWidth="@("15rem")" Gap="SpaceScale.Lg">
+    <Field Label="年度" DescriptionContent="@Show(year)"><DateField @bind-Value="year" Granularity="DateGranularity.Year" /></Field>
+    <Field Label="账期" DescriptionContent="@Show(month)"><DateField @bind-Value="month" Granularity="DateGranularity.Month" /></Field>
+    <Field Label="发货日期" DescriptionContent="@Show(day)"><DateField @bind-Value="day" /></Field>
+    <Field Label="季度" DescriptionContent="@Show(quarter)"><DateField @bind-Value="quarter" Granularity="DateGranularity.Quarter" /></Field>
+    <Field Label="排班周" DescriptionContent="@Show(week)"><DateField @bind-Value="week" Granularity="DateGranularity.Week" /></Field>
+    <Field Label="会议开始" DescriptionContent="@Show(at)"><DateField @bind-Value="at" Granularity="DateGranularity.Minute" /></Field>
+    <Field Label="日志时间" DescriptionContent="@Show(precise)"><DateField @bind-Value="precise" Granularity="DateGranularity.Second" /></Field>
+</Grid>
+
+@code {
+    DateOnly? year = new(2026, 1, 1);
+    DateOnly? month = new(2026, 10, 1);
+    DateOnly? day = new(2026, 10, 20);
+    DateOnly? quarter = new(2026, 10, 1);
+    DateOnly? week = new(2026, 10, 19);
+    DateTime? at = new(2026, 10, 20, 14, 30, 0);
+    DateTime? precise = new(2026, 10, 20, 14, 30, 15);
+
+    static RenderFragment Show(DateOnly? value) => @<Code>@(value?.ToString("yyyy-MM-dd") ?? "null")</Code>;
+
+    static RenderFragment Show(DateTime? value) => @<Code>@(value?.ToString("yyyy-MM-dd HH:mm:ss") ?? "null")</Code>;
+}

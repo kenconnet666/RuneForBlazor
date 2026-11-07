@@ -464,14 +464,18 @@
   vue 用 @internationalized/date 的 CalendarDate / CalendarDateTime / ZonedDateTime 与 ISO 字符串，C# 直接用 BCL 的类型，不另造；
   组件的值类型是泛型（`DateField<TValue>`，同 NumberField），写回时保持传入的类型（vue 的 writeDateLike）。
 - **地区设置**：月份名、星期名、日期的排法、上午 / 下午取 `CultureInfo`（按语言包的 `Code`）；一周的第一天取语言包的 `FirstDayOfWeek`，
-  没有时取 `CultureInfo.DateTimeFormat.FirstDayOfWeek`；12 / 24 小时制取语言包的 `HourCycle`，没有时看文化的短时间格式里有没有 `h`。
+  没有时取 `CultureInfo.DateTimeFormat.FirstDayOfWeek`；12 / 24 小时制取组件的 `HourCycle`、语言包的 `HourCycle`，都没有时按地区惯例（CLDR timeData 里惯用 12 小时制的地区，写在 `LangFormat`）：
+  不看文化的时间格式，WebAssembly 的精简 ICU 没有地区的小时制数据，zh-CN 也给出“下午2:30”。时刻（DateTimeOffset、UTC 的 DateTime）按语言包的时区显示。
   日历系统只做公历（vue 的 calendar 选项：语言包的 `Calendar` 都是 gregory；别的历法等有需要再说）。
 - **“现在”**：取 `TimeProvider`（DI 里有就用，没有时 `TimeProvider.System`），时区取语言包的 `TimeZone`，没有时是服务器 / 浏览器的本地时区；
   测试、截图、服务端渲染时给固定的 TimeProvider。RelativeTime、Countdown 的定时更新也走它（对齐到整秒、整分，同 vue 的 useNow）。
-- **相对时间的措辞**：.NET 没有 Intl.RelativeTimeFormat，vue 的语言包也不带这些文字（靠 Intl）。Rune 在 Lang 里补一组相对时间的说法
-  （秒、分、时、天、周、月、年的“前 / 后”，以及“刚刚、昨天、明天、上周、下个月、去年……”这类 numeric: auto 的写法），
-  zh-CN、en-US 按 CLDR 的写法手写；单位的取法同 vue 的 relativeUnit（45 秒以内用秒，45 分钟以内用分……）。
+- **相对时间的措辞**：.NET 没有 Intl.RelativeTimeFormat，vue 的语言包也不带这些文字（靠 Intl）。`RelativeTimeText` 按 CLDR 手写 zh、en 两套
+  （秒、分、时、天、周、月、年的“前 / 后”，以及“昨天、明天、上个月、去年……”这类 numeric: auto 的写法；别的语言用英文），
+  不往生成的 Lang 里加必填成员；单位的取法同 vue 的 relativeUnit（45 秒以内用秒，45 分钟以内用分……）。
 - **分段输入**（DateField、TimeField 的年、月、日、时、分……）：状态机在 JS（`date-segments.js`，移植 vue 的 date-segments.ts），
   每段是 role="spinbutton"，打字、↑↓、Page Up / Down、Backspace、段之间的焦点都不往返；所有段填齐（或删掉已填的一段）时把 ISO 文字交给 C#，
-  C# 解析成 TValue 写回。段的顺序、分隔符、占位文字由 C# 按文化算好写进 data-* 属性（JS 不再查 Intl，两边结果一致）。
+  C# 解析成 TValue 写回。段的顺序、分隔符、占位文字、段名由 C# 按文化算好渲染出来（JS 不再查 Intl，两边结果一致）。
+  JS 只改 Blazor 渲染的属性与文字节点本身（不换节点）：Blazor 只在自己的输出变了时写 DOM，写回了（值变了、晚到的渲染）就按草稿重画；
+  `data-value` 是自己刚交出去的值时草稿留着（删掉一段后其余段还在），不是时以它为准。DateField、TimeField 继承抽象的 `SegmentedField<TValue>`。
+  JS 由 Rune.UI 的初始化器在第一次遇到 `[data-rune-date-segments]` 时动态 import（`../../Rune.UI.Dates/js/…`），不用日期组件的页面不下载。
 - **日历网格**：二维方向键、Page Up / Down 翻月、Home / End 到周首周尾在 JS（同 Tree、表格的网格导航），选中、翻页交给 C#。

@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+@* 约束与写法：IsDateUnavailable 标出不可选的日期（周末），值照样写回、控件显示出错，错误文字由 Field 给；
+   HourCycle 固定 12 / 24 小时制；Suffix 放在框里最后；值是 DateTimeOffset 时按语言的时区显示与写回 *@
+<Grid MinItemWidth="@("15rem")" Gap="SpaceScale.Lg">
+    <Field Label="到岗日期" Description="只能选工作日" Error="@(workday is { } day && Weekend(day) ? "这天是周末，请换一个工作日" : null)">
+        <DateField @bind-Value="workday" IsDateUnavailable="Weekend" />
+    </Field>
+    <Field Label="会议开始（12 小时制）" DescriptionContent="@Show(meeting?.ToString("yyyy-MM-dd HH:mm"))">
+        <DateField @bind-Value="meeting" Granularity="DateGranularity.Minute" HourCycle="HourCycle.H12">
+            <Suffix><Icon Data="Lucide.CalendarCheck" Tone="TextTone.Muted" /></Suffix>
+        </DateField>
+    </Field>
+    <Field Label="签收时刻（DateTimeOffset）" DescriptionContent="@Show(signed?.ToString("O"))">
+        <DateField @bind-Value="signed" Granularity="DateGranularity.Minute" />
+    </Field>
+</Grid>
+
+@code {
+    DateOnly? workday = new(2026, 10, 24);
+    DateTime? meeting = new(2026, 10, 20, 14, 30, 0);
+    DateTimeOffset? signed = new(2026, 10, 20, 6, 30, 0, TimeSpan.Zero);
+
+    static bool Weekend(DateOnly day) => day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    static RenderFragment Show(string? text) => @<Code>@(text ?? "null")</Code>;
+}

@@ -1,0 +1,20 @@
+@inherits UIComponent
+
+@* 填写个人信息：生日（不能晚于今天）、证件有效期（不能早于今天），段的顺序按语言，填全了才有值 *@
+<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Lg">
+    <Field Label="生日" Description="@(birthday is { } day ? LangFormat.Date(day, Config.Lang, DateStyle.Full, null) : "年 / 月 / 日")">
+        <DateField @bind-Value="birthday" Max="today" name="birthday" Clearable="true" />
+    </Field>
+    <Field Label="证件有效期至" Required="true" Invalid="Expired" Error="@(Expired ? "证件已过期" : null)">
+        <DateField @bind-Value="expires" Min="today" name="expires" />
+    </Field>
+    <TextSpan Tone="TextTone.Muted" Size="Size.Sm">提交的值：birthday=@(birthday?.ToString("yyyy-MM-dd") ?? "null")，expires=@(expires?.ToString("yyyy-MM-dd") ?? "null")</TextSpan>
+</Grid>
+
+@code {
+    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    DateOnly? birthday = new(1992, 8, 16);
+    DateOnly? expires;
+
+    bool Expired => expires < today;
+}

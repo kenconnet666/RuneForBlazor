@@ -247,6 +247,7 @@ public static class InputStyles
         Color = Colors.TextMuted,
     });
 
-    static readonly Condition invalid = When.Has("> :is(input, select, textarea, [role=combobox])[aria-invalid=\"true\"]");
-    static readonly Condition disabled = When.Has("> :is(input, select, textarea, [role=combobox]):disabled");
+    // 分段输入（Rune.UI.Dates 的 DateField、TimeField）的一组段不是表单元素：状态写在它的 data-* 上
+    static readonly Condition invalid = When.Has("> :is(input, select, textarea, [role=combobox])[aria-invalid=\"true\"], > [data-rune-date-segments][data-invalid]");
+    static readonly Condition disabled = When.Has("> :is(input, select, textarea, [role=combobox]):disabled, > [data-rune-date-segments][data-disabled]");
 }

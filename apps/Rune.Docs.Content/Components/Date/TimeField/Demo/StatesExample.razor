@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+@* 外观、图标、清空按钮与状态：与其他输入框同一套；不可空的 TimeOnly 删不掉 *@
+<Grid MinItemWidth="@("13rem")" Gap="SpaceScale.Lg">
+    <Field Label="图标与清空按钮">
+        <TimeField @bind-Value="start" Icon="Lucide.Clock" Clearable="true" />
+    </Field>
+    <Field Label="不可空的 TimeOnly" Description="@($"闹钟：{alarm:HH:mm}")">
+        <TimeField @bind-Value="alarm" Icon="Lucide.AlarmClock" />
+    </Field>
+    <Field Label="Variant.Soft · Size.Lg">
+        <TimeField Value="Six" Variant="InputVariant.Soft" Size="Size.Lg" />
+    </Field>
+    <Field Label="必填" Required="true" Error="@(start is null ? "请填写开始时间" : null)">
+        <TimeField @bind-Value="start" />
+    </Field>
+    <Field Label="只读" ReadOnly="true">
+        <TimeField Value="Noon" />
+    </Field>
+    <Field Label="不可用" Disabled="true">
+        <TimeField Value="Noon" />
+    </Field>
+</Grid>
+
+@code {
+    static readonly TimeOnly Six = new(18, 0);
+    static readonly TimeOnly Noon = new(12, 0);
+    TimeOnly? start = new(9, 30);
+    TimeOnly alarm = new(7, 0);
+}

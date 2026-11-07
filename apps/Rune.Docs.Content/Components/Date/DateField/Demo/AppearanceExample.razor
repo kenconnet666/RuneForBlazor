@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+@* 外观与状态：和 TextField 同一个输入框外壳（样式、尺寸、圆角、图标、清空），只读、不可用、出错 *@
+<Grid MinItemWidth="@("15rem")" Gap="SpaceScale.Lg">
+    <Field Label="surface（默认）"><DateField @bind-Value="day" Icon="Lucide.CalendarDays" Clearable="true" /></Field>
+    <Field Label="soft"><DateField Value="Day" Variant="InputVariant.Soft" Icon="Lucide.CalendarDays" /></Field>
+    <Field Label="Size.Sm · Radius.Full"><DateField Value="Day" Size="Size.Sm" Radius="Radius.Full" /></Field>
+    <Field Label="Size.Lg"><DateField Value="Day" Size="Size.Lg" /></Field>
+    <Field Label="只读"><DateField Value="Day" ReadOnly="true" /></Field>
+    <Field Label="不可用"><DateField Value="Day" Disabled="true" /></Field>
+    <Field Label="出错" Error="早于开学日期"><DateField Value="Early" Min="Term" /></Field>
+    <Field Label="空着"><DateField @bind-Value="empty" /></Field>
+</Grid>
+
+@code {
+    static readonly DateOnly Day = new(2026, 10, 20);
+    static readonly DateOnly Early = new(2026, 8, 1);
+    static readonly DateOnly Term = new(2026, 9, 1);
+    DateOnly? day = Day;
+    DateOnly? empty;
+}

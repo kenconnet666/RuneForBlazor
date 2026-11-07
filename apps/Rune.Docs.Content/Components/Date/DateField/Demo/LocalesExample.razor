@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+@* 段的顺序与分隔符取自文化：中文 年/月/日，美国 月/日/年，德国 日.月.年，英国 日/月/年；时间部分 12 / 24 小时制也跟着语言 *@
+<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Lg">
+    @foreach (var (label, lang) in Cases)
+    {
+        <RuneProvider @key="label" Lang="lang">
+            <Field Label="@label"><DateField @bind-Value="at" Granularity="DateGranularity.Minute" /></Field>
+        </RuneProvider>
+    }
+</Grid>
+
+@code {
+    static readonly (string Label, Lang Lang)[] Cases =
+    [
+        ("简体中文", Lang.ZhCn),
+        ("English (US)", Lang.EnUs),
+        ("English (UK)", Lang.EnUs with { Code = "en-GB" }),
+        ("Deutsch", Lang.EnUs with { Code = "de-DE" }),
+        ("한국어", Lang.EnUs with { Code = "ko-KR" }),
+    ];
+
+    DateTime? at = new(2026, 10, 20, 14, 30, 0);
+}

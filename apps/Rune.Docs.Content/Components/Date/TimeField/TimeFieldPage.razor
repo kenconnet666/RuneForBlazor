@@ -1,0 +1,27 @@
+@page "/components/time-field"
+@attribute [DocMeta("TimeField 时间输入框", "分段输入时、分（可选秒），12 / 24 小时制跟随语言；营业时间、提醒时间。", DocCategory.Date, Order = 4)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Date.TimeField.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
+                值是 <Code>TimeOnly</Code>（可空的空着时为 <Code>null</Code>），可以直接比较大小；<Code>Min</Code> / <Code>Max</Code> 之外显示出错，
+                <Code>LangFormat.Date(time, lang, null, TimeStyle.Short)</Code> 按语言显示。键盘同 DateField：打 <Kbd>1</Kbd> <Kbd>4</Kbd> <Kbd>3</Kbd> <Kbd>0</Kbd> 就是 14:30。
+            </Example>
+            <Example Id="hour-cycle" Title="12 / 24 小时制" Demo="typeof(HourCycleExample)">
+                12 小时制时多一段上午 / 下午：打 <Kbd>a</Kbd>、<Kbd>p</Kbd> 或用 <Kbd>↑</Kbd> <Kbd>↓</Kbd> 切换；改“时”时保留上午下午。
+                语言包的 <Code>HourCycle</Code> 统一指定，组件上的同名参数单独覆盖；都不写时按地区惯例。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="states" Title="外观与状态" Demo="typeof(StatesExample)">
+                <Code>Icon</Code>、<Code>Clearable</Code>、<Code>Variant</Code>、<Code>Size</Code> 与其他输入框同一套；
+                Field 上的 <Code>Required</Code>、<Code>Error</Code>、<Code>ReadOnly</Code>、<Code>Disabled</Code> 交给里面的输入框。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="DateKeys.Segments" />
+    <ApiReference Types="[typeof(TimeField<>), typeof(SegmentedField<>)]" />
+</DocPage>

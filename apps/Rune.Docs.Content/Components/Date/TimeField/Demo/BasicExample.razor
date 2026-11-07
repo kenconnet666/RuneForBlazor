@@ -1,0 +1,56 @@
+@inherits UIComponent
+
+@* 门店营业时间：每天一行开门、打烊，打烊不能早于开门；值是 TimeOnly，可以直接比较大小 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <div @attributes="Attrs.Merge(Table)">
+        <Small Tone="TextTone.Muted">日期</Small>
+        <Small Tone="TextTone.Muted">营业</Small>
+        <Small Tone="TextTone.Muted">开门</Small>
+        <Small Tone="TextTone.Muted">打烊</Small>
+        @foreach (var day in days)
+        {
+            var wrong = day.Open && day.Opens is { } opens && day.Closes is { } closes && closes <= opens;
+            <TextSpan @key="day.Name" Weight="Weight.Medium">@day.Name</TextSpan>
+            <Switch @bind-Checked="day.Open" aria-label="@($"{day.Name}营业")" />
+            <TimeField @bind-Value="day.Opens" Disabled="!day.Open" aria-label="@($"{day.Name}开门时间")" />
+            <TimeField @bind-Value="day.Closes" Min="day.Opens" Invalid="wrong" Disabled="!day.Open" aria-label="@($"{day.Name}打烊时间")" />
+        }
+    </div>
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        @foreach (var day in days)
+        {
+            <Badge @key="day.Name" Tone="day.Open ? Tone.Success : Tone.Neutral" Radius="Radius.Full">
+                @day.Name：@(day.Open && day.Opens is { } opens && day.Closes is { } closes ? $"{Short(opens)} – {Short(closes)}" : "休息")
+            </Badge>
+        }
+    </Flex>
+</Flex>
+
+@code {
+    sealed class Day(string name, bool open, TimeOnly? opens, TimeOnly? closes)
+    {
+        public string Name { get; } = name;
+        public bool Open { get; set; } = open;
+        public TimeOnly? Opens { get; set; } = opens;
+        public TimeOnly? Closes { get; set; } = closes;
+    }
+
+    // 一行一天：星期、是否营业、开门、打烊，四列对齐
+    static readonly Attrs Table = new() { Sx = Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "max-content max-content minmax(7em, 1fr) minmax(7em, 1fr)",
+        AlignItems = AlignItems.Center,
+        Gap = Space.Sm,
+        ColumnGap = Space.Md,
+    }) };
+
+    readonly Day[] days =
+    [
+        new("工作日", true, new(9, 0), new(21, 30)),
+        new("周六", true, new(10, 0), new(22, 0)),
+        new("周日", false, new(10, 0), new(18, 0)),
+    ];
+
+    string Short(TimeOnly time) => LangFormat.Date(time, Config.Lang, null, TimeStyle.Short);
+}
