@@ -1,0 +1,21 @@
+@page "/components/item-list"
+@attribute [DocMeta("ItemList 条目列表", "界面里的列表：起始边是图标、色点或头像，中间是标题与说明，结束边是标记、数字或操作。待办、通知、我负责的任务。StatusDot 是其中常用的状态色点。", DocCategory.Display, Order = 13)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.ItemList.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="todos" Title="待办" Demo="typeof(TodosExample)">
+                <Code>ItemListItem</Code> 的 <Code>Start</Code>、<Code>Title</Code>、<Code>Description</Code>、<Code>End</Code> 四块排成一行；<Code>Divided</Code>
+                在条目之间画线，<Code>Hoverable</Code> 悬停着底色，<Code>AlignStart</Code> 让色点贴着标题那一行。正文里的列表（圆点、编号）用 List。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="dots" Title="状态色点" Demo="typeof(DotsExample)">
+                <Code>StatusDot</Code> 比 Badge 轻，标出未读、新到、退回、图例。色调与 Badge 同名，<Code>Color</Code> 给任意颜色；点本身就是信息时写 <Code>Label</Code>，否则对读屏隐藏。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ItemList), typeof(ItemListItem), typeof(StatusDot)]" />
+</DocPage>

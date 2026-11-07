@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+@* 待办列表：每条结束边一个时限标记，超时、快到期的一眼看出来；完成的按完成那天显示按时或超时 *@
+<Card Padding="SpaceScale.None">
+    <ItemList Divided="true" Inset="SpaceScale.Md">
+        @foreach (var todo in Todos)
+        {
+            <ItemListItem @key="todo.Code" Description="@($"{todo.Code} · 主办 {todo.Owner}")">
+                <Start><Avatar Name="@todo.Owner" Size="Size.Sm" /></Start>
+                <TitleContent><TextLink Href="#">@todo.Name</TextLink></TitleContent>
+                <End><DeadlineBadge Due="todo.Due" Done="todo.Done" Today="Today" /></End>
+            </ItemListItem>
+        }
+    </ItemList>
+</Card>
+
+@code {
+    static readonly DateOnly Today = new(2026, 10, 21);
+
+    static readonly (string Code, string Name, string Owner, DateOnly Due, DateOnly? Done)[] Todos =
+    [
+        ("PO-2026-0233", "财务复核", "韩笑", new(2026, 10, 16), null),
+        ("PO-2026-0187", "资料审核：办公椅供应商切换", "林小满", Today, null),
+        ("PO-2026-0214", "方案评审：门店陈列方案", "周宁", new(2026, 10, 22), null),
+        ("PO-2026-0179", "费用核算：包装纸箱第二供应商", "陆川", new(2026, 10, 30), null),
+        ("PO-2026-0308", "试点实施：线束卡箍合并规格", "方圆", new(2026, 10, 19), new(2026, 10, 19)),
+    ];
+}

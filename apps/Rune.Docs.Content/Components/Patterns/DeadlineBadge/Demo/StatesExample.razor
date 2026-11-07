@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+@* 各种状态：今天固定在 2026-10-21（周三），截止日不同；完成了的按完成那天算 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    @foreach (var row in Rows)
+    {
+        <Flex @key="row.Label" Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+            <Small Tone="TextTone.Muted">@row.Label · 截止 @row.Due.ToString("yyyy-MM-dd")</Small>
+            <DeadlineBadge Due="row.Due" Done="row.Done" Today="Today" />
+        </Flex>
+    }
+</Flex>
+
+@code {
+    static readonly DateOnly Today = new(2026, 10, 21);
+
+    static readonly (string Label, DateOnly Due, DateOnly? Done)[] Rows =
+    [
+        ("还早", new(2026, 11, 4), null),
+        ("快到期（2 个工作日内）", new(2026, 10, 23), null),
+        ("今天到期", Today, null),
+        ("超时", new(2026, 10, 15), null),
+        ("按时完成", new(2026, 10, 20), new(2026, 10, 19)),
+        ("超时完成", new(2026, 10, 14), new(2026, 10, 20)),
+    ];
+}

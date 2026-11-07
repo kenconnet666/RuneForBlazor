@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+@* 待办、通知这类界面列表：起始边色点（StatusDot），标题是链接，说明是编号与流程，结束边是时限 *@
+<Card Variant="CardVariant.Outline" Padding="SpaceScale.Sm">
+    <Header>我的待办</Header>
+    <Extra><TextLink Href="#inbox">打开收件箱</TextLink></Extra>
+    <ChildContent>
+        <ItemList Divided="true" Hoverable="true">
+            @foreach (var todo in Todos)
+            {
+                <ItemListItem @key="todo.Id" AlignStart="true" Description="@($"{todo.Code}{(todo.Returned ? " · 被退回" : "")}")">
+                    <Start><StatusDot Tone="todo.Returned ? Tone.Warning : Tone.Accent" /></Start>
+                    <TitleContent><TextLink Href="@($"#{todo.Code}")">@todo.Node</TextLink></TitleContent>
+                    <End><DeadlineBadge Due="todo.Due" Today="Today" /></End>
+                </ItemListItem>
+            }
+        </ItemList>
+    </ChildContent>
+</Card>
+
+@code {
+    static readonly DateOnly Today = new(2026, 10, 21);
+
+    static readonly (int Id, string Node, string Code, DateOnly Due, bool Returned)[] Todos =
+    [
+        (1, "资料审核", "PO-2026-0187", new(2026, 10, 23), false),
+        (2, "方案设计", "PO-2026-0214", new(2026, 10, 16), true),
+        (3, "财务复核", "PO-2026-0233", new(2026, 11, 4), false),
+    ];
+}

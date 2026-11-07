@@ -1,0 +1,61 @@
+@inherits RuneComponent
+
+@* 开始日加几个工作日，按工作日历跳过节假日：国庆前后开始的几件事，只按周末算与按工作日历（放假、调休补班）对照 *@
+<Table Density="TableDensity.Compact" aria-label="国庆前后开始的事项">
+    <TableHead>
+        <TableRow>
+            <TableHeaderCell>事项</TableHeaderCell>
+            <TableHeaderCell>开始</TableHeaderCell>
+            <TableHeaderCell Align="TableAlign.End">时限</TableHeaderCell>
+            <TableHeaderCell>只按周末</TableHeaderCell>
+            <TableHeaderCell>按工作日历</TableHeaderCell>
+        </TableRow>
+    </TableHead>
+    <TableBody>
+        @foreach (var row in Rows)
+        {
+            <TableRow @key="row.Code">
+                <TableCell>
+                    <Flex Direction="LayoutDirection.Column">
+                        <TextSpan>@row.Name</TextSpan>
+                        <Small Tone="TextTone.Muted">@row.Code</Small>
+                    </Flex>
+                </TableCell>
+                <TableCell NoWrap="true"><TextSpan Numeric="true">@Iso(row.Start)</TextSpan></TableCell>
+                <TableCell Align="TableAlign.End" NoWrap="true"><TextSpan Numeric="true">@row.Workdays 个工作日</TextSpan></TableCell>
+                <TableCell NoWrap="true">
+                    <Small Tone="TextTone.Muted">@Iso(WorkCalendar.Weekdays.AddWorkdays(row.Start, row.Workdays))</Small>
+                    <DeadlineBadge Start="row.Start" Workdays="row.Workdays" Today="Today" />
+                </TableCell>
+                <TableCell NoWrap="true">
+                    <RuneProvider WorkCalendar="Holidays">
+                        <Small Tone="TextTone.Muted">@Iso(Holidays.AddWorkdays(row.Start, row.Workdays))</Small>
+                        <DeadlineBadge Start="row.Start" Workdays="row.Workdays" Today="Today" />
+                    </RuneProvider>
+                </TableCell>
+            </TableRow>
+        }
+    </TableBody>
+</Table>
+
+@code {
+    static readonly DateOnly Today = new(2026, 10, 9);
+
+    static readonly WorkCalendar Holidays = new()
+    {
+        Holidays = [.. WorkCalendar.Range(new(2026, 10, 1), new(2026, 10, 8))],
+        Workdays = [new(2026, 9, 27), new(2026, 10, 10)],
+    };
+
+    static readonly (string Name, string Code, DateOnly Start, int Workdays)[] Rows =
+    [
+        ("资料审核", "PO-2026-0187", new(2026, 9, 28), 3),
+        ("财务复核", "PO-2026-0233", new(2026, 9, 28), 10),
+        ("方案评审", "PO-2026-0214", new(2026, 9, 25), 5),
+        ("供应商报价回复", "PO-2026-0102", new(2026, 9, 30), 2),
+        ("验收结论确认", "PO-2026-0308", new(2026, 10, 9), 1),
+        ("计划调整审批", "PO-2026-0276", new(2026, 10, 8), 5),
+    ];
+
+    static string Iso(DateOnly day) => day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+}

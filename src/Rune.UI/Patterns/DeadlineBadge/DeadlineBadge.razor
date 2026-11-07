@@ -1,0 +1,83 @@
+@*
+    时限标记（同 vue-tsx-pro 的 DeadlineBadge）：按工作日算还剩几天、今天到期、超时几天，颜色随状态（超时 Danger、今天到期与快到期 Warning、
+    还早 Neutral、按时完成 Success、超时完成 Danger）。用在收件箱、待办、各种有时限的列表里。
+    <DeadlineBadge Due="item.DueOn" />                             截止日直接给
+    <DeadlineBadge Start="verifiedOn" Workdays="10" />             开始日加几个工作日（验收完成后 10 个工作日内付款）
+    <DeadlineBadge Due="item.DueOn" Done="item.CompletedOn" />     完成了按完成那天算
+    工作日按 UIConfig.WorkCalendar（AddRuneUI 或 RuneProvider 给的法定节假日与调休），没给时只按周末。今天默认取语言时区的今天，
+    业务以服务器的日期为准时传 Today。悬停与读屏有完整说明（截止日）。没有截止日时什么都不画。未声明的属性落到 Badge 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@if (Current is { } deadline)
+{
+    var lang = Config.Lang.Patterns;
+    var on = lang.DeadlineOn(deadline.Due.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+    var late = deadline.State == DeadlineState.Done && deadline.Remaining < 0;
+    <Badge Variant="Variant" Size="Size" Radius="Radius" Tone="late ? Tone.Danger : ToneOf(deadline.State)" @attributes="Attrs.MergeProps(null, Rest)"
+           title="@on" data-state="@deadline.State.ToString().ToLowerInvariant()">
+        @Label(deadline)
+        @* title 读屏不一定念：截止日另写一份给读屏 *@
+        <VisuallyHidden> @on</VisuallyHidden>
+    </Badge>
+}
+
+@code {
+    /// <summary>截止日；与 <see cref="Start"/> + <see cref="Workdays"/> 二选一。</summary>
+    [Parameter] public DateOnly? Due { get; set; }
+
+    /// <summary>开始日：截止日是它加 <see cref="Workdays"/> 个工作日。</summary>
+    [Parameter] public DateOnly? Start { get; set; }
+
+    /// <summary>开始日之后几个工作日截止。</summary>
+    [Parameter] public int? Workdays { get; set; }
+
+    /// <summary>完成的日期：完成了按完成那天算，显示按时或超时完成。</summary>
+    [Parameter] public DateOnly? Done { get; set; }
+
+    /// <summary>今天，默认取语言时区的今天。</summary>
+    [Parameter] public DateOnly? Today { get; set; }
+
+    /// <summary>剩下几个工作日以内算快到期（Warning），默认 2。</summary>
+    [Parameter] public int Soon { get; set; } = 2;
+
+    /// <summary>样式，默认浅色底。</summary>
+    [Parameter] public StatusVariant? Variant { get; set; }
+
+    /// <summary>字号档位，默认 Xs。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>圆角，默认 Sm。</summary>
+    [Parameter] public Radius? Radius { get; set; }
+
+    Deadline? Current
+    {
+        get
+        {
+            var calendar = Config.WorkCalendar;
+            var due = Due ?? (Start is { } start && Workdays is { } workdays ? calendar.AddWorkdays(start, workdays) : (DateOnly?)null);
+            return due is { } day ? calendar.DeadlineOf(day, Today ?? LocalToday(), Done, Soon) : null;
+        }
+    }
+
+    static Tone ToneOf(DeadlineState state) => state switch
+    {
+        DeadlineState.Overdue => Tone.Danger,
+        DeadlineState.Soon or DeadlineState.Due => Tone.Warning,
+        DeadlineState.Done => Tone.Success,
+        _ => Tone.Neutral,
+    };
+
+    string Label(Deadline deadline)
+    {
+        var lang = Config.Lang.Patterns;
+        return deadline.State switch
+        {
+            DeadlineState.Overdue => lang.DeadlineOverdue(-deadline.Remaining),
+            DeadlineState.Due => lang.DeadlineDue,
+            DeadlineState.Done => deadline.Remaining < 0 ? lang.DeadlineDoneLate(-deadline.Remaining) : lang.DeadlineDone,
+            _ => lang.DeadlineRemaining(deadline.Remaining),
+        };
+    }
+}

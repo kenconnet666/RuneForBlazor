@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+@* 状态色点：六种色调、两种大小；点本身就是信息时写 Label（读屏念），否则只是装饰 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true" Align="ItemAlign.Center">
+        @foreach (var tone in Tones)
+        {
+            <Flex @key="tone" Inline="true" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                <StatusDot Tone="tone" />
+                <Small>@tone.ToString().ToLowerInvariant()</Small>
+            </Flex>
+        }
+    </Flex>
+    <Flex Gap="SpaceScale.Lg" Align="ItemAlign.Center">
+        <Flex Inline="true" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+            <StatusDot Size="StatusDotSize.Md" Color="@("#8e4ec6")" />
+            <Small>Size="Md"，任意颜色（图例）</Small>
+        </Flex>
+        <Flex Inline="true" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+            <StatusDot Tone="Tone.Danger" Label="未读" />
+            <Small>写了 Label：读屏念“未读”</Small>
+        </Flex>
+    </Flex>
+</Flex>
+
+@code {
+    static readonly Tone[] Tones = [Tone.Accent, Tone.Info, Tone.Success, Tone.Warning, Tone.Danger, Tone.Neutral];
+}
