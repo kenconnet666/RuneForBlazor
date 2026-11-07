@@ -52,7 +52,10 @@ public sealed record ItemListLook(bool Divided = false, bool Hoverable = false, 
 /// <param name="Look">列表给的外观。</param>
 /// <param name="HasStart">有起始边。</param>
 /// <param name="AlignStart">起始边、结束边贴着第一行。</param>
-public readonly record struct ItemListAppearance(ItemListLook Look, bool HasStart, bool AlignStart) : IAppearance
+/// <param name="Interactive">整条可点（标题是链接或按钮）。</param>
+/// <param name="Selected">正在看的一条：选中色的底色。</param>
+/// <param name="Disabled">整条可点时不可用：变淡、点不了。</param>
+public readonly record struct ItemListAppearance(ItemListLook Look, bool HasStart, bool AlignStart, bool Interactive = false, bool Selected = false, bool Disabled = false) : IAppearance
 {
     IEnumerable<Enum?> IAppearance.Variants => [Look.Density, Look.Inset];
 }
@@ -72,13 +75,62 @@ public static class ItemListStyles
                 a.AlignStart ? AlignStart : null,
                 a.Look.Divided ? Divided : null,
                 a.Look.Hoverable ? ItemStyles.Hoverable : null,
-                a.Look.Inset is { } inset ? ScaleStyles.PaddingInline(inset) : null),
+                a.Look.Inset is { } inset ? ScaleStyles.PaddingInline(inset) : null,
+                a.Interactive ? Interactive : null,
+                a.Selected ? Selected : null,
+                a.Interactive && a.Disabled ? Disabled : null),
             ItemListPart.Start => a.AlignStart ? StartAligned : Sx.Of(),
             ItemListPart.Body => Body,
             ItemListPart.Title => Title,
             ItemListPart.Description => Description,
-            _ => End,
+            _ => a.Interactive ? Sx.Of(End, Raised) : End,
         });
+
+    /// <summary>整条可点时标题的链接或按钮：看起来就是标题，伸展盖住整条；选中时带 aria-current。</summary>
+    internal static Attrs Action(bool selected) => selected ? SelectedAction : PlainAction;
+
+    static readonly Attrs PlainAction = new() { Sx = ActionStyle, ["data-item-action"] = true };
+    static readonly Attrs SelectedAction = new() { Sx = ActionStyle, ["data-item-action"] = true, ["aria-current"] = "true" };
+
+    // 整条可点：悬停着底色；焦点在标题的链接或按钮上时整条画焦点环
+    static Style Interactive => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        BorderRadius = Radii.Sm,
+        OutlineStyle = OutlineStyle.None,
+        OutlineWidth = BorderWidths.Sm,
+        OutlineColor = Colors.FocusRing,
+        OutlineOffset = $"calc(-1 * {BorderWidths.Sm})",
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
+        [When.Has("[data-item-action]:focus-visible")] = new() { OutlineStyle = OutlineStyle.Solid },
+    });
+
+    static Style Selected => Css.Define(static () => new Style
+    {
+        BackgroundColor = Tones.Accent.Soft,
+        [When.Hover] = new() { BackgroundColor = Tones.Accent.SoftHover },
+    });
+
+    static Style Disabled => Css.Define(static () => new Style { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed });
+
+    // 标题的链接或按钮：::after 伸展盖住整条，点哪里都等于点它；按钮为波纹定了位，改回 static，伸展层才以整条（li）为准
+    static Style ActionStyle => Css.Define(static () => new Style
+    {
+        Position = Position.Static,
+        Display = Display.Block,
+        Width = CssLength.Percent(100),
+        Padding = 0,
+        Color = CssWide.Inherit,
+        TextAlign = TextAlign.Start,
+        TextDecorationLine = TextDecorationLine.None,
+        OutlineStyle = OutlineStyle.None,
+        Cursor = CssWide.Inherit,
+        [When.FocusVisible] = new() { OutlineStyle = OutlineStyle.None },
+        [Pseudo.After] = new() { Content = "\"\"", Position = Position.Absolute, Inset = 0 },
+    });
+
+    // 结束边的操作叠在伸展的标题上面，照常可点
+    static Style Raised => Css.Define(static () => new Style { Position = Position.Relative, ZIndex = 1 });
 
     static Style List => Css.Define(static () => new Style
     {

@@ -10,10 +10,16 @@
                 <Code>ItemListItem</Code> 的 <Code>Start</Code>、<Code>Title</Code>、<Code>Description</Code>、<Code>End</Code> 四块排成一行；<Code>Divided</Code>
                 在条目之间画线，<Code>Hoverable</Code> 悬停着底色，<Code>AlignStart</Code> 让色点贴着标题那一行。正文里的列表（圆点、编号）用 List。
             </Example>
+            <Example Id="notifications" Title="通知列表：整条是链接" Demo="typeof(NotificationsExample)">
+                <Code>Href</Code> 时标题是链接，伸展盖住整条，点哪里都打开；悬停着底色，焦点环画在整条上。结束边的操作（标为已读）是独立的按钮，叠在上面照常可点。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="dots" Title="状态色点" Demo="typeof(DotsExample)">
                 <Code>StatusDot</Code> 比 Badge 轻，标出未读、新到、退回、图例。色调与 Badge 同名，<Code>Color</Code> 给任意颜色；点本身就是信息时写 <Code>Label</Code>，否则对读屏隐藏。
+            </Example>
+            <Example Id="selectable" Title="可选中的行" Demo="typeof(SelectableExample)">
+                <Code>OnSelect</Code> 时标题是按钮，整条可点；<Code>Selected</Code> 是正在看的一条（主从视图左边的列表、收件箱）：选中色的底色，按钮带 aria-current。<Code>Disabled</Code> 的一条变淡、点不了。标题的按钮、链接经 <Code>PropsButton</Code>、<Code>PropsLink</Code> 改。
             </Example>
         </ExampleColumn>
     </Examples>

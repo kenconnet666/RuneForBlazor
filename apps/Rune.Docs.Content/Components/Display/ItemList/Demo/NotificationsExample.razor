@@ -1,0 +1,41 @@
+@inherits RuneComponent
+
+@* 通知列表：整条是链接（Href），点哪里都打开；结束边的“标为已读”是独立的按钮，叠在上面照常可点 *@
+<Card Padding="SpaceScale.Xs">
+    <ItemList Divided="true" Inset="SpaceScale.Sm">
+        @foreach (var item in items)
+        {
+            <ItemListItem @key="item.Id" AlignStart="true" Title="@item.Title" Description="@item.From" Href="@($"#notice-{item.Id}")">
+                <Start><StatusDot Tone="@(item.Read ? Tone.Neutral : Tone.Accent)" Label="@(item.Read ? null : "未读")" /></Start>
+                <End>
+                    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                        <Small Tone="TextTone.Muted">@item.Time</Small>
+                        @if (!item.Read)
+                        {
+                            <IconButton Icon="Lucide.Check" Size="Size.Sm" Variant="ButtonVariant.Ghost" Label="@($"把“{item.Title}”标为已读")"
+                                        @onclick="() => item.Read = true" />
+                        }
+                    </Flex>
+                </End>
+            </ItemListItem>
+        }
+    </ItemList>
+</Card>
+
+@code {
+    sealed class Notice(int id, string title, string from, string time, bool read)
+    {
+        public int Id { get; } = id;
+        public string Title { get; } = title;
+        public string From { get; } = from;
+        public string Time { get; } = time;
+        public bool Read { get; set; } = read;
+    }
+
+    readonly Notice[] items =
+    [
+        new(1, "新的待办：资料审核", "PO-2026-0187 · 办公椅供应商切换", "09:42", false),
+        new(2, "被退回：方案设计", "验收报告缺少试验报告", "08:10", false),
+        new(3, "已通过：财务复核", "PO-2026-0233 · 显示器支架", "昨天", true),
+    ];
+}

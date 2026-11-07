@@ -1,0 +1,46 @@
+@inherits RuneComponent
+
+@* 可选中的行：主从视图左边的列表，点一条在右边看详情；正在看的一条是选中色，按钮带 aria-current *@
+<Flex Gap="SpaceScale.Md" Wrap="true">
+    <Card Padding="SpaceScale.Xs" Sx="ListArea">
+        <ItemList aria-label="文件夹" Inset="SpaceScale.Sm">
+            @foreach (var folder in folders)
+            {
+                <ItemListItem @key="folder.Id" Title="@folder.Name" Selected="@(folder.Id == current)" Disabled="folder.Disabled"
+                              OnSelect="() => current = folder.Id">
+                    <Start><Icon Data="folder.Icon" Tone="TextTone.Muted" /></Start>
+                    <End>
+                        @if (folder.Count > 0)
+                        {
+                            <Badge Radius="Radius.Full">@folder.Count</Badge>
+                        }
+                    </End>
+                </ItemListItem>
+            }
+        </ItemList>
+    </Card>
+    <Card Sx="DetailArea">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Strong>@Current.Name</Strong>
+            <Small Tone="TextTone.Muted">@Current.Note</Small>
+        </Flex>
+    </Card>
+</Flex>
+
+@code {
+    static readonly (string Id, string Name, IconData Icon, int Count, string Note, bool Disabled)[] folders =
+    [
+        ("inbox", "收件箱", Lucide.Inbox, 12, "12 封未读", false),
+        ("projects", "项目", Lucide.FolderKanban, 3, "3 个进行中", false),
+        ("sent", "已发送", Lucide.Send, 0, "最近一封在 10:42", false),
+        ("trash", "回收站", Lucide.Trash, 0, "30 天后自动清空", true),
+    ];
+
+    string current = "inbox";
+
+    (string Id, string Name, IconData Icon, int Count, string Note, bool Disabled) Current => folders.First(folder => folder.Id == current);
+
+    static Style ListArea => Css.Define(static () => new Style { FlexBasis = CssLength.Rem(14), FlexGrow = 1 });
+
+    static Style DetailArea => Css.Define(static () => new Style { FlexBasis = CssLength.Rem(16), FlexGrow = 2 });
+}

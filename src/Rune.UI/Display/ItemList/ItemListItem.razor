@@ -1,12 +1,18 @@
 @*
     条目列表的一条（li，同 vue-tsx-pro 的 ItemListItem）：起始边（Start）、标题与说明、结束边（End）；ChildContent 排在说明下面。
     标题与说明放不下时换行；AlignStart 让起始边、结束边贴着第一行（多行内容、色点对齐标题）。未声明的属性落到 li 上。
+    整条可点：写 Href（标题是链接）或 OnSelect（标题是按钮），标题伸展盖住整条，点哪里都一样；结束边的操作叠在上面照常可点。
+    Selected 是正在看的一条（主从视图左边的列表、收件箱）：选中色的底色，链接或按钮带 aria-current。焦点环画在整条上。
+    <ItemListItem Title="@mail.Subject" Description="@mail.From" Selected="@(mail.Id == current)" OnSelect="() => current = mail.Id" />
 *@
 @namespace Rune.UI
 @inherits UIComponent
-@{ var parts = ItemListStyles.Of(new(Look ?? ItemListLook.Default, Start is not null, AlignStart), Config.Styles); }
+@{
+    var interactive = Href is not null || OnSelect.HasDelegate;
+    var parts = ItemListStyles.Of(new(Look ?? ItemListLook.Default, Start is not null, AlignStart, interactive, Selected, Disabled), Config.Styles);
+}
 
-<li @attributes="Attrs.Merge(parts[ItemListPart.Item], Rest)">
+<li data-selected="@(Selected ? "true" : null)" data-disabled="@(interactive && Disabled ? "true" : null)" @attributes="Attrs.Merge(parts[ItemListPart.Item], Rest)">
     @if (Start is not null)
     {
         <span @attributes="Attrs.Merge(parts[ItemListPart.Start])">@Start</span>
@@ -14,7 +20,7 @@
     <span @attributes="Attrs.Merge(parts[ItemListPart.Body])">
         @if (TitleContent is not null || Title is not null)
         {
-            <span @attributes="Attrs.Merge(parts[ItemListPart.Title], PropsTitle)">@(TitleContent ?? (RenderFragment)(b => b.AddContent(0, Title)))</span>
+            <span @attributes="Attrs.Merge(parts[ItemListPart.Title], PropsTitle)">@ActionOf(TitleContent ?? (b => b.AddContent(0, Title)))</span>
         }
         @if (DescriptionContent is not null || Description is not null)
         {
@@ -57,5 +63,33 @@
     /// <summary>说明的部件属性。</summary>
     [Parameter] public Attrs? PropsDescription { get; set; }
 
+    /// <summary>整条是链接：标题渲染成链接，盖住整条。</summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>整条是按钮：点了这一条（主从视图里选中、打开详情）；标题渲染成按钮，盖住整条。</summary>
+    [Parameter] public EventCallback<MouseEventArgs> OnSelect { get; set; }
+
+    /// <summary>正在看的一条：选中色的底色，整条可点时链接或按钮带 aria-current。</summary>
+    [Parameter] public bool Selected { get; set; }
+
+    /// <summary>整条可点时不可用：变淡、点不了。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>整条是链接时，标题那个 TextLink 的部件属性。</summary>
+    [Parameter] public Attrs? PropsLink { get; set; }
+
+    /// <summary>整条是按钮时，标题那个 ButtonBase 的部件属性。</summary>
+    [Parameter] public Attrs? PropsButton { get; set; }
+
     [CascadingParameter] ItemListLook? Look { get; set; }
+
+    // 标题：整条可点时包成伸展的链接或按钮
+    RenderFragment ActionOf(RenderFragment title)
+    {
+        if (Href is not null && !Disabled)
+            return @<TextLink href="@Href" Underline="LinkUnderline.None" @attributes="Attrs.MergeProps(ItemListStyles.Action(Selected), PropsLink)">@title</TextLink>;
+        if (OnSelect.HasDelegate)
+            return @<ButtonBase Ripple="false" Disabled="Disabled" @onclick="OnSelect" @attributes="Attrs.MergeProps(ItemListStyles.Action(Selected), PropsButton)">@title</ButtonBase>;
+        return title;
+    }
 }
