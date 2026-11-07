@@ -14,6 +14,9 @@ interface IRadioGroup<TValue>
     /// <summary>选中时的色调。</summary>
     Tone Tone { get; }
 
+    /// <summary>卡片外观。</summary>
+    bool Card { get; }
+
     /// <summary>整组不可用。</summary>
     bool GroupDisabled { get; }
 

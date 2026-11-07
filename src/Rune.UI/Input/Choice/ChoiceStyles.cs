@@ -23,6 +23,9 @@ public enum ChoicePart
     /// <summary>文字下面的说明。</summary>
     Description,
 
+    /// <summary>结束边的内容（价格、标记）。</summary>
+    End,
+
     /// <summary>复选组、单选组的外层。</summary>
     Group,
 }
@@ -45,7 +48,8 @@ public enum ChoiceKind
 /// <param name="Size">字号档位（方框、圆、开关随之缩放）；null 时继承上下文字号。</param>
 /// <param name="Tone">选中时的色调。</param>
 /// <param name="ReadOnly">只读：外观照常（看得清选了什么），只是不像能点。</param>
-public readonly record struct ChoiceAppearance(ChoiceKind Kind, Size? Size, Tone Tone, bool ReadOnly = false) : IAppearance
+/// <param name="Card">卡片外观：整块是一张带边框的卡片，选中时边框与浅底换成色调色。</param>
+public readonly record struct ChoiceAppearance(ChoiceKind Kind, Size? Size, Tone Tone, bool ReadOnly = false, bool Card = false) : IAppearance
 {
     IEnumerable<Enum?> IAppearance.Variants => [Kind, Size, Tone];
 }
@@ -60,7 +64,7 @@ public static class ChoiceStyles
     public static PartLayers<ChoicePart> Of(ChoiceAppearance appearance, ComponentStyles styles) =>
         Recipe.Of("choice", appearance, styles, static (ChoiceAppearance a, ChoicePart part) => part switch
         {
-            ChoicePart.Root => Sx.Of(Root, SharedStyles.ToneFill(a.Tone), a.ReadOnly ? ReadOnlyRoot : null, a.Size is { } size ? ScaleStyles.FontSize(size) : null),
+            ChoicePart.Root => Sx.Of(Root, SharedStyles.ToneFill(a.Tone), a.ReadOnly ? ReadOnlyRoot : null, a.Size is { } size ? ScaleStyles.FontSize(size) : null, a.Card ? CardRoot : null),
             ChoicePart.Control => Control,
             ChoicePart.Input => Sx.Of(
                 Input,
@@ -80,15 +84,24 @@ public static class ChoiceStyles
                 ChoiceKind.Switch => Thumb,
                 _ => Check,
             },
-            ChoicePart.Label => Label,
+            ChoicePart.Label => a.Card ? Sx.Of(Label, CardLabel) : Label,
             ChoicePart.Description => Description,
+            ChoicePart.End => End,
             _ => Sx.Of(),
         });
 
-    /// <summary>复选组、单选组外层的默认层：竖排或横排（放不下时换行）。</summary>
-    public static PartLayers<ChoicePart> Group(Orientation orientation, ComponentStyles styles) =>
-        Recipe.Of("choice", orientation, styles, static (Orientation orientation, ChoicePart part) =>
-            part == ChoicePart.Group ? (orientation == Orientation.Horizontal ? HorizontalGroup : VerticalGroup) : Sx.Of());
+    /// <summary>
+    /// 复选组、单选组外层的默认层：竖排或横排（放不下时换行）；卡片外观时排成栅格，横排按 <see cref="CardMinItemWidth"/> 分列。
+    /// </summary>
+    public static PartLayers<ChoicePart> Group(Orientation orientation, bool card, ComponentStyles styles) =>
+        Recipe.Of("choice", (orientation, card), styles, static ((Orientation Orientation, bool Card) k, ChoicePart part) => part != ChoicePart.Group
+            ? Sx.Of()
+            : k.Orientation == Orientation.Horizontal
+                ? Sx.Of(HorizontalGroup, k.Card ? CardGroup : null, k.Card ? CardColumns : null)
+                : Sx.Of(VerticalGroup, k.Card ? CardGroup : null));
+
+    /// <summary>卡片外观横排时每张的最小宽度（写在组上的变量）。</summary>
+    public static readonly CssVar<CssLength> CardMinItemWidth = CssVar.Length("rune-choice-min-item-width");
 
     // 控件与文字一行，整块可点；点击区域不小于 24px（WCAG 2.5.8）
     static Style Root => Css.Define(static () => new Style
@@ -279,6 +292,48 @@ public static class ChoiceStyles
 
     static Style Description => Css.Define(static () => new Style { Color = Colors.TextMuted, FontSize = CssLength.Em(0.875) });
 
+    static Style End => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Xs,
+        FlexShrink = 0,
+        MarginInlineStart = CssLength.Auto,
+    });
+
+    // 卡片外观（套餐、配送方式、模板）：整块是一张卡片，悬停时描边加深；选中（里面的 input 勾上）时边框与浅底换成色调色，悬停也不变
+    static Style CardRoot => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        Width = CssLength.Percent(100),
+        Gap = Space.Sm,
+        PaddingBlock = Space.Md,
+        PaddingInline = Space.Md,
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = Colors.Border,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.Surface,
+        Transition = $"background-color {Durations.Sm} {Easings.Standard}, border-color {Durations.Sm} {Easings.Standard}",
+        [When.Hover] = new() { BorderColor = Colors.BorderStrong },
+        [When.Has("input:checked")] = new()
+        {
+            BorderColor = SharedStyles.FillColor,
+            BackgroundColor = $"color-mix(in oklab, {SharedStyles.FillColor} 8%, {Colors.Surface})",
+            [When.Hover] = new() { BorderColor = SharedStyles.FillColor },
+        },
+    });
+
+    static Style CardLabel => Css.Define(static () => new Style { FlexGrow = 1 });
+
+    // 排在横排、竖排的 flex 后面，盖过它
+    static Style CardGroup => Css.Define(static () => new Style { Display = Display.Grid, Gap = Space.Sm });
+
+    static Style CardColumns => Css.Define(static () => new Style
+    {
+        GridTemplateColumns = $"repeat(auto-fill, minmax(min({CardMinItemWidth.Reference}, 100%), 1fr))",
+    });
+
     static Style VerticalGroup => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Xs });
 
     static Style HorizontalGroup => Css.Define(static () => new Style
@@ -295,4 +350,5 @@ public static class ChoiceStyles
 /// <param name="Name">表单提交时各项共用的 name。</param>
 /// <param name="State">整组的不可用、只读、校验未通过。</param>
 /// <param name="Toggle">勾选或取消一个值。</param>
-public sealed record CheckboxGroupState(IReadOnlyList<string> Checked, string? Name, InheritedControlState State, Func<string, Task> Toggle);
+/// <param name="Card">卡片外观：组里的复选框都跟着（各项写了 Card 时以各项为准）。</param>
+public sealed record CheckboxGroupState(IReadOnlyList<string> Checked, string? Name, InheritedControlState State, Func<string, Task> Toggle, bool Card = false);

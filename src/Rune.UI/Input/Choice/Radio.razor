@@ -6,7 +6,7 @@
 @typeparam TValue
 @inherits UIComponent
 @{
-    var parts = ChoiceStyles.Of(new ChoiceAppearance(ChoiceKind.Radio, Size ?? Group?.Size, Group?.Tone ?? Tone.Accent, Group?.GroupReadOnly == true), Config.Styles);
+    var parts = ChoiceStyles.Of(new ChoiceAppearance(ChoiceKind.Radio, Size ?? Group?.Size, Group?.Tone ?? Tone.Accent, Group?.GroupReadOnly == true, Card ?? Group?.Card == true), Config.Styles);
     var selected = Group?.IsSelected(Value) == true;
     var off = Disabled || Group?.GroupDisabled == true;
 }
@@ -27,6 +27,10 @@
                 <span id="@descriptionId" @attributes="Attrs.Merge(parts[ChoicePart.Description])">@Description</span>
             }
         </span>
+    }
+    @if (End is not null)
+    {
+        <span @attributes="Attrs.Merge(parts[ChoicePart.End], PropsEnd)">@End</span>
     }
 </label>
 
@@ -53,6 +57,15 @@
 
     /// <summary>文字。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>卡片外观；不写时跟随所在的组。</summary>
+    [Parameter] public bool? Card { get; set; }
+
+    /// <summary>结束边的内容（价格、标记），卡片外观时常用。</summary>
+    [Parameter] public RenderFragment? End { get; set; }
+
+    /// <summary>结束边内容外层的部件属性。</summary>
+    [Parameter] public Attrs? PropsEnd { get; set; }
 
     /// <summary>文字的部件属性。</summary>
     [Parameter] public Attrs? PropsLabel { get; set; }

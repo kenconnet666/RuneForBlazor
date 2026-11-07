@@ -7,6 +7,7 @@
         </RadioGroup>
     </Field>
     选项来自数据时写 Items（与 ToOption）：<RadioGroup Items="periods" @bind-Value="period" Orientation="Orientation.Horizontal" />
+    带说明与价格的选项用卡片外观：<RadioGroup Card="true" …><Radio Value="…" Description="…" End="…">…</Radio></RadioGroup>
     同一组的原生 radio 共用一个 name：Tab 只停在选中项，方向键在组内移动并选中，都是浏览器的原生行为。
     组以所在 Field 的标签为名称（aria-labelledby），不在 Field 里时写 aria-label。
 *@
@@ -17,7 +18,7 @@
 @implements IRadioGroup<TValue>
 
 <CascadingValue Value="this">
-    <div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Config.Styles)[ChoicePart.Group], Rest, RootAttrs)">
+    <div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Card, Config.Styles)[ChoicePart.Group], Rest, RootAttrs)">
         @if (ChildContent is not null)
         {
             @ChildContent
@@ -37,9 +38,17 @@
     readonly string autoName = UniqueId.Next("radio-group");
     // 校验未通过时各项的圆圈跟着标红（ChoiceStyles 里 When.Inside 的祖先标记）
     static readonly Attrs MarkerAttrs = new() { ["class"] = ChoiceStyles.GroupMarker.ClassName };
+    Memo<CssLength?, Attrs> columnsAttrs;
+    Memo<Attrs, Attrs> extraAttrs;
 
     /// <summary>排列方向，默认竖排。</summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
+
+    /// <summary>卡片外观：每项是一张带边框的卡片，选中时边框与底色换成色调色（套餐、配送方式）；组里的各项都跟着。</summary>
+    [Parameter] public bool Card { get; set; }
+
+    /// <summary>卡片外观横排时每张的最小宽度，放得下几张就几列；默认 14em。</summary>
+    [Parameter] public CssLength? MinItemWidth { get; set; }
 
     /// <summary>选中时的色调，默认品牌色。</summary>
     [Parameter] public Tone Tone { get; set; } = Tone.Accent;
@@ -59,7 +68,13 @@
     /// <summary>单选项（Radio）；不写时按 Items 生成。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    Attrs RootAttrs => GroupAttrs("radiogroup", Orientation, MarkerAttrs);
+    Attrs RootAttrs => GroupAttrs("radiogroup", Orientation, extraAttrs.Get(ColumnsAttrs, static columns => Attrs.Merge(MarkerAttrs, columns)));
+
+    // 卡片横排时每张的最小宽度写在组上
+    Attrs ColumnsAttrs => columnsAttrs.Get(Card && Orientation == Orientation.Horizontal ? MinItemWidth ?? CssLength.Em(14) : (CssLength?)null,
+        static width => width is { } w ? new Attrs { Vars = [ChoiceStyles.CardMinItemWidth.Set(w)] } : Attrs.Empty);
+
+    bool IRadioGroup<TValue>.Card => Card;
 
     string IRadioGroup<TValue>.GroupName => FieldName ?? autoName;
 

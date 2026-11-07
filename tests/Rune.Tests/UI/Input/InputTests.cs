@@ -169,6 +169,24 @@ public class InputTests : BunitContext
     }
 
     [Fact]
+    public void 卡片外观_组里各项跟着_选中按input的勾选_横排按最小宽度分列_结束边内容()
+    {
+        var cut = Render<RadioGroup<string>>(group => group
+            .Add(x => x.Card, true)
+            .Add(x => x.Orientation, Orientation.Horizontal)
+            .Add(x => x.MinItemWidth, Rune.Styles.CssLength.Rem(10))
+            .AddChildContent<Radio<string>>(radio => radio.Add(x => x.Value, "team").Add(x => x.End, b => b.AddContent(0, "¥99")).AddChildContent("团队版"))
+            .AddChildContent<Radio<string>>(radio => radio.Add(x => x.Value, "free").Add(x => x.Card, false).AddChildContent("个人版")));
+        var rules = Services.GetRequiredService<Rune.Styles.StyleRegistry>().Rules;
+        var labels = cut.FindAll("label");
+
+        Assert.Equal("--rune-choice-min-item-width:10rem", cut.Find("[role=radiogroup]").GetAttribute("style"));
+        Assert.Contains(rules, rule => labels[0].ClassList.Any(c => rule.Contains($".{c}:has(input:checked)")));
+        Assert.DoesNotContain(rules, rule => labels[1].ClassList.Any(c => rule.Contains($".{c}:has(input:checked)")));
+        Assert.Equal("¥99", cut.Find("[data-part=end]").TextContent);
+    }
+
+    [Fact]
     public void 原生下拉_按位置对应值_占位选项()
     {
         var cities = new[] { "北京", "上海" };

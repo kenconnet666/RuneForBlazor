@@ -1,0 +1,42 @@
+@inherits RuneComponent
+
+@* 卡片外观：每个选项是一张卡片，整块可点；选中时边框与底色换成色调色。套餐、配送方式、模板选择这类带说明与价格的选项 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Field Label="套餐">
+        <RadioGroup @bind-Value="plan" Card="true">
+            @foreach (var (id, name, price, detail) in plans)
+            {
+                <Radio @key="id" Value="id" Description="@detail" End="@Price(price, strong: true)"><Strong>@name</Strong></Radio>
+            }
+        </RadioGroup>
+    </Field>
+    <Field Label="附加服务" Description="可以多选，按月计费">
+        <CheckboxGroup TItem="string" @bind-Value="extras" Card="true" Orientation="Orientation.Horizontal">
+            @foreach (var (id, name, price, detail) in addons)
+            {
+                <Checkbox @key="id" GroupValue="@id" Description="@detail" End="@Price(price, strong: false)">@name</Checkbox>
+            }
+        </CheckboxGroup>
+    </Field>
+</Flex>
+
+@code {
+    static readonly (string Id, string Name, string Price, string Detail)[] plans =
+    [
+        ("free", "个人版", "免费", "3 个项目 · 1 GB 存储"),
+        ("team", "团队版", "¥99 / 月", "不限项目 · 50 GB · 10 人"),
+        ("business", "企业版", "¥499 / 月", "SSO 登录 · 审计日志 · 专属支持"),
+    ];
+
+    static readonly (string Id, string Name, string Price, string Detail)[] addons =
+    [
+        ("backup", "异地备份", "+¥20 / 月", "每天一次，保留 30 天"),
+        ("audit", "操作审计", "+¥50 / 月", "谁在什么时候改了什么"),
+    ];
+
+    string? plan = "team";
+
+    IReadOnlyList<string> extras = ["backup"];
+
+    static RenderFragment Price(string text, bool strong) => strong ? @<Strong>@text</Strong> : @<Small>@text</Small>;
+}

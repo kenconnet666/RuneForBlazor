@@ -1,0 +1,67 @@
+@inherits RuneComponent
+
+@* 长得不像按钮的按钮：可展开的标题（整行是按钮，aria-expanded 关联下面的内容）与账号按钮（头像、名字、角色）。
+   ButtonBase 只给行为、焦点环、波纹，外观由这里给出；要按钮外观时用 Button，要可选中的卡片时用 RadioGroup 的 Card *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Card Padding="SpaceScale.Xs">
+        <ButtonBase Sx="Heading" aria-expanded="@(open ? "true" : "false")" aria-controls="@bodyId" @onclick="() => open = !open">
+            <Strong>付款信息</Strong>
+            <Icon Data="Lucide.ChevronDown" Sx="@(open ? FlippedIcon : ChevronIcon)" />
+        </ButtonBase>
+        <Collapse @bind-Open="open" PropsContent="BodyContent">
+            <Paragraph Size="Size.Sm" Sx="Body">对公转账，收款账户与开票信息以合同为准；预付 30%，验收后 15 个工作日内付清。</Paragraph>
+        </Collapse>
+    </Card>
+    <ButtonBase Sx="Account" @onclick="() => switched++">
+        <Avatar Name="林小满" Size="Size.Sm" />
+        <Flex Direction="LayoutDirection.Column" Sx="Who">
+            <Strong>林小满</Strong>
+            <Small Tone="TextTone.Muted">采购部 · 管理员</Small>
+        </Flex>
+        <Icon Data="Lucide.ChevronsUpDown" Tone="TextTone.Muted" />
+    </ButtonBase>
+    <Small Tone="TextTone.Muted">@(switched > 0 ? $"点了 {switched} 次账号按钮（真实场景里打开账号菜单）" : "点账号按钮试试")</Small>
+</Flex>
+
+@code {
+    const string bodyId = "plain-demo-body";
+    static readonly Attrs BodyContent = new() { Id = bodyId };
+    static readonly Sx ChevronIcon = Sx.Of(DisclosureStyles.Icon);
+    static readonly Sx FlippedIcon = Sx.Of(DisclosureStyles.Icon, DisclosureStyles.Flip);
+
+    bool open = true;
+    int switched;
+
+    // 整行可点的标题：两端对齐，悬停时底色
+    static Style Heading => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        JustifyContent = JustifyContent.SpaceBetween,
+        Gap = Space.Sm,
+        Width = CssLength.Percent(100),
+        PaddingBlock = Space.Sm,
+        PaddingInline = Space.Md,
+        BorderRadius = Radii.Md,
+        TextAlign = TextAlign.Start,
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
+    });
+
+    static Style Body => Css.Define(static () => new Style { PaddingInline = Space.Md, PaddingBlockEnd = Space.Sm });
+
+    // 账号按钮：头像、两行文字、上下箭头
+    static Style Account => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Sm,
+        Width = CssLength.Percent(100),
+        MaxWidth = CssLength.Rem(18),
+        Padding = Space.Sm,
+        BorderRadius = Radii.Md,
+        TextAlign = TextAlign.Start,
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
+    });
+
+    static Style Who => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0 });
+}

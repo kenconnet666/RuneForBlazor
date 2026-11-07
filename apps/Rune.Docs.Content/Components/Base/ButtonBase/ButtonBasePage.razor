@@ -4,9 +4,9 @@
 @using Rune.Docs.Components.Base.ButtonBase.Demo
 
 <DocPage Meta="Meta" Wide="true">
-    <Example Id="plans" Title="自定义外观的按钮" Demo="typeof(PlansExample)">
+    <Example Id="plain" Title="长得不像按钮的按钮" Demo="typeof(PlainExample)">
         ButtonBase 去掉浏览器的默认样式，给出焦点环、按下的波纹、颜色过渡，默认 <Code>type="button"</Code>（不会意外提交表单）；外观全部经 <Code>Sx</Code> 给出。
-        选中状态用 <Code>aria-pressed</Code> 写给读屏，一组单选的卡片外面包 <Code>role="group"</Code> 与名称。要按钮外观时用 Button。
+        可展开的标题整行是按钮，<Code>aria-expanded</Code> 与 <Code>aria-controls</Code> 关联下面的内容；账号按钮里放头像与两行文字。要按钮外观时用 Button，可选中的卡片用 RadioGroup、CheckboxGroup 的 <Code>Card</Code>。
     </Example>
     <Examples>
         <ExampleColumn>

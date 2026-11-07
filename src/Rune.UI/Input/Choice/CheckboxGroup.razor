@@ -14,7 +14,7 @@
 @inherits FormControl<IReadOnlyList<string>>
 
 @* State 要在本组件的渲染里读（放在最外层）：嵌在别的 CascadingValue 的子内容里时由框架组件执行，读不到依赖，非受控时勾选变了组不会重新渲染 *@
-<div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Config.Styles)[ChoicePart.Group], Rest, RootAttrs)">
+<div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Card, Config.Styles)[ChoicePart.Group], Rest, RootAttrs)">
     <CascadingValue Value="State">
         <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
             @if (ChildContent is not null)
@@ -35,6 +35,7 @@
 
 @code {
     Memo<(IEnumerable<TItem> Items, Func<TItem, ListboxOption>? ToOption), IReadOnlyList<ListEntry<TItem>>> entries;
+    Memo<CssLength?, Attrs> columnsAttrs;
 
     /// <summary>各项：ListboxOption（值、文字、说明、不可用）、字符串，或任意数据加 ToOption；写了 ChildContent 时不用。</summary>
     [Parameter] public IEnumerable<TItem> Items { get; set; } = [];
@@ -45,6 +46,12 @@
     /// <summary>排列方向，默认竖排。</summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
 
+    /// <summary>卡片外观：每项是一张带边框的卡片，选中时边框与底色换成色调色（套餐、配送方式）；组里的各项都跟着。</summary>
+    [Parameter] public bool Card { get; set; }
+
+    /// <summary>卡片外观横排时每张的最小宽度，放得下几张就几列；默认 14em。</summary>
+    [Parameter] public CssLength? MinItemWidth { get; set; }
+
     /// <summary>复选框（写了 GroupValue 的 Checkbox）；不写时按 Items 生成。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -53,9 +60,13 @@
     IReadOnlyList<ListEntry<TItem>> Entries => entries.Get((Items, ToOption), static k => ListState.Entries(k.Items, k.ToOption));
 
     // 交给各项：每次渲染一个新实例，勾选变了时各项跟着重新渲染
-    Attrs RootAttrs => GroupAttrs("group", Orientation);
+    Attrs RootAttrs => GroupAttrs("group", Orientation, ColumnsAttrs);
 
-    CheckboxGroupState State => new(Checked, FieldName, new(IsDisabled, IsReadOnly, IsInvalid), ToggleAsync);
+    // 卡片横排时每张的最小宽度写在组上
+    Attrs ColumnsAttrs => columnsAttrs.Get(Card && Orientation == Orientation.Horizontal ? MinItemWidth ?? CssLength.Em(14) : (CssLength?)null,
+        static width => width is { } w ? new Attrs { Vars = [ChoiceStyles.CardMinItemWidth.Set(w)] } : Attrs.Empty);
+
+    CheckboxGroupState State => new(Checked, FieldName, new(IsDisabled, IsReadOnly, IsInvalid), ToggleAsync, Card);
 
     Task ToggleAsync(string value)
     {

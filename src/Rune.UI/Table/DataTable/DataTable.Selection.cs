@@ -49,6 +49,8 @@ public partial class DataTable<TItem>
 
         public Tone Tone => Tone.Accent;
 
+        public bool Card => false;
+
         public bool GroupDisabled => false;
 
         public bool GroupReadOnly => false;

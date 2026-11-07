@@ -1,19 +1,13 @@
 @inherits RuneComponent
 
+@* 单选：说明写在 Description（经 aria-describedby 关联），价格放在结束边（End） *@
+
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
     <Field Label="配送方式">
         <RadioGroup @bind-Value="shipping" Name="shipping">
             @foreach (var (value, title, time, price) in shippingOptions)
             {
-                <Radio Value="value">
-                    <Flex Justify="ContentJustify.Between" Gap="SpaceScale.Lg">
-                        <Flex Direction="LayoutDirection.Column">
-                            <Strong>@title</Strong>
-                            <Small Tone="TextTone.Muted">@time</Small>
-                        </Flex>
-                        <Small>@price</Small>
-                    </Flex>
-                </Radio>
+                <Radio Value="value" Description="@time" End="@Price(price)">@title</Radio>
             }
         </RadioGroup>
     </Field>
@@ -37,4 +31,6 @@
     string shipping = "express";
 
     string? invoice;
+
+    static RenderFragment Price(string text) => @<Small>@text</Small>;
 }

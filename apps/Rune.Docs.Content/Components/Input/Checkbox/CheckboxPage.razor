@@ -12,6 +12,9 @@
             <Example Id="items" Title="选项来自数据" Demo="typeof(ItemsExample)">
                 <Code>CheckboxGroup</Code>、<Code>RadioGroup</Code> 的 <Code>Items</Code> 同 Select：ListboxOption（值、文字、说明、不可用）、字符串，或任意数据加 <Code>ToOption</Code>，选项来自字典、接口时不用一个个写。<Code>Description</Code> 显示在文字下方，经 aria-describedby 关联；单独的 <Code>Checkbox</Code>、<Code>Radio</Code> 也能写。
             </Example>
+            <Example Id="cards" Title="卡片外观" Demo="typeof(CardsExample)">
+                组上写 <Code>Card</Code>：每个选项是一张卡片，整块可点，选中时边框与底色换成色调色（<Code>Tone</Code>），组里的每一项都跟着（单项也能写 <Code>Card</Code>）。横排时按宽度分列，每张不窄于 <Code>MinItemWidth</Code>（默认 14em）。<Code>End</Code> 放在结束边（价格、标记）。底下仍是原生 radio、checkbox：键盘、表单提交、读屏都不变。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="switch" Title="开关" Demo="typeof(SwitchExample)">
@@ -19,7 +22,7 @@
                 配合 <Code>ValueChanged</Code> 在接口回来后再改值。轨道里可以放图标或文字（<Code>CheckedContent</Code> / <Code>UncheckedContent</Code>），对读屏隐藏。
             </Example>
             <Example Id="radio" Title="单选" Demo="typeof(RadioExample)">
-                同一组的原生 radio 共用 name：Tab 只停在选中项，方向键在组内移动并选中，都是浏览器的原生行为。选项里可以放任意内容（说明、价格）；Orientation="Orientation.Horizontal" 横排。
+                同一组的原生 radio 共用 name：Tab 只停在选中项，方向键在组内移动并选中，都是浏览器的原生行为。说明写在 <Code>Description</Code>，价格这类放在结束边的写 <Code>End</Code>；<Code>Orientation.Horizontal</Code> 横排。
             </Example>
             <Example Id="validation" Title="必选与出错" Demo="typeof(ValidationExample)">
                 提交时才检查：Field 的 <Code>Required</Code> 标出必填，<Code>Error</Code> 让整组标红并把错误作为说明念出；单个复选框（同意条款）同样包在 Field 里显示错误。<Code>Orientation.Horizontal</Code> 让一组横排。
