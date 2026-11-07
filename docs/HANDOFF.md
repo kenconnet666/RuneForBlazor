@@ -82,6 +82,7 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 - 阶段 3（表格）基本完成（2026-11-07）：TableQuery / TableQueryState（DESIGN §13）；DataTable（列的子组件、排序、筛选、列菜单、列宽、分组表头、详情行、
   网格方向键与编辑、行拖动、虚拟滚动的表格模式、CSV）；SelectionBar、ColumnSettings、ColumnTable、TreeDataTable、PivotTable、FieldCompare 与 Diff。
   剩下：预渲染不重复取数、Drawer 的两个示例（等阶段 6 的 DeadlineBadge）。LocalSetting 是 usePersistentState 的对应物。
+- 阶段 4 开始（2026-11-07）：Rune.UI.Dates 包；DateTimeText、RelativeTime、Countdown、DateField、TimeField 与文档页。下一步 Calendar。
 - 单元测试约 600 个、端到端 220 个全过（本地全量跑过一次）；CI 也跑端到端。
 
 ## 下一步
@@ -93,6 +94,10 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 
 - 键盘尽量放 JS（初始化器 `Rune.UI.lib.module.js` 的事件委托 + `js/*.js` 模块），C# 只在需要状态时经 `rune-command` 收命令，避免 Server 模式每次按键往返。
 - Server 模式下 JS 要等 C# 渲染的元素时用 requestAnimationFrame 轮询（见 cascader.js 的 whenRendered），不要假设同步出现。
+- JS 要改 C# 渲染的内容时只改属性与文字节点本身（`nodeValue`），不换节点：Blazor 只在自己的输出变了时写 DOM，写回了就按 JS 的状态重画（date-segments.js）。
+- 小时制、地区惯例不要从 CultureInfo 的时间格式推：WebAssembly 的精简 ICU 没有地区数据，zh-CN 也是 12 小时制（`LangFormat.TwelveHour` 按 CLDR timeData）。
+- RenderFragment 与 string 放进同一个三元表达式会渲染出类型名：用 if / else（Countdown 踩过）。
+- 文档站 API 表的类型可以是抽象基类（SegmentedField），读默认值的实例是 null。
 - 组件转发参数给子组件时要显式声明（未声明的属性以字符串落到子组件，类型不对会抛异常）。
 - Razor 标记里的字面量 @ 写成 `@@`；带引号的 C# 表达式不要直接写在属性值里，挪到 @code 的属性上。
 - 分析器：RUNE006（用类型化常量）、RUNE007（Rune.UI 里不写 px）、RUNE008（lambda 不捕获循环变量）。
