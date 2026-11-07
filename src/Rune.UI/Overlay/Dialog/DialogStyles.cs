@@ -78,6 +78,11 @@ public sealed record DrawerDefaults : IComponentDefaults<DrawerDefaults>
 /// <summary>对话框与抽屉的样式（同 vue-tsx-pro 的 dialogRecipe、drawerRecipe 与 modalPartStyles）。</summary>
 public static class DialogStyles
 {
+    /// <summary>可拖动的对话框的标题栏：移动指针，触摸拖动不滚动页面（overlays.js 的 grabDialog 接住）。</summary>
+    internal static readonly Attrs DragHandle = new() { Sx = DragHandleStyle, ["data-rune-dialog-handle"] = true };
+
+    static Style DragHandleStyle => Css.Define(static () => new Style { Cursor = Cursor.Move, UserSelect = UserSelect.None, TouchAction = TouchAction.None });
+
     /// <summary>对话框（居中、淡入放大）的部件默认层。</summary>
     public static PartLayers<DialogPart> Dialog(DialogSize size, ComponentStyles styles) =>
         Recipe.Of("dialog", size, styles, static (DialogSize size, DialogPart part) => part switch

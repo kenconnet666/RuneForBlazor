@@ -1,0 +1,22 @@
+@inherits RuneComponent
+
+@* 可以拖动的对话框：核对数据时把它挪开，看后面被挡住的表格；按住标题栏拖，不超出窗口，下次打开回到正中 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Align="ItemAlign.Start">
+    <Button Variant="ButtonVariant.Outline" @onclick="() => open = true">核对付款信息</Button>
+    <Small Tone="TextTone.Muted">打开后按住标题栏拖动</Small>
+    <Dialog @bind-Open="open" Draggable="true" Title="付款信息">
+        <ChildContent>
+            <Descriptions Columns="1" Size="Size.Sm">
+                <DescriptionsItem Label="收款单位" Value="华辰精密机械有限公司" />
+                <DescriptionsItem Label="开户行" Value="招商银行上海张江支行" />
+                <DescriptionsItem Label="账号" Value="6214 8301 2233 4455" />
+                <DescriptionsItem Label="金额" Value="¥128,000.00" />
+            </Descriptions>
+        </ChildContent>
+        <Footer><Button @onclick="() => open = false">确认无误</Button></Footer>
+    </Dialog>
+</Flex>
+
+@code {
+    bool open;
+}

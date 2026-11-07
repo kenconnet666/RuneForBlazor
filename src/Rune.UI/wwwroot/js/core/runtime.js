@@ -37,7 +37,7 @@ import { grabResizeHandle, grabSplitter, keyResizeHandle, keySplitter, resetResi
 import { grabSlider, keySlider, watchSlider } from '../input/slider.js';
 import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './theme.js';
 import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './fullscreen.js';
-import { closeOnLink, closeOrRequest, focusArrivedContent, onDialogCancel, onDialogClose, onPopoverToggle, open, syncOpen, watchCloseWhen } from '../overlay/overlays.js';
+import { closeOnLink, closeOrRequest, focusArrivedContent, grabDialog, onDialogCancel, onDialogClose, onPopoverToggle, open, syncOpen, watchCloseWhen } from '../overlay/overlays.js';
 import { clickSubMenuTrigger, hoverSubMenu, leaveSubMenu, moveInMenu, openContextMenu, openMenuFromTrigger, rootMenuOf } from '../overlay/menus.js';
 import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from '../overlay/hover-layers.js';
 
@@ -77,6 +77,7 @@ export function install(blazor, on) {
   on('pointerdown', grabSortable);
   on('pointerdown', grabTab);
   on('pointerdown', grabToast);
+  on('pointerdown', grabDialog);
   on('dragenter', onFileDragEnter);
   on('dragleave', onFileDragLeave);
   on('drop', onFileDrop);

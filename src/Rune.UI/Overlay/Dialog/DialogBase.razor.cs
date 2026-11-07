@@ -116,6 +116,9 @@ public abstract partial class DialogBase
     /// <summary>子类给 dialog 元素的行内样式（拖动后的抽屉宽度）；没有时为 null。</summary>
     protected virtual string? RootInlineStyle => null;
 
+    /// <summary>标题行上由组件管理的属性（可拖动的对话框把它当把手）。</summary>
+    protected virtual Attrs? HeaderManaged => null;
+
     /// <summary>子类放在 dialog 里、各部件之后的内容（抽屉的宽度调整手柄）。</summary>
     protected virtual RenderFragment? Edge => null;
 

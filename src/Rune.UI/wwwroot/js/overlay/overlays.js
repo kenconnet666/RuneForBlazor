@@ -4,6 +4,7 @@ import { anchorFloating, releaseFloating } from './floating.js';
 import { listPopoverClosed, listPopoverOpened, syncTriggerExpanded } from '../input/lists.js';
 import { menuFocusTarget, openedByHover, restoreContextFocus } from './menus.js';
 import { TABBABLE } from '../core/shared.js';
+import { startMove } from '../core/move.js';
 
 // 受控浮层（data-open）报给 C# 但还没渲染回来的开关状态，按先后排队。渲染回来的 data-open 是这些旧状态的回响时不再照着开关：
 // 否则在往返期间用户又切换过（打开后马上按 Esc）时，迟到的“打开”回响会把已经关掉的浮层重新打开，再报一次，最后停在打开
@@ -40,6 +41,8 @@ function isOpen(overlay) {
 export function open(overlay) {
   if (!overlay.isConnected || isOpen(overlay)) return;
   if (overlay instanceof HTMLDialogElement) {
+    // 拖开过的对话框每次打开回到正中
+    overlay.style.translate = '';
     overlay.showModal();
     updateScrollLock();
     // 对话框打开不发 toggle（较新的浏览器才有），这里补一个
@@ -47,6 +50,35 @@ export function open(overlay) {
   } else {
     overlay.showPopover();
   }
+}
+
+/** 不能从标题栏上的这些元素开始拖（关闭按钮等照常点） */
+const NOT_A_HANDLE = 'button, a, input, select, textarea, [contenteditable]';
+
+/**
+ * 拖动的对话框（Dialog 的 Draggable，标题栏带 data-rune-dialog-handle）：按住标题栏挪开，拖到哪都不超出窗口。
+ * 位移写在 translate 上（不和进场动画的 transform 打架）；每次打开清掉（open）。
+ */
+export function grabDialog(event) {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const handle = target.closest('[data-rune-dialog-handle]');
+  const dialog = handle?.closest('dialog');
+  if (!dialog || target.closest(NOT_A_HANDLE)) return;
+  // 按下时整块还能往四边挪多少
+  const rect = dialog.getBoundingClientRect();
+  // 已经拖开过时从那里接着拖（没拖过是空字符串）
+  const [startX, startY] = [...dialog.style.translate.split(' ').map((part) => parseFloat(part) || 0), 0, 0];
+  const clamp = (value, low, high) => Math.min(Math.max(value, low), high);
+  event.preventDefault();
+  startMove(event, {
+    target: handle,
+    onMove: ({ deltaX, deltaY }) => {
+      const x = clamp(startX + deltaX, startX - rect.left, startX + window.innerWidth - rect.right);
+      const y = clamp(startY + deltaY, startY - rect.top, startY + window.innerHeight - rect.bottom);
+      dialog.style.translate = `${x}px ${y}px`;
+    },
+  });
 }
 
 function close(overlay) {

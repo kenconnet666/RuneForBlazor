@@ -11,7 +11,7 @@
 
 @Trigger?.Invoke(TriggerAttrs)
 <dialog @attributes="Attrs.Merge(parts[DialogPart.Root], Rest, Managed)" @onrunetoggle="HandleToggle" @onrunecloserequest="OnCloseRequest">
-    <div @attributes="Attrs.Merge(parts[DialogPart.Header], PropsHeader)">
+    <div @attributes="Attrs.Merge(parts[DialogPart.Header], PropsHeader, HeaderManaged)">
         <H2 Size="UI.Size.Lg" id="@TitleId" @attributes="Attrs.MergeProps(parts[DialogPart.Title], PropsTitle)">@Title</H2>
         @if (ShowClose)
         {

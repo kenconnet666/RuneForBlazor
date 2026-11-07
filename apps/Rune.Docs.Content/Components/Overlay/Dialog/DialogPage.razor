@@ -29,6 +29,9 @@
             <Example Id="blocking" Title="进行中的任务" Demo="typeof(BlockingExample)">
                 <Code>Closable="false"</Code> 去掉右上角的关闭按钮，<Code>Dismissible="false"</Code> 让点遮罩不关闭——任务进行中别被误关；<Kbd>Esc</Kbd> 仍然可以关（浏览器的约定），关闭后 <Code>OpenChanged</Code> 收到 false，在那里收尾。
             </Example>
+            <Example Id="draggable" Title="可以拖动" Demo="typeof(DraggableExample)">
+                <Code>Draggable</Code> 时按住标题栏能把对话框挪开（核对数据时看后面被挡住的内容），拖到哪都不超出窗口，下次打开回到正中；标题栏上的关闭按钮照常点。位移用 <Code>translate</Code>，不影响进场动画；拖动在浏览器里，不经 C#。
+            </Example>
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="@([
