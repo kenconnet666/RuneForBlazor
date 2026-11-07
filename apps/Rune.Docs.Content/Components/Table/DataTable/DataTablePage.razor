@@ -51,6 +51,11 @@
         <Code>OnRowClick</Code> 点一行（点在按钮、链接、输入框上的除外）在旁边打开详情，<Code>ActiveKey</Code> 高亮正在看的那一行（起始边一条竖线，带 aria-current）。
         整行点击只是鼠标的捷径：行里还要有键盘能到的入口，这里编号是按钮。配 Splitter 做成可拖动的左右两栏。
     </Example>
+    <Example Id="tree" Title="组织架构" Demo="typeof(OrgExample)">
+        <Code>TreeDataTable</Code> 建在 DataTable 上，列、排序、勾选都一样；第一列带缩进与展开按钮，同级之间按排序排（<Code>ManualSort</Code> 时按数据的顺序）。
+        多选默认父子联动：勾父行连带子孙，只勾一部分时父行半选；<Code>CheckStrictly</Code> 时各自勾选。
+        <Code>LoadChildren</Code> 懒加载：<Code>HasChildren</Code> 说有子项、<Code>GetChildren</Code> 还没有时，展开会调用它（按钮显示加载中），取回的子项放进数据里。
+    </Example>
     <Examples>
         <ExampleColumn>
             <Example Id="import" Title="导入校验" Demo="typeof(ImportExample)">
@@ -71,5 +76,5 @@
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(DataTable<>), typeof(PropertyColumn<,>), typeof(StatusColumn<,>), typeof(TemplateColumn<>), typeof(SelectionBar), typeof(ColumnSettings), typeof(ColumnFilterButton), typeof(ColumnMenuButton), typeof(ColumnResizer)]" />
+    <ApiReference Types="[typeof(DataTable<>), typeof(PropertyColumn<,>), typeof(StatusColumn<,>), typeof(TemplateColumn<>), typeof(TreeDataTable<>), typeof(SelectionBar), typeof(ColumnSettings), typeof(ColumnFilterButton), typeof(ColumnMenuButton), typeof(ColumnResizer)]" />
 </DocPage>

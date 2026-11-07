@@ -234,7 +234,7 @@
                                         }
                                         else
                                         {
-                                            <Checkbox Value="isSelected" Disabled="!IsSelectable(item)" ValueChanged="@(_ => ToggleRowAsync(key))"
+                                            <Checkbox Value="isSelected" Indeterminate="@(PartialKeys?.Contains(key) == true)" Disabled="!IsSelectable(item)" ValueChanged="@(_ => ToggleRowAsync(key))"
                                                       aria-label="@Config.Lang.TableSelectRow(number)" @attributes="Attrs.MergeProps(rowParts[DataTablePart.SelectCheckbox])" />
                                         }
                                     </td>
@@ -279,14 +279,18 @@
                                         {
                                             @EditorCell(view.Column, item)
                                         }
-                                        else if (reorderable && column == 0)
+                                        else if (column == 0 && (reorderable || Leading is not null))
                                         {
-                                            @* 第一个数据列前面：拖动的把手 *@
+                                            @* 第一个数据列前面：拖动的把手，再是 Leading（树形表格的缩进与展开按钮） *@
                                             <div @attributes="Attrs.Merge(DataTableStyles.Leading)">
-                                                <ButtonBase Ripple="false" data-rune-sortable-handle aria-label="@Config.Lang.SortableHandle(label!)" aria-describedby="@sortableInstructionsId"
-                                                            aria-pressed="false" Sx="Sx.Of(DataTableStyles.RowHandle)">
-                                                    <Icon Data="BuiltInIcons.GripVertical" />
-                                                </ButtonBase>
+                                                @if (reorderable)
+                                                {
+                                                    <ButtonBase Ripple="false" data-rune-sortable-handle aria-label="@Config.Lang.SortableHandle(label!)" aria-describedby="@sortableInstructionsId"
+                                                                aria-pressed="false" Sx="Sx.Of(DataTableStyles.RowHandle)">
+                                                        <Icon Data="BuiltInIcons.GripVertical" />
+                                                    </ButtonBase>
+                                                }
+                                                @Leading?.Invoke(item)
                                                 <div @attributes="Attrs.Merge(DataTableStyles.LeadingContent)">@CellOf(view.Column, item, view.Type)</div>
                                             </div>
                                         }

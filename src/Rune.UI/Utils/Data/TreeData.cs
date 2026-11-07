@@ -79,8 +79,12 @@ public readonly record struct TreeMoveTarget(string? Parent, int Index);
 /// </summary>
 public static class TreeData
 {
-    /// <summary>按展开状态深度优先展开成一列：只有展开了的节点的子节点出现在结果里；include 不为 null 时只要其中的节点（搜索过滤）。</summary>
-    public static IReadOnlyList<FlatTreeNode<T>> Flatten<T>(IReadOnlyList<T> roots, TreeAccessors<T> accessors, IReadOnlySet<string> expanded, IReadOnlySet<string>? include = null)
+    /// <summary>
+    /// 按展开状态深度优先展开成一列：只有展开了的节点的子节点出现在结果里；include 不为 null 时只要其中的节点（搜索过滤）；
+    /// order 给出同级之间的顺序（TreeDataTable 按当前排序），不写时按数据里的顺序。
+    /// </summary>
+    public static IReadOnlyList<FlatTreeNode<T>> Flatten<T>(IReadOnlyList<T> roots, TreeAccessors<T> accessors, IReadOnlySet<string> expanded, IReadOnlySet<string>? include = null,
+        Func<IReadOnlyList<T>, IReadOnlyList<T>>? order = null)
     {
         var result = new List<FlatTreeNode<T>>();
         Visit(roots, 0, null);
@@ -89,7 +93,7 @@ public static class TreeData
         void Visit(IReadOnlyList<T> level, int depth, string? parent)
         {
             var shown = new List<(T Node, string Key)>(level.Count);
-            foreach (var node in level)
+            foreach (var node in order?.Invoke(level) ?? level)
             {
                 var key = accessors.GetKey(node);
                 if (include is null || include.Contains(key)) shown.Add((node, key));

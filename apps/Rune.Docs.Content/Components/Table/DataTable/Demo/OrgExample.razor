@@ -1,0 +1,55 @@
+@inherits RuneComponent
+@using System.ComponentModel
+
+@* 组织架构：第一列带缩进与展开按钮，同级之间按排序排；市场部的小组还没取回来，展开时懒加载 *@
+<TreeDataTable Items="rows" GetKey="u => u.Id" GetChildren="u => u.Children" HasChildren="@(u => u.Children is { Count: > 0 } || u.Lazy)"
+               LoadChildren="@((Unit unit) => LoadChildrenAsync(unit))" @bind-Expanded="expanded" aria-label="组织架构" PropsRoot="TableHeight">
+    <PropertyColumn Property="u => u.Name" Width="200" Sortable="true" />
+    <TemplateColumn Key="lead" Title="负责人" Width="140" Value="u => u.Lead" Context="unit">
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <Avatar Size="Size.Xs" Name="@unit.Lead" />
+            <TextSpan>@unit.Lead</TextSpan>
+        </Flex>
+    </TemplateColumn>
+    @* 数字列：按第一个值推断成 Number，靠结束边对齐 *@
+    <PropertyColumn Property="u => u.Headcount" Width="80" Sortable="true" />
+    @* 预算以元存、按万元显示：Format 缩放，单位写在表头里 *@
+    <PropertyColumn Property="u => u.Budget" Width="150" Format="Wan" Sortable="true" />
+</TreeDataTable>
+
+@code {
+    sealed record Unit(
+        string Id,
+        [property: DisplayName("部门")] string Name,
+        string Lead,
+        [property: DisplayName("人数")] int Headcount,
+        [property: DisplayName("年度预算（万元）")] decimal Budget,
+        IReadOnlyList<Unit>? Children = null,
+        bool Lazy = false);
+
+    static readonly NumberFormat Wan = new() { Scale = 10_000, MinimumFractionDigits = 1, MaximumFractionDigits = 1 };
+
+    static Attrs TableHeight => new() { Sx = Css.Define(static () => new Style { MaxHeight = CssLength.Rem(20) }) };
+
+    IReadOnlyList<Unit> rows =
+    [
+        new("rd", "研发部", "林小满", 46, 3_200_000m,
+        [
+            new("fe", "前端组", "赵浩然", 12, 820_000m),
+            new("be", "后端组", "陈默", 18, 1_300_000m),
+            new("qa", "测试组", "孙思远", 8, 480_000m),
+        ]),
+        new("mk", "市场部", "许悠", 21, 1_800_000m, Lazy: true),
+        new("ds", "设计中心", "周一航", 9, 650_000m),
+    ];
+
+    IReadOnlyList<string> expanded = ["rd"];
+
+    // 懒加载：展开还没有子项的部门时取回来、放进数据里；进行中展开按钮显示加载中
+    async Task LoadChildrenAsync(Unit unit)
+    {
+        await Task.Delay(900);
+        IReadOnlyList<Unit> children = [new("brand", "品牌组", "王晴", 7, 900_000m), new("channel", "渠道组", "李雨桐", 14, 900_000m)];
+        rows = [.. rows.Select(item => item.Id == unit.Id ? item with { Lazy = false, Children = children } : item)];
+    }
+}

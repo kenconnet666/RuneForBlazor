@@ -206,6 +206,12 @@ sealed class DataTableColumns<TItem>
     }
 }
 
+/// <summary>包着 DataTable 的组件（TreeDataTable）要知道列：DataTable 收集完列、列变了时告诉它（级联值）。</summary>
+interface IDataTableColumnsListener<TItem>
+{
+    void ColumnsCollected(IReadOnlyList<DataTableColumn<TItem>> columns);
+}
+
 /// <summary>把内容排到渲染队列的末尾：DataTable 的表格在各列把自己交给表格之后才渲染（同 QuickGrid 的 Defer）。</summary>
 sealed class Defer : ComponentBase
 {

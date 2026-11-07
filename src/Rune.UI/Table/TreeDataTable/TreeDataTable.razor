@@ -1,0 +1,213 @@
+@*
+    树形表格（同 vue-tsx-pro 的 TreeDataTable）：有层级的行（部门 → 小组 → 成员、文件夹 → 文件），第一列带缩进与展开按钮。
+    <TreeDataTable Items="departments" GetKey="d => d.Id" GetChildren="d => d.Children" @bind-Expanded="open" aria-label="组织架构">
+        <PropertyColumn Property="d => d.Name" />…
+    </TreeDataTable>
+    建在 DataTable 上：列、排序、勾选、列宽、虚拟滚动、加载与空状态、外观都和 DataTable 一样（DataTable 的其他参数写在这里会原样交给它，
+    值要写成 @ 表达式）；这里只做两件事：按展开状态把树展开成一列行（同级之间按排序），以及第一列前面的缩进与展开按钮。
+    - 懒加载：HasChildren 说有子项、GetChildren 还没有时，展开会调用 LoadChildren（按钮显示加载中），调用方把取到的子项放进数据里。
+    - 多选时父子联动：勾上父行连带子孙，子行全勾上时父行也勾上，只勾一部分时父行半选；CheckStrictly 时各行各自勾选。
+    - 展开按钮的名称是“行名 的子项”（第一列的文字），展开与否由 aria-expanded 表示。表格仍是 table 语义（不是 treegrid），层级由缩进与按钮表达。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@inherits UIComponent
+@implements IDataTableColumnsListener<TItem>
+
+<CascadingValue TValue="IDataTableColumnsListener<TItem>" Value="this" IsFixed="true">
+<DataTable TItem="TItem" Items="Nodes" GetKey="GetKey" ManualSort="true" Sort="sort.Value" SortChanged="SortChangedAsync"
+           SelectionMode="SelectionMode" Selected="CheckedKeys" SelectedChanged="WriteSelectedAsync" PartialKeys="PartialKeys"
+           Leading="LeadingContent" Loading="Loading" Density="Density" Variant="Variant" Striped="Striped" PropsRoot="PropsRoot"
+           @attributes="Rest">
+    @ChildContent
+</DataTable>
+</CascadingValue>
+
+@code {
+    readonly HashSet<string> loadingKeys = [];
+
+    Bindable<IReadOnlyList<string>> expanded { get => field ??= new(this, () => Expanded ?? [], () => ExpandedChanged); }
+    Bindable<ColumnSort?> sort { get => field ??= new(this, () => Sort, () => SortChanged); }
+    Bindable<IReadOnlyList<string>> selected { get => field ??= new(this, () => Selected ?? [], () => SelectedChanged); }
+
+    Memo<(IReadOnlyList<TItem>, IReadOnlyList<string>, ColumnSort?, bool, IReadOnlyList<DataTableColumn<TItem>>), FlatTreeNode<TItem>[]> flat;
+    Memo<IReadOnlyList<TItem>, TreeIndex> index;
+    Memo<(TreeIndex, IReadOnlyList<string>), IReadOnlyDictionary<string, CheckState>> states;
+
+    /// <summary>第一层的行。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    /// <summary>行的 key：稳定且唯一（展开、勾选都按它）。</summary>
+    [Parameter, EditorRequired] public Func<TItem, string> GetKey { get; set; } = null!;
+
+    /// <summary>一行的子项；没有子项（叶子）或还没加载时返回 null 或空列表。</summary>
+    [Parameter, EditorRequired] public Func<TItem, IReadOnlyList<TItem>?> GetChildren { get; set; } = null!;
+
+    /// <summary>这一行有没有子项（懒加载时子项还没取回来也要显示展开按钮）；不写时看 GetChildren 是否非空。</summary>
+    [Parameter] public Func<TItem, bool>? HasChildren { get; set; }
+
+    /// <summary>展开一个还没有子项的行时调用：取回子项并放进数据里；进行中按钮显示加载中。</summary>
+    [Parameter] public EventCallback<TItem> LoadChildren { get; set; }
+
+    /// <summary>子项加载失败：这一行收回去，再展开会重试；不写时交给错误边界。</summary>
+    [Parameter] public EventCallback<TreeLoadError<TItem>> OnLoadError { get; set; }
+
+    /// <summary>展开的行的 key。</summary>
+    [Parameter] public IReadOnlyList<string>? Expanded { get; set; }
+
+    /// <summary>展开的行变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> ExpandedChanged { get; set; }
+
+    /// <summary>每一层缩进多少（em），默认 1.25。</summary>
+    [Parameter] public double Indent { get; set; } = 1.25;
+
+    /// <summary>当前排序（单列）：同级之间按它排。</summary>
+    [Parameter] public ColumnSort? Sort { get; set; }
+
+    /// <summary>排序变了。</summary>
+    [Parameter] public EventCallback<ColumnSort?> SortChanged { get; set; }
+
+    /// <summary>不在本地排序：同级之间按数据里的顺序，只写回排序。</summary>
+    [Parameter] public bool ManualSort { get; set; }
+
+    /// <summary>选择方式；不写时没有勾选列。</summary>
+    [Parameter] public SelectionMode? SelectionMode { get; set; }
+
+    /// <summary>已选行的 key（多选联动时是实际勾上的行，含父行）。</summary>
+    [Parameter] public IReadOnlyList<string>? Selected { get; set; }
+
+    /// <summary>选择变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> SelectedChanged { get; set; }
+
+    /// <summary>多选时勾选父子不联动：每一行各自勾选。</summary>
+    [Parameter] public bool CheckStrictly { get; set; }
+
+    /// <summary>加载中（同 DataTable）。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>密度（同 DataTable）。</summary>
+    [Parameter] public TableDensity? Density { get; set; }
+
+    /// <summary>样式（同 DataTable）。</summary>
+    [Parameter] public TableVariant? Variant { get; set; }
+
+    /// <summary>斑马纹（同 DataTable）。</summary>
+    [Parameter] public bool? Striped { get; set; }
+
+    /// <summary>外层滚动区域的部件属性（同 DataTable）。</summary>
+    [Parameter] public Attrs? PropsRoot { get; set; }
+
+    /// <summary>展开按钮（交给 IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsToggle { get; set; }
+
+    /// <summary>列：PropertyColumn、StatusColumn、TemplateColumn（第一列带缩进与展开按钮）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    static readonly Attrs ToggleLayer = new() { Sx = Css.Define(static () => new Style { FlexShrink = 0, Width = CssLength.Em(1.5), MinHeight = CssLength.Em(1.5) }) };
+    // 叶子没有按钮，用同样宽的占位让文字对齐
+    static readonly Attrs PlaceholderLayer = new() { Sx = Css.Define(static () => new Style { FlexShrink = 0, Width = CssLength.Em(1.5) }) };
+    static readonly Attrs CollapsedIcon = new() { Sx = DisclosureStyles.Icon, ["FlipInRtl"] = true };
+    static readonly Attrs ExpandedIcon = new() { Sx = Sx.Of(DisclosureStyles.Icon, DisclosureStyles.Turn), ["FlipInRtl"] = true };
+
+    TreeAccessors<TItem> Accessors => new(GetKey, GetChildren, HasChildren);
+
+    // 同级之间的排序、展开按钮的名称要知道列：列由内层的 DataTable 收集，收集完告诉这里（第一次渲染前按数据里的顺序）
+    IReadOnlyList<DataTableColumn<TItem>> Columns { get; set; } = [];
+
+    void IDataTableColumnsListener<TItem>.ColumnsCollected(IReadOnlyList<DataTableColumn<TItem>> columns)
+    {
+        Columns = columns;
+        StateHasChanged();
+    }
+
+    /// <summary>按展开状态深度优先展开成一列；同级之间按当前排序（ManualSort 时按数据里的顺序）。</summary>
+    FlatTreeNode<TItem>[] Flat => flat.Get((Items, expanded.Value, sort.Value, ManualSort, Columns), this, static (k, owner) =>
+    {
+        var culture = owner.Config.Lang.Code;
+        IReadOnlyList<ColumnSort> sorts = k.Item3 is { } single ? [single] : [];
+        Func<IReadOnlyList<TItem>, IReadOnlyList<TItem>>? order = k.Item4 || sorts.Count == 0 ? null : level => ColumnDisplay.Sort(level, k.Item5, sorts, culture);
+        return [.. TreeData.Flatten(k.Item1, owner.Accessors, k.Item2.ToHashSet(), order: order)];
+    });
+
+    IReadOnlyList<TItem> Nodes => nodes.Get(Flat, static rows => [.. rows.Select(static row => row.Node)]);
+
+    Memo<FlatTreeNode<TItem>[], IReadOnlyList<TItem>> nodes;
+
+    // 多选联动：整棵树的索引（含折叠着的行），勾选状态按它推出
+    TreeIndex? Index => SelectionMode == UI.SelectionMode.Multiple && !CheckStrictly ? index.Get(Items, this, static (items, owner) => TreeData.Index(items, owner.Accessors)) : null;
+
+    IReadOnlyDictionary<string, CheckState>? States => Index is { } tree ? states.Get((tree, selected.Value), static k => TreeData.CheckStates(k.Item1, k.Item2)) : null;
+
+    IReadOnlyList<string> CheckedKeys => States is { } map ? [.. map.Where(static pair => pair.Value == CheckState.Checked).Select(static pair => pair.Key)] : selected.Value;
+
+    IReadOnlyList<string>? PartialKeys => States is { } map ? [.. map.Where(static pair => pair.Value == CheckState.Indeterminate).Select(static pair => pair.Key)] : null;
+
+    Task SortChangedAsync(ColumnSort? value) => sort.SetAsync(value);
+
+    /// <summary>DataTable 写回的勾选：只变了一行时按它联动子孙与祖先；全选、取消全选原样写回。</summary>
+    Task WriteSelectedAsync(IReadOnlyList<string> next)
+    {
+        if (Index is not { } tree) return selected.SetAsync(next);
+        var current = CheckedKeys;
+        var before = current.ToHashSet();
+        var after = next.ToHashSet();
+        var changed = next.Where(key => !before.Contains(key)).Concat(current.Where(key => !after.Contains(key))).ToList();
+        return selected.SetAsync(changed.Count == 1 ? TreeData.ToggleChecked(tree, current, changed[0]) : next);
+    }
+
+    /// <summary>展开或收起；展开一个还没有子项的行时懒加载（同 Tree）。</summary>
+    async Task SetOpenAsync(FlatTreeNode<TItem> row, bool open)
+    {
+        var current = expanded.Value;
+        if (current.Contains(row.Key) == open) return;
+        if (!open)
+        {
+            await expanded.SetAsync([.. current.Where(key => key != row.Key)]);
+            return;
+        }
+        await expanded.SetAsync([.. current, row.Key]);
+        if (!LoadChildren.HasDelegate || loadingKeys.Contains(row.Key) || (GetChildren(row.Node)?.Count ?? 0) > 0) return;
+        loadingKeys.Add(row.Key);
+        StateHasChanged();
+        try
+        {
+            await LoadChildren.InvokeAsync(row.Node);
+        }
+        catch (Exception exception)
+        {
+            // 失败时收回去：留着展开却没有子项，看起来像是本来就没有；再展开会重试
+            await expanded.SetAsync([.. expanded.Value.Where(key => key != row.Key)]);
+            if (OnLoadError.HasDelegate) await OnLoadError.InvokeAsync(new(exception, row.Node));
+            else await DispatchExceptionAsync(exception);
+        }
+        finally
+        {
+            loadingKeys.Remove(row.Key);
+            StateHasChanged();
+        }
+    }
+
+    // 第一列前面：按层级缩进，有子项的行是展开按钮，叶子是同样宽的占位
+    RenderFragment<TItem> LeadingContent => item => __builder =>
+    {
+        var key = GetKey(item);
+        var row = Flat.FirstOrDefault(entry => entry.Key == key);
+        if (row.Depth > 0)
+        {
+            <span style="@($"width:{(row.Depth * Indent).ToString(System.Globalization.CultureInfo.InvariantCulture)}em;flex-shrink:0")"></span>
+        }
+        if (row.Expandable)
+        {
+            var open = expanded.Value.Contains(key);
+            var label = Columns.Count > 0 && Columns[0].ValueOf(item) is { } first ? DataTableColumn<TItem>.FilterText(first) : key;
+            <IconButton Icon="BuiltInIcons.ChevronRight" Size="Size.Sm" Radius="Radius.Full" Label="@Config.Lang.TreeToggle(label)" Loading="loadingKeys.Contains(key)"
+                        PropsIcon="@(open ? ExpandedIcon : CollapsedIcon)" aria-expanded="@(open ? "true" : "false")" @onclick="() => SetOpenAsync(row, !open)"
+                        @attributes="Attrs.MergeProps(ToggleLayer, PropsToggle)" />
+        }
+        else
+        {
+            <span @attributes="Attrs.Merge(PlaceholderLayer)"></span>
+        }
+    };
+}

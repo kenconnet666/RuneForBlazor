@@ -202,4 +202,21 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         await page.GetByRole(AriaRole.Menuitemcheckbox, new() { Name = "运费节省（元/单）" }).ClickAsync();
         await Assertions.Expect(table.Locator("th[data-column=dmc]")).ToHaveCountAsync(1);
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 树形表格_展开懒加载的部门_收起研发部(string mode)
+    {
+        var page = await OpenAsync(mode, "data-table");
+        var table = page.GetByRole(AriaRole.Table, new() { Name = "组织架构" });
+
+        await Assertions.Expect(table.Locator("tr[data-key=fe]")).ToBeAttachedAsync();
+        await table.GetByRole(AriaRole.Button, new() { Name = "市场部 的子项" }).ClickAsync();
+        await Assertions.Expect(table.Locator("tr[data-key=brand]")).ToBeAttachedAsync(new() { Timeout = 10_000 });
+        await Assertions.Expect(table.GetByRole(AriaRole.Button, new() { Name = "市场部 的子项" })).ToHaveAttributeAsync("aria-expanded", "true");
+
+        await table.GetByRole(AriaRole.Button, new() { Name = "研发部 的子项" }).ClickAsync();
+        await Assertions.Expect(table.Locator("tr[data-key=fe]")).ToHaveCountAsync(0);
+    }
 }

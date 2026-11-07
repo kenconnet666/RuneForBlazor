@@ -168,6 +168,12 @@ public partial class DataTable<TItem>
     /// <summary>可见行范围变化（不含 overscan）：接近末尾时加载更多。</summary>
     [Parameter] public EventCallback<VisibleRange> OnRangeChange { get; set; }
 
+    /// <summary>第一个数据列的内容前面加的东西（TreeDataTable 的缩进与展开按钮）。</summary>
+    [Parameter] public RenderFragment<TItem>? Leading { get; set; }
+
+    /// <summary>部分勾选的行的 key（树形表格的父行：子孙只勾了一部分）：勾选框显示横线，读屏念“部分选中”。</summary>
+    [Parameter] public IReadOnlyList<string>? PartialKeys { get; set; }
+
     /// <summary>
     /// 行拖动：给了它时第一个数据列前面有把手，拖动（或聚焦后空格拿起、↑↓ 移动）改变行的顺序，拿到新的顺序（全部行）。
     /// 排序、筛选时显示的顺序不是数据的顺序，这时不能拖。
@@ -420,10 +426,14 @@ public partial class DataTable<TItem>
     /// <inheritdoc/>
     protected override void OnDispose() => delayedLoading?.Dispose();
 
-    /// <summary>各列收集完之后：列变了时（第一次渲染、增减列）再渲染一次，各行按新的列排序、显示。</summary>
+    [CascadingParameter] IDataTableColumnsListener<TItem>? ColumnsListener { get; set; }
+
+    /// <summary>各列收集完之后：列变了时（第一次渲染、增减列）再渲染一次，各行按新的列排序、显示；包着它的 TreeDataTable 也要知道。</summary>
     void FinishCollectingColumns()
     {
-        if (columns.Finish()) StateHasChanged();
+        if (!columns.Finish()) return;
+        ColumnsListener?.ColumnsCollected(columns.All);
+        StateHasChanged();
     }
 
     // JS 报告要渲染的那一段与可见范围：{第一行}:{最后一行}:{第一个可见}:{最后一个可见}
