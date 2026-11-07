@@ -5,6 +5,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { fixClock } from './clock.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../..');
 const { values: options, positionals } = parseArgs({
@@ -232,6 +233,7 @@ async function open(context, side, theme) {
     await page.goto(`${options['rune-origin']}/${options.mode}/${slug}`);
     await page.waitForSelector('[data-demo-canvas]', { timeout: 60_000 });
   }
+  await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(800);
   return { page, errors };
 }
@@ -282,6 +284,7 @@ for (const theme of options.themes.split(',')) {
   };
   const vueContext = await browser.newContext(contextOptions);
   const runeContext = await browser.newContext(contextOptions);
+  await Promise.all([fixClock(vueContext), fixClock(runeContext)]);
   const [vue, rune] = await Promise.all([open(vueContext, 'vue', theme), open(runeContext, 'rune', theme)]);
   const props = [...new Set([...NUMERIC, ...TEXT])].filter((prop) => prop !== 'width' && prop !== 'height');
   const vueData = await vue.page.evaluate(collect, { side: 'vue', ids, props, SEMANTIC_TAGS });

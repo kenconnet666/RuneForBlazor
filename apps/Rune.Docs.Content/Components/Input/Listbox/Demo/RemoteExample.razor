@@ -52,7 +52,7 @@
         results = [.. people.Where(person => person.Label.Contains(query.Trim(), StringComparison.Ordinal))];
     }
 
-    void Pick(string value) => lastPick = $"{value}（{DateTime.Now:T}）";
+    void Pick(string value) => lastPick = $"{value}（{DemoClock.Now.DateTime:T}）";
 
     /// <inheritdoc/>
     public void Dispose() => searching?.Cancel();

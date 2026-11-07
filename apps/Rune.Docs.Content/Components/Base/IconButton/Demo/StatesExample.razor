@@ -32,7 +32,7 @@
         refreshing = true;
         await Task.Delay(1200);
         refreshing = false;
-        updated = DateTime.Now;
+        updated = DemoClock.Now.DateTime;
     }
 
     // 模拟向服务端申请一条一次性的邀请链接

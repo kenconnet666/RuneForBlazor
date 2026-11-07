@@ -8,6 +8,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { fixClock } from './clock.mjs';
 
 const repoRoot = resolve(import.meta.dirname, '../..');
 const { values: options } = parseArgs({
@@ -53,6 +54,7 @@ const pages = options.pages
 
 async function capture(base, path, width, theme) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: theme, reducedMotion: 'reduce' });
+  await fixClock(context);
   const page = await context.newPage();
   await page.goto(base + path, { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);

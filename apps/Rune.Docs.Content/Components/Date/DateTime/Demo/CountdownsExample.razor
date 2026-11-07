@@ -40,7 +40,7 @@
         <Card Padding="SpaceScale.Md">
             <Flex Align="ItemAlign.End" Gap="SpaceScale.Sm">
                 <Field Label="手机号"><TextField placeholder="138 0000 0000" inputmode="tel" /></Field>
-                <Button Variant="ButtonVariant.Soft" Disabled="resendAt is not null" @onclick="() => resendAt = DateTimeOffset.Now.AddSeconds(60)">
+                <Button Variant="ButtonVariant.Soft" Disabled="resendAt is not null" @onclick="() => resendAt = DemoClock.Now.AddSeconds(60)">
                     @if (resendAt is { } at)
                     {
                         <Countdown To="at" OnEnd="() => resendAt = null" Context="left">@Math.Ceiling(left.Total.TotalSeconds)</Countdown>
@@ -70,8 +70,8 @@
     }) };
 
     // 演示数据：抢购在页面打开的 27 小时后开始，订单 15 分钟内不付就取消
-    readonly DateTimeOffset saleStartsAt = DateTimeOffset.Now.AddMinutes(27 * 60 + 15);
-    readonly DateTimeOffset orderExpiresAt = DateTimeOffset.Now.AddMinutes(15);
-    readonly DateTimeOffset couponExpiresAt = DateTimeOffset.Now.AddMinutes((2 * 24 + 3) * 60 + 15);
+    readonly DateTimeOffset saleStartsAt = DemoClock.Now.AddMinutes(27 * 60 + 15);
+    readonly DateTimeOffset orderExpiresAt = DemoClock.Now.AddMinutes(15);
+    readonly DateTimeOffset couponExpiresAt = DemoClock.Now.AddMinutes((2 * 24 + 3) * 60 + 15);
     DateTimeOffset? resendAt;
 }

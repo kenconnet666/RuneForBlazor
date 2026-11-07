@@ -12,7 +12,7 @@
 </Grid>
 
 @code {
-    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    readonly DateOnly today = DemoClock.Today;
     HashSet<DateOnly> fullyBooked = [];
     DateOnly? visit;
     DateOnly? birthday = new(1992, 8, 16);

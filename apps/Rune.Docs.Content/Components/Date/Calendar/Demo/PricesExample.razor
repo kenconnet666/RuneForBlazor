@@ -26,7 +26,7 @@
     // 选中的格子是品牌色实底：价格跟着用实底上的文字色
     static Style OnSelected => Css.Define(static () => new Style { Color = CssWide.Inherit });
 
-    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    readonly DateOnly today = DemoClock.Today;
     HashSet<DateOnly> soldOut = [];
     DateOnly? night;
 

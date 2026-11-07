@@ -6,7 +6,7 @@
         <Calendar @bind-Value="date" DefaultFocused="new DateOnly(2026, 12, 1)" OnPick="() => picks++" aria-label="提醒日期">
             <Footer>
                 <Flex Gap="SpaceScale.Xs" Justify="ContentJustify.Between">
-                    <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => date = DateOnly.FromDateTime(DateTime.Today)">今天</Button>
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => date = DemoClock.Today">今天</Button>
                     <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Disabled="date is null" @onclick="() => date = null">清空</Button>
                 </Flex>
             </Footer>

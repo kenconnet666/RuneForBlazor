@@ -32,7 +32,7 @@
     string format = nameof(RelativeTimeStyle.Long);
 
     // 演示数据：相对页面打开的时刻
-    readonly Activity[] Events = Build(DateTimeOffset.Now);
+    readonly Activity[] Events = Build(DemoClock.Now);
 
     static Activity[] Build(DateTimeOffset opened) =>
     [

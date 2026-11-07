@@ -20,7 +20,7 @@
 @code {
     static readonly DateRangePreset[] Presets = [DateRangePreset.Last7Days, DateRangePreset.Last30Days, DateRangePreset.ThisMonth, DateRangePreset.LastMonth];
 
-    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    readonly DateOnly today = DemoClock.Today;
     DateRange? range;
 
     protected override void OnInitialized() => range = Preset(DateRangePreset.Last7Days);

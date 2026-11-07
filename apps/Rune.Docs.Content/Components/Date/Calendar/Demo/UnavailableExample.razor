@@ -22,7 +22,7 @@
 @code {
     static Style Side => Css.Define(static () => new Style { FlexGrow = 1, FlexBasis = CssLength.Rem(16) });
 
-    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    readonly DateOnly today = DemoClock.Today;
     DateOnly last;
     DateOnly holiday;
     HashSet<DateOnly> fullyBooked = [];

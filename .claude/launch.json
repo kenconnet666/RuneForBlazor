@@ -4,14 +4,14 @@
     {
       "name": "docs",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["tools/dotnet.mjs", "run", "--project", "apps/Rune.Docs", "-c", "Release", "--launch-profile", "http"],
+      "runtimeArgs": ["tools/dotnet.mjs", "run", "--project", "apps/Rune.Docs", "-c", "Release", "--launch-profile", "http", "--FixedNow=2026-10-21T02:00:00Z"],
       "port": 5310,
       "autoPort": false
     },
     {
       "name": "bench",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["tools/dotnet.mjs", "run", "--project", "apps/Rune.Demo", "-c", "Release", "--launch-profile", "http", "--urls", "http://localhost:5300"],
+      "runtimeArgs": ["tools/dotnet.mjs", "run", "--project", "apps/Rune.Demo", "-c", "Release", "--launch-profile", "http", "--urls", "http://localhost:5300", "--FixedNow=2026-10-21T02:00:00Z"],
       "port": 5300,
       "autoPort": false
     }

@@ -18,7 +18,7 @@
 </Flex>
 
 @code {
-    readonly DateOnly nextMonth = DateOnly.FromDateTime(DateTime.Today.AddMonths(1)) is var day ? new(day.Year, day.Month, 1) : default;
+    readonly DateOnly nextMonth = DemoClock.Today.AddMonths(1) is var day ? new(day.Year, day.Month, 1) : default;
     string firstDay = nameof(DayOfWeek.Monday);
     bool weekNumbers = true;
     bool fixedWeeks = true;

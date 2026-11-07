@@ -13,7 +13,7 @@
 </Grid>
 
 @code {
-    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    readonly DateOnly today = DemoClock.Today;
     HashSet<DateOnly> booked = [];
     DateRange? report;
     DateRange? stay;
@@ -28,7 +28,7 @@
     // 自己的快捷区间：结算周期是上月 26 日到本月 25 日
     static DateRange SettlementPeriod()
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var today = DemoClock.Today;
         var anchor = today.Day > 25 ? today : today.AddMonths(-1);
         var start = new DateOnly(anchor.Year, anchor.Month, 26);
         return new(start, start.AddMonths(1).AddDays(-1));

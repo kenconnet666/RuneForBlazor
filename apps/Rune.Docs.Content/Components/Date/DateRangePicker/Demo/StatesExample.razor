@@ -3,7 +3,7 @@
 @* 只显示一个月、允许区间夹着不可选的日期（周末不算工作日，但请假可以跨周末）；以及外观与状态 *@
 <Grid MinItemWidth="@("20rem")" Gap="SpaceScale.Lg">
     <Field Label="请假" DescriptionContent="@(leave is { } l ? Show(l) : Text("起止只能是工作日，可以跨周末"))">
-        <DateRangePicker @bind-Value="leave" Min="DateOnly.FromDateTime(DateTime.Today)" VisibleMonths="1" IsDateUnavailable="Weekend" AllowsUnavailableInRange="true" Clearable="true" />
+        <DateRangePicker @bind-Value="leave" Min="DemoClock.Today" VisibleMonths="1" IsDateUnavailable="Weekend" AllowsUnavailableInRange="true" Clearable="true" />
     </Field>
     <Field Label="出差" Required="true" Error="@(trip is null ? "请选择出差日期" : null)" Description="@(trip is { } t ? $"共 {t.Days} 天" : "值是 DateRange，选好后算出天数")">
         <DateRangePicker @bind-Value="trip" Icon="Lucide.Plane" Radius="Radius.Full" />
