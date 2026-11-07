@@ -27,11 +27,11 @@ public static class FormStyles
             _ => SummaryList,
         });
 
-    // 表单项之间 1em（Space.Lg，同 vue-tsx-pro）
+    // 表单项之间 Space.Md：vue-tsx-pro 的 Form 不排版，它的表单都在里面套一层 Flex gap="md"；这里直接给出同样的间距
     static Style Root => Css.Define(static () => new Style
     {
         Display = Display.Grid,
-        Gap = Space.Lg,
+        Gap = Space.Md,
         MinWidth = 0,
     });
 
