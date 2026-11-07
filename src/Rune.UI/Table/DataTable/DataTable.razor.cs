@@ -666,29 +666,10 @@ public partial class DataTable<TItem>
     }
 
     /// <summary>合计行里一列的内容。</summary>
-    RenderFragment? SummaryOf(DataTableColumn<TItem> column, int position, ColumnType type)
-    {
-        if (column.SummaryContent is { } content) return content(Rows);
-        if (column.Summary == ColumnSummary.Sum)
-        {
-            var total = ColumnDisplay.Sum(column, Rows);
-            var text = total is { } value ? ColumnDisplay.Format(value, type, column.Format, Config.Lang) : column.EmptyText ?? Config.Lang.EmptyValue;
-            return builder => builder.AddContent(0, text);
-        }
-        if (position == 0) return builder => builder.AddContent(0, SummaryLabel ?? Config.Lang.TableSummary);
-        return null;
-    }
+    RenderFragment? SummaryOf(DataTableColumn<TItem> column, int position, ColumnType type) =>
+        ColumnDisplay.Summary(column, position, type, Rows, SummaryLabel, Config.Lang);
 
-    /// <summary>没写内容时一格的显示：空值显示列的 EmptyText（默认 —），状态显示成 StatusBadge，其余按类型与格式。</summary>
-    RenderFragment CellOf(DataTableColumn<TItem> column, TItem item, ColumnType type)
-    {
-        if (column.CellContent(item) is { } content) return content;
-        var value = column.ValueOf(item);
-        if (value is null || value is string { Length: 0 }) return builder => builder.AddContent(0, column.EmptyText ?? Config.Lang.EmptyValue);
-        if (column.StatusContent(value) is { } status) return status;
-        var text = ColumnDisplay.Format(value, type, column.Format, Config.Lang);
-        return builder => builder.AddContent(0, text);
-    }
+    RenderFragment CellOf(DataTableColumn<TItem> column, TItem item, ColumnType type) => ColumnDisplay.Cell(column, item, type, Config.Lang);
 
     // 固定列：position: sticky 加上按列宽累加的偏移；挨着滚动列的那一列加一条竖线
     static Attrs? StickyLayer(ColumnView<TItem> column, StickyOffsets offsets) => column.Sticky switch

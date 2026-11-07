@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.AspNetCore.Components;
 
 namespace Rune.UI;
 
@@ -106,6 +107,33 @@ static class ColumnDisplay
             default:
                 return Convert.ToString(value, CultureInfo.InvariantCulture) ?? "";
         }
+    }
+
+    /// <summary>
+    /// 一格的显示（DataTable、ColumnTable 共用）：列自己写的内容；没有时空值显示列的 EmptyText（默认语言包的 —），
+    /// 状态显示成 StatusBadge，其余按类型与格式。
+    /// </summary>
+    public static RenderFragment Cell<TItem>(DataTableColumn<TItem> column, TItem item, ColumnType type, Lang lang)
+    {
+        if (column.CellContent(item) is { } content) return content;
+        var value = column.ValueOf(item);
+        if (value is null || value is string { Length: 0 }) return builder => builder.AddContent(0, column.EmptyText ?? lang.EmptyValue);
+        if (column.StatusContent(value) is { } status) return status;
+        var text = Format(value, type, column.Format, lang);
+        return builder => builder.AddContent(0, text);
+    }
+
+    /// <summary>合计行里一列的内容：SummaryContent，或 Sum 精确相加按列的格式显示；第一列没写合计时是“合计”。</summary>
+    public static RenderFragment? Summary<TItem>(DataTableColumn<TItem> column, int position, ColumnType type, IReadOnlyList<TItem> items, string? label, Lang lang)
+    {
+        if (column.SummaryContent is { } content) return content(items);
+        if (column.Summary == ColumnSummary.Sum)
+        {
+            var text = Sum(column, items) is { } total ? Format(total, type, column.Format, lang) : column.EmptyText ?? lang.EmptyValue;
+            return builder => builder.AddContent(0, text);
+        }
+        if (position == 0) return builder => builder.AddContent(0, label ?? lang.TableSummary);
+        return null;
     }
 
     /// <summary>一列数值的合计（decimal，不经过浮点）：跳过空值与不是数字的值；没有任何数值时为 null。</summary>
