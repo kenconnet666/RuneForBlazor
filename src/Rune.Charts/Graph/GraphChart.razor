@@ -1,0 +1,323 @@
+@*
+    网络图（同 vue-tsx-pro 的 GraphChart）：节点与连线，看谁和谁有关系、关系有多强（团队与供应商的协作、依赖关系）。
+    <GraphChart Nodes="nodes" Links="links" Layout="GraphLayoutKind.Layered" Groups="teams" aria-label="协作关系" />
+    布局见 GraphLayout，在画之前同步算好，结果每次相同。写了 Groups 时同组的节点框在一起（分层、分列布局）；节点的颜色默认按组取色板。
+    连线写了 Value 时按大小加粗（1–6px），悬停看“起点 → 终点”与数值。点节点选中它（@bind-Selected），与它不相连的节点、连线变淡；点空白处取消。
+    能拖动画布、按住 Ctrl 滚轮缩放、双击放大一档（已放大时回到全图），都在 charts.js 里，不往返。给读屏的数据表每条连线一行。
+*@
+@namespace Rune.UI
+@inherits ChartBase
+
+@Frame
+
+@code {
+    // 节点的默认大小、名字的行高、名字最多几个字宽（px）；分组框四周、顶上（写组名）留的空；箭头的长
+    const double NodeSize = 28;
+    const double Line = 16;
+    const double LabelMax = 120;
+    const double PanelPad = 16;
+    const double PanelTitle = 22;
+    const double Arrow = 8;
+
+    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
+    static readonly Attrs ViewportLayer = new() { Sx = GraphStyles.Viewport };
+    static readonly Attrs BackgroundLayer = new() { Sx = GraphStyles.Background };
+    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
+    static readonly Attrs PanelLayer = new() { Sx = GraphStyles.Panel };
+    static readonly Attrs PanelLabelLayer = new() { Sx = GraphStyles.PanelLabel };
+    static readonly Attrs LinkGroupLayer = new() { Sx = GraphStyles.Item };
+    static readonly Attrs LinkLayer = new() { Sx = GraphStyles.Link };
+    static readonly Attrs DashedLinkLayer = new() { Sx = Sx.Of(GraphStyles.Link, GraphStyles.Dashed) };
+    static readonly Attrs ArrowLayer = new() { Sx = GraphStyles.Arrow };
+    static readonly Attrs LinkLabelBoxLayer = new() { Sx = GraphStyles.LinkLabelBox };
+    static readonly Attrs LinkLabelLayer = new() { Sx = GraphStyles.LinkLabel };
+    static readonly Attrs NoPointerLayer = new() { Sx = DonutStyles.NoPointer };
+    static readonly Attrs NodeLayer = new() { Sx = GraphStyles.Item };
+    static readonly Attrs ClickableNodeLayer = new() { Sx = Sx.Of(GraphStyles.Item, GraphStyles.Clickable) };
+    static readonly Attrs NodeShapeLayer = new() { Sx = GraphStyles.NodeShape };
+    static readonly Attrs NodeLabelLayer = new() { Sx = Sx.Of(GraphStyles.NodeLabel, ChartSvgStyles.Halo) };
+    static readonly Attrs NodeSublabelLayer = new() { Sx = Sx.Of(GraphStyles.NodeSublabel, ChartSvgStyles.Halo) };
+    static readonly Attrs HintLayer = new() { Sx = GraphStyles.WheelHint };
+
+    string? selectedState;
+    Dictionary<string, GraphNode> byId = [];
+    Dictionary<string, Rune.Styles.CssColor> groupColors = [];
+    List<GraphLink> shownLinks = [];
+
+    /// <summary>节点。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<GraphNode> Nodes { get; set; } = [];
+
+    /// <summary>连线；两端都在的才画。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<GraphLink> Links { get; set; } = [];
+
+    /// <summary>分组：同组的节点框在一起（分层、分列布局），颜色相同。</summary>
+    [Parameter] public IReadOnlyList<GraphGroup>? Groups { get; set; }
+
+    /// <summary>布局，默认力导向。</summary>
+    [Parameter] public GraphLayoutKind Layout { get; set; }
+
+    /// <summary>分层、分列布局的方向，默认从左到右。</summary>
+    [Parameter] public GraphDirection Direction { get; set; }
+
+    /// <summary>连线带箭头；默认分层布局带，其余不带。</summary>
+    [Parameter] public bool? Arrows { get; set; }
+
+    /// <summary>能拖动画布、按住 Ctrl 滚轮缩放、双击放大，默认能。</summary>
+    [Parameter] public bool Zoom { get; set; } = true;
+
+    /// <summary>选中的节点 Id：点节点时写回，点空白处变回 null；可以 <c>@bind-Selected</c>。</summary>
+    [Parameter] public string? Selected { get; set; }
+
+    /// <summary>选中的节点变了。</summary>
+    [Parameter] public EventCallback<string?> SelectedChanged { get; set; }
+
+    /// <summary>点了一个节点（下钻）：参数是这个节点与它的位置；写了它时节点的指针是手形。同样的去处在页面上还要有链接或按钮。</summary>
+    [Parameter] public EventCallback<ChartItemClick<GraphNode>> OnItemClick { get; set; }
+
+    string? Current => SelectedChanged.HasDelegate ? Selected : selectedState ?? Selected;
+
+    bool LayeredLayout => Layout == GraphLayoutKind.Layered;
+
+    // 分组框只在按层、按列排的布局里画：其余布局不按组排，框会互相盖住
+    bool Framed => LayeredLayout || Layout == GraphLayoutKind.Parallel;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        byId = [];
+        foreach (var node in Nodes) byId.TryAdd(node.Id, node);
+        groupColors = (Groups ?? []).Select((group, position) => (group.Id, ChartColor.Resolve(group.Color, position))).DistinctBy(pair => pair.Id).ToDictionary(pair => pair.Id, pair => pair.Item2);
+        shownLinks = [.. Links.Where(link => byId.ContainsKey(link.Source) && byId.ContainsKey(link.Target))];
+    }
+
+    string LabelOf(string id) => byId.TryGetValue(id, out var node) ? node.Label ?? node.Id : id;
+
+    private protected override CssLength? FrameHeight => Height ?? 360;
+    private protected override bool IsEmpty => Nodes.Count == 0;
+    private protected override bool Clickable => OnItemClick.HasDelegate;
+
+    private protected override async Task ActivateAsync(int index)
+    {
+        if (index >= Nodes.Count) return;
+        await SelectAsync(Nodes[index].Id);
+        await OnItemClick.InvokeAsync(new ChartItemClick<GraphNode>(Nodes[index], index));
+    }
+
+    private protected override Task DeselectAsync() => SelectAsync(null);
+
+    async Task SelectAsync(string? id)
+    {
+        selectedState = id;
+        await SelectedChanged.InvokeAsync(id);
+    }
+
+    private protected override ChartTable BuildTable()
+    {
+        var lang = Config.Lang;
+        return new ChartTable(
+            [lang.ChartLink, Unit is null ? lang.ChartValue : $"{lang.ChartValue}（{Unit}）"],
+            [.. shownLinks.Select(link => new ChartTableRow(lang.ChartFlowLabel(LabelOf(link.Source), LabelOf(link.Target)),
+                [string.Join(" · ", new[] { link.Value is { } value ? NumberText(value) : "", link.Label ?? "" }.Where(text => text.Length > 0)) is { Length: > 0 } text ? text : lang.EmptyValue]))]);
+    }
+
+    // 布局：节点的位置（未缩放，px），再放进绘图区：位置按绘图区缩放、居中（节点与文字不缩放），最多放大到 1.2 倍
+    List<PlacedGraphNode> Place()
+    {
+        var inputs = Nodes.Select(node =>
+        {
+            var size = node.Size ?? NodeSize;
+            var textWidth = Math.Min(LabelMax, Math.Max(ChartText.Width(node.Label ?? node.Id), ChartText.Width(node.Sublabel ?? "")));
+            return new GraphLayoutInput(node.Id, node.Group, Math.Max(size, textWidth) + 8, size + 6 + Line * (node.Sublabel is null ? 1 : 2));
+        }).ToList();
+        var positions = GraphLayout.Arrange(inputs, [.. shownLinks.Select(link => (link.Source, link.Target))], Layout, Direction == GraphDirection.TopToBottom,
+            Groups?.Select(group => group.Id).ToList());
+        var items = Nodes.Select((node, index) =>
+        {
+            var (x, y) = positions.GetValueOrDefault(node.Id);
+            var fill = node.Color is { } color ? color.Css : node.Group is { } group && groupColors.TryGetValue(group, out var groupColor) ? groupColor : ChartColor.Series(1).Css;
+            return new PlacedGraphNode(node, index, node.Label ?? node.Id, fill, node.Size ?? NodeSize, x, y);
+        }).ToList();
+        if (items.Count == 0) return items;
+        var (minX, maxX, minY, maxY) = (items.Min(item => item.X), items.Max(item => item.X), items.Min(item => item.Y), items.Max(item => item.Y));
+        var frame = Framed && Groups is { Count: > 0 } ? PanelPad : 0;
+        // 四周留出节点、名字与分组框
+        var (roomX, roomTop, roomBottom) = (LabelMax / 2 + frame + 8, NodeSize / 2 + frame + (frame > 0 ? PanelTitle : 0) + 8, NodeSize / 2 + Line * 2 + frame + 8);
+        var (width, height) = (PlotWidth - roomX * 2, PlotHeight - roomTop - roomBottom);
+        var scale = Math.Min(1.2, Math.Min(maxX > minX ? width / (maxX - minX) : 1.2, maxY > minY ? height / (maxY - minY) : 1.2));
+        var offsetX = roomX + (width - (maxX - minX) * scale) / 2 - minX * scale;
+        var offsetY = roomTop + (height - (maxY - minY) * scale) / 2 - minY * scale;
+        return [.. items.Select(item => item with { X = item.X * scale + offsetX, Y = item.Y * scale + offsetY })];
+    }
+
+    private protected override (RenderFragment Plot, string? Data)? Draw()
+    {
+        var placed = Place();
+        var lang = Config.Lang;
+        var placedById = placed.ToDictionary(node => node.Id);
+        var degree = new Dictionary<string, int>();
+        foreach (var link in shownLinks)
+        {
+            degree[link.Source] = degree.GetValueOrDefault(link.Source) + 1;
+            degree[link.Target] = degree.GetValueOrDefault(link.Target) + 1;
+        }
+        // 悬停的项：节点是 0…N-1，连线接在后面（N + 第几条）
+        var tips = placed.Select(node => (node.Label, (IReadOnlyList<ChartTooltipItem>)[
+                .. node.Source.Sublabel is { } sublabel ? [new ChartTooltipItem(sublabel, null, "")] : Array.Empty<ChartTooltipItem>(),
+                new(lang.ChartDegree(degree.GetValueOrDefault(node.Id)), node.Fill, "")]))
+            .Concat(shownLinks.Select(link => (lang.ChartFlowLabel(placedById[link.Source].Label, placedById[link.Target].Label), (IReadOnlyList<ChartTooltipItem>)[
+                .. link.Value is { } value ? [new ChartTooltipItem(lang.ChartValue, placedById[link.Source].Fill, ValueText(value))] : Array.Empty<ChartTooltipItem>(),
+                .. link.Label is { } label ? [new ChartTooltipItem(label, null, "")] : Array.Empty<ChartTooltipItem>()])));
+        var data = HoverJson(json =>
+        {
+            json.WriteString("mode", "item");
+            json.WriteBoolean("dim", false);
+            json.WriteBoolean("select", true);
+            json.WriteBoolean("panZoom", Zoom);
+            if (Tooltip) WriteTips(json, tips);
+        });
+        return (Plot(placed, placedById), data);
+    }
+
+    static string N(double value) => SvgFormat.Number(value);
+
+    // 节点的形状：中心在原点、外接圆直径 size 的 SVG 路径
+    static string ShapePath(GraphNodeShape shape, double size)
+    {
+        var r = size / 2;
+        string Polygon(int count, double rotate, double radius) => string.Concat(Enumerable.Range(0, count).Select(i =>
+        {
+            var angle = rotate + (double)i / count * Math.PI * 2;
+            return $"{(i > 0 ? 'L' : 'M')}{N(radius * Math.Cos(angle))},{N(radius * Math.Sin(angle))}";
+        })) + "Z";
+        return shape switch
+        {
+            GraphNodeShape.Square => $"M{N(-r * 0.86)},{N(-r * 0.86)}H{N(r * 0.86)}V{N(r * 0.86)}H{N(-r * 0.86)}Z",
+            GraphNodeShape.Hexagon => Polygon(6, 0, r),
+            GraphNodeShape.Triangle => Polygon(3, -Math.PI / 2, r * 1.1),
+            _ => $"M{N(-r)},0A{N(r)},{N(r)},0,1,1,{N(r)},0A{N(r)},{N(r)},0,1,1,{N(-r)},0Z",
+        };
+    }
+
+    // 一条连线的路径、终点处的方向（画箭头）与中点（写标签）
+    (string D, (double X, double Y) End, double Angle, (double X, double Y) Middle) Geometry(PlacedGraphNode source, PlacedGraphNode target, bool arrow)
+    {
+        var tail = arrow ? Arrow : 0;
+        if (LayeredLayout)
+        {
+            // 分层：沿方向的 S 形曲线，两端从节点的边上出发
+            var horizontal = Direction == GraphDirection.LeftToRight;
+            var (sx, sy) = horizontal ? (source.X + source.Size / 2, source.Y) : (source.X, source.Y + source.Size / 2);
+            var (tx, ty) = horizontal ? (target.X - target.Size / 2 - tail, target.Y) : (target.X, target.Y - target.Size / 2 - tail);
+            var d = horizontal
+                ? $"M{N(sx)},{N(sy)}C{N((sx + tx) / 2)},{N(sy)},{N((sx + tx) / 2)},{N(ty)},{N(tx)},{N(ty)}"
+                : $"M{N(sx)},{N(sy)}C{N(sx)},{N((sy + ty) / 2)},{N(tx)},{N((sy + ty) / 2)},{N(tx)},{N(ty)}";
+            return (d, (tx, ty), horizontal ? 0 : Math.PI / 2, ((sx + tx) / 2, (sy + ty) / 2));
+        }
+        // 其余：微微弯曲的二次曲线（相向的两条不重叠），两端退到节点的边上
+        var (dx, dy) = (target.X - source.X, target.Y - source.Y);
+        var length = double.Hypot(dx, dy) is var h && h != 0 ? h : 1;
+        var control = ((source.X + target.X) / 2 - dy / length * length * 0.12, (source.Y + target.Y) / 2 + dx / length * length * 0.12);
+        static (double X, double Y) Toward((double X, double Y) from, (double X, double Y) to, double distance)
+        {
+            var (ux, uy) = (to.X - from.X, to.Y - from.Y);
+            var norm = double.Hypot(ux, uy) is var n && n != 0 ? n : 1;
+            return (from.X + ux / norm * distance, from.Y + uy / norm * distance);
+        }
+        var start = Toward((source.X, source.Y), control, source.Size / 2);
+        var end = Toward((target.X, target.Y), control, target.Size / 2 + tail);
+        var path = $"M{N(start.X)},{N(start.Y)}Q{N(control.Item1)},{N(control.Item2)},{N(end.X)},{N(end.Y)}";
+        return (path, end, Math.Atan2(target.Y - control.Item2, target.X - control.Item1),
+            ((start.X + 2 * control.Item1 + end.X) / 4, (start.Y + 2 * control.Item2 + end.Y) / 4));
+    }
+
+    static string ArrowPath((double X, double Y) end, double angle, double size)
+    {
+        var (tipX, tipY) = (end.X + Math.Cos(angle) * size, end.Y + Math.Sin(angle) * size);
+        var side = size * 0.55;
+        var (nx, ny) = (-Math.Sin(angle) * side, Math.Cos(angle) * side);
+        return $"M{N(tipX)},{N(tipY)}L{N(end.X + nx)},{N(end.Y + ny)}L{N(end.X - nx)},{N(end.Y - ny)}Z";
+    }
+
+    RenderFragment Plot(List<PlacedGraphNode> placed, Dictionary<string, PlacedGraphNode> placedById) => __builder =>
+    {
+        var current = Current;
+        // 选中节点时它与相连的节点、连线保持原样，其余变淡
+        HashSet<string>? connected = current is null ? null : [current, .. shownLinks.Where(link => link.Source == current).Select(link => link.Target), .. shownLinks.Where(link => link.Target == current).Select(link => link.Source)];
+        var withArrows = Arrows ?? LayeredLayout;
+        var maxAmount = shownLinks.Select(link => (double)(link.Value ?? 0)).DefaultIfEmpty(0).Max();
+        <div data-chart-viewport @attributes="Attrs.Merge(ViewportLayer)">
+            <svg @attributes="Attrs.Merge(SvgLayer, SvgSize())">
+                <rect data-part="background" width="@N(PlotWidth)" height="@N(PlotHeight)" @attributes="Attrs.Merge(BackgroundLayer)" />
+                <g data-pan-zoom transform="translate(0 0) scale(1)">
+                    <g @attributes="Attrs.Merge(FadeLayer)">
+                        @if (Framed)
+                        {
+                            foreach (var group in Groups ?? [])
+                            {
+                                var members = placed.Where(node => node.Source.Group == group.Id).ToList();
+                                if (members.Count == 0) continue;
+                                double Half(PlacedGraphNode node) => Math.Max(node.Size / 2, Math.Min(LabelMax, ChartText.Width(node.Label)) / 2);
+                                var x0 = members.Min(node => node.X - Half(node)) - PanelPad;
+                                var x1 = members.Max(node => node.X + Half(node)) + PanelPad;
+                                var y0 = members.Min(node => node.Y - node.Size / 2) - PanelPad - PanelTitle;
+                                var y1 = members.Max(node => node.Y + node.Size / 2 + Line * (node.Source.Sublabel is null ? 1 : 2) + 4) + PanelPad;
+                                <g @key="@($"group:{group.Id}")" data-part="panel">
+                                    <rect x="@N(x0)" y="@N(y0)" width="@N(x1 - x0)" height="@N(y1 - y0)" rx="8"
+                                          @attributes="Attrs.Merge(PanelLayer, ChartFrame.ColorVar(groupColors.GetValueOrDefault(group.Id, Colors.BorderMuted)))" />
+                                    @ChartSvg.Text(ChartText.Truncate(group.Label, x1 - x0 - 20), x0 + 10, y0 + PanelTitle / 2 + 2, PanelLabelLayer, baseline: "central")
+                                </g>
+                            }
+                        }
+                        @for (var index = 0; index < shownLinks.Count; index++)
+                        {
+                            var link = shownLinks[index];
+                            var (source, target) = (placedById[link.Source], placedById[link.Target]);
+                            if (source == target) continue;
+                            var width = link.Value is not { } amount || maxAmount == 0 ? 1.5 : 1 + 5 * (double)amount / maxAmount;
+                            var color = ChartFrame.ColorVar(link.Color?.Css ?? Colors.BorderStrong);
+                            var (d, end, angle, middle) = Geometry(source, target, withArrows);
+                            var faded = connected is not null && link.Source != current && link.Target != current;
+                            <g @key="@($"{link.Source}->{link.Target}:{index}")" data-faded="@faded" @attributes="Attrs.Merge(LinkGroupLayer)">
+                                <path data-part="link" data-index="@(placed.Count + index)" d="@d" stroke-width="@N(width)" @attributes="Attrs.Merge(link.Dashed ? DashedLinkLayer : LinkLayer, color)" />
+                                @if (withArrows)
+                                {
+                                    <path d="@ArrowPath(end, angle, Arrow + width)" @attributes="Attrs.Merge(ArrowLayer, color)" />
+                                }
+                                @if (link.Label is { } label)
+                                {
+                                    var labelWidth = ChartText.Width(label);
+                                    <g transform="@($"translate({N(middle.X)},{N(middle.Y)})")" @attributes="Attrs.Merge(NoPointerLayer)">
+                                        <rect x="@N(-labelWidth / 2 - 4)" y="-9" width="@N(labelWidth + 8)" height="18" rx="4" @attributes="Attrs.Merge(LinkLabelBoxLayer)" />
+                                        @ChartSvg.Text(label, 0, 0, LinkLabelLayer, "middle", "central")
+                                    </g>
+                                }
+                            </g>
+                        }
+                        @foreach (var node in placed)
+                        {
+                            var faded = connected is not null && !connected.Contains(node.Id);
+                            <g @key="node.Id" data-part="node" data-index="@node.Index" data-faded="@faded" transform="@($"translate({N(node.X)},{N(node.Y)})")"
+                               @attributes="Attrs.Merge(OnItemClick.HasDelegate ? ClickableNodeLayer : NodeLayer)">
+                                <path d="@ShapePath(node.Source.Shape, node.Size)" data-selected="@(current == node.Id)" @attributes="Attrs.Merge(NodeShapeLayer, ChartFrame.ColorVar(node.Fill))" />
+                                @ChartSvg.Text(ChartText.Truncate(node.Label, LabelMax), 0, node.Size / 2 + 4, NodeLabelLayer, "middle", "hanging")
+                                @if (node.Source.Sublabel is { } sublabel)
+                                {
+                                    @ChartSvg.Text(ChartText.Truncate(sublabel, LabelMax), 0, node.Size / 2 + 4 + Line, NodeSublabelLayer, "middle", "hanging")
+                                }
+                            </g>
+                        }
+                    </g>
+                </g>
+            </svg>
+            @if (Tooltip)
+            {
+                @TooltipBox
+            }
+            @* 只给指针用户的提示（读屏不用滚轮缩放）：浮在绘图区右上角，不挤动布局；charts.js 写 data-open *@
+            @if (Zoom)
+            {
+                <span data-part="wheel-hint" @attributes="Attrs.Merge(HintLayer)">@Config.Lang.ChartZoomWheelHint</span>
+            }
+        </div>
+    };
+}

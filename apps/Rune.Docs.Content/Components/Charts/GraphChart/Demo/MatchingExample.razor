@@ -1,0 +1,49 @@
+@inherits RuneComponent
+
+@* 案例库的匹配推送：触发事件 → 匹配到的案例 → 推送给谁；分层布局，三组各框在一起，可以换方向与布局 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Md" Wrap="true">
+        <ToggleGroup @bind-Value="layout" Required="true" Size="Size.Sm" aria-label="布局">
+            <ToggleItem Value="Layered">分层</ToggleItem>
+            <ToggleItem Value="Parallel">分列</ToggleItem>
+            <ToggleItem Value="Force">力导向</ToggleItem>
+        </ToggleGroup>
+        <ToggleGroup @bind-Value="direction" Required="true" Size="Size.Sm" aria-label="方向">
+            <ToggleItem Value="LeftToRight">从左到右</ToggleItem>
+            <ToggleItem Value="TopToBottom">从上到下</ToggleItem>
+        </ToggleGroup>
+    </Flex>
+    <GraphChart Nodes="Nodes" Links="Links" Groups="Groups" Layout="Enum.Parse<GraphLayoutKind>(layout!)" Direction="Enum.Parse<GraphDirection>(direction!)"
+                Height="380" aria-label="案例库的匹配推送" />
+</Flex>
+
+@code {
+    static readonly GraphGroup[] Groups = [new("event", "触发事件"), new("reserve", "案例"), new("person", "推送对象")];
+
+    static readonly GraphNode[] Nodes =
+    [
+        new("e1") { Label = "新供应商接入", Group = "event", Shape = GraphNodeShape.Square },
+        new("e2") { Label = "材料牌号归并", Group = "event", Shape = GraphNodeShape.Square },
+        new("r1") { Label = "线缆收纳夹", Sublabel = "KB-0412", Group = "reserve" },
+        new("r2") { Label = "桌面挡板", Sublabel = "KB-0388", Group = "reserve" },
+        new("r3") { Label = "机柜导轨", Sublabel = "KB-0275", Group = "reserve" },
+        new("p1") { Label = "采购工程师 甲", Group = "person" },
+        new("p2") { Label = "设计师 乙", Group = "person" },
+        new("p3") { Label = "设计师 丙", Group = "person" },
+    ];
+
+    static readonly GraphLink[] Links =
+    [
+        new("e1", "r1") { Label = "件号" },
+        new("e1", "r3"),
+        new("e2", "r2") { Label = "材料" },
+        new("e2", "r3") { Label = "材料" },
+        new("r1", "p1"),
+        new("r1", "p2"),
+        new("r2", "p1"),
+        new("r3", "p3") { Dashed = true },
+    ];
+
+    string? layout = "Layered";
+    string? direction = "LeftToRight";
+}

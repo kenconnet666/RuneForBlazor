@@ -72,6 +72,7 @@ export function watchChart(plot) {
   plot.addEventListener('pointermove', (event) => onPointerMove(plot, state, event));
   plot.addEventListener('pointerleave', () => hover(plot, state, null));
   plot.addEventListener('click', (event) => onClick(plot, state, event));
+  watchPanZoom(plot, state);
 }
 
 /** data-chart 里的数据：C# 重画后会变，按原文缓存 */
@@ -240,13 +241,99 @@ function showTip(plot, state, tooltip, data, current) {
   if (!tooltip.hasAttribute('data-placed')) requestAnimationFrame(() => tooltip.setAttribute('data-placed', ''));
 }
 
-/** 点击下钻：点在柱上按那根柱（data-index），其余按悬停的行 */
+/**
+ * 点击下钻：点在柱上按那根柱（data-index），其余按悬停的行。悬停数据写了 select 时（网络图）点项总是交 activate（选中），
+ * 点空白处交 deselect；拖动画布之后的那次点击不算
+ */
 function onClick(plot, state, event) {
-  if (!plot.hasAttribute('data-clickable')) return;
+  if (state.dragged) {
+    state.dragged = false;
+    return;
+  }
+  const select = dataOf(plot, state)?.select;
+  if (!plot.hasAttribute('data-clickable') && !select) return;
   const target = event.target instanceof Element ? event.target.closest('[data-index]') : null;
-  const index = target ? Number(target.getAttribute('data-index')) : state.hovered?.index;
-  if (index === undefined || Number.isNaN(index)) return;
+  const index = target ? Number(target.getAttribute('data-index')) : select ? undefined : state.hovered?.index;
+  if (index === undefined || Number.isNaN(index)) {
+    if (select) sendCommand(plot, 'deselect');
+    return;
+  }
   sendCommand(plot, 'activate', String(index));
+}
+
+// ───────── 平移缩放（网络图，同 vue-tsx-pro 的 usePanZoom）：拖动平移、按住 Ctrl 滚轮缩放、双击放大一档或回到全图 ─────────
+// 变换写在 g[data-pan-zoom] 的 transform 上（C# 渲染的初值不变，重画时不会被拉回）；只按滚轮时浮出提示，页面照常滚动
+
+const ZOOM_MIN = 0.3;
+const ZOOM_MAX = 4;
+const ZOOM_STEP = 1.25;
+
+function viewOf(state) {
+  return (state.view ??= { x: 0, y: 0, scale: 1 });
+}
+
+function applyView(plot, state, next) {
+  const view = viewOf(state);
+  Object.assign(view, next);
+  plot.querySelector('[data-pan-zoom]')?.setAttribute('transform', `translate(${round(view.x)} ${round(view.y)}) scale(${round(view.scale)})`);
+}
+
+function zoomAround(plot, state, scale, origin) {
+  const view = viewOf(state);
+  const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, scale));
+  const ratio = next / view.scale;
+  applyView(plot, state, { x: origin.x - (origin.x - view.x) * ratio, y: origin.y - (origin.y - view.y) * ratio, scale: next });
+}
+
+function watchPanZoom(plot, state) {
+  const local = (event) => {
+    const box = plot.querySelector('[data-chart-viewport]')?.getBoundingClientRect() ?? plot.getBoundingClientRect();
+    return { x: event.clientX - box.left, y: event.clientY - box.top };
+  };
+  const enabled = (event) => dataOf(plot, state)?.panZoom && event.target instanceof Element && event.target.closest('[data-chart-viewport]');
+  plot.addEventListener('wheel', (event) => {
+    if (!enabled(event)) return;
+    if (!event.ctrlKey && !event.metaKey) {
+      const hint = plot.querySelector('[data-part="wheel-hint"]');
+      hint?.setAttribute('data-open', '');
+      clearTimeout(state.hintTimer);
+      state.hintTimer = setTimeout(() => hint?.removeAttribute('data-open'), 1500);
+      return;
+    }
+    event.preventDefault();
+    // 触控板的捏合每次 delta 很小、鼠标滚轮一格约 100：按 delta 连续缩放
+    zoomAround(plot, state, viewOf(state).scale * Math.exp(-event.deltaY * (event.deltaMode === 1 ? 0.05 : 0.002)), local(event));
+  }, { passive: false });
+  plot.addEventListener('pointerdown', (event) => {
+    // 拖过之后不一定有 click（松开在别的元素上）：每次按下重新算
+    state.dragged = false;
+    if (event.button !== 0 || !enabled(event)) return;
+    const start = { ...viewOf(state) };
+    const origin = { x: event.clientX, y: event.clientY };
+    let moving = false;
+    const move = (next) => {
+      const dx = next.clientX - origin.x;
+      const dy = next.clientY - origin.y;
+      if (!moving && Math.hypot(dx, dy) < 3) return;
+      moving = true;
+      applyView(plot, state, { x: start.x + dx, y: start.y + dy });
+    };
+    const end = () => {
+      removeEventListener('pointermove', move);
+      removeEventListener('pointerup', end);
+      removeEventListener('pointercancel', end);
+      state.dragged = moving;
+    };
+    addEventListener('pointermove', move);
+    addEventListener('pointerup', end);
+    addEventListener('pointercancel', end);
+  });
+  plot.addEventListener('dblclick', (event) => {
+    if (!enabled(event) || event.target.closest('[data-part="node"]')) return;
+    const view = viewOf(state);
+    if (view.scale > 1) applyView(plot, state, { x: 0, y: 0, scale: 1 });
+    else zoomAround(plot, state, view.scale * ZOOM_STEP * ZOOM_STEP, local(event));
+  });
 }
 
 // ───────── 导出（同 vue-tsx-pro 的 export.ts）：菜单项带 data-rune-chart-export，图表外层是它所在的 figure ─────────

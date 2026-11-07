@@ -1,0 +1,23 @@
+@page "/components/graph-chart"
+@attribute [DocMeta("GraphChart 网络图", "节点与连线，看谁和谁有关系、关系有多强：匹配推送、协作关系、上下游。自动布局（力导向、分层、环形、分列）、缩放平移、分组框，C# 直接画 SVG，跟随主题。", DocCategory.Charts, Order = 10)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.GraphChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="matching" Title="分层与分组" Demo="typeof(MatchingExample)">
+                <Code>Layout="GraphLayoutKind.Layered"</Code> 沿 <Code>Direction</Code> 一层层排开、连线带箭头，适合有上下游的关系；
+                <Code>Groups</Code> 把同组的节点框在一起、取同一个颜色（分层、分列布局）。连线的 <Code>Label</Code> 写在线上，<Code>Dashed</Code> 是弱关系。
+                布局在画之前同步算好，结果每次相同。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="network" Title="力导向与选中" Demo="typeof(NetworkExample)">
+                默认力导向：相连的靠近、不相连的推开。连线写了 <Code>Value</Code> 时按大小加粗，悬停看数值；点节点选中（<Code>@@bind-Selected</Code>），不相连的变淡，点空白处取消。
+                能拖动画布、按住 Ctrl 滚轮缩放（直接滚轮照常滚动页面），双击放大一档、已放大时回到全图（<Code>Zoom="false"</Code> 关掉），都在浏览器里，不往返。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(GraphChart), typeof(GraphNode), typeof(GraphLink), typeof(GraphGroup)]" />
+</DocPage>

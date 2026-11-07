@@ -78,6 +78,56 @@ public class ChartTests(DemoServer demo) : E2ETest(demo)
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
+    public async Task 环形图_悬停扇区_提示框有数值与占比_其余变淡(string mode)
+    {
+        var page = await OpenAsync(mode, "donut-chart");
+        var chart = page.Locator("[role=figure][aria-label=\"访问来源\"]");
+        var first = chart.Locator("[data-part=segment][data-index=\"0\"]");
+        await Assertions.Expect(first).ToHaveCountAsync(1);
+        // 扇区外接框的中心可能落在环中间的空洞里：取路径上的一点（四分之一处），换成页面坐标
+        var point = await first.EvaluateAsync<double[]>("""
+            path => {
+              const p = path.getPointAtLength(path.getTotalLength() / 4);
+              const m = path.getScreenCTM();
+              return [p.x * m.a + p.y * m.c + m.e, p.x * m.b + p.y * m.d + m.f];
+            }
+            """);
+        await page.Mouse.MoveAsync((float)point[0], (float)point[1]);
+        await Assertions.Expect(chart.Locator("[data-part=tooltip]")).ToContainTextAsync("搜索引擎");
+        await Assertions.Expect(chart.Locator("[data-part=tooltip]")).ToContainTextAsync("40.3%");
+        await Assertions.Expect(chart.Locator("[data-part=segment][data-index=\"1\"]")).ToHaveAttributeAsync("data-dimmed", "");
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 网络图_点节点选中_拖动画布不算点击_点空白取消(string mode)
+    {
+        var page = await OpenAsync(mode, "graph-chart");
+        var chart = page.Locator("[role=figure][aria-label=\"团队与供应商的协作\"]");
+        await chart.ScrollIntoViewIfNeededAsync();
+        var node = chart.Locator("[data-part=node][data-index=\"0\"] path");
+        await Assertions.Expect(node).ToHaveCountAsync(1);
+        await node.ClickAsync(new() { Force = true });
+        await Assertions.Expect(page.GetByText("选中：技术部", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(chart.Locator("[data-part=node][data-index=\"5\"]")).ToHaveAttributeAsync("data-faded", "");
+
+        // 在空白处拖动：画布平移，选中不变
+        var box = (await chart.Locator("[data-part=background]").BoundingBoxAsync())!;
+        await page.Mouse.MoveAsync(box.X + 8, box.Y + 8);
+        await page.Mouse.DownAsync();
+        await page.Mouse.MoveAsync(box.X + 60, box.Y + 40, new() { Steps = 5 });
+        await page.Mouse.UpAsync();
+        await Assertions.Expect(chart.Locator("[data-pan-zoom]")).ToHaveAttributeAsync("transform", "translate(52 32) scale(1)");
+        await Assertions.Expect(page.GetByText("选中：技术部", new() { Exact = true })).ToBeVisibleAsync();
+
+        await page.Mouse.ClickAsync(box.X + 8, box.Y + box.Height - 8);
+        await Assertions.Expect(page.GetByText("点一个节点", new() { Exact = true })).ToBeVisibleAsync();
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
     public async Task 柱状图_点柱子下钻(string mode)
     {
         var page = await OpenAsync(mode, "bar-chart");

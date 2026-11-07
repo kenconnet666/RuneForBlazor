@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+@* 团队与供应商的协作：连线粗细是合作的项目数；点一个节点选中它，不相连的变淡，点空白处取消 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <GraphChart Nodes="Nodes" Links="Links" Groups="Groups" Unit="项" @bind-Selected="selected" Height="340" aria-label="团队与供应商的协作" />
+    <Small Tone="TextTone.Muted">@(selected is null ? "点一个节点" : $"选中：{Nodes.First(node => node.Id == selected).Label}")</Small>
+</Flex>
+
+@code {
+    static readonly GraphGroup[] Groups = [new("team", "责任团队") { Color = ChartColor.Series(1) }, new("supplier", "供应商") { Color = ChartColor.Series(3) }];
+
+    static readonly GraphNode[] Nodes =
+    [
+        new("zt") { Label = "技术部", Group = "team", Size = 34 },
+        new("fc") { Label = "研发中心", Group = "team", Size = 30 },
+        new("qy") { Label = "运营部", Group = "team", Size = 30 },
+        new("a") { Label = "供应商甲", Group = "supplier" },
+        new("b") { Label = "供应商乙", Group = "supplier" },
+        new("c") { Label = "供应商丙", Group = "supplier" },
+        new("d") { Label = "供应商丁", Group = "supplier" },
+        new("e") { Label = "供应商戊", Group = "supplier" },
+    ];
+
+    static readonly GraphLink[] Links =
+    [
+        new("zt", "a") { Value = 12 }, new("zt", "b") { Value = 5 }, new("fc", "b") { Value = 9 }, new("fc", "c") { Value = 3 },
+        new("qy", "c") { Value = 7 }, new("qy", "d") { Value = 2 }, new("zt", "e") { Value = 1 }, new("qy", "a") { Value = 4 },
+    ];
+
+    string? selected;
+}

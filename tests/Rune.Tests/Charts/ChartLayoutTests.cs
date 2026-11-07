@@ -57,6 +57,45 @@ public class ChartLayoutTests
         Assert.Equal(first.Source.End - first.Source.Start, first.Target.End - first.Target.Start, 9);
     }
 
+    static readonly GraphLayoutInput[] GraphNodes = [.. new[] { "a", "b", "c", "d", "e" }.Select(id => new GraphLayoutInput(id, null, 40, 40))];
+
+    // 最后一条成环：不影响分层
+    static readonly (string, string)[] GraphLinks = [("a", "b"), ("a", "c"), ("b", "d"), ("c", "d"), ("d", "e"), ("e", "a")];
+
+    [Fact]
+    public void 网络图_分层_沿方向一层层排开_同一层不重叠()
+    {
+        var lr = GraphLayout.Arrange(GraphNodes, GraphLinks, GraphLayoutKind.Layered);
+        Assert.True(lr["a"].X < lr["b"].X);
+        Assert.Equal(lr["b"].X, lr["c"].X);
+        Assert.True(lr["c"].X < lr["d"].X && lr["d"].X < lr["e"].X);
+        Assert.True(Math.Abs(lr["b"].Y - lr["c"].Y) >= 40);
+        var tb = GraphLayout.Arrange(GraphNodes, GraphLinks, GraphLayoutKind.Layered, vertical: true);
+        Assert.True(tb["a"].Y < tb["e"].Y);
+    }
+
+    [Fact]
+    public void 网络图_力导向结果每次相同且不重叠_环形到圆心距离相同()
+    {
+        var first = GraphLayout.Arrange(GraphNodes, GraphLinks, GraphLayoutKind.Force);
+        Assert.Equal(first.Values, GraphLayout.Arrange(GraphNodes, GraphLinks, GraphLayoutKind.Force).Values);
+        var points = first.Values.ToList();
+        for (var i = 0; i < points.Count; i++)
+            for (var j = i + 1; j < points.Count; j++)
+                Assert.True(double.Hypot(points[i].X - points[j].X, points[i].Y - points[j].Y) > 20);
+        var radii = GraphLayout.Arrange(GraphNodes, GraphLinks, GraphLayoutKind.Circular).Values.Select(p => double.Hypot(p.X, p.Y)).ToList();
+        Assert.All(radii, r => Assert.Equal(radii[0], r, 6));
+    }
+
+    [Fact]
+    public void 网络图_分列_每组一列_按组的顺序()
+    {
+        var grouped = GraphNodes.Select((node, index) => node with { Group = index < 2 ? "g2" : "g1" }).ToList();
+        var columns = GraphLayout.Arrange(grouped, GraphLinks, GraphLayoutKind.Parallel, groups: ["g1", "g2"]);
+        Assert.True(columns["c"].X < columns["a"].X);
+        Assert.Equal(columns["a"].X, columns["b"].X);
+    }
+
     sealed record Row(string Region, string Supplier, double Amount);
 
     static readonly Row[] Rows = [new("华东", "甲", 60), new("华东", "乙", 30), new("华南", "丙", 10), new("华南", "丁", 0)];

@@ -106,6 +106,9 @@ public abstract class ChartBase : UIComponent
     /// <summary>绘图区的高度：默认是 Height 参数（雷达图默认 300px，漏斗图随内容）。</summary>
     private protected virtual CssLength? FrameHeight => Height;
 
+    /// <summary>点了空白处（网络图取消选中）：悬停数据里写了 select 时 charts.js 发 deselect。</summary>
+    private protected virtual Task DeselectAsync() => Task.CompletedTask;
+
     /// <summary>左上方的单位；百分比堆叠时不写。</summary>
     private protected virtual string? FrameUnit => Unit;
 
@@ -242,6 +245,8 @@ public abstract class ChartBase : UIComponent
         }
         else if (args.Name == "activate" && int.TryParse(args.Text, CultureInfo.InvariantCulture, out var index) && index >= 0)
             await ActivateAsync(index);
+        else if (args.Name == "deselect")
+            await DeselectAsync();
     }
 
     /// <summary>SVG 的宽高：量到时是像素；没量到时占满绘图区，按 viewBox 缩放。</summary>
