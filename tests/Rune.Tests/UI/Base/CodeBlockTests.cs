@@ -72,4 +72,19 @@ public class CodeBlockTests : BunitContext
         Assert.Equal("dotnet test", cut.Find("code").TextContent);
         Assert.Contains("后提交", cut.Markup);
     }
+
+    [Fact]
+    public void RuneProvider的高亮器_渲染时就上色_按行时按br拆开()
+    {
+        static string Levels(string code, string lang) =>
+            string.Join("<br>", code.Split('\n').Select(line => line.Replace("ERROR", "<span class=\"level\">ERROR</span>")));
+        var cut = Render<RuneProvider>(p => p
+            .Add(x => x.Highlighter, (CodeHighlighter)Levels)
+            .AddChildContent<CodeBlock>(c => c.Add(x => x.Code, "ok\nERROR boom\n").Add(x => x.Lang, "log").Add(x => x.LineNumbers, true)));
+        var code = cut.Find("pre > code");
+        Assert.False(code.HasAttribute("data-rune-highlight"));
+        var lines = cut.FindAll("[data-rune-code-text]");
+        Assert.Equal(["ok", "ERROR boom"], lines.Select(line => line.TextContent));
+        Assert.Equal("ERROR", lines[1].QuerySelector("span.level")?.TextContent);
+    }
 }

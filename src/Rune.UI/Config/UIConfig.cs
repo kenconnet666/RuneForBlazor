@@ -34,6 +34,9 @@ public sealed record UIConfig(Theme Theme, Theme? DarkTheme, ColorScheme ColorSc
     /// <summary>工作日历（法定节假日与调休）：DeadlineBadge 这类按工作日算的组件用它；默认只按周末。</summary>
     public WorkCalendar WorkCalendar { get; init; } = WorkCalendar.Weekdays;
 
+    /// <summary>代码高亮器：CodeBlock 用它上色；null 时在浏览器里用 Shiki。</summary>
+    public CodeHighlighter? Highlighter { get; init; }
+
     /// <summary>当前配置下的文字匹配：内置匹配（按 <see cref="Lang"/> 的语言）或 <see cref="TextMatcher"/> 任一命中。</summary>
     public bool Matches(string text, string query) =>
         TextMatching.For(Lang.Code)(text, query) || (TextMatcher?.Invoke(text, query) ?? false);
@@ -78,6 +81,9 @@ public sealed class RuneUIOptions
 
     /// <inheritdoc cref="UIConfig.WorkCalendar"/>
     public WorkCalendar WorkCalendar { get; set; } = WorkCalendar.Weekdays;
+
+    /// <inheritdoc cref="UIConfig.Highlighter"/>
+    public CodeHighlighter? Highlighter { get; set; }
 }
 
 /// <summary>注册组件库的服务。</summary>
@@ -94,7 +100,7 @@ public static class RuneUIServiceCollectionExtensions
         var options = new RuneUIOptions();
         configure?.Invoke(options);
         services.AddRune();
-        var config = new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Components, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher, ThemeChoices = options.ThemeChoices, WorkCalendar = options.WorkCalendar };
+        var config = new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Components, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher, ThemeChoices = options.ThemeChoices, WorkCalendar = options.WorkCalendar, Highlighter = options.Highlighter };
         if (options.Languages is { Count: > 0 } languages)
         {
             // 文化随请求变：每个作用域（请求、电路）第一次用到时按当时的界面文化选一次，同一作用域里一直是同一个对象

@@ -26,7 +26,7 @@
 @code {
     UIConfig config = default!;
     Memo<(string? Class, string? Label, string Code, string Direction), Attrs> themeAttrs;
-    Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentConfigs? Components, bool? Ripple, Lang? Lang, ThemeChoices? Choices, WorkCalendar? Work), UIConfig> built;
+    Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentConfigs? Components, bool? Ripple, Lang? Lang, ThemeChoices? Choices, WorkCalendar? Work, CodeHighlighter? Highlighter), UIConfig> built;
 
     /// <summary>主题（亮色）。</summary>
     [Parameter] public Theme? Theme { get; set; }
@@ -55,6 +55,9 @@
 
     /// <summary>工作日历（法定节假日与调休），见 <see cref="UIConfig.WorkCalendar"/>。</summary>
     [Parameter] public WorkCalendar? WorkCalendar { get; set; }
+
+    /// <summary>代码高亮器，见 <see cref="UIConfig.Highlighter"/>。</summary>
+    [Parameter] public CodeHighlighter? Highlighter { get; set; }
 
     /// <summary>区域里的内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -100,7 +103,7 @@
     protected override void OnParametersSet()
     {
         // 输入没变时保留同一个配置对象：下面的组件拿到的级联值不变，不会被迫重新渲染
-        config = built.Get((Config, Theme, DarkTheme, ColorScheme, Components, Ripple, Lang, Choices, WorkCalendar), static k => k.Outer with
+        config = built.Get((Config, Theme, DarkTheme, ColorScheme, Components, Ripple, Lang, Choices, WorkCalendar, Highlighter), static k => k.Outer with
         {
             ThemeChoices = k.Choices ?? k.Outer.ThemeChoices,
             Lang = k.Lang ?? k.Outer.Lang,
@@ -110,6 +113,7 @@
             Components = k.Components is null ? k.Outer.Components : k.Outer.Components.Then(k.Components),
             Ripple = k.Ripple ?? k.Outer.Ripple,
             WorkCalendar = k.Work ?? k.Outer.WorkCalendar,
+            Highlighter = k.Highlighter ?? k.Outer.Highlighter,
         });
     }
 }

@@ -4,6 +4,7 @@
     <CodeBlock Code="@source" Lang="csharp" Title="Program.cs" LineNumbers="true" HighlightLines="2,4-5" MaxLines="20" />
     - 高亮在浏览器里做（JS 初始化器按 data-rune-highlight 用 Shiki 上色，第一次用到时才加载）：先显示纯文本，结果到了再替换，
       等宽字体下两者排版相同，布局不跳动；Server 模式没有往返，静态 SSR 也会上色。Highlight="false" 时保持纯文本。
+      配置里有高亮器（UIConfig.Highlighter）时改用它，渲染时就上好色。
     - 长行在 ScrollArea 里横向滚动：浮层滚动条不占高度；滚动区域可聚焦，键盘也能滚动。Wrap 时换行。
     - 复制按钮在右上角，有标题时放在标题栏里；行号不可选中，复制的是 Code 本身。
     - 长代码：MaxLines 之外折叠，底部的按钮展开或收起。
@@ -12,7 +13,8 @@
 @namespace Rune.UI
 @inherits UIComponent
 @{
-    var lines = SplitLines(Code);
+    var highlighted = Highlighted;
+    var lines = highlighted ?? SplitLines(Code);
     var collapsible = MaxLines is { } max && lines.Count > max;
     var byLine = ByLine;
     var hasTitle = Title is not null || TitleContent is not null;
@@ -41,8 +43,19 @@
                         <span @attributes="Attrs.Merge(Attrs.Layer(parts[CodeBlockPart.Line], LineLayer(mark)), PropsLine)" data-diff="@DiffOf(mark)">@if (LineNumbers)
                             {
                                 <span aria-hidden="true" @attributes="Attrs.Merge(parts[CodeBlockPart.LineNumber], PropsLineNumber)">@number</span>
-                            }<span data-rune-code-text>@lines[index]</span></span>
+                            }<span data-rune-code-text>@if (highlighted is not null)
+                            {
+                                @((MarkupString)lines[index])
+                            }
+                            else
+                            {
+                                @lines[index]
+                            }</span></span>
                     }
+                }
+                else if (highlighted is not null)
+                {
+                    @((MarkupString)string.Join('\n', highlighted))
                 }
                 else
                 {
@@ -145,9 +158,16 @@
     // 行号、行高亮、diff 任一用到时按行渲染；都不用时整段文字，不为每行建节点
     bool ByLine => LineNumbers || HighlightLines is not null || AddedLines is not null || RemovedLines is not null;
 
-    object CodeKey => (Code, Highlight ? Lang : null, LineNumbers, HighlightLines, AddedLines, RemovedLines);
+    object CodeKey => (Code, Highlight ? Lang : null, Config.Highlighter, LineNumbers, HighlightLines, AddedLines, RemovedLines);
 
-    Attrs CodeManaged => new() { ["data-rune-highlight"] = Highlight ? Lang : null };
+    // 配了高亮器时在这里上色（按 br 拆成行），不再交给浏览器
+    IReadOnlyList<string>? Highlighted => Highlight && Lang is not null && Config.Highlighter is { } highlighter
+        ? LineBreak.Split(highlighter(Code.Replace("\r\n", "\n").TrimEnd('\n'), Lang))
+        : null;
+
+    // Razor 生成的类里用不了 Regex 的源生成器（生成器之间看不到彼此的输出）
+    static readonly System.Text.RegularExpressions.Regex LineBreak = new(@"<br\s*/?>", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+    Attrs CodeManaged => new() { ["data-rune-highlight"] = Highlight && Config.Highlighter is null ? Lang : null };
 
     Attrs PreManaged(bool collapsed) => new()
     {
