@@ -31,6 +31,18 @@ node tools/parity/parity.mjs button --shots                # 两边每个示例�
 其他选项：`--themes=light`、`--mode=server`（默认 static）、`--tolerance=0.5`（像素）、`--width=1280`。
 报告写到 `artifacts/parity/<演示>/report.md`；有差异时退出码为 1。
 
+## 整页对照
+
+`parity.mjs` 比的是示例画布；站点外壳（顶栏、侧栏、正文、本页目录、标题的位置与大小）与第一屏的画面用 `pages.mjs` 比，
+本库文档站（`.claude/launch.json` 的 `docs`，端口 5310）与 vue-tsx-pro 文档站同时开着：
+
+```bash
+node tools/parity/pages.mjs                                   # 两边侧栏都有的页面加首页，1440 与 390，亮色
+MSYS_NO_PATHCONV=1 node tools/parity/pages.mjs --pages=/,/components/button --themes=light,dark
+```
+
+报告写到 `artifacts/parity/_pages/report.md`。正式文档站的对照计划见 `docs/DOCS-SITE.md`。
+
 ## 文档页怎么写才能对上
 
 - 页面在 `apps/Rune.Docs.Content`（测试台按 `/static/button` 打开 `/components/button` 那一页），示例用 `Example`，`Id` 同 vue-tsx-pro 文档站示例的 id，
