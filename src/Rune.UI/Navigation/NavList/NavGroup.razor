@@ -43,7 +43,7 @@
                 <span @attributes="Attrs.Merge(parts[NavListPart.Label], PropsLabel)">@Label</span>
                 <Icon Data="BuiltInIcons.ChevronRight" FlipInRtl="true" @attributes="Attrs.MergeProps(parts[NavListPart.Chevron], open.Value ? OpenChevron : null)" />
             </button>
-            <Collapse Open="open.Value" OpenChanged="open.SetAsync" id="@contentId" @attributes="PropsContent">
+            <Collapse Open="open.Value" OpenChanged="open.SetAsync" id="@contentId" @attributes="Attrs.MergeProps(null, PropsContent)">
                 <FlexList Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" @attributes="Attrs.MergeProps(Attrs.Layer(parts[NavListPart.List], NestedLayer), PropsList)">@ChildContent</FlexList>
             </Collapse>
         </li>

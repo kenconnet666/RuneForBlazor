@@ -39,7 +39,7 @@
             <div @attributes="Attrs.Merge(TimelineStyles.Rail, PropsRail)">
                 @if (pending)
                 {
-                    <Spinner @attributes="TimelineStyles.Pending" />
+                    <Spinner @attributes="Attrs.MergeProps(TimelineStyles.Pending)" />
                 }
                 else
                 {
@@ -61,7 +61,7 @@
                 {
                     <div @attributes="Attrs.Merge(TimelineStyles.Meta, PropsMeta)">
                         <span @attributes="TimelineStyles.Actor">
-                            <Avatar Src="@item.Avatar" Name="@item.Actor" @attributes="TimelineStyles.Avatar" />
+                            <Avatar Src="@item.Avatar" Name="@item.Actor" @attributes="Attrs.MergeProps(TimelineStyles.Avatar)" />
                             @item.Actor
                         </span>
                         @InlineTime(item)

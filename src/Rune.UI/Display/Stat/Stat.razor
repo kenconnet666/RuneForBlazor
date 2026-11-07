@@ -27,7 +27,7 @@
     <dd @attributes="Attrs.Merge(StatStyles.Value, reveal, PropsValue)">
         @if (skeleton)
         {
-            <Skeleton @attributes="StatStyles.NumberSkeleton" />
+            <Skeleton @attributes="Attrs.MergeProps(StatStyles.NumberSkeleton)" />
         }
         else if (Value is { } value)
         {
@@ -47,7 +47,7 @@
         <dd data-trend="@(skeleton ? null : Direction(change))" @attributes="Attrs.Merge(StatStyles.Change, reveal, PropsChange)">
             @if (skeleton)
             {
-                <Skeleton @attributes="StatStyles.ChangeSkeleton" />
+                <Skeleton @attributes="Attrs.MergeProps(StatStyles.ChangeSkeleton)" />
             }
             else
             {
