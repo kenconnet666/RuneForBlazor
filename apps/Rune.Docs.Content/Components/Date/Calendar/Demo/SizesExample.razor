@@ -7,6 +7,10 @@
         <Calendar @bind-Value="day" Size="Size.Sm" aria-label="小号" />
     </Flex>
     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">Size.Md</Small>
+        <Calendar @bind-Value="day" Size="Size.Md" aria-label="中号" />
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
         <Small Tone="TextTone.Muted">Size.Lg：触屏、大屏</Small>
         <Calendar @bind-Value="day" Size="Size.Lg" aria-label="大号" />
     </Flex>
