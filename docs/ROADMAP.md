@@ -183,10 +183,13 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 
 ## 阶段 5：图表（`Rune.Charts`，C# 输出 SVG）
 
-- [ ] 底座：比例尺、坐标轴刻度、图例、提示、响应式尺寸、图表色 token（已有 `ChartColors`）、标注、缩放、导出图片与数据
-- [ ] Line、Area、Bar（堆叠、100% 堆叠）、Combo（双轴）、Scatter、Donut、Radar、Funnel、Treemap、Waterfall、Sankey、Chord、Graph、Timeline、热力图；Sparkline、Gauge 改用这套底座
-- [ ] Map（数据来源见已定的决定第 9 条）
-- [ ] WebAssembly 下程序集懒加载验证
+- [x] 底座：比例尺、坐标轴刻度、图例、提示（JS 里画，不往返）、响应式尺寸、图表色、标注与区间、缩放、导出图片与数据；布局算法（矩形树图、桑基、弦图、网络图）与地图投影、TopoJSON 简化
+- [x] Line、Area、Bar（堆叠、100% 堆叠）、Combo（双轴）、Scatter、Waterfall、Donut、Radar、Funnel、Treemap、Sankey、Chord、Graph、Timeline（vue 没有热力图，不做）；
+  文档站各页与 vue 截图对照（差异在进场动画的时机与 1px 以内）
+- [x] Sparkline、Gauge 留在 Rune.UI（同 vue 的 display），与图表共用 SVG 数字的写法（`SvgFormat`）；改用图表底座会让 Rune.UI 反过来依赖 Rune.Charts
+- [x] Map 与地理数据包 `Rune.Charts.Maps`（Natural Earth 经 Unovis，Apache-2.0，NOTICE 随包）
+- [ ] 图表的“统计看板示例”页（vue 的 charts/Dashboard）：用到 Globe（three.js，阶段 7），等它做好再补
+- [ ] WebAssembly 下程序集懒加载验证（与阶段 4 的同一项一起，见阶段 9 的文档站规划）
 
 ## 阶段 6：页面组合与主题定制
 

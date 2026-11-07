@@ -507,10 +507,14 @@
   Server 模式下指针移动不产生往返，WebAssembly 下也不重渲染。
 - **点击下钻**：JS 按悬停的行（点在柱上时按那根柱的 `data-index`）发 rune-command `activate`，C# 调 `OnItemClick`。
   图例的显示 / 隐藏、缩放滑块、导出菜单是普通的 Blazor 组件（按钮、Slider、Menu），会往返。
-- **组件结构**：`ChartFrame`（外层 figure、单位与图例、加载与空状态、读屏数据表、导出菜单）公开，自定义图表也能用；
-  直角坐标图表共用抽象的 `XYChart<TItem>`（比例尺、坐标轴、目标线、标注、区间、缩放、提示框数据），
-  `LineChart`、`AreaChart`、`BarChart`、`ComboChart`、`ScatterChart`、`WaterfallChart` 继承它，只覆盖“画什么”（同 vue 的 XYChartKind）。
-  其余图表（Donut、Radar、Funnel、Treemap、Sankey、Chord、Graph、Timeline、Map）各自继承 `ChartBase`（量尺寸、提示框数据、ChartFrame 接线）。
+- **组件结构**：`ChartFrame`（外层 figure、单位与图例、加载与空状态、读屏数据表、导出菜单）公开，自定义图表也能用。
+  所有图表继承 `ChartBase`（量尺寸的握手、ChartFrame 接线、共有的参数、提示框 JSON 与原型），只给出 `Draw()`（绘图区内容与悬停数据）、图例、数据表。
+  直角坐标图表再共用 `XYChartBase<TItem>`（比例尺、坐标轴 `ChartAxis`、目标线、标注、区间、缩放、提示框数据，同 vue 的 XYChartKind 的各个开关）；
+  `XYChart<TItem>` 加上按行的数据参数（Items、Category、Series、图例、下钻），Line、Area、Bar、Combo、Scatter 继承它；瀑布图的数据是各步，直接继承 XYChartBase。
+  按项悬停的图（环形、雷达、矩形树图、桑基、弦图、网络图、时间条、地图）用 charts.js 的 item 模式：指针下的 data-index 写 data-active，
+  其余写 data-dimmed（可以只在悬停某一种项时，data-dim-on），groups 给出一起高亮的项（节点连着的带子）。
+  网络图、地图的平移缩放在 charts.js 里：`g[data-pan-zoom]` 整个缩放，`data-follow-x/y` 的元素（地点、名字）只跟着移动。
+- **地理数据**单独成包 `Rune.Charts.Maps`（内嵌 TopoJSON，`ChartMaps.ChinaProvinces`、`WorldCountries`）：只用图表的应用不带它。
 - **系列与值**：`ChartSeries<TItem>(Key, Label, Value)`，`Value` 是 `Func<TItem, decimal?>`（同 Sparkline、NumberFormat：金额不经过浮点，
   提示框、数据表按原值格式化）；画图时转成 double。类目是 `Func<TItem, object?>`，显示文字默认 `ToString()`，可另给 `CategoryText`；
   标注、区间的位置按类目的值相等（`Equals`）匹配。
