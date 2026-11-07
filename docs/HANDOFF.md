@@ -48,8 +48,11 @@ npx vite --port 5174 --strictPort
 # Rune 文档站
 ASPNETCORE_ENVIRONMENT=Development dotnet run --project apps/Rune.Docs -c Release --no-launch-profile --urls http://localhost:5310
 
-# 视觉对照（两边都开着时）：artifacts/parity/{页面}/
-MSYS_NO_PATHCONV=1 node tools/parity/parity.mjs <页面> --themes=light --shots
+# 视觉对照（两边都开着时；bench、docs 经 .claude/launch.json 启动时带 --FixedNow，两边的“现在”一致）：artifacts/parity/{页面}/
+MSYS_NO_PATHCONV=1 node tools/parity/parity.mjs <页面> --themes=light --shots --mode=server
+node tools/parity/all.mjs --shots --mode=server && python tools/parity/shots.py   # 全部页面，按像素差排序到 shots.md
+MSYS_NO_PATHCONV=1 node tools/parity/pages.mjs --pages=/,/components/button   # 整页：外壳盒子与第一屏
+node tools/parity/columns.mjs                                                 # 示例的排布与缺的示例（--apply 照 vue 重排）
 
 # 测试
 dotnet test tests/Rune.Tests --filter "FullyQualifiedName~XxxTests"
@@ -85,6 +88,14 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 - 阶段 4 开始（2026-11-07）：Rune.UI.Dates 包；DateTimeText、RelativeTime、Countdown、DateField、TimeField 与文档页。下一步 Calendar。
 - 单元测试约 600 个、端到端 220 个全过（本地全量跑过一次）；CI 也跑端到端。
 
+## 文档站对照（2026-11-07）
+
+- 计划与进度：`docs/DOCS-SITE.md`（P0–P3 做完，P2 里阶段 6/7 的组件页随阶段做；已知的有意差别与待决也在那里）。
+- 截图基线：`tests/Rune.E2E/Visual/`（CI 的 `visual` 任务，ubuntu-24.04，亮暗两套）。示例改了画面后基线会报不同：手动运行 CI 勾选 `update-visual-baselines`，
+  下载构件 `visual-baselines` 放进 `tests/Rune.E2E/Visual/Baselines` 提交（`gh run download <id> -n visual-baselines -D tests/Rune.E2E/Visual/Baselines`）。
+- 时间：示例里的“现在”一律用 `DemoClock`，组件用 `UIComponent.TimeSource / LocalNow / LocalToday`，不要直接读 `DateTime.Now`。
+- 示例源码：`Components/**` 与 `Guide/Demo/**` 的 `.razor` 都嵌进程序集，命名空间跟着文件夹（ExampleSource）。
+
 ## 下一步
 
 1. 阶段 3 的收尾（见上），然后阶段 4（日期）→ 9；阶段 0 的逐页对照与代码走查穿插做。
@@ -97,6 +108,9 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 - JS 要改 C# 渲染的内容时只改属性与文字节点本身（`nodeValue`），不换节点：Blazor 只在自己的输出变了时写 DOM，写回了就按 JS 的状态重画（date-segments.js）。
 - 小时制、地区惯例不要从 CultureInfo 的时间格式推：WebAssembly 的精简 ICU 没有地区数据，zh-CN 也是 12 小时制（`LangFormat.TwelveHour` 按 CLDR timeData）。
 - RenderFragment 与 string 放进同一个三元表达式会渲染出类型名：用 if / else（Countdown 踩过）。
+- 给子组件的样式一律经 `Attrs.MergeProps`（作为 Sx 参数交下去）：把带 Sx 的 Attrs 直接 `@attributes` 给组件，Sx 会变成同层的普通类，可能被组件自己的样式盖住
+  （Timeline 的头像踩过）。原生元素才用 `Attrs.Merge`。
+- Razor 生成的类里用不了 Regex 的源生成器（生成器之间看不到彼此的输出）：用静态的 `Regex` 实例。
 - 文档站 API 表的类型可以是抽象基类（SegmentedField），读默认值的实例是 null。
 - 受控浮层（data-open）的开关回响：只在 C# 的状态会变时排队；收到的是回响就只消费、不照着开关。C# 自己关上（选好日期后）也会触发原生 toggle，
   那一次没有回响可等，排进去会让队列错位，之后快速开关时浮层被重新打开、甚至来回振荡（DatePicker 在负载下 24 次失败 4 次）。
