@@ -32,6 +32,9 @@
             </Example>
         </ExampleColumn>
     </Examples>
+    <Example Id="offset" Title="带时区的时刻" Demo="typeof(OffsetExample)">
+        值是 <Code>DateTimeOffset</Code> 时按语言包的时区（<Code>Lang.TimeZone</Code>）显示，选好后按同一个时区写回；<Code>DateTime</Code> 也行，写回时还是同一种类型。
+    </Example>
     <KeyboardReference Keys="@([.. DateKeys.Segments, .. DateKeys.Picker, .. DateKeys.Calendar])" />
     <ApiReference Types="[typeof(DatePicker<>), typeof(DatePreset), typeof(QuarterCalendar), typeof(DateField<>), typeof(SegmentedField<>)]" />
 </DocPage>

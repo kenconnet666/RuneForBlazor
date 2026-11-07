@@ -1,0 +1,12 @@
+@inherits UIComponent
+
+@* 带时区的时刻：值是 DateTimeOffset（或 DateTime），按语言的时区显示与写回；Granularity 到分钟时日历下面有时间 *@
+<Grid MinItemWidth="@("15rem")" Gap="SpaceScale.Lg">
+    <Field Label="签到时刻" Description="@(checkedIn is { } at ? $"写回的值：{at:yyyy-MM-dd HH:mm zzz}" : "DateTimeOffset：按语言的时区显示与写回")">
+        <DatePicker @bind-Value="checkedIn" Granularity="DateGranularity.Minute" />
+    </Field>
+</Grid>
+
+@code {
+    DateTimeOffset? checkedIn = new(2026, 10, 20, 1, 30, 0, TimeSpan.Zero);
+}
