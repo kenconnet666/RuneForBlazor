@@ -7,7 +7,7 @@
 @namespace Rune.UI
 @inherits UIComponent
 
-<Table Density="Density" Variant="Variant" Striped="Striped" @attributes="Attrs.Merge(null, Rest, MinWidth)">
+<Table Density="Density" Variant="Variant" Striped="Striped" @attributes="Attrs.MergeProps(null, Rest, MinWidth)">
     <TableHead>
         <TableRow>
             @foreach (var cell in Head)

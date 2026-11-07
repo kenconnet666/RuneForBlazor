@@ -11,7 +11,7 @@
 @inherits UIComponent
 
 @Trigger?.Invoke(TriggerAttrs)
-<Collapse id="@ContentId" Open="open.Value" OpenChanged="open.SetAsync" Lazy="Lazy" PropsContent="PropsContent" @attributes="Rest">
+<Collapse id="@ContentId" Open="open.Value" OpenChanged="open.SetAsync" Lazy="Lazy" PropsContent="PropsContent" @attributes="Attrs.MergeProps(null, Rest)">
     @ChildContent
 </Collapse>
 

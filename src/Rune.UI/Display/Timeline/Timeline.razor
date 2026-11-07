@@ -80,7 +80,7 @@
                     <Collapsible Lazy="true" PropsContent="TimelineStyles.DetailsContent" @attributes="Attrs.MergeProps(null, PropsDetails)">
                         <Trigger Context="t">
                             <Button Variant="ButtonVariant.Link" Size="UI.Size.Sm" IconEnd="@(t.AriaExpanded == true ? BuiltInIcons.ChevronUp : BuiltInIcons.ChevronDown)"
-                                    @attributes="Attrs.Merge(TimelineStyles.DetailsToggle, t)">@Config.Lang.TimelineDetails</Button>
+                                    @attributes="Attrs.MergeProps(TimelineStyles.DetailsToggle, t)">@Config.Lang.TimelineDetails</Button>
                         </Trigger>
                         <ChildContent>@item.Details</ChildContent>
                     </Collapsible>

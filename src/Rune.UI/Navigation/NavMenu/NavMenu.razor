@@ -9,7 +9,7 @@
 @namespace Rune.UI
 @inherits UIComponent
 
-<NavList @attributes="Rest">
+<NavList @attributes="Attrs.MergeProps(null, Rest)">
     @foreach (var item in Items)
     {
         @Node(item, 0)

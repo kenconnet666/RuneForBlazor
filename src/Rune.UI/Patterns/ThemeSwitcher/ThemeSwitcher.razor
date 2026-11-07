@@ -8,7 +8,7 @@
 @namespace Rune.UI
 @inherits UIComponent
 
-<Menu data-rune-theme-switcher @attributes="Rest">
+<Menu data-rune-theme-switcher @attributes="Attrs.MergeProps(null, Rest)">
     <Trigger Context="t">
         @* 按钮的图标由 JS 换成选中项的图标；渲染时还不知道选了哪套，先画默认选择的 *@
         <IconButton Icon="IconOf(Choices.Fallback)" Label="@Config.Lang.Patterns.ThemeLabel" PropsIcon="TriggerIconLayer"

@@ -312,7 +312,7 @@ public abstract class ChartBase : UIComponent
         builder.AddComponentParameter(23, nameof(ChartFrame.PropsLegendItem), PropsLegendItem);
         builder.AddComponentParameter(24, nameof(ChartFrame.PropsPlot), PropsPlot);
         builder.AddComponentParameter(25, nameof(ChartFrame.PropsTable), PropsTable);
-        builder.AddMultipleAttributes(26, Rest);
+        builder.AddMultipleAttributes(26, Attrs.MergeProps(null, Rest));
         builder.CloseComponent();
     };
 

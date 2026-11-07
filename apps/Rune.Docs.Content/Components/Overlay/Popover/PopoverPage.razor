@@ -10,7 +10,7 @@
                 <Code>Trigger</Code> 拿到要加在触发元素上的属性（<Code>@@attributes="t"</Code>），组件接管打开、定位与 aria-expanded。打开时焦点移进去，点外面、Esc 关闭，焦点回到触发元素。弹出层是 role="dialog"，名称默认取触发元素的文字。
             </Example>
             <Example Id="tooltip" Title="Tooltip" Demo="typeof(TooltipExample)">
-                给图标按钮补一句用途和快捷键。指针停一会儿显示，在一排按钮上移动时不用每次都等；键盘聚焦立即显示，Esc 隐藏。提示经 aria-describedby 补充说明，触发元素自己要有名称，提示里不放可交互的内容。同一个按钮既有提示又打开菜单时，用 <Code>Attrs.Merge(tip, menu)</Code> 合并两个触发元素的属性。
+                给图标按钮补一句用途和快捷键。指针停一会儿显示，在一排按钮上移动时不用每次都等；键盘聚焦立即显示，Esc 隐藏。提示经 aria-describedby 补充说明，触发元素自己要有名称，提示里不放可交互的内容。同一个按钮既有提示又打开菜单时，用 <Code>Attrs.MergeProps(tip, menu)</Code> 合并两个触发元素的属性（交给组件的层都经 MergeProps）。
             </Example>
         </ExampleColumn>
         <ExampleColumn>

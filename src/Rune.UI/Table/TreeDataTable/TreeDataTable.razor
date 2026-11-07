@@ -19,7 +19,7 @@
 <DataTable TItem="TItem" Items="Nodes" GetKey="GetKey" ManualSort="true" Sort="sort.Value" SortChanged="SortChangedAsync"
            SelectionMode="SelectionMode" Selected="CheckedKeys" SelectedChanged="WriteSelectedAsync" PartialKeys="PartialKeys"
            Leading="LeadingContent" Loading="Loading" Density="Density" Variant="Variant" Striped="Striped" PropsRoot="PropsRoot"
-           @attributes="Rest">
+           @attributes="Attrs.MergeProps(null, Rest)">
     @ChildContent
 </DataTable>
 </CascadingValue>

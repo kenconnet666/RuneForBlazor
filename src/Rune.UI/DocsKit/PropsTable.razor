@@ -8,7 +8,7 @@
 @inherits UIComponent
 @{ var lang = Config.Lang.DocsKit; }
 
-<Table Density="@(Density ?? TableDensity.Compact)" Variant="Variant" Striped="Striped" @attributes="Rest">
+<Table Density="@(Density ?? TableDensity.Compact)" Variant="Variant" Striped="Striped" @attributes="Attrs.MergeProps(null, Rest)">
     @if (Caption is not null)
     {
         <TableCaption>@Caption</TableCaption>

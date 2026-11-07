@@ -9,7 +9,7 @@
 @namespace Rune.UI
 @inherits UIComponent
 
-<MenuGroup Label="@Label" PropsLabel="PropsLabel" @attributes="Rest">
+<MenuGroup Label="@Label" PropsLabel="PropsLabel" @attributes="Attrs.MergeProps(null, Rest)">
     <CascadingValue Value="new MenuRadioGroupState(value.Value, value.SetAsync)">@ChildContent</CascadingValue>
 </MenuGroup>
 

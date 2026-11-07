@@ -55,6 +55,11 @@ internal static class Diagnostics
         "RUNE009", "不要在静态初始化里调用 Attrs.Merge",
         "Attrs.Merge 要在渲染中调用（它把样式规则登记到当前请求、电路）：静态的层只初始化一次，之后的请求拿到的类名没有规则，静态 SSR 的页面上样式会丢；改用 new Attrs { Sx = … } 或 Attrs.Layer",
         Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ComponentAttrs = new(
+        "RUNE010", "给组件的属性层要经 Attrs.MergeProps",
+        "'{0}' 直接展开给了组件：Sx 会先合成普通的类，落在组件自己的样式层里，可能被它盖住；写成 Attrs.MergeProps({0})，样式作为组件的 Sx 参数交下去",
+        Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
 }
 
 /// <summary>
