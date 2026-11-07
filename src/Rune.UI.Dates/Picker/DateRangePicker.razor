@@ -29,7 +29,7 @@
     <span id="@StartLabelId" @attributes="Attrs.Merge(HiddenLayer)">@lang.DateRangeStart</span>
     <span id="@EndLabelId" @attributes="Attrs.Merge(HiddenLayer)">@lang.DateRangeEnd</span>
     <DateSegmentGroup Id="@($"{ControlId}-start")" Fields="fields" Iso="@startIso" Disabled="IsDisabled" ReadOnly="IsReadOnly" Required="IsRequired" Invalid="invalid"
-                      LabelledBy="@Join(labelled, StartLabelId)" DescribedBy="@Field?.DescribedBy" Name="@StartName" UserAttrs="PropsStart"
+                      LabelledBy="@Join(labelled, StartLabelId)" DescribedBy="@Field?.DescribedBy" Name="@StartName" UserAttrs="PropsStart" Fill="false"
                       PropsSegment="PropsSegment" PropsLiteral="PropsLiteral" OnChange="StartChangedAsync" />
     <span aria-hidden="true" @attributes="Attrs.Merge(SeparatorLayer, PropsSeparator)">–</span>
     <DateSegmentGroup Id="@($"{ControlId}-end")" Fields="fields" Iso="@endIso" Disabled="IsDisabled" ReadOnly="IsReadOnly" Required="IsRequired" Invalid="invalid"

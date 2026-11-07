@@ -31,12 +31,10 @@ public static class SegmentedFieldStyles
             _ => Clear,
         });
 
-    // 段占满剩下的宽度：清空按钮、尾部内容贴着外壳的结束边
     static Style Group => Css.Define(static () => new Style
     {
         Display = Display.InlineFlex,
         AlignItems = AlignItems.Center,
-        FlexGrow = 1,
         MinWidth = 0,
         PaddingBlock = Space.Xs,
         WhiteSpace = WhiteSpace.Nowrap,
@@ -58,6 +56,12 @@ public static class SegmentedFieldStyles
         [When.Focus] = new() { BackgroundColor = Tones.Accent.Solid, Color = Tones.Accent.Contrast },
         [When.Attribute("[aria-disabled=\"true\"]")] = new() { Cursor = Cursor.NotAllowed },
     });
+
+    /// <summary>
+    /// 分段占满剩下的宽度（同 vue-tsx-pro 的 segmentedFieldStyles.input）：清空按钮、尾部内容贴着外壳的结束边。
+    /// 一个框里只有一组时它撑满；区间里只有结束那组撑满，开始那组按内容宽，“–”紧跟在它后面。
+    /// </summary>
+    internal static Style Fill => Css.Define(static () => new Style { FlexGrow = 1 });
 
     static Style Literal => Css.Define(static () => new Style { Color = Colors.TextMuted, WhiteSpace = WhiteSpace.Pre });
 

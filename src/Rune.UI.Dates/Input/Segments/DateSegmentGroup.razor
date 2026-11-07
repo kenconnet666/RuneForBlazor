@@ -16,7 +16,7 @@
     var editable = !Disabled && !ReadOnly;
 }
 
-<div @attributes="Attrs.Merge(own[SegmentedFieldPart.Group], UserAttrs, GroupManaged(hour12, periods))" @onrunecommand="OnCommandAsync">
+<div @attributes="Attrs.Merge(Fill ? Attrs.Layer(own[SegmentedFieldPart.Group], FillLayer) : own[SegmentedFieldPart.Group], UserAttrs, GroupManaged(hour12, periods))" @onrunecommand="OnCommandAsync">
     @for (var index = 0; index < layout.Length; index++)
     {
         var part = layout[index];
@@ -39,6 +39,8 @@
 </div>
 
 @code {
+    static readonly Attrs FillLayer = new() { Sx = SegmentedFieldStyles.Fill };
+
     Memo<(DateSegmentType[], Lang, bool), SegmentPart[]> layouts;
 
     /// <summary>这组的 id；每段是 <c>{Id}-{段名}</c>。</summary>
@@ -76,6 +78,9 @@
 
     /// <summary>这组上的属性（使用方写的 aria-label 等）。</summary>
     [Parameter] public Attrs? UserAttrs { get; set; }
+
+    /// <summary>占满外壳里剩下的宽度，默认是；区间的开始那组按内容宽。</summary>
+    [Parameter] public bool Fill { get; set; } = true;
 
     /// <summary>每段的部件属性。</summary>
     [Parameter] public Attrs? PropsSegment { get; set; }
