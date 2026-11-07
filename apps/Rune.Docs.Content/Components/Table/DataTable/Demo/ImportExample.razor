@@ -4,8 +4,8 @@
 @* 导入校验：错误行整行浅红、提醒行浅黄（RowTone），不透明的底色盖得住固定列；只有没有错误的行能勾选导入。校验结果放在前面：最要紧的一列不用横向滚动才看到 *@
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
     <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
-        <Badge Tone="Tone.Danger">@Errors 行错误</Badge>
-        <Badge Tone="Tone.Warning">@Warnings 行提醒</Badge>
+        <Badge Tone="Tone.Danger" Dot="true">@Errors 行错误</Badge>
+        <Badge Tone="Tone.Warning" Dot="true">@Warnings 行提醒</Badge>
         <Small Tone="TextTone.Muted">错误行改好后重新上传；提醒行可以照常导入</Small>
         <span style="flex-grow: 1"></span>
         <Button Size="Size.Sm" Disabled="selected.Count == 0">导入所选 @selected.Count 行</Button>

@@ -5,7 +5,7 @@
 <Grid MinItemWidth="@("20em")" Gap="SpaceScale.Lg">
     <Card>
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
-            <H3>编辑订单 SO-1024</H3>
+            <H3 Size="Size.Md">编辑订单 SO-1024</H3>
             <Field Label="客户"><TextField Value="@draft.Customer" ValueChanged="@(text => draft = draft with { Customer = text ?? "" })" /></Field>
             <Grid Columns="2" Gap="SpaceScale.Sm">
                 <Field Label="数量"><NumberField Value="draft.Quantity" ValueChanged="@((int quantity) => draft = WithAmount(draft with { Quantity = quantity }))" Min="0" /></Field>
@@ -20,13 +20,13 @@
     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
         <Card>
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
-                <H3>保存前确认</H3>
+                <H3 Size="Size.Md">保存前确认</H3>
                 <FieldCompare Before="Saved" After="draft" Layout="FieldCompareLayout.List">@Fields</FieldCompare>
             </Flex>
         </Card>
         <Card>
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
-                <H3>新建的订单</H3>
+                <H3 Size="Size.Md">新建的订单</H3>
                 <FieldCompare TItem="Order" Before="null" After="@(Saved with { Customer = "北辰电子", Priority = Priority.Urgent })" Layout="FieldCompareLayout.List">@Fields</FieldCompare>
             </Flex>
         </Card>
