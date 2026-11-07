@@ -35,7 +35,7 @@ public class DateField<TValue> : SegmentedField<TValue>
 
     private protected bool WithTime => Granularity is DateGranularity.Hour or DateGranularity.Minute or DateGranularity.Second;
 
-    private protected override SegmentType[] Fields => DateSegments.FieldsOf(Granularity);
+    private protected override DateSegmentType[] Fields => DateSegments.FieldsOf(Granularity);
 
     private protected override string? CurrentIso => Wall(CurrentValue) is { } wall ? IsoOf(wall) : null;
 

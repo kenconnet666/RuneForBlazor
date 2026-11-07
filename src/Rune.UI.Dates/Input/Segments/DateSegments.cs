@@ -9,26 +9,26 @@ namespace Rune.UI;
 /// </summary>
 static partial class DateSegments
 {
-    static readonly SegmentType[] AllFields = [SegmentType.Year, SegmentType.Month, SegmentType.Day, SegmentType.Hour, SegmentType.Minute, SegmentType.Second];
+    static readonly DateSegmentType[] AllFields = [DateSegmentType.Year, DateSegmentType.Month, DateSegmentType.Day, DateSegmentType.Hour, DateSegmentType.Minute, DateSegmentType.Second];
 
     // 每种粒度一个固定的数组：排法按它缓存
-    static readonly SegmentType[][] DateFields = [.. Enum.GetValues<DateGranularity>().Select(granularity => granularity switch
+    static readonly DateSegmentType[][] DateFields = [.. Enum.GetValues<DateGranularity>().Select(granularity => granularity switch
     {
-        DateGranularity.Quarter => new[] { SegmentType.Year, SegmentType.Quarter },
-        DateGranularity.Week => [SegmentType.Year, SegmentType.Week],
-        _ => AllFields[..(Array.IndexOf(AllFields, Enum.Parse<SegmentType>(granularity.ToString())) + 1)],
+        DateGranularity.Quarter => new[] { DateSegmentType.Year, DateSegmentType.Quarter },
+        DateGranularity.Week => [DateSegmentType.Year, DateSegmentType.Week],
+        _ => AllFields[..(Array.IndexOf(AllFields, Enum.Parse<DateSegmentType>(granularity.ToString())) + 1)],
     })];
 
-    static readonly SegmentType[][] TimeFields = [[SegmentType.Hour], [SegmentType.Hour, SegmentType.Minute], [SegmentType.Hour, SegmentType.Minute, SegmentType.Second]];
+    static readonly DateSegmentType[][] TimeFields = [[DateSegmentType.Hour], [DateSegmentType.Hour, DateSegmentType.Minute], [DateSegmentType.Hour, DateSegmentType.Minute, DateSegmentType.Second]];
 
     /// <summary>日期的段：从年到 granularity。</summary>
-    public static SegmentType[] FieldsOf(DateGranularity granularity) => DateFields[(int)granularity];
+    public static DateSegmentType[] FieldsOf(DateGranularity granularity) => DateFields[(int)granularity];
 
     /// <summary>时间的段：从时到 granularity。</summary>
-    public static SegmentType[] FieldsOf(TimeGranularity granularity) => TimeFields[(int)granularity];
+    public static DateSegmentType[] FieldsOf(TimeGranularity granularity) => TimeFields[(int)granularity];
 
     /// <summary>JS 里的名字。</summary>
-    public static string Name(SegmentType type) => type == SegmentType.DayPeriod ? "dayPeriod" : type.ToString().ToLowerInvariant();
+    public static string Name(DateSegmentType type) => type == DateSegmentType.DayPeriod ? "dayPeriod" : type.ToString().ToLowerInvariant();
 
     /// <summary>12 小时制：组件写了的 &gt; 语言包的 &gt; 地区惯例。</summary>
     public static bool TwelveHour(HourCycle? cycle, Lang lang) => cycle is { } own ? own == HourCycle.H12 : LangFormat.TwelveHour(lang);
@@ -36,36 +36,36 @@ static partial class DateSegments
     // ───────── 取值 ─────────
 
     /// <summary>段上显示的值：12 小时制的时是 1–12，上午 / 下午是 0 / 1。</summary>
-    public static int? Shown(SegmentType type, DateParts parts, bool hour12) => type switch
+    public static int? Shown(DateSegmentType type, DateParts parts, bool hour12) => type switch
     {
-        SegmentType.DayPeriod => parts.Hour is { } hour ? (hour >= 12 ? 1 : 0) : null,
-        SegmentType.Hour when hour12 && parts.Hour is { } hour => hour % 12 == 0 ? 12 : hour % 12,
+        DateSegmentType.DayPeriod => parts.Hour is { } hour ? (hour >= 12 ? 1 : 0) : null,
+        DateSegmentType.Hour when hour12 && parts.Hour is { } hour => hour % 12 == 0 ? 12 : hour % 12,
         _ => parts[type],
     };
 
     /// <summary>段的取值范围（aria-valuemin、aria-valuemax）。</summary>
-    public static (int Min, int Max) Range(SegmentType type, DateParts parts, bool hour12) => type switch
+    public static (int Min, int Max) Range(DateSegmentType type, DateParts parts, bool hour12) => type switch
     {
-        SegmentType.Year => (1, 9999),
-        SegmentType.Month => (1, 12),
-        SegmentType.Day => (1, parts.Month is { } month ? DateTime.DaysInMonth(parts.Year ?? 2000, month) : 31),
-        SegmentType.Quarter => (1, 4),
-        SegmentType.Week => (1, parts.Year is { } year ? ISOWeek.GetWeeksInYear(year) : 53),
-        SegmentType.Hour => hour12 ? (1, 12) : (0, 23),
-        SegmentType.Minute or SegmentType.Second => (0, 59),
+        DateSegmentType.Year => (1, 9999),
+        DateSegmentType.Month => (1, 12),
+        DateSegmentType.Day => (1, parts.Month is { } month ? DateTime.DaysInMonth(parts.Year ?? 2000, month) : 31),
+        DateSegmentType.Quarter => (1, 4),
+        DateSegmentType.Week => (1, parts.Year is { } year ? ISOWeek.GetWeeksInYear(year) : 53),
+        DateSegmentType.Hour => hour12 ? (1, 12) : (0, 23),
+        DateSegmentType.Minute or DateSegmentType.Second => (0, 59),
         _ => (0, 1),
     };
 
     /// <summary>段上的文字（年四位，季度与 12 小时制的时一位，其余两位）；没填时 null。</summary>
-    public static string? Text(SegmentType type, int? value, bool hour12, (string Am, string Pm) periods) => value switch
+    public static string? Text(DateSegmentType type, int? value, bool hour12, (string Am, string Pm) periods) => value switch
     {
         null => null,
-        { } v when type == SegmentType.DayPeriod => v == 0 ? periods.Am : periods.Pm,
+        { } v when type == DateSegmentType.DayPeriod => v == 0 ? periods.Am : periods.Pm,
         { } v => v.ToString(type switch
         {
-            SegmentType.Year => "D4",
-            SegmentType.Quarter => "D1",
-            SegmentType.Hour when hour12 => "D1",
+            DateSegmentType.Year => "D4",
+            DateSegmentType.Quarter => "D1",
+            DateSegmentType.Hour when hour12 => "D1",
             _ => "D2",
         }, CultureInfo.InvariantCulture),
     };
@@ -73,24 +73,24 @@ static partial class DateSegments
     // ───────── ISO 文字 ─────────
 
     /// <summary>各段的值 → ISO 文字（按有哪些段：2026、2026-10、2026-10-20、2026-W43、2026-Q4、2026-10-20T14:30、14:30）。</summary>
-    public static string ToIso(DateParts parts, IReadOnlyList<SegmentType> fields)
+    public static string ToIso(DateParts parts, IReadOnlyList<DateSegmentType> fields)
     {
         static string Pad(int? value, int width = 2) => (value ?? 0).ToString(new string('0', width), CultureInfo.InvariantCulture);
-        if (fields.Contains(SegmentType.Quarter)) return $"{Pad(parts.Year, 4)}-Q{parts.Quarter ?? 1}";
-        if (fields.Contains(SegmentType.Week)) return $"{Pad(parts.Year, 4)}-W{Pad(parts.Week ?? 1)}";
+        if (fields.Contains(DateSegmentType.Quarter)) return $"{Pad(parts.Year, 4)}-Q{parts.Quarter ?? 1}";
+        if (fields.Contains(DateSegmentType.Week)) return $"{Pad(parts.Year, 4)}-W{Pad(parts.Week ?? 1)}";
         var date = string.Join('-', new[]
         {
-            fields.Contains(SegmentType.Year) ? Pad(parts.Year, 4) : null,
-            fields.Contains(SegmentType.Month) ? Pad(parts.Month ?? 1) : null,
-            fields.Contains(SegmentType.Day) ? Pad(parts.Day ?? 1) : null,
+            fields.Contains(DateSegmentType.Year) ? Pad(parts.Year, 4) : null,
+            fields.Contains(DateSegmentType.Month) ? Pad(parts.Month ?? 1) : null,
+            fields.Contains(DateSegmentType.Day) ? Pad(parts.Day ?? 1) : null,
         }.OfType<string>());
-        if (!fields.Contains(SegmentType.Hour)) return date;
-        var time = $"{Pad(parts.Hour)}:{Pad(parts.Minute)}" + (fields.Contains(SegmentType.Second) ? $":{Pad(parts.Second)}" : "");
-        return fields.Contains(SegmentType.Year) ? $"{date}T{time}" : time;
+        if (!fields.Contains(DateSegmentType.Hour)) return date;
+        var time = $"{Pad(parts.Hour)}:{Pad(parts.Minute)}" + (fields.Contains(DateSegmentType.Second) ? $":{Pad(parts.Second)}" : "");
+        return fields.Contains(DateSegmentType.Year) ? $"{date}T{time}" : time;
     }
 
     /// <summary>ISO 文字 → 各段的值；格式不对、缺了要的段时 null（同 JS 的 isoToFields）。</summary>
-    public static DateParts? FromIso(string? iso, IReadOnlyList<SegmentType> fields)
+    public static DateParts? FromIso(string? iso, IReadOnlyList<DateSegmentType> fields)
     {
         if (string.IsNullOrEmpty(iso)) return null;
         var parts = new DateParts();

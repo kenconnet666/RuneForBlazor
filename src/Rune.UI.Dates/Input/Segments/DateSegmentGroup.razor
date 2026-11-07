@@ -1,0 +1,159 @@
+@*
+    一组日期分段（同 vue-tsx-pro 的 DateSegmentGroup）：年 / 月 / 日、时 : 分……每段是 role="spinbutton" 的 contenteditable，分隔符对读屏隐藏。
+    SegmentedField（DateField、TimeField、各选择器）放一组，DateRangePicker 在一个外壳里放开始、结束两组。
+    - inputmode="numeric"：手机上弹出数字键盘，输入法打的全角数字也收得到；每段在 Tab 顺序里，读屏名称是“标签 + 段名”，没填的段念“未填写”。
+    - 输入在 JS 里（js/date-segments.js），所有段填齐（或删掉已填的一段）时经 OnChange 交来 ISO 文字（删掉时是 null）。
+    - 段的顺序、分隔符、占位文字在这里按语言算好；写了 Name 时用隐藏的 input 随表单提交 ISO 文字。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var own = SegmentedFieldStyles.Of(Config.Styles);
+    var draft = DateSegments.FromIso(Iso, Fields) ?? new DateParts();
+    var hour12 = Fields.Contains(DateSegmentType.Hour) && DateSegments.TwelveHour(HourCycle, Config.Lang);
+    var layout = layouts.Get((Fields, Config.Lang, hour12), static k => DateSegments.Layout(k.Item1, k.Item2, k.Item3));
+    var periods = DateSegments.Periods(Config.Lang);
+    var editable = !Disabled && !ReadOnly;
+}
+
+<div @attributes="Attrs.Merge(own[SegmentedFieldPart.Group], UserAttrs, GroupManaged(hour12, periods))" @onrunecommand="OnCommandAsync">
+    @for (var index = 0; index < layout.Length; index++)
+    {
+        var part = layout[index];
+        if (part.Type is not { } type)
+        {
+            <span aria-hidden="true" @attributes="Attrs.Merge(own[SegmentedFieldPart.Literal], PropsLiteral)">@part.Literal</span>
+            continue;
+        }
+        var value = DateSegments.Shown(type, draft, hour12);
+        var text = DateSegments.Text(type, value, hour12, periods);
+        var range = DateSegments.Range(type, draft, hour12);
+        var next = index + 1 < layout.Length ? layout[index + 1].Literal : null;
+        var empty = DateSegments.Placeholder(type, next, Config.Lang);
+        <span @key="type" @attributes="Attrs.Merge(own[SegmentedFieldPart.Segment], PropsSegment, SegmentManaged(type, value, text, range, empty, editable))">@(text ?? empty)</span>
+    }
+    @if (Name is { } name)
+    {
+        <input type="hidden" name="@name" value="@(Iso ?? "")" disabled="@Disabled" />
+    }
+</div>
+
+@code {
+    Memo<(DateSegmentType[], Lang, bool), SegmentPart[]> layouts;
+
+    [Inject] IServiceProvider Services { get; set; } = null!;
+
+    /// <summary>这组的 id；每段是 <c>{Id}-{段名}</c>。</summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+
+    /// <summary>有哪些段，按年 → 秒的顺序（显示顺序按语言）。</summary>
+    [Parameter, EditorRequired] public DateSegmentType[] Fields { get; set; } = [];
+
+    /// <summary>当前值的 ISO 文字；没有时 null。</summary>
+    [Parameter] public string? Iso { get; set; }
+
+    /// <summary>12 / 24 小时制；不写时取语言包的，再不写按地区惯例。</summary>
+    [Parameter] public HourCycle? HourCycle { get; set; }
+
+    /// <summary>不可用：段不能聚焦。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>只读：能聚焦、不能改。</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <summary>必填（每段 aria-required）。</summary>
+    [Parameter] public bool Required { get; set; }
+
+    /// <summary>校验未通过（每段 aria-invalid，组上 data-invalid）。</summary>
+    [Parameter] public bool Invalid { get; set; }
+
+    /// <summary>外部标签的 id：这组与每段的读屏名称从它开始（“生日 年”）。</summary>
+    [Parameter] public string? LabelledBy { get; set; }
+
+    /// <summary>说明与错误的 id（aria-describedby），给每一段。</summary>
+    [Parameter] public string? DescribedBy { get; set; }
+
+    /// <summary>表单提交时的 name（隐藏的 input，值是 ISO 文字）。</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>这组上的属性（使用方写的 aria-label 等）。</summary>
+    [Parameter] public Attrs? UserAttrs { get; set; }
+
+    /// <summary>每段的部件属性。</summary>
+    [Parameter] public Attrs? PropsSegment { get; set; }
+
+    /// <summary>分隔符的部件属性。</summary>
+    [Parameter] public Attrs? PropsLiteral { get; set; }
+
+    /// <summary>填齐了（ISO 文字），或删掉了已填的一段（null）。</summary>
+    [Parameter] public EventCallback<string?> OnChange { get; set; }
+
+    // 使用方写了 aria-label 时不再 aria-labelledby（后者会盖过前者）
+    string? Labelled => UserAttrs?["aria-label"] is not null ? null : LabelledBy;
+
+    Task OnCommandAsync(CommandEventArgs args) =>
+        args.Name == "change" ? OnChange.InvokeAsync(string.IsNullOrEmpty(args.Text) ? null : args.Text) : Task.CompletedTask;
+
+    // 空段 ↑↓ 的起点：语言时区的此刻（到分，渲染之间不变）
+    string Start
+    {
+        get
+        {
+            var time = Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
+            var now = TimeZoneInfo.ConvertTime(time.GetUtcNow(), LangFormat.ZoneOf(Config.Lang));
+            return now.ToString("yyyy-MM-ddTHH:mm:00", System.Globalization.CultureInfo.InvariantCulture);
+        }
+    }
+
+    Attrs GroupManaged(bool hour12, (string Am, string Pm) periods) => new()
+    {
+        Id = Id,
+        Role = "group",
+        AriaLabelledBy = Labelled,
+        AriaDescribedBy = DescribedBy,
+        AriaDisabled = Disabled ? true : null,
+        ["data-rune-date-segments"] = true,
+        ["data-fields"] = string.Join(' ', Fields.Select(DateSegments.Name)),
+        ["data-hour12"] = hour12 ? true : null,
+        ["data-value"] = Iso ?? "",
+        ["data-start"] = Start,
+        ["data-periods"] = $"{periods.Am}|{periods.Pm}",
+        ["data-empty-text"] = Config.Lang.DateFieldEmpty,
+        ["data-invalid"] = Invalid ? true : null,
+        ["data-disabled"] = Disabled ? true : null,
+        ["data-readonly"] = ReadOnly ? true : null,
+    };
+
+    Attrs SegmentManaged(DateSegmentType type, int? value, string? text, (int Min, int Max) range, string empty, bool editable)
+    {
+        var name = DateSegments.Name(type);
+        var id = $"{Id}-{name}";
+        return new Attrs
+        {
+            Id = id,
+            Role = "spinbutton",
+            AriaLabel = DateSegments.Label(type, Config.Lang.Code),
+            // 读屏念“生日 年”：外部标签加上这一段的名称
+            AriaLabelledBy = Labelled is { } label ? $"{label} {id}" : null,
+            AriaDescribedBy = DescribedBy,
+            ["tabindex"] = Disabled ? "-1" : "0",
+            ["contenteditable"] = editable ? "true" : null,
+            ["inputmode"] = type == DateSegmentType.DayPeriod ? "text" : "numeric",
+            ["spellcheck"] = "false",
+            ["autocapitalize"] = "off",
+            ["autocorrect"] = "off",
+            ["enterkeyhint"] = "next",
+            ["aria-valuenow"] = value?.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["aria-valuemin"] = range.Min.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["aria-valuemax"] = range.Max.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["aria-valuetext"] = text ?? Config.Lang.DateFieldEmpty,
+            ["aria-required"] = Required ? "true" : null,
+            ["aria-invalid"] = Invalid ? "true" : null,
+            ["aria-readonly"] = ReadOnly ? "true" : null,
+            AriaDisabled = Disabled ? true : null,
+            ["data-type"] = name,
+            ["data-placeholder"] = text is null ? true : null,
+            ["data-empty"] = empty,
+        };
+    }
+}

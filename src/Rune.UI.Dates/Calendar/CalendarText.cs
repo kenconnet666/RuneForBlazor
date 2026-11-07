@@ -13,7 +13,7 @@ static class CalendarText
     /// <summary>年（Intl 的 year: numeric）：2026年、2026。</summary>
     public static string Year(int year, Lang lang)
     {
-        var part = DateSegments.Layout([SegmentType.Year], lang, false);
+        var part = DateSegments.Layout([DateSegmentType.Year], lang, false);
         return string.Concat(part.Select(p => p.Type is null ? p.Literal : year.ToString(CultureInfo.InvariantCulture)));
     }
 

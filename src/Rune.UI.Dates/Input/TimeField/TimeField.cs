@@ -27,7 +27,7 @@ public class TimeField<TValue> : SegmentedField<TValue>
     /// <summary>不可选的时间（午休、已约满的时段）：键入时显示出错。</summary>
     [Parameter] public Func<TimeOnly, bool>? IsTimeUnavailable { get; set; }
 
-    private protected override SegmentType[] Fields => DateSegments.FieldsOf(Granularity);
+    private protected override DateSegmentType[] Fields => DateSegments.FieldsOf(Granularity);
 
     private protected override string? CurrentIso => CurrentValue switch
     {
@@ -41,7 +41,7 @@ public class TimeField<TValue> : SegmentedField<TValue>
         var other => throw new InvalidOperationException($"TimeField 的值要是 TimeOnly，不是 {other.GetType()}。"),
     };
 
-    static TimeOnly? Parse(string iso, SegmentType[] fields) =>
+    static TimeOnly? Parse(string iso, DateSegmentType[] fields) =>
         DateSegments.FromIso(iso, fields) is { Hour: { } hour } parts ? new TimeOnly(hour, parts.Minute ?? 0, parts.Second ?? 0) : null;
 
     private protected override bool TryFromIso(string? iso, out TValue value)

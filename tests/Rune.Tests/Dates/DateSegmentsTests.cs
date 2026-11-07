@@ -5,7 +5,7 @@ namespace Rune.Tests.Dates;
 // 段的排法：期望值来自 Node 的 Intl.DateTimeFormat(…).formatToParts（年 numeric，其余 2-digit），vue-tsx-pro 的 date-segments.ts 就是它
 public class DateSegmentsTests
 {
-    const SegmentType Y = SegmentType.Year;
+    const DateSegmentType Y = DateSegmentType.Year;
 
     static string Describe(IEnumerable<SegmentPart> parts) =>
         string.Join(" ", parts.Select(part => part.Type is { } type ? DateSegments.Name(type) : $"\"{part.Literal}\""));
@@ -32,7 +32,7 @@ public class DateSegmentsTests
     [Theory]
     [MemberData(nameof(Layouts))]
     public void 段的顺序与分隔符同Intl(string culture, string fields, bool hour12, string expected) =>
-        Assert.Equal(expected, Describe(DateSegments.Layout([.. fields.Split(' ').Select(field => Enum.Parse<SegmentType>(field, ignoreCase: true))], Lang.EnUs with { Code = culture }, hour12)));
+        Assert.Equal(expected, Describe(DateSegments.Layout([.. fields.Split(' ').Select(field => Enum.Parse<DateSegmentType>(field, ignoreCase: true))], Lang.EnUs with { Code = culture }, hour12)));
 
     [Fact]
     public void 季度与周按语言包的排法()
