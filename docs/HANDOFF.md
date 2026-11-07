@@ -95,6 +95,8 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
   下载构件 `visual-baselines` 放进 `tests/Rune.E2E/Visual/Baselines` 提交（`gh run download <id> -n visual-baselines -D tests/Rune.E2E/Visual/Baselines`）。
 - 时间：示例里的“现在”一律用 `DemoClock`，组件用 `UIComponent.TimeSource / LocalNow / LocalToday`，不要直接读 `DateTime.Now`。
 - 示例源码：`Components/**` 与 `Guide/Demo/**` 的 `.razor` 都嵌进程序集，命名空间跟着文件夹（ExampleSource）。
+- 状态对照（`--states`）：两边按序号配对元素，同序号的元素状态本来不同（校验失败、开着的开关）时三种状态会一起报差异，这类不是交互样式的问题；
+  只在某一种状态下出现的差异才值得查。vue 正在合并文档页（阶段 25 P2），对照前先确认 vue 那页没有重定向到别处。
 
 ## 下一步
 

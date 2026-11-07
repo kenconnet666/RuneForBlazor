@@ -87,7 +87,15 @@
   - 新的分析器 RUNE010：把带样式的 Attrs 直接展开给 Rune 组件时报错（要经 MergeProps），顺手修了 9 个包装组件。
 - [x] 修掉的（示例层面）：ColumnTable、List、DeadlineBadge、ScrollArea、ButtonBase、标题尺寸、标记圆点、说明里的行内代码、按钮尺寸与 vue 不同的示例；
   date-picker 的 DateTimeOffset 字段拆成页末的单独示例；扫描脚本见 `tools/parity/columns.mjs`（排布）。
-- [ ] `parity.mjs --states`（悬停、聚焦、按下）跑全部页面，亮、暗。
+- [x] `parity.mjs --states`（悬停、聚焦、按下）跑全部页面：第一轮 315 行差异，大半是读值时颜色过渡还在半路（工具已改成先跑完过渡再读）。修掉的：
+  - 样式引擎：`When.Hover` 写成 `:hover:not(…)` 时比 `:active` 高一级，按下样式盖不过悬停；随 vue 0fc803a6 改成
+    `When.Hover`、`When.Active` 都排除不可用（排除写在 `:where` 里），删掉 `HoverEnabled`。
+  - CommandPalette 的触发按钮：焦点环画在边框上（同输入框），不叠按钮的外侧环。
+  - 报给 vue 并已修：点日期框后面的段焦点被抢到第一段（1cc605e3）；`:focus-visible`、`:focus-within` 的优先级查表落空、被悬停盖住（0d52a523）；
+    CodeBlock“展开全部”的焦点环被 overflow 裁掉（4bf5c184）；Accordion 不可用的标题有悬停底色（0fc803a6）。
+  - 剩下的是配对错位（两边同序号的元素状态本来不同：校验失败的输入框、开着的开关、主按钮与幽灵按钮）与有意差别
+    （NumberField 的步进按钮按下时焦点一律留在原处，vue 在输入框没聚焦时把焦点给按钮）。
+  - vue 正在合并、挪动文档页（阶段 25 的 P2，如 FormSection 并进 Form），合并后的页按新结构重做对照，等 vue 通知整体跟进时一起做。
 
 **已知的有意差别**（不修，截图对照里会一直有）：
 
