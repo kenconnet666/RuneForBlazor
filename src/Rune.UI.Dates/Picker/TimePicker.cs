@@ -93,7 +93,7 @@ public sealed class TimePicker<TValue> : TimeField<TValue>
 
     internal void Toggled(OverlayToggleEventArgs e) => open = e.Open;
 
-    private protected override RenderFragment Trigger => PickerParts.Trigger(BuiltInIcons.Clock, Lang.TimePickerOpen, Editable, open, PopoverId, PropsButton);
+    private protected override RenderFragment Trigger => PickerParts.Trigger(BuiltInIcons.Clock, Lang.TimePickerOpen, Editable, open, PopoverId, InputStyles.Of(Appearance, Config.Styles)[InputPart.Button], PropsButton);
 
     private protected override RenderFragment Popover => builder =>
     {

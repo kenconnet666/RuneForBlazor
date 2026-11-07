@@ -100,7 +100,7 @@ public sealed class DatePicker<TValue> : DateField<TValue>
 
     internal void Toggled(OverlayToggleEventArgs e) => open = e.Open;
 
-    private protected override RenderFragment Trigger => PickerParts.Trigger(BuiltInIcons.CalendarDays, Lang.DatePickerOpen, Editable, open, PopoverId, PropsButton);
+    private protected override RenderFragment Trigger => PickerParts.Trigger(BuiltInIcons.CalendarDays, Lang.DatePickerOpen, Editable, open, PopoverId, InputStyles.Of(Appearance, Config.Styles)[InputPart.Button], PropsButton);
 
     private protected override RenderFragment Popover => builder =>
     {

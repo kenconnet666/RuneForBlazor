@@ -9,15 +9,15 @@ namespace Rune.UI;
 /// </summary>
 static class PickerParts
 {
-    /// <summary>外壳里的打开按钮。</summary>
-    public static RenderFragment Trigger(IconData icon, string label, bool editable, bool open, string popoverId, Attrs? user) => builder =>
+    /// <summary>外壳里的打开按钮：用外壳配方的按钮层（同清空、加减按钮：小一号、贴着边）。</summary>
+    public static RenderFragment Trigger(IconData icon, string label, bool editable, bool open, string popoverId, Attrs shellButton, Attrs? user) => builder =>
     {
         builder.OpenComponent<IconButton>(0);
         builder.AddComponentParameter(1, nameof(IconButton.Icon), icon);
         builder.AddComponentParameter(2, nameof(IconButton.Label), label);
         builder.AddComponentParameter(3, nameof(IconButton.Radius), Radius.Full);
         builder.AddComponentParameter(4, nameof(IconButton.Disabled), !editable);
-        builder.AddMultipleAttributes(5, Attrs.MergeProps(null, user, new Attrs
+        builder.AddMultipleAttributes(5, Attrs.MergeProps(shellButton, user, new Attrs
         {
             ["popovertarget"] = popoverId,
             ["aria-haspopup"] = "dialog",
