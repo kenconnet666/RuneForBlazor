@@ -1,0 +1,106 @@
+@*
+    透视表（同 vue-tsx-pro 的 PivotTable）：明细按行维度（可以多级，相同的上级合并成一格）与列维度交叉汇总，每格是一个聚合值，带合计行与合计列；
+    Heatmap 时按数值给格子着色（热力图：一眼看出哪里多、哪里少）。建在 Pivot 与 ColumnTable 上。
+    <PivotTable Data="records" Rows="[new("region", "区域", r => r.Region), new("supplier", "供应商", r => r.Supplier)]"
+                Columns="new(\"quarter\", \"季度\", r => r.Quarter)" Value="new(\"amount\", \"销售额\", r => r.Amount) { Type = ColumnType.Currency }"
+                Heatmap="true" aria-label="各区域、门店的季度销售额" />
+    数值的格式同表格的列（Type、Format）；Aggregate 是 Sum（默认）、Count、Average、Min、Max。
+    热力图的颜色是强调色按比例混进底色（最深不超过 45%，文字照常够对比），读屏照常读数字。未声明的属性落到 table 上。
+*@
+@namespace Rune.UI
+@typeparam T
+@inherits UIComponent
+
+<ColumnTable TItem="PivotRow" Items="TableRows" GetKey="row => row.Key" MergeRepeated="Merged" PropsCellFor="CellAttrs"
+             Density="Density" Variant="Variant" Striped="Striped" @attributes="Rest">
+    @for (var level = 0; level < Rows.Count; level++)
+    {
+        var at = level;
+        var dimension = Rows[at];
+        <TemplateColumn TItem="PivotRow" @key="@($"row:{at}")" Key="@($"row:{at}")" Title="@dimension.Header" Value="row => row.Dimensions[at]" Context="row">
+            @(dimension.Format?.Invoke(row.Dimensions[at]) ?? (row.Dimensions[at] is { Length: > 0 } text ? text : Config.Lang.EmptyValue))
+        </TemplateColumn>
+    }
+    @foreach (var column in Result.ColumnKeys)
+    {
+        var key = column;
+        var title = Columns is { } dimension ? dimension.Format?.Invoke(key) ?? (key.Length > 0 ? key : Config.Lang.EmptyValue) : Value?.Header ?? Config.Lang.TableSummary;
+        <TemplateColumn TItem="PivotRow" @key="@($"column:{key}")" Key="@($"column:{key}")" Title="@title" Align="TableAlign.End" Value="row => Result.Cell(row.Dimensions, key)" Context="row">
+            <ChildContent>@Show(Result.Cell(row.Dimensions, key))</ChildContent>
+            <SummaryContent>@(Totals ? Show(Result.ColumnTotals.GetValueOrDefault(key)) : null)</SummaryContent>
+        </TemplateColumn>
+    }
+    @if (Totals && Columns is not null)
+    {
+        <TemplateColumn TItem="PivotRow" Key="total" Title="@Config.Lang.TableSummary" Align="TableAlign.End" Value="row => Result.RowTotal(row.Dimensions)" Context="row">
+            <ChildContent>@Show(Result.RowTotal(row.Dimensions))</ChildContent>
+            <SummaryContent>@Show(Result.GrandTotal)</SummaryContent>
+        </TemplateColumn>
+    }
+</ColumnTable>
+
+@code {
+    // 热力图最深的混色比例：再深时文字的对比度不够
+    const int MaxHeat = 45;
+
+    static readonly Attrs TotalLayer = new() { Sx = Css.Define(static () => new Style { FontWeight = FontWeights.Semibold }) };
+
+    Memo<(IReadOnlyList<T>, IReadOnlyList<PivotDimension<T>>, PivotDimension<T>?, PivotValue<T>?, PivotAggregate), PivotResult> result;
+
+    /// <summary>明细。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<T> Data { get; set; } = [];
+
+    /// <summary>行维度，可以多级（相同的上级合并成一格）。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<PivotDimension<T>> Rows { get; set; } = [];
+
+    /// <summary>列维度；不写时只有一列（按行汇总）。</summary>
+    [Parameter] public PivotDimension<T>? Columns { get; set; }
+
+    /// <summary>聚合的数值；Count 时可以不写。</summary>
+    [Parameter] public PivotValue<T>? Value { get; set; }
+
+    /// <summary>聚合方式，默认求和。</summary>
+    [Parameter] public PivotAggregate Aggregate { get; set; }
+
+    /// <summary>合计行与合计列，默认有。</summary>
+    [Parameter] public bool Totals { get; set; } = true;
+
+    /// <summary>按数值给格子着色（热力图）；合计不着色。</summary>
+    [Parameter] public bool Heatmap { get; set; }
+
+    /// <summary>没有明细的格子显示的文字；默认语言包的 —。</summary>
+    [Parameter] public string? EmptyText { get; set; }
+
+    /// <summary>密度（同 Table）。</summary>
+    [Parameter] public TableDensity? Density { get; set; }
+
+    /// <summary>样式（同 Table）。</summary>
+    [Parameter] public TableVariant? Variant { get; set; }
+
+    /// <summary>斑马纹（同 Table）。</summary>
+    [Parameter] public bool? Striped { get; set; }
+
+    PivotResult Result => result.Get((Data, Rows, Columns, Value, Aggregate), Config.Lang.Code,
+        static (k, culture) => Pivot.Compute(k.Item1, k.Item2, k.Item3, k.Item4, k.Item5, culture));
+
+    IReadOnlyList<PivotRow> TableRows => [.. Result.RowKeys.Select(static dimensions => new PivotRow(Pivot.RowId(dimensions), dimensions))];
+
+    // 除了最后一级，各级行维度相同的上级合并成一格
+    IReadOnlyList<string> Merged => [.. Enumerable.Range(0, Math.Max(0, Rows.Count - 1)).Select(static level => $"row:{level}")];
+
+    string Show(decimal? number) => number is { } value
+        ? ColumnDisplay.Format(value, Aggregate == PivotAggregate.Count ? ColumnType.Number : Value?.Type ?? ColumnType.Number,
+            Aggregate == PivotAggregate.Count ? null : Value?.Format, Config.Lang)
+        : EmptyText ?? Config.Lang.EmptyValue;
+
+    // 数值格着色（热力图），合计列加粗
+    Attrs? CellAttrs(PivotRow row, string key)
+    {
+        if (key == "total") return TotalLayer;
+        if (!Heatmap || !key.StartsWith("column:", StringComparison.Ordinal) || Result.Extent is not var (low, high)) return null;
+        if (Result.Cell(row.Dimensions, key["column:".Length..]) is not { } number) return null;
+        var ratio = high == low ? 1 : (number - low) / (high - low);
+        var percent = (int)Math.Round(6 + ratio * (MaxHeat - 6));
+        return new Attrs { InlineStyle = $"background-color:color-mix(in srgb, {Tones.Accent.Solid} {percent}%, transparent)" };
+    }
+}

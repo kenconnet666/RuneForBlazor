@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+@* 任务按主办人与状态计数（Aggregate="PivotAggregate.Count"，不需要数值字段）；状态按流程的先后排（Order），显示成中文（Format）。
+   下面一张是按主办人求平均处理天数（PivotAggregate.Average），只有行维度、没有列维度 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <PivotTable T="WorkItem" Data="Tasks" Rows="Owner" Columns="State" Aggregate="PivotAggregate.Count" Heatmap="true" aria-label="各主办人的任务数" />
+    <PivotTable T="WorkItem" Data="Tasks" Rows="Owner" Value="Days" Aggregate="PivotAggregate.Average" aria-label="各主办人的平均处理天数" />
+</Flex>
+
+@code {
+    sealed record WorkItem(string Owner, string Status, int Days);
+
+    static readonly Dictionary<string, string> StatusLabels = new() { ["todo"] = "待开始", ["doing"] = "进行中", ["review"] = "待审核", ["done"] = "已完成" };
+    static readonly string[] Owners = ["周宁", "陆川", "方圆", "韩笑"];
+    static readonly string[] Statuses = ["todo", "doing", "review", "done"];
+
+    // 按位置算出一组看起来自然的数据
+    static readonly WorkItem[] Tasks = [.. Enumerable.Range(0, 46).Select(i => new WorkItem(Owners[i * 7 % 4], Statuses[(i * 3 + i / 5) % 4], 2 + i * 13 % 11))];
+
+    static readonly IReadOnlyList<PivotDimension<WorkItem>> Owner = [new("owner", "主办人", t => t.Owner)];
+
+    static readonly PivotDimension<WorkItem> State = new("status", "状态", t => t.Status) { Order = Statuses, Format = value => StatusLabels[value] };
+
+    static readonly PivotValue<WorkItem> Days = new("days", "平均处理天数", t => t.Days) { Format = new() { MaximumFractionDigits = 1 } };
+}

@@ -1,0 +1,24 @@
+@page "/components/pivot-table"
+@attribute [DocMeta("PivotTable 透视表", "明细按行维度（可以多级）与列维度交叉汇总：求和、计数、平均、最小、最大，带合计行与合计列；可以着色成热力图。", DocCategory.Table, Order = 3)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Table.PivotTable.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="heatmap" Title="热力图：区域、供应商 × 季度" Demo="typeof(HeatmapExample)">
+                <Code>Rows</Code> 是行维度，可以多级（相同的上级合并成一格）；<Code>Columns</Code> 是列维度；<Code>Value</Code> 是聚合的数值，格式同表格的列（<Code>Type</Code>、<Code>Format</Code>）。
+                求和按 decimal 精确相加。维度的 <Code>Order</Code> 决定顺序（没列出的排在后面），不写时按值排序；<Code>Format</Code> 换成显示的文字。
+                <Code>Heatmap</Code> 按数值给格子着色（强调色按比例混进底色，最深时文字仍够对比），合计不着色。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="count" Title="计数与平均" Demo="typeof(CountExample)">
+                <Code>Aggregate</Code> 是 <Code>Sum</Code>（默认）、<Code>Count</Code>（不需要数值字段）、<Code>Average</Code>、<Code>Min</Code>、<Code>Max</Code>。
+                不写 <Code>Columns</Code> 时只按行汇总成一列。<Code>Totals</Code> 关掉合计；没有明细的格子显示 <Code>EmptyText</Code>（默认 —）。
+                要自己画（导出、图表）时用 <Code>Pivot.Compute</Code> 拿到行列与每格的值。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(PivotTable<>), typeof(PivotDimension<>), typeof(PivotValue<>)]" />
+</DocPage>

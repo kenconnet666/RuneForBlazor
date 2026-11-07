@@ -1,0 +1,29 @@
+@inherits RuneComponent
+
+@* 采购明细按“区域 → 供应商”与季度透视：相同区域合并成一格，每格是采购额之和（万元），带合计行与合计列；
+   Heatmap 按金额给格子着色，一眼看出哪个供应商、哪个季度贡献大。金额是 decimal，合计精确相加 *@
+<PivotTable T="Saving" Data="Savings" Rows="Dimensions" Columns="Quarter" Value="Amount" Heatmap="true" aria-label="各区域、供应商的季度采购额（万元）" />
+
+@code {
+    sealed record Saving(string Region, string Supplier, string Quarter, decimal Amount);
+
+    static readonly Saving[] Savings =
+    [
+        new("华东", "华辰精密", "Q1", 128.4m), new("华东", "华辰精密", "Q2", 96.2m), new("华东", "华辰精密", "Q3", 210.5m), new("华东", "华辰精密", "Q4", 188.1m),
+        new("华东", "恒远五金", "Q2", 42.8m), new("华东", "恒远五金", "Q3", 76.3m), new("华东", "恒远五金", "Q4", 120.6m),
+        new("华南", "粤海机电", "Q1", 64.9m), new("华南", "粤海机电", "Q2", 71.2m), new("华南", "粤海机电", "Q3", 58.4m), new("华南", "粤海机电", "Q4", 90.7m),
+        new("华南", "南方物流", "Q1", 15.3m), new("华南", "南方物流", "Q4", 33.0m),
+        new("华北", "京津新材", "Q1", 22.1m), new("华北", "京津新材", "Q2", 35.6m), new("华北", "京津新材", "Q3", 41.9m), new("华北", "京津新材", "Q3", 18.2m),
+        new("华北", "京津新材", "Q4", 52.4m),
+    ];
+
+    static readonly IReadOnlyList<PivotDimension<Saving>> Dimensions =
+    [
+        new("region", "区域", s => s.Region) { Order = ["华东", "华南", "华北"] },
+        new("supplier", "供应商", s => s.Supplier),
+    ];
+
+    static readonly PivotDimension<Saving> Quarter = new("quarter", "季度", s => s.Quarter);
+
+    static readonly PivotValue<Saving> Amount = new("amount", "采购额", s => s.Amount) { Format = new() { MinimumFractionDigits = 1 } };
+}
