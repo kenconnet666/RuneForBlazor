@@ -159,4 +159,16 @@ vue 的规则（STYLE-ENGINE.md §11）照搬，按 Rune 的结构落在这几�
 | Listbox 的根补上部件标记（ff185e89） | Rune 的部件都经 `Part.Of` / `Recipe.Of` 带标记，Listbox 的根本来就在 border-box 规则里 |
 | 文档站合并组件页（137 → 119） | 等 vue 的阶段 25 做完、通知整体跟进时一起重排（见 DOCS-SITE.md） |
 
+### 阶段 25 第三批（2026-11-08 跟进，vue master 到 ff221742）
+
+| vue | Rune |
+| --- | ---- |
+| 单选、复选的 `card` 与 `end`（554b7246） | `Card`（组上或单项）、`MinItemWidth`（横排分列，默认 14em）、`End` / `PropsEnd`、`ChoicePart.End`；选中按 `:has(input:checked)` 用 CSS 变，点了立即变（vue 按 JS 的勾选状态加类） |
+| 示例：卡片外观、配送方式用 description 与 end、ButtonBase 页换成“长得不像按钮的按钮”（1e8c477a） | 同；ThemeSwitcher 的选主题网格 Rune 还没有 |
+| ItemListItem 整条可点（0950975c）与 ItemList 页的两个示例（6d9c8098） | `Href`（TextLink）/ `OnSelect`（ButtonBase）、`Selected`、`Disabled`、`PropsLink` / `PropsButton`；Splitter、ScrollArea、Tabs 里手写的可点行等文档整体跟进时再改 |
+| 可选中的 Tag（0f69e5c5） | `Selected` / `@bind-Selected`；Badge 页加筛选条件示例 |
+| ScrollArea 部件标记（6160d6d2） | 本来就有 |
+| 链接下划线作用域（ff221742） | `LinkUnderlineContext`（级联值）与 `LinkUnderlineScope`；ItemList、Stat、StatGroup、Timeline、Descriptions、Checklist 整块与 Card 页头给 Hover；Upload 的文件名直接写 Hover |
+| Upload 接父级放进来的待上传文件（ff221742） | 同（参数变化时与自己加文件后都检查，同一项只开始一次） |
+
 CI 的 `VUE_TSX_PRO_REF` 没跟着前移：vue 的语言包新增了 errorTitle、errorRetry（ErrorBoundary），前移要等 Rune 也有对应的文案。
