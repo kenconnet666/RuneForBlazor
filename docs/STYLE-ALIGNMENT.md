@@ -155,6 +155,8 @@ vue 的规则（STYLE-ENGINE.md §11）照搬，按 Rune 的结构落在这几�
 | 静态 Table 的 `stickyHeader`、单元格 `sticky`（9a57a058） | 同；DataTable 的 `StickySelect` 改名 `StickyStart`；ScrollArea 的“两个方向”示例改用 Table |
 | ProportionBar 图例从起始边排开（92468893） | 同 |
 | ErrorBoundary、CSP nonce、FilterBar / QueryTable、CommentThread / NotificationCenter 的 RelativeTime | 没跟：Rune 还没有这几个组件；Blazor 自带 ErrorBoundary，CSP 等阶段计划时再定 |
+| FilterBar / QueryTable 重做（cad81082，a6ffbb54 那版作废） | 以后做这两个组件时照新版：第一排是 start（标题）、放得下的条件（铺满）与按钮（展开、重置、查询），隔一条竖线是 end（工具栏）；放不下的与展开的条件从第二排起排成整行栅格；minFieldWidth 默认 14em |
+| Listbox 的根补上部件标记（ff185e89） | Rune 的部件都经 `Part.Of` / `Recipe.Of` 带标记，Listbox 的根本来就在 border-box 规则里 |
 | 文档站合并组件页（137 → 119） | 等 vue 的阶段 25 做完、通知整体跟进时一起重排（见 DOCS-SITE.md） |
 
 CI 的 `VUE_TSX_PRO_REF` 没跟着前移：vue 的语言包新增了 errorTitle、errorRetry（ErrorBoundary），前移要等 Rune 也有对应的文案。
