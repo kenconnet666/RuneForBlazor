@@ -1,0 +1,65 @@
+@inherits RuneComponent
+
+@* 主从视图：点一行在旁边看详情（ActiveKey 高亮正在看的那一行，带 aria-current）；编号是按钮，键盘也能打开 *@
+<Splitter Sx="Frame" @bind-Size="size">
+    <StartContent>
+        <DataTable Items="Todos" GetKey="t => t.Id" ActiveKey="@active" OnRowClick="@((Todo t) => active = t.Id)" Density="TableDensity.Compact"
+                   aria-label="待办" PropsRoot="TableFill">
+            <TemplateColumn Key="code" Title="编号" Width="140" Value="t => t.Code" Context="todo">
+                <Button Size="Size.Sm" Variant="ButtonVariant.Link" @onclick="() => active = todo.Id">@todo.Code</Button>
+            </TemplateColumn>
+            <PropertyColumn Property="t => t.Node" Title="环节" Width="110" />
+            <TemplateColumn Key="due" Title="剩余" Width="140" Value="t => t.Due" Context="todo">
+                @{ var days = todo.Due.DayNumber - Today.DayNumber; }
+                <Badge Tone="@(days < 0 ? Tone.Danger : days <= 2 ? Tone.Warning : Tone.Neutral)">@(days < 0 ? $"超期 {-days} 天" : days == 0 ? "今天到期" : $"剩 {days} 天")</Badge>
+            </TemplateColumn>
+        </DataTable>
+    </StartContent>
+    <EndContent>
+        @if (Todos.FirstOrDefault(t => t.Id == active) is { } current)
+        {
+            <Descriptions Size="Size.Sm" Columns="1" Sx="Detail">
+                <DescriptionsItem Label="编号" Value="@current.Code" />
+                <DescriptionsItem Label="名称" Value="@current.Name" />
+                <DescriptionsItem Label="环节" Value="@current.Node" />
+                <DescriptionsItem Label="截止" Value="@current.Due.ToString("yyyy-MM-dd")" />
+            </Descriptions>
+        }
+        else
+        {
+            <Flex Align="ItemAlign.Center" Justify="ContentJustify.Center" Sx="Fill"><Empty Size="Size.Sm"><Title>选一条看详情</Title></Empty></Flex>
+        }
+    </EndContent>
+</Splitter>
+
+@code {
+    sealed record Todo(string Id, string Code, string Name, string Node, DateOnly Due);
+
+    static readonly DateOnly Today = new(2026, 10, 21);
+
+    static readonly Todo[] Todos =
+    [
+        new("t1", "PO-2026-0187", "办公椅供应商切换", "资料审核", new(2026, 10, 23)),
+        new("t2", "PO-2026-0214", "卡箍改用铝合金", "方案设计", new(2026, 10, 16)),
+        new("t3", "PO-2026-0233", "机柜导轨第二供应商", "财务复核", new(2026, 10, 30)),
+        new("t4", "FA-2026-0142", "密封件国产化", "方案评审", Today),
+    ];
+
+    static Style Frame => Css.Define(static () => new Style
+    {
+        Height = CssLength.Rem(18),
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = Colors.Border,
+        BorderRadius = Radii.Md,
+    });
+
+    static Attrs TableFill => new() { Sx = Css.Define(static () => new Style { Height = CssLength.Percent(100), MaxHeight = MaxHeight.None }) };
+
+    static Style Detail => Css.Define(static () => new Style { Padding = Space.Md });
+
+    static Style Fill => Css.Define(static () => new Style { Height = CssLength.Percent(100) });
+
+    double size = 55;
+    string? active = "t2";
+}

@@ -1,0 +1,86 @@
+@inherits RuneComponent
+@using System.ComponentModel
+@implements IDisposable
+
+@* 定位到行：从通知、搜索结果跳过来时滚到那一行并闪一下。两千行里还没渲染的行也能滚到，停在吸顶表头之下；找不到时 ScrollToRow 返回 false *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+        <TextField @bind-Value="code" Immediate="true" placeholder="任务编码" aria-label="任务编码" Sx="Field" @onkeydown="OnKeyDown" />
+        <Button Size="Size.Sm" Icon="Lucide.LocateFixed" @onclick="() => Locate(code)">定位</Button>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" @onclick="() => Locate(Tasks[0].Code)">第一条</Button>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" @onclick="() => Locate(Tasks[^1].Code)">最后一条</Button>
+        @if (missing)
+        {
+            <Small Tone="TextTone.Danger">没有这个任务</Small>
+        }
+    </Flex>
+    <DataTable @ref="table" Items="Tasks" GetKey="t => t.Code" RowTone="@(t => t.Code == flashing ? Tone.Info : null)"
+               Density="TableDensity.Compact" aria-label="项目任务" PropsRoot="TableHeight">
+        <PropertyColumn Property="t => t.Code" Width="136" Sticky="ColumnSticky.Start" />
+        <PropertyColumn Property="t => t.Name" />
+        <PropertyColumn Property="t => t.Owner" Width="96" />
+        <PropertyColumn Property="t => t.Due" Width="120" />
+        <StatusColumn Property="t => t.Status" Statuses="Statuses" Width="104" />
+    </DataTable>
+</Flex>
+
+@code {
+    enum TaskStatus { Doing, Overdue, Done }
+
+    sealed record ProjectTask(
+        [property: DisplayName("任务编码")] string Code,
+        [property: DisplayName("任务名称")] string Name,
+        [property: DisplayName("责任人")] string Owner,
+        [property: DisplayName("截止日期")] string Due,
+        [property: DisplayName("状态")] TaskStatus Status);
+
+    static readonly StatusMap<TaskStatus> Statuses = new()
+    {
+        [TaskStatus.Doing] = new("进行中", Tone.Info),
+        [TaskStatus.Overdue] = new("已超期", Tone.Danger),
+        [TaskStatus.Done] = new("已完成", Tone.Success),
+    };
+
+    static readonly string[] Owners = ["张工", "李工", "王工", "赵工", "刘工"];
+    static readonly string[] Parts = ["显示器", "支架", "纸箱", "线缆", "键盘", "鼠标"];
+
+    static readonly ProjectTask[] Tasks = [.. Enumerable.Range(0, 2000).Select(index => new ProjectTask(
+        $"PO-2026-{index + 1:D4}",
+        $"{Parts[index % Parts.Length]}改进方案 {index + 1}",
+        Owners[index * 3 % Owners.Length],
+        $"2026-{index % 12 + 1:D2}-{index % 28 + 1:D2}",
+        index % 17 == 0 ? TaskStatus.Overdue : index % 3 == 0 ? TaskStatus.Done : TaskStatus.Doing))];
+
+    static Attrs TableHeight => new() { Sx = Css.Define(static () => new Style { MaxHeight = CssLength.Rem(22) }) };
+
+    static Style Field => Css.Define(static () => new Style { Width = CssLength.Rem(14) });
+
+    DataTable<ProjectTask>? table;
+    string? code = "PO-2026-1360";
+    string? flashing;
+    bool missing;
+    CancellationTokenSource? flash;
+
+    Task OnKeyDown(KeyboardEventArgs e) => e.Key == "Enter" ? Locate(code) : Task.CompletedTask;
+
+    async Task Locate(string? key)
+    {
+        missing = table?.ScrollToRow(key?.Trim() ?? "", ScrollAlign.Center) != true;
+        if (missing) return;
+        // 滚到之后闪一下：浅色底停 1.5 秒
+        flash?.Cancel();
+        var current = flash = new CancellationTokenSource();
+        flashing = key?.Trim();
+        try
+        {
+            await Task.Delay(1500, current.Token);
+            flashing = null;
+            StateHasChanged();
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    public void Dispose() => flash?.Cancel();
+}

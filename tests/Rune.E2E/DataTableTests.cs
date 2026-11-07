@@ -80,4 +80,37 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(changes.Locator("thead tr")).ToHaveCountAsync(2);
         await Assertions.Expect(changes.Locator("th[scope=colgroup]")).ToHaveTextAsync(["调整前", "调整后"]);
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 定位到行_点行看详情_滚动加载_单选(string mode)
+    {
+        var page = await OpenAsync(mode, "data-table");
+
+        var tasks = page.GetByRole(AriaRole.Table, new() { Name = "项目任务" });
+        await page.GetByRole(AriaRole.Button, new() { Name = "定位", Exact = true }).ClickAsync();
+        var target = tasks.Locator("tr[data-key='PO-2026-1360']");
+        await Assertions.Expect(target).ToBeInViewportAsync();
+        await Assertions.Expect(target).ToHaveAttributeAsync("data-tone", "info");
+        await page.GetByLabel("任务编码").FillAsync("PO-2026-9999");
+        await page.GetByRole(AriaRole.Button, new() { Name = "定位", Exact = true }).ClickAsync();
+        await Assertions.Expect(page.GetByText("没有这个任务", new() { Exact = true })).ToBeVisibleAsync();
+
+        var todos = page.GetByRole(AriaRole.Table, new() { Name = "待办" });
+        await Assertions.Expect(todos.Locator("tr[aria-current=true]")).ToHaveAttributeAsync("data-key", "t2");
+        await todos.Locator("tr[data-key=t3]").GetByText("财务复核").ClickAsync();
+        await Assertions.Expect(todos.Locator("tr[aria-current=true]")).ToHaveAttributeAsync("data-key", "t3");
+        await Assertions.Expect(page.GetByText("机柜导轨第二供应商", new() { Exact = true })).ToBeVisibleAsync();
+
+        var events = page.GetByRole(AriaRole.Table, new() { Name = "事件流" });
+        await Assertions.Expect(page.GetByText("已加载 40 / 400 条")).ToBeVisibleAsync();
+        await events.EvaluateAsync("table => { const v = table.closest('[data-rune-virtual]'); v.scrollTop = v.scrollHeight; }");
+        await Assertions.Expect(page.GetByText("已加载 80 / 400 条")).ToBeVisibleAsync();
+
+        var quotes = page.GetByRole(AriaRole.Table, new() { Name = "供应商报价" });
+        await quotes.GetByRole(AriaRole.Radio, new() { Name = "选择第 4 行" }).CheckAsync();
+        await Assertions.Expect(page.GetByText("选中：星河紧固件")).ToBeVisibleAsync();
+        await Assertions.Expect(quotes.Locator("tr[data-key=q4]")).ToHaveAttributeAsync("aria-selected", "true");
+    }
 }

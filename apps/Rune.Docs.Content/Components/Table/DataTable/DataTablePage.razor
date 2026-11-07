@@ -25,11 +25,31 @@
         <Code>DetailContent</Code> 给出一行的详情：多一列展开按钮（aria-expanded，aria-controls 指向详情），展开的行下面多一行跨全部列的详情，
         虚拟滚动按真实高度测量；<Code>HasDetail</Code> 决定哪些行能展开，<Code>ExpandedRows</Code> 可以双向绑定。详情横向滚动时贴着可见区域的起始边，宽度不超过可见区域。
     </Example>
+    <Example Id="locate" Title="定位到行" Demo="typeof(LocateExample)">
+        用 <Code>@@ref</Code> 拿到表格后调用 <Code>ScrollToRow(key, align)</Code>：虚拟滚动里还没渲染的行也能滚到，停在吸顶表头之下、吸底合计行之上
+        （<Code>ScrollAlign</Code> 同 VirtualList，默认已完整可见就不动）；找不到这一行时返回 false。滚到之后用 <Code>RowTone</Code> 闪一下，方便从通知、搜索结果跳过来时找到它。
+    </Example>
+    <Example Id="master-detail" Title="主从视图：点一行看详情" Demo="typeof(MasterDetailExample)">
+        <Code>OnRowClick</Code> 点一行（点在按钮、链接、输入框上的除外）在旁边打开详情，<Code>ActiveKey</Code> 高亮正在看的那一行（起始边一条竖线，带 aria-current）。
+        整行点击只是鼠标的捷径：行里还要有键盘能到的入口，这里编号是按钮。配 Splitter 做成可拖动的左右两栏。
+    </Example>
     <Examples>
         <ExampleColumn>
+            <Example Id="import" Title="导入校验" Demo="typeof(ImportExample)">
+                <Code>RowTone</Code> 给整行着色：错误行浅红、提醒行浅黄，底色不透明，固定列也盖得住；配合 <Code>IsRowSelectable</Code> 只让没有错误的行能勾选，全选也跳过它们。
+            </Example>
             <Example Id="states" Title="加载、空状态与密度" Demo="typeof(StatesExample)">
                 只用骨架行：<Code>Loading</Code> 时表体换成骨架（首次加载、刷新），表格带 aria-busy；没有数据时显示 <Code>Empty</Code>（默认是语言包的“暂无数据”）。
                 <Code>Density</Code> 三档行高，<Code>TableVariant.Ghost</Code> 去掉外框，<Code>Striped</Code> 斑马纹。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="pick" Title="单选" Demo="typeof(PickExample)">
+                <Code>SelectionMode.Single</Code> 时每行是同一组的单选框：方向键在行之间移动并选中，选中的行整行高亮；没有全选，这一列的标题只给读屏。
+            </Example>
+            <Example Id="infinite" Title="滚动加载" Demo="typeof(InfiniteExample)">
+                <Code>OnRangeChange</Code> 报告可见行的范围，接近末尾时取下一页；取的时候 <Code>Loading</Code>，已有数据时骨架接在末尾（不换掉表体、不丢滚动位置）。
+                <Code>EstimateRowHeight</Code> 是行高的估计，渲染后按实际高度测量。
             </Example>
         </ExampleColumn>
     </Examples>

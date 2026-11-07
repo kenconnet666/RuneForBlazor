@@ -1,0 +1,72 @@
+@inherits RuneComponent
+@using System.ComponentModel
+
+@* 导入校验：错误行整行浅红、提醒行浅黄（RowTone），不透明的底色盖得住固定列；只有没有错误的行能勾选导入。校验结果放在前面：最要紧的一列不用横向滚动才看到 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+        <Badge Tone="Tone.Danger">@Errors 行错误</Badge>
+        <Badge Tone="Tone.Warning">@Warnings 行提醒</Badge>
+        <Small Tone="TextTone.Muted">错误行改好后重新上传；提醒行可以照常导入</Small>
+        <span style="flex-grow: 1"></span>
+        <Button Size="Size.Sm" Disabled="selected.Count == 0">导入所选 @selected.Count 行</Button>
+    </Flex>
+    <DataTable Items="Lines" GetKey="l => l.Row.ToString()" RowTone="ToneOf" SelectionMode="SelectionMode.Multiple" @bind-Selected="selected"
+               IsRowSelectable="@(l => l.Issue?.Level != IssueLevel.Error)" Density="TableDensity.Compact" aria-label="导入校验结果">
+        <PropertyColumn Property="l => l.Row" Title="行" Width="56" Sticky="ColumnSticky.Start" />
+        <TemplateColumn Key="issue" Title="校验结果" Width="240" Wrap="true" Context="line">
+            @if (line.Issue is { } issue)
+            {
+                <Flex Inline="true" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                    <Icon Data="@(issue.Level == IssueLevel.Error ? Lucide.CircleExclamationPoint : Lucide.TriangleExclamationPoint)" Tone="@(issue.Level == IssueLevel.Error ? TextTone.Danger : TextTone.Warning)" />
+                    @issue.Message
+                </Flex>
+            }
+            else
+            {
+                <Flex Inline="true" Align="ItemAlign.Center" Gap="SpaceScale.Xs"><Icon Data="Lucide.CircleCheck" Tone="TextTone.Success" />通过</Flex>
+            }
+        </TemplateColumn>
+        <PropertyColumn Property="l => l.Part" Width="96" />
+        <PropertyColumn Property="l => l.Name" Width="180" />
+        <PropertyColumn Property="l => l.Quantity" Width="96" />
+        <PropertyColumn Property="l => l.Price" Width="128" Type="ColumnType.Number" Format="Money" />
+    </DataTable>
+</Flex>
+
+@code {
+    enum IssueLevel { Error, Warning }
+
+    sealed record Issue(IssueLevel Level, string Message);
+
+    sealed record Line(
+        int Row,
+        [property: DisplayName("件号")] string Part,
+        [property: DisplayName("零件名称")] string Name,
+        [property: DisplayName("数量")] int? Quantity,
+        [property: DisplayName("材料单价（元）")] string? Price,
+        Issue? Issue = null);
+
+    static readonly Line[] Lines =
+    [
+        new(2, "G26", "笔记本电脑", 2, "450.00"),
+        new(3, "G29", "笔记本电脑（更改后）", 2, "480.00"),
+        new(4, "", "紧固件组件", 36, "12.50", new(IssueLevel.Error, "件号不能为空")),
+        new(5, "G43", "支架", null, "96.00", new(IssueLevel.Error, "数量必须大于 0")),
+        new(6, "G44", "支架（更改后）", 1, "1960.00", new(IssueLevel.Warning, "单价比更改前高 20 倍，请核对")),
+        new(7, "G73", "密封条", 4, "38.80"),
+    ];
+
+    static readonly NumberFormat Money = new() { MinimumFractionDigits = 2 };
+
+    static readonly int Errors = Lines.Count(l => l.Issue?.Level == IssueLevel.Error);
+    static readonly int Warnings = Lines.Count(l => l.Issue?.Level == IssueLevel.Warning);
+
+    static Tone? ToneOf(Line line) => line.Issue?.Level switch
+    {
+        IssueLevel.Error => Tone.Danger,
+        IssueLevel.Warning => Tone.Warning,
+        _ => null,
+    };
+
+    IReadOnlyList<string> selected = ["2", "3", "7"];
+}

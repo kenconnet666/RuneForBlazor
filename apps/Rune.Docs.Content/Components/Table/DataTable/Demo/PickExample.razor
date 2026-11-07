@@ -1,0 +1,34 @@
+@inherits RuneComponent
+@using System.ComponentModel
+
+@* 单选：从几家报价里选一家。每行是同一组的单选框，方向键在行之间移动并选中；选中的行整行高亮 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <DataTable Items="Quotes" GetKey="q => q.Id" SelectionMode="SelectionMode.Single" @bind-Selected="picked" Density="TableDensity.Compact" aria-label="供应商报价">
+        <PropertyColumn Property="q => q.Supplier" />
+        <PropertyColumn Property="q => q.Price" Width="128" Format="Whole" />
+        <PropertyColumn Property="q => q.Days" Width="104" />
+        <PropertyColumn Property="q => q.Rating" Width="72" Align="TableAlign.Center" />
+    </DataTable>
+    <Small Tone="TextTone.Muted">选中：<Code>@(Quotes.FirstOrDefault(q => picked.Contains(q.Id))?.Supplier ?? "无")</Code></Small>
+</Flex>
+
+@code {
+    sealed record Quote(
+        string Id,
+        [property: DisplayName("供应商")] string Supplier,
+        [property: DisplayName("报价（元）")] decimal Price,
+        [property: DisplayName("交付（天）")] int Days,
+        [property: DisplayName("评级")] string Rating);
+
+    static readonly Quote[] Quotes =
+    [
+        new("q1", "青岩精密", 182_400, 45, "A"),
+        new("q2", "北辰研发", 169_900, 60, "B"),
+        new("q3", "远航生产", 175_000, 38, "A"),
+        new("q4", "星河紧固件", 158_600, 75, "C"),
+    ];
+
+    static readonly NumberFormat Whole = new() { MaximumFractionDigits = 0 };
+
+    IReadOnlyList<string> picked = ["q3"];
+}
