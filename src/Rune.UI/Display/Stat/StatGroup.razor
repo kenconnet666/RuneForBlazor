@@ -6,7 +6,7 @@
 @inherits UIComponent
 
 <div @attributes="Attrs.Merge(StatStyles.GroupRoot, Rest, WidthVar)">
-    <CascadingValue Name="@CascadeName" Value="true" IsFixed="true">@ChildContent</CascadingValue>
+    <CascadingValue Name="@CascadeName" Value="true" IsFixed="true"><CascadingValue Value="LinkUnderlineContext.Hover" IsFixed="true">@ChildContent</CascadingValue></CascadingValue>
 </div>
 
 @code {

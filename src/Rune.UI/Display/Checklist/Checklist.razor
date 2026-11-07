@@ -10,6 +10,8 @@
 @namespace Rune.UI
 @inherits UIComponent
 
+@* 清单里的链接悬停才有下划线 *@
+<CascadingValue Value="LinkUnderlineContext.Hover" IsFixed="true">
 @switch (Layout)
 {
     case ChecklistLayout.Icons:
@@ -91,6 +93,7 @@
         </div>
         break;
 }
+</CascadingValue>
 
 @code {
     static readonly Dictionary<ChecklistStatus, IconData> Icons = new()

@@ -42,7 +42,10 @@
 
     TextTone ShownTone => Tone ?? Config.Defaults.Get<LinkDefaults>()?.Tone ?? TextTone.Accent;
 
-    LinkUnderline ShownUnderline => Underline ?? Config.Defaults.Get<LinkDefaults>()?.Underline ?? LinkUnderline.Always;
+    LinkUnderline ShownUnderline => Underline ?? Scoped?.Underline ?? Config.Defaults.Get<LinkDefaults>()?.Underline ?? LinkUnderline.Always;
+
+    // 所在容器给的默认下划线（LinkUnderlineScope、条目列表、卡片页头）
+    [CascadingParameter] LinkUnderlineContext? Scoped { get; set; }
 
     // a 上由组件管理的属性：地址与外链的打开方式；地址不变时复用同一个对象
     Attrs Managed => managed.Get((Href, External), static k => new Attrs

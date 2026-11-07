@@ -57,7 +57,8 @@ else
     {
         if (Header is not null || Extra is not null)
         {
-            <div @attributes="Attrs.Merge(parts[CardPart.Header], PropsHeader)">@Header@Extra</div>
+            @* 页头的操作链接（“全部”）悬停才有下划线；正文里的链接照旧 *@
+            <div @attributes="Attrs.Merge(parts[CardPart.Header], PropsHeader)"><CascadingValue Value="LinkUnderlineContext.Hover" IsFixed="true">@Header@Extra</CascadingValue></div>
         }
         <div @attributes="Attrs.Merge(parts[CardPart.Body], revealing && !indicator.Shown ? RevealLayer : null, PropsBody)">
             @if (indicator.Shown)

@@ -16,6 +16,8 @@
     if (skeleton) revealing = true;
     var reveal = revealing && !skeleton ? StatStyles.Reveal : null;
 }
+@* 指标里的链接（操作、附件、值）悬停才有下划线 *@
+<CascadingValue Value="LinkUnderlineContext.Hover" IsFixed="true">
 <dl aria-busy="@(Loading ? "true" : null)" @attributes="Attrs.Merge(Grouped ? StatStyles.GroupedRoot : StatStyles.Root, Rest)">
     <dt @attributes="Attrs.Merge(StatStyles.Label, PropsLabel)">
         @if (Icon is not null)
@@ -79,6 +81,7 @@
         <dd @attributes="Attrs.Merge(StatStyles.Footer, PropsFooter)">@Footer</dd>
     }
 </dl>
+</CascadingValue>
 
 @code {
     /// <summary>变化量默认的格式：百分比、最多一位小数、正数带 +。</summary>

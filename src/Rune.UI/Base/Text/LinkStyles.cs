@@ -15,6 +15,17 @@ public enum LinkUnderline
     None,
 }
 
+/// <summary>
+/// 所在容器给里面的 TextLink 的默认下划线（级联值）：界面里的链接（列表的标题、卡片页头的操作、描述列表的值）一列下来都带下划线太重，
+/// 这些容器给 <see cref="LinkUnderline.Hover"/>。取值：链接上显式写的 &gt; 所在容器给的 &gt; 配置的默认值 &gt; Always（同 vue-tsx-pro 的 LinkUnderlineContext）。
+/// </summary>
+/// <param name="Underline">下划线。</param>
+public sealed record LinkUnderlineContext(LinkUnderline Underline)
+{
+    /// <summary>悬停才有下划线：条目列表、指标、时间线、描述列表、清单与卡片页头给的。</summary>
+    public static readonly LinkUnderlineContext Hover = new(LinkUnderline.Hover);
+}
+
 /// <summary>链接的部件。</summary>
 public enum LinkPart
 {

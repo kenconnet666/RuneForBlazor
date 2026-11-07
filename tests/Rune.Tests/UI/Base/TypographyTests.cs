@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Rune.Styles;
@@ -124,6 +125,28 @@ public class TypographyTests : BunitContext
         var a = cut.Find("a");
         Assert.Null(a.GetAttribute("target"));
         Assert.Contains("text-decoration-line:none", RuleOf(a.ClassName!));
+    }
+
+    [Fact]
+    public void 容器给的下划线_条目列表与卡片页头悬停才有_显式写的优先_卡片正文照旧()
+    {
+        RenderFragment Link(string href, LinkUnderline? underline = null) => b =>
+        {
+            b.OpenComponent<TextLink>(0);
+            b.AddComponentParameter(1, nameof(TextLink.Href), href);
+            if (underline is not null) b.AddComponentParameter(2, nameof(TextLink.Underline), underline);
+            b.AddComponentParameter(3, nameof(TextLink.ChildContent), (RenderFragment)(t => t.AddContent(0, href)));
+            b.CloseComponent();
+        };
+        var list = Render<ItemList>(p => p.AddChildContent<ItemListItem>(item => item
+            .Add(x => x.TitleContent, Link("#scoped"))
+            .Add(x => x.End, Link("#explicit", LinkUnderline.Always))));
+        var card = Render<Card>(p => p.Add(x => x.Extra, Link("#extra")).Add(x => x.ChildContent, Link("#body")));
+
+        Assert.Contains("text-decoration-line:none", RuleOf(list.Find("a[href='#scoped']").ClassName!));
+        Assert.Contains("text-decoration-line:underline", RuleOf(list.Find("a[href='#explicit']").ClassName!));
+        Assert.Contains("text-decoration-line:none", RuleOf(card.Find("a[href='#extra']").ClassName!));
+        Assert.Contains("text-decoration-line:underline", RuleOf(card.Find("a[href='#body']").ClassName!));
     }
 
     [Fact]

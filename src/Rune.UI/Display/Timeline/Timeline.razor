@@ -19,6 +19,8 @@
     // 按钮在旧的那一端：倒序时在最后，最后一项仍连线到它
     var toggleAtEnd = hidden > 0 && Reverse;
 }
+@* 时间线里的链接（附件、单号）悬停才有下划线 *@
+<CascadingValue Value="LinkUnderlineContext.Hover" IsFixed="true">
 <ol reversed="@Reverse" data-alternate="@(Alternate ? "true" : null)" @attributes="Attrs.Merge(TimelineStyles.Root, SizeLayer, Rest)">
     @if (hidden > 0 && !Reverse)
     {
@@ -97,6 +99,7 @@
         @Toggle(hidden)
     }
 </ol>
+</CascadingValue>
 
 @code {
     Bindable<bool> expanded { get => field ??= new(this, () => Expanded, () => ExpandedChanged); }

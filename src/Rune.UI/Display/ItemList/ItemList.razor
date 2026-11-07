@@ -14,7 +14,8 @@
 @inherits UIComponent
 
 <ul @attributes="Attrs.Merge(ItemListStyles.Of(new(ItemListLook.Default, false, false), Config.Styles)[ItemListPart.Root], Rest)">
-    <CascadingValue Value="Look">@ChildContent</CascadingValue>
+    @* 条目里的链接（标题、附件）悬停才有下划线：一列下来都带下划线太重 *@
+    <CascadingValue Value="Look"><CascadingValue Value="LinkUnderlineContext.Hover" IsFixed="true">@ChildContent</CascadingValue></CascadingValue>
 </ul>
 
 @code {

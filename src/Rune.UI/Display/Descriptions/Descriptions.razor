@@ -19,7 +19,8 @@
         <div @attributes="Attrs.Merge(parts[DescriptionsPart.Title], PropsTitle)">@(TitleContent ?? (RenderFragment)(b => b.AddContent(0, Title)))</div>
     }
     <dl @attributes="Attrs.Merge(parts[DescriptionsPart.List], PropsList)">
-        <CascadingValue Value="Context">@ChildContent</CascadingValue>
+        @* 值里的链接（单号）悬停才有下划线 *@
+        <CascadingValue Value="Context"><CascadingValue Value="LinkUnderlineContext.Hover" IsFixed="true">@ChildContent</CascadingValue></CascadingValue>
     </dl>
 </div>
 

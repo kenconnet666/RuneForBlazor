@@ -1,0 +1,23 @@
+@*
+    里面的 TextLink 默认用这种下划线（链接上显式写的仍然优先）：只想改一块区域时包住那一块。
+    <LinkUnderlineScope Underline="LinkUnderline.Hover">…</LinkUnderlineScope>
+    条目列表、指标、时间线、描述列表、清单整块与卡片页头已经给了 Hover。
+*@
+@namespace Rune.UI
+@inherits RuneComponent
+
+<CascadingValue Value="context" IsFixed="true">@ChildContent</CascadingValue>
+
+@code {
+    LinkUnderlineContext? context;
+
+    /// <summary>里面的链接默认的下划线。</summary>
+    [Parameter, EditorRequired] public LinkUnderline Underline { get; set; }
+
+    /// <summary>内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnInitialized() =>
+        context = Underline == LinkUnderline.Hover ? LinkUnderlineContext.Hover : new LinkUnderlineContext(Underline);
+}
