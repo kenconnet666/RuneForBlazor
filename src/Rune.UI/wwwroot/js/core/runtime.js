@@ -137,12 +137,18 @@ export function install(blazor, on) {
     attributeFilter: ['data-open', 'data-indeterminate', 'data-rune-draw', 'data-rune-copy-request', 'data-rune-autosize', 'data-rune-query', 'aria-busy', 'data-rune-fullscreen', 'data-rune-invalid-submit', 'data-value', 'data-rune-watermark', 'data-rune-upload-previews'],
   });
   syncWithin(document);
-  // 装好了：端到端测试、对照工具等它出现再操作（脚本加载之前的点击没人处理）
-  document.documentElement.setAttribute('data-rune-ready', '');
+  // 装好了：端到端测试、对照工具等它出现再操作（脚本加载之前的点击没人处理）。页面上已有的元素要的按需模块也要装好：
+  // 不然在日期输入框里打字时它的模块可能还没加载完，按键没人处理
+  Promise.allSettled([...loading]).then(() => document.documentElement.setAttribute('data-rune-ready', ''));
 }
 
-// 别的包（Rune.UI.Dates）的模块：第一次遇到它的元素时才加载，只用表格、表单的页面不下载
-const lazy = (load, name) => (element) => load().then((module) => module[name](element));
+// 别的包（Rune.UI.Dates）的模块：第一次遇到它的元素时才加载，只用表格、表单的页面不下载。加载中的记在 loading 里（见 install）
+const loading = new Set();
+const lazy = (load, name) => (element) => {
+  const pending = load().then((module) => module[name](element));
+  loading.add(pending);
+  pending.finally(() => loading.delete(pending));
+};
 
 // 插入时（第一次渲染就带着状态）要处理的元素：选择器与处理函数，一处登记
 const watched = [
