@@ -24,6 +24,17 @@ public class StatTests : BunitContext
         Assert.Equal(expected, LangFormat.Number(value, NumberFormat.Default, Zh));
 
     [Fact]
+    public void 简写_中文按万亿_英文按KMB_日文按万億_同Intl的compact()
+    {
+        var compact = new NumberFormat { Notation = NumberNotation.Compact };
+        decimal[] values = [182000, 96000, 9600, 1450000, 8200000, 999, 12345678901];
+        Assert.Equal("18万|9.6万|9600|145万|820万|999|123亿", string.Join('|', values.Select(v => LangFormat.Number(v, compact, Zh))));
+        Assert.Equal("182K|96K|9.6K|1.5M|8.2M|999|12B", string.Join('|', values.Select(v => LangFormat.Number(v, compact, Lang.EnUs))));
+        Assert.Equal("¥820万", LangFormat.Number(8200000, compact with { Style = NumberStyle.Currency }, Zh));
+        Assert.Equal("1.2億", LangFormat.Number(123456789, compact, Lang.EnUs with { Code = "ja-JP" }));
+    }
+
+    [Fact]
     public void 百分比_缩放与单位_带符号_金额()
     {
         Assert.Equal("12%", LangFormat.Number(0.123m, NumberFormat.Percent, Zh));

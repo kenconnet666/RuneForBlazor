@@ -28,9 +28,18 @@ public static class LangFormat
         var number = value / format.Scale;
         if (format.Style == NumberStyle.Percent) number *= 100;
         var (min, max) = format.FractionDigits;
+        var (unit, grouping) = ("", format.UseGrouping);
+        if (format.Notation == NumberNotation.Compact)
+        {
+            (number, unit) = Compact(number, lang.Code);
+            // 简写默认：整数部分只有一位时保留两位有效数字，否则取整；不分千位（同 Intl）
+            if (format.MinimumFractionDigits is null && format.MaximumFractionDigits is null)
+                (min, max) = (0, Math.Abs(Math.Round(number, 1, MidpointRounding.AwayFromZero)) < 10 ? 1 : 0);
+            grouping = false;
+        }
         number = Math.Round(number, max, MidpointRounding.AwayFromZero);
-        var pattern = (format.UseGrouping ? "#,0" : "0") + (max > 0 ? "." + new string('0', min) + new string('#', max - min) : "");
-        var digits = Math.Abs(number).ToString(pattern, info);
+        var pattern = (grouping ? "#,0" : "0") + (max > 0 ? "." + new string('0', min) + new string('#', max - min) : "");
+        var digits = Math.Abs(number).ToString(pattern, info) + unit;
         var sign = format.SignDisplay switch
         {
             SignDisplay.Never => "",
@@ -51,6 +60,21 @@ public static class LangFormat
             _ => digits,
         };
         return format.Suffix is null ? text : $"{text} {format.Suffix}";
+    }
+
+    // 简写的单位：中文按万、亿、万亿，日文按万、億、兆，其余按 K、M、B、T（CLDR 的 compact-short）
+    static readonly (decimal Size, string Unit)[] ChineseUnits = [(1_000_000_000_000m, "万亿"), (100_000_000m, "亿"), (10_000m, "万")];
+    static readonly (decimal Size, string Unit)[] JapaneseUnits = [(1_000_000_000_000m, "兆"), (100_000_000m, "億"), (10_000m, "万")];
+    static readonly (decimal Size, string Unit)[] EnglishUnits = [(1_000_000_000_000m, "T"), (1_000_000_000m, "B"), (1_000_000m, "M"), (1_000m, "K")];
+
+    static (decimal Number, string Unit) Compact(decimal number, string code)
+    {
+        var units = code.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ? ChineseUnits
+            : code.StartsWith("ja", StringComparison.OrdinalIgnoreCase) ? JapaneseUnits
+            : EnglishUnits;
+        foreach (var (size, unit) in units)
+            if (Math.Abs(number) >= size) return (number / size, unit);
+        return (number, "");
     }
 
     // 币种是这个文化本地的：用它的符号与位置（zh-CN 的 CNY → ¥1.00）；不是时写币种代码（同 Intl 在别的地区显示外币）

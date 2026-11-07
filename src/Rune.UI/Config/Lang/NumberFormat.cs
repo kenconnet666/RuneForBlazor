@@ -18,6 +18,19 @@ public enum NumberStyle
     Currency,
 }
 
+/// <summary>数字的写法（同 Intl.NumberFormat 的 notation）。</summary>
+public enum NumberNotation
+{
+    /// <summary>完整的数字：8,200,000。</summary>
+    Standard,
+
+    /// <summary>
+    /// 简写：中文、日文按万、亿（820万），其余按 K、M、B、T（8.2M）；整数部分只有一位时保留两位有效数字，否则取整（同 Intl 的 compact）。
+    /// 写了小数位数时按写的。
+    /// </summary>
+    Compact,
+}
+
 /// <summary>正负号怎么显示（同 Intl.NumberFormat 的 signDisplay）。</summary>
 public enum SignDisplay
 {
@@ -61,6 +74,9 @@ public sealed record NumberFormat
 
     /// <summary>跟在数字后面的单位文字，如“万元”“元/件”，与数字之间一个空格。</summary>
     public string? Suffix { get; init; }
+
+    /// <summary>写法：完整（默认）或简写（820万、8.2M）。</summary>
+    public NumberNotation Notation { get; init; }
 
     /// <summary>正负号。</summary>
     public SignDisplay SignDisplay { get; init; }
@@ -111,6 +127,7 @@ public sealed record NumberFormat
                 _ => "auto",
             });
             json.WriteBoolean("useGrouping", UseGrouping);
+            if (Notation == NumberNotation.Compact) json.WriteString("notation", "compact");
             if (Scale != 1) json.WriteNumber("scale", Scale);
             if (Suffix is not null) json.WriteString("suffix", Suffix);
             json.WriteEndObject();
