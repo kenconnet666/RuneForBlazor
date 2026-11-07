@@ -9,16 +9,11 @@
 @inject RenderQueue RenderQueue
 
 <RuneProvider>
-    <AppShell PropsMain="MainLayer">
+    @* 首页没有右侧栏（同 vue：aside 只在非首页给），正文占满剩下的宽度 *@
+    <AppShell PropsMain="MainLayer" Aside="@(IsHome ? null : Toc)">
         <Brand><AppShellBrand Href="" Icon="Lucide.Boxes">Rune</AppShellBrand></Brand>
         <Header><DocsHeaderTools /></Header>
         <Sidebar><DocsNav /></Sidebar>
-        <Aside>
-            @if (!IsHome)
-            {
-                <DocsToc />
-            }
-        </Aside>
         <ChildContent>
             <div @attributes="Attrs.Merge(PageLayer)">
                 @* 按地址换 key：每次换页重新播放进场动画 *@
@@ -39,6 +34,8 @@
 @code {
     /// <summary>仓库地址（顶栏与窄屏侧栏的链接）。</summary>
     internal const string Repository = "https://github.com/kenconnet666/RuneForBlazor";
+
+    static readonly RenderFragment Toc = @<DocsToc />;
 
     static readonly Attrs MainLayer = new() { Sx = Main };
     static readonly Attrs PageLayer = new() { Sx = Page };
