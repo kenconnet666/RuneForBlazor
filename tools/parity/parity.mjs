@@ -325,6 +325,9 @@ for (const theme of options.themes.split(',')) {
           return !!canvas;
         }, { id, side });
         const target = marked ? page.locator('[data-parity-shot]') : page.locator(`[id="${id}"]`).locator('xpath=..');
+        // 图表要进入视口附近才画（两边都是）：先滚过去等它画好、进场动画播完，再截
+        await target.scrollIntoViewIfNeeded();
+        await page.waitForTimeout(1000);
         await target.screenshot({ path: join(outDir, `${id}-${theme}-${side}.png`) });
       }
     }
