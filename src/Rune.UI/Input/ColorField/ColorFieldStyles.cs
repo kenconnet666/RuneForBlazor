@@ -62,6 +62,7 @@ public static class ColorFieldStyles
         Padding = 0,
         BorderWidth = 0,
         Opacity = 0,
+        Font = CssWide.Inherit,
         Cursor = CssWide.Inherit,
     });
 

@@ -68,6 +68,7 @@ public static class OtpFieldStyles
         OutlineStyle = OutlineStyle.None,
         BackgroundColor = CssColors.Transparent,
         Appearance = Appearance.None,
+        Font = CssWide.Inherit,
         Color = CssColors.Transparent,
         CaretColor = CssColors.Transparent,
         FontSize = CssLength.Em(1),

@@ -122,6 +122,8 @@ public static class ChoiceStyles
         Appearance = Appearance.None,
         BoxSizing = BoxSizing.BorderBox,
         Margin = 0,
+        // 原生 input 不继承字体（Chromium 给 13.333px）：方框、轨道的 em 要和滑块、文字按同一个字号算
+        Font = CssWide.Inherit,
         BorderWidth = BorderWidths.Sm,
         BorderStyle = BorderStyle.Solid,
         BorderColor = Colors.BorderStrong,
