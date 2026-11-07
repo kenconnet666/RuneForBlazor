@@ -114,4 +114,45 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(page.GetByText("选中：星河紧固件")).ToBeVisibleAsync();
         await Assertions.Expect(quotes.Locator("tr[data-key=q4]")).ToHaveAttributeAsync("aria-selected", "true");
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 方向键走格_Enter编辑提交_接口拒绝时留着编辑器_Esc放弃_行校验标在格上(string mode)
+    {
+        var page = await OpenAsync(mode, "data-table");
+        var grid = page.GetByRole(AriaRole.Grid, new() { Name = "采购申请明细" });
+        var part = grid.Locator("tr[data-key='2'] td[data-column=part]");
+
+        await Assertions.Expect(grid.Locator("tr[data-key='3'] td[data-column=due]")).ToHaveAttributeAsync("aria-invalid", "true");
+
+        await part.FocusAsync();
+        await page.Keyboard.PressAsync("ArrowDown");
+        await Assertions.Expect(grid.Locator("tr[data-key='3'] td[data-column=part]")).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("ArrowUp");
+        await Assertions.Expect(part).ToBeFocusedAsync();
+
+        // 直接打字开始编辑：打的字替换原值（中文经输入法不发 keydown，这里打字母）
+        await page.Keyboard.PressAsync("H");
+        var editor = part.GetByRole(AriaRole.Textbox);
+        await Assertions.Expect(editor).ToBeFocusedAsync();
+        await Assertions.Expect(editor).ToHaveValueAsync("H");
+        await page.Keyboard.TypeAsync("-2 底座");
+        await page.Keyboard.PressAsync("Enter");
+        await Assertions.Expect(part).ToHaveTextAsync("H-2 底座");
+        await Assertions.Expect(part).ToBeFocusedAsync();
+        await Assertions.Expect(page.GetByText("第 2 行已保存", new() { Exact = true })).ToBeVisibleAsync();
+
+        // 已下单的行改数量：接口拒绝，编辑器留着并显示原因；Esc 放弃
+        var quantity = grid.Locator("tr[data-key='1'] td[data-column=quantity]");
+        await quantity.DblClickAsync();
+        var number = quantity.GetByRole(AriaRole.Spinbutton);
+        await Assertions.Expect(number).ToBeFocusedAsync();
+        await number.FillAsync("50");
+        await page.Keyboard.PressAsync("Enter");
+        await Assertions.Expect(quantity.GetByRole(AriaRole.Alert)).ToHaveTextAsync("已下单的行不能改数量，请走变更单");
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(quantity).ToHaveTextAsync("40");
+        await Assertions.Expect(quantity).ToBeFocusedAsync();
+    }
 }

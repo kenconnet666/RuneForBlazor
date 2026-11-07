@@ -128,6 +128,25 @@ public abstract class DataTableColumn<TItem> : ComponentBase
     /// <summary>自己写的单元格内容；没有时按类型格式化 <see cref="ValueOf"/>。</summary>
     internal virtual RenderFragment? CellContent(TItem item) => null;
 
+    /// <summary>这一列写了能编辑（Editable 或 IsEditable）：表格随之变成网格。</summary>
+    internal virtual bool Edits => false;
+
+    /// <summary>这一格能不能编辑。</summary>
+    internal virtual bool CanEdit(TItem item) => false;
+
+    /// <summary>编辑这一格时的编辑器（自己写的，或按值类型选的默认编辑器）；没有合适的编辑器时为 null。</summary>
+    internal virtual RenderFragment? EditorFor(TItem item, CellEditSession session) => null;
+
+    /// <summary>提交前校验草稿：返回原因就不提交。</summary>
+    internal virtual string? ValidateDraft(object? draft, TItem item) => null;
+
+    /// <summary>直接打字开始编辑：打的字变成草稿（数字列只认数字，不是数字时 false，保留原值）。</summary>
+    internal virtual bool TryDraftFromText(string text, out object? draft)
+    {
+        draft = text;
+        return true;
+    }
+
     /// <summary>值显示成状态标记（PropertyColumn 的 Statuses）；不是状态列时为 null。</summary>
     internal virtual RenderFragment? StatusContent(object value) => null;
 

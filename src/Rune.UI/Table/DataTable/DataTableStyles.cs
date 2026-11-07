@@ -236,6 +236,53 @@ public static class DataTableStyles
     /// <summary>靠结束边的列（数字）：文字靠结束边，按钮仍在最后。</summary>
     internal static Style HeaderMainEnd => Css.Define(static () => new Style { TextAlign = TextAlign.End });
 
+    /// <summary>单元格导航：聚焦的格画一圈内描边（不占位、不被相邻格盖住）。</summary>
+    internal static Style GridCell => Css.Define(static () => new Style
+    {
+        OutlineStyle = OutlineStyle.None,
+        [When.FocusVisible] = new() { BoxShadow = $"inset 0 0 0 {BorderWidths.Sm} {Colors.FocusRing}" },
+    });
+
+    /// <summary>单击就能编辑的格。</summary>
+    internal static Style ClickToEdit => Css.Define(static () => new Style { Cursor = Cursor.Text });
+
+    /// <summary>编辑中的格：编辑器贴满格子，上下内边距收小；提交被拒的原因浮在下面。</summary>
+    internal static Style EditingCell => Css.Define(static () => new Style { PaddingBlock = 0, Overflow = Overflow.Visible });
+
+    /// <summary>校验没过的格：红色内描边；聚焦时仍是焦点环。</summary>
+    internal static Style InvalidCell => Css.Define(static () => new Style
+    {
+        BoxShadow = $"inset 0 0 0 {BorderWidths.Xs} {Tones.Danger.Solid}",
+        [When.FocusVisible] = new() { BoxShadow = $"inset 0 0 0 {BorderWidths.Sm} {Colors.FocusRing}" },
+    });
+
+    /// <summary>编辑器的外层：贴着格子，错误提示以它定位。</summary>
+    internal static Style Editor => Css.Define(static () => new Style { Position = Position.Relative, MinWidth = 0 });
+
+    /// <summary>默认编辑器占满格子。</summary>
+    internal static Style EditorControl => Css.Define(static () => new Style { Width = CssLength.Percent(100) });
+
+    /// <summary>提交被拒的原因：浮在编辑器下面（不撑高这一行），按文字宽度，靠起始边。</summary>
+    internal static Style EditorError => Css.Define(static () => new Style
+    {
+        Position = Position.Absolute,
+        InsetInlineStart = 0,
+        Top = CssLength.Percent(100),
+        MarginTop = BorderWidths.Sm,
+        ZIndex = 3,
+        Width = Width.MaxContent,
+        MaxWidth = CssLength.Rem(20),
+        TextAlign = TextAlign.Start,
+        PaddingBlock = Space.Xs,
+        PaddingInline = Space.Sm,
+        BorderRadius = Radii.Sm,
+        BackgroundColor = Tones.Danger.Solid,
+        Color = Tones.Danger.Contrast,
+        FontSize = FontSizes.Sm,
+        WhiteSpace = WhiteSpace.Normal,
+        BoxShadow = Shadows.Md,
+    });
+
     /// <summary>排序中的列的箭头。</summary>
     internal static Style SortActive => Css.Define(static () => new Style { Color = Tones.Accent.Text });
 

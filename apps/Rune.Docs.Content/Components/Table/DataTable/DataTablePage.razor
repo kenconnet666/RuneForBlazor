@@ -17,6 +17,13 @@
         <Code>ColumnMenu</Code> 在列标题结尾放 ⋮：排序、固定在开头 / 结尾、前后移动、隐藏，写回 <Code>ColumnPins</Code>、<Code>ColumnOrder</Code>、<Code>HiddenColumns</Code>；
         <Code>Resizable</Code> 时可以拖动或用键盘调整列宽，写回 <Code>ColumnWidths</Code>。这几项都能双向绑定、存进各人的设置。
     </Example>
+    <Example Id="editable" Title="采购申请明细：就地编辑与校验" Demo="typeof(EditableExample)">
+        列写 <Code>Editable</Code>（或按行判断的 <Code>IsEditable</Code>）时可以就地编辑，表格随之变成网格（role="grid"）：方向键在格之间走，只有一格能 Tab 进入；
+        在可编辑的格上按 Enter、F2、双击或直接打字开始编辑，Enter 提交、Tab 提交并到下一个可编辑的格、点开别处提交、Esc 放弃。
+        默认编辑器按值类型选（状态列是 Select，数字是 NumberField，文字是 TextField），<Code>Editor</Code> 自己写（这里的交期用日期输入框）。
+        列的 <Code>Validate</Code> 拦下不合理的值，<Code>OnCellChange</Code> 写回，不接受时（接口拒绝）调用 <Code>Reject</Code>，编辑器留着并显示原因；
+        <Code>ValidateRow</Code> 返回整行的问题，标在对应的格上（红框，悬停与读屏都能知道原因）。<Code>EditTrigger.Click</Code> 时单击就进入编辑。
+    </Example>
     <Example Id="changes" Title="采购方案调整：分组表头" Demo="typeof(ChangesExample)">
         列写 <Code>Group</Code>（组标题）时，相邻、同组的几列上方共用一个标题，表头变成两行，没分组的列跨两行；组与相邻的列之间有竖线，固定列照常固定。
         排序、列宽、隐藏都按列算，组里的列全隐藏时这一组也不显示。<Code>PropsCellFor</Code> 按行与列给单元格加属性（节省是负数时标红）。

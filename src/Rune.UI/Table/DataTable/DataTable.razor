@@ -72,6 +72,7 @@
             InlineStyle = $"inset-inline-start:{ColumnDisplay.Px(SelectionMode is null ? 0 : SelectWidth)}",
         };
         var rowSpan = headerRows > 1 ? headerRows : (int?)null;
+        var navigable = Navigable;
 
         <ScrollArea Axis="ScrollAxis.Both" Focusable="Virtual" PropsViewport="ViewportManaged"
                     @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.Root], Flexible ? DataTableStyles.Flexible : null as Attrs), PropsRoot)">
@@ -244,15 +245,40 @@
                                         }
                                     </td>
                                 }
+                                @{ var rowErrors = navigable ? ValidateRow?.Invoke(item) : null; }
                                 @for (var column = 0; column < shown.Count; column++)
                                 {
                                     var view = shown[column];
+                                    var editingHere = editing is { } edit && edit.Row == key && edit.Column == view.Key;
+                                    var editable = navigable && view.Column.CanEdit(item);
+                                    var error = rowErrors?.GetValueOrDefault(view.Key);
                                     var cellLayer = Attrs.Layer(rowParts[DataTablePart.Cell], new Attrs
                                     {
                                         Sx = Sx.Of(TableStyles.AlignOf(view.Align), view.Column.Wrap ? TableStyles.Wrap : null,
-                                            active && column == 0 && SelectionMode is null && !hasDetail ? DataTableStyles.ActiveEdge : null),
+                                            active && column == 0 && SelectionMode is null && !hasDetail ? DataTableStyles.ActiveEdge : null,
+                                            navigable ? DataTableStyles.GridCell : null, editable && EditTrigger == EditTrigger.Click ? DataTableStyles.ClickToEdit : null,
+                                            editingHere ? DataTableStyles.EditingCell : null, error is null ? null : DataTableStyles.InvalidCell),
                                     }, StickyLayer(view, offsets));
-                                    <td @key="view.Column" @attributes="Attrs.Merge(cellLayer, PropsCellFor?.Invoke(item, view.Key))">@CellOf(view.Column, item, view.Type)</td>
+                                    // 单元格导航：data-column 是 JS 认格的标记；校验错误悬停看，读屏随格一起念（aria-description）
+                                    var gridLayer = navigable ? new Attrs
+                                    {
+                                        Title = error,
+                                        ["data-column"] = view.Key,
+                                        ["data-editable"] = editable ? "" : null,
+                                        ["data-editing"] = editingHere ? "" : null,
+                                        ["aria-invalid"] = error is null ? null : "true",
+                                        ["aria-description"] = error,
+                                    } : null;
+                                    <td @key="view.Column" @attributes="Attrs.Merge(cellLayer, PropsCellFor?.Invoke(item, view.Key), gridLayer)">
+                                        @if (editingHere)
+                                        {
+                                            @EditorCell(view.Column, item)
+                                        }
+                                        else
+                                        {
+                                            @CellOf(view.Column, item, view.Type)
+                                        }
+                                    </td>
                                 }
                             </tr>
                         }
@@ -291,6 +317,19 @@
                 }
             </table>
         </ScrollArea>
+    };
+
+    // 编辑中的格：列的编辑器，提交被拒的原因浮在下面
+    RenderFragment EditorCell(DataTableColumn<TItem> column, TItem item) => __builder =>
+    {
+        var session = EditSession(column);
+        <div data-rune-cell-editor @attributes="Attrs.Merge(DataTableStyles.Editor)">
+            @column.EditorFor(item, session)
+            @if (session.Error is { } error)
+            {
+                <div role="alert" @attributes="Attrs.Merge(DataTableStyles.EditorError)">@error</div>
+            }
+        </div>
     };
 
     // 一个列标题：可排序的是按钮；有表头筛选、列菜单时按钮在结尾；可以调整宽度时结束边有手柄。

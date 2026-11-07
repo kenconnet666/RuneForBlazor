@@ -48,6 +48,11 @@ public partial class DataTable<TItem>
     Memo<(IReadOnlyList<TItem>, IReadOnlyList<string>, bool), BodyEntry[]> entries;
     Memo<string?, SelectionRadios> radios;
 
+    // 编辑中的格：行与列的 key、草稿、校验没过的原因、正在保存
+    (string Row, string Column, object? Draft, string? Error, bool Saving)? editing;
+    // 编辑完、放弃后让 JS 把焦点放回格上：{序列号}:{行}␟{列}
+    (string Row, string Column, int Sequence) focusRequest;
+
     // JS 报告的要渲染的那一段；还没报告时是开头的 InitialCount 行
     (int From, int To)? reported;
     VisibleRange? visible;
@@ -172,6 +177,20 @@ public partial class DataTable<TItem>
 
     /// <summary>展开的行变了。</summary>
     [Parameter] public EventCallback<IReadOnlyList<string>> ExpandedRowsChanged { get; set; }
+
+    /// <summary>
+    /// 编辑了一格（列写了 Editable）：写回数据；不接受时（接口拒绝）调用 <see cref="CellChange{TItem}.Reject"/>，编辑器留着并显示原因。
+    /// </summary>
+    [Parameter] public EventCallback<CellChange<TItem>> OnCellChange { get; set; }
+
+    /// <summary>行校验：返回各列的错误（列的 key → 原因），标在格上（红框，悬停与读屏都能知道原因）；如“结束日期早于开始日期”。</summary>
+    [Parameter] public Func<TItem, IReadOnlyDictionary<string, string>?>? ValidateRow { get; set; }
+
+    /// <summary>鼠标怎样开始编辑一格，默认双击；键盘的 Enter、F2、直接打字都能开始。</summary>
+    [Parameter] public EditTrigger EditTrigger { get; set; }
+
+    /// <summary>单元格导航：表格是 role="grid"，方向键在格之间走，只有一格能 Tab 进入；有可编辑的列时默认开。</summary>
+    [Parameter] public bool? CellNavigation { get; set; }
 
     /// <summary>按行与列（key）计算的每个单元格的部件属性：节省是负数时标红这类。</summary>
     [Parameter] public Func<TItem, string, Attrs?>? PropsCellFor { get; set; }
@@ -348,9 +367,15 @@ public partial class DataTable<TItem>
         ["onrunecommand"] = EventCallback.Factory.Create<CommandEventArgs>(this, OnViewportCommandAsync),
     };
 
-    // table：名称、行数、忙碌；点行由 js/table.js 交给 C#（点在控件上的不算）
+    bool Navigable => CellNavigation ?? columns.All.Any(static column => column.Edits);
+
+    // table：名称、行数、忙碌；点行、网格的方向键与编辑的按键由 js/table.js 交给 C#（点在控件上的不算）
     Attrs TableManaged(int rowCount, IReadOnlyList<ColumnView<TItem>> shown) => new()
     {
+        Role = Navigable ? "grid" : null,
+        ["data-cell-navigation"] = Navigable ? "" : null,
+        ["data-edit-trigger"] = Navigable ? (EditTrigger == EditTrigger.Click ? "click" : "dblclick") : null,
+        ["data-focus-cell"] = focusRequest.Sequence == 0 ? null : FormattableString.Invariant($"{focusRequest.Sequence}:{focusRequest.Row}\u001f{focusRequest.Column}"),
         InlineStyle = $"min-width:{ColumnDisplay.Px(ColumnDisplay.MinWidth(shown, LeadingWidth))}",
         ["aria-rowcount"] = rowCount,
         ["aria-busy"] = Loading ? "true" : null,
@@ -384,12 +409,119 @@ public partial class DataTable<TItem>
         static int Parse(string text) => int.Parse(text, CultureInfo.InvariantCulture);
     }
 
+    // js/table.js 的命令：row-click（行的 key）；edit（行␟列，直接打字时再加 ␟打的字）、commit、commit-next、commit-prev、cancel
     async Task OnTableCommandAsync(CommandEventArgs e)
     {
-        if (e.Name != "row-click" || e.Text is not { } key) return;
-        var row = Rows.FirstOrDefault(item => GetKey(item) == key);
-        if (row is not null) await OnRowClick.InvokeAsync(row);
+        if (e.Text is not { } text) return;
+        switch (e.Name)
+        {
+            case "row-click":
+                if (Rows.FirstOrDefault(item => GetKey(item) == text) is { } row) await OnRowClick.InvokeAsync(row);
+                return;
+            case "edit":
+                var parts = text.Split('\u001f');
+                if (parts.Length >= 2) StartEdit(parts[0], parts[1], parts.Length > 2 ? parts[2] : null);
+                return;
+            case "commit":
+                await CommitEditAsync(0);
+                return;
+            case "commit-next":
+                await CommitEditAsync(1);
+                return;
+            case "commit-prev":
+                await CommitEditAsync(-1);
+                return;
+            case "cancel":
+                CancelEdit();
+                return;
+        }
     }
+
+    TItem? ItemOf(string key)
+    {
+        foreach (var item in Rows)
+        {
+            if (GetKey(item) == key) return item;
+        }
+        return default;
+    }
+
+    DataTableColumn<TItem>? ColumnOf(string key) => columns.All.FirstOrDefault(column => column.ColumnKey == key);
+
+    /// <summary>开始编辑一格；直接打字时用打的字替换原值（数字列只认数字）。</summary>
+    void StartEdit(string rowKey, string columnKey, string? typed = null)
+    {
+        if (ItemOf(rowKey) is not { } item || ColumnOf(columnKey) is not { } column || !column.CanEdit(item)) return;
+        var draft = typed is not null && column.TryDraftFromText(typed, out var fromText) ? fromText : column.ValueOf(item);
+        editing = (rowKey, columnKey, draft, null, false);
+        StateHasChanged();
+    }
+
+    void CancelEdit()
+    {
+        if (editing is not { } current) return;
+        editing = null;
+        FocusCell(current.Row, current.Column);
+    }
+
+    void FocusCell(string row, string column)
+    {
+        focusRequest = (row, column, focusRequest.Sequence + 1);
+        StateHasChanged();
+    }
+
+    /// <summary>提交：列的 Validate、OnCellChange 都接受了才收起；step 是提交后去哪一格（Tab 往后、Shift + Tab 往前）。</summary>
+    async Task CommitEditAsync(int step)
+    {
+        if (editing is not { Saving: false } current || ItemOf(current.Row) is not { } item || ColumnOf(current.Column) is not { } column) return;
+        if (column.ValidateDraft(current.Draft, item) is { } invalid)
+        {
+            editing = current with { Error = invalid };
+            StateHasChanged();
+            return;
+        }
+        editing = current with { Saving = true };
+        var change = new CellChange<TItem>(item, current.Column, current.Draft);
+        await OnCellChange.InvokeAsync(change);
+        if (change.Rejection is { } rejected)
+        {
+            editing = current with { Error = rejected, Saving = false };
+            StateHasChanged();
+            return;
+        }
+        // 保存的时候已经点开了别的格（点别处提交时常这样）：不动它
+        if (editing is { } now && (now.Row != current.Row || now.Column != current.Column)) return;
+        editing = null;
+        if (step != 0 && NeighbourEditable(item, current.Column, step) is { } next) StartEdit(current.Row, next);
+        else FocusCell(current.Row, current.Column);
+    }
+
+    /// <summary>这一行里往后（往前）的下一个可编辑的格。</summary>
+    string? NeighbourEditable(TItem item, string columnKey, int step)
+    {
+        var visible = Shown;
+        var from = visible.ToList().FindIndex(view => view.Key == columnKey);
+        for (var index = from + step; index >= 0 && index < visible.Count; index += step)
+        {
+            if (visible[index].Column.CanEdit(item)) return visible[index].Key;
+        }
+        return null;
+    }
+
+    /// <summary>编辑中的格交给列的编辑状态：草稿改了只更新草稿与错误。</summary>
+    CellEditSession EditSession(DataTableColumn<TItem> column) => new(
+        editing?.Draft,
+        column.Label,
+        value =>
+        {
+            if (editing is { } current) editing = current with { Draft = value, Error = null };
+            StateHasChanged();
+        },
+        () => CommitEditAsync(0),
+        CancelEdit)
+    {
+        Error = editing?.Error,
+    };
 
     // 每列一个不变的点击处理：滚动时表格随可见范围重新渲染，处理函数变了的话浏览器那边会换一个事件编号，
     // 正好在两次渲染之间点下去的那一次（Server 模式）就落到已经作废的编号上、被丢掉

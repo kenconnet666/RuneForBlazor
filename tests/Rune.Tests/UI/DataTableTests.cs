@@ -220,4 +220,45 @@ public class DataTableTests : BunitContext
         Assert.Equal("4", cut.FindAll("tbody tr[data-key]")[1].GetAttribute("aria-rowindex"));
         Assert.Equal("6", cut.Find("table").GetAttribute("aria-rowcount"));
     }
+
+    [Fact]
+    public void 编辑_打字开始_列校验拦下_接口拒绝留着编辑器_提交后写回并请JS聚焦回格上()
+    {
+        var changes = new List<CellChange<Order>>();
+        var cut = Render<DataTable<Order>>(p =>
+        {
+            p.Add(x => x.Items, Orders).Add(x => x.GetKey, o => o.Id)
+                .Add(x => x.OnCellChange, change =>
+                {
+                    changes.Add(change);
+                    if (change.Value is "拒绝") change.Reject("接口不接受");
+                })
+                .Add(x => x.ValidateRow, o => o.Amount > 1000 ? new Dictionary<string, string> { ["amount"] = "金额过大" } : null);
+            p.AddChildContent<PropertyColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Customer).Add(x => x.Editable, true)
+                .Add(x => x.Validate, (value, _) => string.IsNullOrWhiteSpace(value) ? "不能为空" : null));
+            p.AddChildContent<PropertyColumn<Order, decimal>>(c => c.Add(x => x.Property, o => o.Amount));
+        });
+        var table = cut.Find("table");
+        void Command(string name, string text) => cut.Find("table").TriggerEvent("onrunecommand", new CommandEventArgs { Name = name, Text = text });
+
+        Assert.Equal("grid", table.GetAttribute("role"));
+        Assert.Equal(("true", "金额过大"), (cut.Find("tr[data-key='A-3'] td[data-column=amount]").GetAttribute("aria-invalid"), cut.Find("tr[data-key='A-3'] td[data-column=amount]").GetAttribute("title")));
+        Assert.Null(cut.Find("tr[data-key='A-3'] td[data-column=amount]").GetAttribute("data-editable"));
+
+        Command("edit", "A-1customer ");
+        Assert.Equal(" ", cut.Find("td[data-editing] input").GetAttribute("value"));
+        Command("commit", "A-1customer");
+        Assert.Equal("不能为空", cut.Find("td[data-editing] [role=alert]").TextContent);
+        Assert.Empty(changes);
+
+        cut.Find("td[data-editing] input").Input("拒绝");
+        Command("commit", "A-1customer");
+        Assert.Equal("接口不接受", cut.Find("td[data-editing] [role=alert]").TextContent);
+
+        cut.Find("td[data-editing] input").Input("南星");
+        Command("commit", "A-1customer");
+        Assert.Equal(("南星", "customer"), ((string)changes[^1].Value!, changes[^1].Key));
+        Assert.Empty(cut.FindAll("td[data-editing]"));
+        Assert.EndsWith(":A-1customer", cut.Find("table").GetAttribute("data-focus-cell"));
+    }
 }

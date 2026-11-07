@@ -1,0 +1,77 @@
+@inherits RuneComponent
+@using System.ComponentModel
+
+@* 采购申请明细：就地编辑。零件、数量、单价、交期可以改（交期用自定义编辑器），小计跟着算；
+   列的 Validate 拦下不合理的值，ValidateRow 标出整行的问题（交期早于今天），OnCellChange 模拟保存（已下单的行不能改数量，Reject 说明原因） *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <DataTable Items="lines" GetKey="l => l.Id" OnCellChange="@((CellChange<Line> change) => SaveAsync(change))" ValidateRow="ValidateRow" aria-label="采购申请明细">
+        <PropertyColumn Property="l => l.Id" Width="70" />
+        <PropertyColumn Property="l => l.Part" MinWidth="180" Editable="true" Validate="@((value, _) => string.IsNullOrWhiteSpace(value) ? "零件名称不能为空" : null)" />
+        <PropertyColumn Property="l => l.Quantity" Width="100" Type="ColumnType.Number" Editable="true" Validate="@((value, _) => value > 0 ? null : "数量是正整数")" />
+        <PropertyColumn Property="l => l.Price" Width="120" Type="ColumnType.Currency" Editable="true" Validate="@((value, _) => value >= 0 ? null : "单价不能为负")" />
+        <PropertyColumn Property="l => l.Quantity * l.Price" Key="subtotal" Title="小计" Width="130" Type="ColumnType.Currency" Summary="ColumnSummary.Sum" />
+        <PropertyColumn Property="l => l.Due" Width="150" Type="ColumnType.Date" Editable="true" Context="edit">
+            <Editor>
+                <TextField type="date" Value="@edit.Value.ToString("yyyy-MM-dd")" ValueChanged="@(text => edit.OnChange(DateOnly.TryParse(text, out var day) ? day : edit.Value))"
+                           Size="Size.Sm" Invalid="@(edit.Error is not null)" aria-label="交期" />
+            </Editor>
+        </PropertyColumn>
+        <StatusColumn Property="l => l.Status" Statuses="Statuses" Width="100" />
+    </DataTable>
+    <Small Tone="TextTone.Muted" aria-live="polite">@(saved ?? "方向键在格之间走；在可编辑的格上按 Enter、F2、双击或直接打字开始编辑，Enter 提交，Tab 到下一格，Esc 放弃")</Small>
+</Flex>
+
+@code {
+    enum LineStatus { Draft, Ordered }
+
+    sealed record Line(
+        [property: DisplayName("行号")] string Id,
+        [property: DisplayName("零件")] string Part,
+        [property: DisplayName("数量")] int Quantity,
+        [property: DisplayName("单价")] decimal Price,
+        [property: DisplayName("交期")] DateOnly Due,
+        [property: DisplayName("状态")] LineStatus Status);
+
+    static readonly DateOnly Today = new(2026, 10, 24);
+
+    static readonly StatusMap<LineStatus> Statuses = new()
+    {
+        [LineStatus.Draft] = new("草稿"),
+        [LineStatus.Ordered] = new("已下单", Tone.Info),
+    };
+
+    IReadOnlyList<Line> lines =
+    [
+        new("1", "显示器支架", 40, 128m, new(2026, 11, 5), LineStatus.Ordered),
+        new("2", "铰链底座", 80, 76.5m, new(2026, 11, 12), LineStatus.Draft),
+        new("3", "检修口盖板", 24, 212m, new(2026, 10, 20), LineStatus.Draft),
+        new("4", "线束卡箍", 300, 3.2m, new(2026, 11, 30), LineStatus.Draft),
+    ];
+
+    string? saved;
+
+    static IReadOnlyDictionary<string, string>? ValidateRow(Line line) =>
+        line.Due < Today ? new Dictionary<string, string> { ["due"] = "交期早于今天，请重新约定" } : null;
+
+    // 模拟保存：已下单的行不能改数量（接口拒绝时返回原因，编辑器留着并显示它）
+    async Task SaveAsync(CellChange<Line> change)
+    {
+        await Task.Delay(300);
+        var line = change.Item;
+        if (line.Status == LineStatus.Ordered && change.Key == "quantity")
+        {
+            change.Reject("已下单的行不能改数量，请走变更单");
+            return;
+        }
+        var updated = change.Key switch
+        {
+            "part" => line with { Part = (string)change.Value! },
+            "quantity" => line with { Quantity = (int)change.Value! },
+            "price" => line with { Price = (decimal)change.Value! },
+            "due" => line with { Due = (DateOnly)change.Value! },
+            _ => line,
+        };
+        lines = [.. lines.Select(item => item.Id == line.Id ? updated : item)];
+        saved = $"第 {line.Id} 行已保存";
+    }
+}

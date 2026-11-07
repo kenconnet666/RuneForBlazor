@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -22,6 +23,89 @@ public class PropertyColumn<TItem, TValue> : DataTableColumn<TItem>
 
     /// <summary>取哪个属性：<c>o =&gt; o.Customer.Name</c>。</summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, TValue>> Property { get; set; } = null!;
+
+    /// <summary>
+    /// 可以就地编辑（DataTable 的 OnCellChange 写回）：表格随之变成可以用方向键走格的网格。默认编辑器按值类型选：
+    /// 状态列是 Select，数字是 NumberField，文字是 TextField；别的类型写 <see cref="Editor"/>。
+    /// </summary>
+    [Parameter] public bool Editable { get; set; }
+
+    /// <summary>按行判断能不能编辑（写了时代替 <see cref="Editable"/>）：已下单的行不能改数量这类。</summary>
+    [Parameter] public Func<TItem, bool>? IsEditable { get; set; }
+
+    /// <summary>提交前校验这一格：返回原因就不提交，编辑器标红并说明。</summary>
+    [Parameter] public Func<TValue?, TItem, string?>? Validate { get; set; }
+
+    /// <summary>自己写的编辑器（日期、下拉选人这类）：拿到草稿与提交、放弃。</summary>
+    [Parameter] public RenderFragment<CellEditor<TItem, TValue>>? Editor { get; set; }
+
+    /// <summary>值是数字：默认编辑器是 NumberField，打字开始编辑时只认数字。</summary>
+    static readonly bool Numeric = (Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue)) is var type
+        && (type == typeof(decimal) || type == typeof(double) || type == typeof(float) || type == typeof(int) || type == typeof(long) || type == typeof(short));
+
+    internal override bool Edits => Editable || IsEditable is not null;
+
+    internal override bool CanEdit(TItem item) => IsEditable?.Invoke(item) ?? Editable;
+
+    internal override string? ValidateDraft(object? draft, TItem item) => Validate?.Invoke(Cast(draft), item);
+
+    internal override bool TryDraftFromText(string text, out object? draft)
+    {
+        draft = null;
+        if (!Numeric) return base.TryDraftFromText(text, out draft);
+        if (!decimal.TryParse(text, NumberStyles.Number, CultureInfo.CurrentCulture, out var number)) return false;
+        draft = Convert.ChangeType(number, Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue), CultureInfo.InvariantCulture);
+        return true;
+    }
+
+    internal override RenderFragment? EditorFor(TItem item, CellEditSession session)
+    {
+        if (Editor is { } editor) return editor(new(item, Cast(session.Draft), value => session.Change(value), session.CommitAsync, session.Cancel, session.Error));
+        return DefaultEditor(session);
+    }
+
+    /// <summary>按值类型选的编辑器：数字是 NumberField（不要步进按钮），文字是 TextField；占满格子。</summary>
+    private protected virtual RenderFragment? DefaultEditor(CellEditSession session)
+    {
+        if (Numeric)
+        {
+            return builder =>
+            {
+                builder.OpenComponent<NumberField<TValue>>(0);
+                builder.AddComponentParameter(1, nameof(NumberField<TValue>.Value), Cast(session.Draft));
+                builder.AddComponentParameter(2, nameof(NumberField<TValue>.ValueChanged), new EventCallback<TValue>(null, (Action<TValue>)(value => session.Change(value))));
+                builder.AddComponentParameter(3, nameof(NumberField<TValue>.Stepper), false);
+                EditorAttributes(builder, 4, session);
+                builder.CloseComponent();
+            };
+        }
+        if (typeof(TValue) != typeof(string)) return null;
+        return builder =>
+        {
+            builder.OpenComponent<TextField>(0);
+            builder.AddComponentParameter(1, nameof(TextField.Value), session.Draft as string);
+            builder.AddComponentParameter(2, nameof(TextField.ValueChanged), new EventCallback<string?>(null, (Action<string?>)(value => session.Change(value))));
+            builder.AddComponentParameter(3, nameof(TextField.Immediate), true);
+            EditorAttributes(builder, 4, session);
+            builder.CloseComponent();
+        };
+    }
+
+    // 编辑器的回调不带接收者：草稿改了由 DataTable 自己重新渲染（列组件重新渲染会在收集之外把自己再交一次）
+
+    /// <summary>默认编辑器共有的：小号、校验没过时标红、名称是列名、占满格子。</summary>
+    private protected static void EditorAttributes(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, int sequence, CellEditSession session)
+    {
+        builder.AddComponentParameter(sequence, "Size", UI.Size.Sm);
+        builder.AddComponentParameter(sequence + 1, "Invalid", session.Error is not null);
+        builder.AddComponentParameter(sequence + 2, "aria-label", session.Label);
+        builder.AddComponentParameter(sequence + 3, "Sx", EditorSx);
+    }
+
+    // 组件参数要的是 Sx（不是 Style）：按名字传参不经过隐式转换
+    static readonly Rune.Styles.Sx EditorSx = Rune.Styles.Sx.Of(DataTableStyles.EditorControl);
+
+    static TValue? Cast(object? value) => value is TValue typed ? typed : default;
 
     private protected override string? DefaultKey => path;
 
@@ -67,6 +151,21 @@ public sealed class StatusColumn<TItem, TKey> : PropertyColumn<TItem, TKey> wher
     [Parameter, EditorRequired] public StatusMap<TKey> Statuses { get; set; } = null!;
 
     internal override bool HasStatuses => true;
+
+    // 状态：Select，选了就提交
+    private protected override RenderFragment? DefaultEditor(CellEditSession session) => builder =>
+    {
+        builder.OpenComponent<Select<ListboxOption>>(0);
+        builder.AddComponentParameter(1, nameof(Select<ListboxOption>.Items), Statuses.Options());
+        builder.AddComponentParameter(2, nameof(Select<ListboxOption>.Value), session.Draft?.ToString());
+        builder.AddComponentParameter(3, nameof(Select<ListboxOption>.ValueChanged), new EventCallback<string?>(null, (Func<string?, Task>)(async value =>
+        {
+            session.Change(Statuses.Keys.FirstOrDefault(key => key.ToString() == value));
+            await session.CommitAsync();
+        })));
+        EditorAttributes(builder, 4, session);
+        builder.CloseComponent();
+    };
 
     // 状态按阶段的顺序、显示状态名；只列出现过的状态
     internal override IReadOnlyList<ListboxOption> FilterOptionsFrom(IEnumerable<TItem> items, string culture)
