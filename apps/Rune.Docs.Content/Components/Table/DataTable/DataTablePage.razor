@@ -24,6 +24,10 @@
         列的 <Code>Validate</Code> 拦下不合理的值，<Code>OnCellChange</Code> 写回，不接受时（接口拒绝）调用 <Code>Reject</Code>，编辑器留着并显示原因；
         <Code>ValidateRow</Code> 返回整行的问题，标在对应的格上（红框，悬停与读屏都能知道原因）。<Code>EditTrigger.Click</Code> 时单击就进入编辑。
     </Example>
+    <Example Id="reorder" Title="需求排期：拖动行" Demo="typeof(PriorityExample)">
+        给了 <Code>OnReorder</Code> 时第一个数据列前面有把手：按下拖动，或聚焦后空格拿起、↑↓ 移动、空格放下（每一步读屏都会播报），拖完拿到新的顺序。
+        排序、筛选时显示的顺序不是数据的顺序，把手收起，取消后又能拖。
+    </Example>
     <Example Id="changes" Title="采购方案调整：分组表头" Demo="typeof(ChangesExample)">
         列写 <Code>Group</Code>（组标题）时，相邻、同组的几列上方共用一个标题，表头变成两行，没分组的列跨两行；组与相邻的列之间有竖线，固定列照常固定。
         排序、列宽、隐藏都按列算，组里的列全隐藏时这一组也不显示。<Code>PropsCellFor</Code> 按行与列给单元格加属性（节省是负数时标红）。

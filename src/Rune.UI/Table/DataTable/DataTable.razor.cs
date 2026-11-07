@@ -168,6 +168,12 @@ public partial class DataTable<TItem>
     /// <summary>可见行范围变化（不含 overscan）：接近末尾时加载更多。</summary>
     [Parameter] public EventCallback<VisibleRange> OnRangeChange { get; set; }
 
+    /// <summary>
+    /// 行拖动：给了它时第一个数据列前面有把手，拖动（或聚焦后空格拿起、↑↓ 移动）改变行的顺序，拿到新的顺序（全部行）。
+    /// 排序、筛选时显示的顺序不是数据的顺序，这时不能拖。
+    /// </summary>
+    [Parameter] public EventCallback<IReadOnlyList<TItem>> OnReorder { get; set; }
+
     /// <summary>行的详情：写了时多一列展开按钮，展开的行下面多一行跨全部列的详情（虚拟滚动按真实高度测量）。</summary>
     [Parameter] public RenderFragment<TItem>? DetailContent { get; set; }
 
@@ -372,6 +378,24 @@ public partial class DataTable<TItem>
             : FormattableString.Invariant($"index:{scrollRequest.Index}:{scrollRequest.Align.ToString().ToLowerInvariant()}:{scrollRequest.Sequence}"),
         ["onrunecommand"] = EventCallback.Factory.Create<CommandEventArgs>(this, OnViewportCommandAsync),
     };
+
+    /// <summary>行能拖动：给了 OnReorder，而且没有排序、筛选（显示的顺序就是数据的顺序）。</summary>
+    bool Reorderable => OnReorder.HasDelegate && ActiveSorts.Count == 0 && !filters.Value.Any(static pair => pair.Value.Count > 0);
+
+    readonly string sortableInstructionsId = UniqueId.Next("data-table-sortable");
+
+    // JS 交来渲染出来的那几行的新顺序（虚拟滚动只渲染一段）：在全部行里换掉那一段；对不上（数据在这期间变了）时不动
+    Task OnReorderAsync(ReorderEventArgs e)
+    {
+        var items = Rows;
+        var keys = items.Select(GetKey).ToList();
+        var positions = e.Values.Select(key => keys.IndexOf(key)).Order().ToList();
+        if (positions.Count == 0 || positions[0] < 0 || positions[^1] - positions[0] != positions.Count - 1) return Task.CompletedTask;
+        var byKey = items.ToDictionary(GetKey);
+        var next = items.ToList();
+        for (var at = 0; at < e.Values.Length; at++) next[positions[0] + at] = byKey[e.Values[at]];
+        return OnReorder.InvokeAsync(next);
+    }
 
     bool Navigable => CellNavigation ?? columns.All.Any(static column => column.Edits);
 

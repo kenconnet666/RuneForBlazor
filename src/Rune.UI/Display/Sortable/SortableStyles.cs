@@ -11,9 +11,15 @@ internal static class SortableStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它们
     static readonly Marker ListMarker = Css.Marker("rune-sortable");
-    static readonly Condition Lifted = When.Attribute("[data-dragging],[data-grabbed]");
-    static readonly Condition Dragging = When.Attribute("[data-dragging]");
-    static readonly Condition Settling = When.Inside(When.Attribute("[data-settling]"), ListMarker);
+
+    /// <summary>拿起的项（指针拖动中或键盘拿起）。DataTable 的行拖动也用这几个状态。</summary>
+    internal static readonly Condition Lifted = When.Attribute("[data-dragging],[data-grabbed]");
+
+    /// <summary>指针拖动中的项：跟着指针走，不要位移的过渡。</summary>
+    internal static readonly Condition Dragging = When.Attribute("[data-dragging]");
+
+    /// <summary>落定时：其余项直接回到原位，不要过渡。</summary>
+    internal static readonly Condition Settling = When.Inside(When.Attribute("[data-settling]"), ListMarker);
 
     internal static readonly Attrs List = ListMarker.Attrs;
     internal static readonly Attrs Item = new() { Sx = ItemStyle };

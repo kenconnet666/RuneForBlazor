@@ -1,0 +1,55 @@
+@inherits RuneComponent
+@using System.ComponentModel
+
+@* 需求排期：拖动把手（或聚焦后空格拿起、↑↓ 移动、空格放下）调整优先级，序号跟着变；
+   点“预计工时”排序时显示的不是排期顺序，把手收起，取消排序后又能拖 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <DataTable Items="rows" GetKey="r => r.Id" @bind-Sort="sort" OnReorder="@((IReadOnlyList<Requirement> next) => rows = next)" aria-label="需求排期">
+        <TemplateColumn Key="rank" Title="排期" Width="88" Context="row">@(IndexOf(row) + 1)</TemplateColumn>
+        <PropertyColumn Property="r => r.Title" MinWidth="240" />
+        <PropertyColumn Property="r => r.Id" Width="90" />
+        <PropertyColumn Property="r => r.Owner" Width="100" />
+        <PropertyColumn Property="r => r.Hours" Width="110" Type="ColumnType.Number" Sortable="true" />
+        <StatusColumn Property="r => r.Status" Statuses="Statuses" Width="100" />
+    </DataTable>
+    <Small Tone="TextTone.Muted">@(sort is null ? "拖动把手调整排期，排在前面的先做" : "按工时排序中：取消排序后才能拖动调整排期")</Small>
+</Flex>
+
+@code {
+    enum RequirementStatus { Todo, Doing, Review }
+
+    sealed record Requirement(
+        [property: DisplayName("编号")] string Id,
+        [property: DisplayName("需求")] string Title,
+        [property: DisplayName("负责人")] string Owner,
+        [property: DisplayName("预计工时")] int Hours,
+        [property: DisplayName("状态")] RequirementStatus Status);
+
+    static readonly StatusMap<RequirementStatus> Statuses = new()
+    {
+        [RequirementStatus.Todo] = new("未开始"),
+        [RequirementStatus.Doing] = new("进行中", Tone.Info),
+        [RequirementStatus.Review] = new("待验收", Tone.Warning),
+    };
+
+    IReadOnlyList<Requirement> rows =
+    [
+        new("R-201", "台账导出按分组表头合并单元格", "林小满", 16, RequirementStatus.Doing),
+        new("R-198", "供应商报价单批量导入", "周一航", 24, RequirementStatus.Todo),
+        new("R-205", "审批流超时自动提醒", "陈默", 8, RequirementStatus.Review),
+        new("R-187", "移动端看板只读视图", "许悠", 32, RequirementStatus.Todo),
+        new("R-210", "验收单打印模板", "王晴", 6, RequirementStatus.Todo),
+        new("R-193", "项目编码规则可配置", "赵浩然", 12, RequirementStatus.Doing),
+    ];
+
+    ColumnSort? sort;
+
+    int IndexOf(Requirement row)
+    {
+        for (var at = 0; at < rows.Count; at++)
+        {
+            if (rows[at] == row) return at;
+        }
+        return -1;
+    }
+}

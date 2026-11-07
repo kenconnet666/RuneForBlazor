@@ -283,6 +283,44 @@ public static class DataTableStyles
         BoxShadow = Shadows.Md,
     });
 
+    /// <summary>能拖动的行：让位与滑到落点的位移过渡；拿起时浮在别的行上面。</summary>
+    internal static Style SortableRow => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        TransitionProperty = "transform, box-shadow",
+        TransitionDuration = Durations.Sm,
+        TransitionTimingFunction = Easings.Standard,
+        [SortableStyles.Lifted] = new() { ZIndex = 1, BoxShadow = Shadows.Md },
+        [SortableStyles.Dragging] = new() { TransitionProperty = "box-shadow" },
+        [SortableStyles.Settling] = new() { TransitionProperty = TransitionProperty.None },
+        [Media.ReducedMotion] = new() { TransitionProperty = TransitionProperty.None },
+    });
+
+    /// <summary>第一个数据列里把手与内容的外层。</summary>
+    internal static Style Leading => Css.Define(static () => new Style { Display = Display.Flex, AlignItems = AlignItems.Center, Gap = Space.Xs, MinWidth = 0 });
+
+    /// <summary>第一个数据列里内容的包装：放不下时省略。</summary>
+    internal static Style LeadingContent => Css.Define(static () => new Style { MinWidth = 0, Overflow = Overflow.Hidden, TextOverflow = TextOverflow.Ellipsis });
+
+    /// <summary>行拖动的把手：在第一个数据列的最前面，按下拖动，或聚焦后用键盘。</summary>
+    internal static Style RowHandle => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        FlexShrink = 0,
+        Width = CssLength.Em(1.5),
+        Height = CssLength.Em(1.5),
+        MarginBlock = CssLength.Em(-0.25),
+        BorderRadius = Radii.Sm,
+        BackgroundColor = CssColors.Transparent,
+        Color = Colors.TextMuted,
+        Cursor = Cursor.Grab,
+        // 触摸拖动时不滚动页面
+        TouchAction = TouchAction.None,
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
+        [When.Active] = new() { Cursor = Cursor.Grabbing },
+    });
+
     /// <summary>排序中的列的箭头。</summary>
     internal static Style SortActive => Css.Define(static () => new Style { Color = Tones.Accent.Text });
 

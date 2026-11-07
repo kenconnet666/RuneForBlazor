@@ -279,4 +279,23 @@ public class DataTableTests : BunitContext
 
         Assert.Equal(afterFirstRender, reads);
     }
+
+    [Fact]
+    public void 行拖动_渲染出来的一段换了顺序时在全部行里换掉那一段_排序时没有把手()
+    {
+        IReadOnlyList<Order>? next = null;
+        var cut = Render<DataTable<Order>>(p =>
+        {
+            p.Add(x => x.Items, Orders).Add(x => x.GetKey, o => o.Id).Add(x => x.OnReorder, v => next = v);
+            p.AddChildContent<PropertyColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Id).Add(x => x.Sortable, true));
+        });
+
+        Assert.Equal("移动 A-3", cut.Find("[data-rune-sortable-handle]").GetAttribute("aria-label"));
+        cut.Find("tbody").TriggerEvent("onrunereorder", new ReorderEventArgs { Values = ["A-2", "A-1"] });
+        Assert.Equal(["A-3", "A-2", "A-1"], next!.Select(o => o.Id));
+
+        cut.Render(p => p.Add(x => x.Sort, new ColumnSort("id", SortDirection.Ascending)));
+        Assert.Empty(cut.FindAll("[data-rune-sortable-handle]"));
+        Assert.Null(cut.Find("tbody").GetAttribute("data-rune-sortable"));
+    }
 }

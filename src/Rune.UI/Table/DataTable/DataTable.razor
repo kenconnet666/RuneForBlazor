@@ -73,6 +73,7 @@
         };
         var rowSpan = headerRows > 1 ? headerRows : (int?)null;
         var navigable = Navigable;
+        var reorderable = Reorderable;
 
         <ScrollArea Axis="ScrollAxis.Both" Focusable="Virtual" PropsViewport="ViewportManaged"
                     @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.Root], Flexible ? DataTableStyles.Flexible : null as Attrs), PropsRoot)">
@@ -156,7 +157,7 @@
                         </tr>
                     }
                 </thead>
-                <tbody data-rune-virtual-list @attributes="Attrs.Merge(parts[DataTablePart.Body])">
+                <tbody data-rune-virtual-list @attributes="Attrs.Merge(parts[DataTablePart.Body], reorderable ? SortableBody : null)">
                     @if (Replacing)
                     {
                         @SkeletonRows(SkeletonRowCount, parts, shown.Count)
@@ -209,10 +210,14 @@
                             var active = ActiveKey is not null && ActiveKey == key;
                             var tone = RowTone?.Invoke(item);
                             var rowParts = IsStriped && index % 2 == 1 ? DataTableStyles.Of(look with { Striped = true }, Config.Styles) : parts;
+                            var label = reorderable ? RowLabel(item, shown) : null;
                             var rowLayer = Attrs.Layer(rowParts[DataTablePart.Row], new Attrs
                             {
                                 Sx = Sx.Of(tone is { } t ? DataTableStyles.ToneOf(t) : null, isSelected ? DataTableStyles.Selected : null,
-                                    active ? DataTableStyles.Active : null, OnRowClick.HasDelegate ? DataTableStyles.Clickable : null),
+                                    active ? DataTableStyles.Active : null, OnRowClick.HasDelegate ? DataTableStyles.Clickable : null,
+                                    reorderable ? DataTableStyles.SortableRow : null),
+                                ["data-rune-sortable-item"] = reorderable ? key : null,
+                                ["data-label"] = label,
                             });
                             <tr @key="key" data-index="@position" data-key="@key" data-state="@(isSelected ? "selected" : null)" data-tone="@tone?.ToString().ToLowerInvariant()"
                                 aria-rowindex="@(position + headerRows + 1)" aria-selected="@(SelectionMode is null ? null : isSelected ? "true" : "false")" aria-current="@(active ? "true" : null)"
@@ -274,6 +279,17 @@
                                         {
                                             @EditorCell(view.Column, item)
                                         }
+                                        else if (reorderable && column == 0)
+                                        {
+                                            @* 第一个数据列前面：拖动的把手 *@
+                                            <div @attributes="Attrs.Merge(DataTableStyles.Leading)">
+                                                <ButtonBase Ripple="false" data-rune-sortable-handle aria-label="@Config.Lang.SortableHandle(label!)" aria-describedby="@sortableInstructionsId"
+                                                            aria-pressed="false" Sx="Sx.Of(DataTableStyles.RowHandle)">
+                                                    <Icon Data="BuiltInIcons.GripVertical" />
+                                                </ButtonBase>
+                                                <div @attributes="Attrs.Merge(DataTableStyles.LeadingContent)">@CellOf(view.Column, item, view.Type)</div>
+                                            </div>
+                                        }
                                         else
                                         {
                                             @CellOf(view.Column, item, view.Type)
@@ -317,6 +333,20 @@
                 }
             </table>
         </ScrollArea>
+        @if (OnReorder.HasDelegate)
+        {
+            <VisuallyHidden id="@sortableInstructionsId">@Config.Lang.SortableInstructions</VisuallyHidden>
+        }
+    };
+
+    // 能拖动时表体是 sortable 的列表（js/sortable.js）：行是项，把手在第一个数据列里
+    Attrs SortableBody => new()
+    {
+        Sx = SortableStyles.List.Sx,
+        Class = SortableStyles.List.Class,
+        ["data-rune-sortable"] = "vertical",
+        ["data-texts"] = SortableTexts.Of(Config.Lang),
+        ["onrunereorder"] = EventCallback.Factory.Create<ReorderEventArgs>(this, OnReorderAsync),
     };
 
     // 编辑中的格：列的编辑器，提交被拒的原因浮在下面

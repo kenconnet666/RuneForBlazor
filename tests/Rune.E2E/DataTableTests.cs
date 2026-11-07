@@ -155,4 +155,26 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(quantity).ToHaveTextAsync("40");
         await Assertions.Expect(quantity).ToBeFocusedAsync();
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 键盘拿起行下移一位_排序时收起把手(string mode)
+    {
+        var page = await OpenAsync(mode, "data-table");
+        var table = page.GetByRole(AriaRole.Table, new() { Name = "需求排期" });
+        var rows = table.Locator("tbody tr[data-key]");
+
+        var handle = table.GetByRole(AriaRole.Button, new() { Name = "移动 R-201" });
+        await handle.FocusAsync();
+        await page.Keyboard.PressAsync("Space");
+        await page.Keyboard.PressAsync("ArrowDown");
+        await page.Keyboard.PressAsync("Space");
+        await Assertions.Expect(rows.Nth(1)).ToHaveAttributeAsync("data-key", "R-201");
+        await Assertions.Expect(rows.Nth(1).Locator("td").Nth(0)).ToContainTextAsync("2");
+        await Assertions.Expect(handle).ToBeFocusedAsync();
+
+        await table.GetByRole(AriaRole.Button, new() { Name = "预计工时" }).ClickAsync();
+        await Assertions.Expect(table.Locator("[data-rune-sortable-handle]")).ToHaveCountAsync(0);
+    }
 }
