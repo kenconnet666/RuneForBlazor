@@ -1,4 +1,4 @@
-# 交接文档（2026-11-06）
+# 交接文档（2026-11-07）
 
 换电脑继续时先读这一页，再看 `docs/ROADMAP.md`（进度的权威记录）与 `docs/DESIGN.md`（设计约定）。
 
@@ -79,12 +79,15 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 - 阶段 1 完成：TreeData、Tree、TreeSelect、TreeTransfer、VirtualList 补齐。
 - 阶段 2 完成：Tour、Breadcrumbs、Steps、NavMenu、NavBar（AppShell 混合布局、Form 分步示例已换用）。下一步阶段 3（表格）。
 - 2026-11-06 用户恢复路线图并重新规划（阶段 0 → 9）：锁定对齐 vue-tsx-pro 0.12.0-dev（版本号同步），除了发布，原来不做的扩展也做（阶段 7）。
-- 单元测试 520 个全过；端到端在 CI 上跑。
+- 阶段 3（表格）基本完成（2026-11-07）：TableQuery / TableQueryState（DESIGN §13）；DataTable（列的子组件、排序、筛选、列菜单、列宽、分组表头、详情行、
+  网格方向键与编辑、行拖动、虚拟滚动的表格模式、CSV）；SelectionBar、ColumnSettings、ColumnTable、TreeDataTable、PivotTable、FieldCompare 与 Diff。
+  剩下：列设置记在浏览器里（缺 usePersistentState 的对应物）、预渲染不重复取数、Drawer 的两个示例（等阶段 6 的 DeadlineBadge）。
+- 单元测试约 600 个、端到端 220 个全过（本地全量跑过一次）；CI 也跑端到端。
 
 ## 下一步
 
-1. ROADMAP 阶段 0（公开面收口、OtpField 用输入框配方、全部页面对照、代码走查），然后阶段 1（Tree 一组、VirtualList 补齐）→ 9。
-2. vue 那边发 0.11.0 后会通知：CI 改为固定到 vue master 的发版提交；之后每批改动照“自主执行的规矩”跟进。
+1. 阶段 3 的收尾（见上），然后阶段 4（日期）→ 9；阶段 0 的逐页对照与代码走查穿插做。
+2. vue 那边的批次由“组件库样式合并性能对比”会话通知，照“自主执行的规矩”跟进；vue 有问题发复现给那个会话，不改 vue 的仓库。
 
 ## 移植时的约定（踩过的坑）
 
@@ -95,3 +98,8 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 - 分析器：RUNE006（用类型化常量）、RUNE007（Rune.UI 里不写 px）、RUNE008（lambda 不捕获循环变量）。
 - bUnit：`InvokeAsync(() => x = SomeTaskReturningCall())` 会等那个 Task，要写成语句体 `{ x = ...; }`。
 - Bash 里多行 heredoc 偶尔被解析器拒绝，改用 Write 工具或 `node - <<'EOF'` 小脚本做替换。
+- 列是表格的子组件（同 QuickGrid）：表格渲染时各列把自己交给 `DataTableColumns`，表体在 `Defer` 里排到渲染队列末尾；套在别的组件里的列收集不到，列来自数据时用 `@foreach`。
+- 要父级重新渲染的回调用 EventCallback（不用 Func）：`OnCellChange`、`LoadChildren` 都踩过；需要返回结果时在参数对象上写（`CellChange.Reject`）。
+- 按名字传组件参数（`AddComponentParameter(…, "Sx", …)`）不经过隐式转换：Style 要先包成 Sx。
+- 只读的派生值（排序后的行、显示中的列）用 Memo 缓存时，键里不能有每次新建的列表，否则每次渲染都重算（DataTable 的排序曾因此在滚动时反复执行）。
+- 测试里的期望值别心算：总数、合计按示例的数据算清楚再写（这一轮两次写错）。
