@@ -268,8 +268,11 @@ public sealed partial record Lang
     /// <summary>选项列表：输入搜索词后给读屏播报的结果条数，默认“{count} 个选项”</summary>
     public required Func<double, string> ListResultCount { get; init; }
 
-    /// <summary>远程选项（Select、Combobox、TreeSelect 的 load）加载失败时列表里的提示，默认“加载失败，请重试”</summary>
+    /// <summary>远程选项（Select、Combobox、TreeSelect 的 load）、滚动加载的列表（InfiniteListStatus）加载失败时的提示，默认“加载失败，请重试”</summary>
     public required string ListLoadFailed { get; init; }
+
+    /// <summary>滚动加载的列表取完了（InfiniteListStatus），默认“没有更多了”</summary>
+    public required string ListNoMore { get; init; }
 
     /// <summary>批量操作栏里取消全部选择的按钮，默认“取消选择”</summary>
     public required string TableClearSelection { get; init; }
@@ -450,6 +453,12 @@ public sealed partial record Lang
 
     /// <summary>放到不能放的组、弹回时的播报</summary>
     public required Func<string, string, string> SortableRejected { get; init; }
+
+    /// <summary>错误边界接住错误后的标题，默认“这块内容出错了”</summary>
+    public required string ErrorTitle { get; init; }
+
+    /// <summary>错误边界的重试按钮，默认“重试”</summary>
+    public required string ErrorRetry { get; init; }
 
     /// <summary>结果页的常见状态（403、404、500）的默认标题与说明</summary>
     public required IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> ResultStatus { get; init; }
@@ -996,6 +1005,7 @@ public sealed partial record Lang
         TableSelectedCount = count => string.Concat("已选 ", count.ToString(CultureInfo.CurrentCulture), " 项"),
         ListResultCount = count => string.Concat(count.ToString(CultureInfo.CurrentCulture), " 个选项"),
         ListLoadFailed = "加载失败，请重试",
+        ListNoMore = "没有更多了",
         TableClearSelection = "取消选择",
         TableDetails = "详情",
         TableRowDetails = row => string.Concat(row, " 的详情"),
@@ -1056,6 +1066,8 @@ public sealed partial record Lang
         SortableGroupDropped = (item, group, position) => string.Concat("已把 ", item, " 放到 ", group, " 第 ", position.ToString(CultureInfo.CurrentCulture), " 位"),
         SortableGroupCancelled = (item, group, position) => string.Concat("已取消，", item, " 回到 ", group, " 第 ", position.ToString(CultureInfo.CurrentCulture), " 位"),
         SortableRejected = (item, reason) => string.Concat("不能移动：", reason, "。", item, " 回到原处"),
+        ErrorTitle = "这块内容出错了",
+        ErrorRetry = "重试",
         ResultStatus = new Dictionary<string, IReadOnlyDictionary<string, string>> { ["403"] = new Dictionary<string, string> { ["title"] = "没有访问权限", ["description"] = "这个页面需要更高的权限，可以联系管理员开通。" }, ["404"] = new Dictionary<string, string> { ["title"] = "找不到这个页面", ["description"] = "地址可能写错了，或者页面已经移走。" }, ["500"] = new Dictionary<string, string> { ["title"] = "服务出错了", ["description"] = "服务器暂时无法处理请求，请稍后重试；问题持续时请联系管理员。" } },
         RatingStar = @value => string.Concat(@value.ToString(CultureInfo.CurrentCulture), " 星"),
         RatingSummary = (@value, count) => ((@value == null) ? "未评分" : string.Concat(@value?.ToString(CultureInfo.CurrentCulture), " 星，满分 ", count.ToString(CultureInfo.CurrentCulture), " 星")),
@@ -1297,6 +1309,7 @@ public sealed partial record Lang
         TableSelectedCount = count => string.Concat(count.ToString(CultureInfo.CurrentCulture), " selected"),
         ListResultCount = count => ((count == 1) ? "1 option" : string.Concat(count.ToString(CultureInfo.CurrentCulture), " options")),
         ListLoadFailed = "Failed to load. Try again.",
+        ListNoMore = "No more items",
         TableClearSelection = "Clear selection",
         TableDetails = "Details",
         TableRowDetails = row => string.Concat("Details of ", row),
@@ -1357,6 +1370,8 @@ public sealed partial record Lang
         SortableGroupDropped = (item, group, position) => string.Concat("Dropped ", item, " in ", group, ", position ", position.ToString(CultureInfo.CurrentCulture)),
         SortableGroupCancelled = (item, group, position) => string.Concat("Cancelled, ", item, " returned to ", group, ", position ", position.ToString(CultureInfo.CurrentCulture)),
         SortableRejected = (item, reason) => string.Concat("Cannot move: ", reason, ". ", item, " returned"),
+        ErrorTitle = "Something went wrong here",
+        ErrorRetry = "Try again",
         ResultStatus = new Dictionary<string, IReadOnlyDictionary<string, string>> { ["403"] = new Dictionary<string, string> { ["title"] = "Access denied", ["description"] = "You need more permissions to see this page. Ask an administrator for access." }, ["404"] = new Dictionary<string, string> { ["title"] = "Page not found", ["description"] = "The address may be wrong, or the page has moved." }, ["500"] = new Dictionary<string, string> { ["title"] = "Something went wrong", ["description"] = "The server could not handle the request. Try again later, and contact an administrator if it keeps happening." } },
         RatingStar = @value => ((@value == 1) ? "1 star" : string.Concat(@value.ToString(CultureInfo.CurrentCulture), " stars")),
         RatingSummary = (@value, count) => ((@value == null) ? "Not rated" : string.Concat(@value?.ToString(CultureInfo.CurrentCulture), " out of ", count.ToString(CultureInfo.CurrentCulture), " stars")),
