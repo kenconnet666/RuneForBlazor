@@ -28,6 +28,12 @@
         给了 <Code>OnReorder</Code> 时第一个数据列前面有把手：按下拖动，或聚焦后空格拿起、↑↓ 移动、空格放下（每一步读屏都会播报），拖完拿到新的顺序。
         排序、筛选时显示的顺序不是数据的顺序，把手收起，取消后又能拖。
     </Example>
+    <Example Id="ledger" Title="项目台账：合计、状态与批量操作" Demo="typeof(LedgerExample)">
+        列的 <Code>Summary</Code> 写 <Code>ColumnSummary.Sum</Code> 时底部多一行吸底的合计（decimal 精确相加，按列的格式显示）；<Code>StatusColumn</Code> 的单元格显示成 StatusBadge；
+        没有值时显示列的 <Code>EmptyText</Code>（默认 —，这里是“待签约”）。<Code>IsRowSelectable</Code> 决定哪些行能勾选，全选跳过不能勾选的；
+        勾选后上方的 <Code>SelectionBar</Code> 显示已选几项与批量操作。<Code>HiddenColumns</Code> 隐藏列，这里用 Menu 的 MenuCheckboxItem 做列显示设置（也可以开 <Code>ColumnMenu</Code>）；
+        固定列与滚动的列之间有一条竖线。
+    </Example>
     <Example Id="changes" Title="采购方案调整：分组表头" Demo="typeof(ChangesExample)">
         列写 <Code>Group</Code>（组标题）时，相邻、同组的几列上方共用一个标题，表头变成两行，没分组的列跨两行；组与相邻的列之间有竖线，固定列照常固定。
         排序、列宽、隐藏都按列算，组里的列全隐藏时这一组也不显示。<Code>PropsCellFor</Code> 按行与列给单元格加属性（节省是负数时标红）。
@@ -64,5 +70,5 @@
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(DataTable<>), typeof(PropertyColumn<,>), typeof(StatusColumn<,>), typeof(TemplateColumn<>)]" />
+    <ApiReference Types="[typeof(DataTable<>), typeof(PropertyColumn<,>), typeof(StatusColumn<,>), typeof(TemplateColumn<>), typeof(SelectionBar), typeof(ColumnFilterButton), typeof(ColumnMenuButton), typeof(ColumnResizer)]" />
 </DocPage>

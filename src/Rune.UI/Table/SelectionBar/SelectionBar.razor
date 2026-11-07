@@ -1,0 +1,85 @@
+@*
+    批量操作栏（同 vue-tsx-pro 的 SelectionBar）：表格勾选了行之后出现在表格上方，“已选 N 项 · 取消选择”，结束边是批量操作。
+    <SelectionBar Count="selected.Count" OnClear="() => selected = []">
+        <Button Size="Size.Sm" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">批量导出</Button>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Danger">批量删除</Button>
+    </SelectionBar>
+    Count 为 0 时隐藏（淡出，淡出时仍显示最后的数目，不闪成“已选 0 项”）；已选的数目放在栏外一直在的播报区里，勾选变化时念出来
+    （栏随第一次选择一起出现，挂在栏里的播报区第一句念不出来）。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div hidden="@(Count == 0)" data-state="@(Count == 0 ? "closed" : "open")" @attributes="Attrs.Merge(RootLayer, Rest)">
+    <span @attributes="Attrs.Merge(CountLayer, PropsCount)">@(Label ?? Config.Lang.TableSelectedCount(shownCount))</span>
+    <Button Variant="ButtonVariant.Link" Size="Size.Sm" @onclick="() => OnClear.InvokeAsync()" @attributes="Attrs.MergeProps(null, PropsClear)">@Config.Lang.TableClearSelection</Button>
+    <div @attributes="Attrs.Merge(ActionsLayer, PropsActions)">@ChildContent</div>
+</div>
+<VisuallyHidden aria-live="polite">@(Count == 0 ? null : Label ?? Config.Lang.TableSelectedCount(Count))</VisuallyHidden>
+
+@code {
+    static readonly Attrs RootLayer = new() { Sx = Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        FlexWrap = FlexWrap.Wrap,
+        Gap = Space.Md,
+        MinHeight = Sizes.Control,
+        PaddingBlock = Space.Xs,
+        PaddingInline = Space.Md,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Tones.Accent.Soft,
+        Color = Colors.Text,
+        FontSize = FontSizes.Sm,
+        // 插入或去掉 hidden 时淡入淡出：display 的 allow-discrete 撑住离场
+        Transition = $"opacity {Durations.Md} {Easings.Enter}, display {Durations.Md} allow-discrete",
+        [When.Starting] = new() { Opacity = 0 },
+        [When.Attribute("[hidden]")] = new()
+        {
+            Display = Display.None,
+            Opacity = 0,
+            Transition = $"opacity {Durations.Sm} {Easings.Exit}, display {Durations.Sm} allow-discrete",
+        },
+    }) };
+
+    static readonly Attrs CountLayer = new() { Sx = Css.Define(static () => new Style { FontWeight = FontWeights.Semibold, Color = Tones.Accent.Text, FontVariantNumeric = FontVariantNumeric.TabularNums }) };
+
+    static readonly Attrs ActionsLayer = new() { Sx = Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        FlexWrap = FlexWrap.Wrap,
+        Gap = Space.Sm,
+        MarginInlineStart = CssLength.Auto,
+    }) };
+
+    // 淡出时仍显示最后的数目
+    int shownCount;
+
+    /// <summary>已选几项；0 时隐藏。</summary>
+    [Parameter, EditorRequired] public int Count { get; set; }
+
+    /// <summary>点“取消选择”：清空选择由使用方做。</summary>
+    [Parameter] public EventCallback OnClear { get; set; }
+
+    /// <summary>已选数目的文字，默认取语言包（已选 N 项）：跨页全选时写“已选全部 1,286 项”。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>批量操作的按钮。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>已选数目的部件属性。</summary>
+    [Parameter] public Attrs? PropsCount { get; set; }
+
+    /// <summary>取消选择按钮（交给 Button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsClear { get; set; }
+
+    /// <summary>批量操作区的部件属性。</summary>
+    [Parameter] public Attrs? PropsActions { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (Count > 0) shownCount = Count;
+    }
+}

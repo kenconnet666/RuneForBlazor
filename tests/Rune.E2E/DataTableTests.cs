@@ -177,4 +177,29 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         await table.GetByRole(AriaRole.Button, new() { Name = "预计工时" }).ClickAsync();
         await Assertions.Expect(table.Locator("[data-rune-sortable-handle]")).ToHaveCountAsync(0);
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 勾选后出现批量操作栏_取消选择后隐藏_列菜单切换列_合计按万元(string mode)
+    {
+        var page = await OpenAsync(mode, "data-table");
+        var table = page.GetByRole(AriaRole.Table, new() { Name = "项目台账" });
+        // 第一个是栏里的数目，第二个是栏外的播报区
+        var bar = page.GetByText("已选 1 项", new() { Exact = true }).First;
+
+        await Assertions.Expect(table.Locator("tfoot td").Nth(5)).ToHaveTextAsync("106.14");
+        await Assertions.Expect(table.Locator("tfoot td").Nth(6)).ToHaveTextAsync("48.85");
+        await Assertions.Expect(table.Locator("tr[data-key='PO-2026-0302']").GetByRole(AriaRole.Checkbox)).ToBeDisabledAsync();
+
+        await table.Locator("tr[data-key='PO-2026-0301']").GetByRole(AriaRole.Checkbox).CheckAsync();
+        await Assertions.Expect(bar).ToBeVisibleAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "取消选择" }).ClickAsync();
+        await Assertions.Expect(bar).ToBeHiddenAsync();
+
+        await Assertions.Expect(table.Locator("th[data-column=dmc]")).ToHaveCountAsync(0);
+        await page.GetByRole(AriaRole.Button, new() { Name = "列", Exact = true }).ClickAsync();
+        await page.GetByRole(AriaRole.Menuitemcheckbox, new() { Name = "运费节省（元/单）" }).ClickAsync();
+        await Assertions.Expect(table.Locator("th[data-column=dmc]")).ToHaveCountAsync(1);
+    }
 }

@@ -1,0 +1,95 @@
+@inherits RuneComponent
+@using System.ComponentModel
+
+@* 项目台账：金额以元保存、按万元显示并在底部合计；状态列取自状态映射；合同没签时显示“待签约”。
+   已关闭的任务不能勾选；勾选后上方出现批量操作栏；“列”菜单切换哪些列显示 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm" Wrap="true">
+        <Small Tone="TextTone.Muted">共 @Tasks.Length 项 · 已关闭的不能勾选</Small>
+        <Menu>
+            <Trigger Context="t"><Button @attributes="t" Size="Size.Sm" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Columns3">列</Button></Trigger>
+            <ChildContent>
+                @foreach (var (key, title) in Optional)
+                {
+                    <MenuCheckboxItem @key="key" Checked="!hidden.Contains(key)" CheckedChanged="@(on => ToggleColumn(key, on))">@title</MenuCheckboxItem>
+                }
+            </ChildContent>
+        </Menu>
+    </Flex>
+    <SelectionBar Count="selected.Count" OnClear="() => selected = []">
+        <Button Size="Size.Sm" Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Download">导出所选</Button>
+        <Button Size="Size.Sm" Icon="Lucide.Send">批量提交验收</Button>
+    </SelectionBar>
+    <DataTable Items="Tasks" GetKey="t => t.Code" SelectionMode="SelectionMode.Multiple" @bind-Selected="selected"
+               IsRowSelectable="@(t => t.Status != TaskStatus.Closed)" @bind-HiddenColumns="hidden" aria-label="项目台账" PropsRoot="TableHeight">
+        <PropertyColumn Property="t => t.Code" Width="132" Sticky="ColumnSticky.Start" Sortable="true" />
+        <PropertyColumn Property="t => t.Name" Width="240" Sortable="true" />
+        <PropertyColumn Property="t => t.Category" Width="96" />
+        <PropertyColumn Property="t => t.Team" Width="120" />
+        <PropertyColumn Property="t => t.Estimate" Width="128" Format="Wan" Sortable="true" Summary="ColumnSummary.Sum" />
+        <PropertyColumn Property="t => t.Agreed" Width="128" Format="Wan" EmptyText="待签约" Summary="ColumnSummary.Sum" />
+        <PropertyColumn Property="t => t.Dmc" Width="140" Format="Cents" />
+        <StatusColumn Property="t => t.Status" Statuses="Statuses" Width="120" />
+        <TemplateColumn Key="actions" Title="操作" Width="112" Sticky="ColumnSticky.End" Context="task">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost">查看</Button>
+                <Menu>
+                    <Trigger Context="t"><IconButton @attributes="t" Size="Size.Sm" Icon="Lucide.Ellipsis" Label="@($"更多：{task.Code}")" /></Trigger>
+                    <ChildContent>
+                        <MenuItem Icon="Lucide.FileText">任务卡</MenuItem>
+                        <MenuItem Icon="Lucide.Send">提交验收</MenuItem>
+                    </ChildContent>
+                </Menu>
+            </Flex>
+        </TemplateColumn>
+    </DataTable>
+</Flex>
+
+@code {
+    enum TaskStatus { Designing, Verifying, Awaiting, Settling, Closed, Negotiating }
+
+    sealed record ProjectTask(
+        [property: DisplayName("项目编码")] string Code,
+        [property: DisplayName("项目名称")] string Name,
+        [property: DisplayName("类别")] string Category,
+        [property: DisplayName("责任团队")] string Team,
+        [property: DisplayName("测算（万元）")] decimal Estimate,
+        [property: DisplayName("合同价（万元）")] decimal? Agreed,
+        [property: DisplayName("运费节省（元/单）")] decimal? Dmc,
+        [property: DisplayName("状态")] TaskStatus Status);
+
+    // 谈判中不在映射里：显示成中性色、名字就是键（接口多给了新状态时不报错）
+    static readonly StatusMap<TaskStatus> Statuses = new()
+    {
+        [TaskStatus.Designing] = new("设计中", Tone.Info),
+        [TaskStatus.Verifying] = new("测试中", Tone.Info),
+        [TaskStatus.Awaiting] = new("待验收", Tone.Warning),
+        [TaskStatus.Settling] = new("结算中", Tone.Warning),
+        [TaskStatus.Closed] = new("关闭", Tone.Success),
+    };
+
+    static readonly ProjectTask[] Tasks =
+    [
+        new("PO-2026-0301", "华东门店陈列改造", "产品改进", "研发中心", 155353.20m, null, null, TaskStatus.Verifying),
+        new("PO-2026-0302", "仓库拣货流程优化", "流程优化", "产品部", 109600.00m, 98000.00m, 3.20m, TaskStatus.Closed),
+        new("PO-2026-0303", "包装纸箱第二供应商", "供应商切换", "采购", 143000.00m, 150500.00m, null, TaskStatus.Negotiating),
+        new("PO-2026-0304", "会员小程序改版", "产品改进", "研发中心", 178800.00m, null, 1.75m, TaskStatus.Awaiting),
+        new("PO-2026-0305", "仓库盘点流程优化", "流程优化", "产品部", 217000.00m, null, null, TaskStatus.Designing),
+        new("PO-2026-0306", "门店物料供应商切换", "供应商切换", "采购", 257600.00m, 240000.00m, 0.80m, TaskStatus.Closed),
+    ];
+
+    // 以元保存、按万元显示：表头写单位，数字列更整齐
+    static readonly NumberFormat Wan = new() { Scale = 10_000, MinimumFractionDigits = 2, MaximumFractionDigits = 2 };
+    static readonly NumberFormat Cents = new() { MinimumFractionDigits = 2 };
+
+    // 可以隐藏的列（编码、名称、操作一直显示）
+    static readonly (string Key, string Title)[] Optional =
+        [("category", "类别"), ("team", "责任团队"), ("estimate", "测算（万元）"), ("agreed", "合同价（万元）"), ("dmc", "运费节省（元/单）"), ("status", "状态")];
+
+    static Attrs TableHeight => new() { Sx = Css.Define(static () => new Style { MaxHeight = CssLength.Rem(24) }) };
+
+    IReadOnlyList<string> selected = [];
+    IReadOnlyList<string> hidden = ["dmc"];
+
+    void ToggleColumn(string key, bool on) => hidden = on ? [.. hidden.Where(item => item != key)] : [.. hidden, key];
+}
