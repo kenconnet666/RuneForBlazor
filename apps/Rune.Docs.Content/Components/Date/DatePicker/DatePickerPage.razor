@@ -22,7 +22,7 @@
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="granularity" Title="年份、季度、月份、周与时间" Demo="typeof(GranularityExample)">
-                <Code>Granularity</Code> 是 <Code>Year</Code>、<Code>Month</Code> 时弹出年份、月份的选择；<Code>Quarter</Code> 在月份视图里选（写回所在季度的第一天），
+                <Code>Granularity</Code> 是 <Code>Year</Code>、<Code>Month</Code> 时弹出年份、月份的选择；<Code>Quarter</Code> 弹出季度面板（写回那个季度的第一天；QuarterCalendar 也可以单独用，<Code>@@bind-Range</Code> 时选一段季度），
                 <Code>Week</Code> 按 ISO 8601 的周选（日历周一开始、行首是周数，点哪天都是它那一周的周一）；到 <Code>Minute</Code> 时选日期保留原来的时间，
                 没有时间时是 00:00。
             </Example>
@@ -33,5 +33,5 @@
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="@([.. DateKeys.Segments, .. DateKeys.Picker, .. DateKeys.Calendar])" />
-    <ApiReference Types="[typeof(DatePicker<>), typeof(DatePreset), typeof(DateField<>), typeof(SegmentedField<>)]" />
+    <ApiReference Types="[typeof(DatePicker<>), typeof(DatePreset), typeof(QuarterCalendar), typeof(DateField<>), typeof(SegmentedField<>)]" />
 </DocPage>

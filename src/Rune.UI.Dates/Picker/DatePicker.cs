@@ -15,7 +15,7 @@ public sealed record DatePreset(string Label, Func<DateOnly> Date);
 /// &lt;DatePicker @bind-Value="at" Granularity="DateGranularity.Minute" aria-label="开始时间" /&gt;
 /// </code>
 /// Granularity 决定值的形式（同 DateField）与弹出的选择：Year、Month 选年份、月份，Week 选周（日历按 ISO 周排、行首是周数，点哪天都是选它那一周），
-/// Quarter 选月份所在的季度，其余选日期。日历下方有“今天”（按粒度是今年、本季度、本月、本周；超出范围时不可用），旁边可以放快捷选项。
+/// Quarter 弹出季度面板（QuarterCalendar），其余选日期。日历下方有“今天”（按粒度是今年、本季度、本月、本周；超出范围时不可用），旁边可以放快捷选项。
 /// 选好后关闭，焦点回到按钮；带时间时保留原来的时间（没有时是 00:00）。Esc、点外部关闭；分段里按 Alt + ↓ 打开（同原生 select）。
 /// </summary>
 /// <typeparam name="TValue">值的类型：DateOnly、DateTime、DateTimeOffset 或它们的可空类型。</typeparam>
@@ -51,11 +51,11 @@ public sealed class DatePicker<TValue> : DateField<TValue>
 
     internal Lang Lang => Config.Lang;
 
-    /// <summary>日历的粒度：年、月照搬，季度按月份选，其余按日。</summary>
+    /// <summary>日历的粒度：年、月照搬，其余按日（季度用 QuarterCalendar）。</summary>
     internal DateUnit CalendarUnit => Granularity switch
     {
         DateGranularity.Year => DateUnit.Year,
-        DateGranularity.Month or DateGranularity.Quarter => DateUnit.Month,
+        DateGranularity.Month => DateUnit.Month,
         _ => DateUnit.Day,
     };
 

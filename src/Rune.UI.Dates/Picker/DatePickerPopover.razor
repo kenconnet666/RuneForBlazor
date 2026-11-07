@@ -28,11 +28,18 @@
             </div>
         }
         <div @attributes="Attrs.Merge(parts[PickerPart.Main])">
+            @if (Picker.Granularity == DateGranularity.Quarter)
+            {
+                <QuarterCalendar Value="Picker.CalendarValue" ValueChanged="Picked" Min="MinDay" Max="MaxDay" aria-label="@lang.DatePickerOpen" />
+            }
+            else
+            {
             @* 选周：按 ISO 8601 的周（周一开始）排，行首是第几周，与值的周一致 *@
             <Calendar Value="Picker.CalendarValue" ValueChanged="Picked" Granularity="Picker.CalendarUnit" Min="MinDay" Max="MaxDay"
                       IsDateUnavailable="Picker.IsDateUnavailable" VisibleMonths="Picker.VisibleMonths" Size="Picker.Size"
                       FirstDayOfWeek="@(Week ? DayOfWeek.Monday : null)" ShowWeekNumbers="Week" aria-label="@lang.DatePickerOpen"
                       @attributes="Attrs.MergeProps(null, Picker.PropsCalendar)" />
+            }
             @if (Picker.ShowToday)
             {
                 var today = Picker.Today;

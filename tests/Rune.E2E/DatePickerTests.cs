@@ -33,12 +33,13 @@ public class DatePickerTests(DemoServer demo) : E2ETest(demo)
         await page.GetByRole(AriaRole.Dialog).Filter(new() { Visible = true }).GetByRole(AriaRole.Button, new() { Name = "明天" }).ClickAsync();
         await Assertions.Expect(page.GetByText(DateTime.Today.AddDays(1).ToString("yyyy-MM-dd"), new() { Exact = true })).ToBeVisibleAsync();
 
-        // 季度：月份视图里点 2027 年 2 月，写回第一季度
+        // 季度：季度面板翻到下一年，点第一季度
         var quarter = page.GetByRole(AriaRole.Group, new() { Name = "考核季度" });
         await quarter.Locator("..").GetByRole(AriaRole.Button, new() { Name = "选择日期" }).ClickAsync();
         var panel = page.GetByRole(AriaRole.Dialog).Filter(new() { Visible = true });
+        await Assertions.Expect(page.Locator(":focus")).ToHaveAttributeAsync("data-date", "2026-10-01");
         await panel.GetByRole(AriaRole.Button, new() { Name = "下一年" }).ClickAsync();
-        await panel.Locator("button[data-date=\"2027-02-01\"]").ClickAsync();
+        await panel.GetByRole(AriaRole.Button, new() { Name = "2027年第1季度" }).ClickAsync();
         await Assertions.Expect(quarter).ToHaveTextAsync("2027年第1季度");
     }
 }

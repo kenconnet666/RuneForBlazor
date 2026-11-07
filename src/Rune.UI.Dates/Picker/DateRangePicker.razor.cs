@@ -92,9 +92,11 @@ public partial class DateRangePicker
     DateUnit CalendarUnit => Granularity switch
     {
         DateGranularity.Year => DateUnit.Year,
-        DateGranularity.Month or DateGranularity.Quarter => DateUnit.Month,
+        DateGranularity.Month => DateUnit.Month,
         _ => DateUnit.Day,
     };
+
+    EventCallback<DateRange?> QuarterPicked => EventCallback.Factory.Create<DateRange?>(this, range => range is { } picked ? PickAsync(picked) : Task.CompletedTask);
 
     DateOnly Today
     {

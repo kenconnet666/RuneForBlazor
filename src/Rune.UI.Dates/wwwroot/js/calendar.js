@@ -88,6 +88,7 @@ function addMonths(iso, months) {
 function cellKey(root, iso) {
   const view = root.dataset.view;
   if (view === 'month') return `${iso.slice(0, 7)}-01`;
+  if (view === 'quarter') return `${iso.slice(0, 4)}-${String(Math.floor((Number(iso.slice(5, 7)) - 1) / 3) * 3 + 1).padStart(2, '0')}-01`;
   if (view === 'year') return `${iso.slice(0, 4)}-01-01`;
   return iso;
 }
@@ -96,7 +97,7 @@ function cellKey(root, iso) {
 function dayIn(root, cell, focused) {
   const view = root.dataset.view;
   if (view === 'day' || !focused) return cell;
-  const months = (Number(cell.slice(0, 4)) - Number(focused.slice(0, 4))) * 12 + (view === 'month' ? Number(cell.slice(5, 7)) - Number(focused.slice(5, 7)) : 0);
+  const months = (Number(cell.slice(0, 4)) - Number(focused.slice(0, 4))) * 12 + (view === 'year' ? 0 : Number(cell.slice(5, 7)) - Number(focused.slice(5, 7)));
   return addMonths(focused, months);
 }
 
@@ -116,6 +117,19 @@ function targetOf(root, iso, event) {
       case 'PageUp': return addMonths(iso, event.shiftKey ? -12 : -1);
       case 'Home': return addDays(iso, -offset);
       case 'End': return addDays(iso, 6 - offset);
+      default: return null;
+    }
+  }
+  // 季度面板（QuarterCalendar）：一行四格，←→ 一个季度（到头时换年），Home / End 到第一、第四季度，Page Up / Down 换年
+  if (view === 'quarter') {
+    const month = Number(iso.slice(5, 7));
+    switch (event.key) {
+      case 'ArrowRight': return addMonths(iso, 3 * forward);
+      case 'ArrowLeft': return addMonths(iso, -3 * forward);
+      case 'PageDown': return addMonths(iso, 12);
+      case 'PageUp': return addMonths(iso, -12);
+      case 'Home': return addMonths(iso, 1 - month);
+      case 'End': return addMonths(iso, 10 - month);
       default: return null;
     }
   }
