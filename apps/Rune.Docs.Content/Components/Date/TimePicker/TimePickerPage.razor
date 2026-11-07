@@ -1,0 +1,24 @@
+@page "/components/time-picker"
+@attribute [DocMeta("TimePicker 时间选择器", "输入框加按步长列出的时间：可以键入也可以点选；工作时间、午休不可选、12 / 24 小时制。", DocCategory.Date, Order = 7)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Date.TimePicker.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="meeting" Title="基础用法" Demo="typeof(MeetingExample)">
+                列表从 <Code>Min</Code> 到 <Code>Max</Code> 每 <Code>Step</Code> 分钟一项（默认 30），按语言或 <Code>HourCycle</Code> 的小时制显示；
+                打开时高亮当前的值，<Kbd>↑</Kbd> <Kbd>↓</Kbd> 移动、<Kbd>Enter</Kbd> 选中，“此刻”选当前时间。输入框就是 TimeField，列表之外的时间照样键入。
+                <Code>IsTimeUnavailable</Code> 标出不可选的时间（午休、已约满的时段）：列表里不可用，键入时显示出错。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="states" Title="精度与状态" Demo="typeof(StatesExample)">
+                <Code>Granularity</Code> 是 <Code>Hour</Code>、<Code>Minute</Code>（默认）或 <Code>Second</Code>，输入框的段与写回的值一起变。
+                外观与只读、不可用同其他输入框。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([.. DateKeys.Segments, .. DateKeys.Picker])" />
+    <ApiReference Types="[typeof(TimePicker<>), typeof(TimeField<>), typeof(SegmentedField<>)]" />
+</DocPage>

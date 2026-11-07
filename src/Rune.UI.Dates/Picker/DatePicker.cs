@@ -100,22 +100,7 @@ public sealed class DatePicker<TValue> : DateField<TValue>
 
     internal void Toggled(OverlayToggleEventArgs e) => open = e.Open;
 
-    private protected override RenderFragment Trigger => builder =>
-    {
-        builder.OpenComponent<IconButton>(0);
-        builder.AddComponentParameter(1, nameof(IconButton.Icon), BuiltInIcons.CalendarDays);
-        builder.AddComponentParameter(2, nameof(IconButton.Label), Lang.DatePickerOpen);
-        builder.AddComponentParameter(3, nameof(IconButton.Radius), UI.Radius.Full);
-        builder.AddComponentParameter(4, nameof(IconButton.Disabled), !Editable);
-        builder.AddMultipleAttributes(5, Attrs.MergeProps(null, PropsButton, new Attrs
-        {
-            ["popovertarget"] = PopoverId,
-            ["aria-haspopup"] = "dialog",
-            ["aria-expanded"] = open ? "true" : "false",
-            ["aria-controls"] = PopoverId,
-        }));
-        builder.CloseComponent();
-    };
+    private protected override RenderFragment Trigger => PickerParts.Trigger(BuiltInIcons.CalendarDays, Lang.DatePickerOpen, Editable, open, PopoverId, PropsButton);
 
     private protected override RenderFragment Popover => builder =>
     {

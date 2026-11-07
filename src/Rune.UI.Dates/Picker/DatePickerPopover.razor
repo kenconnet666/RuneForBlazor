@@ -66,15 +66,6 @@
     // 日历里的单选：选了一天就写回（再点已选的那天也关闭）
     EventCallback<DateOnly?> Picked => EventCallback.Factory.Create<DateOnly?>(this, day => day is { } picked ? Picker.PickAsync(picked) : Task.CompletedTask);
 
-    Attrs Managed => Attrs.Merge(Floating.Placed(Picker.Placement, null), new Attrs
-    {
-        Id = Picker.PopoverId,
-        Role = "dialog",
-        AriaLabel = Picker.Lang.DatePickerOpen,
-        ["popover"] = "auto",
-        ["data-rune-overlay"] = true,
-        ["data-open"] = Picker.IsOpen ? "true" : "false",
-        ["data-anchor"] = Picker.AnchorId,
-        ["onrunetoggle"] = EventCallback.Factory.Create<OverlayToggleEventArgs>(this, Picker.Toggled),
-    });
+    Attrs Managed => PickerParts.Popover(Picker.PopoverId, Picker.Lang.DatePickerOpen, Picker.Placement, Picker.IsOpen, Picker.AnchorId, false,
+        EventCallback.Factory.Create<OverlayToggleEventArgs>(this, Picker.Toggled));
 }

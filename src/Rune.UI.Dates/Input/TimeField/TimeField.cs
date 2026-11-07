@@ -13,7 +13,7 @@ namespace Rune.UI;
 /// 值是 <see cref="TimeOnly"/>（可空的空着时为 null），键盘同 DateField；12 小时制时在上午 / 下午那段打 a、p 切换。
 /// </summary>
 /// <typeparam name="TValue">值的类型：TimeOnly 或 TimeOnly?。</typeparam>
-public sealed class TimeField<TValue> : SegmentedField<TValue>
+public class TimeField<TValue> : SegmentedField<TValue>
 {
     /// <summary>精确到哪一段，默认到分。</summary>
     [Parameter] public TimeGranularity Granularity { get; set; } = TimeGranularity.Minute;

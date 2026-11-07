@@ -1,0 +1,23 @@
+@inherits RuneComponent
+
+@* 约会议：工作时间内每半小时一档，午休 12:00–13:30 不可选；提醒每 15 分钟一档，12 小时制；不在列表里的时间也能直接键入 *@
+<Grid MinItemWidth="@("14rem")" Gap="SpaceScale.Lg">
+    <Field Label="会议开始" DescriptionContent="@Show(start)">
+        @* 午休：列表里不可用，键入时显示出错 *@
+        <TimePicker @bind-Value="start" Min="new TimeOnly(9, 0)" Max="new TimeOnly(18, 0)" IsTimeUnavailable="time => time >= new TimeOnly(12, 0) && time < new TimeOnly(13, 30)" />
+    </Field>
+    <Field Label="提醒时间" DescriptionContent="@Show(remind)">
+        <TimePicker @bind-Value="remind" Step="15" HourCycle="HourCycle.H12" Clearable="true" />
+    </Field>
+    <Field Label="闹钟" Description="列表每小时一档，06:45 这样的时间直接键入">
+        <TimePicker @bind-Value="wake" Step="60" />
+    </Field>
+</Grid>
+
+@code {
+    TimeOnly? start = new(10, 30);
+    TimeOnly? remind;
+    TimeOnly? wake = new(6, 45);
+
+    static RenderFragment Show(TimeOnly? value) => @<Code>@(value?.ToString("HH:mm") ?? "null")</Code>;
+}

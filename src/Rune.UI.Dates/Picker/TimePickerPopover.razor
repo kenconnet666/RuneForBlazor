@@ -1,0 +1,40 @@
+@*
+    TimePicker 的弹层：按 Step 列出的时间（Listbox）与“此刻”，与输入框外壳同宽；内容只在打开时渲染，打开后焦点进列表。
+*@
+@namespace Rune.UI
+@typeparam TValue
+@inherits UIComponent
+@{
+    var parts = PickerStyles.Of(Picker.Size, Config.Styles);
+    var now = Picker.Now;
+}
+
+<div @attributes="Attrs.Merge(Attrs.Layer(parts[PickerPart.Popover], ColumnLayer), Picker.PropsPopover, Managed)">
+    @if (Picker.IsOpen)
+    {
+        @* 在 Field 里时 Listbox 默认取 Field 的控件 id（那是输入框的）：列表要自己的 id *@
+        <Listbox TItem="ListboxOption" Items="Picker.Options" Value="@Picker.Selected" OnPick="Picked" aria-label="@Picker.Lang.TimePickerOpen"
+                 @attributes="Attrs.MergeProps(Attrs.Layer(ListLayer), Picker.PropsList, ListManaged)" />
+        <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" FullWidth="true" Disabled="!Picker.Selectable(now)" @onclick="() => Picker.PickAsync(now)"
+                @attributes="Attrs.MergeProps(null, Picker.PropsNow)">@Picker.Lang.TimePickerNow</Button>
+    }
+</div>
+
+@code {
+    // 一列：列表在上、“此刻”在下；列表最高约 7 项，多了滚动
+    static readonly Attrs ColumnLayer = new() { Sx = Css.Define(static () => new Style { [When.PopoverOpen] = new() { FlexDirection = FlexDirection.Column } }) };
+    static readonly Attrs ListLayer = new() { Sx = Css.Define(static () => new Style { MaxHeight = CssLength.Em(16) }) };
+
+    /// <summary>所属的时间选择器：列表的选项与选好后的写回都由它管。</summary>
+    [Parameter, EditorRequired] public TimePicker<TValue> Picker { get; set; } = null!;
+
+    Attrs ListManaged => new() { Id = $"{Picker.PopoverId}-list" };
+
+    EventCallback<string> Picked => EventCallback.Factory.Create<string>(this, iso =>
+        TimeOnly.TryParseExact(iso, "HH:mm", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var time)
+            ? Picker.PickAsync(time)
+            : Task.CompletedTask);
+
+    Attrs Managed => PickerParts.Popover(Picker.PopoverId, Picker.Lang.TimePickerOpen, Picker.Placement, Picker.IsOpen, Picker.AnchorId, true,
+        EventCallback.Factory.Create<OverlayToggleEventArgs>(this, Picker.Toggled));
+}
