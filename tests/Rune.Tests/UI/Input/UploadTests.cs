@@ -166,6 +166,30 @@ public class UploadTests : BunitContext
         Assert.Equal(["c.png", "a.png", "b.png"], value.Select(f => f.Name));
     }
 
+    [Fact]
+    public void 父级放进来的已选择文件_给了上传函数时开始上传_只上传一次()
+    {
+        IReadOnlyList<UploadFile> value = [new UploadFile { Id = "draft", Name = "草稿.pdf", Size = 3, File = new DraftFile(), Status = UploadStatus.Selected }];
+        var cut = Render<Upload>(p => p
+            .Add(x => x.Value, value)
+            .Add(x => x.ValueChanged, EventCallback.Factory.Create<IReadOnlyList<UploadFile>>(this, v => value = v))
+            .Add(x => x.UploadAsync, uploads.Handle));
+
+        Assert.Single(uploads.Calls);
+        Assert.Equal(UploadStatus.Uploading, Assert.Single(value).Status);
+        cut.Render(p => p.Add(x => x.Value, value));
+        Assert.Single(uploads.Calls);
+    }
+
+    sealed class DraftFile : IBrowserFile
+    {
+        public string Name => "草稿.pdf";
+        public DateTimeOffset LastModified => DateTimeOffset.UnixEpoch;
+        public long Size => 3;
+        public string ContentType => "application/pdf";
+        public Stream OpenReadStream(long maxAllowedSize = 512000, CancellationToken cancellationToken = default) => new MemoryStream([1, 2, 3]);
+    }
+
     static void Pick(IRenderedComponent<Upload> cut, params InputFileContent[] files) =>
         cut.FindComponent<InputFile>().UploadFiles(files);
 

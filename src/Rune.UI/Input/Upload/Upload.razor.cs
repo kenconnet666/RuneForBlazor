@@ -179,7 +179,30 @@ public partial class Upload
         var room = MaxFiles is { } limit ? Math.Max(0, limit - kept.Count) : entries.Count;
         var added = (Multiple ? entries : entries.TakeLast(1)).Take(room).ToList();
         await SetValueAsync([.. kept, .. added]);
-        foreach (var item in added.Where(item => item.Status == UploadStatus.Selected)) _ = StartAsync(item);
+        StartPending();
+    }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        // 父级放进来的待上传文件（别处拖进来的、恢复的草稿）：给了 UploadAsync 时同样开始上传
+        StartPending();
+    }
+
+    // 已选择、带文件、还没在上传的项开始上传（同一项只开始一次）
+    void StartPending()
+    {
+        if (UploadAsync is null) return;
+        foreach (var item in Files)
+        {
+            if (item.Status != UploadStatus.Selected || item.File is null) continue;
+            lock (gate)
+            {
+                if (running.ContainsKey(item.Id)) continue;
+            }
+            _ = StartAsync(item);
+        }
     }
 
     async Task StartAsync(UploadFile item)
