@@ -1,7 +1,7 @@
 // 输入框一类：数字框的按键加减、点外壳聚焦、字数计数、按住连续点击、多行自动增高、半选、键盘命令、跳到字段的链接、清空后回到输入框、显示密码。
 
 import { popoverOfHost, pressedWhileOpen } from './lists.js';
-import { reducedMotion, sendCommand } from '../core/shared.js';
+import { reducedMotion, sendCommand, TABBABLE } from '../core/shared.js';
 
 /** 点了 data-rune-refocus 的按钮（清空）：焦点交给它指向的输入框 */
 export function refocusFrom(target) {
@@ -29,7 +29,8 @@ export function onFocusLink(event) {
   const control = link && document.getElementById(link.getAttribute('data-rune-focus'));
   if (!control) return;
   event.preventDefault();
-  control.focus();
+  // 控件是一组（DateField 的分段、单选组）、本身不能聚焦时：聚焦里面第一个能聚焦的
+  (control.matches(TABBABLE) ? control : control.querySelector(TABBABLE) ?? control).focus();
   // 跳到正文（SkipLink）滚到起始处；表单错误汇总里的链接把控件放在中间
   control.scrollIntoView({ block: link.getAttribute('data-focus-block') ?? 'center', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
 }

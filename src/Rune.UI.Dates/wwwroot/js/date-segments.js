@@ -315,11 +315,14 @@ class SegmentState {
       }
       return;
     }
-    // Enter 同原生的输入框：交出没打满的年份，再提交所在的表单
+    // Enter 同原生的输入框：交出没打满的年份，再提交所在的表单。不在表单里时不拦：外面的表格编辑器按 Enter 提交
+    // （段里插入换行的默认行为由 beforeinput 拦掉）
     if (event.key === 'Enter') {
-      event.preventDefault();
       this.commit();
-      this.root.closest('form')?.requestSubmit();
+      const form = this.root.closest('form');
+      if (!form) return;
+      event.preventDefault();
+      form.requestSubmit();
       return;
     }
     if (event.altKey || event.ctrlKey || event.metaKey || !this.focused) return;
