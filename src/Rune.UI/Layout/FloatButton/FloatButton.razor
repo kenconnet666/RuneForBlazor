@@ -1,0 +1,69 @@
+@*
+    浮动按钮（同 vue-tsx-pro 的 FloatButton）：页面角落的常驻操作（新建、反馈、客服、回到顶部）。
+    <FloatButton Icon="Lucide.MessageCircle" Label="联系客服" />          单个：固定在视口结束边的底角
+    <FloatButtonGroup aria-label="帮助">                                 一组：竖排固定在角落，BackTop 也能放进来
+        <FloatButton Icon="Lucide.MessageCircle" Label="联系客服" Badge="2" />
+        <BackTop />
+    </FloatButtonGroup>
+    按钮是 IconButton（圆形、大一号、带阴影），悬停或聚焦时提示名称（Tooltip，默认就是 Label），Badge 是角标（Indicator）。
+    位置在视口的结束边与底部（从右到左排版时在左下），留出刘海屏的安全区；要避开底部的操作栏时用 Sx 改 InsetBlockEnd。
+    未声明的属性（@onclick、Disabled）落到 IconButton 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@if (Badge is not null || BadgeDot)
+{
+    <Indicator Count="Badge" Dot="BadgeDot" Overlap="IndicatorOverlap.Circular" @attributes="Attrs.MergeProps(Grouped ? null : FloatButtonStyles.CornerBadge)">@WithTooltip</Indicator>
+}
+else
+{
+    @WithTooltip
+}
+
+@code {
+    /// <summary>在 FloatButtonGroup 里时的级联名：按钮跟着组排，不再自己固定在角落。</summary>
+    internal const string GroupCascade = "rune-float-button-group";
+
+    /// <summary>图标。</summary>
+    [Parameter, EditorRequired] public IconData Icon { get; set; } = default!;
+
+    /// <summary>名称（读屏），也是默认的提示。</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>悬停、聚焦时的提示，默认是 <see cref="Label"/>。</summary>
+    [Parameter] public string? Tooltip { get; set; }
+
+    /// <summary>显示提示，默认开。</summary>
+    [Parameter] public bool ShowTooltip { get; set; } = true;
+
+    /// <summary>角标里的数字（未读数）。</summary>
+    [Parameter] public int? Badge { get; set; }
+
+    /// <summary>角标是一个小圆点。</summary>
+    [Parameter] public bool BadgeDot { get; set; }
+
+    /// <summary>样式，默认表面色加描边。</summary>
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Surface;
+
+    /// <summary>尺寸，默认 Lg；速拨展开的那几个常用 Md。</summary>
+    [Parameter] public Size Size { get; set; } = UI.Size.Lg;
+
+    /// <summary>色调，默认中性。</summary>
+    [Parameter] public Tone Tone { get; set; } = UI.Tone.Neutral;
+
+    [CascadingParameter(Name = GroupCascade)] bool Grouped { get; set; }
+
+    // 单独用、没有角标时按钮自己固定在角落；有角标时角标那层固定
+    Attrs Own => !Grouped && Badge is null && !BadgeDot ? FloatButtonStyles.CornerButton : FloatButtonStyles.PlainButton;
+
+    RenderFragment WithTooltip => ShowTooltip
+        ? @<Tooltip Placement="Placement.Left">
+              <Trigger Context="t">@Button(t)</Trigger>
+              <ChildContent>@(Tooltip ?? Label)</ChildContent>
+          </Tooltip>
+        : Button(Attrs.Empty);
+
+    RenderFragment Button(Attrs trigger) =>
+        @<IconButton Icon="Icon" Label="@Label" Variant="Variant" Tone="Tone" Radius="UI.Radius.Full" Size="Size" @attributes="Attrs.MergeProps(Own, Rest, trigger)" />;
+}

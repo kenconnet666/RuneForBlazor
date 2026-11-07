@@ -16,7 +16,11 @@ internal static class AffixStyles
     internal static readonly Attrs Sentinel = new() { Sx = SentinelStyle };
 
     /// <summary>回到顶部的按钮：固定在视口的结束边与底部，滚过阈值（JS 写 data-shown）才淡入。</summary>
+    /// <summary>单独用的回到顶部：滚过阈值（JS 写 data-shown）才淡入。</summary>
     internal static readonly Attrs BackTop = new() { Sx = BackTopStyle };
+
+    /// <summary>在 FloatButtonGroup 里的回到顶部：没出现时不占位。</summary>
+    internal static readonly Attrs BackTopInGroup = new() { Sx = BackTopCollapsed };
 
     static readonly Attrs[] Roots =
     [
@@ -46,13 +50,9 @@ internal static class AffixStyles
 
     static Style SentinelStyle => Css.Define(static () => new Style { Height = 0, PointerEvents = PointerEvents.None, Visibility = Visibility.Hidden });
 
+    // 位置与阴影是 FloatButton 的；这里只管淡入淡出
     static Style BackTopStyle => Css.Define(static () => new Style
     {
-        Position = Position.Fixed,
-        InsetInlineEnd = Space.Lg,
-        InsetBlockEnd = Space.Lg,
-        ZIndex = 20,
-        BoxShadow = Shadows.Md,
         TransitionProperty = "opacity, translate, visibility",
         TransitionDuration = Durations.Md,
         TransitionTimingFunction = Easings.Standard,
@@ -61,5 +61,12 @@ internal static class AffixStyles
         PointerEvents = PointerEvents.None,
         Visibility = Visibility.Hidden,
         [Shown] = new() { Opacity = 1, Translate = "0", PointerEvents = PointerEvents.Auto, Visibility = Visibility.Visible },
+    });
+
+    static Style BackTopCollapsed => Css.Define(static () => new Style
+    {
+        Display = Display.None,
+        // 回到下面一层（IconButton 自己的）的 display
+        [Shown] = new() { Display = CssWide.RevertLayer },
     });
 }

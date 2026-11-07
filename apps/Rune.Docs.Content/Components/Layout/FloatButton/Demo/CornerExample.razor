@@ -1,0 +1,41 @@
+@inherits RuneComponent
+
+@* 帮助文档页的右下角：客服（带未读数）、反馈，滚下去后组里多出“回到顶部”。
+   示例框是固定定位的包含块（contain: layout）：按钮停在框的角落，页面里用时就是视口的角落 *@
+<Card Padding="SpaceScale.None" style="contain: layout; overflow: hidden">
+    <ScrollArea style="height: 20rem" PropsViewport="@(new Attrs { Id = PanelId })">
+        <article style="padding: 1em 1.25em 4em; display: grid; gap: 1em">
+            <Small Tone="TextTone.Muted">往下滚：组里多出“回到顶部”</Small>
+            @foreach (var (title, text) in sections)
+            {
+                <section @key="title">
+                    <H4>@title</H4>
+                    <Paragraph>@text</Paragraph>
+                    <Paragraph Tone="TextTone.Muted">@text</Paragraph>
+                </section>
+            }
+        </article>
+    </ScrollArea>
+    <FloatButtonGroup Label="帮助">
+        <FloatButton Icon="Lucide.MessageCircle" Label="@(unread > 0 ? $"联系客服（{unread} 条未读）" : "联系客服")" Tooltip="联系客服"
+                     Badge="@(unread > 0 ? unread : null)" @onclick="() => unread = 0" />
+        <FloatButton Icon="Lucide.MessageSquareText" Label="意见反馈" />
+        <BackTop Target="@PanelId" Threshold="80" />
+    </FloatButtonGroup>
+</Card>
+
+@code {
+    const string PanelId = "float-button-demo-panel";
+
+    static readonly (string Title, string Text)[] sections =
+    [
+        ("开通账号", "管理员在“成员”里邀请同事，对方用邮件里的链接设置密码后即可登录。"),
+        ("导入数据", "支持 Excel 与 CSV，第一行是列名；导入前可以预览，出错的行会单独列出。"),
+        ("设置审批", "每类单据可以配置多级审批，金额超过阈值时自动加签财务负责人。"),
+        ("对接系统", "开放接口用应用密钥签名，回调地址需要在“集成”里登记并通过校验。"),
+        ("导出报表", "报表按筛选条件导出，超过一万行时改为后台生成，完成后站内通知。"),
+        ("权限与审计", "角色决定能看哪些菜单与数据，关键操作都会写进审计日志，可以按人与时间查询。"),
+    ];
+
+    int unread = 2;
+}

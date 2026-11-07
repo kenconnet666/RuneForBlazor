@@ -1,7 +1,8 @@
 @* 长列表上方的操作条：在滚动面板里往下滚时贴在顶部，贴住时有阴影；滚下去后右下角出现“回到顶部” *@
 @inherits RuneComponent
 
-<Card Padding="SpaceScale.None">
+@* contain: layout 让示例框成为固定定位的包含块：回到顶部停在框的角落，页面里用时就是视口的角落 *@
+<Card Padding="SpaceScale.None" style="contain: layout; overflow: hidden">
     @* 示例自己的滚动面板：sticky 相对它贴住，所以把它的 id 写进 Target *@
     <ScrollArea style="height: 20rem" PropsViewport="@(new Attrs { Id = PanelId })">
         <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" style="padding: 0 0.75em 0.75em">

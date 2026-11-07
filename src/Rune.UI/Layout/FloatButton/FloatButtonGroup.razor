@@ -1,0 +1,55 @@
+@*
+    一组浮动按钮（同 vue-tsx-pro 的 FloatButtonGroup）：竖排固定在视口角落；给了 Icon 时是速拨（参考 MUI 的 SpeedDial）。
+    <FloatButtonGroup Icon="Lucide.Plus" aria-label="新建" @bind-Open="open">…</FloatButtonGroup>
+    速拨：主按钮带 aria-expanded、aria-controls，点一下从上方依次展开其余按钮，主按钮变成关闭；
+    Esc 或点到组以外的地方收起（JS 里接住，交给 C#），Esc 时焦点回到主按钮。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div role="group" aria-label="@(Icon is null ? Label : null)" data-rune-speed-dial="@(Icon is null ? null : open.Value ? "open" : "closed")"
+     @onrunecommand="OnCommand" @attributes="Attrs.Merge(FloatButtonStyles.Group, Rest)">
+    <CascadingValue Name="@FloatButton.GroupCascade" Value="true" IsFixed="true">
+        @if (Icon is { } icon)
+        {
+            <div id="@actionsId" @attributes="Attrs.Merge(open.Value ? FloatButtonStyles.Actions : FloatButtonStyles.ActionsHidden, PropsActions)">@ChildContent</div>
+            <FloatButton Icon="@(open.Value ? BuiltInIcons.X : icon)" Label="@(Label ?? "")" Variant="ButtonVariant.Solid" Tone="UI.Tone.Accent" ShowTooltip="false"
+                         aria-expanded="@(open.Value ? "true" : "false")" aria-controls="@actionsId" data-rune-speed-dial-trigger
+                         @onclick="() => open.SetAsync(!open.Value)" @attributes="Attrs.MergeProps(null, PropsTrigger)" />
+        }
+        else
+        {
+            @ChildContent
+        }
+    </CascadingValue>
+</div>
+
+@code {
+    readonly string actionsId = UniqueId.Next("float-actions");
+
+    /// <summary>给了就是速拨：主按钮用这个图标，点一下展开、收起其余按钮。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>组的名称；速拨时是主按钮的名称（读屏）。也可以写 aria-label。</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>速拨是否展开（<c>@bind-Open</c>）：选了一项后由父级收起。</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>速拨展开、收起了。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>FloatButton、BackTop。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>速拨展开的那一列的部件属性。</summary>
+    [Parameter] public Attrs? PropsActions { get; set; }
+
+    /// <summary>速拨主按钮（FloatButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
+
+    // JS 交来的收起（Esc、点到组外）
+    Task OnCommand(CommandEventArgs e) => e.Name == "close" && open.Value ? open.SetAsync(false) : Task.CompletedTask;
+}

@@ -12,6 +12,7 @@ import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, o
 import { watchEllipsis, watchGrid, watchMarquee, watchSize, watchViewportFill } from '../layout/layout.js';
 import { onTweenValueChanged, watchTween } from './tween.js';
 import { clickBackTop, watchAffix, watchBackTop } from '../layout/affix.js';
+import { closeSpeedDialsOutside, keySpeedDial } from '../layout/float-button.js';
 import { drawWatermark } from '../layout/watermark.js';
 import { blurSortable, grabSortable, keySortable } from '../table/sortable.js';
 import { showLightboxImage, watchLightbox } from '../overlay/lightbox.js';
@@ -78,6 +79,7 @@ export function install(blazor, on) {
   on('pointerdown', grabTab);
   on('pointerdown', grabToast);
   on('pointerdown', grabDialog);
+  on('pointerdown', closeSpeedDialsOutside);
   on('dragenter', onFileDragEnter);
   on('dragleave', onFileDragLeave);
   on('drop', onFileDrop);
@@ -355,6 +357,7 @@ function onKeyDown(event) {
     return;
   }
   onHoverEscape(event);
+  keySpeedDial(event);
   focusToaster(event);
   keyToast(event);
   exitFullscreenOnEscape(event);

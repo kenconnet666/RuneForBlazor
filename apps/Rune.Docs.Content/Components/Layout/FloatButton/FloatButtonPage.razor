@@ -1,0 +1,29 @@
+@page "/components/float-button"
+@attribute [DocMeta("FloatButton 浮动按钮", "页面角落的常驻操作：客服、反馈、新建、回到顶部。单个或一组固定在视口的结束边与底部，也可以是点开才展开的速拨。", DocCategory.Layout, Order = 11)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Layout.FloatButton.Demo
+
+<DocPage Meta="Meta">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="group" Title="一组按钮与回到顶部" Demo="typeof(CornerExample)">
+                按钮是圆形的 IconButton，悬停或聚焦时提示名称（<Code>Tooltip</Code> 默认就是 <Code>Label</Code>），<Code>Badge</Code> 是未读数（<Code>BadgeDot</Code> 是小圆点）。
+                单个 FloatButton 自己固定在角落；放进 <Code>FloatButtonGroup</Code> 时竖排在一起，<Code>BackTop</Code> 也能放进来，滚过阈值才出现、没出现时不占位。
+                位置在结束边（从右到左排版时在左下），留出刘海屏的安全区；要避开底部的操作栏时用 <Code>Sx</Code> 改 <Code>InsetBlockEnd</Code>。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="speed-dial" Title="速拨" Demo="typeof(SpeedDialExample)">
+                给 FloatButtonGroup 一个 <Code>Icon</Code> 就是速拨：其余按钮收在主按钮里，点一下从上方依次展开，主按钮变成关闭；
+                <Code>@@bind-Open</Code> 是展开状态，选了一项后由父级收起。主按钮带 <Code>aria-expanded</Code>、<Code>aria-controls</Code>，
+                <Kbd>Esc</Kbd> 或点到按钮以外的地方收起，焦点回到主按钮。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("Tab", "按钮依次在 Tab 顺序里，聚焦时提示名称"),
+        ("Enter / Space", "在速拨的主按钮上：展开、收起"),
+        ("Esc", "速拨展开时：收起，焦点回到主按钮"),
+    ])" />
+    <ApiReference Types="[typeof(FloatButton), typeof(FloatButtonGroup), typeof(BackTop)]" />
+</DocPage>

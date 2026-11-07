@@ -1,16 +1,15 @@
 @*
-    回到顶部（IconButton，同 vue-tsx-pro 的 BackTop）：长页面滚下去之后，右下角出现一个按钮，点了平滑滚回顶部（减少动态效果时直接跳回）。
+    回到顶部（FloatButton，同 vue-tsx-pro 的 BackTop）：长页面滚下去之后，右下角出现一个按钮，点了平滑滚回顶部（减少动态效果时直接跳回）。
     <BackTop />                                   整页
     <BackTop Target="scroller" Threshold="200" />   某个滚动容器（它的 id）
-    按钮固定在视口的结束边与底部（从右到左排版时在左下），滚过 Threshold 才淡入；滚回去之后焦点移到页面（或容器）开头，
-    键盘用户不用再从按钮的位置往回 Tab。出现、滚回都在 JS 里（data-rune-back-top），滚动时没有往返。名称取语言包（回到顶部）。
+    是一个 FloatButton：固定在视口的结束边与底部（从右到左排版时在左下），滚过 Threshold 才淡入；放进 FloatButtonGroup 时跟着组排，没出现时不占位。
+    滚回去之后焦点移到页面（或容器）开头，键盘用户不用再从按钮的位置往回 Tab。出现、滚回都在 JS 里（data-rune-back-top），滚动时没有往返。名称取语言包（回到顶部）。
 *@
 @namespace Rune.UI
 @inherits UIComponent
 
-<IconButton Icon="BuiltInIcons.ArrowUp" Variant="ButtonVariant.Surface" Tone="UI.Tone.Neutral" Radius="UI.Radius.Full" Size="UI.Size.Lg"
-            Label="@Config.Lang.BackToTop" data-rune-back-top="@Threshold" data-target="@Target" aria-hidden="true"
-            @attributes="Attrs.MergeProps(AffixStyles.BackTop, Rest)" />
+<FloatButton Icon="BuiltInIcons.ArrowUp" Label="@Config.Lang.BackToTop" data-rune-back-top="@Threshold" data-target="@Target" aria-hidden="true"
+             @attributes="Attrs.MergeProps(Grouped ? AffixStyles.BackTopInGroup : AffixStyles.BackTop, Rest)" />
 
 @code {
     /// <summary>滚动的容器的 id；不写时是整页。</summary>
@@ -18,4 +17,6 @@
 
     /// <summary>滚过多少 px 后出现，默认 400。</summary>
     [Parameter] public int Threshold { get; set; } = 400;
+
+    [CascadingParameter(Name = FloatButton.GroupCascade)] bool Grouped { get; set; }
 }

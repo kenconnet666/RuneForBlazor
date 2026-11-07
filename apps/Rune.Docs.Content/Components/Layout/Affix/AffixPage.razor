@@ -10,7 +10,7 @@
         祖先里有 overflow 不是 visible 的元素（这里的示例面板）时，sticky 相对它贴住，把它的 id 写进 <Code>Target</Code>。
         是否贴住由 JS 的 IntersectionObserver 看一个零高度的哨兵：贴住时加阴影、写 data-stuck；给了 <Code>OnChange</Code> 才把变化报给 C#。
         <Code>BackTop</Code> 在整页（或 <Code>Target</Code> 给的容器）滚过 <Code>Threshold</Code> 后出现在右下角，点了平滑滚回顶部（减少动态效果时直接跳回），
-        焦点也回到开头；出现与滚回都在浏览器里，滚动时没有往返。
+        焦点也回到开头；出现与滚回都在浏览器里，滚动时没有往返。它是一个 FloatButton，可以和客服、反馈按钮一起放进 FloatButtonGroup。
     </Example>
     <ApiReference Types="[typeof(Affix), typeof(BackTop)]" />
 </DocPage>
