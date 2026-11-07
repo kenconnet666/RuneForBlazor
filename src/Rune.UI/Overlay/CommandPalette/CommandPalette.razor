@@ -33,7 +33,8 @@
 @code {
     static readonly Attrs DialogLayer = new() { Sx = CommandPaletteStyles.Dialog };
     // 默认触发按钮：先去掉按钮外观，再画成输入框外壳（同 vue 的 ButtonBase + 外壳样式）
-    static readonly Attrs ButtonLayer = new() { Sx = Sx.Of(SharedStyles.ButtonReset, SharedStyles.RippleHost, SharedStyles.FocusRing) };
+    // 焦点环用外壳自己的（画在边框上，同输入框），不叠按钮的外侧焦点环
+    static readonly Attrs ButtonLayer = new() { Sx = Sx.Of(SharedStyles.ButtonReset, SharedStyles.RippleHost) };
     // 标题只给读屏：面板的名称
     static readonly Attrs VisuallyHiddenLayer = new() { Sx = SharedStyles.VisuallyHidden };
     // 正文贴边（对话框正文的内容层交给 ScrollArea 的 PropsContent）
