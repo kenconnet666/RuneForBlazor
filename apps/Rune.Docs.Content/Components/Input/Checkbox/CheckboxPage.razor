@@ -9,6 +9,9 @@
             <Example Id="checkbox" Title="复选框" Demo="typeof(CheckboxExample)">
                 单个复选框绑 <Code>Value</Code>；一组用 CheckboxGroup 绑值的列表，<Code>Name</Code> 随表单提交。全选框部分勾选时写 <Code>Indeterminate</Code>，读屏念“部分选中”。放进 Field 时组以标签为名称，并关联说明与错误。
             </Example>
+            <Example Id="items" Title="选项来自数据" Demo="typeof(ItemsExample)">
+                <Code>CheckboxGroup</Code>、<Code>RadioGroup</Code> 的 <Code>Items</Code> 同 Select：ListboxOption（值、文字、说明、不可用）、字符串，或任意数据加 <Code>ToOption</Code>，选项来自字典、接口时不用一个个写。<Code>Description</Code> 显示在文字下方，经 aria-describedby 关联；单独的 <Code>Checkbox</Code>、<Code>Radio</Code> 也能写。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="switch" Title="开关" Demo="typeof(SwitchExample)">
@@ -20,9 +23,6 @@
             </Example>
             <Example Id="validation" Title="必选与出错" Demo="typeof(ValidationExample)">
                 提交时才检查：Field 的 <Code>Required</Code> 标出必填，<Code>Error</Code> 让整组标红并把错误作为说明念出；单个复选框（同意条款）同样包在 Field 里显示错误。<Code>Orientation.Horizontal</Code> 让一组横排。
-            </Example>
-            <Example Id="items" Title="选项来自数据" Demo="typeof(ItemsExample)">
-                <Code>CheckboxGroup</Code>、<Code>RadioGroup</Code> 的 <Code>Items</Code> 同 Select：ListboxOption（值、文字、说明、不可用）、字符串，或任意数据加 <Code>ToOption</Code>，选项来自字典、接口时不用一个个写。<Code>Description</Code> 显示在文字下方，经 aria-describedby 关联；单独的 <Code>Checkbox</Code>、<Code>Radio</Code> 也能写。
             </Example>
         </ExampleColumn>
     </Examples>

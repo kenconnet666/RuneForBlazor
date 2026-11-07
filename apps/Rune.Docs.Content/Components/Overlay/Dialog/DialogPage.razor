@@ -15,11 +15,11 @@
                 给了 <Code>ConfirmReason</Code> 时对话框里多一个多行输入框（驳回、作废要写理由），得到填的理由、取消时得到 null，必填没填时提示且不关闭。
                 <Code>ConfirmText</Code> / <Code>CancelText</Code> 改按钮文字，默认取语言包。
             </Example>
-        </ExampleColumn>
-        <ExampleColumn>
             <Example Id="long-content" Title="宽度与长内容" Demo="typeof(LongContentExample)">
                 <Code>Size</Code> 与 Container 同档（Xs–Xl），另有 Full 占满视口。内容长时只滚正文，标题与页脚一直看得见。这里用 <Code>Trigger</Code> 打开（不管 Open）：点击由 JS 直接打开，静态 SSR 也能用；页脚的按钮写 <Code>data-rune-close</Code> 点击后关闭。
             </Example>
+        </ExampleColumn>
+        <ExampleColumn>
             <Example Id="imperative" Title="命令式与关闭的原因" Demo="typeof(ImperativeExample)">
                 <Code>DialogService.Open(options)</Code> 不必在页面里放对话框、管 Open：从列表的一行、回调里直接弹出，关上后自动移除（布局里放一个 <Code>DialogHost</Code>）。
                 参数同 Dialog，正文写在 <Code>Content</Code>，拿到句柄：正文里的按钮可以 <Code>Update</Code> 标题、<Code>Close</Code> 关上。

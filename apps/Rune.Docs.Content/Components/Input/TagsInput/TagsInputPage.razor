@@ -9,13 +9,13 @@
             <Example Id="basic" Title="输入与建议" Demo="typeof(BasicExample)">
                 回车、逗号或分号加一个标签（<Code>Delimiters</Code> 可以改），粘贴时自动拆开，重复的不加；输入框空着时退格删掉最后一个。给了 <Code>Items</Code> 就有建议列表；<Code>AllowCustomValue="false"</Code> 只能从建议里选。
             </Example>
-            <Example Id="remote" Title="异步建议" Demo="typeof(RemoteExample)">
-                <Code>@@bind-InputValue</Code> 双向绑定输入框的文字，按它请求建议；<Code>LocalFilter="false"</Code> 不再本地过滤，<Code>Loading</Code> 时建议列表显示加载中。
-            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="states" Title="上限、图标与状态" Demo="typeof(StatesExample)">
                 <Code>Max</Code> 限制个数，满了以后输入框不再接受新的标签。<Code>Icon</Code>、<Code>Variant</Code>、<Code>Size</Code> 与其他输入框同一套；只读时标签不能移除。
+            </Example>
+            <Example Id="remote" Title="异步建议" Demo="typeof(RemoteExample)">
+                <Code>@@bind-InputValue</Code> 双向绑定输入框的文字，按它请求建议；<Code>LocalFilter="false"</Code> 不再本地过滤，<Code>Loading</Code> 时建议列表显示加载中。
             </Example>
         </ExampleColumn>
     </Examples>

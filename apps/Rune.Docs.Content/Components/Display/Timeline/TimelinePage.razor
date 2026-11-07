@@ -11,6 +11,9 @@
                 （同意、退回、催办、超时自动处理），意见写在 <Code>Description</Code>，附件做成链接（<Code>DescriptionContent</Code>）。
                 <Code>Reverse</Code> 新的在前，Items 仍按时间先后给。
             </Example>
+            <Example Id="contract" Title="流转记录：交替、小一号" Demo="typeof(ContractExample)">
+                流转记录也是普通的 Items，<Code>Alternate</Code>、<Code>Size</Code>、部件属性照常用。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="order" Title="订单进度" Demo="typeof(OrderExample)">
@@ -19,9 +22,6 @@
             </Example>
             <Example Id="releases" Title="左右交替" Demo="typeof(ReleasesExample)">
                 <Code>Alternate</Code> 让事件左右交替排布，<Code>Tone</Code> 给节点着色；容器窄时自动排回一侧。标题要放组件时用 <Code>TitleContent</Code>。
-            </Example>
-            <Example Id="contract" Title="流转记录：交替、小一号" Demo="typeof(ContractExample)">
-                流转记录也是普通的 Items，<Code>Alternate</Code>、<Code>Size</Code>、部件属性照常用。
             </Example>
         </ExampleColumn>
     </Examples>

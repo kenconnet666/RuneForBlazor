@@ -9,11 +9,11 @@
             <Example Id="multiple" Title="多选与虚拟滚动" Demo="typeof(MultipleExample)">
                 <Code>SelectionMode.Multiple</Code> 多选；焦点在列表上，按字母跳转。列表默认最高 20em，用 Sx 改。
             </Example>
-        </ExampleColumn>
-        <ExampleColumn>
             <Example Id="single" Title="单选、分组与说明" Demo="typeof(SingleExample)">
                 选项可以带 Icon、Description、Group，Disabled 的项高亮时跳过。Required 时单选至少保留一项，再点已选项不取消；在 Field 里时名称取 Field 的标签。
             </Example>
+        </ExampleColumn>
+        <ExampleColumn>
             <Example Id="remote" Title="远程搜索：加载、空结果与点选" Demo="typeof(RemoteExample)">
                 <Code>Loading</Code> 时选项换成骨架行（很快返回时不显示，见防闪烁），不另加进度条；<Code>Empty</Code> 换掉默认的空状态。<Code>OnPick</Code> 在每次点选（点击或 Enter）时调用，再点已选的那项也算，适合“选中即执行”。
             </Example>

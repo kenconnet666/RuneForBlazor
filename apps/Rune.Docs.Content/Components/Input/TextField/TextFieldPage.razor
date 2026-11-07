@@ -9,13 +9,13 @@
             <Example Id="form" Title="注册表单" Demo="typeof(FormExample)">
                 放进 Field：标签、说明、错误自动经 aria-labelledby / aria-describedby 关联，并沿用 Field 的必填、不可用。Type="password" 带显示密码的按钮；Prefix / Suffix 是固定的文字（区号、域名），不进值里；maxlength 加 ShowCount 显示字数。
             </Example>
+            <Example Id="textarea" Title="Textarea" Demo="typeof(TextareaExample)">
+                高度随内容在 Rows 与 MaxRows 之间增长（父级改值也会跟着变）；Fixed 关掉自动增高、允许拖动调整，Clearable 在右上角放清空按钮。字数计数超出上限时变成危险色，读屏念完整的句子。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="appearance" Title="样式、尺寸与状态" Demo="typeof(AppearanceExample)">
                 Variant 有描边（Surface）与浅底（Soft），Size 对应字号档位，Radius 同按钮。不可用、只读、校验未通过的外观由 Field 统一给。
-            </Example>
-            <Example Id="textarea" Title="Textarea" Demo="typeof(TextareaExample)">
-                高度随内容在 Rows 与 MaxRows 之间增长（父级改值也会跟着变）；Fixed 关掉自动增高、允许拖动调整，Clearable 在右上角放清空按钮。字数计数超出上限时变成危险色，读屏念完整的句子。
             </Example>
             <Example Id="adornments" Title="图标、前后缀、清空与字数" Demo="typeof(AdornmentsExample)">
                 Icon / IconEnd 放在框的两头，Prefix / Suffix 是不算在值里的固定文字，Clearable 有内容时显示清空按钮。Field 的 Error 让框标红并把错误作为说明。自己做的输入组件用 CharacterCount 显示字数。

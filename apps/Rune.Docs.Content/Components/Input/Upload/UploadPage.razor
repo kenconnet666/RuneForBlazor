@@ -19,12 +19,12 @@
                 失败的可以重试，移除正在上传的会取消。超过 <Code>MaxSize</Code>、不在 <Code>Accept</Code> 里的也列出来，带错误、不上传；
                 到了 <Code>MaxFiles</Code> 再选的不加进来。进度按整数百分比变化才更新，Server 模式下不会每个包都推一次。
             </Example>
-        </ExampleColumn>
-        <ExampleColumn>
             <Example Id="form" Title="随表单提交" Demo="typeof(ResumeExample)">
                 不给 <Code>UploadAsync</Code> 时文件停在“已选择”，值里带着 <Code>IBrowserFile</Code>，在 <Code>OnValidSubmit</Code> 里和别的字段一起处理；
                 校验照常写在模型上。单选（不写 <Code>Multiple</Code>）时新文件替换旧的。
             </Example>
+        </ExampleColumn>
+        <ExampleColumn>
             <Example Id="existing" Title="已有文件" Demo="typeof(ExistingExample)">
                 之前上传过、从后端读回来的文件用 <Code>UploadFile.Existing</Code> 放进值里：状态是完成、不重新上传，给了地址时文件名链到它；
                 可以移除，新选的照常上传。

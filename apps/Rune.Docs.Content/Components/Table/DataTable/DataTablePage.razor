@@ -66,18 +66,18 @@
             <Example Id="import" Title="导入校验" Demo="typeof(ImportExample)">
                 <Code>RowTone</Code> 给整行着色：错误行浅红、提醒行浅黄，底色不透明，固定列也盖得住；配合 <Code>IsRowSelectable</Code> 只让没有错误的行能勾选，全选也跳过它们。
             </Example>
+        </ExampleColumn>
+        <ExampleColumn>
             <Example Id="states" Title="加载、空状态与密度" Demo="typeof(StatesExample)">
                 只用骨架行：<Code>Loading</Code> 时表体换成骨架（首次加载、刷新），表格带 aria-busy；没有数据时显示 <Code>Empty</Code>（默认是语言包的“暂无数据”）。
                 <Code>Density</Code> 三档行高，<Code>TableVariant.Ghost</Code> 去掉外框，<Code>Striped</Code> 斑马纹。
             </Example>
-        </ExampleColumn>
-        <ExampleColumn>
-            <Example Id="pick" Title="单选" Demo="typeof(PickExample)">
-                <Code>SelectionMode.Single</Code> 时每行是同一组的单选框：方向键在行之间移动并选中，选中的行整行高亮；没有全选，这一列的标题只给读屏。
-            </Example>
             <Example Id="infinite" Title="滚动加载" Demo="typeof(InfiniteExample)">
                 <Code>OnRangeChange</Code> 报告可见行的范围，接近末尾时取下一页；取的时候 <Code>Loading</Code>，已有数据时骨架接在末尾（不换掉表体、不丢滚动位置）。
                 <Code>EstimateRowHeight</Code> 是行高的估计，渲染后按实际高度测量。
+            </Example>
+            <Example Id="pick" Title="单选" Demo="typeof(PickExample)">
+                <Code>SelectionMode.Single</Code> 时每行是同一组的单选框：方向键在行之间移动并选中，选中的行整行高亮；没有全选，这一列的标题只给读屏。
             </Example>
         </ExampleColumn>
     </Examples>
