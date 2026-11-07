@@ -1,0 +1,45 @@
+@inherits RuneComponent
+
+@* 动态列表：发生时间写相对时间，随时间自动更新，悬停看完整的日期；一周以前的直接写日期。Format 是详略：Long “3 分钟前”、Short、Narrow（窄栏、移动端）。
+   演示数据相对页面打开的时刻，服务端渲染与浏览器的“现在”不同：列表包在 ClientOnly 里，交互开始后才画 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ToggleGroup @bind-Value="format" Required="true" aria-label="详略" Size="Size.Sm">
+        <ToggleItem Value="@nameof(RelativeTimeStyle.Long)">Long</ToggleItem>
+        <ToggleItem Value="@nameof(RelativeTimeStyle.Short)">Short</ToggleItem>
+        <ToggleItem Value="@nameof(RelativeTimeStyle.Narrow)">Narrow</ToggleItem>
+    </ToggleGroup>
+    <ClientOnly>
+        <Card Padding="SpaceScale.Md">
+            <ul style="display: flex; flex-direction: column; gap: 0.75rem; margin: 0; padding: 0">
+                @foreach (var item in Events)
+                {
+                    <li @key="item.Who" style="display: flex; align-items: flex-start; gap: 0.5rem; list-style: none">
+                        <Avatar Size="Size.Sm" Name="@item.Who" />
+                        <Flex Direction="LayoutDirection.Column">
+                            <TextSpan><TextSpan Weight="Weight.Medium">@item.Who</TextSpan> @item.What</TextSpan>
+                            <Small Tone="TextTone.Muted"><RelativeTime Value="item.At" Format="Enum.Parse<RelativeTimeStyle>(format)" Threshold="TimeSpan.FromDays(7)" /></Small>
+                        </Flex>
+                    </li>
+                }
+            </ul>
+        </Card>
+    </ClientOnly>
+</Flex>
+
+@code {
+    sealed record Activity(string Who, string What, DateTimeOffset At);
+
+    string format = nameof(RelativeTimeStyle.Long);
+
+    // 演示数据：相对页面打开的时刻
+    readonly Activity[] Events = Build(DateTimeOffset.Now);
+
+    static Activity[] Build(DateTimeOffset opened) =>
+    [
+        new("林小满", "评论了“首页改版”", opened.AddSeconds(-20)),
+        new("周一航", "合并了 #1024", opened.AddMinutes(-7)),
+        new("陈默", "把“支付回调”标为已解决", opened.AddHours(-3)),
+        new("许悠", "创建了里程碑“v2.0”", opened.AddHours(-26)),
+        new("王晴", "上传了设计稿", opened.AddDays(-12)),
+    ];
+}

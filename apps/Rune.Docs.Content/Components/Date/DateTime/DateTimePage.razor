@@ -1,0 +1,28 @@
+@page "/components/date-time"
+@attribute [DocMeta("DateTime 时间显示", "DateTimeText 按语言写日期时间，RelativeTime 写“3 分钟前”并自动更新，Countdown 倒数到某个时刻；都输出语义化的元素。", DocCategory.Date, Order = 8)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Date.DateTime.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="activity" Title="相对时间" Demo="typeof(ActivityExample)">
+                <Code>RelativeTime</Code> 按相差多久自动取单位，措辞是“昨天”而不是“1 天前”，随时间更新（秒级每秒，分钟级每 10 秒，更远的更慢）。
+                <Code>Threshold</Code> 以外直接写日期；悬停看完整的日期时间。<Code>Format</Code> 是详略：<Code>Long</Code>（默认）、<Code>Short</Code>、<Code>Narrow</Code>。
+                “现在”取 DI 里的 <Code>TimeProvider</Code>（没有时是系统时间），测试、截图时给固定的。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="countdowns" Title="倒计时" Demo="typeof(CountdownsExample)">
+                <Code>Countdown</Code> 默认显示“时:分:秒”，超过一天时前面加天数；<Code>ChildContent</Code> 拿到拆好的天、时、分、秒，可以排成任意样子。
+                <Code>role="timer"</Code> 默认不播报，到点时 <Code>OnEnd</Code> 调用一次（发送验证码后恢复按钮）。几个计时器对齐到整秒一起跳；
+                <Code>CountdownPrecision.Minute</Code> 只到分、每分钟更新一次，适合以天计的期限。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <Example Id="formats" Title="日期时间的写法" Demo="typeof(FormatsExample)">
+        <Code>DateTimeText</Code>（C# 里 DateTime 是类型名）渲染 time 元素，datetime 属性是机器可读的值。不写详略时只有日期的值显示日期，带时间的再加上时分；
+        值可以是 DateOnly、TimeOnly、DateTime 或 DateTimeOffset。写法取 CultureInfo 的模式，按 Intl 的习惯调整（完整日期带星期、24 小时制的时补零）。
+    </Example>
+    <ApiReference Types="[typeof(DateTimeText), typeof(RelativeTime), typeof(Countdown)]" />
+</DocPage>

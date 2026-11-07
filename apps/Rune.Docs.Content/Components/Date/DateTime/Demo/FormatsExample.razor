@@ -1,0 +1,38 @@
+@inherits RuneComponent
+
+@* 同一个时刻的几种写法，跟着语言变：DateStyle / TimeStyle 定详略 *@
+<Card Padding="SpaceScale.None">
+    <Table aria-label="日期时间的写法" Density="TableDensity.Compact">
+        <TableHead>
+            <TableRow>
+                <TableHeaderCell>写法</TableHeaderCell>
+                <TableHeaderCell>简体中文</TableHeaderCell>
+                <TableHeaderCell>English</TableHeaderCell>
+            </TableRow>
+        </TableHead>
+        <TableBody>
+            @foreach (var (label, render) in Rows)
+            {
+                <TableRow @key="label">
+                    <TableHeaderCell Scope="row"><Code>@label</Code></TableHeaderCell>
+                    <TableCell NoWrap="true"><RuneProvider Lang="Lang.ZhCn">@render</RuneProvider></TableCell>
+                    <TableCell NoWrap="true"><RuneProvider Lang="Lang.EnUs">@render</RuneProvider></TableCell>
+                </TableRow>
+            }
+        </TableBody>
+    </Table>
+</Card>
+
+@code {
+    static readonly DateTime At = new(2026, 10, 20, 14, 30, 0);
+    static readonly DateOnly Day = new(2026, 10, 20);
+
+    static readonly (string Label, RenderFragment Render)[] Rows =
+    [
+        ("默认（带时间的值）", @<DateTimeText Value="At" />),
+        ("默认（DateOnly）", @<DateTimeText Value="Day" />),
+        ("DateStyle.Full + TimeStyle.Short", @<DateTimeText Value="At" DateStyle="DateStyle.Full" TimeStyle="TimeStyle.Short" />),
+        ("DateStyle.Short", @<DateTimeText Value="At" DateStyle="DateStyle.Short" />),
+        ("TimeOnly", @<DateTimeText Value="TimeOnly.FromDateTime(At)" />),
+    ];
+}

@@ -1,0 +1,82 @@
+@*
+    倒计时（role="timer"，同 vue-tsx-pro 的 Countdown）：到某个时刻还剩多久，按秒（或分）更新；到点时调用 OnEnd，停在 0。
+    <Countdown To="sale.StartsAt" OnEnd="Refresh" />                     2天 03:15:42
+    <Countdown To="deadline" Precision="CountdownPrecision.Minute" />    2天 03:15
+    <Countdown To="deadline" Context="left">还剩 @left.Days 天 @left.Hours 小时</Countdown>
+    目标时刻同 DateTimeText 的值。默认显示 时:分:秒，超过一天时前面加天数。role="timer" 默认不播报，到点的提示放在 OnEnd 里（Toast 等）。
+    “现在”取 TimeProvider（DI 里有就用）。未声明的属性落到 span 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@implements IDisposable
+
+<span role="timer" @attributes="Attrs.Merge(RootLayer, Rest)">
+    @if (ChildContent is { } content)
+    {
+        @content(Parts)
+    }
+    else
+    {
+        @Text
+    }
+</span>
+
+@code {
+    // 等宽数字：每秒跳动时宽度不变
+    static readonly Attrs RootLayer = new() { Sx = Css.Define(static () => new Style { FontVariantNumeric = FontVariantNumeric.TabularNums, WhiteSpace = WhiteSpace.Nowrap }) };
+
+    Clock? clock;
+    bool ended;
+
+    [Inject] IServiceProvider Services { get; set; } = null!;
+
+    /// <summary>目标时刻：DateOnly、DateTime 或 DateTimeOffset。</summary>
+    [Parameter, EditorRequired] public object To { get; set; } = null!;
+
+    /// <summary>精度，默认到秒。</summary>
+    [Parameter] public CountdownPrecision Precision { get; set; }
+
+    /// <summary>到点时调用一次（挂载时已经过了的不调用）。</summary>
+    [Parameter] public EventCallback OnEnd { get; set; }
+
+    /// <summary>自定义显示：拿到拆好的天、时、分、秒。</summary>
+    [Parameter] public RenderFragment<CountdownParts>? ChildContent { get; set; }
+
+    TimeProvider Time => Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
+
+    DateTimeOffset Target => DateValues.ToInstant(To, LangFormat.ZoneOf(Config.Lang));
+
+    CountdownParts Parts => CountdownParts.Of(Target - (clock?.Now ?? Time.GetUtcNow()), Precision);
+
+    string Text
+    {
+        get
+        {
+            var parts = Parts;
+            var clockText = Precision == CountdownPrecision.Minute ? $"{parts.Hours:D2}:{parts.Minutes:D2}" : $"{parts.Hours:D2}:{parts.Minutes:D2}:{parts.Seconds:D2}";
+            return parts.Days > 0 ? $"{DayText(parts.Days)} {clockText}" : clockText;
+        }
+    }
+
+    // 天数的写法（同 Intl 的 unit: day, unitDisplay: long）：2天、2 days
+    string DayText(long days) => Config.Lang.Code.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ? $"{days}天" : $"{days} {(days == 1 ? "day" : "days")}";
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        clock ??= new Clock(Time, now => now >= Target ? null : Precision == CountdownPrecision.Minute ? TimeSpan.FromMinutes(1) : TimeSpan.FromSeconds(1), TickAsync);
+        // 挂载时已经过了：不调用 OnEnd
+        ended = clock.Now >= Target;
+        if (RendererInfo.IsInteractive) clock.Schedule();
+    }
+
+    Task TickAsync() => InvokeAsync(async () =>
+    {
+        StateHasChanged();
+        if (ended || clock is null || clock.Now < Target) return;
+        ended = true;
+        await OnEnd.InvokeAsync();
+    });
+
+    void IDisposable.Dispose() => clock?.Dispose();
+}

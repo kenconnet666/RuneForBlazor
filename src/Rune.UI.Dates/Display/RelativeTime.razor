@@ -1,0 +1,64 @@
+@*
+    相对时间（time 元素，同 vue-tsx-pro 的 RelativeTime）：“现在”“3 分钟前”“昨天”“2 年后”，随时间自动更新；悬停显示完整的日期时间。
+    <RelativeTime Value="comment.CreatedAt" />
+    <RelativeTime Value="deadline" Threshold="TimeSpan.FromDays(7)" />   一周以外直接写日期
+    值同 DateTimeText。单位按相差多久自动取（45 秒以内用秒，45 分钟以内用分……），措辞是“昨天”而不是“1 天前”（RelativeTimeText）。
+    更新的频率随单位变：秒级每秒，分钟级每 10 秒，小时级每分钟，更远的每小时；“现在”取 TimeProvider（DI 里有就用）。未声明的属性落到 time 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@implements IDisposable
+
+<time datetime="@DateValues.Machine(Value)" title="@Full" @attributes="Attrs.Merge(null, Rest)">@Text</time>
+
+@code {
+    Clock? clock;
+
+    [Inject] IServiceProvider Services { get; set; } = null!;
+
+    /// <summary>值：DateOnly、DateTime 或 DateTimeOffset。</summary>
+    [Parameter, EditorRequired] public object Value { get; set; } = null!;
+
+    /// <summary>详略，默认完整（“3 分钟前”）。</summary>
+    [Parameter] public RelativeTimeStyle Format { get; set; }
+
+    /// <summary>相差超过多久就改写日期（同 DateTimeText）；不写时一直是相对时间。</summary>
+    [Parameter] public TimeSpan? Threshold { get; set; }
+
+    /// <summary>以哪个时刻为“现在”：写了就不再随时间更新（服务端渲染、截图、测试）。</summary>
+    [Parameter] public DateTimeOffset? Now { get; set; }
+
+    DateTimeOffset Instant => DateValues.ToInstant(Value, LangFormat.ZoneOf(Config.Lang));
+
+    DateTimeOffset Current => Now ?? clock?.Now ?? (Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System).GetUtcNow();
+
+    bool Absolute(DateTimeOffset now) => Threshold is { } limit && (Instant - now).Duration() > limit;
+
+    string Full => LangFormat.Date(Value, Config.Lang, DateStyle.Full, DateValues.HasTime(Value) ? TimeStyle.Short : null);
+
+    string Text => Absolute(Current)
+        ? LangFormat.Date(Value, Config.Lang, DateStyle.Medium, null)
+        : RelativeTimeText.Format(Instant - Current, Config.Lang.Code, Format);
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        clock ??= new Clock(Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System, Interval, () => InvokeAsync(StateHasChanged));
+        if (RendererInfo.IsInteractive) clock.Schedule();
+    }
+
+    // 不同单位下多久更新一次；固定了“现在”、已经改写日期时不更新
+    TimeSpan? Interval(DateTimeOffset now)
+    {
+        if (Now is not null || Absolute(now)) return null;
+        return RelativeTimeText.Of(Instant - now).Unit switch
+        {
+            RelativeTimeUnit.Second => TimeSpan.FromSeconds(1),
+            RelativeTimeUnit.Minute => TimeSpan.FromSeconds(10),
+            RelativeTimeUnit.Hour => TimeSpan.FromMinutes(1),
+            _ => TimeSpan.FromHours(1),
+        };
+    }
+
+    void IDisposable.Dispose() => clock?.Dispose();
+}

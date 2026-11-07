@@ -1,0 +1,77 @@
+@inherits RuneComponent
+
+@* 限时抢购：自定义成一格一格的数字；待支付的订单：默认的“时:分:秒”；优惠券：Precision="CountdownPrecision.Minute" 精确到分、每分钟更新；
+   验证码：60 秒后才能重发，到点时 OnEnd 恢复按钮。截止时刻相对页面打开的时刻，倒计时交互开始后才画（ClientOnly） *@
+<ClientOnly>
+    <Grid MinItemWidth="@("14rem")" Gap="SpaceScale.Md">
+        <Card Padding="SpaceScale.Md">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Small Tone="TextTone.Muted">双十一抢购距开始</Small>
+                <Countdown To="saleStartsAt" aria-label="距抢购开始" Context="left">
+                    <span style="display: flex; align-items: center; gap: 0.25rem">
+                        @{ long[] values = [left.Days * 24 + left.Hours, left.Minutes, left.Seconds]; }
+                        @for (var index = 0; index < values.Length; index++)
+                        {
+                            if (index > 0)
+                            {
+                                <Strong>:</Strong>
+                            }
+                            <span @attributes="Attrs.Merge(Digit)">@values[index].ToString("D2")</span>
+                        }
+                    </span>
+                </Countdown>
+            </Flex>
+        </Card>
+        <Card Padding="SpaceScale.Md">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Small Tone="TextTone.Muted">订单待支付，超时自动取消</Small>
+                <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                    <TextSpan Size="Size.Lg" Weight="Weight.Semibold"><Countdown To="orderExpiresAt" /></TextSpan>
+                    <Button Size="Size.Sm">去支付</Button>
+                </Flex>
+            </Flex>
+        </Card>
+        <Card Padding="SpaceScale.Md">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Small Tone="TextTone.Muted">满 200 减 30 优惠券</Small>
+                <TextSpan><Countdown To="couponExpiresAt" Precision="CountdownPrecision.Minute" /> 后过期</TextSpan>
+            </Flex>
+        </Card>
+        <Card Padding="SpaceScale.Md">
+            <Flex Align="ItemAlign.End" Gap="SpaceScale.Sm">
+                <Field Label="手机号"><TextField placeholder="138 0000 0000" inputmode="tel" /></Field>
+                <Button Variant="ButtonVariant.Soft" Disabled="resendAt is not null" @onclick="() => resendAt = DateTimeOffset.Now.AddSeconds(60)">
+                    @if (resendAt is { } at)
+                    {
+                        <Countdown To="at" OnEnd="() => resendAt = null" Context="left">@Math.Ceiling(left.Total.TotalSeconds)</Countdown>
+                        <span> 秒后重发</span>
+                    }
+                    else
+                    {
+                        <span>发送验证码</span>
+                    }
+                </Button>
+            </Flex>
+        </Card>
+    </Grid>
+</ClientOnly>
+
+@code {
+    static readonly Attrs Digit = new() { Sx = Css.Define(static () => new Style
+    {
+        MinWidth = CssLength.Em(2.25),
+        PaddingBlock = Space.Xs,
+        BorderRadius = Radii.Sm,
+        BackgroundColor = Tones.Accent.Solid,
+        Color = Tones.Accent.Contrast,
+        FontSize = FontSizes.Lg,
+        FontWeight = FontWeights.Semibold,
+        TextAlign = TextAlign.Center,
+    }) };
+
+    // 演示数据：抢购在页面打开的 27 小时后开始，订单 15 分钟内不付就取消
+    readonly DateTimeOffset saleStartsAt = DateTimeOffset.Now.AddMinutes(27 * 60 + 15);
+    readonly DateTimeOffset orderExpiresAt = DateTimeOffset.Now.AddMinutes(15);
+    readonly DateTimeOffset couponExpiresAt = DateTimeOffset.Now.AddMinutes((2 * 24 + 3) * 60 + 15);
+    DateTimeOffset? resendAt;
+}

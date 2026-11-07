@@ -17,6 +17,8 @@
     <PackageVersion Include="xunit.v3" Version="4.0.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
     <PackageVersion Include="bunit" Version="2.13.3" />
+    <!-- 固定、可拨动的“现在”（日期组件的测试） -->
+    <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
     <!-- 端到端测试（tests/Rune.E2E）：Chromium 由 Playwright 自己下载（第一次运行时，或 CI 的安装步骤） -->
     <PackageVersion Include="Microsoft.Playwright" Version="1.64.1" />
     <!-- 性能基准（tests/Rune.Benchmarks） -->

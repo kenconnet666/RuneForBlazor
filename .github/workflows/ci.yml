@@ -62,6 +62,7 @@ jobs:
           dotnet pack src/Rune/Rune.csproj --configuration Release --no-build --output artifacts
           dotnet pack src/Rune.UI/Rune.UI.csproj --configuration Release --no-build --output artifacts
           dotnet pack src/Rune.Icons/Rune.Icons.csproj --configuration Release --no-build --output artifacts
+          dotnet pack src/Rune.UI.Dates/Rune.UI.Dates.csproj --configuration Release --no-build --output artifacts
           unzip -l "$(ls artifacts/Rune.[0-9]*.nupkg)" | grep -q "analyzers/dotnet/cs/Rune.Generators.dll"
           unzip -l "$(ls artifacts/Rune.Icons.[0-9]*.nupkg)" | grep -q "LICENSE-lucide.txt"
           unzip -l "$(ls artifacts/Rune.UI.[0-9]*.nupkg)" | grep -q "Rune.UI.*lib.module.js"

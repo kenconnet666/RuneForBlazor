@@ -1,0 +1,26 @@
+@*
+    日期时间的文字（time 元素，同 vue-tsx-pro 的 DateTime；C# 里 DateTime 是类型名，组件叫 DateTimeText）：按当前语言格式化，datetime 属性写机器可读的值。
+    <DateTimeText Value="order.PlacedAt" />                          2026年10月20日 14:30
+    <DateTimeText Value="day" DateStyle="DateStyle.Full" />           2026年10月20日星期二
+    值是 DateOnly、TimeOnly、DateTime 或 DateTimeOffset。不写详略时：只有日期的值显示日期（中等详略），带时间的再加上时分。
+    要“3 分钟前”这样的写法用 RelativeTime。未声明的属性落到 time 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<time datetime="@DateValues.Machine(Value)" @attributes="Attrs.Merge(null, Rest)">@Text</time>
+
+@code {
+    /// <summary>值：DateOnly、TimeOnly、DateTime 或 DateTimeOffset。</summary>
+    [Parameter, EditorRequired] public object Value { get; set; } = null!;
+
+    /// <summary>日期的详略，默认中等；TimeOnly 没有日期。</summary>
+    [Parameter] public DateStyle? DateStyle { get; set; }
+
+    /// <summary>时间的详略；不写时带时间的值显示时分，只有日期的值不显示。</summary>
+    [Parameter] public TimeStyle? TimeStyle { get; set; }
+
+    string Text => LangFormat.Date(Value, Config.Lang,
+        Value is TimeOnly ? null : DateStyle ?? UI.DateStyle.Medium,
+        TimeStyle ?? (DateValues.HasTime(Value) ? UI.TimeStyle.Short : null));
+}

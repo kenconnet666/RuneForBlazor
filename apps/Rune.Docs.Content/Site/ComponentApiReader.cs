@@ -207,12 +207,17 @@ public static partial class ComponentApiReader
         return parts.Length >= 2 && cref.StartsWith("T:", StringComparison.Ordinal) is false ? $"{parts[^2]}.{parts[^1]}" : parts[^1];
     }
 
+    // 各个包（Rune.UI、Rune.UI.Dates）的注释接在一起建一个索引
     static DocsIndex LoadDocs()
     {
-        using var stream = typeof(ComponentApiReader).Assembly.GetManifestResourceStream("api/Rune.UI.xml");
-        if (stream is null) return new DocsIndex("");
-        using var reader = new StreamReader(stream);
-        return new DocsIndex(reader.ReadToEnd());
+        var assembly = typeof(ComponentApiReader).Assembly;
+        var text = new System.Text.StringBuilder();
+        foreach (var name in assembly.GetManifestResourceNames().Where(name => name.StartsWith("api/", StringComparison.Ordinal)))
+        {
+            using var reader = new StreamReader(assembly.GetManifestResourceStream(name)!);
+            text.Append(reader.ReadToEnd());
+        }
+        return new DocsIndex(text.ToString());
     }
 
     /// <summary>
