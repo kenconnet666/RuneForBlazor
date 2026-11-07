@@ -81,6 +81,10 @@
   - DateRangePicker：开始那组分段也撑满，“–”跑到框中间；改成只有结束那组撑满（同 vue）。
   - Form：字段间距 Space.Lg → Space.Md（vue 的表单都套一层 Flex gap="md"）。
   - RuneProvider：应用配了可选主题时，最外层写了 Theme 也被忽略（测试台里 provider/scoped 的纸张主题不生效）。
+  - DataTable 的勾选列：报给 vue 后照它的修法对齐（顶部对齐、只在下边抵掉多出的高度），两边行高一致。
+  - 数字按语言的文化格式化（NumberField、Progress、Indicator、DataTable 的编辑）：原来用服务器的 CurrentCulture，en-US 的服务器上 C2 显示成 $。
+  - 只到小时的分段在中文、日文后面带“时”“時”（同 Intl）。
+  - 新的分析器 RUNE010：把带样式的 Attrs 直接展开给 Rune 组件时报错（要经 MergeProps），顺手修了 9 个包装组件。
 - [x] 修掉的（示例层面）：ColumnTable、List、DeadlineBadge、ScrollArea、ButtonBase、标题尺寸、标记圆点、说明里的行内代码、按钮尺寸与 vue 不同的示例；
   date-picker 的 DateTimeOffset 字段拆成页末的单独示例；扫描脚本见 `tools/parity/columns.mjs`（排布）。
 - [ ] `parity.mjs --states`（悬停、聚焦、按下）跑全部页面，亮、暗。
