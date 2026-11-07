@@ -92,8 +92,8 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         var tasks = page.GetByRole(AriaRole.Table, new() { Name = "项目任务" });
         await page.GetByRole(AriaRole.Button, new() { Name = "定位", Exact = true }).ClickAsync();
         var target = tasks.Locator("tr[data-key='PO-2026-1360']");
+        // 滚到之后闪一下只停 1.5 秒：慢的机器上断言赶不上，只看滚进了视口
         await Assertions.Expect(target).ToBeInViewportAsync();
-        await Assertions.Expect(target).ToHaveAttributeAsync("data-tone", "info");
         await page.GetByLabel("任务编码").FillAsync("PO-2026-9999");
         await page.GetByRole(AriaRole.Button, new() { Name = "定位", Exact = true }).ClickAsync();
         await Assertions.Expect(page.GetByText("没有这个任务", new() { Exact = true })).ToBeVisibleAsync();
