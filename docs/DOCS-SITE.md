@@ -75,10 +75,23 @@
 
 ### P3 示例画布逐像素
 
-- [ ] 按 `artifacts/parity/shots.md` 从差异大的往下修：code（text、basic、block、diff）、date-time（formats −39px、countdowns −167px）、
-  data-table（import、orders、columns、ledger）、field-compare、form（layout、array、signup、admission、wizard）、timeline、scroll-area。
+- [x] 全站重跑（`all.mjs --shots --mode=server`，固定时间之后），按 `shots.md` 往下修。修掉的（组件层面）：
+  - Timeline 的操作人头像、Stat 的骨架、Timeline 的加载指示、NavGroup 的内容：样式直接展开给子组件，Sx 变成同层的普通类，被组件自己的样式盖住
+    （头像显示成 32px）；改走 `Attrs.MergeProps`。
+  - DateRangePicker：开始那组分段也撑满，“–”跑到框中间；改成只有结束那组撑满（同 vue）。
+  - Form：字段间距 Space.Lg → Space.Md（vue 的表单都套一层 Flex gap="md"）。
+  - RuneProvider：应用配了可选主题时，最外层写了 Theme 也被忽略（测试台里 provider/scoped 的纸张主题不生效）。
+- [x] 修掉的（示例层面）：ColumnTable、List、DeadlineBadge、ScrollArea、ButtonBase、标题尺寸、标记圆点、说明里的行内代码、按钮尺寸与 vue 不同的示例；
+  date-picker 的 DateTimeOffset 字段拆成页末的单独示例；扫描脚本见 `tools/parity/columns.mjs`（排布）。
 - [ ] `parity.mjs --states`（悬停、聚焦、按下）跑全部页面，亮、暗。
 
+**已知的有意差别**（不修，截图对照里会一直有）：
+
+- 内容：Blazor 的写法与参数名（`Size="Md"`、`@bind-Value`）、包名、代码示例的语言（Razor / C# 的行数不同）、指南里只适用于一边的段落。
+- API：TextField 等输入框的 Sx 落在外框上（DESIGN 的约定），vue 的 sx 落在 input 上，同样写 16rem 时 vue 的外框宽 44px；
+  DateTimeText 没有 Intl 的 `options`（date-time/formats 的后两行）；DateRangePicker 的值是日期区间而不是期间文字（periods 示例的值显示不同）。
+- vue 的问题（已报给 vue 的会话）：DataTable 勾选列的负外边距落在 input 上没有生效，vue 的表头与带勾选框的行高出约 4px，本库按它注释里的意图。
+- 还没做的：DateRangePicker 带时间的区间（periods 示例的“维护窗口”），见待决。
 ### P4 正式上线前
 
 - [ ] 程序集懒加载：Charts、Charts.Maps（地图数据大）、Dates 只在用到的页面下载（`BlazorWebAssemblyLazyLoad` + `Router.OnNavigateAsync`）；
@@ -104,3 +117,8 @@
    `PersistentComponentState`、HttpClient 的用法），页名不同，侧栏位置对齐。
 3. **导入行的写法**（P1 第一项）：包名 + 命名空间，还是只写命名空间。
 4. **因参数名不同造成的文字差异**（`Size="Md"` 对 `size="md"`）：按有意的差别处理（倾向），还是示例文字改写成等宽。
+5. **DateRangePicker 带时间的区间**（阶段 4 留下的一项）：现在的值是 `DateRange`（两个 DateOnly）。两种做法：改成泛型 `DateRangePicker<TValue>`（同 `DatePicker<TValue>`，
+   值是 `DateRange<TValue>`，DateOnly / DateTime / DateTimeOffset），或者新增 `DateTimeRange` 与一个参数。都会改公共 API（RangeCalendar、快捷区间一起动），
+   倾向泛型（与 DatePicker 一致）。
+
+已定（2026-11-07）：导入行写包名（`dotnet add package …`）；Data 指南写 Blazor 的话题；代码演练场、属性演练场按钮、示例的“编辑”、顶栏的 ORM 链接暂不做。
