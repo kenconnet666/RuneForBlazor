@@ -114,7 +114,7 @@
     static string PathOf(List<(double X, double Y)> points) =>
         string.Join(' ', points.Select((p, i) => $"{(i == 0 ? 'M' : 'L')}{N(p.X)} {N(p.Y)}"));
 
-    static string N(double value) => Math.Round(value, 3).ToString(CultureInfo.InvariantCulture);
+    static string N(double value) => SvgFormat.Number(value);
 
     string AriaLabel(List<double> present)
     {

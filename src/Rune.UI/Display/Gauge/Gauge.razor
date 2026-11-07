@@ -120,7 +120,7 @@
         return $"M{N(a.X)} {N(a.Y)} A{N(r)} {N(r)} 0 0 1 {N(b.X)} {N(b.Y)}";
     }
 
-    static string N(double value) => Math.Round(value, 3).ToString(CultureInfo.InvariantCulture);
+    static string N(double value) => SvgFormat.Number(value);
 
     static string N(decimal value) => value.ToString(CultureInfo.InvariantCulture);
 }
