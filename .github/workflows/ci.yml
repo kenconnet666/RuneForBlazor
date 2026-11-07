@@ -7,6 +7,11 @@ on:
     branches: [master, "feat/**", "fix/**"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      update-visual-baselines:
+        description: 重新截截图基线（作为构件 visual-baselines 上传，看过后放进 tests/Rune.E2E/Visual/Baselines 提交）
+        type: boolean
+        default: false
 
 # 同一分支有新的推送时取消还在跑的旧任务
 concurrency:
@@ -97,6 +102,7 @@ jobs:
               --filter-not-class 'Rune.E2E.A*' --filter-not-class 'Rune.E2E.B*' --filter-not-class 'Rune.E2E.C*' --filter-not-class 'Rune.E2E.D*'
               --filter-not-class 'Rune.E2E.E*' --filter-not-class 'Rune.E2E.F*' --filter-not-class 'Rune.E2E.G*' --filter-not-class 'Rune.E2E.H*'
               --filter-not-class 'Rune.E2E.I*' --filter-not-class 'Rune.E2E.J*' --filter-not-class 'Rune.E2E.K*' --filter-not-class 'Rune.E2E.L*'
+              --filter-not-class 'Rune.E2E.VisualTests'
     steps:
       - uses: actions/checkout@v7
 
@@ -120,6 +126,52 @@ jobs:
 
       - name: 端到端测试
         run: dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build ${{ matrix.filter }}
+
+  # 截图基线：每个文档页示例的效果区与 tests/Rune.E2E/Visual/Baselines 比较。系统、浏览器、字体都固定（ubuntu-24.04、Playwright 的 Chromium），
+  # “现在”也固定（VisualServer）。不一致时实际的截图作为构件 visual-failures 上传
+  visual:
+    name: 截图基线
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 安装 .NET SDK（版本取自 global.json）
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: 缓存 NuGet 包
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: 构建（警告即错误）
+        run: dotnet build tests/Rune.E2E/Rune.E2E.csproj --configuration Release
+
+      - name: 安装 Playwright 的 Chromium
+        run: pwsh tests/Rune.E2E/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: 截图比较
+        run: dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build --filter-class 'Rune.E2E.VisualTests'
+        env:
+          RUNE_VISUAL_UPDATE: ${{ inputs.update-visual-baselines && '1' || '' }}
+
+      - name: 上传新的基线
+        if: inputs.update-visual-baselines
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-baselines
+          path: tests/Rune.E2E/Visual/Baselines
+
+      - name: 上传不一致的截图
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-failures
+          path: artifacts/visual
 
   icon-gen:
     name: 图标数据、第三方脚本与上游一致
