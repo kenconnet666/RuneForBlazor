@@ -245,21 +245,21 @@ public class DataTableTests : BunitContext
         Assert.Equal(("true", "金额过大"), (cut.Find("tr[data-key='A-3'] td[data-column=amount]").GetAttribute("aria-invalid"), cut.Find("tr[data-key='A-3'] td[data-column=amount]").GetAttribute("title")));
         Assert.Null(cut.Find("tr[data-key='A-3'] td[data-column=amount]").GetAttribute("data-editable"));
 
-        Command("edit", "A-1customer ");
+        Command("edit", "A-1\u001fcustomer\u001f ");
         Assert.Equal(" ", cut.Find("td[data-editing] input").GetAttribute("value"));
-        Command("commit", "A-1customer");
+        Command("commit", "A-1\u001fcustomer");
         Assert.Equal("不能为空", cut.Find("td[data-editing] [role=alert]").TextContent);
         Assert.Empty(changes);
 
         cut.Find("td[data-editing] input").Input("拒绝");
-        Command("commit", "A-1customer");
+        Command("commit", "A-1\u001fcustomer");
         Assert.Equal("接口不接受", cut.Find("td[data-editing] [role=alert]").TextContent);
 
         cut.Find("td[data-editing] input").Input("南星");
-        Command("commit", "A-1customer");
+        Command("commit", "A-1\u001fcustomer");
         Assert.Equal(("南星", "customer"), ((string)changes[^1].Value!, changes[^1].Key));
         Assert.Empty(cut.FindAll("td[data-editing]"));
-        Assert.EndsWith(":A-1customer", cut.Find("table").GetAttribute("data-focus-cell"));
+        Assert.EndsWith(":A-1\u001fcustomer", cut.Find("table").GetAttribute("data-focus-cell"));
     }
 
     [Fact]
@@ -353,5 +353,23 @@ public class DataTableTests : BunitContext
 
         cut.FindAll("button").Single(b => b.TextContent.Trim() == "重置").Click();
         Assert.Equal((0, 0, 1), (hidden.Count, order.Count, reset));
+    }
+
+    [Fact]
+    public void 导出CSV_表头是列标题_看到的文字_状态写名字_引号与公式注入_原值()
+    {
+        Order[] orders = [new("=1+1", "启航, \"北\"", 1200.5m, Status.Paid, new(2026, 3, 1))];
+        var cut = Render<DataTable<Order>>(p =>
+        {
+            p.Add(x => x.Items, orders).Add(x => x.GetKey, o => o.Id);
+            p.AddChildContent<PropertyColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Id));
+            p.AddChildContent<PropertyColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Customer).Add(x => x.Group, "客户信息"));
+            p.AddChildContent<PropertyColumn<Order, decimal>>(c => c.Add(x => x.Property, o => o.Amount).Add(x => x.Type, ColumnType.Currency));
+            p.AddChildContent<StatusColumn<Order, Status>>(c => c.Add(x => x.Property, o => o.Status).Add(x => x.Statuses, Statuses).Add(x => x.Title, "状态"));
+            p.AddChildContent<TemplateColumn<Order>>(c => c.Add(x => x.Title, "操作").Add(x => x.ChildContent, _ => b => b.AddContent(0, "编辑")));
+        });
+
+        Assert.Equal("\uFEFFId,客户信息 / 客户,Amount,状态\r\n'=1+1,\"启航, \"\"北\"\"\",\"¥1,200.50\",已付款", cut.Instance.ToCsv());
+        Assert.Equal("Amount\r\n1200.5", cut.Instance.ToCsv(new() { Bom = false, Raw = true, Columns = ["amount"] }));
     }
 }

@@ -152,6 +152,8 @@ public sealed class StatusColumn<TItem, TKey> : PropertyColumn<TItem, TKey> wher
 
     internal override bool HasStatuses => true;
 
+    internal override string? StatusLabel(object value) => Statuses[(TKey)value].Label;
+
     // 状态：Select，选了就提交
     private protected override RenderFragment? DefaultEditor(CellEditSession session) => builder =>
     {

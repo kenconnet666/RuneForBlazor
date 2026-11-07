@@ -153,6 +153,9 @@ public abstract class DataTableColumn<TItem> : ComponentBase
     /// <summary>是状态列。</summary>
     internal virtual bool HasStatuses => false;
 
+    /// <summary>状态的名字（导出 CSV 用）；不是状态列时为 null。</summary>
+    internal virtual string? StatusLabel(object value) => null;
+
     /// <summary>值在筛选里的文字（筛选状态里存它，与选项的值比较）。</summary>
     internal static string FilterText(object? value) => value switch
     {

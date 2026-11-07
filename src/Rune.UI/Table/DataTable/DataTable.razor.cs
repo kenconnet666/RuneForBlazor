@@ -270,6 +270,20 @@ public partial class DataTable<TItem>
         return true;
     }
 
+    /// <summary>
+    /// 把表格里看到的行写成 CSV（RFC 4180）：本地筛选、排序后的行，显示中的、有值的列；表头是列的标题，单元格是看到的文字
+    /// （状态写名字，数字、金额、日期按列的类型与格式），开头带 BOM，Excel 打开中文不乱码。见 <see cref="CsvOptions"/>。
+    /// </summary>
+    public string ToCsv(CsvOptions? options = null)
+    {
+        options ??= new();
+        var all = ColumnDisplay.Arrange(columns.All, Rows, columnOrder.Value, columnPins.Value, columnWidths.Value, []);
+        var chosen = options.Columns is { } keys
+            ? [.. keys.Select(key => all.FirstOrDefault(view => view.Key == key)).OfType<ColumnView<TItem>>()]
+            : Shown.Where(static view => view.Column is not TemplateColumn<TItem> { Value: null }).ToList();
+        return TableCsv.Write(Rows, chosen, Config.Lang, options);
+    }
+
     DataTableLook Look
     {
         get
