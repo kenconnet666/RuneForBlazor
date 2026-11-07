@@ -2,6 +2,8 @@
 // 文件本身由盖满区域的原生 file input 接住（放下就是选中，C# 的 InputFile 收到 change），这里只管高亮。
 // dragenter / dragleave 在子元素之间也会触发：按区域计数，回到 0 才算离开。
 //
+// 选文件夹（webkitdirectory）时，选到的文件的相对路径经 rune-command（file-paths）交给 FileDrop（sendRelativePaths）。
+//
 // Upload 的图片墙另有两样：
 //   - data-rune-upload-previews：选到的图片先用本地地址（object URL）显示，不等上传。选文件（change）时给每张图片建一个，
 //     经 rune-command（file-previews，JSON：“文件名|大小|修改时间” → 地址）交给 C#；属性值是 C# 还在用的地址（空格分隔），
@@ -74,6 +76,17 @@ export function createFilePreviews(event) {
     pending.set(url, Date.now());
   });
   sendCommand(wall, 'file-previews', JSON.stringify(urls));
+}
+
+/** 选到文件夹里的文件（捕获阶段，赶在 InputFile 之前）：各文件的相对路径（文件夹/子文件夹/文件名）交给 FileDrop，IBrowserFile 只带文件名 */
+export function sendRelativePaths(event) {
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement) || !input.hasAttribute('webkitdirectory') || !input.files?.length) return;
+  const zone = input.closest('[data-rune-file-drop]');
+  if (!zone) return;
+  const paths = {};
+  for (const file of input.files) if (file.webkitRelativePath) paths[keyOf(file)] = file.webkitRelativePath;
+  if (Object.keys(paths).length > 0) sendCommand(zone, 'file-paths', JSON.stringify(paths));
 }
 
 /** C# 用着的地址变了：不在里面的收回 */

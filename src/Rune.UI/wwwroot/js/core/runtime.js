@@ -3,7 +3,7 @@
 
 import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from '../input/controls.js';
 import { blockInert, copyFrom, drawCheckOnChange, drawIcon, startDismiss, startRipple } from './effects.js';
-import { createFilePreviews, onFileDragEnter, onFileDragLeave, onFileDrop, pasteFiles, releaseDetachedPreviews, releaseFilePreviews } from '../input/files.js';
+import { createFilePreviews, onFileDragEnter, onFileDragLeave, onFileDrop, pasteFiles, releaseDetachedPreviews, releaseFilePreviews, sendRelativePaths } from '../input/files.js';
 import { guardLeave } from './leave.js';
 import { clickCascader, keyCascader, onCascaderFocusIn } from '../input/cascader.js';
 import { keyMentions, onMentionsClick, onMentionsCompositionEnd, onMentionsFocusOut, onMentionsInput, onMentionsKeyUp, pickMention } from '../input/mentions.js';
@@ -117,6 +117,7 @@ export function install(blazor, on) {
   on('paste', pasteFiles);
   // 图片墙选到的图片：赶在 InputFile 之前建本地地址
   on('change', createFilePreviews, true);
+  on('change', sendRelativePaths, true);
   on('fullscreenchange', onFullscreenChange);
   on('focusin', onFocusIn);
   on('focusout', onFocusOut);

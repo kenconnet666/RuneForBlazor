@@ -29,6 +29,14 @@ public partial class Upload
     /// <summary>可以选多个；不写时新文件替换旧的。</summary>
     [Parameter] public bool Multiple { get; set; }
 
+    /// <summary>选文件夹（同 FileDrop 的 Directory）：里面的文件都加进来，列表里显示相对路径；隐含多选。</summary>
+    [Parameter] public bool Directory { get; set; }
+
+    FileDrop? drop;
+
+    // 选文件夹隐含多选
+    bool Many => Multiple || Directory;
+
     /// <summary>单个文件的大小上限（字节）；超过的列出来、带错误、不上传。</summary>
     [Parameter] public long? MaxSize { get; set; }
 
@@ -87,7 +95,7 @@ public partial class Upload
     bool PasteEnabled => Pasteable && !IsReadOnly && !IsDisabled;
 
     // 到了 MaxFiles：图片墙收起“添加图片”
-    bool IsFull => Multiple && MaxFiles is { } max && Files.Count >= max;
+    bool IsFull => Many && MaxFiles is { } max && Files.Count >= max;
 
     Attrs? ThumbnailVars => ThumbnailSize == DefaultThumbnailSize ? null
         : thumbnailVars.Get(ThumbnailSize, static size => new Attrs { Vars = [UploadStyles.ThumbnailVar.Set(size)] });
@@ -115,7 +123,7 @@ public partial class Upload
         .Distinct());
 
     // 与 JS 的 files.js 一致：名称|大小|修改时间（毫秒）
-    static string KeyOf(IBrowserFile file) => $"{file.Name}|{file.Size}|{file.LastModified.ToUnixTimeMilliseconds()}";
+    static string KeyOf(IBrowserFile file) => FileKey.Of(file);
 
     // 能预览的（按墙上的顺序）
     List<UploadFile> Previewable => [.. Files.Where(item => !item.Rejected && PreviewOf(item) is not null)];
@@ -168,16 +176,17 @@ public partial class Upload
     {
         var entries = files.Select(file =>
         {
-            var entry = new UploadFile { Id = UniqueId.Next("upload"), Name = file.Name, Size = file.Size, File = file, Status = UploadStatus.Selected };
+            // 选文件夹时显示相对路径（报告/附图/图 1.png），看得出文件在哪一层
+            var entry = new UploadFile { Id = UniqueId.Next("upload"), Name = drop?.PathOf(file) ?? file.Name, Size = file.Size, File = file, Status = UploadStatus.Selected };
             if (rejectedType) return entry with { Status = UploadStatus.Error, Error = Config.Lang.FileTypeRejected, Rejected = true };
             if (MaxSize is { } max && file.Size > max)
                 return entry with { Status = UploadStatus.Error, Error = Config.Lang.FileTooLarge(LangFormat.FileSize(max, Config.Lang.Code)), Rejected = true };
             return entry;
         }).ToList();
-        if (!Multiple) CancelAll();
-        var kept = Multiple ? Files : [];
+        if (!Many) CancelAll();
+        var kept = Many ? Files : [];
         var room = MaxFiles is { } limit ? Math.Max(0, limit - kept.Count) : entries.Count;
-        var added = (Multiple ? entries : entries.TakeLast(1)).Take(room).ToList();
+        var added = (Many ? entries : entries.TakeLast(1)).Take(room).ToList();
         await SetValueAsync([.. kept, .. added]);
         StartPending();
     }

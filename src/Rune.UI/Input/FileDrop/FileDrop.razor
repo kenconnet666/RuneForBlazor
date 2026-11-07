@@ -5,13 +5,16 @@
     值是这次选到的文件（IBrowserFile，已按 accept 过滤；不写 Multiple 时最多一个），读内容用 <c>file.OpenReadStream(maxAllowedSize)</c>
     （Server 模式经 SignalR 分块传、WebAssembly 在本地读）。拖放不受 accept 限制，不符合的经 OnReject 交出去。
     拖着文件经过时 JS 初始化器写 data-dragging。在 Field 里时关联标签、说明与错误；未声明的属性落到 input 上，Sx 落在区域上。
+    Directory：选整个文件夹（对话框与拖进来的文件夹都由浏览器递归读出里面的文件，隐含多选）；
+    IBrowserFile 只带文件名，“文件夹/子文件夹/文件名”用 <c>PathOf(file)</c> 取（JS 在选到时交来）。
     列表、进度、重试见 Upload（建在它上面）。
 *@
 @namespace Rune.UI
 @inherits FormControl<IReadOnlyList<IBrowserFile>>
 @using Microsoft.AspNetCore.Components.Forms
+@using System.Text.Json
 
-<label data-rune-file-drop data-disabled="@(IsDisabled ? "true" : null)" data-readonly="@(IsReadOnly ? "true" : null)"
+<label data-rune-file-drop @onrunecommand="OnCommand" data-disabled="@(IsDisabled ? "true" : null)" data-readonly="@(IsReadOnly ? "true" : null)"
        @attributes="Attrs.Merge(FileDropStyles.Root(IsInvalid, IsDisabled || IsReadOnly), RootUserAttrs)">
     <InputFile @ref="input" OnChange="OnChangeAsync" @attributes="Attrs.Merge(FileDropStyles.Input, NamedInputUserAttrs, InputManaged)" />
     @if (ChildContent is not null)
@@ -35,13 +38,17 @@
     static readonly Attrs DescriptionLayer = new() { Sx = FileDropStyles.Description };
 
     InputFile? input;
-    Memo<(Attrs Control, string? Accept, bool Multiple, bool Locked), Attrs> inputManaged;
+    Memo<(Attrs Control, string? Accept, bool Multiple, bool Directory, bool Locked), Attrs> inputManaged;
+    readonly Dictionary<string, string> relativePaths = [];
 
     /// <summary>接受的文件类型（同原生 accept：<c>image/*</c>、<c>.pdf</c>）；拖进来的不符合的经 OnReject 交出去。</summary>
     [Parameter] public string? Accept { get; set; }
 
     /// <summary>可以选多个。</summary>
     [Parameter] public bool Multiple { get; set; }
+
+    /// <summary>选文件夹：对话框里选整个文件夹（webkitdirectory），拖进来的文件夹也读出里面的文件；隐含多选。相对路径用 <see cref="PathOf"/> 取。</summary>
+    [Parameter] public bool Directory { get; set; }
 
     /// <summary>选到的文件里不符合 Accept 的（拖放不受 accept 限制）。</summary>
     [Parameter] public EventCallback<IReadOnlyList<IBrowserFile>> OnReject { get; set; }
@@ -62,10 +69,11 @@
     [Parameter] public Attrs? PropsDescription { get; set; }
 
     // input 上由组件管理的属性：表单状态、accept、multiple；只读与不可用一样不能选文件（文件输入框没有原生的只读）
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, Accept, Multiple, IsDisabled || IsReadOnly), static k => Attrs.Merge(k.Control, new Attrs
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, Accept, Multiple, Directory, IsDisabled || IsReadOnly), static k => Attrs.Merge(k.Control, new Attrs
     {
         ["accept"] = k.Accept,
-        ["multiple"] = k.Multiple ? true : null,
+        ["multiple"] = k.Multiple || k.Directory ? true : null,
+        ["webkitdirectory"] = k.Directory ? true : null,
         ["disabled"] = k.Locked ? true : null,
         ["readonly"] = null,
     }));
@@ -75,8 +83,18 @@
         var files = e.FileCount == 0 ? [] : e.GetMultipleFiles(int.MaxValue);
         var accepted = files.Where(file => FileAccept.Matches(file, Accept)).ToList();
         var rejected = files.Where(file => !FileAccept.Matches(file, Accept)).ToList();
-        if (accepted.Count > 0) await SetValueAsync(Multiple ? accepted : [accepted[0]]);
+        if (accepted.Count > 0) await SetValueAsync(Multiple || Directory ? accepted : [accepted[0]]);
         if (rejected.Count > 0) await OnReject.InvokeAsync(rejected);
+    }
+
+    /// <summary>选文件夹时文件的相对路径（“报告/附图/图 1.png”）；不是从文件夹里选的、或还没收到时是文件名。</summary>
+    public string PathOf(IBrowserFile file) => relativePaths.GetValueOrDefault(FileKey.Of(file)) ?? file.Name;
+
+    // JS 在选到文件时（赶在 InputFile 之前）交来相对路径
+    void OnCommand(CommandEventArgs e)
+    {
+        if (e.Name != "file-paths" || e.Text is not { } json) return;
+        foreach (var (key, path) in JsonSerializer.Deserialize(json, UIJson.Relaxed.DictionaryStringString) ?? []) relativePaths[key] = path;
     }
 
     /// <inheritdoc/>

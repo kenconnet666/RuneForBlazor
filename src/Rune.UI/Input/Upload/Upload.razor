@@ -78,7 +78,7 @@
             </div>
             @if (!IsReadOnly && !IsFull)
             {
-                <FileDrop Accept="@Accept" Multiple="Multiple" Disabled="IsDisabled" Invalid="IsInvalid" Required="@(IsRequired && Files.Count == 0)"
+                <FileDrop @ref="drop" Accept="@Accept" Multiple="Multiple" Directory="Directory" Disabled="IsDisabled" Invalid="IsInvalid" Required="@(IsRequired && Files.Count == 0)"
                           ValueChanged="AddPicked" OnReject="AddRejected" @attributes="Attrs.MergeProps(UploadStyles.AddCard, PropsDrop)">
                     <Icon Data="BuiltInIcons.ImagePlus" />
                     @Config.Lang.UploadAddImage
@@ -102,7 +102,7 @@ else
         @if (!IsReadOnly)
         {
             @* 选好的文件不在 FileDrop 的输入框里（选完就清空）：已有文件时不再原生必填，免得表单交不了 *@
-            <FileDrop Accept="@Accept" Multiple="Multiple" Disabled="IsDisabled" Invalid="IsInvalid" Required="@(IsRequired && Files.Count == 0)"
+            <FileDrop @ref="drop" Accept="@Accept" Multiple="Multiple" Directory="Directory" Disabled="IsDisabled" Invalid="IsInvalid" Required="@(IsRequired && Files.Count == 0)"
                       Description="Hint" ValueChanged="AddPicked" OnReject="AddRejected" @attributes="Attrs.MergeProps(null, PropsDrop)" />
         }
         @if (Files.Count > 0)

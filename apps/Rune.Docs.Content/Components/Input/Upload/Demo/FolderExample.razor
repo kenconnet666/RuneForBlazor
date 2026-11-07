@@ -1,0 +1,25 @@
+@inherits RuneComponent
+@using Microsoft.AspNetCore.Components.Forms
+
+@* 上传整个文件夹：对话框里选文件夹，或把文件夹拖进来，里面的文件（含子文件夹）都加进来，列表里显示相对路径 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="项目资料" Description="选一个文件夹，或把文件夹拖进来">
+        <Upload @bind-Value="files" Directory="true" UploadAsync="FakeUploadAsync" />
+    </Field>
+    @if (files.Count > 0)
+    {
+        <Small Tone="TextTone.Muted">共 @files.Count 个文件，@files.Count(item => item.Status == UploadStatus.Done) 个已上传</Small>
+    }
+</Flex>
+
+@code {
+    IReadOnlyList<UploadFile> files = [];
+
+    // 演示用的上传：半秒后完成；真实场景把 UploadFile.Name（相对路径）一起交给后端，按目录存
+    static async Task<object?> FakeUploadAsync(IBrowserFile file, IProgress<double> progress, CancellationToken cancellation)
+    {
+        progress.Report(0.5);
+        await Task.Delay(500, cancellation);
+        return file.Name;
+    }
+}

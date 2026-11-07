@@ -40,6 +40,33 @@ public class UploadTests(DemoServer demo) : E2ETest(demo)
         await page.WaitForFunctionAsync("url => fetch(url).then(() => false, () => true)", url);
     }
 
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 选文件夹_里面的文件都加进来_显示相对路径(string mode)
+    {
+        var root = Directory.CreateTempSubdirectory("rune-upload-");
+        try
+        {
+            var folder = Directory.CreateDirectory(Path.Combine(root.FullName, "报告"));
+            await File.WriteAllTextAsync(Path.Combine(folder.FullName, "正文.txt"), "a", TestContext.Current.CancellationToken);
+            Directory.CreateDirectory(Path.Combine(folder.FullName, "附图"));
+            await File.WriteAllTextAsync(Path.Combine(folder.FullName, "附图", "图 1.txt"), "b", TestContext.Current.CancellationToken);
+
+            var page = await OpenAsync(mode, "upload");
+            var input = page.Locator("section:has(> h2[id=folder]) input[type=file]");
+            await input.SetInputFilesAsync(folder.FullName);
+
+            var section = page.Locator("section:has(> h2[id=folder])");
+            await Assertions.Expect(section.GetByText("报告/正文.txt")).ToBeVisibleAsync();
+            await Assertions.Expect(section.GetByText("报告/附图/图 1.txt")).ToBeVisibleAsync();
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
+
     [Fact]
     public async Task 粘贴截图加进来()
     {

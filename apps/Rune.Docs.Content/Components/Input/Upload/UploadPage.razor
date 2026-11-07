@@ -33,6 +33,9 @@
                 只负责选文件：点击、聚焦后按 Enter / 空格、或把文件拖进来。选到的经 <Code>ValueChanged</Code> 交出去；
                 拖放不受 accept 限制，不合格的经 <Code>OnReject</Code> 交出去。
             </Example>
+            <Example Id="folder" Title="上传整个文件夹" Demo="typeof(FolderExample)">
+                <Code>Directory</Code> 时对话框里选文件夹（webkitdirectory），拖进来的文件夹也由浏览器读出里面的文件（含子文件夹），列表里显示相对路径。FileDrop 同样有这个参数，相对路径用它的 <Code>PathOf(file)</Code> 取。
+            </Example>
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="@([

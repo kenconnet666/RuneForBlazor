@@ -62,6 +62,12 @@ internal static class FileDropStyles
     });
 }
 
+/// <summary>按“文件名|大小|修改时间（毫秒）”认文件：JS 交来的本地地址、相对路径按它对上 C# 收到的 IBrowserFile。</summary>
+internal static class FileKey
+{
+    public static string Of(IBrowserFile file) => $"{file.Name}|{file.Size}|{file.LastModified.ToUnixTimeMilliseconds()}";
+}
+
 /// <summary>文件是否符合 accept（同原生 accept：逗号分隔的 <c>image/*</c>、<c>.pdf</c>、<c>application/json</c>）。拖放不受 accept 限制，FileDrop 按它补上。</summary>
 public static class FileAccept
 {

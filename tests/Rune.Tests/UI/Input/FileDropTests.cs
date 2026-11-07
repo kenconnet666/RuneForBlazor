@@ -61,4 +61,26 @@ public class FileDropTests : BunitContext
         Assert.True(readOnly.Find("input[type=file]").HasAttribute("disabled"));
         Assert.Equal("true", readOnly.Find("label").GetAttribute("data-readonly"));
     }
+
+    [Fact]
+    public void 选文件夹_对话框是webkitdirectory且多选_相对路径由JS交来()
+    {
+        IReadOnlyList<IBrowserFile>? chosen = null;
+        var cut = Render<FileDrop>(p => p
+            .Add(x => x.Directory, true)
+            .Add(x => x.ValueChanged, EventCallback.Factory.Create<IReadOnlyList<IBrowserFile>>(this, v => chosen = v)));
+        var input = cut.Find("input[type=file]");
+        Assert.True(input.HasAttribute("webkitdirectory"));
+        Assert.True(input.HasAttribute("multiple"));
+
+        cut.FindComponent<InputFile>().UploadFiles(
+            InputFileContent.CreateFromText("a", "a.txt"),
+            InputFileContent.CreateFromText("b", "b.png"));
+        Assert.Equal(2, chosen!.Count);
+        var key = $"{chosen[1].Name}|{chosen[1].Size}|{chosen[1].LastModified.ToUnixTimeMilliseconds()}";
+        cut.Find("label").TriggerEvent("onrunecommand", new CommandEventArgs { Name = "file-paths", Text = $$"""{"{{key}}":"报告/附图/b.png"}""" });
+
+        Assert.Equal("报告/附图/b.png", cut.Instance.PathOf(chosen[1]));
+        Assert.Equal("a.txt", cut.Instance.PathOf(chosen[0]));
+    }
 }
