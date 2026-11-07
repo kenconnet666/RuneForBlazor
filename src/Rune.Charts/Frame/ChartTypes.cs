@@ -9,7 +9,7 @@ namespace Rune.UI;
 /// <param name="Key">标识：隐藏的系列、标注圈出的系列按它找。</param>
 /// <param name="Label">名称：图例、提示框、读屏的数据表里显示。</param>
 /// <param name="Value">取值；null 是空值（线在这里断开，不当成 0）。金额用 decimal 不经过浮点，提示框、数据表按原值格式化。</param>
-public sealed record ChartSeries<TItem>(string Key, string Label, Func<TItem, decimal?> Value)
+public record ChartSeries<TItem>(string Key, string Label, Func<TItem, decimal?> Value)
 {
     /// <summary>颜色；不写时按系列的顺序取色板（第 1 个系列跟随品牌色）。</summary>
     public ChartColor? Color { get; init; }

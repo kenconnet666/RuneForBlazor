@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+@* 预算到实际的差异：成本超支是坏事，对调颜色（增加用 Danger、减少用 Success）；中间插一根小计柱（Total 不写 Value：画到当时的累计）；目标线标出预算上限；点一步看明细 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <WaterfallChart Steps="Steps" Unit="万元" IncreaseColor="Tone.Danger" DecreaseColor="Tone.Success" TotalColor="ChartColor.Series(4)" ValueMin="700"
+                    Targets="Limits" Height="260" OnItemClick="(ChartItemClick<WaterfallStep> click) => picked = click.Item.Label" aria-label="预算到实际" />
+    <Small Tone="TextTone.Muted">@(picked is null ? "点一根柱子试试" : $"点了：{picked}")</Small>
+</Flex>
+
+@code {
+    static readonly WaterfallStep[] Steps =
+    [
+        new("预算", 860) { Total = true },
+        new("人力", 64),
+        new("外包", -38),
+        new("小计") { Total = true },
+        new("云资源", 27),
+        new("差旅", -12),
+        new("实际") { Total = true },
+    ];
+
+    static readonly ChartTarget[] Limits = [new(900) { Label = "上限" }];
+
+    string? picked;
+}

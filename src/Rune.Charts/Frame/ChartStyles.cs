@@ -116,6 +116,9 @@ public static class ChartStyles
     /// <summary>绘图区的高度。</summary>
     internal static readonly CssVar<CssLength> PlotHeight = CssVar.Length("rune-chart-plot-height", "240px");
 
+    // 加载中的骨架：一整块
+    internal static Style SkeletonBlock => Css.Define(static () => new Style { Display = Display.Block, Width = CssLength.Percent(100), Height = CssLength.Percent(100) });
+
     internal static Style Center => Css.Define(static () => new Style { Display = Display.Flex, AlignItems = AlignItems.Center, JustifyContent = JustifyContent.Center, Height = CssLength.Percent(100) });
 
     // 提示框：放在指针右侧，过了绘图区的一半放到左侧（位置由 charts.js 写在 style 上）；消失时淡出

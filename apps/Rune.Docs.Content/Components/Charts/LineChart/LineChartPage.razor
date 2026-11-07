@@ -35,5 +35,11 @@
         <Code>Axis = ChartBandAxis.Value</Code> 时在数值轴上（目标区间，数值轴的范围会包含它）。颜色可以写语义色或色板。
         柱状图、面积图、组合图同样支持，横向的柱状图只画竖线与区间。
     </Example>
+    <Example Id="zoom" Title="缩放与导出" Demo="typeof(ZoomExample)">
+        <Code>Zoom</Code> 在绘图区下面放一条区间滑块，选一段类目放大看（拖两端，或聚焦后用方向键），“显示全部”恢复；
+        <Code>ZoomRange</Code> 可以双向绑定（类目的位置，含两端，<Code>null</Code> 是全部）。读屏的数据表仍是全部数据。
+        <Code>Exportable</Code> 在右上角放导出菜单：绘图区存成 PNG（两倍分辨率，主题的颜色与字体照原样），数据表存成 CSV（带 BOM，Excel 打开中文不乱码）；
+        文件名默认是图表的名称，<Code>ExportName</Code> 可以改。柱状图、面积图、组合图同样支持。
+    </Example>
     <ApiReference Types="[typeof(LineChart<>), typeof(ChartSeries<>), typeof(ChartAnnotation), typeof(ChartBand)]" />
 </DocPage>

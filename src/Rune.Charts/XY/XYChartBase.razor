@@ -1,22 +1,14 @@
 @*
-    直角坐标图表的公共实现（见 XYChart.razor.cs）：外层交给 ChartFrame，绘图区里是一张 SVG 与提示框。
+    直角坐标图表的公共实现（见 XYChartBase.razor.cs）：外层交给 ChartFrame，绘图区里是一张 SVG 与提示框。
     SVG 从下往上：区间、坐标轴与网格、零线、悬停的浅底、图形（Marks）、目标线与事件竖线、标注圈、十字线。
     十字线、浅底、提示框由 C# 渲染成隐藏的骨架，charts.js 按 data-chart 里的数据改它们的位置与显示（不往返）。
     未声明的属性落到外层 div（role="figure"）上；aria-label 是图表的名称。
 *@
 @namespace Rune.UI
 @typeparam TItem
-@inherits UIComponent
-@{
-    var layout = UseSize() && Items.Count > 0 ? ComputeLayout() : null;
-}
+@inherits ChartBase
 
-<ChartFrame Unit="@(Percent ? null : Unit)" UnitEnd="@Secondary?.Unit" Height="Height" Legend="LegendItems" HiddenKeys="Hidden" OnLegendToggle="ToggleAsync"
-            Loading="Loading" Skeleton="SkeletonFragment" IsEmpty="Items.Count == 0" Empty="Empty" Table="@(BuildTable() ?? DefaultTable())"
-            PlotData="@(layout is null ? null : HoverData(layout))" OnPlotCommand="OnPlotCommandAsync" Clickable="OnItemClick.HasDelegate"
-            Plot="@(layout is null ? null : PlotFragment(layout))"
-            PropsHeader="PropsHeader" PropsUnit="PropsUnit" PropsLegend="PropsLegend" PropsLegendItem="PropsLegendItem" PropsPlot="PropsPlot" PropsTable="PropsTable"
-            @attributes="Rest" />
+@Frame
 
 @code {
     static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
@@ -35,12 +27,6 @@
     static readonly Attrs EventLabelLayer = new() { Sx = Sx.Of(ChartSvgStyles.LabelMuted, ChartSvgStyles.Halo) };
     static readonly Attrs MarkLayer = new() { Sx = ChartSvgStyles.Mark };
     static readonly Attrs MarkLabelLayer = new() { Sx = Sx.Of(ChartSvgStyles.Label, ChartSvgStyles.Halo) };
-    static readonly Attrs TooltipLayer = new() { Sx = ChartStyles.Tooltip };
-    static readonly Attrs TooltipTitleLayer = new() { Sx = ChartStyles.TooltipTitle };
-    static readonly Attrs TooltipRowLayer = new() { Sx = ChartStyles.TooltipRow };
-    static readonly Attrs SwatchLayer = new() { Sx = ChartStyles.Swatch };
-    static readonly Attrs TooltipLabelLayer = new() { Sx = ChartStyles.TooltipLabel };
-    static readonly Attrs TooltipValueLayer = new() { Sx = ChartStyles.TooltipValue };
     static readonly Attrs SkeletonBarsLayer = new() { Sx = XYChartStyles.SkeletonBars };
     static readonly Attrs SkeletonBarsHorizontalLayer = new() { Sx = Sx.Of(XYChartStyles.SkeletonBars, XYChartStyles.SkeletonBarsHorizontal) };
 
@@ -52,11 +38,28 @@
     // 网格线落在像素中间：1px 的线不发虚
     static string Crisp(double value) => N(Math.Floor(value + 0.5) + 0.5);
 
-    RenderFragment SkeletonFragment => __builder =>
+    static readonly Attrs ZoomLayer = new() { Sx = XYChartStyles.Zoom };
+    static readonly Attrs ZoomSliderLayer = new() { Sx = XYChartStyles.ZoomSlider };
+
+    /// <summary>缩放的滑块：两端是类目；缩小过时旁边有“显示全部”。</summary>
+    RenderFragment ZoomBar => __builder =>
+    {
+        var last = Data.Count - 1;
+        <div @attributes="Attrs.Merge(ZoomLayer)">
+            <Slider TValue="int" Range="Range ?? new NumberRange<int>(0, last)" RangeChanged="range => ZoomAsync(range)" Min="0" Max="last" Size="UI.Size.Sm"
+                    ValueText="position => CategoryOf(Data[Math.Clamp(position, 0, last)])" aria-label="@Config.Lang.ChartZoom" @attributes="Attrs.MergeProps(ZoomSliderLayer)" />
+            @if (Range is not null)
+            {
+                <Button Variant="ButtonVariant.Link" Size="UI.Size.Sm" @onclick="() => ZoomAsync(null)">@Config.Lang.ChartZoomReset</Button>
+            }
+        </div>
+    };
+
+    private protected override RenderFragment SkeletonContent => __builder =>
     {
         if (!SkeletonBars)
         {
-            <Skeleton Sx="XYChartStyles.SkeletonBlock" />
+            <Skeleton Sx="ChartStyles.SkeletonBlock" />
             return;
         }
         <div aria-hidden="true" @attributes="Attrs.Merge(Horizontal ? SkeletonBarsHorizontalLayer : SkeletonBarsLayer)">
@@ -74,8 +77,7 @@
         var horizontal = context.Horizontal;
         var zero = context.Value(0);
         var showZero = context.Domain.Start < 0 && context.Domain.End > 0;
-        <svg width="@(measured ? N(width) : "100%")" height="@(measured ? N(height) : "100%")" viewBox="@(measured ? null : $"0 0 {N(width)} {N(height)}")"
-             @attributes="Attrs.Merge(SvgLayer)">
+        <svg @attributes="Attrs.Merge(SvgLayer, SvgSize())">
             @BandsFragment(context)
             @Axis(horizontal ? AxisSide.Bottom : AxisSide.Left, layout.ValueTicks, plot, Grid)
             @Axis(horizontal ? AxisSide.Left : AxisSide.Bottom, layout.CategoryTicks, plot, Continuous is not null && Grid)
@@ -85,7 +87,7 @@
             }
             @if (Continuous?.Title is { } title)
             {
-                @ChartSvg.Text(title, plot.Left + plot.Width / 2, height - 2, AxisTitleLayer, "middle")
+                @ChartSvg.Text(title, plot.Left + plot.Width / 2, PlotHeight - 2, AxisTitleLayer, "middle")
             }
             @if (showZero)
             {
@@ -121,16 +123,7 @@
         </svg>
         @if (Tooltip)
         {
-            <div data-part="tooltip" @attributes="Attrs.Merge(TooltipLayer)"></div>
-            @* 提示框的原型：charts.js 按每行的数据克隆、填字 *@
-            <div hidden data-tip-proto>
-                <div data-tip-title @attributes="Attrs.Merge(TooltipTitleLayer)"></div>
-                <div data-tip-row @attributes="Attrs.Merge(TooltipRowLayer)">
-                    <span @attributes="Attrs.Merge(SwatchLayer)"></span>
-                    <span @attributes="Attrs.Merge(TooltipLabelLayer)"></span>
-                    <span @attributes="Attrs.Merge(TooltipValueLayer)"></span>
-                </div>
-            </div>
+            @TooltipBox
         }
     };
 

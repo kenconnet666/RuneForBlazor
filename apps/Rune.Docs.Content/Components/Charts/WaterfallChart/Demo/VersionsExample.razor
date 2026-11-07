@@ -1,0 +1,19 @@
+@inherits RuneComponent
+
+@* 测算两版之间的差异：从 V1 出发，各参数的影响一步步加减到 V2；销售额变多是好事，所以往上是 Success *@
+<WaterfallChart Steps="Steps" Unit="万元" ValueFormat="OneDigit" Height="280" aria-label="V1 到 V2 的测算差异" />
+
+@code {
+    static readonly WaterfallStep[] Steps =
+    [
+        new("V1 测算", 126.4m) { Total = true },
+        new("材料单价", -18.2m),
+        new("成材率", 9.6m),
+        new("工时", 6.5m),
+        new("税率", -2.1m),
+        new("批量", 11.3m),
+        new("V2 测算") { Total = true },
+    ];
+
+    static readonly NumberFormat OneDigit = new() { MaximumFractionDigits = 1 };
+}

@@ -37,6 +37,47 @@ public class ChartTests(DemoServer demo) : E2ETest(demo)
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
+    public async Task 缩放_显示全部_导出数据(string mode)
+    {
+        var page = await OpenAsync(mode, "line-chart");
+        var chart = page.Locator("[role=figure][aria-label=\"月度订单与退货\"]");
+        await chart.ScrollIntoViewIfNeededAsync();
+        // 一开始只显示最后 12 个月：每个系列 12 个点的线（十字线数据里 12 个类目）
+        await Assertions.Expect(page.GetByText("显示：2026-01 到 2026-12")).ToBeVisibleAsync();
+        await chart.GetByRole(AriaRole.Button, new() { Name = "显示全部" }).ClickAsync();
+        await Assertions.Expect(page.GetByText("显示：全部 36 个月")).ToBeVisibleAsync();
+        await Assertions.Expect(chart.GetByRole(AriaRole.Button, new() { Name = "显示全部" })).ToHaveCountAsync(0);
+
+        // 导出数据：CSV 的文件名是图表的名称，内容是读屏的数据表（带 BOM）
+        await chart.GetByRole(AriaRole.Button, new() { Name = "导出" }).ClickAsync();
+        var download = await page.RunAndWaitForDownloadAsync(() => page.GetByRole(AriaRole.Menuitem, new() { Name = "导出数据（CSV）" }).ClickAsync());
+        Assert.Equal("月度订单与退货.csv", download.SuggestedFilename);
+        var text = await File.ReadAllTextAsync((await download.PathAsync())!, TestContext.Current.CancellationToken);
+        Assert.StartsWith("类目,订单（单）,退货（单）", text.TrimStart('﻿'));
+        Assert.Equal(37, text.Split("\r\n").Length);
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 瀑布图_提示框列出变动与累计(string mode)
+    {
+        var page = await OpenAsync(mode, "waterfall-chart");
+        var chart = page.Locator("[role=figure][aria-label=\"V1 到 V2 的测算差异\"]");
+        var bar = chart.Locator("[data-part=bar][data-index=\"1\"]");
+        await Assertions.Expect(bar).ToHaveCountAsync(1);
+        var box = (await chart.Locator("[data-rune-chart] svg").BoundingBoxAsync())!;
+        var target = (await bar.BoundingBoxAsync())!;
+        await page.Mouse.MoveAsync(target.X + target.Width / 2, box.Y + box.Height / 2);
+        var tooltip = chart.Locator("[data-part=tooltip]");
+        await Assertions.Expect(tooltip).ToContainTextAsync("材料单价");
+        await Assertions.Expect(tooltip).ToContainTextAsync("-18.2 万元");
+        await Assertions.Expect(tooltip).ToContainTextAsync("108.2 万元");
+    }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
     public async Task 柱状图_点柱子下钻(string mode)
     {
         var page = await OpenAsync(mode, "bar-chart");

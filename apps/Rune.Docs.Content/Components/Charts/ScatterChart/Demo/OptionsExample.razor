@@ -1,0 +1,39 @@
+@inherits RuneComponent
+
+@* 数值轴的范围与单位、类目的显示文字、高度；图例、网格线、提示框、加载与空状态；HiddenSeries 双向绑定。每次会话只属于一个系列：另一个值留空，那个系列上就不画点 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="legend">图例</Switch>
+        <Switch @bind-Value="grid">网格线</Switch>
+        <Switch @bind-Value="tooltip">提示框</Switch>
+        <Switch @bind-Value="loading">加载中</Switch>
+        <Switch @bind-Value="empty">没有数据</Switch>
+    </Flex>
+    <ScatterChart Items="Shown" Category="s => s.Id" CategoryText="SessionText" X="s => s.Minutes" XLabel="停留（分钟）" Series="Series" Unit="页"
+                  ValueMin="0" ValueMax="25" Legend="legend" Grid="grid" Tooltip="tooltip" Loading="loading" @bind-HiddenSeries="hidden" Height="260"
+                  aria-label="访问时长与浏览页数" />
+    <Small Tone="TextTone.Muted">隐藏的系列：@(hidden.Count > 0 ? string.Join("、", hidden) : "无")</Small>
+</Flex>
+
+@code {
+    sealed record Session(string Id, decimal Minutes, decimal? Fresh = null, decimal? Returning = null);
+
+    static readonly Session[] Sessions =
+    [
+        new("a1", 3, Fresh: 4), new("a2", 8, Fresh: 9), new("a3", 12, Fresh: 11), new("a4", 5, Returning: 7),
+        new("a5", 15, Returning: 18), new("a6", 21, Returning: 22), new("a7", 2, Fresh: 2), new("a8", 10, Returning: 14),
+    ];
+
+    static readonly ChartSeries<Session>[] Series = [new("fresh", "新访客", s => s.Fresh), new("returning", "回访", s => s.Returning)];
+
+    static string SessionText(Session row) => $"会话 {row.Id.ToUpperInvariant()}";
+
+    bool legend = true;
+    bool grid = true;
+    bool tooltip = true;
+    bool loading;
+    bool empty;
+    IReadOnlyList<string> hidden = [];
+
+    IReadOnlyList<Session> Shown => empty ? [] : Sessions;
+}

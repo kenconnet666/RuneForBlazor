@@ -69,8 +69,8 @@ public sealed class DocMetaAttribute(string title, string description, DocCatego
     /// <summary>分类。</summary>
     public DocCategory Category { get; } = category;
 
-    /// <summary>在分类里的顺序，越小越靠前；不写时排在后面、按标题排。</summary>
-    public int Order { get; init; } = int.MaxValue;
+    /// <summary>在分类里的顺序，越小越靠前（可以是小数，插在两页之间）；不写时排在后面、按标题排。</summary>
+    public double Order { get; init; } = double.MaxValue;
 }
 
 /// <summary>

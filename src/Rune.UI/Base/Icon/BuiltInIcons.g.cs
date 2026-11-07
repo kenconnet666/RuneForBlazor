@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（80 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（82 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -86,6 +86,8 @@ public static partial class BuiltInIcons
     public static IconData File => field ??= new("file", "<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/>");
     /// <summary>Lucide 图标 <c>file-question-mark</c>（document、help、guide、tutorial、manual、unknown、unidentified、unspecified）。</summary>
     public static IconData FileQuestionMark => field ??= new("file-question-mark", "<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M12 17h.01\"/><path d=\"M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3\"/>");
+    /// <summary>Lucide 图标 <c>file-spreadsheet</c>（document、spreadsheet、sheet、table）。</summary>
+    public static IconData FileSpreadsheet => field ??= new("file-spreadsheet", "<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"/><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"/><path d=\"M8 13h2\"/><path d=\"M14 13h2\"/><path d=\"M8 17h2\"/><path d=\"M14 17h2\"/>");
     /// <summary>Lucide 图标 <c>flame</c>（heat、burn、light、glow、ignite、passion、ember、fire）。</summary>
     public static IconData Flame => field ??= new("flame", "<path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\"/>");
     /// <summary>Lucide 图标 <c>flower</c>（sustainability、nature、plant、spring）。</summary>
@@ -98,6 +100,8 @@ public static partial class BuiltInIcons
     public static IconData GripVertical => field ??= new("grip-vertical", "<circle cx=\"9\" cy=\"12\" r=\"1\"/><circle cx=\"9\" cy=\"5\" r=\"1\"/><circle cx=\"9\" cy=\"19\" r=\"1\"/><circle cx=\"15\" cy=\"12\" r=\"1\"/><circle cx=\"15\" cy=\"5\" r=\"1\"/><circle cx=\"15\" cy=\"19\" r=\"1\"/>");
     /// <summary>Lucide 图标 <c>hash</c>（hashtag、number、pound）。</summary>
     public static IconData Hash => field ??= new("hash", "<line x1=\"4\" x2=\"20\" y1=\"9\" y2=\"9\"/><line x1=\"4\" x2=\"20\" y1=\"15\" y2=\"15\"/><line x1=\"10\" x2=\"8\" y1=\"3\" y2=\"21\"/><line x1=\"16\" x2=\"14\" y1=\"3\" y2=\"21\"/>");
+    /// <summary>Lucide 图标 <c>image-down</c>（picture、photo、direction、movement、vertical、downward、downwards、south）。</summary>
+    public static IconData ImageDown => field ??= new("image-down", "<path d=\"M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10l-3.1-3.1a2 2 0 0 0-2.814.014L6 21\"/><path d=\"m14 19 3 3v-5.5\"/><path d=\"m17 22 3-3\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/>");
     /// <summary>Lucide 图标 <c>image-off</c>（picture、photo、off、disable、hide、restricted、turn off、block）。</summary>
     public static IconData ImageOff => field ??= new("image-off", "<line x1=\"2\" x2=\"22\" y1=\"2\" y2=\"22\"/><path d=\"M10.41 10.41a2 2 0 1 1-2.83-2.83\"/><line x1=\"13.5\" x2=\"6\" y1=\"13.5\" y2=\"21\"/><line x1=\"18\" x2=\"21\" y1=\"12\" y2=\"15\"/><path d=\"M3.59 3.59A1.99 1.99 0 0 0 3 5v14a2 2 0 0 0 2 2h14c.55 0 1.052-.22 1.41-.59\"/><path d=\"M21 15V5a2 2 0 0 0-2-2H9\"/>");
     /// <summary>Lucide 图标 <c>image-plus</c>（picture、photo、plus、add、new、create、+、increase）。</summary>

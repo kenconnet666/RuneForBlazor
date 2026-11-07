@@ -1,0 +1,23 @@
+@page "/components/combo-chart"
+@attribute [DocMeta("ComboChart 组合图", "同一组类目上既有柱又有线（金额与比率、数量与单价）；单位不同的系列画在右侧的第二数值轴上，两条轴的刻度对齐。", DocCategory.Charts, Order = 2.5)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.ComboChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="savings" Title="金额与完成率" Demo="typeof(SavingsExample)">
+                系列写成 <Code>ComboSeries</Code>：<Code>Mark</Code> 是 <Code>Bar</Code>（默认）或 <Code>Line</Code>，<Code>Axis</Code> 是 <Code>Primary</Code>（左侧，默认）或
+                <Code>Secondary</Code>（右侧的第二数值轴）。第二数值轴的刻度与主轴取同样多的格、每格都是整齐的步长，两边落在同一组网格线上；
+                <Code>SecondaryFormat</Code>、<Code>SecondaryUnit</Code> 是它的格式与单位（单位写在右上方），提示框与数据表里按各自的格式显示。目标线、标注、区间、下钻同柱状图。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="volume" Title="堆叠的柱与平滑的线" Demo="typeof(VolumeExample)">
+                <Code>StackBars</Code> 把柱叠起（线不参与堆叠），<Code>Curve</Code>、<Code>Dots</Code> 同折线图。十字线只在线上画圆点。
+                点图例隐藏系列时，各自的数值轴按剩下的系列重新取范围。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ComboChart<>), typeof(ComboSeries<>)]" />
+</DocPage>

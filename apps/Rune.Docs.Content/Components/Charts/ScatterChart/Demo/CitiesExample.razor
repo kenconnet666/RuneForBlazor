@@ -1,0 +1,19 @@
+@inherits RuneComponent
+
+@* 城市的人均 GDP 与平均通勤时间：每座城市一个点，横纵轴都是数值；悬停看城市名与两个值 *@
+<ScatterChart Items="Cities" Category="c => c.Name" X="c => c.Gdp" XLabel="人均 GDP（万元）" XFormat="OneDigit" Series="Series" aria-label="人均 GDP 与通勤时间" />
+
+@code {
+    sealed record City(string Name, decimal Gdp, decimal Commute);
+
+    static readonly City[] Cities =
+    [
+        new("北京", 20.0m, 47), new("上海", 19.0m, 45), new("深圳", 18.3m, 37), new("广州", 15.4m, 40),
+        new("杭州", 15.3m, 36), new("南京", 17.4m, 35), new("成都", 10.4m, 38), new("武汉", 14.0m, 39),
+        new("西安", 9.2m, 37), new("重庆", 9.4m, 40), new("苏州", 18.6m, 30), new("长沙", 13.2m, 33),
+    ];
+
+    static readonly ChartSeries<City>[] Series = [new("commute", "平均通勤（分钟）", c => c.Commute)];
+
+    static readonly NumberFormat OneDigit = new() { MaximumFractionDigits = 1 };
+}

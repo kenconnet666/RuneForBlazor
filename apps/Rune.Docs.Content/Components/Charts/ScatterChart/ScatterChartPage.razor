@@ -1,0 +1,25 @@
+@page "/components/scatter-chart"
+@attribute [DocMeta("ScatterChart 散点图", "看两个数值之间的关系：每一行一个点，点的大小可以再表示第三个数值（气泡图）。C# 直接画 SVG，跟随主题，没有第三方依赖。", DocCategory.Charts, Order = 5)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.ScatterChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="cities" Title="基础用法" Demo="typeof(CitiesExample)">
+                <Code>X</Code> 取横轴的数值，<Code>Series</Code> 的每一项取纵轴的一个数值；纵轴不强制从 0 起。
+                悬停一个点，提示框列出这一行的名称（<Code>Category</Code>）、横轴与各系列的值。
+            </Example>
+            <Example Id="bubbles" Title="气泡图" Demo="typeof(BubblesExample)">
+                <Code>SizeBy</Code> 时点的大小在 6–32px 之间随它缩放；几个系列各用一个颜色，某一行在某个系列上没有值就不画那个点。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="options" Title="坐标、单位与状态" Demo="typeof(OptionsExample)">
+                <Code>XLabel</Code> 显示在横轴下方，<Code>Unit</Code> 显示在数值轴上方、提示框里跟在数值后面；<Code>ValueMin</Code>、<Code>ValueMax</Code> 固定数值轴的范围，
+                <Code>CategoryText</Code> 改提示框的标题。图例、网格线、提示框都能关。加载中（<Code>Loading</Code>）显示骨架，没有数据时显示 <Code>Empty</Code>（默认“暂无数据”）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ScatterChart<>)]" />
+</DocPage>

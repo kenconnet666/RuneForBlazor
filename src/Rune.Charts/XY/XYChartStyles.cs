@@ -7,7 +7,10 @@ internal static class XYChartStyles
 {
     static readonly CssVar<CssLength> BarSize = CssVar.Length("rune-chart-skeleton-bar");
 
-    internal static Style SkeletonBlock => Css.Define(static () => new Style { Display = Display.Block, Width = CssLength.Percent(100), Height = CssLength.Percent(100) });
+    // 缩放：滑块占满，“显示全部”在结束边
+    internal static Style Zoom => Css.Define(static () => new Style { Display = Display.Flex, AlignItems = AlignItems.Center, Gap = Space.Md, PaddingInline = Space.Sm });
+
+    internal static Style ZoomSlider => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0 });
 
     internal static Style SkeletonBars => Css.Define(static () => new Style
     {

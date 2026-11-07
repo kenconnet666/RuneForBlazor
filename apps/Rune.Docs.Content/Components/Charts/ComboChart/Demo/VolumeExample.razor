@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+@* 采购量与单价：两个供应商的采购量叠成一根柱子（件，左轴），加权单价是平滑的线（元，右轴）；点图例隐藏一个供应商，柱子与左轴跟着变，右轴不动 *@
+<ComboChart Items="Quarters" Category="q => q.Quarter" Series="Series" StackBars="true" Unit="件" SecondaryUnit="元" SecondaryFormat="OneDigit"
+            Curve="LineCurve.Monotone" Dots="LineDots.Hollow" aria-label="支架采购量与单价" />
+
+@code {
+    sealed record Purchase(string Quarter, decimal Huachen, decimal Hengyuan, decimal Price);
+
+    static readonly Purchase[] Quarters =
+    [
+        new("2025 Q1", 9_800, 0, 128.6m), new("2025 Q2", 10_400, 0, 127.1m), new("2025 Q3", 8_600, 2_400, 123.9m),
+        new("2025 Q4", 6_200, 5_100, 120.4m), new("2026 Q1", 4_800, 7_300, 118.2m), new("2026 Q2", 3_900, 8_800, 116.8m),
+    ];
+
+    static readonly ChartSeries<Purchase>[] Series =
+    [
+        new("huachen", "华辰精密", q => q.Huachen),
+        new("hengyuan", "恒远五金", q => q.Hengyuan),
+        new ComboSeries<Purchase>("price", "加权单价", q => q.Price) { Mark = ComboMark.Line, Axis = ChartValueAxis.Secondary, Color = Tone.Danger },
+    ];
+
+    static readonly NumberFormat OneDigit = new() { MinimumFractionDigits = 1, MaximumFractionDigits = 1 };
+}

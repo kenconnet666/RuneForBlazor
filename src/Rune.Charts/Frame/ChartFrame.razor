@@ -16,7 +16,7 @@
 }
 
 <div @attributes="Attrs.Merge(parts[ChartPart.Root], Rest, RootManaged)">
-    @if (Unit is not null || UnitEnd is not null || Legend.Count > 0 || Actions is not null)
+    @if (Unit is not null || UnitEnd is not null || Legend.Count > 0 || Actions is not null || Exportable)
     {
         <div @attributes="Attrs.Merge(parts[ChartPart.Header], PropsHeader)">
             @if (Unit is not null)
@@ -44,6 +44,19 @@
             @if (!IsEmpty && !Loading)
             {
                 @Actions
+                @if (Exportable)
+                {
+                    @* 导出：charts.js 认 data-rune-chart-export，图片取绘图区的 SVG，数据取下面给读屏的表格 *@
+                    <Menu Placement="Placement.BottomEnd">
+                        <Trigger Context="t">
+                            <IconButton Icon="BuiltInIcons.Download" Label="@lang.ChartExport" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="UI.Size.Sm" @attributes="Attrs.MergeProps(null, null, t)" />
+                        </Trigger>
+                        <ChildContent>
+                            <MenuItem Icon="BuiltInIcons.ImageDown" data-rune-chart-export="image" data-name="@FileName">@lang.ChartExportImage</MenuItem>
+                            <MenuItem Icon="BuiltInIcons.FileSpreadsheet" data-rune-chart-export="data" data-name="@FileName">@lang.ChartExportData</MenuItem>
+                        </ChildContent>
+                    </Menu>
+                }
             }
         </div>
     }
@@ -156,6 +169,12 @@
     /// <summary>上方一行右端的操作（导出菜单、缩放按钮）；加载中、没有数据时不显示。</summary>
     [Parameter] public RenderFragment? Actions { get; set; }
 
+    /// <summary>右上角的导出菜单：绘图区存成 PNG 图片（两倍分辨率），数据表存成 CSV（带 BOM，Excel 打开中文不乱码）。</summary>
+    [Parameter] public bool Exportable { get; set; }
+
+    /// <summary>导出的文件名（不含扩展名）；不写时用图表的名称（aria-label），再没有时是语言包的“图表”。</summary>
+    [Parameter] public string? ExportName { get; set; }
+
     /// <summary>上方一行（单位与图例）的部件属性。</summary>
     [Parameter] public Attrs? PropsHeader { get; set; }
 
@@ -175,6 +194,8 @@
     [Parameter] public Attrs? PropsTable { get; set; }
 
     Attrs? HeightVar => Height is { } h ? heightVar.Get(h, static v => new Attrs { Vars = [ChartStyles.PlotHeight.Set(v)] }) : null;
+
+    string FileName => ExportName ?? Rest["aria-label"]?.ToString() ?? Config.Lang.ChartExportName;
 
     Attrs RootManaged => Loading ? BusyAttrs : FigureAttrs;
 

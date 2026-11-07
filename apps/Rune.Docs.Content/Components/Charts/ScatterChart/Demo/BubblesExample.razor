@@ -1,0 +1,20 @@
+@inherits RuneComponent
+
+@* 商品的价格、评分与销量：SizeBy 取销量，点的大小随销量变（气泡图）；两个系列是两个品类 *@
+<ScatterChart Items="Products" Category="p => p.Name" X="p => p.Price" XLabel="价格（元）" Series="Series" SizeBy="p => p.Sales" ValueFormat="OneDigit"
+              aria-label="价格、评分与销量" />
+
+@code {
+    sealed record Product(string Name, decimal Price, decimal? Earphone, decimal? Speaker, decimal Sales);
+
+    static readonly Product[] Products =
+    [
+        new("入门耳机", 199, 4.2m, null, 3200), new("降噪耳机", 899, 4.7m, null, 1800), new("运动耳机", 399, 4.4m, null, 2400),
+        new("旗舰耳机", 1999, 4.8m, null, 600), new("蓝牙音箱", 299, null, 4.1m, 2100), new("桌面音箱", 699, null, 4.5m, 900),
+        new("回音壁", 1499, null, 4.3m, 500), new("便携音箱", 149, null, 3.9m, 2800),
+    ];
+
+    static readonly ChartSeries<Product>[] Series = [new("earphone", "耳机评分", p => p.Earphone), new("speaker", "音箱评分", p => p.Speaker)];
+
+    static readonly NumberFormat OneDigit = new() { MinimumFractionDigits = 1 };
+}

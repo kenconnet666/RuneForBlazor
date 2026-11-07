@@ -1,0 +1,22 @@
+@page "/components/waterfall-chart"
+@attribute [DocMeta("WaterfallChart 瀑布图", "从起点一步步加减到终点，看总数是怎么变过来的：测算版本差异、预算到实际。C# 直接画 SVG，相邻两步之间有连接线，跟随主题。", DocCategory.Charts, Order = 8)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.WaterfallChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="versions" Title="测算版本差异" Demo="typeof(VersionsExample)">
+                <Code>Steps</Code> 的每一步是名称与 <Code>Value</Code>（这一步的变动，正数往上、负数往下，<Code>decimal</Code>）；<Code>Total</Code> 的是合计柱，从 0 画到当时的累计，
+                写了 <Code>Value</Code> 时作为新的起点。悬停看变动与累计，读屏的数据表也是这两列。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="budget" Title="预算到实际：颜色、目标线、下钻" Demo="typeof(BudgetExample)">
+                往上默认 Success、往下 Danger：成本超支这类“增加是坏事”的图用 <Code>IncreaseColor</Code>、<Code>DecreaseColor</Code> 对调。
+                <Code>Targets</Code> 画目标线（同柱状图），<Code>ValueMin</Code> 让数值轴不从 0 起、差异更显眼；<Code>OnItemClick</Code> 点一步下钻（同样的去处页面上还要有链接）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(WaterfallChart), typeof(WaterfallStep)]" />
+</DocPage>

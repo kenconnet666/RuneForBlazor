@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+@* 月度销售：计划与实际是柱（万元，左轴），完成率是线（百分比，右侧的第二数值轴），两条轴的刻度落在同一组网格线上；月均目标线在主轴上，“新供应商切换”是一条标注 *@
+<ComboChart Items="Months" Category="m => m.Month" Series="Series" Unit="万元" SecondaryFormat="NumberFormat.Percent" Height="300"
+            Targets="Goals" Annotations="Notes" aria-label="月度销售与完成率" />
+
+@code {
+    sealed record Sales(string Month, decimal Planned, decimal Actual, decimal Rate);
+
+    static readonly Sales[] Months =
+    [
+        new("1月", 120, 86, 0.72m), new("2月", 120, 98, 0.82m), new("3月", 150, 141, 0.94m),
+        new("4月", 160, 172, 1.08m), new("5月", 180, 165, 0.92m), new("6月", 180, 193, 1.07m),
+        new("7月", 200, 176, 0.88m), new("8月", 210, 236, 1.12m), new("9月", 220, 241, 1.1m),
+    ];
+
+    static readonly ChartSeries<Sales>[] Series =
+    [
+        new ComboSeries<Sales>("planned", "计划销售", m => m.Planned) { Color = ChartColor.Series(3) },
+        new ComboSeries<Sales>("actual", "实际销售", m => m.Actual),
+        new ComboSeries<Sales>("rate", "完成率", m => m.Rate) { Mark = ComboMark.Line, Axis = ChartValueAxis.Secondary, Color = Tone.Warning },
+    ];
+
+    static readonly ChartTarget[] Goals = [new(200) { Label = "月均目标", Color = Tone.Success }];
+
+    static readonly ChartAnnotation[] Notes = [new("8月", "新供应商切换")];
+}

@@ -123,6 +123,9 @@ const BUILT_IN = [
   'calendar-days',
   'calendar-range',
   'clock',
+  // 图表的导出菜单（Rune.Charts）
+  'image-down',
+  'file-spreadsheet',
 ];
 
 /** 文档注释里最多列几个关键词 */

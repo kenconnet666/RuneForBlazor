@@ -17,7 +17,7 @@ namespace Rune.UI;
 /// <item>悬停（十字线、圆点、浅底、提示框）在 charts.js 里按绘图区上的 JSON 画，不往返；点了下钻发 activate。</item>
 /// </list>
 /// </summary>
-public abstract partial class XYChart<TItem>
+public abstract partial class XYChartBase<TItem>
 {
     // 刻度文字的字号（px）：主题的 xs
     private protected const double TickFont = 12;
@@ -25,42 +25,6 @@ public abstract partial class XYChart<TItem>
     const double TickGap = 8;
     // 散点图找最近的点时，离指针多远以内算悬停在点上（px）
     const double PointReach = 24;
-
-    double width;
-    double height;
-    // 尺寸是量到的；没量到时（静态 SSR、预渲染）按约定的大小画，SVG 用 viewBox 缩放到绘图区
-    bool measured;
-
-    // 没量到时的宽度：文档的内容栏、卡片里常见的宽度
-    const double FallbackWidth = 600;
-    IReadOnlyList<string> hiddenState = [];
-
-    /// <summary>数据：每一行是类目轴上的一项（一个月、一个项目）。</summary>
-    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
-
-    /// <summary>类目：类目轴的刻度、提示框的标题、数据表的第一列；标注、区间按它的值找行。</summary>
-    [Parameter, EditorRequired] public Func<TItem, object?> Category { get; set; } = null!;
-
-    /// <summary>类目的显示文字；不写时把类目的值转成字符串。</summary>
-    [Parameter] public Func<TItem, string>? CategoryText { get; set; }
-
-    /// <summary>系列：每个系列画成一组柱子、一条线或一片面积。</summary>
-    [Parameter, EditorRequired] public IReadOnlyList<ChartSeries<TItem>> Series { get; set; } = [];
-
-    /// <summary>
-    /// 数值的格式：数值轴、提示框、数据表共用，按当前语言格式化。以万元为单位画金额时写
-    /// <c>new NumberFormat { Scale = 10_000, MaximumFractionDigits = 1 }</c> 并配 <c>Unit="万元"</c>。
-    /// </summary>
-    [Parameter] public NumberFormat? ValueFormat { get; set; }
-
-    /// <summary>单位：显示在数值轴上方，提示框与数据表的数值后面带上。</summary>
-    [Parameter] public string? Unit { get; set; }
-
-    /// <summary>绘图区的高度，默认 240px。</summary>
-    [Parameter] public CssLength? Height { get; set; }
-
-    /// <summary>图例：默认多于一个系列时显示；点图例可以隐藏、恢复系列。</summary>
-    [Parameter] public bool? Legend { get; set; }
 
     /// <summary>数值轴的网格线，默认显示。</summary>
     [Parameter] public bool Grid { get; set; } = true;
@@ -71,20 +35,14 @@ public abstract partial class XYChart<TItem>
     /// <summary>数值轴的上限；不写时按数据自动取，扩到“好看”的刻度上。</summary>
     [Parameter] public double? ValueMax { get; set; }
 
-    /// <summary>悬停时的提示框，默认显示。</summary>
-    [Parameter] public bool Tooltip { get; set; } = true;
+    /// <summary>缩放：绘图区下面一条区间滑块，选一段类目放大看（几年的月度数据）；读屏的数据表、导出的数据仍是全部。</summary>
+    [Parameter] public bool Zoom { get; set; }
 
-    /// <summary>加载中：绘图区显示扫光的骨架（柱状图是一排高低不一的柱），带 aria-busy。</summary>
-    [Parameter] public bool Loading { get; set; }
+    /// <summary>缩放的区间：类目的位置，含两端；null 是全部。可以 <c>@bind-ZoomRange</c>。</summary>
+    [Parameter] public NumberRange<int>? ZoomRange { get; set; }
 
-    /// <summary>隐藏的系列（系列的 Key）：点图例时写回，可以 <c>@bind-HiddenSeries</c>。</summary>
-    [Parameter] public IReadOnlyList<string>? HiddenSeries { get; set; }
-
-    /// <summary>点图例隐藏、恢复了系列。</summary>
-    [Parameter] public EventCallback<IReadOnlyList<string>> HiddenSeriesChanged { get; set; }
-
-    /// <summary>没有数据时显示的内容，默认是“暂无数据”。</summary>
-    [Parameter] public RenderFragment? Empty { get; set; }
+    /// <summary>拖了缩放的滑块、点了“显示全部”。</summary>
+    [Parameter] public EventCallback<NumberRange<int>?> ZoomRangeChanged { get; set; }
 
     /// <summary>目标线、参考线：数值轴上的虚线（横向图是竖线）；数值轴的范围会包含它。</summary>
     [Parameter] public IReadOnlyList<ChartTarget>? Targets { get; set; }
@@ -95,29 +53,34 @@ public abstract partial class XYChart<TItem>
     /// <summary>区间：类目轴或数值轴上的一段，画成浅色的带（数值轴的范围会包含它）。</summary>
     [Parameter] public IReadOnlyList<ChartBand>? Bands { get; set; }
 
-    /// <summary>
-    /// 点了一个类目（下钻，如跳到筛好条件的台账）：点在柱上按那根柱，其余按悬停的类目；写了它时绘图区的指针是手形。
-    /// 点图是鼠标的捷径：同样的去处在页面上还要有链接或按钮，键盘与读屏才到得了（WCAG 2.1.1）。
-    /// </summary>
-    [Parameter] public EventCallback<ChartItemClick<TItem>> OnItemClick { get; set; }
+    // ───────── 数据（XYChart 来自参数，瀑布图由各步算出） ─────────
 
-    /// <summary>上方一行（单位与图例）的部件属性。</summary>
-    [Parameter] public Attrs? PropsHeader { get; set; }
+    /// <summary>画的行：每一行是类目轴上的一项。</summary>
+    private protected abstract IReadOnlyList<TItem> Data { get; }
 
-    /// <summary>单位的部件属性。</summary>
-    [Parameter] public Attrs? PropsUnit { get; set; }
+    /// <summary>一行的类目：标注、区间按它的值找行。</summary>
+    private protected abstract object? CategoryKey(TItem row);
 
-    /// <summary>图例的部件属性。</summary>
-    [Parameter] public Attrs? PropsLegend { get; set; }
+    /// <summary>一行的类目的显示文字：类目轴的刻度、提示框的标题、数据表的第一列。</summary>
+    private protected abstract string CategoryOf(TItem row);
 
-    /// <summary>图例每一项（ButtonBase）的部件属性。</summary>
-    [Parameter] public Attrs? PropsLegendItem { get; set; }
+    /// <summary>系列。</summary>
+    private protected abstract IReadOnlyList<ChartSeries<TItem>> SeriesSource { get; }
 
-    /// <summary>绘图区的部件属性。</summary>
-    [Parameter] public Attrs? PropsPlot { get; set; }
+    /// <summary>图例：null 时多于一个系列才显示。</summary>
+    private protected virtual bool? ShowLegend => null;
 
-    /// <summary>给读屏的数据表的部件属性。</summary>
-    [Parameter] public Attrs? PropsTable { get; set; }
+    /// <summary>隐藏的系列（系列的 Key）。</summary>
+    private protected virtual IReadOnlyList<string> Hidden => [];
+
+    /// <summary>点了图例的一项：隐藏或恢复这个系列（下一次渲染时生效）。</summary>
+    private protected virtual Task ToggleSeriesAsync(string key) => Task.CompletedTask;
+
+    /// <summary>点了数据里的第 index 行（下钻）。</summary>
+    private protected virtual Task ActivateRowAsync(int index) => Task.CompletedTask;
+
+    // 点的是画出来的第 index 行：缩放时加上起点
+    private protected sealed override Task ActivateAsync(int index) => index < Rows.Count ? ActivateRowAsync(ZoomStart + index) : Task.CompletedTask;
 
     // ───────── 各种图的差别（同 vue 的 XYChartKind） ─────────
 
@@ -169,39 +132,28 @@ public abstract partial class XYChart<TItem>
     /// <summary>数值轴（主轴）的范围要包含的值；null 时按系列的值（堆叠时按正负各自的总和）。</summary>
     private protected virtual IEnumerable<double>? DomainValues(IReadOnlyList<TItem> rows, IReadOnlyList<ResolvedSeries<TItem>> shown) => null;
 
+    /// <summary>没写 ValueMin 时数值轴的下限；null 时按数据自动取（瀑布图不从 0 起时从接近最低的累计处起）。</summary>
+    private protected virtual double? DefaultValueMin => null;
+
+    double? Low => ValueMin ?? DefaultValueMin;
+
     /// <summary>给读屏的数据表；null 时类目一列加每个系列一列。</summary>
-    private protected virtual ChartTable? BuildTable() => null;
+    private protected virtual ChartTable? CustomTable() => null;
 
     // ───────── 文字 ─────────
 
-    private protected string CategoryOf(TItem row) => CategoryText?.Invoke(row) ?? Category(row)?.ToString() ?? "";
-
     bool OnSecondary(string key) => Secondary?.Keys.Contains(key) ?? false;
 
-    string Format(decimal? value, NumberFormat? format, string? unit)
-    {
-        if (value is not { } number) return Config.Lang.EmptyValue;
-        var resolved = format ?? NumberFormat.Default;
-        return LangFormat.Number(number, unit is null ? resolved : resolved with { Suffix = unit }, Config.Lang);
-    }
-
-    /// <summary>数值的文字：按 ValueFormat 格式化、带上单位；没有值时是语言包的 EmptyValue。</summary>
-    private protected string ValueText(decimal? value) => Format(value, ValueFormat, Unit);
 
     /// <summary>一个系列的值的文字：第二数值轴上的按它的格式与单位。</summary>
     private protected string SeriesText(string key, decimal? value) =>
         OnSecondary(key) ? Format(value, Secondary!.Format, Secondary.Unit) : ValueText(value);
 
-    string PercentText(double value) => LangFormat.Number((decimal)value, PercentFormat, Config.Lang);
-
-    static readonly NumberFormat PercentFormat = new() { Style = NumberStyle.Percent, MaximumFractionDigits = 1 };
     static readonly NumberFormat PercentTickFormat = new() { Style = NumberStyle.Percent, MaximumFractionDigits = 0 };
 
     string XText(TItem row) => Continuous!.Value(row) is { } x ? Continuous.Format(x) : Config.Lang.EmptyValue;
 
     // ───────── 系列 ─────────
-
-    IReadOnlyList<string> Hidden => HiddenSeries ?? hiddenState;
 
     private protected IReadOnlyList<ResolvedSeries<TItem>> Resolved { get; private set; } = [];
 
@@ -210,51 +162,65 @@ public abstract partial class XYChart<TItem>
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
-        Resolved = [.. Series.Select((item, index) => new ResolvedSeries<TItem>(item, ChartColor.Resolve(item.Color, index)))];
+        Resolved = [.. SeriesSource.Select((item, index) => new ResolvedSeries<TItem>(item, ChartColor.Resolve(item.Color, index)))];
         var hidden = Hidden;
         Visible = [.. Resolved.Where(item => !hidden.Contains(item.Key))];
     }
 
-    async Task ToggleAsync(string key)
+    private protected override async Task ToggleLegendAsync(string key)
     {
-        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
-        hiddenState = next;
-        if (HiddenSeries is null) OnParametersSet();
-        await HiddenSeriesChanged.InvokeAsync(next);
+        await ToggleSeriesAsync(key);
+        OnParametersSet();
+    }
+
+    private protected override IReadOnlyCollection<string> HiddenKeys => Hidden;
+
+    private protected override bool IsEmpty => Data.Count == 0;
+
+    private protected override ChartTable BuildTable() => CustomTable() ?? DefaultTable();
+
+    // 百分比堆叠时数值轴是占比：轴上方不写单位（提示框、数据表里仍带）
+    private protected override string? FrameUnit => Percent ? null : Unit;
+
+    private protected override string? FrameUnitEnd => Secondary?.Unit;
+
+    private protected override RenderFragment? FooterContent => Zoom && Continuous is null && Data.Count > 2 ? ZoomBar : null;
+
+    private protected override (RenderFragment Plot, string? Data)? Draw()
+    {
+        if (Rows.Count == 0) return null;
+        var layout = ComputeLayout();
+        return (PlotFragment(layout), HoverData(layout));
     }
 
     // 一行里显示中的系列的总和（百分比堆叠的分母；负数不计）
     double RowTotal(TItem row) => Visible.Sum(item => Math.Max((double)(item.ValueOf(row) ?? 0), 0));
 
-    // ───────── 绘图区的命令 ─────────
 
-    async Task OnPlotCommandAsync(CommandEventArgs args)
+    // ───────── 缩放 ─────────
+
+    NumberRange<int>? zoomState;
+
+    // 缩放的区间（散点图的横轴是连续的数值，不按类目缩放）
+    NumberRange<int>? Range => Zoom && Continuous is null ? ZoomRange ?? zoomState : null;
+
+    int ZoomStart => Range?.Low ?? 0;
+
+    /// <summary>画的行：缩放时是选中的一段。</summary>
+    IReadOnlyList<TItem> Rows => Range is { } range && Data.Count > 0
+        ? [.. Data.Skip(Math.Clamp(range.Low, 0, Data.Count - 1)).Take(Math.Max(1, range.High - range.Low + 1))]
+        : Data;
+
+    async Task ZoomAsync(NumberRange<int>? range)
     {
-        if (args.Name == "size" && args.Text?.Split(',') is [var w, var h])
-        {
-            width = double.Parse(w, CultureInfo.InvariantCulture);
-            height = double.Parse(h, CultureInfo.InvariantCulture);
-            measured = true;
-        }
-        else if (args.Name == "activate" && int.TryParse(args.Text, CultureInfo.InvariantCulture, out var index) && index >= 0 && index < Items.Count)
-            await OnItemClick.InvokeAsync(new ChartItemClick<TItem>(Items[index], index));
+        // 选满了就是全部
+        if (range is { } r && r.Low <= 0 && r.High >= Data.Count - 1) range = null;
+        zoomState = range;
+        await ZoomRangeChanged.InvokeAsync(range);
     }
 
     // ───────── 布局 ─────────
 
-    /// <summary>
-    /// 这次渲染用的尺寸：量到了就用量到的；交互渲染还没量到时不画（等 charts.js 交来 size）；
-    /// 静态 SSR、预渲染时按约定的宽度与 Height（px 时）画，交互之后换成量到的。
-    /// </summary>
-    bool UseSize()
-    {
-        if (measured) return true;
-        if (RendererInfo.IsInteractive) return false;
-        width = FallbackWidth;
-        height = Height?.ToString() is { } text && text.EndsWith("px", StringComparison.Ordinal)
-            && double.TryParse(text[..^2], CultureInfo.InvariantCulture, out var pixels) ? pixels : 240;
-        return true;
-    }
 
     // 数值轴上约几格：每格不少于 45px（横着的轴 90px），2–6 格
     static int TickCount(double length, bool horizontal) => (int)Math.Max(2, Math.Min(6, Math.Round(length / (horizontal ? 90 : 45), MidpointRounding.AwayFromZero)));
@@ -273,7 +239,7 @@ public abstract partial class XYChart<TItem>
     /// <summary>画图要的一切：比例尺、刻度、边距；随数据、属性、绘图区大小变。</summary>
     Layout ComputeLayout()
     {
-        var rows = Items;
+        var rows = Rows;
         var horizontal = Horizontal;
         var shown = Visible;
         var primary = shown.Where(item => !OnSecondary(item.Key)).ToList();
@@ -297,11 +263,11 @@ public abstract partial class XYChart<TItem>
             .ToList();
         var aligned = secondary.Count > 0
             ? AxisTicks.Aligned(
-                values.Concat(new[] { ValueMin, ValueMax }.OfType<double>()),
+                values.Concat(new[] { Low, ValueMax }.OfType<double>()),
                 rows.SelectMany(row => secondary.Select(item => NumberOf(item, row) ?? 0)))
             : null;
 
-        var valueLength = horizontal ? width : height;
+        var valueLength = horizontal ? PlotWidth : PlotHeight;
         (double Start, double End) domain;
         IReadOnlyList<double> ticks;
         if (Percent)
@@ -320,8 +286,8 @@ public abstract partial class XYChart<TItem>
             var low = values.Count > 0 ? withZero.Min() : 0;
             var high = values.Count > 0 ? withZero.Max() : 1;
             var (autoLow, autoHigh) = low == high ? (low - 1, high + 1) : (low, high);
-            var nice = ChartScale.Nice((ValueMin ?? autoLow, ValueMax ?? autoHigh), TickCount(valueLength, horizontal));
-            domain = (ValueMin ?? nice.Start, ValueMax ?? nice.End);
+            var nice = ChartScale.Nice((Low ?? autoLow, ValueMax ?? autoHigh), TickCount(valueLength, horizontal));
+            domain = (Low ?? nice.Start, ValueMax ?? nice.End);
             ticks = ChartScale.Ticks(domain.Start, domain.End, TickCount(valueLength, horizontal));
         }
         var valueLabels = ticks.Select(tick => LangFormat.Number((decimal)tick, Percent ? PercentTickFormat : ValueFormat ?? NumberFormat.Default, lang)).ToList();
@@ -330,8 +296,8 @@ public abstract partial class XYChart<TItem>
         // 连续的横轴（散点图）：按数据取范围与刻度
         var continuous = Continuous;
         var xValues = continuous is null ? [] : rows.Select(continuous.Value).OfType<double>().ToList();
-        var xDomain = ChartScale.Nice(xValues.Count > 0 ? (xValues.Min(), xValues.Max()) : (0, 1), TickCount(width, true));
-        var xTicks = continuous is null ? [] : ChartScale.Ticks(xDomain.Start, xDomain.End, TickCount(width, true));
+        var xDomain = ChartScale.Nice(xValues.Count > 0 ? (xValues.Min(), xValues.Max()) : (0, 1), TickCount(PlotWidth, true));
+        var xTicks = continuous is null ? [] : ChartScale.Ticks(xDomain.Start, xDomain.End, TickCount(PlotWidth, true));
 
         // 边距：放得下刻度文字
         var categoryLabels = rows.Select(CategoryOf).ToList();
@@ -340,7 +306,7 @@ public abstract partial class XYChart<TItem>
         double left, right, top, bottom;
         if (horizontal)
         {
-            left = Math.Min(Widest(categoryLabels), width * 0.3) + TickGap;
+            left = Math.Min(Widest(categoryLabels), PlotWidth * 0.3) + TickGap;
             right = Math.Max(8, Widest(valueLabels.TakeLast(1)) / 2);
             top = 4;
             bottom = TickFont + TickGap + 2;
@@ -358,7 +324,7 @@ public abstract partial class XYChart<TItem>
             left = Math.Max(left, Widest(bottomLabels.Take(1)) / 2 - padding.Left);
             right = Math.Max(right, Widest(bottomLabels.TakeLast(1)) / 2 - padding.Right);
         }
-        var plot = new PlotRect(left, top, Math.Max(0, width - left - right), Math.Max(0, height - top - bottom));
+        var plot = new PlotRect(left, top, Math.Max(0, PlotWidth - left - right), Math.Max(0, PlotHeight - top - bottom));
 
         // 类目轴：带（柱）每个类目一格；点（折线）首尾贴边；散点图是连续的数值
         var (cStart, cEnd) = horizontal
@@ -391,7 +357,7 @@ public abstract partial class XYChart<TItem>
         IReadOnlyList<AxisTick> categoryTicks = continuous is not null
             ? [.. xTicks.Select(tick => new AxisTick(xScale.Map(tick), continuous.Format(tick)))]
             : [.. rows.Select((row, position) => new AxisTick(category(row, position),
-                position % every != 0 ? "" : horizontal ? ChartText.Truncate(categoryLabels[position], width * 0.3, TickFont) : categoryLabels[position]))];
+                position % every != 0 ? "" : horizontal ? ChartText.Truncate(categoryLabels[position], PlotWidth * 0.3, TickFont) : categoryLabels[position]))];
         IReadOnlyList<AxisTick> valueTicks = [.. ticks.Select((tick, position) => new AxisTick(valueScale.Map(tick), valueLabels[position]))];
         IReadOnlyList<AxisTick> secondaryTicks = aligned is null ? [] : [.. aligned.Primary.Ticks.Select((tick, position) => new AxisTick(valueScale.Map(tick), secondaryLabels[position]))];
 
@@ -418,7 +384,7 @@ public abstract partial class XYChart<TItem>
     {
         var index = Continuous is { } continuous
             ? FindIndex(context.Rows, row => continuous.Value(row) == ToDouble(at))
-            : FindIndex(context.Rows, row => Equals(Category(row), at));
+            : FindIndex(context.Rows, row => Equals(CategoryKey(row), at));
         return index < 0 ? null : (index, context.Category(context.Rows[index], index));
     }
 
@@ -443,7 +409,7 @@ public abstract partial class XYChart<TItem>
             if (PointTooltip && value is null) continue;
             var total = Percent ? RowTotal(row) : 0;
             var text = SeriesText(item.Key, value);
-            items.Add(new(item.Label, item.Color, Percent && value is { } v && total > 0 ? $"{text}（{PercentText((double)v / total)}）" : text));
+            items.Add(new(item.Label, item.Color, Percent && value is { } v && total > 0 ? $"{text}（{ShareText((double)v, total)}）" : text));
         }
         return items;
     }
@@ -461,7 +427,7 @@ public abstract partial class XYChart<TItem>
             json.WriteStartObject();
             json.WriteString("mode", PointTooltip ? "point" : CrosshairDots && !Band ? "line" : "band");
             json.WriteBoolean("horizontal", context.Horizontal);
-            json.WriteNumber("width", width);
+            json.WriteNumber("width", PlotWidth);
             WriteNumbers(json, "plot", [context.Plot.Left, context.Plot.Top, context.Plot.Width, context.Plot.Height]);
             json.WriteNumber("half", SvgFormat.Round(Math.Max(context.Step / 2, 1)));
             json.WriteNumber("reach", SvgFormat.Round(Math.Max(context.Step, 8)));
@@ -546,7 +512,7 @@ public abstract partial class XYChart<TItem>
             var unit = OnSecondary(item.Key) ? Secondary!.Unit : Unit;
             columns.Add(unit is null ? item.Label : $"{item.Label}（{unit}）");
         }
-        var rows = Items.Select(row =>
+        var rows = Data.Select(row =>
         {
             var cells = new List<string>();
             if (continuous is not null) cells.Add(XText(row));
@@ -557,7 +523,7 @@ public abstract partial class XYChart<TItem>
         return new ChartTable(columns, rows);
     }
 
-    IReadOnlyList<ChartLegendItem> LegendItems => Legend ?? Resolved.Count > 1
+    private protected override IReadOnlyList<ChartLegendItem> LegendItems => ShowLegend ?? Resolved.Count > 1
         ? [.. Resolved.Select(item => new ChartLegendItem(item.Key, item.Label, item.Color))]
         : [];
 }
