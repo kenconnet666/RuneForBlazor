@@ -29,6 +29,7 @@ public class DocsContentTests
         var source = ExampleSource.Of(typeof(VariantsExample));
         Assert.StartsWith("@inherits RuneComponent\n", source);
         Assert.Contains("<Rating @bind-Value=\"like\"", source);
+        Assert.Contains("Css.Marker(\"demo-folder-row\")", ExampleSource.Of(typeof(Rune.Docs.Guide.Demo.StyleStatesExample)));
         Assert.Throws<ArgumentException>(() => ExampleSource.Of(typeof(DocsContentTests)));
     }
 

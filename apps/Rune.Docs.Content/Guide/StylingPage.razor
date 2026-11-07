@@ -1,136 +1,176 @@
 @page "/guide/styling"
-@attribute [DocMeta("Styling 写样式", "Css.Define 与 Sx，主题 token，状态、断点与容器查询，随值变化的 CssVar，按部件定制组件。", DocCategory.Guide, Order = 2)]
+@attribute [DocMeta("Styling 写样式", "样式写在 C# 里：Css.Define、Sx 与 Attrs.Merge，主题 token，状态跟着 DOM 走的条件，随值变化的 CssVar，以及用 AddRuneUI / RuneProvider 的 Components 定制组件。", DocCategory.Guide, Order = 2)]
 @inherits DocPageBase
+@using System.Reflection
+@using Rune.Docs.Guide.Demo
 
 <DocPage Meta="Meta">
-    <GuideSection Id="define" Title="定义样式">
+    <GuideSection Id="basics" Title="写法">
         <Paragraph>
-            样式写在 C# 里：<Code>Css.Define</Code> 定义成静态属性，编译成原子化的类（一条声明一个类，相同的声明全站共用），
-            按内容算类名，服务端、浏览器、每个请求都一样。组件的 <Code>Sx</Code> 参数接收它；普通元素用 <Code>Attrs.Merge</Code>。
+            样式写在 <Code>Css.Define</Code> 里，定义成静态属性；组件用 <Code>Sx</Code> 传，原生元素用 <Code>Attrs.Merge</Code> 展开。几层样式按顺序合并，
+            后写的按属性覆盖先写的，<Code>null</Code> 会被忽略，按条件组合直接写 <Code>featured ? [Card, Featured] : Card</Code>。
+            编译成原子化的类（一条声明一个类，相同的声明全站共用），按内容算类名，服务端、浏览器、每个请求都一样。
         </Paragraph>
-        <CodeBlock Code="@define" Lang="razor" />
-        <Paragraph>
-            不要在渲染里新建 <Code>Style</Code>（每次都要重新算类名）：分析器 RUNE004、RUNE005 会提示。关键字用常量（<Code>Display.Flex</Code>），
-            能写成类型化的值时 RUNE006 会提示（<Code>"10%"</Code> 写成 <Code>CssLength.Percent(10)</Code>）。
-        </Paragraph>
+        <CodeBlock Code="@Basics" Lang="razor" />
+        <Alert Tone="Tone.Info" Title="直接写主题 token">
+            颜色、间距、圆角、阴影、动效都来自主题 token（CSS 变量）：<Code>Colors.Surface</Code>、<Code>Tones.Accent.Text</Code>、<Code>Space.Md</Code>、
+            <Code>Radii.Lg</Code>、<Code>Shadows.Md</Code>、<Code>Durations.Md</Code>……换主题、暗色时不用改样式。不要在渲染里新建 <Code>Style</Code>
+            （分析器 RUNE004、RUNE005 会提示）；关键字用常量（<Code>Display.Flex</Code>），能写成类型化的值时 RUNE006 会提示。
+        </Alert>
     </GuideSection>
+    <Example Id="example" Title="一组价格卡片" Demo="typeof(StyleBasicsExample)">
+        样式、条件取值（<Code>When.Hover</Code>、<Code>Containers.MinWidth</Code>）、主题 token、值里夹着 token 的插值字符串，以及按条件合并的几层样式。
+    </Example>
 
-    <GuideSection Id="tokens" Title="主题 token">
-        <Paragraph>颜色、间距、字号、圆角、阴影、时长都取主题的 token（CSS 变量）：换主题、暗色时不用改样式。</Paragraph>
-        <TextTable Head="@tokenHead" Rows="@tokens" />
+    <GuideSection Id="states" Title="状态跟着 DOM 走">
+        <Paragraph>
+            选中、展开、不可用这类状态本来就写在 DOM 上（<Code>aria-selected</Code>、<Code>data-state</Code>），样式用条件直接跟着它走，渲染里不必再按状态拼样式；
+            使用方的 <Code>Sx</Code> 也能只改某个状态：<Code>[When.Selected] = new() { Color = … }</Code>。一个条件合并了原生、ARIA 与 data 几种写法：
+        </Paragraph>
+        <dl @attributes="Attrs.Merge(AliasesLayer)">
+            @foreach (var (name, note, selector) in Aliases)
+            {
+                <dt @key="name"><Code>@name</Code></dt>
+                <dd @attributes="Attrs.Merge(NoMarginLayer)">@note</dd>
+                <dd @attributes="Attrs.Merge(SelectorLayer)"><Code>@selector</Code></dd>
+            }
+        </dl>
+        <Paragraph>
+            按另一个元素的状态取样式：父元素 <Code>When.Parent</Code>，隔了几层的祖先用 <Code>Css.Marker("名字")</Code> 挂一个标记再写 <Code>When.Inside(When.Hover, marker)</Code>，
+            兄弟用 <Code>When.After</Code>、<Code>When.AfterAny</Code>，后代用 <Code>When.Has</Code>。视口断点（<Code>Breakpoints</Code>，移动优先）、
+            容器查询（<Code>Containers</Code>）、减少动态效果与强制颜色（<Code>Media</Code>）也写在同样的索引里。
+        </Paragraph>
     </GuideSection>
+    <Example Id="states-example" Title="文件夹列表" Demo="typeof(StyleStatesExample)">
+        当前项、不可用、悬停、键盘聚焦都由 DOM 上的属性决定样式；行的底色按里面的按钮是不是当前项取（<Code>When.Has</Code>），
+        删除按钮按这一行的悬停与焦点显示（<Code>When.Inside</Code>），都靠标记。
+    </Example>
 
-    <GuideSection Id="states" Title="状态、断点与容器查询">
+    <GuideSection Id="dynamic" Title="随状态变的样式">
         <Paragraph>
-            条件写成索引：悬停、聚焦、展开这些状态（<Code>When</Code>），伪元素（<Code>Pseudo</Code>），视口断点（<Code>Breakpoints</Code>，移动优先），
-            容器查询（<Code>Containers</Code>），减少动态效果、强制颜色（<Code>Media</Code>）。状态跟着 DOM 走（aria-expanded、data-state），
-            不用为每个状态写一个类。
+            一直在变的值（进度、拖动的宽度、用户选的颜色）不要写进样式：每个新值都会多一条规则。用 <Code>CssVar</Code>，样式里引用变量，
+            值写在元素上（<Code>Vars = [Width.Set(…)]</Code>），之后值怎么变类名都不变。
         </Paragraph>
-        <CodeBlock Code="@states" Lang="csharp" />
-        <Paragraph>
-            同一个属性写了几个断点时，除最后一档外用 <Code>Breakpoints.LgOnly</Code> 这类只在一档的条件：样式不按宽度给媒体查询排序。
-        </Paragraph>
+        <CodeBlock Code="@Dynamic" Lang="razor" />
     </GuideSection>
-
-    <GuideSection Id="dynamic" Title="随值变化的样式">
-        <Paragraph>
-            一直在变的值（进度、拖动的宽度、用户选的颜色）不要写进样式（每个值多一条规则）：用 <Code>CssVar</Code>，
-            样式里引用变量，值写在元素的行内样式上。
-        </Paragraph>
-        <CodeBlock Code="@dynamic" Lang="razor" />
-    </GuideSection>
+    <Example Id="dynamic-example" Title="任务进度" Demo="typeof(StyleDynamicExample)">
+        拖动滑块改每一行的进度、切换延期：变的是元素上的变量与合并的层，样式规则不增加。
+    </Example>
 
     <GuideSection Id="customize" Title="定制组件">
         <Paragraph>
-            组件由几个部件组成（按钮的根、图标、内容层……），每个部件的属性分三层合并：部件的默认层、使用方的、组件管理的（名称、状态）。
-            改一处用部件属性（<Code>PropsXxx</Code>），改一片区域或整个应用用 <Code>RuneProvider</Code>（或 <Code>AddRuneUI</Code>）的 <Code>Components</Code>：
-            每个组件一项，写默认值（<Code>Defaults</Code>）、按部件追加的样式（<Code>Styles</Code>）、某个档位取值时追加的样式（<Code>Variants</Code>）。
+            一处覆盖用 <Code>Sx</Code>（组件的根元素）与部件属性（<Code>PropsXxx</Code>，如 <Code>PropsTitle</Code>）。整个应用或一块区域统一换样式用
+            <Code>AddRuneUI</Code> 与 <Code>RuneProvider</Code> 的 <Code>Components</Code>：一个组件的定制写在一处——档位的默认值（<Code>Defaults</Code>）、
+            追加在组件自己样式之后的（<Code>Styles</Code>）、某个档位取值的（<Code>Variants</Code>）；内层 RuneProvider 排在外层之后。
+            组件的样式、每层定制、使用方的 <Code>Sx</Code> 各进一个级联层，后面的盖过前面的；宿主自己不分层的 CSS 盖过整个组件库（重置样式请放进更低的层）。
+            部件带 <Code>data-scope</Code> 与 <Code>data-part</Code>，宿主自己的 CSS、端到端测试都能按部件选中，不依赖生成的类名。
         </Paragraph>
-        <CodeBlock Code="@customize" Lang="razor" />
-        <Paragraph>
-            使用方写的类、样式、属性与组件管理的合并，不会覆盖组件的状态与无障碍属性；事件处理叠在一起都会执行。
-        </Paragraph>
-        <Paragraph>
-            组件库的规则都在 CSS 级联层里（<Code>rune.vars</Code> 是主题变量，<Code>rune.s0</Code>、<Code>rune.s1</Code>……依次是组件自己的、定制的、使用方的样式），
-            后面的层不论选择器多具体都盖过前面的，所以 <Code>Sx</Code> 与定制总能盖住组件的默认样式。应用自己不分层的全局 CSS 会盖过整个组件库：
-            重置样式（<Code>button { … }</Code> 这类）请放进更低的层，例如 <Code>@@layer reset { … }</Code> 并在最前面声明 <Code>@@layer reset, rune.vars;</Code>。
-        </Paragraph>
+        <CodeBlock Code="@Customize" Lang="razor" />
     </GuideSection>
+    <Example Id="customize-example" Title="一块区域换个样子" Demo="typeof(ComponentStylesExample)">
+        右边那张卡片套了一层 <Code>RuneProvider</Code>：组件自己有的选项改默认值（<Code>Defaults</Code>：按钮全圆、标记用描边浅底），
+        选项以外的样式写进 <Code>Styles</Code>（字距、标记大写），某个档位取值的写进 <Code>Variants</Code>（描边按钮改成虚线）。
+    </Example>
 </DocPage>
 
 @code {
-    const string define = """
-        <Card Sx="Panel">…</Card>
-        <div @attributes="Attrs.Merge(new() { Sx = Panel })">…</div>
+    const string Basics = """
+        <section @attributes="Attrs.Merge(new Attrs { Sx = featured ? [Card, Featured] : Card })">…</section>   @* 原生元素：几层合成一组类 *@
+        <Card Sx="Card">…</Card>                                                                            @* 组件：Sx *@
 
         @code {
-            static Style Panel => Css.Define(static () => new Style
+            static Style Card => Css.Define(static () => new Style
             {
-                Display = Display.Flex,
-                Gap = Space.Md,
-                Padding = Space.Lg,
+                Padding = Space.Lg,                                       // 主题 token
                 BorderRadius = Radii.Lg,
-                BackgroundColor = Colors.Surface,
+                BorderColor = Colors.BorderMuted,
+                [When.Hover] = new() { BorderColor = Colors.Border },     // 按条件取值
+                Transition = $"border-color {Durations.Md} {Easings.Standard}", // 值里夹着 token：插值字符串
             });
+
+            static Style Featured => Css.Define(static () => new Style { BorderColor = Tones.Accent.Border });
         }
         """;
 
-    static readonly string[] tokenHead = ["类", "例子", "用途"];
+    const string Dynamic = """
+        <div @attributes="Attrs.Merge(new Attrs { Sx = Bar, Vars = [BarWidth.Set(CssLength.Percent(task.Progress))] })"></div>
 
-    static readonly string[][] tokens =
+        @code {
+            static readonly CssVar<CssLength> BarWidth = CssVar.Length("task-progress");
+            static Style Bar => Css.Define(static () => new Style { Width = BarWidth });
+        }
+        """;
+
+    const string Customize = """
+        builder.Services.AddRuneUI(o => o.Components =
+        [
+            new ComponentConfig<ButtonDefaults, ButtonPart>
+            {
+                Defaults = new() { Radius = Radius.Full },                                  // 档位的默认值
+                Styles = { [ButtonPart.Root] = Spaced },                                    // 追加在组件自己的样式之后
+                Variants = { [ButtonVariant.Outline] = { [ButtonPart.Root] = Dashed } },    // 某个档位取值的样式
+            },
+        ]);
+
+        /* 宿主自己的 CSS 按部件选中，不依赖生成的类名 */
+        [data-scope='alert'][data-part='title'] { letter-spacing: 0.01em; }
+        """;
+
+    static readonly Dictionary<string, string> Notes = new()
+    {
+        ["Hover"] = "悬停",
+        ["HoverEnabled"] = "悬停（可用时）",
+        ["Active"] = "按下",
+        ["Focus"] = "获得焦点",
+        ["FocusVisible"] = "键盘聚焦（焦点环）",
+        ["FocusWithin"] = "自己或里面有焦点",
+        ["Disabled"] = "不可用",
+        ["Selected"] = "选中",
+        ["Checked"] = "勾选",
+        ["Indeterminate"] = "半选",
+        ["Pressed"] = "按下的开关按钮",
+        ["Expanded"] = "展开",
+        ["Open"] = "打开（details、dialog、弹层）",
+        ["PopoverOpen"] = "弹层打开",
+        ["Modal"] = "模态",
+        ["Empty"] = "没有内容",
+        ["FirstChild"] = "第一个",
+        ["LastChild"] = "最后一个",
+        ["Starting"] = "进场动画的起点",
+        ["Current"] = "当前项",
+        ["Invalid"] = "校验不通过",
+        ["ReadOnly"] = "只读",
+        ["Highlighted"] = "键盘高亮的选项",
+        ["Dragging"] = "拖动中",
+        ["Rtl"] = "从右到左排版",
+    };
+
+    // When 里的条件（按声明的顺序），再加上几个不在 When 里的常用条件
+    static readonly (string Name, string Note, string Selector)[] Aliases =
     [
-        ["`Colors`", "`Colors.Text`、`Colors.Surface`、`Colors.Border`", "文字、背景、表面、描边"],
-        ["`Tones`", "`Tones.Accent.Solid`、`Tones.Danger.Soft`", "色调：品牌、信息、成功、警告、危险，各有实底、浅底、文字色"],
-        ["`Space`", "`Space.Sm`、`Space.Lg`", "间距（em，随字号缩放）"],
-        ["`FontSizes`、`FontWeights`、`LineHeights`", "`FontSizes.Sm`", "文字"],
-        ["`Radii`、`Shadows`、`BorderWidths`", "`Radii.Md`", "圆角、阴影、描边宽度"],
-        ["`Durations`、`Easings`", "`Durations.Md`、`Easings.Standard`", "动效（减少动态效果时时长为 0）"],
+        .. typeof(When).GetFields(BindingFlags.Public | BindingFlags.Static)
+            .Where(field => field.FieldType == typeof(Condition))
+            .Select(field => ($"When.{field.Name}", Notes.GetValueOrDefault(field.Name, ""), ((Condition)field.GetValue(null)!).Key)),
+        ("Pseudo.Placeholder", "占位文字", Pseudo.Placeholder.Key),
+        ("Media.ForcedColors", "高对比模式", Media.ForcedColors.Key),
+        ("Media.ReducedMotion", "减少动态效果", Media.ReducedMotion.Key),
     ];
 
-    const string states = """
-        static Style Row => Css.Define(static () => new Style
-        {
-            Color = Colors.TextMuted,
-            [When.Hover] = new() { Color = Colors.Text },
-            [When.Expanded] = new() { Color = Tones.Accent.Text },
-            [Pseudo.Before] = new() { Content = "\"\"", Width = Space.Xs },
-            [Breakpoints.Md] = new() { PaddingInline = Space.Lg },
-            [Containers.MinWidth(CssLength.Rem(30))] = new() { Display = Display.Grid },
-            [Media.ReducedMotion] = new() { Transition = Transition.None },
-        });
-        """;
+    static readonly Attrs AliasesLayer = new() { Sx = AliasesStyle };
+    static readonly Attrs NoMarginLayer = new() { Sx = NoMargin };
+    static readonly Attrs SelectorLayer = new() { Sx = [NoMargin, Selector] };
 
-    const string dynamic = """
-        <div @attributes="Attrs.Merge(new() { Sx = Fill, Vars = [FillWidth.Set(CssLength.Percent(percent))] })"></div>
+    static Style AliasesStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "max-content max-content minmax(0, 1fr)",
+        ColumnGap = Space.Md,
+        RowGap = Space.Xs,
+        Margin = 0,
+        FontSize = FontSizes.Sm,
+    });
 
-        @code {
-            static readonly CssVar<CssLength> FillWidth = CssVar.Length("upload-fill");
-            static Style Fill => Css.Define(static () => new Style { Width = FillWidth });
+    static Style NoMargin => Css.Define(static () => new Style { Margin = 0 });
 
-            double percent = 40;
-        }
-        """;
-
-    const string customize = """
-        @* 一处：部件属性 *@
-        <AccordionItem Value="ship" Title="多久发货？" PropsTrigger="@(new() { Sx = AccentWhenExpanded })">…</AccordionItem>
-
-        @* 一片区域：所有卡片描边、页头用强调色，描边按钮用虚线 *@
-        <RuneProvider Components="@components">…</RuneProvider>
-
-        @code {
-            static readonly ComponentConfigs components = new()
-            {
-                new ComponentConfig<CardDefaults, CardPart>
-                {
-                    Defaults = new() { Variant = CardVariant.Outline },
-                    Styles = { [CardPart.Header] = AccentText },
-                },
-                new ComponentConfig<ButtonDefaults, ButtonPart>
-                {
-                    Variants = { [ButtonVariant.Outline] = { [ButtonPart.Root] = Dashed } },
-                },
-            };
-        }
-        """;
+    static Style Selector => Css.Define(static () => new Style { Color = Colors.TextMuted, OverflowWrap = OverflowWrap.Anywhere });
 }

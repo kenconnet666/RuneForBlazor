@@ -25,8 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 示例的源码嵌进程序集：示例卡片按示例的类型取出原文（examples/分类/组件/Demo/名字.razor），WebAssembly 里也能读 -->
-    <EmbeddedResource Include="Components\**\*.razor" LogicalName="examples/%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- 示例的源码嵌进程序集：示例卡片按示例的类型取出原文（examples/ 后面是项目里的路径），WebAssembly 里也能读 -->
+    <EmbeddedResource Include="Components\**\*.razor" LogicalName="examples/Components/%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Guide\Demo\**\*.razor" LogicalName="examples/Guide/Demo/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- 组件库的 XML 文档注释嵌进程序集：API 表的说明从这里读（引用解析后它在 ReferenceCopyLocalPaths 里） -->

@@ -1,0 +1,101 @@
+@inherits RuneComponent
+
+@* 一张卡片里用到的写法：Css.Define 的样式、条件取值（悬停、容器查询）、主题 token，以及按条件合并几层样式 *@
+<div @attributes="Attrs.Merge(WrapLayer)">
+    <div @attributes="Attrs.Merge(GridLayer)">
+        @foreach (var plan in Plans)
+        {
+            <section @key="plan.Name" @attributes="Attrs.Merge(new Attrs { Sx = plan.Featured ? [Card, Featured] : Card })">
+                <div @attributes="Attrs.Merge(HeadLayer)">
+                    <Icon Data="plan.Icon" Sx="IconStyle" />
+                    @plan.Name
+                    @if (plan.Featured)
+                    {
+                        <Badge Tone="Tone.Accent" Sx="PushEnd">推荐</Badge>
+                    }
+                </div>
+                <div @attributes="Attrs.Merge(PriceLayer)">¥@plan.Price<span @attributes="Attrs.Merge(UnitLayer)"> / 月</span></div>
+                <ul @attributes="Attrs.Merge(FeaturesLayer)">
+                    @foreach (var feature in plan.Features)
+                    {
+                        <li @key="feature">@feature</li>
+                    }
+                </ul>
+                <Button Variant="@(plan.Featured ? ButtonVariant.Solid : ButtonVariant.Outline)" FullWidth="true">选择@(plan.Name)</Button>
+                <TextSpan Size="Size.Xs" Tone="TextTone.Muted" Sx="Centered">随时取消</TextSpan>
+            </section>
+        }
+    </div>
+</div>
+
+@code {
+    sealed record Plan(string Name, int Price, IconData Icon, string[] Features, bool Featured = false);
+
+    static readonly Plan[] Plans =
+    [
+        new("入门", 0, Lucide.Sparkles, ["3 个项目", "社区支持"]),
+        new("专业", 49, Lucide.Zap, ["不限项目", "优先支持", "自定义域名"], Featured: true),
+        new("企业", 199, Lucide.ShieldCheck, ["单点登录", "审计日志", "专属顾问"]),
+    ];
+
+    static readonly Attrs WrapLayer = new() { Sx = Wrap };
+    static readonly Attrs GridLayer = new() { Sx = Grid };
+    static readonly Attrs HeadLayer = new() { Sx = Head };
+    static readonly Attrs PriceLayer = new() { Sx = Price };
+    static readonly Attrs UnitLayer = new() { Sx = Unit };
+    static readonly Attrs FeaturesLayer = new() { Sx = Features };
+
+    // 容器查询的容器：卡片按示例区的宽度排，不看整个视口
+    static Style Wrap => Css.Define(static () => new Style { ContainerType = ContainerType.InlineSize });
+
+    // 窄的时候一列、宽一点三列
+    static Style Grid => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        Gap = Space.Md,
+        GridTemplateColumns = "minmax(0, 1fr)",
+        [Containers.MinWidth(CssLength.Rem(36))] = new() { GridTemplateColumns = "repeat(3, minmax(0, 1fr))" },
+    });
+
+    static Style Card => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        Gap = Space.Sm,
+        Padding = Space.Lg,
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = Colors.BorderMuted,
+        [When.Hover] = new() { BorderColor = Colors.Border },
+        BorderRadius = Radii.Lg,
+        BackgroundColor = Colors.Surface,
+        Transition = $"border-color {Durations.Md} {Easings.Standard}",
+    });
+
+    static Style Featured => Css.Define(static () => new Style { BorderColor = Tones.Accent.Border, BoxShadow = Shadows.Md });
+
+    static Style Head => Css.Define(static () => new Style { Display = Display.Flex, AlignItems = AlignItems.Center, Gap = Space.Sm, FontWeight = FontWeights.Semibold });
+
+    static Style IconStyle => Css.Define(static () => new Style { Color = Tones.Accent.Text });
+
+    // 只在这一处用的覆盖：也要先定义成静态的样式（渲染里不新建 Style，分析器 RUNE004 会提示）
+    static Style PushEnd => Css.Define(static () => new Style { MarginInlineStart = CssLength.Auto });
+
+    static Style Price => Css.Define(static () => new Style { FontSize = FontSizes.Xxl, FontWeight = FontWeights.Bold, LineHeight = LineHeights.Tight });
+
+    static Style Unit => Css.Define(static () => new Style { FontSize = FontSizes.Sm, Color = Colors.TextMuted, FontWeight = FontWeights.Normal });
+
+    static Style Features => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        Gap = Space.Xs,
+        Margin = 0,
+        PaddingInlineStart = Space.Lg,
+        Color = Colors.TextMuted,
+        FlexGrow = 1,
+        // 卡片拉高时条目留在上面，不均分高度
+        AlignContent = AlignContent.Start,
+    });
+
+    static Style Centered => Css.Define(static () => new Style { TextAlign = TextAlign.Center });
+}

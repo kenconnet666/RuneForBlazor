@@ -1,0 +1,33 @@
+@inherits RuneComponent
+
+@* Theme、DarkTheme 两套，ColorScheme.System 时按系统的 prefers-color-scheme 选一套，系统切换明暗时跟着变。
+   右边两张固定成亮、暗两套，对照系统切换前后的样子 *@
+<Grid MinItemWidth="CssLength.Em(16)" Gap="SpaceScale.Md">
+    <RuneProvider Theme="Themes.Paper" DarkTheme="Themes.Midnight" ColorScheme="ColorScheme.System">
+        @Sample((Lucide.CloudSun, "跟随系统"))
+    </RuneProvider>
+    <RuneProvider Theme="Themes.Paper" DarkTheme="Themes.Paper">
+        @Sample((Lucide.Sun, "系统是亮色时"))
+    </RuneProvider>
+    <RuneProvider Theme="Themes.Midnight" DarkTheme="Themes.Midnight">
+        @Sample((Lucide.MoonStar, "系统是暗色时"))
+    </RuneProvider>
+</Grid>
+
+@code {
+    // 同一张卡片：在哪套主题下都一样写，颜色全来自主题
+    static RenderFragment<(IconData Icon, string Title)> Sample => card => @<Card>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Align="ItemAlign.Start">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <Icon Data="card.Icon" />
+                <TextSpan Weight="Weight.Semibold">@card.Title</TextSpan>
+                <Badge Tone="Tone.Success">已同步</Badge>
+            </Flex>
+            <TextSpan Size="Size.Sm" Tone="TextTone.Muted">系统是亮色时用纸张主题，暗色时用午夜主题。</TextSpan>
+            <Flex Gap="SpaceScale.Sm">
+                <Button Size="Size.Sm">保存</Button>
+                <Button Size="Size.Sm" Variant="ButtonVariant.Soft">预览</Button>
+            </Flex>
+        </Flex>
+    </Card>;
+}

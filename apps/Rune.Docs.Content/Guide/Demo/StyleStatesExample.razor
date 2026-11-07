@@ -1,0 +1,105 @@
+@inherits RuneComponent
+
+@* 文件夹列表：当前项、不可用、悬停、键盘聚焦都由 DOM 上的属性决定样式，渲染里没有按状态拼的样式 *@
+<nav aria-label="文件夹">
+    <ul @attributes="Attrs.Merge(ListLayer)">
+        @foreach (var folder in Folders)
+        {
+            <li @key="folder.Id" @attributes="Attrs.Merge(RowLayer, Row.Attrs)">
+                <button type="button" aria-current="@(current == folder.Id ? "page" : null)" disabled="@folder.Disabled"
+                        @onclick="() => current = folder.Id" @attributes="Attrs.Merge(OpenLayer, Open.Attrs)">
+                    <Icon Data="folder.Icon" />
+                    <span @attributes="Attrs.Merge(LabelLayer)">@folder.Label</span>
+                    @if (folder.Count > 0)
+                    {
+                        <Badge Size="Size.Xs">@folder.Count</Badge>
+                    }
+                </button>
+                <IconButton Icon="Lucide.Trash" Size="Size.Xs" Variant="ButtonVariant.Ghost" Disabled="folder.Disabled" Label="@($"清空{folder.Label}")" Sx="Remove" />
+            </li>
+        }
+    </ul>
+</nav>
+
+@code {
+    sealed record Folder(string Id, string Label, IconData Icon, int Count, bool Disabled = false);
+
+    static readonly Folder[] Folders =
+    [
+        new("inbox", "收件箱", Lucide.Inbox, 12),
+        new("starred", "星标", Lucide.Star, 3),
+        new("sent", "已发送", Lucide.Send, 0),
+        new("alerts", "通知", Lucide.Bell, 5, Disabled: true),
+    ];
+
+    // 标记：挂在行上，行里的删除按钮按这一行的状态显示
+    static readonly Marker Row = Css.Marker("demo-folder-row");
+
+    // 标记：挂在打开文件夹的按钮上，行的底色按它是不是当前项取
+    static readonly Marker Open = Css.Marker("demo-folder-open");
+
+    static readonly Attrs ListLayer = new() { Sx = List };
+    static readonly Attrs RowLayer = new() { Sx = RowStyle };
+    static readonly Attrs OpenLayer = new() { Sx = OpenStyle };
+    static readonly Attrs LabelLayer = new() { Sx = Label };
+
+    string current = "inbox";
+
+    static Style List => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        Gap = 2,
+        MaxWidth = CssLength.Rem(20),
+        Padding = 0,
+        Margin = 0,
+        ListStyle = ListStyle.None,
+    });
+
+    static Style RowStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Xs,
+        PaddingInlineEnd = Space.Xs,
+        BorderRadius = Radii.Md,
+        BackgroundColor = CssColors.Transparent,
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
+        // 里面打开的按钮是当前项时整行着色：按后代的状态取样式
+        [When.Has($".{Open.ClassName}[aria-current=\"page\"]")] = new() { BackgroundColor = Tones.Accent.Soft },
+    });
+
+    static Style OpenStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        FlexGrow = 1,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Sm,
+        PaddingBlock = Space.Xs,
+        PaddingInline = Space.Sm,
+        Border = Border.None,
+        BorderRadius = Radii.Md,
+        BackgroundColor = CssColors.Transparent,
+        Font = CssWide.Inherit,
+        TextAlign = TextAlign.Start,
+        Cursor = Cursor.Pointer,
+        // 状态写在 DOM 上（aria-current、disabled），样式用条件跟着走：渲染里不再拼 current 的样式
+        Color = Colors.Text,
+        FontWeight = FontWeights.Normal,
+        [When.Current] = new() { Color = Tones.Accent.Text, FontWeight = FontWeights.Semibold },
+        [When.Disabled] = new() { Color = Colors.TextDisabled, Cursor = Cursor.NotAllowed },
+        OutlineStyle = OutlineStyle.None,
+        [When.FocusVisible] = new() { OutlineStyle = OutlineStyle.Solid },
+        OutlineWidth = BorderWidths.Sm,
+        OutlineColor = Colors.FocusRing,
+    });
+
+    static Style Label => Css.Define(static () => new Style { FlexGrow = 1 });
+
+    // 删除按钮平时透明，悬停这一行或行里有焦点时显示（按标记的状态取样式）
+    static Style Remove => Css.Define(static () => new Style
+    {
+        Opacity = 0,
+        [When.Inside(When.Hover, Row)] = new() { Opacity = 1 },
+        [When.Inside(When.FocusWithin, Row)] = new() { Opacity = 1 },
+    });
+}

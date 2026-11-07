@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+@* 每张卡片套一层 RuneProvider：主题只作用在这一块，页面其余部分不变 *@
+<GridList MinItemWidth="CssLength.Rem(15)" Gap="SpaceScale.Md" aria-label="内置主题">
+    @foreach (var theme in Themes.All)
+    {
+        <li @key="theme.Name">
+            <RuneProvider Theme="theme" DarkTheme="theme">
+                <Card>
+                    <Header><TextSpan Weight="Weight.Semibold">@theme.Name</TextSpan></Header>
+                    <ChildContent>
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                            <Flex Gap="SpaceScale.Xs" Wrap="true">
+                                <Badge Tone="Tone.Accent">新版本</Badge>
+                                <Badge Tone="Tone.Success" Variant="StatusVariant.Solid">运行中</Badge>
+                                <Badge Tone="Tone.Warning">待审核</Badge>
+                                <Badge Tone="Tone.Danger">失败</Badge>
+                            </Flex>
+                            <Progress Value="64" aria-label="@($"{theme.Name} 主题的进度条")" />
+                            <Switch Value="true">部署后通知</Switch>
+                            <Flex Gap="SpaceScale.Xs">
+                                <Button Size="Size.Sm">保存</Button>
+                                <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Neutral">取消</Button>
+                            </Flex>
+                        </Flex>
+                    </ChildContent>
+                </Card>
+            </RuneProvider>
+        </li>
+    }
+</GridList>

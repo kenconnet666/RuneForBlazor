@@ -1,0 +1,55 @@
+@inherits RuneComponent
+
+@* 一块区域里的组件统一换个样子：不必包一层组件，也不必每处写 Sx。写法同 AddRuneUI 的 Components；这里用 RuneProvider，只作用在右边那张卡片里。
+   一个组件的定制写在一处：组件自己有的选项（按钮的 Radius、标记的 Variant）改默认值，选项以外的样式写进 Styles，某个档位取值的样式写进 Variants *@
+<Flex Gap="SpaceScale.Md" Wrap="true">
+    <Card Sx="Half">
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted">默认</TextSpan>
+        @Toolbar
+    </Card>
+    <RuneProvider Components="Custom">
+        <Card Sx="Half">
+            <TextSpan Size="Size.Sm" Tone="TextTone.Muted">RuneProvider 的 Components</TextSpan>
+            @Toolbar
+        </Card>
+    </RuneProvider>
+</Flex>
+
+@code {
+    static readonly ComponentConfigs Custom =
+    [
+        new ComponentConfig<ButtonDefaults, ButtonPart>
+        {
+            Defaults = new() { Radius = Radius.Full },
+            // 追加在按钮自己的样式之后
+            Styles = { [ButtonPart.Root] = Spaced },
+            // 已有的档位也能改：描边按钮改成虚线
+            Variants = { [ButtonVariant.Outline] = { [ButtonPart.Root] = Dashed } },
+        },
+        new ComponentConfig<BadgeDefaults, BadgePart>
+        {
+            Defaults = new() { Variant = StatusVariant.Surface },
+            Styles = { [BadgePart.Root] = Upper },
+        },
+    ];
+
+    static RenderFragment Toolbar => @<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Flex Gap="SpaceScale.Sm" Wrap="true">
+            <Button Icon="Lucide.Plus">新建</Button>
+            <Button Variant="ButtonVariant.Outline" Icon="Lucide.Download">导出</Button>
+            <Button Variant="ButtonVariant.Ghost">更多</Button>
+        </Flex>
+        <Flex Gap="SpaceScale.Xs" Wrap="true">
+            <Badge Tone="Tone.Success">beta</Badge>
+            <Badge Tone="Tone.Info" Variant="StatusVariant.Outline">new</Badge>
+        </Flex>
+    </Flex>;
+
+    static Style Half => Css.Define(static () => new Style { Flex = "1 1 16rem" });
+
+    static Style Spaced => Css.Define(static () => new Style { LetterSpacing = CssLength.Em(0.06) });
+
+    static Style Dashed => Css.Define(static () => new Style { BorderStyle = BorderStyle.Dashed });
+
+    static Style Upper => Css.Define(static () => new Style { TextTransform = TextTransform.Uppercase, FontWeight = FontWeights.Semibold });
+}
