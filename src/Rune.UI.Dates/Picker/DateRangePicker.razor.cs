@@ -35,8 +35,8 @@ public partial class DateRangePicker
     /// <summary>区间里允许夹着不可选的日期。</summary>
     [Parameter] public bool AllowsUnavailableInRange { get; set; }
 
-    /// <summary>日历旁边的快捷区间（最近 7 天、本月……），按今天与语言的一周第一天算。</summary>
-    [Parameter] public IReadOnlyList<DateRangePreset> Presets { get; set; } = [];
+    /// <summary>日历旁边的快捷区间：内置的（最近 7 天、本月……按今天与语言的一周第一天算）可以直接写枚举值，也可以是自己的 <see cref="RangePreset"/>。</summary>
+    [Parameter] public IReadOnlyList<RangePreset> Presets { get; set; } = [];
 
     /// <summary>并排显示几个月，默认 2。</summary>
     [Parameter] public int VisibleMonths { get; set; } = 2;
@@ -104,8 +104,6 @@ public partial class DateRangePicker
             return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(time.GetUtcNow(), LangFormat.ZoneOf(Config.Lang)).DateTime);
         }
     }
-
-    static string PresetKey(DateRangePreset preset) => char.ToLowerInvariant(preset.ToString()[0]) + preset.ToString()[1..];
 
     static string? Join(string? a, string b) => a is null ? b : $"{a} {b}";
 

@@ -75,3 +75,35 @@ public enum DateRangePreset
     /// <summary>今年。</summary>
     ThisYear,
 }
+
+/// <summary>
+/// DateRangePicker 的一个快捷区间：内置的（<see cref="DateRangePreset"/>，可以直接写枚举值）或自己的（文字加区间）。
+/// <code>Presets="[DateRangePreset.Last7Days, new RangePreset("本结算周期", SettlementPeriod)]"</code>
+/// </summary>
+public sealed class RangePreset
+{
+    readonly DateRangePreset? builtIn;
+    readonly string? label;
+    readonly Func<DateRange>? range;
+
+    /// <summary>自己的快捷区间：每次打开按当时算（跟着今天变）。</summary>
+    /// <param name="label">按钮上的文字。</param>
+    /// <param name="range">区间。</param>
+    public RangePreset(string label, Func<DateRange> range)
+    {
+        this.label = label;
+        this.range = range;
+    }
+
+    RangePreset(DateRangePreset preset) => builtIn = preset;
+
+    /// <summary>内置的快捷区间：文字取语言包，按今天与语言的一周第一天算。</summary>
+    public static implicit operator RangePreset(DateRangePreset preset) => new(preset);
+
+    /// <summary>按钮上的文字。</summary>
+    internal string LabelIn(Lang lang) => builtIn is { } preset ? lang.DateRangePreset[char.ToLowerInvariant(preset.ToString()[0]) + preset.ToString()[1..]] : label!;
+
+    /// <summary>这个快捷区间现在是哪一段。</summary>
+    internal DateRange RangeOn(DateOnly today, DayOfWeek firstDayOfWeek) => builtIn is { } preset ? DateRange.Preset(preset, today, firstDayOfWeek) : range!();
+}
+

@@ -1,13 +1,14 @@
-@inherits RuneComponent
+@inherits UIComponent
 
-@* 报表的统计区间带快捷区间，今天之后不能选；酒店入住与离店，订满的日子不能夹在中间 *@
+@* 报表的统计区间带快捷区间（内置的与自己的结算周期），今天之后不能选；酒店入住与离店，订满的日子不能夹在中间 *@
 <Grid MinItemWidth="@("20rem")" Gap="SpaceScale.Lg">
-    <Field Label="统计区间" Description="@(report is { } r ? $"{r.Start:yyyy-MM-dd} – {r.End:yyyy-MM-dd}，共 {r.Days} 天" : "选一个区间")">
-        <DateRangePicker @bind-Value="report" Max="today"
-                         Presets="[DateRangePreset.Today, DateRangePreset.Last7Days, DateRangePreset.Last30Days, DateRangePreset.ThisMonth, DateRangePreset.LastMonth]" />
+    <Field Label="统计区间" DescriptionContent="@Show(report)">
+        <DateRangePicker @bind-Value="report" Max="today" StartName="from" EndName="to"
+                         Presets="@([DateRangePreset.Today, DateRangePreset.Last7Days, DateRangePreset.Last30Days, DateRangePreset.ThisMonth, DateRangePreset.LastMonth,
+                                    new RangePreset("本结算周期", SettlementPeriod), DateRangePreset.ThisYear])" />
     </Field>
-    <Field Label="入住与离店" Description="@(stay is { } s ? $"{s.Days - 1} 晚" : "先选入住，再选离店")">
-        <DateRangePicker @bind-Value="stay" Min="today" IsDateUnavailable="booked.Contains" StartName="checkIn" EndName="checkOut" Clearable="true" />
+    <Field Label="入住与离店" Description="@(stay is { } s ? $"{LangFormat.Date(s.Start, Config.Lang, DateStyle.Medium, null)} 入住，共 {s.Days - 1} 晚" : "订满的日子不能夹在中间")">
+        <DateRangePicker @bind-Value="stay" Min="today" IsDateUnavailable="booked.Contains" Clearable="true" />
     </Field>
 </Grid>
 
@@ -17,9 +18,21 @@
     DateRange? report;
     DateRange? stay;
 
+    // 演示数据：从今天往后数的第 5、6 天已订满
     protected override void OnInitialized()
     {
-        report = DateRange.Preset(DateRangePreset.Last7Days, today, LangFormat.FirstDayOfWeek(Lang.ZhCn));
-        booked = [today.AddDays(9), today.AddDays(10)];
+        booked = [today.AddDays(5), today.AddDays(6)];
+        report = new(today.AddDays(-6), today);
     }
+
+    // 自己的快捷区间：结算周期是上月 26 日到本月 25 日
+    static DateRange SettlementPeriod()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var anchor = today.Day > 25 ? today : today.AddMonths(-1);
+        var start = new DateOnly(anchor.Year, anchor.Month, 26);
+        return new(start, start.AddMonths(1).AddDays(-1));
+    }
+
+    static RenderFragment Show(DateRange? range) => @<Code>@(range is { } r ? $"{r.Start:yyyy-MM-dd} – {r.End:yyyy-MM-dd}" : "选一个区间")</Code>;
 }

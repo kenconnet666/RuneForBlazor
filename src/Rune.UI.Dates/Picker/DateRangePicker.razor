@@ -40,7 +40,7 @@
         <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" tabindex="-1" data-rune-segments-clear hidden="@(startIso is null && endIso is null)"
                      @attributes="Attrs.MergeProps(Attrs.Layer(parts[InputPart.Button], own[SegmentedFieldPart.Clear]), PropsClear)" />
     }
-    @PickerParts.Trigger(BuiltInIcons.CalendarRange, lang.DatePickerOpen, editable, open, PopoverId, PropsButton)
+    @PickerParts.Trigger(BuiltInIcons.CalendarRange, lang.DatePickerOpen, editable, open, PopoverId, parts[InputPart.Button], PropsButton)
 </div>
 <div @attributes="Attrs.Merge(picker[PickerPart.Popover], PropsPopover, PopoverManaged)">
     @if (open)
@@ -52,11 +52,11 @@
             <div role="group" aria-label="@lang.DateRangePresets" @attributes="Attrs.Merge(picker[PickerPart.Presets])">
                 @foreach (var preset in Presets)
                 {
-                    var range = DateRange.Preset(preset, today, first);
+                    var range = preset.RangeOn(today, first);
                     var active = CurrentValue == range;
-                    <Button @key="preset" Size="UI.Size.Sm" Variant="@(active ? ButtonVariant.Soft : ButtonVariant.Ghost)" Tone="Tone.Neutral"
+                    <Button @key="preset.LabelIn(lang)" Size="UI.Size.Sm" Variant="@(active ? ButtonVariant.Soft : ButtonVariant.Ghost)" Tone="Tone.Neutral"
                             aria-pressed="@(active ? "true" : "false")" Disabled="!Selectable(range)"
-                            @onclick="() => PickAsync(range)" @attributes="Attrs.MergeProps(picker[PickerPart.Preset])">@lang.DateRangePreset[PresetKey(preset)]</Button>
+                            @onclick="() => PickAsync(range)" @attributes="Attrs.MergeProps(picker[PickerPart.Preset])">@preset.LabelIn(lang)</Button>
                 }
             </div>
         }

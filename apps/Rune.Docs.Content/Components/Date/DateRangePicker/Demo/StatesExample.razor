@@ -1,21 +1,26 @@
 @inherits RuneComponent
 
 @* 只显示一个月、允许区间夹着不可选的日期（周末不算工作日，但请假可以跨周末）；以及外观与状态 *@
-<Grid MinItemWidth="@("18rem")" Gap="SpaceScale.Lg">
-    <Field Label="请假" Description="周末不能作为开始或结束，可以夹在中间">
+<Grid MinItemWidth="@("20rem")" Gap="SpaceScale.Lg">
+    <Field Label="请假" DescriptionContent="@(leave is { } l ? Show(l) : Text("起止只能是工作日，可以跨周末"))">
         <DateRangePicker @bind-Value="leave" Min="DateOnly.FromDateTime(DateTime.Today)" VisibleMonths="1" IsDateUnavailable="Weekend" AllowsUnavailableInRange="true" Clearable="true" />
     </Field>
-    <Field Label="出行（Radius.Full 加图标）"><DateRangePicker @bind-Value="trip" Icon="Lucide.Plane" Radius="Radius.Full" /></Field>
-    <Field Label="出错" Error="结束早于开始"><DateRangePicker Value="Backwards" /></Field>
+    <Field Label="出差" Required="true" Error="@(trip is null ? "请选择出差日期" : null)" Description="@(trip is { } t ? $"共 {t.Days} 天" : "值是 DateRange，选好后算出天数")">
+        <DateRangePicker @bind-Value="trip" Icon="Lucide.Plane" Radius="Radius.Full" />
+    </Field>
+    <Field Label="Variant.Soft · Size.Sm"><DateRangePicker Value="October" Variant="InputVariant.Soft" Size="Size.Sm" /></Field>
     <Field Label="只读" ReadOnly="true"><DateRangePicker Value="October" /></Field>
     <Field Label="不可用" Disabled="true"><DateRangePicker Value="October" /></Field>
 </Grid>
 
 @code {
     static readonly DateRange October = new(new(2026, 10, 1), new(2026, 10, 7));
-    static readonly DateRange Backwards = new(new(2026, 10, 9), new(2026, 10, 2));
     DateRange? leave;
     DateRange? trip;
 
     static bool Weekend(DateOnly date) => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    static RenderFragment Show(DateRange range) => @<Code>@($"{range.Start:yyyy-MM-dd} – {range.End:yyyy-MM-dd}")</Code>;
+
+    static RenderFragment Text(string text) => @<text>@text</text>;
 }

@@ -19,11 +19,11 @@ public class DateRangePickerTests(DemoServer demo) : E2ETest(demo)
         await page.Keyboard.TypeAsync(start.ToString("yyyyMMdd"));
         await Assertions.Expect(stay.GetByRole(AriaRole.Spinbutton, new() { Name = "入住与离店 结束日期 年" })).ToBeFocusedAsync();
         await page.Keyboard.TypeAsync(end.ToString("yyyyMMdd"));
-        await Assertions.Expect(page.GetByText("2 晚", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByText(new System.Text.RegularExpressions.Regex("入住，共 2 晚$"))).ToBeVisibleAsync();
 
         // 清空：两组都回到占位，值是 null
         await stay.GetByRole(AriaRole.Button, new() { Name = "清空" }).ClickAsync();
-        await Assertions.Expect(page.GetByText("先选入住，再选离店", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByText("订满的日子不能夹在中间", new() { Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(stay.GetByRole(AriaRole.Spinbutton, new() { Name = "入住与离店 结束日期 年" })).ToHaveAttributeAsync("aria-valuetext", "未填写");
 
         // 快捷区间：“最近 30 天”（“本月”会超过今天，不可用）
@@ -33,6 +33,6 @@ public class DateRangePickerTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(dialog.GetByRole(AriaRole.Button, new() { Name = "本月" })).ToBeDisabledAsync();
         await dialog.GetByRole(AriaRole.Button, new() { Name = "最近 30 天" }).ClickAsync();
         await Assertions.Expect(dialog).ToHaveCountAsync(0);
-        await Assertions.Expect(page.GetByText($"{today.AddDays(-29):yyyy-MM-dd} – {today:yyyy-MM-dd}，共 30 天", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByText($"{today.AddDays(-29):yyyy-MM-dd} – {today:yyyy-MM-dd}", new() { Exact = true })).ToBeVisibleAsync();
     }
 }
