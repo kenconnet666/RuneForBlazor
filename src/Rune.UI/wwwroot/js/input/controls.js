@@ -157,7 +157,9 @@ export function focusOnShell(event) {
     if (button.hasAttribute('data-rune-repeat')) repeatWhileHeld(button);
     return;
   }
-  if (target.closest('input, textarea, select, button, a, [role="spinbutton"]')) return;
+  // 点在框里能聚焦的元素上（输入元素、按钮、链接、日期的段、带 tabindex 的取色块）：照常由浏览器聚焦它；只认框里的，外面的滚动区域也带 tabindex
+  const focusable = target.closest('input, textarea, select, button, a[href], [tabindex], [contenteditable]');
+  if (focusable && focusable !== shell && shell.contains(focusable)) return;
   // 分段输入（DateField、TimeField、DateRangePicker）：焦点进第一个没填的段（都填了时第一段）
   const segments = shell.querySelector(':scope > [data-rune-date-segments]');
   if (segments) {
