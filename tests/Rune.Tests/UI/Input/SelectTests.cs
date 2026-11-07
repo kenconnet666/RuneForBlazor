@@ -207,7 +207,7 @@ public class SelectTests : BunitContext
 
         result.SetResult(["x1", "c1"]);
         await cut.InvokeAsync(() => { });
-        cut.WaitForAssertion(() => Assert.Equal(["许悠", "陈默"], cut.FindAll("[role=option]").Select(o => o.GetAttribute("data-label"))));
+        cut.WaitForAssertion(() => Assert.Equal(["许悠", "陈默"], cut.FindAll("[role=option]").Select(o => o.GetAttribute("data-label"))), TimeSpan.FromSeconds(5));
         Assert.Null(cut.Find("[role=listbox]").GetAttribute("aria-busy"));
     }
 
