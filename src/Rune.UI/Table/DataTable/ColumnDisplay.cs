@@ -103,7 +103,7 @@ static class ColumnDisplay
             case ColumnType.FileSize when number is { } n:
                 return LangFormat.FileSize((long)n, lang.Code);
             case ColumnType.Date or ColumnType.DateTime when value is DateOnly or DateTime or DateTimeOffset:
-                return LangFormat.Date(value, lang.Code, type == ColumnType.DateTime);
+                return LangFormat.Date(value, lang, type == ColumnType.DateTime);
             default:
                 return Convert.ToString(value, CultureInfo.InvariantCulture) ?? "";
         }
