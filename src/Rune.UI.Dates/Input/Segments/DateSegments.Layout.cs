@@ -68,9 +68,13 @@ static partial class DateSegments
         if (!fields.Contains(DateSegmentType.Hour)) return [];
         var style = fields.Contains(DateSegmentType.Second) ? TimeStyle.Medium : TimeStyle.Short;
         var tokens = Tokens(LangFormat.TimePattern(info, style, hour12, culture), info);
-        return fields.Contains(DateSegmentType.Minute)
-            ? Keep(tokens, DateSegmentType.Hour, DateSegmentType.Minute, DateSegmentType.Second, DateSegmentType.DayPeriod)
-            : Keep(tokens, DateSegmentType.Hour, DateSegmentType.DayPeriod);
+        if (fields.Contains(DateSegmentType.Minute))
+            return Keep(tokens, DateSegmentType.Hour, DateSegmentType.Minute, DateSegmentType.Second, DateSegmentType.DayPeriod);
+        // 只到小时：中文、日文在小时后面写单位（CLDR 的 H 格式“H时”“H時”，同 Intl），其余只有数字
+        var hours = Keep(tokens, DateSegmentType.Hour, DateSegmentType.DayPeriod);
+        var unit = culture.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ? "时" : culture.StartsWith("ja", StringComparison.OrdinalIgnoreCase) ? "時" : null;
+        if (unit is not null) hours.Insert(hours.FindIndex(part => part.Type == DateSegmentType.Hour) + 1, new(null, unit));
+        return hours;
     }
 
     /// <summary>只留这几种段：去掉的段连同它前面的分隔符一起去掉（在最前面时去掉后面的）。</summary>

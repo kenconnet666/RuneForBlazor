@@ -153,8 +153,8 @@ public abstract class DataTableColumn<TItem> : ComponentBase
     /// <summary>提交前校验草稿：返回原因就不提交。</summary>
     internal virtual string? ValidateDraft(object? draft, TItem item) => null;
 
-    /// <summary>直接打字开始编辑：打的字变成草稿（数字列只认数字，不是数字时 false，保留原值）。</summary>
-    internal virtual bool TryDraftFromText(string text, out object? draft)
+    /// <summary>直接打字开始编辑：打的字变成草稿（数字列按语言的文化只认数字，不是数字时 false，保留原值）。</summary>
+    internal virtual bool TryDraftFromText(string text, System.Globalization.CultureInfo culture, out object? draft)
     {
         draft = text;
         return true;

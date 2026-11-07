@@ -22,6 +22,8 @@ public class DateSegmentsTests
         { "en-US", "year month", false, "month \"/\" year" },
         { "en-US", "year", false, "year" },
         { "en-US", "hour minute", false, "hour \":\" minute" },
+        { "zh-CN", "hour", false, "hour \"时\"" },
+        { "en-US", "hour", false, "hour" },
         { "en-US", "hour minute second", true, "hour \":\" minute \":\" second \" \" dayPeriod" },
         { "en-US", "year month day hour minute", false, "month \"/\" day \"/\" year \", \" hour \":\" minute" },
         { "de-DE", "year month day", false, "day \".\" month \".\" year" },

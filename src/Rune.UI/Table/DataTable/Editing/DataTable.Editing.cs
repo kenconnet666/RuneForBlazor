@@ -18,7 +18,7 @@ public partial class DataTable<TItem>
     void StartEdit(string rowKey, string columnKey, string? typed = null)
     {
         if (ItemOf(rowKey) is not { } item || ColumnOf(columnKey) is not { } column || !column.CanEdit(item)) return;
-        var draft = typed is not null && column.TryDraftFromText(typed, out var fromText) ? fromText : column.ValueOf(item);
+        var draft = typed is not null && column.TryDraftFromText(typed, LangFormat.CultureOf(Config.Lang.Code), out var fromText) ? fromText : column.ValueOf(item);
         editing = (rowKey, columnKey, draft, null, false);
         StateHasChanged();
     }

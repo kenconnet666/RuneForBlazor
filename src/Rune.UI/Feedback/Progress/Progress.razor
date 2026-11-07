@@ -133,7 +133,7 @@ else
 
     double PercentOf(decimal value) => Max <= 0 ? 0 : (double)Math.Clamp(value / Max * 100, 0, 100);
 
-    static string PercentText(double percent) => (percent / 100).ToString("P0", CultureInfo.CurrentCulture);
+    string PercentText(double percent) => (percent / 100).ToString("P0", LangFormat.CultureOf(Config.Lang.Code));
 
     static string Number(double value) => Math.Round(value, 3).ToString(CultureInfo.InvariantCulture);
 

@@ -62,7 +62,7 @@
     /// <summary>被标记的元素。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    string CountText => Count is not { } count ? "" : count > Max ? $"{Max}+" : count.ToString(System.Globalization.CultureInfo.CurrentCulture);
+    string CountText => Count is not { } count ? "" : count > Max ? $"{Max}+" : count.ToString(LangFormat.CultureOf(Config.Lang.Code));
 
     string PlacementName => Placement switch
     {

@@ -129,7 +129,7 @@
 
     // input 上由组件管理的属性：表单状态、显示的文字、spinbutton 的 aria 值，以及给 JS 处理方向键的范围与步长（不变量格式）。
     // 有缩放时这些都按显示的单位：JS 按输入框里的文字加减、夹取，C# 写回时再乘回去
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Min, Max, Step, BigStep, Format, Scale, CultureInfo.CurrentCulture), this,
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Min, Max, Step, BigStep, Format, Scale, LangFormat.CultureOf(Config.Lang.Code)), this,
         static (k, owner) =>
         {
             var invariant = CultureInfo.InvariantCulture;
@@ -154,7 +154,7 @@
     // 解析输入的文字并写回；解析不了时恢复原来的显示
     async Task CommitAsync(string? text)
     {
-        if (!NumberText.TryParse(text, CultureInfo.CurrentCulture, out var parsed))
+        if (!NumberText.TryParse(text, LangFormat.CultureOf(Config.Lang.Code), out var parsed))
         {
             version++;
             return;

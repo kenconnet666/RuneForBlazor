@@ -55,11 +55,11 @@ public class PropertyColumn<TItem, TValue> : DataTableColumn<TItem>
 
     internal override string? ValidateDraft(object? draft, TItem item) => Validate?.Invoke(Cast(draft), item);
 
-    internal override bool TryDraftFromText(string text, out object? draft)
+    internal override bool TryDraftFromText(string text, CultureInfo culture, out object? draft)
     {
         draft = null;
-        if (!Numeric) return base.TryDraftFromText(text, out draft);
-        if (!decimal.TryParse(text, NumberStyles.Number, CultureInfo.CurrentCulture, out var number)) return false;
+        if (!Numeric) return base.TryDraftFromText(text, culture, out draft);
+        if (!decimal.TryParse(text, NumberStyles.Number, culture, out var number)) return false;
         draft = Convert.ChangeType(number, Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue), CultureInfo.InvariantCulture);
         return true;
     }
