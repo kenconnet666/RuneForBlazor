@@ -70,6 +70,40 @@ static partial class DateSegments
         }, CultureInfo.InvariantCulture),
     };
 
+    // ───────── 一段日期（年、季度、月、周、日） ─────────
+
+    /// <summary>某天所在那一段的 ISO 文字：2026、2026-Q4、2026-10、2026-W43、2026-10-20（带时间的粒度按日）。</summary>
+    public static string PeriodIso(DateOnly day, DateGranularity granularity) => granularity switch
+    {
+        DateGranularity.Year => day.ToString("yyyy", CultureInfo.InvariantCulture),
+        DateGranularity.Month => day.ToString("yyyy-MM", CultureInfo.InvariantCulture),
+        DateGranularity.Quarter => $"{day.Year:D4}-Q{(day.Month + 2) / 3}",
+        DateGranularity.Week => $"{ISOWeek.GetYear(day.ToDateTime(TimeOnly.MinValue)):D4}-W{ISOWeek.GetWeekOfYear(day.ToDateTime(TimeOnly.MinValue)):D2}",
+        _ => day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+    };
+
+    /// <summary>填好的各段 → 那一段的第一天（周是周一）；没有年时 null。</summary>
+    public static DateOnly? PeriodStart(DateParts parts, DateGranularity granularity)
+    {
+        if (parts.Year is not { } year) return null;
+        return granularity switch
+        {
+            DateGranularity.Quarter => new DateOnly(year, (parts.Quarter!.Value - 1) * 3 + 1, 1),
+            DateGranularity.Week => DateOnly.FromDateTime(ISOWeek.ToDateTime(year, Math.Min(parts.Week!.Value, ISOWeek.GetWeeksInYear(year)), DayOfWeek.Monday)),
+            _ => new DateOnly(year, parts.Month ?? 1, Math.Min(parts.Day ?? 1, DateTime.DaysInMonth(year, parts.Month ?? 1))),
+        };
+    }
+
+    /// <summary>那一段的最后一天（年末、季末、月末、周日；按日时就是这一天）。</summary>
+    public static DateOnly PeriodEnd(DateOnly start, DateGranularity granularity) => granularity switch
+    {
+        DateGranularity.Year => start.AddYears(1).AddDays(-1),
+        DateGranularity.Month => start.AddMonths(1).AddDays(-1),
+        DateGranularity.Quarter => start.AddMonths(3).AddDays(-1),
+        DateGranularity.Week => start.AddDays(6),
+        _ => start,
+    };
+
     // ───────── ISO 文字 ─────────
 
     /// <summary>各段的值 → ISO 文字（按有哪些段：2026、2026-10、2026-10-20、2026-W43、2026-Q4、2026-10-20T14:30、14:30）。</summary>

@@ -52,27 +52,18 @@ public class DateField<TValue> : SegmentedField<TValue>
 
     private protected string IsoOf(DateTime wall) => Granularity switch
     {
-        DateGranularity.Year => wall.ToString("yyyy", CultureInfo.InvariantCulture),
-        DateGranularity.Month => wall.ToString("yyyy-MM", CultureInfo.InvariantCulture),
-        DateGranularity.Quarter => $"{wall.Year:D4}-Q{(wall.Month + 2) / 3}",
-        DateGranularity.Week => $"{ISOWeek.GetYear(wall):D4}-W{ISOWeek.GetWeekOfYear(wall):D2}",
         DateGranularity.Hour => wall.ToString("yyyy-MM-ddTHH:00", CultureInfo.InvariantCulture),
         DateGranularity.Minute => wall.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture),
         DateGranularity.Second => wall.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture),
-        _ => wall.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        _ => DateSegments.PeriodIso(DateOnly.FromDateTime(wall), Granularity),
     };
 
     // 填好的段 → 那一段的第一天（带时间时加上时分秒）
     DateTime? WallOf(string iso)
     {
-        if (DateSegments.FromIso(iso, Fields) is not { Year: { } year } parts) return null;
-        var day = Granularity switch
-        {
-            DateGranularity.Quarter => new DateTime(year, (parts.Quarter!.Value - 1) * 3 + 1, 1),
-            DateGranularity.Week => ISOWeek.ToDateTime(year, Math.Min(parts.Week!.Value, ISOWeek.GetWeeksInYear(year)), DayOfWeek.Monday),
-            _ => new DateTime(year, parts.Month ?? 1, Math.Min(parts.Day ?? 1, DateTime.DaysInMonth(year, parts.Month ?? 1))),
-        };
-        return WithTime ? day.Add(new TimeSpan(parts.Hour ?? 0, parts.Minute ?? 0, parts.Second ?? 0)) : day;
+        if (DateSegments.FromIso(iso, Fields) is not { } parts || DateSegments.PeriodStart(parts, Granularity) is not { } day) return null;
+        var date = day.ToDateTime(TimeOnly.MinValue);
+        return WithTime ? date.Add(new TimeSpan(parts.Hour ?? 0, parts.Minute ?? 0, parts.Second ?? 0)) : date;
     }
 
     private protected override bool TryFromIso(string? iso, out TValue value)
@@ -98,14 +89,7 @@ public class DateField<TValue> : SegmentedField<TValue>
     {
         if (WallOf(iso) is not { } wall) return false;
         var start = DateOnly.FromDateTime(wall);
-        var end = Granularity switch
-        {
-            DateGranularity.Year => start.AddYears(1).AddDays(-1),
-            DateGranularity.Month => start.AddMonths(1).AddDays(-1),
-            DateGranularity.Quarter => start.AddMonths(3).AddDays(-1),
-            DateGranularity.Week => start.AddDays(6),
-            _ => start,
-        };
+        var end = DateSegments.PeriodEnd(start, Granularity);
         if (Wall(Max) is { } max && start > DateOnly.FromDateTime(max)) return true;
         if (Wall(Min) is { } min && end < DateOnly.FromDateTime(min)) return true;
         var byDay = Granularity == DateGranularity.Day || WithTime;
