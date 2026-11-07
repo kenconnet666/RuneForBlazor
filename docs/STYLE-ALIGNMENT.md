@@ -171,4 +171,15 @@ vue 的规则（STYLE-ENGINE.md §11）照搬，按 Rune 的结构落在这几�
 | 链接下划线作用域（ff221742） | `LinkUnderlineContext`（级联值）与 `LinkUnderlineScope`；ItemList、Stat、StatGroup、Timeline、Descriptions、Checklist 整块与 Card 页头给 Hover；Upload 的文件名直接写 Hover |
 | Upload 接父级放进来的待上传文件（ff221742） | 同（参数变化时与自己加文件后都检查，同一项只开始一次） |
 
-CI 的 `VUE_TSX_PRO_REF` 没跟着前移：vue 的语言包新增了 errorTitle、errorRetry（ErrorBoundary），前移要等 Rune 也有对应的文案。
+CI 的 `VUE_TSX_PRO_REF` 第四批时前移到 89c01fc8（语言包重新生成，带上 errorTitle、errorRetry、listNoMore）。
+
+### 阶段 25 第四批（2026-11-08 跟进，vue master 到 89c01fc8）
+
+| vue | Rune |
+| --- | ---- |
+| FileDrop、Upload 的 `directory`（f5d31cdd） | `Directory`：input 加 webkitdirectory，选文件夹与拖进来的文件夹都由浏览器递归读出；IBrowserFile 只有文件名，相对路径由 JS 在选到时交给 FileDrop（`PathOf`），Upload 按它列出 |
+| Dialog 的 `draggable`（237f97d2） | `Draggable`：标题栏是把手，拖动在 JS 里（overlays.js 的 grabDialog），写 translate、限制在窗口内，每次打开回到正中 |
+| FloatButton、FloatButtonGroup、速拨；BackTop 基于它（77cffad3） | 同；速拨的展开状态在 C#，Esc 与点到组外由 JS 发 rune-command 收起；新 FloatButton 页 |
+| useInfiniteList、InfiniteListStatus（cffe9ad9） | `InfiniteList<T, TCursor>`（状态是信号）、`InfiniteListStatus`；params 换成 `ParamsChangedAsync()`（Blazor 里组件自己知道搜索词何时变）；失败文案一律取语言包，不显示异常原文 |
+| Select、Combobox、Mentions 的 load 分页（同一提交） | 另加 `LoadPage`（C# 的一个参数不能既收数组又收分页结果）；ListboxView 末尾放哨兵，JS 的 IntersectionObserver 看到它在可见范围下方约 5 行内时发 more（虚拟与否都适用）；`LoadingMore` 时骨架接在末尾 |
+| 文档：FloatButton 页、Select“远程搜索与分页”、VirtualList / DataTable 改用 useInfiniteList、数据指南“滚动加载” | 同 |
