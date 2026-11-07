@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+@* 颜色、金额、不写转化率；加载中与没有数据 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="rates">转化率</Switch>
+        <Switch @bind-Value="loading">加载中</Switch>
+    </Flex>
+    <FunnelChart Stages="Stages" Color="ChartColor.Series(3)" Rates="rates" Loading="loading" Unit="万元" ValueFormat="TenThousands" aria-label="收益的四个口径" />
+    <FunnelChart Stages="[]" aria-label="没有数据" />
+</Flex>
+
+@code {
+    static readonly FunnelStage[] Stages =
+    [
+        new("机会值", 1520000), new("预测值", 1180000), new("承诺值", 760000),
+        new("实现值", 415000) { Color = Tone.Success },
+    ];
+
+    static readonly NumberFormat TenThousands = new() { Scale = 10_000, MaximumFractionDigits = 1 };
+
+    bool loading;
+    bool rates = true;
+}

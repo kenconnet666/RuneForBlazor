@@ -1,0 +1,23 @@
+@inherits RuneComponent
+
+@* 提示框、加载与空状态 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="tooltip">提示框</Switch>
+        <Switch @bind-Value="loading">加载中</Switch>
+        <Switch @bind-Value="empty">没有数据</Switch>
+    </Flex>
+    <SankeyChart Nodes="Nodes" Links="@(empty ? [] : Links)" Unit="人" Tooltip="tooltip" Loading="loading" Height="260" aria-label="下单流程">
+        <Empty>今天还没有订单</Empty>
+    </SankeyChart>
+</Flex>
+
+@code {
+    static readonly FlowNode[] Nodes = [new("cart") { Label = "加入购物车" }, new("checkout") { Label = "去结算" }, new("paid") { Label = "已付款" }, new("left") { Label = "放弃" }];
+
+    static readonly FlowLink[] Links = [new("cart", "checkout", 3200), new("cart", "left", 1800), new("checkout", "paid", 2600), new("checkout", "left", 600)];
+
+    bool tooltip = true;
+    bool loading;
+    bool empty;
+}

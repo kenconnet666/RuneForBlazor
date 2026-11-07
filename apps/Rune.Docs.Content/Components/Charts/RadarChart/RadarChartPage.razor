@@ -1,0 +1,21 @@
+@page "/components/radar-chart"
+@attribute [DocMeta("RadarChart 雷达图", "几个维度上同时比较几个对象（供应商的各项评分、方案的各项指标）：每个对象连成一个多边形。", DocCategory.Charts, Order = 10.6)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.RadarChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="suppliers" Title="供应商评分" Demo="typeof(SuppliersExample)">
+                <Code>Items</Code> 的每一行是一个维度，<Code>Dimension</Code> 取维度名，<Code>Series</Code> 的每一项连成一个多边形。<Code>Max</Code> 是轴的最大值（评分写 100）。
+                悬停一个维度时那根轴加粗、各系列的数值标在顶点旁；点图例隐藏系列。至少三个维度才画得出来；读屏的数据表列出每一维的各系列。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="options" Title="圆形网格与自动的最大值" Demo="typeof(OptionsExample)">
+                <Code>CircleGrid</Code> 画圆形网格，<Code>Levels</Code> 是圈数；不写 <Code>Max</Code> 时按数据取一个整齐的值（圈数 × 整齐的步长）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(RadarChart<>)]" />
+</DocPage>

@@ -421,13 +421,10 @@ public abstract partial class XYChartBase<TItem>
     string HoverData(Layout layout)
     {
         var context = layout.Context;
-        using var stream = new MemoryStream();
-        using (var json = new Utf8JsonWriter(stream))
+        return HoverJson(json =>
         {
-            json.WriteStartObject();
             json.WriteString("mode", PointTooltip ? "point" : CrosshairDots && !Band ? "line" : "band");
             json.WriteBoolean("horizontal", context.Horizontal);
-            json.WriteNumber("width", PlotWidth);
             WriteNumbers(json, "plot", [context.Plot.Left, context.Plot.Top, context.Plot.Width, context.Plot.Height]);
             json.WriteNumber("half", SvgFormat.Round(Math.Max(context.Step / 2, 1)));
             json.WriteNumber("reach", SvgFormat.Round(Math.Max(context.Step, 8)));
@@ -467,31 +464,8 @@ public abstract partial class XYChartBase<TItem>
                     json.WriteEndArray();
                 }
             }
-            if (Tooltip)
-            {
-                json.WriteStartArray("tips");
-                foreach (var row in context.Rows)
-                {
-                    json.WriteStartArray();
-                    json.WriteStringValue(CategoryOf(row));
-                    json.WriteStartArray();
-                    foreach (var item in TipItems(row))
-                    {
-                        json.WriteStartArray();
-                        json.WriteStringValue(item.Label);
-                        if (item.Color is { } color) json.WriteStringValue(color.ToString());
-                        else json.WriteNullValue();
-                        json.WriteStringValue(item.Value);
-                        json.WriteEndArray();
-                    }
-                    json.WriteEndArray();
-                    json.WriteEndArray();
-                }
-                json.WriteEndArray();
-            }
-            json.WriteEndObject();
-        }
-        return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+            if (Tooltip) WriteTips(json, context.Rows.Select(row => (CategoryOf(row), TipItems(row))));
+        });
     }
 
     static void WriteNumbers(Utf8JsonWriter json, string name, IEnumerable<double> values)

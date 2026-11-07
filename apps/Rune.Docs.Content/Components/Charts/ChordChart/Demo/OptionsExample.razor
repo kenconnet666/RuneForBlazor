@@ -1,0 +1,29 @@
+@inherits RuneComponent
+
+@* 图例、提示框、加载与空状态 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="legend">图例</Switch>
+        <Switch @bind-Value="tooltip">提示框</Switch>
+        <Switch @bind-Value="loading">加载中</Switch>
+        <Switch @bind-Value="empty">没有数据</Switch>
+    </Flex>
+    <ChordChart Nodes="Teams" Links="@(empty ? [] : Handoffs)" Unit="次" Legend="legend" Tooltip="tooltip" Loading="loading" Height="320" aria-label="团队之间的交接">
+        <Empty>这个月还没有交接记录</Empty>
+    </ChordChart>
+</Flex>
+
+@code {
+    static readonly FlowNode[] Teams = [new("design") { Label = "设计" }, new("web") { Label = "前端" }, new("server") { Label = "后端" }, new("qa") { Label = "测试" }];
+
+    static readonly FlowLink[] Handoffs =
+    [
+        new("design", "web", 42), new("web", "server", 31), new("server", "qa", 27),
+        new("web", "qa", 24), new("qa", "web", 18), new("design", "qa", 9),
+    ];
+
+    bool legend = true;
+    bool tooltip = true;
+    bool loading;
+    bool empty;
+}

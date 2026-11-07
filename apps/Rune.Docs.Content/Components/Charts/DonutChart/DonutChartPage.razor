@@ -1,0 +1,26 @@
+@page "/components/donut-chart"
+@attribute [DocMeta("DonutChart 环形图", "看各部分占整体的多少：环形图或饼图，中间写合计；悬停看数值与占比，点图例隐藏一项。C# 直接画 SVG，跟随主题。", DocCategory.Charts, Order = 4)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.DonutChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="sources" Title="环形图" Demo="typeof(SourcesExample)">
+                每一行一个扇区，<Code>Name</Code> 是名称、<Code>Value</Code> 是数值；中间的大字默认是显示中各项的合计，<Code>CenterSubLabel</Code> 是下面的小字。
+                悬停扇区看数值与占比，点图例隐藏一项。
+            </Example>
+            <Example Id="budget" Title="饼图" Demo="typeof(BudgetExample)">
+                <Code>ArcWidth="0"</Code> 画成饼图，<Code>ShowCenter="false"</Code> 不写中间的字。数值是 <Code>decimal</Code>，提示框与读屏的数据表按原值显示；
+                <Code>ItemColor</Code> 按行给颜色，返回 null 的按顺序取色板。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="options" Title="图例与状态" Demo="typeof(OptionsExample)">
+                <Code>@@bind-HiddenItems</Code> 双向绑定图例里隐藏的块，占比按剩下的重算；<Code>Height</Code> 是高度。加载中（<Code>Loading</Code>）显示骨架，
+                没有数据时显示 <Code>Empty</Code>（默认“暂无数据”）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(DonutChart<>)]" />
+</DocPage>

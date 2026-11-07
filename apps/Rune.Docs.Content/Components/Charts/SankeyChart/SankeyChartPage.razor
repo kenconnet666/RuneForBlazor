@@ -1,0 +1,24 @@
+@page "/components/sankey-chart"
+@attribute [DocMeta("SankeyChart 桑基图", "看量从哪来、到哪去、在哪流失：节点之间的流量画成粗细不同的带子。C# 直接画 SVG，跟随主题，没有第三方依赖。", DocCategory.Charts, Order = 6)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.SankeyChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="funnel" Title="转化漏斗" Demo="typeof(FunnelExample)">
+                <Code>Nodes</Code> 是节点（<Code>Id</Code>、<Code>Label</Code>、<Code>Color</Code>），<Code>Links</Code> 是流向（起点、终点、流量），不能成环。
+                带子取起点节点的颜色，流失的节点给成灰色更醒目；节点旁写名字与总量，悬停带子看这一步的流量。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="budget" Title="预算分配" Demo="typeof(BudgetExample)">
+                流量是 <Code>decimal</Code>，<Code>ValueFormat</Code> 同时作用于节点旁的总量、提示框与读屏的数据表（这里是简写的金额）；<Code>Align</Code> 决定节点靠哪一侧排。
+            </Example>
+            <Example Id="options" Title="状态" Demo="typeof(OptionsExample)">
+                <Code>Tooltip</Code> 可以关掉。加载中（<Code>Loading</Code>）显示骨架，没有数据时显示 <Code>Empty</Code>（默认“暂无数据”）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(SankeyChart), typeof(FlowNode), typeof(FlowLink)]" />
+</DocPage>

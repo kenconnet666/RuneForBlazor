@@ -1,0 +1,139 @@
+@*
+    弦图（同 vue-tsx-pro 的 ChordChart）：节点排成一圈，节点之间的往来画成弦，看谁和谁往来最多（部门之间的协作、地区之间的调货）。
+    <ChordChart Nodes="regions" Links="transfers" Unit="吨" aria-label="区域调货" />
+    每个节点一段弧，长短按流入加流出；每条流向一根弦，取起点节点的颜色。悬停弧出它的总量并突出相连的弦、其余的弧变淡；悬停弦出“起点 → 终点”的流量
+    （charts.js，不往返）。点图例隐藏节点；没有图例时名字写在弧外。布局见 ChordLayout。
+*@
+@namespace Rune.UI
+@inherits ChartBase
+
+@Frame
+
+@code {
+    // 弧的粗细、弦与弧之间的空、相邻两段弧之间的空隙（弧度）
+    const double ArcWidth = 14;
+    const double ArcGap = 3;
+    const double PadAngle = 0.04;
+
+    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
+    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
+    static readonly Attrs NodeLayer = new() { Sx = ChordStyles.Node };
+    static readonly Attrs LinkLayer = new() { Sx = ChordStyles.Link };
+    static readonly Attrs LabelLayer = new() { Sx = ChordStyles.Label };
+
+    IReadOnlyList<string> hiddenState = [];
+    Dictionary<string, ResolvedFlowNode> resolved = [];
+    Dictionary<string, ResolvedFlowNode> visible = [];
+
+    /// <summary>节点。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<FlowNode> Nodes { get; set; } = [];
+
+    /// <summary>流向。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<FlowLink> Links { get; set; } = [];
+
+    /// <summary>图例，默认显示；不显示时名字写在弧外。</summary>
+    [Parameter] public bool Legend { get; set; } = true;
+
+    /// <summary>隐藏的节点（Id）：点图例时写回，可以 <c>@bind-HiddenNodes</c>。</summary>
+    [Parameter] public IReadOnlyList<string>? HiddenNodes { get; set; }
+
+    /// <summary>点图例隐藏、恢复了节点。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> HiddenNodesChanged { get; set; }
+
+    IReadOnlyList<string> Hidden => HiddenNodes ?? hiddenState;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        resolved = ResolvedFlowNode.Of(Nodes);
+        var hidden = Hidden;
+        visible = resolved.Where(pair => !hidden.Contains(pair.Key)).ToDictionary();
+    }
+
+    string LabelOf(string id) => resolved.TryGetValue(id, out var node) ? node.Label : id;
+
+    private protected override CssLength? FrameHeight => Height ?? 320;
+    private protected override bool IsEmpty => Nodes.Count == 0;
+    private protected override IReadOnlyCollection<string> HiddenKeys => Hidden;
+    private protected override IReadOnlyList<ChartLegendItem> LegendItems => Legend ? [.. resolved.Values.Select(node => new ChartLegendItem(node.Id, node.Label, node.Color))] : [];
+
+    private protected override async Task ToggleLegendAsync(string key)
+    {
+        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        hiddenState = next;
+        await HiddenNodesChanged.InvokeAsync(next);
+        if (HiddenNodes is null) OnParametersSet();
+    }
+
+    private protected override RenderFragment SkeletonContent => __builder =>
+    {
+        <Skeleton Sx="DonutStyles.Skeleton" />
+    };
+
+    private protected override ChartTable BuildTable()
+    {
+        var lang = Config.Lang;
+        return new ChartTable(
+            [lang.ChartFlow, Unit is null ? lang.ChartValue : $"{lang.ChartValue}（{Unit}）"],
+            [.. Links.Where(link => visible.ContainsKey(link.Source) && visible.ContainsKey(link.Target))
+                .Select(link => new ChartTableRow(lang.ChartFlowLabel(LabelOf(link.Source), LabelOf(link.Target)), [NumberText(link.Value)]))]);
+    }
+
+    private protected override (RenderFragment Plot, string? Data)? Draw()
+    {
+        var nodes = visible.Values.ToList();
+        var flows = ResolvedFlowNode.Valid(visible, Links).Select(pair => pair.Link).ToList();
+        var order = nodes.Select((node, position) => (node.Id, position)).ToDictionary(pair => pair.Id, pair => pair.position);
+        var (groups, chords) = ChordLayout.Arrange(nodes.Count, [.. flows.Select(link => (order[link.Source], order[link.Target], (double)link.Value))], PadAngle);
+        var lang = Config.Lang;
+        // 悬停的项：弦是 0…L-1，弧接在后面（L + 第几个节点）
+        var tips = flows.Select(flow => (lang.ChartFlowLabel(resolved[flow.Source].Label, LabelOf(flow.Target)),
+                (IReadOnlyList<ChartTooltipItem>)[new(lang.ChartValue, resolved[flow.Source].Color, ValueText(flow.Value))]))
+            .Concat(nodes.Select((node, index) => (node.Label, (IReadOnlyList<ChartTooltipItem>)[new(lang.ChartTotal, node.Color, ValueText((decimal)groups[index].Value))])));
+        // 悬停弧时与它相连的弦一起突出；悬停弦时只有它自己
+        var related = flows.Select((_, index) => (IEnumerable<int>)[index])
+            .Concat(nodes.Select((node, position) => flows.Select((flow, index) => (flow, index)).Where(pair => pair.flow.Source == node.Id || pair.flow.Target == node.Id)
+                .Select(pair => pair.index).Prepend(flows.Count + position)));
+        return (Plot(nodes, flows, groups, chords), ItemHoverData(tips, groups: related));
+    }
+
+    static string N(double value) => SvgFormat.Number(value);
+
+    RenderFragment Plot(List<ResolvedFlowNode> nodes, List<FlowLink> flows, IReadOnlyList<ChordGroup> groups, IReadOnlyList<ChordLink> chords) => __builder =>
+    {
+        var (width, height) = (PlotWidth, PlotHeight);
+        // 没有图例时名字写在弧外：留出最长的名字
+        var labelRoom = Legend ? 4 : nodes.Select(node => ChartText.Width(node.Label)).DefaultIfEmpty(0).Max() + 12;
+        var outer = Math.Max(0, Math.Min(width / 2 - labelRoom, height / 2 - (Legend ? 4 : 20)));
+        var inner = Math.Max(0, outer - ArcWidth);
+        <svg @attributes="Attrs.Merge(SvgLayer, SvgSize())">
+            <g transform="@($"translate({N(width / 2)},{N(height / 2)})")" @attributes="Attrs.Merge(FadeLayer)">
+                <g data-part="links">
+                    @foreach (var chord in chords)
+                    {
+                        <path @key="chord.Index" data-part="link" data-index="@chord.Index" data-kind="link" d="@ChartShapes.Ribbon(Math.Max(0, inner - ArcGap), chord.Source, chord.Target)"
+                              @attributes="Attrs.Merge(LinkLayer, visible[flows[chord.Index].Source].ColorLayer)" />
+                    }
+                </g>
+                @for (var index = 0; index < groups.Count; index++)
+                {
+                    var (group, node) = (groups[index], nodes[index]);
+                    var (x, y) = ChartShapes.Polar(outer + 8, (group.Start + group.End) / 2);
+                    <g @key="node.Id">
+                        <path data-part="node" data-index="@(flows.Count + index)" data-kind="node" data-dim-on="node" d="@ChartShapes.Arc(new(inner, outer, group.Start, group.End, 2))"
+                              @attributes="Attrs.Merge(NodeLayer, node.ColorLayer)" />
+                        @if (!Legend)
+                        {
+                            @* 名字横着写：右半圈左对齐、左半圈右对齐，上下两端居中 *@
+                            @ChartSvg.Text(node.Label, SvgFormat.Round(x), SvgFormat.Round(y), LabelLayer, Math.Abs(x) < outer * 0.2 ? "middle" : x > 0 ? "start" : "end", "central")
+                        }
+                    </g>
+                }
+            </g>
+        </svg>
+        @if (Tooltip)
+        {
+            @TooltipBox
+        }
+    };
+}

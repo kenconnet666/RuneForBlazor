@@ -1,0 +1,15 @@
+@inherits RuneComponent
+
+@* 部门预算：ArcWidth 为 0 画成饼图；金额是 decimal，提示框与数据表按原值显示；行政用中性色，其余按色板 *@
+<DonutChart Items="Budget" Name="b => b.Dept" Value="b => b.Amount" Unit="万元" ArcWidth="0" ShowCenter="false" ValueFormat="TwoDigits"
+            ItemColor="ColorOf" aria-label="部门预算" />
+
+@code {
+    sealed record Line(string Dept, decimal Amount);
+
+    static readonly Line[] Budget = [new("研发", 1280.50m), new("市场", 760.25m), new("运营", 430.00m), new("行政", 215.75m)];
+
+    static ChartColor? ColorOf(Line row, int index) => row.Dept == "行政" ? Tone.Neutral : null;
+
+    static readonly NumberFormat TwoDigits = new() { MinimumFractionDigits = 2 };
+}

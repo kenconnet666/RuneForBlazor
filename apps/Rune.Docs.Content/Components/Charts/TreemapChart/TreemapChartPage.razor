@@ -1,0 +1,12 @@
+@page "/components/treemap-chart"
+@attribute [DocMeta("TreemapChart 矩形树图", "一个总量按层级分块（区域 → 供应商、科目 → 明细），块的面积是数值，一眼看出谁占得多。", DocCategory.Charts, Order = 10.7)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.TreemapChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="savings" Title="采购额构成" Demo="typeof(SavingsExample)">
+        <Code>Items</Code> 是扁平的明细，<Code>Groups</Code> 是从外到内分组的取值，<Code>Value</Code> 是面积的数值。同一个顶层分组同一种颜色（按色板），里面的块按亮度区分；
+        <Code>GroupLabels</Code> 让外层分组也写上名字。悬停看路径、数值与占比，点图例隐藏一个顶层分组（占比按剩下的算）；读屏的数据表列出每一块。
+    </Example>
+    <ApiReference Types="[typeof(TreemapChart<>)]" />
+</DocPage>

@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+@* 供应商的六项评分：每个供应商连成一个多边形，悬停一个维度看各家在这一项的分数；点图例隐藏一家 *@
+<RadarChart Items="Scores" Dimension="s => s.Dimension" Series="Series" Max="100" Unit="分" aria-label="供应商评分" />
+
+@code {
+    sealed record Score(string Dimension, decimal Huachen, decimal Hengyuan, decimal Yuehai);
+
+    static readonly Score[] Scores =
+    [
+        new("质量", 92, 78, 85), new("交期", 74, 88, 80), new("价格", 68, 90, 76),
+        new("服务", 85, 72, 90), new("技术", 95, 65, 70), new("合规", 88, 82, 94),
+    ];
+
+    static readonly ChartSeries<Score>[] Series =
+    [
+        new("huachen", "华辰精密", s => s.Huachen),
+        new("hengyuan", "恒远五金", s => s.Hengyuan),
+        new("yuehai", "粤海机电", s => s.Yuehai),
+    ];
+}

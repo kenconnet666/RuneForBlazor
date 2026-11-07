@@ -1,0 +1,179 @@
+@*
+    环形图（同 vue-tsx-pro 的 DonutChart；ArcWidth 为 0 时是饼图）：每一行一个扇区，中间写合计；悬停扇区出提示框（数值与占比）、扇区往外长、其余变淡，
+    点图例隐藏一项（合计与占比按剩下的重算）。
+    <DonutChart Items="channels" Name="c => c.Name" Value="c => c.Visits" Unit="次" aria-label="访问来源" />
+    颜色默认按顺序取图表色板（ItemColor 可以按行给），隐藏一项时其余扇区不换色。图例、单位、加载与空状态、给读屏的数据表（类目、数值、占比）同其他图表。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits ChartBase
+
+@Frame
+
+@code {
+    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
+    static readonly Attrs RingLayer = new() { Sx = DonutStyles.Ring };
+    static readonly Attrs BackgroundLayer = new() { Sx = DonutStyles.Background };
+    static readonly Attrs SegmentLayer = new() { Sx = DonutStyles.Segment };
+    static readonly Attrs CenterValueLayer = new() { Sx = DonutStyles.CenterValue };
+    static readonly Attrs CenterLabelLayer = new() { Sx = DonutStyles.CenterLabel };
+    static readonly Attrs NoPointerLayer = new() { Sx = DonutStyles.NoPointer };
+
+    IReadOnlyList<string> hiddenState = [];
+    List<Slice> slices = [];
+    List<Slice> visible = [];
+    double total;
+
+    // 一个扇区：一行加上它的名字、颜色、在数据里的位置
+    sealed record Slice(TItem Row, int Index, string Name, Rune.Styles.CssColor Color, decimal? Value)
+    {
+        public Attrs ColorLayer { get; } = ChartFrame.ColorVar(Color);
+    }
+
+    /// <summary>数据：每一行一个扇区。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    /// <summary>名称：图例、提示框、数据表里显示，也是隐藏一项时记的标识。</summary>
+    [Parameter, EditorRequired] public Func<TItem, string> Name { get; set; } = null!;
+
+    /// <summary>数值；负数、空值画成 0 宽的扇区。</summary>
+    [Parameter, EditorRequired] public Func<TItem, decimal?> Value { get; set; } = null!;
+
+    /// <summary>每一项的颜色（参数是这一行与它的位置）；返回 null、不写时按顺序取图表色板。</summary>
+    [Parameter] public Func<TItem, int, ChartColor?>? ItemColor { get; set; }
+
+    /// <summary>环的粗细（px），默认 28；0 是饼图。</summary>
+    [Parameter] public double ArcWidth { get; set; } = 28;
+
+    /// <summary>中间的大字；不写时是显示中各项的合计。</summary>
+    [Parameter] public string? CenterLabel { get; set; }
+
+    /// <summary>中间写字（大字与下面的小字），默认写；环太细（内圈半径不到 24px）时也不写。</summary>
+    [Parameter] public bool ShowCenter { get; set; } = true;
+
+    /// <summary>中间大字下面的小字；默认是“合计”。</summary>
+    [Parameter] public string? CenterSubLabel { get; set; }
+
+    /// <summary>图例，默认显示。</summary>
+    [Parameter] public bool Legend { get; set; } = true;
+
+    /// <summary>隐藏的项（名称）：点图例时写回，可以 <c>@bind-HiddenItems</c>。</summary>
+    [Parameter] public IReadOnlyList<string>? HiddenItems { get; set; }
+
+    /// <summary>点图例隐藏、恢复了一项。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> HiddenItemsChanged { get; set; }
+
+    /// <summary>点了一个扇区（下钻）：参数是这一行与它在数据里的位置；写了它时指针是手形。同样的去处在页面上还要有链接或按钮。</summary>
+    [Parameter] public EventCallback<ChartItemClick<TItem>> OnItemClick { get; set; }
+
+    IReadOnlyList<string> Hidden => HiddenItems ?? hiddenState;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        // 颜色按原来的顺序定：隐藏一项时其余扇区不换色
+        slices = [.. Items.Select((row, index) => new Slice(row, index, Name(row), ChartColor.Resolve(ItemColor?.Invoke(row, index), index), Value(row)))];
+        var hidden = Hidden;
+        visible = [.. slices.Where(slice => !hidden.Contains(slice.Name))];
+        total = visible.Sum(slice => (double)(slice.Value ?? 0));
+    }
+
+    private protected override bool IsEmpty => Items.Count == 0;
+
+    private protected override IReadOnlyList<ChartLegendItem> LegendItems => Legend ? [.. slices.Select(slice => new ChartLegendItem(slice.Name, slice.Name, slice.Color))] : [];
+
+    private protected override IReadOnlyCollection<string> HiddenKeys => Hidden;
+
+    private protected override async Task ToggleLegendAsync(string key)
+    {
+        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        hiddenState = next;
+        await HiddenItemsChanged.InvokeAsync(next);
+        if (HiddenItems is null) OnParametersSet();
+    }
+
+    private protected override bool Clickable => OnItemClick.HasDelegate;
+
+    private protected override Task ActivateAsync(int index) =>
+        index < visible.Count ? OnItemClick.InvokeAsync(new ChartItemClick<TItem>(visible[index].Row, visible[index].Index)) : Task.CompletedTask;
+
+    private protected override RenderFragment SkeletonContent => __builder =>
+    {
+        <Skeleton Sx="DonutStyles.Skeleton" />
+    };
+
+    string Share(decimal? value) => value is { } v ? ShareText((double)v, total) : Config.Lang.EmptyValue;
+
+    private protected override ChartTable BuildTable()
+    {
+        var lang = Config.Lang;
+        return new ChartTable(
+            [lang.ChartCategory, Unit is null ? lang.ChartValue : $"{lang.ChartValue}（{Unit}）", lang.ChartShare],
+            [.. visible.Select(slice => new ChartTableRow(slice.Name, [NumberText(slice.Value), Share(slice.Value)]))]);
+    }
+
+    // 扇区的位置：从 12 点钟方向顺时针，按数值分角度；扇区之间留一点缝
+    List<(Slice Slice, double Start, double End)> Arcs()
+    {
+        var pad = ArcWidth > 0 && visible.Count > 1 ? 0.012 : 0;
+        var angle = 0.0;
+        var arcs = new List<(Slice, double, double)>();
+        foreach (var slice in visible)
+        {
+            var amount = Math.Max((double)(slice.Value ?? 0), 0);
+            var sweep = total > 0 ? amount / total * Math.PI * 2 : 0;
+            var start = angle;
+            angle += sweep;
+            arcs.Add((slice, start + pad / 2, Math.Max(start + pad / 2, angle - pad / 2)));
+        }
+        return arcs;
+    }
+
+    private protected override (RenderFragment Plot, string? Data)? Draw()
+    {
+        var lang = Config.Lang;
+        var tips = visible.Select(slice => (slice.Name, (IReadOnlyList<ChartTooltipItem>)
+            [new(lang.ChartValue, slice.Color, ValueText(slice.Value)), new(lang.ChartShare, null, Share(slice.Value))]));
+        return (Plot, ItemHoverData(tips));
+    }
+
+    static string N(double value) => SvgFormat.Number(value);
+
+    RenderFragment Plot => __builder =>
+    {
+        var (width, height) = (PlotWidth, PlotHeight);
+        // 留出悬停时扇区往外长的 6px
+        var outer = Math.Max(0, Math.Min(width, height) / 2 - 8);
+        var inner = ArcWidth > 0 ? Math.Max(0, outer - ArcWidth) : 0;
+        var corner = ArcWidth > 0 ? 3 : 0;
+        var center = !ShowCenter || inner < 24 ? null : CenterLabel ?? LangFormat.Number((decimal)total, ValueFormat ?? NumberFormat.Default, Config.Lang);
+        var arcs = Arcs();
+        <svg @attributes="Attrs.Merge(SvgLayer, SvgSize())">
+            <g transform="@($"translate({N(width / 2)},{N(height / 2)})")">
+                <g @attributes="Attrs.Merge(RingLayer)">
+                    @if (inner > 0)
+                    {
+                        <path d="@ChartShapes.Arc(new(inner, outer, 0, Math.PI * 2))" @attributes="Attrs.Merge(BackgroundLayer)" />
+                    }
+                    @for (var index = 0; index < arcs.Count; index++)
+                    {
+                        var (slice, start, end) = arcs[index];
+                        <path @key="slice.Name" data-part="segment" data-index="@index" d="@ChartShapes.Arc(new(inner, outer, start, end, corner))"
+                              data-hover-d="@ChartShapes.Arc(new(inner, outer + 6, start, end, corner))" @attributes="Attrs.Merge(SegmentLayer, slice.ColorLayer)" />
+                    }
+                </g>
+                @if (center is not null)
+                {
+                    <g data-part="center-label" @attributes="Attrs.Merge(NoPointerLayer)">
+                        @ChartSvg.Text(center, 0, -2, CenterValueLayer, "middle")
+                        @ChartSvg.Text(CenterSubLabel ?? Config.Lang.ChartTotal, 0, 18, CenterLabelLayer, "middle")
+                    </g>
+                }
+            </g>
+        </svg>
+        @if (Tooltip)
+        {
+            @TooltipBox
+        }
+    };
+}

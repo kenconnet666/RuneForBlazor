@@ -1,0 +1,105 @@
+@*
+    桑基图（同 vue-tsx-pro 的 SankeyChart）：节点之间的流量画成粗细不同的带子，看量从哪来、到哪去、在哪流失（转化漏斗、预算分配、能源流向）。
+    <SankeyChart Nodes="steps" Links="flows" Unit="人" aria-label="注册转化" />
+    带子取起点节点的颜色；悬停带子出“起点 → 终点”的流量，悬停节点出它的总量并突出与它相连的带子（charts.js，不往返）。
+    节点旁写名字与总量（左半边的写在右侧，右半边的写在左侧）。布局见 SankeyLayout；流向不能成环。
+*@
+@namespace Rune.UI
+@inherits ChartBase
+
+@Frame
+
+@code {
+    // 节点的宽、同一列里节点的间距、上下留的空（px）
+    const double NodeWidth = 12;
+    const double NodePadding = 16;
+    const double Margin = 8;
+
+    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
+    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
+    static readonly Attrs NodeLayer = new() { Sx = SankeyStyles.Node };
+    static readonly Attrs LinkLayer = new() { Sx = SankeyStyles.Link };
+    static readonly Attrs NameLayer = new() { Sx = Sx.Of(SankeyStyles.Name, ChartSvgStyles.Halo) };
+    static readonly Attrs ValueLayer = new() { Sx = Sx.Of(SankeyStyles.Value, ChartSvgStyles.Halo) };
+
+    Dictionary<string, ResolvedFlowNode> resolved = [];
+
+    /// <summary>节点。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<FlowNode> Nodes { get; set; } = [];
+
+    /// <summary>流向：不能成环。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<FlowLink> Links { get; set; } = [];
+
+    /// <summary>节点的排法，默认两端对齐。</summary>
+    [Parameter] public SankeyAlign Align { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet() => resolved = ResolvedFlowNode.Of(Nodes);
+
+    string LabelOf(string id) => resolved.TryGetValue(id, out var node) ? node.Label : id;
+
+    private protected override CssLength? FrameHeight => Height ?? 320;
+    private protected override bool IsEmpty => Nodes.Count == 0;
+
+    private protected override ChartTable BuildTable()
+    {
+        var lang = Config.Lang;
+        return new ChartTable(
+            [lang.ChartFlow, Unit is null ? lang.ChartValue : $"{lang.ChartValue}（{Unit}）"],
+            [.. Links.Select(link => new ChartTableRow(lang.ChartFlowLabel(LabelOf(link.Source), LabelOf(link.Target)), [NumberText(link.Value)]))]);
+    }
+
+    private protected override (RenderFragment Plot, string? Data)? Draw()
+    {
+        var flows = ResolvedFlowNode.Valid(resolved, Links);
+        var (nodes, links) = SankeyLayout.Arrange([.. resolved.Keys], [.. flows.Select(pair => new FlowAmount(pair.Link.Source, pair.Link.Target, (double)pair.Link.Value))],
+            PlotWidth, Math.Max(0, PlotHeight - Margin * 2), NodeWidth, NodePadding, Align);
+        var lang = Config.Lang;
+        // 悬停的项：带子是 0…L-1，节点接在后面（L + 第几个节点）
+        var tips = links.Select(link => (lang.ChartFlowLabel(resolved[link.Source.Id].Label, LabelOf(link.Target.Id)),
+                (IReadOnlyList<ChartTooltipItem>)[new(lang.ChartValue, resolved[link.Source.Id].Color, ValueText(flows[link.Index].Link.Value))]))
+            .Concat(nodes.Select(node => (resolved[node.Id].Label, (IReadOnlyList<ChartTooltipItem>)[new(lang.ChartTotal, resolved[node.Id].Color, ValueText((decimal)node.Value))])));
+        // 悬停节点时与它相连的带子一起突出；悬停带子时只有它自己
+        var groups = links.Select(link => (IEnumerable<int>)[link.Index])
+            .Concat(nodes.Select((node, position) => node.SourceLinks.Concat(node.TargetLinks).Select(link => link.Index).Prepend(links.Count + position)));
+        return (Plot(nodes, links), ItemHoverData(tips, groups: groups));
+    }
+
+    static string N(double value) => SvgFormat.Number(value);
+
+    RenderFragment Plot(IReadOnlyList<SankeyNode> nodes, IReadOnlyList<SankeyLink> links) => __builder =>
+    {
+        <svg @attributes="Attrs.Merge(SvgLayer, SvgSize())">
+            <g transform="@($"translate(0,{N(Margin)})")" @attributes="Attrs.Merge(FadeLayer)">
+                <g data-part="links">
+                    @for (var index = 0; index < links.Count; index++)
+                    {
+                        var link = links[index];
+                        <path @key="index" data-part="link" data-index="@index" d="@ChartShapes.HorizontalLink(link.Source.X1, link.Y0, link.Target.X0, link.Y1)"
+                              stroke-width="@N(Math.Max(1, link.Width))" @attributes="Attrs.Merge(LinkLayer, resolved[link.Source.Id].ColorLayer)" />
+                    }
+                </g>
+                @for (var position = 0; position < nodes.Count; position++)
+                {
+                    var node = nodes[position];
+                    var info = resolved[node.Id];
+                    // 左半边的节点名字写在右侧，右半边的写在左侧：都朝着图的中间
+                    var right = node.X0 < PlotWidth / 2;
+                    var middle = (node.Y0 + node.Y1) / 2;
+                    var x = right ? node.X1 + 6 : node.X0 - 6;
+                    var anchor = right ? "start" : "end";
+                    <g @key="node.Id">
+                        <rect data-part="node" data-index="@(links.Count + position)" x="@N(node.X0)" y="@N(node.Y0)" width="@N(NodeWidth)"
+                              height="@N(Math.Max(1, node.Y1 - node.Y0))" rx="2" @attributes="Attrs.Merge(NodeLayer, info.ColorLayer)" />
+                        @ChartSvg.Text(info.Label, x, SvgFormat.Round(middle - 7), NameLayer, anchor, "central")
+                        @ChartSvg.Text(ValueText((decimal)node.Value), x, SvgFormat.Round(middle + 8), ValueLayer, anchor, "central")
+                    </g>
+                }
+            </g>
+        </svg>
+        @if (Tooltip)
+        {
+            @TooltipBox
+        }
+    };
+}

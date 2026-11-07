@@ -1,0 +1,20 @@
+@inherits RuneComponent
+
+@* 采购额按“区域 → 供应商”分块：面积是金额，同一个区域同一种颜色；悬停看路径、金额与占比，点图例隐藏一个区域 *@
+<TreemapChart Items="Savings" Groups="Levels" Value="s => s.Amount" Unit="万元" ValueFormat="OneDigit" GroupLabels="true" aria-label="采购额构成" />
+
+@code {
+    sealed record Purchase(string Region, string Supplier, decimal Amount);
+
+    static readonly Purchase[] Savings =
+    [
+        new("华东", "华辰精密", 623.2m), new("华东", "恒远五金", 239.7m), new("华东", "江南铸造", 118.4m),
+        new("华南", "粤海机电", 285.2m), new("华南", "南方物流", 48.3m),
+        new("华北", "京津新材", 170.2m), new("华北", "燕山精工", 92.6m),
+        new("西南", "蓉城五金", 146.1m), new("西南", "渝州电子", 98.5m),
+    ];
+
+    static readonly Func<Purchase, string>[] Levels = [s => s.Region, s => s.Supplier];
+
+    static readonly NumberFormat OneDigit = new() { MaximumFractionDigits = 1 };
+}

@@ -1,0 +1,23 @@
+@page "/components/chord-chart"
+@attribute [DocMeta("ChordChart 弦图", "看几方之间相互往来的多少：节点排成一圈，两两之间的流量画成弦。C# 直接画 SVG，跟随主题，没有第三方依赖。", DocCategory.Charts, Order = 7)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.ChordChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="teams" Title="基础用法" Demo="typeof(TeamsExample)">
+                数据同 SankeyChart：<Code>Nodes</Code> 是节点，<Code>Links</Code> 是流向。弧的长短是节点的总量，弦取起点节点的颜色；悬停弧看总量，悬停弦看两个节点之间的量。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="migration" Title="隐藏节点" Demo="typeof(MigrationExample)">
+                点图例隐藏一个节点，连同它的弦；<Code>HiddenNodes</Code> 存隐藏的 Id，可以用 <Code>@@bind-HiddenNodes</Code> 双向绑定。往返两个方向的流向各画一根弦。
+            </Example>
+            <Example Id="options" Title="图例与状态" Demo="typeof(OptionsExample)">
+                <Code>Legend</Code>、<Code>Tooltip</Code> 可以关掉。加载中（<Code>Loading</Code>）显示骨架，没有数据时显示 <Code>Empty</Code>（默认“暂无数据”）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ChordChart)]" />
+</DocPage>

@@ -1,0 +1,179 @@
+@*
+    雷达图（同 vue-tsx-pro 的 RadarChart）：几个维度上同时比较几个对象（供应商的质量、交期、价格、服务评分）。
+    每个维度一根轴，从中心往外是 0 到 Max；每个系列连成一个多边形，填一层浅色。
+    <RadarChart Items="dimensions" Dimension="d => d.Name" Series="suppliers" Max="100" aria-label="供应商评分" />
+    SVG 按固定的画布（360 × 300）画、随绘图区缩放，不用量尺寸。悬停一个维度时那根轴加粗、各系列在这一维的数值标在顶点旁边（charts.js 写 data-active，不往返）；
+    点图例隐藏系列。外层结构（图例、单位、加载与空状态、给读屏的数据表）同其他图表。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits ChartBase
+
+@Frame
+
+@code {
+    // 画布：360 × 300，中心 (180, 150)，半径 108；文字在半径 124 的圈上
+    const double Width = 360;
+    const double CanvasHeight = 300;
+    const double Cx = Width / 2;
+    const double Cy = CanvasHeight / 2;
+    const double Radius = 108;
+    const double LabelRadius = 124;
+
+    static readonly Attrs SvgLayer = new() { Sx = RadarStyles.Svg };
+    static readonly Attrs GridLayer = new() { Sx = RadarStyles.Grid };
+    static readonly Attrs SpokeLayer = new() { Sx = RadarStyles.Spoke };
+    static readonly Attrs TickLayer = new() { Sx = RadarStyles.Tick };
+    static readonly Attrs LabelLayer = new() { Sx = RadarStyles.Label };
+    static readonly Attrs AreaLayer = new() { Sx = RadarStyles.Area };
+    static readonly Attrs VertexLayer = new() { Sx = RadarStyles.Vertex };
+    static readonly Attrs ValueLayer = new() { Sx = RadarStyles.Value };
+    static readonly Attrs SectorLayer = new() { Sx = RadarStyles.Sector };
+
+    IReadOnlyList<string> hiddenState = [];
+    IReadOnlyList<ResolvedSeries<TItem>> resolved = [];
+    IReadOnlyList<ResolvedSeries<TItem>> visible = [];
+
+    /// <summary>数据：每一行是一个维度（质量、交期…）。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    /// <summary>维度名。</summary>
+    [Parameter, EditorRequired] public Func<TItem, string> Dimension { get; set; } = null!;
+
+    /// <summary>系列：每个系列连成一个多边形。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ChartSeries<TItem>> Series { get; set; } = [];
+
+    /// <summary>轴的最大值；不写时按数据取一个整齐的值。</summary>
+    [Parameter] public double? Max { get; set; }
+
+    /// <summary>网格的圈数，默认 4。</summary>
+    [Parameter] public int Levels { get; set; } = 4;
+
+    /// <summary>网格画成圆；默认是多边形。</summary>
+    [Parameter] public bool CircleGrid { get; set; }
+
+    /// <summary>图例：默认多于一个系列时显示。</summary>
+    [Parameter] public bool? Legend { get; set; }
+
+    /// <summary>隐藏的系列：点图例时写回，可以 <c>@bind-HiddenSeries</c>。</summary>
+    [Parameter] public IReadOnlyList<string>? HiddenSeries { get; set; }
+
+    /// <summary>点图例隐藏、恢复了系列。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> HiddenSeriesChanged { get; set; }
+
+    IReadOnlyList<string> Hidden => HiddenSeries ?? hiddenState;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        resolved = [.. Series.Select((item, index) => new ResolvedSeries<TItem>(item, ChartColor.Resolve(item.Color, index)))];
+        var hidden = Hidden;
+        visible = [.. resolved.Where(item => !hidden.Contains(item.Key))];
+    }
+
+    private protected override bool FixedCanvas => true;
+    private protected override CssLength? FrameHeight => Height ?? 300;
+    private protected override bool IsEmpty => Items.Count == 0;
+    private protected override IReadOnlyCollection<string> HiddenKeys => Hidden;
+
+    private protected override IReadOnlyList<ChartLegendItem> LegendItems => Legend ?? resolved.Count > 1
+        ? [.. resolved.Select(item => new ChartLegendItem(item.Key, item.Label, item.Color))]
+        : [];
+
+    private protected override async Task ToggleLegendAsync(string key)
+    {
+        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        hiddenState = next;
+        await HiddenSeriesChanged.InvokeAsync(next);
+        if (HiddenSeries is null) OnParametersSet();
+    }
+
+    private protected override RenderFragment SkeletonContent => __builder =>
+    {
+        <Skeleton Sx="DonutStyles.Skeleton" />
+    };
+
+    private protected override ChartTable BuildTable()
+    {
+        var lang = Config.Lang;
+        return new ChartTable(
+            [lang.ChartCategory, .. resolved.Select(item => Unit is null ? item.Label : $"{item.Label}（{Unit}）")],
+            [.. Items.Select(row => new ChartTableRow(Dimension(row), [.. resolved.Select(item => NumberText(item.ValueOf(row)))]))]);
+    }
+
+    // 少于三个维度画不成多边形：不画
+    private protected override (RenderFragment Plot, string? Data)? Draw() => Items.Count < 3 ? null : (Plot, ItemHoverData([], dim: false));
+
+    static string N(double value) => SvgFormat.Number(value);
+
+    // 第 index 个维度（共 count 个）、比例 ratio 处的点：第一个维度在正上方，顺时针
+    static (double X, double Y, double Angle) Polar(double index, int count, double ratio)
+    {
+        var angle = Math.PI * 2 * index / count - Math.PI / 2;
+        return (SvgFormat.Round(Cx + Math.Cos(angle) * Radius * ratio), SvgFormat.Round(Cy + Math.Sin(angle) * Radius * ratio), angle);
+    }
+
+    RenderFragment Plot => __builder =>
+    {
+        var count = Items.Count;
+        var values = Items.SelectMany(row => visible.Select(item => (double)(item.ValueOf(row) ?? 0))).ToList();
+        // 轴的最大值：给了用它，否则取 Levels 格整齐步长的整数倍
+        var top = Max ?? AxisTicks.NiceStep(Math.Max(values.DefaultIfEmpty(0).Max(), 1) / Levels) * Levels;
+        double RatioOf(double value) => Math.Max(0, Math.Min(value / top, 1));
+        string Ring(double ratio) => string.Join(' ', Enumerable.Range(0, count).Select(position => Polar(position, count, ratio)).Select(p => $"{N(p.X)},{N(p.Y)}"));
+        <svg viewBox="0 0 360 300" @attributes="Attrs.Merge(SvgLayer)">
+            @for (var level = 0; level < Levels; level++)
+            {
+                var ratio = (level + 1.0) / Levels;
+                if (CircleGrid)
+                {
+                    <circle @key="level" cx="@N(Cx)" cy="@N(Cy)" r="@N(Radius * ratio)" @attributes="Attrs.Merge(GridLayer)" />
+                }
+                else
+                {
+                    <polygon @key="level" points="@Ring(ratio)" @attributes="Attrs.Merge(GridLayer)" />
+                }
+            }
+            @for (var position = 0; position < count; position++)
+            {
+                var end = Polar(position, count, 1);
+                var label = Polar(position, count, LabelRadius / Radius);
+                var cos = Math.Cos(label.Angle);
+                <g @key="position">
+                    <line x1="@N(Cx)" y1="@N(Cy)" x2="@N(end.X)" y2="@N(end.Y)" data-index="@position" @attributes="Attrs.Merge(SpokeLayer)" />
+                    @ChartSvg.Text(Dimension(Items[position]), label.X, label.Y, Attrs.Merge(LabelLayer, new Attrs { ["data-index"] = position }),
+                        Math.Abs(cos) < 0.2 ? "middle" : cos > 0 ? "start" : "end", "middle")
+                </g>
+            }
+            @for (var level = 0; level < Levels; level++)
+            {
+                @ChartSvg.Text(LangFormat.Number((decimal)(top * (level + 1) / Levels), ValueFormat ?? NumberFormat.Default, Config.Lang),
+                    Cx + 3, Cy - Radius * (level + 1) / Levels, TickLayer, baseline: "middle", key: $"tick-{level}")
+            }
+            @foreach (var item in visible)
+            {
+                var points = Items.Select((row, position) => Polar(position, count, RatioOf((double)(item.ValueOf(row) ?? 0)))).ToList();
+                <g @key="item.Key">
+                    <polygon points="@string.Join(' ', points.Select(p => $"{N(p.X)},{N(p.Y)}"))" @attributes="Attrs.Merge(AreaLayer, item.ColorLayer)" />
+                    @for (var position = 0; position < count; position++)
+                    {
+                        <circle @key="position" cx="@N(points[position].X)" cy="@N(points[position].Y)" r="2.5" data-index="@position" @attributes="Attrs.Merge(VertexLayer, item.ColorLayer)" />
+                    }
+                    @* 悬停这一维时显示的数值 *@
+                    @for (var position = 0; position < count; position++)
+                    {
+                        @ChartSvg.Text(LangFormat.Number(item.ValueOf(Items[position]) ?? 0, ValueFormat ?? NumberFormat.Default, Config.Lang), points[position].X, points[position].Y - 8,
+                            Attrs.Merge(ValueLayer, item.ColorLayer, new Attrs { ["data-index"] = position }), "middle", key: $"value-{position}")
+                    }
+                </g>
+            }
+            @* 悬停：每个维度一块扇区 *@
+            @for (var position = 0; position < count; position++)
+            {
+                var a = Polar(position - 0.5, count, 1.2);
+                var b = Polar(position + 0.5, count, 1.2);
+                <path @key="@($"sector-{position}")" d="@($"M{N(Cx)} {N(Cy)} L{N(a.X)} {N(a.Y)} L{N(b.X)} {N(b.Y)} Z")" data-index="@position" @attributes="Attrs.Merge(SectorLayer)" />
+            }
+        </svg>
+    };
+}

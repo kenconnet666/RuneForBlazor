@@ -1,0 +1,108 @@
+@*
+    漏斗图（同 vue-tsx-pro 的 FunnelChart）：一串前后相接的环节，看每一步留下多少、在哪一步流失最多（访问 → 注册 → 下单、线索转化）。
+    <FunnelChart Stages="stages" Unit="项" aria-label="渠道转化" />
+    每个环节一条居中的横条，长短按数值（最大的环节占满）；环节之间写比上一环节的转化率，末尾写总转化。
+    横条是 HTML（不是 SVG），不用量尺寸；点了一个环节发 activate（data-index）。外层结构同其他图表。
+*@
+@namespace Rune.UI
+@inherits ChartBase
+
+@Frame
+
+@code {
+    static readonly Attrs ListLayer = new() { Sx = FunnelStyles.List };
+    static readonly Attrs RowLayer = new() { Sx = FunnelStyles.Row };
+    static readonly Attrs LabelLayer = new() { Sx = FunnelStyles.Label };
+    static readonly Attrs TrackLayer = new() { Sx = FunnelStyles.Track };
+    static readonly Attrs ValueLayer = new() { Sx = FunnelStyles.Value };
+    static readonly Attrs RateLayer = new() { Sx = FunnelStyles.Rate };
+    static readonly Attrs RateTextLayer = new() { Sx = FunnelStyles.RateText };
+    static readonly Attrs OverallLayer = new() { Sx = FunnelStyles.Overall };
+    static readonly Attrs SkeletonLayer = new() { Sx = FunnelStyles.Skeleton };
+
+    // 骨架横条的宽度：从宽到窄
+    static readonly int[] SkeletonWidths = [90, 68, 46, 28];
+
+    double[] numbers = [];
+    double max;
+
+    /// <summary>各环节：从上到下。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<FunnelStage> Stages { get; set; } = [];
+
+    /// <summary>横条的颜色，默认色板的第 1 个；环节可以单独给。</summary>
+    [Parameter] public ChartColor? Color { get; set; }
+
+    /// <summary>环节之间写转化率，末尾写总转化，默认写。</summary>
+    [Parameter] public bool Rates { get; set; } = true;
+
+    /// <summary>点了一个环节（下钻）：参数是这个环节与它的位置；写了它时指针是手形。同样的去处在页面上还要有链接或按钮。</summary>
+    [Parameter] public EventCallback<ChartItemClick<FunnelStage>> OnItemClick { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        numbers = [.. Stages.Select(stage => Math.Max((double)stage.Value, 0))];
+        max = numbers.DefaultIfEmpty(0).Max();
+    }
+
+    private protected override bool FixedCanvas => true;
+    private protected override CssLength? FrameHeight => CssLength.Auto;
+    private protected override bool IsEmpty => Stages.Count == 0;
+    private protected override bool Clickable => OnItemClick.HasDelegate;
+
+    private protected override Task ActivateAsync(int index) =>
+        index < Stages.Count ? OnItemClick.InvokeAsync(new ChartItemClick<FunnelStage>(Stages[index], index)) : Task.CompletedTask;
+
+    // 第 index 个环节比 base 个环节的转化率；base 为 0 时没有
+    string Rate(int index, int @base) => ShareText(numbers[index], numbers[@base]);
+
+    private protected override ChartTable BuildTable()
+    {
+        var lang = Config.Lang;
+        return new ChartTable(
+            [lang.ChartStage, Unit is null ? lang.ChartValue : $"{lang.ChartValue}（{Unit}）", lang.ChartStepRate, lang.ChartOverallRate],
+            [.. Stages.Select((stage, index) => new ChartTableRow(stage.Label,
+                [NumberText(stage.Value), index == 0 ? lang.EmptyValue : Rate(index, index - 1), index == 0 ? lang.EmptyValue : Rate(index, 0)]))]);
+    }
+
+    private protected override RenderFragment SkeletonContent => __builder =>
+    {
+        <div aria-hidden="true" @attributes="Attrs.Merge(SkeletonLayer)">
+            @foreach (var width in SkeletonWidths)
+            {
+                <Skeleton @key="width" @attributes="Attrs.MergeProps(FunnelStyles.SkeletonBar(width))" />
+            }
+        </div>
+    };
+
+    private protected override (RenderFragment Plot, string? Data)? Draw() => (Plot, null);
+
+    RenderFragment Plot => __builder =>
+    {
+        <div @attributes="Attrs.Merge(ListLayer)">
+            @for (var index = 0; index < Stages.Count; index++)
+            {
+                var stage = Stages[index];
+                if (index > 0 && Rates)
+                {
+                    <div @key="@($"rate-{index}")" @attributes="Attrs.Merge(RateLayer)">
+                        <span @attributes="Attrs.Merge(RateTextLayer)">↓ @Rate(index, index - 1)</span>
+                    </div>
+                }
+                <div @key="@($"stage-{index}")" data-index="@index" data-clickable="@Clickable" @attributes="Attrs.Merge(RowLayer)">
+                    <span @attributes="Attrs.Merge(LabelLayer)">@stage.Label</span>
+                    <span @attributes="Attrs.Merge(TrackLayer)">
+                        <span @attributes="FunnelStyles.Bar(max > 0 ? numbers[index] / max * 100 : 0, ChartColor.Resolve(stage.Color ?? Color ?? ChartColor.Series(1), index))"></span>
+                    </span>
+                    <span @attributes="Attrs.Merge(ValueLayer)">@ValueText(stage.Value)</span>
+                </div>
+            }
+            @if (Rates && Stages.Count > 1)
+            {
+                <div @attributes="Attrs.Merge(RateLayer)">
+                    <span @attributes="Attrs.Merge(OverallLayer)">@Config.Lang.ChartOverallRate @Rate(Stages.Count - 1, 0)</span>
+                </div>
+            }
+        </div>
+    };
+}

@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+@* 高度、图例、提示框、加载与空状态；HiddenItems 双向绑定（点图例隐藏一块，占比按剩下的重算） *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="legend">图例</Switch>
+        <Switch @bind-Value="tooltip">提示框</Switch>
+        <Switch @bind-Value="loading">加载中</Switch>
+        <Switch @bind-Value="empty">没有数据</Switch>
+    </Flex>
+    <DonutChart Items="Shown" Name="d => d.Device" Value="d => d.Users" Unit="人" Legend="legend" Tooltip="tooltip" Loading="loading"
+                @bind-HiddenItems="hidden" Height="220" aria-label="访问设备">
+        <Empty>还没有访问记录</Empty>
+    </DonutChart>
+    <Small Tone="TextTone.Muted">隐藏了：@(hidden.Count > 0 ? string.Join("、", hidden) : "无")</Small>
+</Flex>
+
+@code {
+    sealed record Visit(string Device, decimal Users);
+
+    static readonly Visit[] Devices = [new("手机", 6420), new("电脑", 2810), new("平板", 760), new("其他", 190)];
+
+    bool legend = true;
+    bool tooltip = true;
+    bool loading;
+    bool empty;
+    IReadOnlyList<string> hidden = ["其他"];
+
+    IReadOnlyList<Visit> Shown => empty ? [] : Devices;
+}

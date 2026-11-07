@@ -1,0 +1,19 @@
+@inherits RuneComponent
+
+@* 部门协作：一年里各部门之间互相提了多少需求；弧越长往来越多，悬停弦看两个部门之间的量 *@
+<ChordChart Nodes="Teams" Links="Requests" Unit="个需求" Height="400" aria-label="部门协作" />
+
+@code {
+    static readonly FlowNode[] Teams =
+    [
+        new("product") { Label = "产品" }, new("design") { Label = "设计" }, new("frontend") { Label = "前端" },
+        new("backend") { Label = "后端" }, new("qa") { Label = "测试" }, new("ops") { Label = "运维" },
+    ];
+
+    static readonly FlowLink[] Requests =
+    [
+        new("product", "design", 86), new("product", "frontend", 64), new("product", "backend", 58),
+        new("design", "frontend", 72), new("frontend", "backend", 95), new("frontend", "qa", 48),
+        new("backend", "qa", 52), new("backend", "ops", 61), new("qa", "product", 34), new("ops", "frontend", 22),
+    ];
+}

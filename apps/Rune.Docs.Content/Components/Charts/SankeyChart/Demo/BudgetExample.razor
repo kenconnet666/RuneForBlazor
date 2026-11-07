@@ -1,0 +1,41 @@
+@inherits RuneComponent
+
+@* 年度预算：收入按来源汇总，再分到各部门与具体用途；金额按简写的货币格式显示 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ToggleGroup @bind-Value="align" Required="true" Size="Size.Sm" aria-label="节点的排法">
+        <ToggleItem Value="Justify">两端对齐</ToggleItem>
+        <ToggleItem Value="Left">靠左</ToggleItem>
+        <ToggleItem Value="Right">靠右</ToggleItem>
+        <ToggleItem Value="Center">居中</ToggleItem>
+    </ToggleGroup>
+    <SankeyChart Nodes="Nodes" Links="Links" Align="Enum.Parse<SankeyAlign>(align!)" ValueFormat="Money" Height="360" aria-label="年度预算分配" />
+</Flex>
+
+@code {
+    static readonly FlowNode[] Nodes =
+    [
+        new("product") { Label = "产品收入" },
+        new("service") { Label = "服务收入" },
+        new("budget") { Label = "年度预算", Color = ChartColor.Series(5) },
+        new("rd") { Label = "研发" },
+        new("market") { Label = "市场" },
+        new("ops") { Label = "运营" },
+        new("salary") { Label = "人力" },
+        new("cloud") { Label = "云资源" },
+        new("campaign") { Label = "投放" },
+        new("office") { Label = "办公" },
+    ];
+
+    static readonly FlowLink[] Links =
+    [
+        new("product", "budget", 8_200_000), new("service", "budget", 3_650_000),
+        new("budget", "rd", 5_400_000), new("budget", "market", 3_800_000), new("budget", "ops", 2_650_000),
+        new("rd", "salary", 4_100_000), new("rd", "cloud", 1_300_000),
+        new("market", "campaign", 2_900_000), new("market", "salary", 900_000),
+        new("ops", "office", 1_450_000), new("ops", "salary", 1_200_000),
+    ];
+
+    static readonly NumberFormat Money = new() { Style = NumberStyle.Currency, Currency = "CNY", Notation = NumberNotation.Compact };
+
+    string? align = "Justify";
+}

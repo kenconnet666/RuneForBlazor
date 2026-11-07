@@ -1,0 +1,22 @@
+@page "/components/funnel-chart"
+@attribute [DocMeta("FunnelChart 漏斗图", "一串前后相接的环节，看每一步留下多少、在哪一步流失最多。用主题 tokens 直接画；外层结构与其他图表一致。", DocCategory.Charts, Order = 9)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Charts.FunnelChart.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="channel" Title="渠道转化" Demo="typeof(ChannelExample)">
+                <Code>Stages</Code> 从上到下，每个环节是名称与数值；横条长短按数值（最大的占满），环节之间写比上一环节的转化率，末尾写总转化。
+                <Code>OnItemClick</Code> 点环节下钻。环节之间不是一条流向时（有分支、有回流）用 SankeyChart。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="options" Title="颜色、金额与状态" Demo="typeof(OptionsExample)">
+                横条默认同一个颜色（<Code>Color</Code>，默认色板的第 1 个），环节也可以单独给；<Code>ValueFormat</Code> 缩放到万元。
+                <Code>Rates</Code> 关掉转化率；加载中显示骨架，没有数据时显示 <Code>Empty</Code>。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(FunnelChart), typeof(FunnelStage)]" />
+</DocPage>

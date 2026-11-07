@@ -1,0 +1,28 @@
+@inherits RuneComponent
+
+@* 注册转化：访问从哪些渠道来、多少人注册、最后有多少付费，每一步流失多少一目了然 *@
+<SankeyChart Nodes="Nodes" Links="Links" Unit="人" Height="380" aria-label="注册转化" />
+
+@code {
+    static readonly FlowNode[] Nodes =
+    [
+        new("search") { Label = "搜索引擎" },
+        new("social") { Label = "社交媒体" },
+        new("ads") { Label = "广告投放" },
+        new("visit") { Label = "落地页" },
+        new("signup") { Label = "注册" },
+        new("bounce") { Label = "跳出", Color = Tone.Neutral },
+        new("trial") { Label = "开始试用" },
+        new("idle") { Label = "未激活", Color = Tone.Neutral },
+        new("paid") { Label = "付费", Color = ChartColor.Series(7) },
+        new("churn") { Label = "试用后流失", Color = Tone.Neutral },
+    ];
+
+    static readonly FlowLink[] Links =
+    [
+        new("search", "visit", 5200), new("social", "visit", 3100), new("ads", "visit", 2400),
+        new("visit", "signup", 4300), new("visit", "bounce", 6400),
+        new("signup", "trial", 2900), new("signup", "idle", 1400),
+        new("trial", "paid", 1150), new("trial", "churn", 1750),
+    ];
+}

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Rune.Styles;
 
@@ -99,6 +100,12 @@ public abstract class ChartBase : UIComponent
     /// <summary>点了第 index 项（下钻）：data-index 的值。</summary>
     private protected virtual Task ActivateAsync(int index) => Task.CompletedTask;
 
+    /// <summary>不用量尺寸：按固定的画布画、用 viewBox 缩放（雷达图），或者是 HTML（漏斗图）。</summary>
+    private protected virtual bool FixedCanvas => false;
+
+    /// <summary>绘图区的高度：默认是 Height 参数（雷达图默认 300px，漏斗图随内容）。</summary>
+    private protected virtual CssLength? FrameHeight => Height;
+
     /// <summary>左上方的单位；百分比堆叠时不写。</summary>
     private protected virtual string? FrameUnit => Unit;
 
@@ -143,6 +150,72 @@ public abstract class ChartBase : UIComponent
 
     static readonly NumberFormat ShareFormat = new() { Style = NumberStyle.Percent, MaximumFractionDigits = 1 };
 
+    // ───────── 悬停的数据 ─────────
+
+    /// <summary>每一项的提示框（标题与各行）写成 tips 数组：charts.js 按 data-index 取。</summary>
+    private protected static void WriteTips(Utf8JsonWriter json, IEnumerable<(string Title, IReadOnlyList<ChartTooltipItem> Items)> tips)
+    {
+        json.WriteStartArray("tips");
+        foreach (var (title, items) in tips)
+        {
+            json.WriteStartArray();
+            json.WriteStringValue(title);
+            json.WriteStartArray();
+            foreach (var item in items)
+            {
+                json.WriteStartArray();
+                json.WriteStringValue(item.Label);
+                if (item.Color is { } color) json.WriteStringValue(color.ToString());
+                else json.WriteNullValue();
+                json.WriteStringValue(item.Value);
+                json.WriteEndArray();
+            }
+            json.WriteEndArray();
+            json.WriteEndArray();
+        }
+        json.WriteEndArray();
+    }
+
+    /// <summary>写一份悬停数据（JSON）：write 往对象里加字段，宽度已写好。</summary>
+    private protected string HoverJson(Action<Utf8JsonWriter> write)
+    {
+        using var stream = new MemoryStream();
+        using (var json = new Utf8JsonWriter(stream))
+        {
+            json.WriteStartObject();
+            json.WriteNumber("width", PlotWidth);
+            write(json);
+            json.WriteEndObject();
+        }
+        return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    /// <summary>
+    /// 按项悬停的图（环形图、雷达图、矩形树图……）：指针下的那一项（data-index）高亮、其余变淡（dim），
+    /// 提示框跟着指针，内容是 tips 里的第 data-index 项。
+    /// </summary>
+    /// <param name="tips">每一项的提示框。</param>
+    /// <param name="dim">其余的项变淡。</param>
+    /// <param name="groups">悬停第 i 项时一起高亮的项（含自己）；null 时只有自己。</param>
+    private protected string ItemHoverData(IEnumerable<(string Title, IReadOnlyList<ChartTooltipItem> Items)> tips, bool dim = true,
+        IEnumerable<IEnumerable<int>>? groups = null) => HoverJson(json =>
+    {
+        json.WriteString("mode", "item");
+        json.WriteBoolean("dim", dim);
+        if (groups is not null)
+        {
+            json.WriteStartArray("groups");
+            foreach (var group in groups)
+            {
+                json.WriteStartArray();
+                foreach (var index in group) json.WriteNumberValue(index);
+                json.WriteEndArray();
+            }
+            json.WriteEndArray();
+        }
+        if (Tooltip) WriteTips(json, tips);
+    });
+
     // ───────── 尺寸与命令 ─────────
 
     /// <summary>
@@ -179,11 +252,11 @@ public abstract class ChartBase : UIComponent
     /// <summary>外层结构：子类在自己的标记里输出它。</summary>
     protected RenderFragment Frame => builder =>
     {
-        var drawn = !Loading && !IsEmpty && UseSize() ? Draw() : null;
+        var drawn = !Loading && !IsEmpty && (FixedCanvas || UseSize()) ? Draw() : null;
         builder.OpenComponent<ChartFrame>(0);
         builder.AddComponentParameter(1, nameof(ChartFrame.Unit), FrameUnit);
         builder.AddComponentParameter(2, nameof(ChartFrame.UnitEnd), FrameUnitEnd);
-        builder.AddComponentParameter(3, nameof(ChartFrame.Height), Height);
+        builder.AddComponentParameter(3, nameof(ChartFrame.Height), FrameHeight);
         builder.AddComponentParameter(4, nameof(ChartFrame.Legend), LegendItems);
         builder.AddComponentParameter(5, nameof(ChartFrame.HiddenKeys), HiddenKeys);
         builder.AddComponentParameter(6, nameof(ChartFrame.OnLegendToggle), EventCallback.Factory.Create<string>(this, ToggleLegendAsync));

@@ -1,0 +1,12 @@
+@inherits RuneComponent
+
+@* 圆形网格、5 圈，最大值按数据自动取整（不写 Max）；只有一个系列时没有图例 *@
+<RadarChart Items="Plan" Dimension="p => p.Item" Series="Series" CircleGrid="true" Levels="5" Unit="万元" Height="260" aria-label="各类促销活动的销售额" />
+
+@code {
+    sealed record Saving(string Item, decimal Amount);
+
+    static readonly Saving[] Plan = [new("材料", 320), new("工艺", 180), new("设计", 240), new("物流", 90), new("国产化", 410)];
+
+    static readonly ChartSeries<Saving>[] Series = [new("saving", "销售额", p => p.Amount) { Color = ChartColor.Series(3) }];
+}

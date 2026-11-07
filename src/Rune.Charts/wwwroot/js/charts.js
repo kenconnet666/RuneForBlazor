@@ -96,6 +96,10 @@ function onPointerMove(plot, state, event) {
   const box = svg.getBoundingClientRect();
   const x = event.clientX - box.left;
   const y = event.clientY - box.top;
+  if (data.mode === 'item') {
+    const target = event.target instanceof Element ? event.target.closest('[data-index]') : null;
+    return hover(plot, state, target && svg.contains(target) ? { index: Number(target.getAttribute('data-index')), kind: target.getAttribute('data-kind'), x, y } : null);
+  }
   const [left, top, width, height] = data.plot;
   const inside = x >= left - 4 && x <= left + width + 4 && y >= top - 4 && y <= top + height + 4;
   if (!inside) return hover(plot, state, null);
@@ -133,13 +137,14 @@ function hover(plot, state, current) {
   // 散点图：悬停的那一行的点描粗（data-active）
   plot.querySelectorAll('[data-part="point"][data-active]').forEach((point) => point.removeAttribute('data-active'));
   if (current && data?.mode === 'point') plot.querySelectorAll(`[data-part="point"][data-index="${current.index}"]`).forEach((point) => point.setAttribute('data-active', ''));
+  if (data?.mode === 'item') highlight(plot, data, current);
   if (!current || !data) {
     band?.setAttribute('display', 'none');
     crosshair?.setAttribute('display', 'none');
     tooltip?.removeAttribute('data-open');
     return;
   }
-  if (data.mode !== 'point') {
+  if (data.mode === 'band' || data.mode === 'line') {
     const [left, top, width, height] = data.plot;
     const center = data.centers[current.index];
     if (band) {
@@ -168,6 +173,34 @@ function hover(plot, state, current) {
 }
 
 const round = (value) => Math.round(value * 1000) / 1000;
+
+/**
+ * 按项悬停：指针下那一项（同一 data-index 的元素）写 data-active，其余写 data-dimmed 变淡（dim 时）；
+ * 带 data-hover-d 的图形（环形图的扇区）换成悬停时的路径。
+ * 离开时复原
+ */
+function highlight(plot, data, current) {
+  // 一起高亮的项：groups 里写了的（桑基图的节点连着它的带子），没写时只有自己
+  const related = current ? new Set((data.groups?.[current.index] ?? [current.index]).map(String)) : null;
+  for (const element of plot.querySelectorAll('svg [data-index]')) {
+    const active = related !== null && related.has(element.getAttribute('data-index'));
+    // data-dim-on：只在悬停这一种项时变淡（弦图的弧：悬停弧时其余的弧变淡，悬停弦时弧不变）
+    const dimOn = element.getAttribute('data-dim-on');
+    if (data.dim && current && !active && (!dimOn || dimOn === current.kind)) element.setAttribute('data-dimmed', '');
+    else element.removeAttribute('data-dimmed');
+    if (active) element.setAttribute('data-active', '');
+    else element.removeAttribute('data-active');
+    const hoverD = element.getAttribute('data-hover-d');
+    if (!hoverD) continue;
+    if (active && !element.hasAttribute('data-base-d')) {
+      element.setAttribute('data-base-d', element.getAttribute('d'));
+      element.setAttribute('d', hoverD);
+    } else if (!active && element.hasAttribute('data-base-d')) {
+      element.setAttribute('d', element.getAttribute('data-base-d'));
+      element.removeAttribute('data-base-d');
+    }
+  }
+}
 
 /**
  * 提示框：放在指针右侧，过了绘图区的一半放到左侧；纵向以指针为中线。内容按这一行的数据克隆原型（[data-tip-proto]）填字；

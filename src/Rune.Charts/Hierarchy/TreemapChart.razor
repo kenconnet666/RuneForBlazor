@@ -1,0 +1,172 @@
+@*
+    矩形树图（同 vue-tsx-pro 的 TreemapChart）：一个总量按层级分块（销售额按区域 → 供应商、费用按科目），块的面积是数值，一眼看出谁占得多。
+    <TreemapChart Items="savings" Groups="[s => s.Region, s => s.Supplier]" Value="s => s.Amount" Unit="万元" aria-label="采购额构成" />
+    数据是扁平的明细，按 Groups 逐级分组（TreemapLayout，squarified 算法）；同一个顶层分组同一种颜色（按色板），里面的块按深浅区分；
+    点图例隐藏一个顶层分组，占比按剩下的算。块够大时写名字与数值；悬停看路径、数值与占比（charts.js，不往返）；读屏的数据表列出每一块。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits ChartBase
+
+@Frame
+
+@code {
+    // 块与块之间、分组四周的空（px）；写分组名时分组顶边留的空；块里的文字离边的距离
+    const double Padding = 3;
+    const double GroupTitle = 20;
+    const double Inset = 6;
+
+    static readonly Attrs SvgLayer = new() { Sx = ChartSvgStyles.Svg };
+    static readonly Attrs FadeLayer = new() { Sx = TreemapStyles.FadeIn };
+    static readonly Attrs GroupLayer = new() { Sx = TreemapStyles.Group };
+    static readonly Attrs TileLayer = new() { Sx = TreemapStyles.Tile };
+    static readonly Attrs NameLayer = new() { Sx = TreemapStyles.Name };
+    static readonly Attrs ValueLayer = new() { Sx = TreemapStyles.Value };
+    static readonly Attrs GroupNameLayer = new() { Sx = TreemapStyles.GroupName };
+
+    IReadOnlyList<string> hiddenState = [];
+    List<TItem> visible = [];
+    double total;
+    Dictionary<string, Rune.Styles.CssColor> topColors = [];
+
+    /// <summary>明细。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    /// <summary>分组，从外到内（区域、供应商）：每一级取一个名字。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<Func<TItem, string>> Groups { get; set; } = [];
+
+    /// <summary>面积的数值；负数、空值不画。</summary>
+    [Parameter, EditorRequired] public Func<TItem, decimal?> Value { get; set; } = null!;
+
+    /// <summary>外层分组也写名字（块够大时）。</summary>
+    [Parameter] public bool GroupLabels { get; set; }
+
+    /// <summary>隐藏的顶层分组：点图例时写回，可以 <c>@bind-HiddenGroups</c>。</summary>
+    [Parameter] public IReadOnlyList<string>? HiddenGroups { get; set; }
+
+    /// <summary>点图例隐藏、恢复了一个顶层分组。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> HiddenGroupsChanged { get; set; }
+
+    IReadOnlyList<string> Hidden => HiddenGroups ?? hiddenState;
+
+    string TopOf(TItem row) => Groups[0](row);
+
+    double NumberOf(TItem row) => Math.Max((double)(Value(row) ?? 0), 0);
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        var hidden = Hidden;
+        visible = [.. Items.Where(row => !hidden.Contains(TopOf(row)))];
+        total = visible.Sum(NumberOf);
+        // 顶层分组的颜色：按第一次出现的顺序取色板
+        topColors = Items.Select(TopOf).Distinct().Select((key, position) => (key, ChartColor.Resolve(null, position))).ToDictionary(pair => pair.key, pair => pair.Item2);
+    }
+
+    private protected override CssLength? FrameHeight => Height ?? 300;
+    private protected override bool IsEmpty => Items.Count == 0;
+    private protected override IReadOnlyCollection<string> HiddenKeys => Hidden;
+    private protected override IReadOnlyList<ChartLegendItem> LegendItems => [.. topColors.Select(pair => new ChartLegendItem(pair.Key, pair.Key, pair.Value))];
+
+    private protected override async Task ToggleLegendAsync(string key)
+    {
+        IReadOnlyList<string> next = Hidden.Contains(key) ? [.. Hidden.Where(item => item != key)] : [.. Hidden, key];
+        hiddenState = next;
+        await HiddenGroupsChanged.InvokeAsync(next);
+        if (HiddenGroups is null) OnParametersSet();
+    }
+
+    private protected override ChartTable BuildTable()
+    {
+        var lang = Config.Lang;
+        return new ChartTable(
+            [lang.ChartCategory, Unit is null ? lang.ChartValue : $"{lang.ChartValue}（{Unit}）", lang.ChartShare],
+            [.. visible.Select(row => new ChartTableRow(string.Join(" / ", Groups.Select(key => key(row))), [ValueText(Value(row) ?? 0), ShareText(NumberOf(row), total)]))]);
+    }
+
+    Rune.Styles.CssColor ColorOfTop(TreemapNode<TItem> node) => topColors.GetValueOrDefault(node.Top.Key, ChartColor.Resolve(null, 0));
+
+    // 分组的底色：顶层分组的颜色，很浅
+    string GroupColor(TreemapNode<TItem> node) => $"color-mix(in srgb, {ColorOfTop(node)} 14%, transparent)";
+
+    // 叶子的颜色：顶层分组的颜色，同一组里越靠后（数值越小）越浅
+    string LeafColor(TreemapNode<TItem> node)
+    {
+        var siblings = node.Parent?.Children ?? [node];
+        var rank = (double)siblings.IndexOf(node) / Math.Max(siblings.Count, 1);
+        return $"color-mix(in srgb, {ColorOfTop(node)} {Math.Floor(62 - rank * 30 + 0.5)}%, {Colors.Surface})";
+    }
+
+    (List<TreemapNode<TItem>> Branches, List<TreemapNode<TItem>> Leaves) Layout()
+    {
+        var root = TreemapLayout.Group(visible, Groups, NumberOf);
+        TreemapLayout.Arrange(root, PlotWidth, PlotHeight, Padding, GroupLabels ? GroupTitle : Padding);
+        var (branches, leaves) = (new List<TreemapNode<TItem>>(), new List<TreemapNode<TItem>>());
+        void Walk(TreemapNode<TItem> node)
+        {
+            foreach (var child in node.Children ?? [])
+            {
+                (child.Children is null ? leaves : branches).Add(child);
+                Walk(child);
+            }
+        }
+        Walk(root);
+        return (branches, leaves);
+    }
+
+    private protected override (RenderFragment Plot, string? Data)? Draw()
+    {
+        if (visible.Count == 0) return null;
+        var (branches, leaves) = Layout();
+        var lang = Config.Lang;
+        var tips = leaves.Select(node => (node.Path, (IReadOnlyList<ChartTooltipItem>)
+            [new(lang.ChartValue, ColorOfTop(node), ValueText((decimal)node.Value)), new(lang.ChartShare, null, ShareText(node.Value, total))]));
+        return (Plot(branches, leaves), ItemHoverData(tips, dim: false));
+    }
+
+    static string N(double value) => SvgFormat.Number(value);
+
+    RenderFragment Plot(List<TreemapNode<TItem>> branches, List<TreemapNode<TItem>> leaves) => __builder =>
+    {
+        <svg @attributes="Attrs.Merge(SvgLayer, SvgSize())">
+            <g @attributes="Attrs.Merge(FadeLayer)">
+                @foreach (var node in branches)
+                {
+                    var width = node.X1 - node.X0;
+                    <g @key="@($"group:{node.Path}")">
+                        <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(width)" height="@N(node.Y1 - node.Y0)" rx="4"
+                              @attributes="Attrs.Merge(GroupLayer, ChartFrame.ColorVar(GroupColor(node)))" />
+                        @if (GroupLabels && width > 40)
+                        {
+                            @ChartSvg.Text(ChartText.Truncate(node.Key, width - Inset * 2), node.X0 + Inset, node.Y0 + GroupTitle / 2 + 1, GroupNameLayer, baseline: "central")
+                        }
+                    </g>
+                }
+                @for (var index = 0; index < leaves.Count; index++)
+                {
+                    var node = leaves[index];
+                    var (width, height) = (node.X1 - node.X0, node.Y1 - node.Y0);
+                    var showName = height >= 22 && width >= Math.Min(ChartText.Width(node.Key), 36) + Inset * 2;
+                    var amount = ValueText((decimal)node.Value);
+                    var showValue = showName && height >= 40 && ChartText.Width(amount) <= width - Inset * 2;
+                    <g @key="@($"leaf:{node.Path}:{index}")">
+                        <rect data-part="tile" data-index="@index" x="@N(node.X0)" y="@N(node.Y0)" width="@N(width)" height="@N(height)" rx="3"
+                              @attributes="Attrs.Merge(TileLayer, ChartFrame.ColorVar(LeafColor(node)))" />
+                        @if (showName)
+                        {
+                            @ChartSvg.Text(ChartText.Truncate(node.Key, width - Inset * 2), node.X0 + Inset, node.Y0 + Inset + 7, NameLayer, baseline: "central")
+                        }
+                        @if (showValue)
+                        {
+                            @ChartSvg.Text(amount, node.X0 + Inset, node.Y0 + Inset + 24, ValueLayer, baseline: "central")
+                        }
+                    </g>
+                }
+            </g>
+        </svg>
+        @if (Tooltip)
+        {
+            @TooltipBox
+        }
+    };
+}

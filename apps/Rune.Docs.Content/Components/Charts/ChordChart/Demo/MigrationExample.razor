@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+@* 人口流动：几个地区之间一年迁入迁出的人数；点图例隐藏一个地区，下面列出当前隐藏了哪些 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ChordChart Nodes="Regions" Links="Moves" @bind-HiddenNodes="hidden" ValueFormat="Compact" Unit="人" Height="400" aria-label="地区间人口流动" />
+    <TextSpan Size="Size.Sm" Tone="TextTone.Muted">隐藏的地区：@(hidden.Count > 0 ? string.Join("、", hidden.Select(LabelOf)) : "无")</TextSpan>
+</Flex>
+
+@code {
+    static readonly FlowNode[] Regions =
+        [new("north") { Label = "华北" }, new("east") { Label = "华东" }, new("south") { Label = "华南" }, new("central") { Label = "华中" }, new("west") { Label = "西部" }];
+
+    static readonly FlowLink[] Moves =
+    [
+        new("north", "east", 182000), new("east", "north", 96000), new("central", "east", 264000),
+        new("central", "south", 238000), new("west", "south", 151000), new("west", "east", 128000),
+        new("south", "central", 74000), new("east", "west", 58000), new("north", "south", 69000),
+    ];
+
+    static readonly NumberFormat Compact = new() { Notation = NumberNotation.Compact };
+
+    static string LabelOf(string id) => Regions.FirstOrDefault(region => region.Id == id)?.Label ?? id;
+
+    IReadOnlyList<string> hidden = [];
+}

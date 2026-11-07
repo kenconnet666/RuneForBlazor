@@ -1,0 +1,13 @@
+@inherits RuneComponent
+
+@* 渠道转化：访问 → 注册 → 加购 → 下单 → 复购；环节之间写转化率，末尾写总转化；点一个环节下钻 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <FunnelChart Stages="Stages" Unit="人" OnItemClick="(ChartItemClick<FunnelStage> click) => picked = click.Item.Label" aria-label="渠道转化" />
+    <Small Tone="TextTone.Muted">@(picked is null ? "点一个环节试试" : $"点了：{picked}")</Small>
+</Flex>
+
+@code {
+    static readonly FunnelStage[] Stages = [new("访问", 186), new("注册", 121), new("加购", 64), new("下单", 52), new("复购", 23)];
+
+    string? picked;
+}

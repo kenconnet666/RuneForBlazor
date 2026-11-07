@@ -1,0 +1,11 @@
+@inherits RuneComponent
+
+@* 访问来源：每个来源一个扇区，中间是合计；悬停看数值与占比，点图例隐藏一项后合计与占比重新算 *@
+<DonutChart Items="Sources" Name="s => s.Name" Value="s => s.Visits" Unit="次" CenterSubLabel="本周访问" aria-label="访问来源" />
+
+@code {
+    sealed record Source(string Name, decimal Visits);
+
+    static readonly Source[] Sources =
+        [new("搜索引擎", 4820), new("直接访问", 3150), new("社交媒体", 2380), new("邮件推广", 960), new("外部链接", 640)];
+}
