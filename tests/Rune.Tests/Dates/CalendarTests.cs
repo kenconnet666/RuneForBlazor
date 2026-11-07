@@ -13,6 +13,7 @@ public class CalendarTests
     {
         Assert.Equal("一二三四五六日", string.Concat(CalendarText.Weekdays(DayOfWeek.Monday, Lang.ZhCn).Select(day => day.Narrow)));
         Assert.Equal("SMTWTFS", string.Concat(CalendarText.Weekdays(DayOfWeek.Sunday, Lang.EnUs).Select(day => day.Narrow)));
+        Assert.Equal("日月火水木金土", string.Concat(CalendarText.Weekdays(DayOfWeek.Sunday, Ja).Select(day => day.Narrow)));
         Assert.Equal("Sunday", CalendarText.Weekdays(DayOfWeek.Sunday, Lang.EnUs)[0].Long);
         Assert.Equal(("1月", "Jan"), (CalendarText.MonthShort(1, Lang.ZhCn), CalendarText.MonthShort(1, Lang.EnUs)));
         Assert.Equal(("2026年1月", "January 2026", "Januar 2026"), (CalendarText.YearMonth(new(2026, 1, 5), Lang.ZhCn), CalendarText.YearMonth(new(2026, 1, 5), Lang.EnUs), CalendarText.YearMonth(new(2026, 1, 5), De)));

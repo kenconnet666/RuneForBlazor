@@ -10,10 +10,6 @@ static class CalendarText
 {
     static DateTimeFormatInfo Info(Lang lang) => LangFormat.CultureOf(lang.Code).DateTimeFormat;
 
-    static bool Cjk(Lang lang) => lang.Code.StartsWith("zh", StringComparison.OrdinalIgnoreCase)
-        || lang.Code.StartsWith("ja", StringComparison.OrdinalIgnoreCase)
-        || lang.Code.StartsWith("ko", StringComparison.OrdinalIgnoreCase);
-
     /// <summary>年（Intl 的 year: numeric）：2026年、2026。</summary>
     public static string Year(int year, Lang lang)
     {
@@ -39,13 +35,14 @@ static class CalendarText
     public static (string Narrow, string Long)[] Weekdays(DayOfWeek first, Lang lang)
     {
         var info = Info(lang);
-        var cjk = Cjk(lang);
+        var chinese = lang.Code.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
         return [.. Enumerable.Range(0, 7).Select(index =>
         {
             var day = (int)(first + index) % 7;
             var full = info.DayNames[day];
-            // Intl 的 narrow：中日韩取最短的名称（日、一），其余语言是首字母（S、M）
-            var narrow = cjk ? info.ShortestDayNames[day] : full[..1].ToUpper(LangFormat.CultureOf(lang.Code));
+            // Intl 的 narrow：中文是“星期一”的最后一个字，其余语言是第一个字（S、M、月、월）。
+            // 不取 ShortestDayNames：各平台的 ICU 不一样（Linux 的 zh-CN 是“周一”）
+            var narrow = chinese ? full[^1..] : full[..1].ToUpper(LangFormat.CultureOf(lang.Code));
             return (narrow, full);
         })];
     }
