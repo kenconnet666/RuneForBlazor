@@ -20,7 +20,8 @@ public static class Collation
         return (a, b) =>
         {
             if (a is null || b is null) return a is null ? (b is null ? 0 : 1) : -1;
-            if (Numeric(a) is { } x && Numeric(b) is { } y) return x.CompareTo(y);
+            // 各种数字类型统一按 decimal 比较；十进制字符串（"2.5"）是文字，数字列由调用方先转成数字
+            if (Numeric.Of(a) is { } x && Numeric.Of(b) is { } y) return x.CompareTo(y);
             if (a is IComparable comparable && a.GetType() == b.GetType() && a is not string) return comparable.CompareTo(b);
             return compare.Compare(Convert.ToString(a, CultureInfo.InvariantCulture), Convert.ToString(b, CultureInfo.InvariantCulture), options);
         };
@@ -47,21 +48,6 @@ public static class Collation
         });
         return [.. entries.Select(static entry => entry.Row)];
     }
-
-    // 各种数字类型统一按 decimal 比较；十进制字符串（"2.5"）是文字，数字列由调用方先转成数字
-    static decimal? Numeric(object value) => value switch
-    {
-        decimal number => number,
-        int number => number,
-        long number => number,
-        short number => number,
-        byte number => number,
-        uint number => number,
-        ulong number => number,
-        float number when float.IsFinite(number) => (decimal)number,
-        double number when double.IsFinite(number) && Math.Abs(number) < 7.9e28 => (decimal)number,
-        _ => null,
-    };
 
     static CompareInfo CompareInfoOf(string culture)
     {

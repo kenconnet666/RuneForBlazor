@@ -43,7 +43,7 @@ static class ColumnDisplay
         {
             var value = column.ValueOf(item);
             if (value is null) continue;
-            if (IsNumber(value)) return ColumnType.Number;
+            if (Numeric.IsNumber(value)) return ColumnType.Number;
             return value is DateOnly or DateTime or DateTimeOffset ? ColumnType.Date : ColumnType.Text;
         }
         return ColumnType.Text;
@@ -91,7 +91,7 @@ static class ColumnDisplay
     /// <summary>没写内容时单元格的文字：按值类型与语言格式化；值与类型对不上（数字列里的文字）时原样显示。</summary>
     public static string Format(object value, ColumnType type, NumberFormat? format, Lang lang)
     {
-        var number = Decimal(value);
+        var number = Numeric.Of(value, text: true);
         switch (type)
         {
             case ColumnType.Number when number is { } n:
@@ -142,7 +142,7 @@ static class ColumnDisplay
         decimal? total = null;
         foreach (var item in items)
         {
-            if (Decimal(column.ValueOf(item)) is { } value) total = (total ?? 0) + value;
+            if (Numeric.Of(column.ValueOf(item), text: true) is { } value) total = (total ?? 0) + value;
         }
         return total;
     }
@@ -161,7 +161,7 @@ static class ColumnDisplay
     }
 
     // 数字类的列里，十进制字符串（"2.5"、"2.10"）按数值排：按文字比较时 "2.5" 在 "2.10" 前
-    static object? SortValue(object? value, bool numeric) => numeric && value is string text && Decimal(text) is { } number ? number : value;
+    static object? SortValue(object? value, bool numeric) => numeric && value is string text && Numeric.Of(text, text: true) is { } number ? number : value;
 
     /// <summary>按表头筛选留下的行：filters 是各列选中的值（关键字筛选时是 [关键字]），空的不算；没有要筛的时原样返回。</summary>
     public static IReadOnlyList<TItem> Filter<TItem>(IReadOnlyList<TItem> items, IReadOnlyList<DataTableColumn<TItem>> columns,
@@ -223,18 +223,4 @@ static class ColumnDisplay
 
     /// <summary>像素值写成 CSS 文字。</summary>
     public static string Px(double value) => value.ToString("0.##", CultureInfo.InvariantCulture) + "px";
-
-    static bool IsNumber(object value) => value is decimal or int or long or short or byte or uint or ulong or ushort or sbyte or float or double;
-
-    // 数字与能读成数字的十进制字符串（接口常把金额给成 "19.90"）
-    static decimal? Decimal(object? value) => value switch
-    {
-        null => null,
-        decimal number => number,
-        double number when double.IsFinite(number) && Math.Abs(number) < 7.9e28 => (decimal)number,
-        float number when float.IsFinite(number) && Math.Abs(number) < 7.9e28f => (decimal)number,
-        string text when decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) => parsed,
-        _ when IsNumber(value) => Convert.ToDecimal(value, CultureInfo.InvariantCulture),
-        _ => null,
-    };
 }

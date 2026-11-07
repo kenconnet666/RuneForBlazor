@@ -95,7 +95,7 @@ public static class Pivot
             Add(byColumn, column, item);
         }
         var compare = Collation.Comparer(culture);
-        Comparison<string> byValue = (a, b) => compare(Numeric(a) ?? (object)a, Numeric(b) ?? (object)b);
+        Comparison<string> byValue = (a, b) => compare(Numeric.Of(a, text: true) ?? (object)a, Numeric.Of(b, text: true) ?? (object)b);
         // 行：逐级排序（同一上级下的下级按 Order 或按值）
         var rowKeys = byRow.Keys.Select(static key => (IReadOnlyList<string>)key.Split(Separator)).ToList();
         rowKeys.Sort((a, b) =>
@@ -163,7 +163,7 @@ public static class Pivot
     {
         if (aggregate == PivotAggregate.Count) return items.Count;
         if (value is null || items.Count == 0) return null;
-        var numbers = items.Select(item => Numeric(value.Value(item))).OfType<decimal>().ToList();
+        var numbers = items.Select(item => Numeric.Of(value.Value(item), text: true)).OfType<decimal>().ToList();
         if (numbers.Count == 0) return null;
         return aggregate switch
         {
@@ -176,15 +176,6 @@ public static class Pivot
 
     // 维度值的文字：空值是空字符串
     static string Text(object? value) => value is null ? "" : DataTableColumn<object>.FilterText(value);
-
-    static decimal? Numeric(object? value) => value switch
-    {
-        null => null,
-        decimal number => number,
-        string text => decimal.TryParse(text, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var parsed) ? parsed : null,
-        IConvertible convertible when value is int or long or short or byte or double or float => convertible.ToDecimal(System.Globalization.CultureInfo.InvariantCulture),
-        _ => null,
-    };
 }
 
 /// <summary>透视表的一行（交给 ColumnTable）：行维度的值。</summary>
