@@ -76,7 +76,7 @@
                 <Code>SelectionMode.Single</Code> 时每行是同一组的单选框：方向键在行之间移动并选中，选中的行整行高亮；没有全选，这一列的标题只给读屏。
             </Example>
             <Example Id="infinite" Title="滚动加载" Demo="typeof(InfiniteExample)">
-                <Code>OnRangeChange</Code> 报告可见行的范围，接近末尾时取下一页；取的时候 <Code>Loading</Code>，已有数据时骨架接在末尾（不换掉表体、不丢滚动位置）。
+                <Code>OnRangeChange</Code> 报告可见行的范围，接近末尾时取下一页；取的时候 <Code>Loading</Code>，已有数据时骨架接在末尾（不换掉表体、不丢滚动位置）。页码、去重与失败重试交给 <Code>InfiniteList</Code>，它的 <Code>OnRangeChange</Code> 直接交给表格。
                 <Code>EstimateRowHeight</Code> 是行高的估计，渲染后按实际高度测量。
             </Example>
         </ExampleColumn>

@@ -1,14 +1,15 @@
 @inherits RuneComponent
 
-@* 滚动加载：OnRangeChange 报告可见行的范围，离末尾不到 10 行时取下一页；取的时候 Loading，骨架接在末尾。EstimateRowHeight 是行高的估计 *@
+@* 滚动加载：InfiniteList 管页码与去重，它的 OnRangeChange 直接交给表格（离末尾不到 10 行时取下一页）；取的时候 Loading，骨架接在末尾。EstimateRowHeight 是行高的估计 *@
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
-    <DataTable Items="rows" GetKey="e => e.Id.ToString()" Loading="loading" EstimateRowHeight="44" OnRangeChange="OnRangeChangeAsync"
+    <DataTable Items="events.Items" GetKey="e => e.Id.ToString()" Loading="events.Loading" EstimateRowHeight="44" OnRangeChange="events.OnRangeChange"
                aria-label="事件流" PropsRoot="TableHeight">
         <PropertyColumn Property="e => e.Id" Title="#" Width="64" />
         <PropertyColumn Property="e => e.At" Title="时间" Width="80" />
         <PropertyColumn Property="e => e.Message" Title="事件" Width="280" Wrap="true" />
     </DataTable>
-    <Small Tone="TextTone.Muted">已加载 @rows.Count / @Total 条</Small>
+    <InfiniteListStatus List="events" />
+    <Small Tone="TextTone.Muted">已加载 @events.Count / @Total 条</Small>
 </Flex>
 
 @code {
@@ -20,30 +21,19 @@
 
     static Attrs TableHeight => new() { Sx = Css.Define(static () => new Style { Height = CssLength.Rem(18) }) };
 
-    IReadOnlyList<LogEvent> rows = [];
-    bool loading;
+    InfiniteList<LogEvent, int> events = default!;
 
-    protected override Task OnInitializedAsync() => LoadMoreAsync();
+    protected override void OnInitialized() => events = new(FetchPageAsync, new() { Key = e => e.Id, Threshold = 10 });
 
-    // 模拟接口：第 page 页的事件，400ms 后返回
-    static async Task<IReadOnlyList<LogEvent>> FetchPageAsync(int page)
+    // 模拟接口：第 page 页（从 0 起）的事件，400ms 后返回
+    static async Task<InfinitePage<LogEvent, int>> FetchPageAsync(int page, CancellationToken cancellation)
     {
-        await Task.Delay(400);
-        return [.. Enumerable.Range(0, Page).Select(index =>
+        await Task.Delay(400, cancellation);
+        LogEvent[] items = [.. Enumerable.Range(0, Page).Select(index =>
         {
             var id = page * Page + index + 1;
             return new LogEvent(id, $"10:{id % 60:D2}", Messages[id % Messages.Length]);
         })];
+        return new(items, page + 1, (page + 1) * Page < Total);
     }
-
-    async Task LoadMoreAsync()
-    {
-        if (loading || rows.Count >= Total) return;
-        loading = true;
-        StateHasChanged();
-        rows = [.. rows, .. await FetchPageAsync(rows.Count / Page)];
-        loading = false;
-    }
-
-    Task OnRangeChangeAsync(VisibleRange range) => range.EndIndex >= rows.Count - 10 ? LoadMoreAsync() : Task.CompletedTask;
 }

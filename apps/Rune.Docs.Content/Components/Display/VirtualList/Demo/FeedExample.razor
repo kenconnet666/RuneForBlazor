@@ -1,15 +1,16 @@
-@* 滚动加载：OnRangeChange 报告可见范围，接近末尾时取下一页；Loading 时骨架接在末尾 *@
+@* 运行日志：InfiniteList 一页页取，滚到最后几行时取下一页；第 3 页第一次会失败，列表下方出现“重试” *@
 @inherits RuneComponent
 
 <Card Padding="SpaceScale.None">
-    <VirtualList Items="entries" GetKey="e => e.Id" EstimateSize="32" Loading="loading" OnRangeChange="OnRangeChangeAsync" aria-label="运行日志"
+    <VirtualList Items="logs.Items" GetKey="e => e.Id" EstimateSize="32" Loading="logs.Loading" OnRangeChange="logs.OnRangeChange" aria-label="运行日志"
                  Sx="ListHeight" Context="entry" data-testid="feed">
         <Flex Gap="SpaceScale.Sm" Sx="Padded">
             <Small Tone="@LevelTones[entry.Level]" Sx="LevelWidth">@entry.Level</Small>
             <TextSpan Size="Size.Sm">@entry.Message</TextSpan>
         </Flex>
     </VirtualList>
-    <Small Tone="TextTone.Muted" Sx="Padded">已加载 @entries.Count 条</Small>
+    <InfiniteListStatus List="logs" />
+    <Small Tone="TextTone.Muted" Sx="Padded">已加载 @logs.Count / @(Page * Pages) 条</Small>
 </Card>
 
 @code {
@@ -34,23 +35,26 @@
     // 级别定宽，消息才对得齐
     static Style LevelWidth => Css.Define(static () => new Style { FlexShrink = 0, Width = CssLength.Em(3.5), FontFamily = Fonts.Mono });
 
-    static Entry[] PageOf(int start) => [.. Enumerable.Range(start, 30).Select(index => new Entry(index, Levels[index % Levels.Length], Messages[index % Messages.Length]))];
+    const int Page = 30;
+    const int Pages = 5;
 
-    IReadOnlyList<Entry> entries = [];
-    bool loading;
+    InfiniteList<Entry, int> logs = default!;
+    bool failed;
 
-    protected override Task OnInitializedAsync() => LoadMoreAsync();
+    protected override void OnInitialized() => logs = new(FetchLogsAsync, new() { Key = entry => entry.Id });
 
-    async Task LoadMoreAsync()
+    // 假的日志接口：第 page 页（第一页时游标是 0），900 ms 后返回；第 3 页第一次失败
+    async Task<InfinitePage<Entry, int>> FetchLogsAsync(int cursor, CancellationToken cancellation)
     {
-        if (loading) return;
-        loading = true;
-        StateHasChanged();
-        await Task.Delay(900);
-        entries = [.. entries, .. PageOf(entries.Count)];
-        loading = false;
+        var page = cursor == 0 ? 1 : cursor;
+        await Task.Delay(900, cancellation);
+        if (page == 3 && !failed)
+        {
+            failed = true;
+            throw new TimeoutException("网关超时");
+        }
+        var start = (page - 1) * Page;
+        Entry[] items = [.. Enumerable.Range(start, Page).Select(index => new Entry(index, Levels[index % Levels.Length], Messages[index % Messages.Length]))];
+        return new(items, page + 1, page < Pages);
     }
-
-    // 滚到最后几行时自动取下一页
-    Task OnRangeChangeAsync(VisibleRange range) => range.EndIndex >= entries.Count - 5 ? LoadMoreAsync() : Task.CompletedTask;
 }

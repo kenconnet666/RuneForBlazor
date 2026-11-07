@@ -39,13 +39,20 @@ public class VirtualListTests(DemoServer demo) : E2ETest(demo)
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
-    public async Task 滚到末尾时加载下一页(string mode)
+    public async Task 滚到末尾时加载下一页_失败时重试(string mode)
     {
         var page = await OpenAsync(mode, "virtual-list");
         var feed = page.GetByTestId("feed");
 
-        await Assertions.Expect(page.GetByText("已加载 30 条")).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByText("已加载 30 / 150 条")).ToBeVisibleAsync();
         await feed.EvaluateAsync("element => element.scrollTop = element.scrollHeight");
-        await Assertions.Expect(page.GetByText("已加载 60 条")).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByText("已加载 60 / 150 条")).ToBeVisibleAsync();
+
+        // 第 3 页第一次失败：列表下方出现“重试”，点了接着取
+        await feed.EvaluateAsync("element => element.scrollTop = element.scrollHeight");
+        var retry = page.GetByRole(AriaRole.Button, new() { Name = "重试" });
+        await Assertions.Expect(retry).ToBeVisibleAsync();
+        await retry.ClickAsync();
+        await Assertions.Expect(page.GetByText("已加载 90 / 150 条")).ToBeVisibleAsync();
     }
 }

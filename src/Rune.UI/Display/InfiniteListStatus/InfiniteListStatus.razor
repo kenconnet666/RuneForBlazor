@@ -1,0 +1,44 @@
+@*
+    滚动加载的列表末尾的状态（同 vue-tsx-pro 的 InfiniteListStatus，配合 InfiniteList）：失败时是出错提示与“重试”，取完了是“没有更多了”，其余时候不占位。
+    <VirtualList Items="orders.Items" Loading="orders.Loading" OnRangeChange="orders.OnRangeChange" … />
+    <InfiniteListStatus List="orders" />
+    放在列表下方（不放进 role="list" 里）。加载中不在这里显示：列表自己在末尾接骨架。失败的文案取语言包（加载失败，请重试），不显示异常原文。
+    根元素一直在、是 role="status"：内容变了读屏会播报。未声明的属性落到根元素上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var state = Shown; }
+
+<div role="status" @attributes="Attrs.Merge(state == StatusShown.None ? InfiniteListStatusStyles.Root : InfiniteListStatusStyles.RootShown, Rest)">
+    @if (state == StatusShown.Failed)
+    {
+        <TextSpan Tone="TextTone.Danger">@Config.Lang.ListLoadFailed</TextSpan>
+        <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Icon="BuiltInIcons.RotateCw" @onclick="() => List.LoadMoreAsync()"
+                @attributes="Attrs.MergeProps(null, PropsRetry)">@Config.Lang.ErrorRetry</Button>
+    }
+    else if (state == StatusShown.NoMore)
+    {
+        @(NoMore ?? Config.Lang.ListNoMore)
+    }
+</div>
+
+@code {
+    enum StatusShown { None, Failed, NoMore }
+
+    /// <summary>列表的状态（InfiniteList）。</summary>
+    [Parameter, EditorRequired] public IInfiniteList List { get; set; } = default!;
+
+    /// <summary>取完时的文字；不写时取语言包的“没有更多了”。</summary>
+    [Parameter] public string? NoMore { get; set; }
+
+    /// <summary>取完时不显示文字。</summary>
+    [Parameter] public bool HideNoMore { get; set; }
+
+    /// <summary>重试按钮（Button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsRetry { get; set; }
+
+    StatusShown Shown =>
+        List.Error is not null ? StatusShown.Failed
+        : HideNoMore || List.Loading || !List.Loaded || List.HasMore || List.Count == 0 ? StatusShown.None
+        : StatusShown.NoMore;
+}

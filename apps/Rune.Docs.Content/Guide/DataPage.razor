@@ -53,6 +53,23 @@
         <CodePreview Code="@ExampleSource.Of(typeof(SupplierTableExample))"><SupplierTableExample /></CodePreview>
     </GuideSection>
 
+    <GuideSection Id="infinite-list" Title="滚动加载：InfiniteList">
+        <Paragraph>
+            动态、日志、长列表往下滚接着取的那种列表交给 <Code>InfiniteList</Code>（同 vue-tsx-pro 的 useInfiniteList）：一页一页取、接在已有的后面，按 <Code>Key</Code>
+            去掉重复的项（翻页期间有新数据插进来时，下一页开头会和上一页结尾重复），记住还有没有下一页。取一页的委托拿到上一页给的游标（页码、偏移、服务端的 cursor，第一页时是 default），
+            返回 <Code>InfinitePage(Items, Next, HasNext)</Code>。状态是信号，RuneComponent 读了就会跟着重新渲染。
+        </Paragraph>
+        <List>
+            <ListItem><Code>OnRangeChange</Code> 直接交给 VirtualList、DataTable：可见范围离末尾不到 <Code>Threshold</Code>（默认 5）项时取下一页，正在取、取完了时不取；<Code>Loading</Code> 交给它们，骨架接在末尾。</ListItem>
+            <ListItem>失败时停下：列表下方放 <Code>InfiniteListStatus</Code>，显示“加载失败，请重试”与“重试”，取完了显示“没有更多了”；再滚动、或调用 <Code>LoadMoreAsync()</Code> 也会接着取。</ListItem>
+            <ListItem>搜索词、筛选条件变了时调用 <Code>ParamsChangedAsync()</Code>（<Code>Debounce</Code> 之后）、或 <Code>RefreshAsync()</Code>：从第一页重来，先清空、取消进行中的，只采用最后一次的结果。</ListItem>
+        </List>
+        <CodeBlock Code="@Infinite" Lang="razor" Title="Orders.razor" />
+        <Paragraph>
+            能动的例子在 <TextLink Href="/components/virtual-list#feed">VirtualList 的滚动加载</TextLink>（第 3 页第一次失败，试试重试）与 <TextLink Href="/components/data-table#infinite">DataTable 的滚动加载</TextLink>。
+        </Paragraph>
+    </GuideSection>
+
     <GuideSection Id="errors" Title="出错与取消">
         <Paragraph>
             取消的请求抛 <Code>OperationCanceledException</Code>：判断是不是自己取消的（<Code>when (token.IsCancellationRequested)</Code>），不当作错误显示。
@@ -90,6 +107,26 @@
 
         // 取数的委托里调用它：TableQueryState、远程选项都只认委托
         var state = new TableQueryState<Supplier, SupplierFilters>((query, ct) => api.SearchAsync(query.ToParameters().ToDictionary(), ct));
+        """;
+
+    const string Infinite = """
+        <VirtualList Items="orders.Items" Loading="orders.Loading" OnRangeChange="orders.OnRangeChange" GetKey="o => o.Id" Context="order">
+            <OrderRow Order="order" />
+        </VirtualList>
+        <InfiniteListStatus List="orders" />
+
+        @code {
+            InfiniteList<Order, int> orders = default!;
+
+            protected override void OnInitialized() => orders = new(async (page, ct) =>
+            {
+                var result = await Orders.SearchAsync(keyword, page: page + 1, pageSize: 20, ct);
+                return new(result.Rows, page + 1, (page + 1) * 20 < result.Total);
+            }, new() { Key = order => order.Id, Debounce = TimeSpan.FromMilliseconds(300) });
+
+            // 搜索框 @bind:after
+            Task OnKeywordChanged() => orders.ParamsChangedAsync();
+        }
         """;
 
     const string Errors = """
