@@ -1,9 +1,21 @@
 @inherits RuneComponent
 
 <Grid MinItemWidth="@CssLength.Rem(15)" Gap="SpaceScale.Lg">
-    <Field Label="职位" Description="@(title is not null ? $"选中了 {title}" : $"自由输入：{(string.IsNullOrEmpty(typed) ? "（空）" : typed)}，Value 为 null")">
-        <Combobox Items="titles" @bind-Value="title" @bind-InputValue="typed" AllowCustomValue="true" Icon="Lucide.BriefcaseBusiness" Clearable="true"
-                  placeholder="选择或输入" data-testid="title" />
+    <Field Label="职位">
+        <DescriptionContent>
+            @if (title is not null)
+            {
+                <text>选中了 <Code>@title</Code></text>
+            }
+            else
+            {
+                <text>自由输入：<Code>@(string.IsNullOrEmpty(typed) ? "（空）" : typed)</Code>，Value 为 null</text>
+            }
+        </DescriptionContent>
+        <ChildContent>
+            <Combobox Items="titles" @bind-Value="title" @bind-InputValue="typed" AllowCustomValue="true" Icon="Lucide.BriefcaseBusiness" Clearable="true"
+                      placeholder="选择或输入" data-testid="title" />
+        </ChildContent>
     </Field>
     <Field Label="Variant=&quot;Soft&quot; Radius=&quot;Full&quot;">
         <Combobox Items="titles" Icon="Lucide.Search" Variant="InputVariant.Soft" Radius="Radius.Full" placeholder="搜索职位" />

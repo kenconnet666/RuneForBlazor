@@ -2,11 +2,13 @@
 
 @* 交货日期：日历旁边是常用的快捷选项（每次打开按今天算），日历下方的“今天”；今天之前不能选，所以“昨天”不可用 *@
 <Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Lg">
-    <Field Label="交货日期" Description="@(delivery?.ToString("yyyy-MM-dd") ?? "今天之前不能选")">
-        <DatePicker @bind-Value="delivery" Min="Today()" Presets="Presets" />
+    <Field Label="交货日期">
+        <DescriptionContent>@if (delivery is { } day) { <Code>@day.ToString("yyyy-MM-dd")</Code> } else { <text>今天之前不能选</text> }</DescriptionContent>
+        <ChildContent><DatePicker @bind-Value="delivery" Min="Today()" Presets="Presets" /></ChildContent>
     </Field>
-    <Field Label="账期" Description="@(period?.ToString("yyyy-MM") ?? "日历下方是“本月”")">
-        <DatePicker @bind-Value="period" Granularity="DateGranularity.Month" />
+    <Field Label="账期">
+        <DescriptionContent>@if (period is { } month) { <Code>@month.ToString("yyyy-MM")</Code> } else { <text>日历下方是“本月”</text> }</DescriptionContent>
+        <ChildContent><DatePicker @bind-Value="period" Granularity="DateGranularity.Month" /></ChildContent>
     </Field>
 </Grid>
 

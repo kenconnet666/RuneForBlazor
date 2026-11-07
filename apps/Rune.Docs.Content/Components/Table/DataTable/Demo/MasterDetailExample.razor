@@ -10,8 +10,7 @@
             </TemplateColumn>
             <PropertyColumn Property="t => t.Node" Title="环节" Width="110" />
             <TemplateColumn Key="due" Title="剩余" Width="140" Value="t => t.Due" Context="todo">
-                @{ var days = todo.Due.DayNumber - Today.DayNumber; }
-                <Badge Tone="@(days < 0 ? Tone.Danger : days <= 2 ? Tone.Warning : Tone.Neutral)">@(days < 0 ? $"超期 {-days} 天" : days == 0 ? "今天到期" : $"剩 {days} 天")</Badge>
+                <DeadlineBadge Due="todo.Due" Today="Today" />
             </TemplateColumn>
         </DataTable>
     </StartContent>

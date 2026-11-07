@@ -10,7 +10,7 @@
         </Grid>
         <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
             <Button Type="submit">提交</Button>
-            <Small Tone="TextTone.Muted">@(submitted is null ? "还没有提交" : submitted)</Small>
+            <TextSpan Size="Size.Sm" Tone="TextTone.Muted">FormData：<Code>@(submitted ?? "（还没提交）")</Code></TextSpan>
         </Flex>
     </Flex>
 </form>

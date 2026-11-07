@@ -2,8 +2,11 @@
 
 <Grid MinItemWidth="@CssLength.Rem(15)" Gap="SpaceScale.Lg">
     @* 建议已经按输入算好，不再本地过滤 *@
-    <Field Label="联系邮箱" Description="@($"值就是文字：{(string.IsNullOrEmpty(email) ? "（空）" : email)}")">
-        <Autocomplete Items="Suggest(email)" LocalFilter="false" @bind-Value="email" Icon="Lucide.Mail" Clearable="true" placeholder="输入邮箱" Name="email" data-testid="email" />
+    <Field Label="联系邮箱">
+        <DescriptionContent>值就是文字：<Code>@(string.IsNullOrEmpty(email) ? "（空）" : email)</Code></DescriptionContent>
+        <ChildContent>
+            <Autocomplete Items="Suggest(email)" LocalFilter="false" @bind-Value="email" Icon="Lucide.Mail" Clearable="true" placeholder="输入邮箱" Name="email" data-testid="email" />
+        </ChildContent>
     </Field>
     <Field Label="抄送" Description="已有值时照常显示；建议只在输入时出现">
         <Autocomplete Items="Suggest(cc)" LocalFilter="false" @bind-Value="cc" Icon="Lucide.Mail" />

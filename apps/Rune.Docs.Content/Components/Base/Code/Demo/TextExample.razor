@@ -1,11 +1,12 @@
 @inherits RuneComponent
 
-<ul>
+@* 文案写在数据里（配置、接口返回、表格的说明列）时用 CodeText：反引号里的是行内代码，不用拆成多个节点 *@
+<List>
     @foreach (var tip in tips)
     {
-        <li @key="tip"><CodeText Text="@tip" /></li>
+        <ListItem @key="tip"><CodeText Text="@tip" /></ListItem>
     }
-</ul>
+</List>
 
 @code {
     static readonly string[] tips =

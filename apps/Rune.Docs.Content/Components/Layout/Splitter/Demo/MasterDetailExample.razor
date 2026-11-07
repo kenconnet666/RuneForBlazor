@@ -5,10 +5,10 @@
     <StartContent>
         @foreach (var mail in mails)
         {
-            <button @key="mail.Id" type="button" @onclick="() => current = mail.Id" @attributes="Attrs.Merge(mail.Id == current ? ActiveItem : Item)">
+            <ButtonBase @key="mail.Id" @onclick="() => current = mail.Id" Sx="@(mail.Id == current ? [ItemStyle, ActiveStyle] : ItemStyle)">
                 <TextSpan Size="Size.Sm" Weight="Weight.Semibold">@mail.Title</TextSpan>
                 <Small Tone="TextTone.Muted">@mail.From</Small>
-            </button>
+            </ButtonBase>
         }
     </StartContent>
     <EndContent>
@@ -22,9 +22,6 @@
 </Splitter>
 
 @code {
-    static readonly Attrs Item = new() { Sx = ItemStyle };
-    static readonly Attrs ActiveItem = new() { Sx = Sx.Of(ItemStyle, ActiveStyle) };
-
     static readonly (int Id, string From, string Title, string Body)[] mails =
     [
         (1, "财务部", "费用核算待复核", "测算参数与报价不一致，请复核材料单价。"),

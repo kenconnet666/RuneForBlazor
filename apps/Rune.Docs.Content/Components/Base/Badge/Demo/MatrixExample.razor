@@ -1,15 +1,18 @@
 @inherits RuneComponent
 
-<div @attributes="Attrs.Merge(MatrixGrid)">
-    @foreach (var variant in Enum.GetValues<StatusVariant>())
-    {
-        <TextSpan Size="Size.Xs" Tone="TextTone.Muted">@variant.ToString().ToLowerInvariant()</TextSpan>
-        @foreach (var (tone, label) in tones)
+@* 窄的时候横向滚动（浮层滚动条，不占高度） *@
+<ScrollArea Axis="ScrollAxis.X">
+    <div @attributes="Attrs.Merge(MatrixGrid)">
+        @foreach (var variant in Enum.GetValues<StatusVariant>())
         {
-            <Badge Variant="variant" Tone="tone">@label</Badge>
+            <TextSpan Size="Size.Xs" Tone="TextTone.Muted">@variant.ToString().ToLowerInvariant()</TextSpan>
+            @foreach (var (tone, label) in tones)
+            {
+                <Badge Variant="variant" Tone="tone">@label</Badge>
+            }
         }
-    }
-</div>
+    </div>
+</ScrollArea>
 
 @code {
     static readonly (Tone Tone, string Label)[] tones =
@@ -31,6 +34,5 @@
         AlignItems = AlignItems.Center,
         Gap = Space.Sm,
         ColumnGap = Space.Md,
-        OverflowX = Overflow.Auto,
     });
 }

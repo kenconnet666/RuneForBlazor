@@ -2,25 +2,13 @@
 @inherits RuneComponent
 
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
-    <Table aria-label="项目">
-        <TableHead>
-            <TableRow>
-                <TableHeaderCell>编号</TableHeaderCell>
-                <TableHeaderCell>名称</TableHeaderCell>
-                <TableHeaderCell>节点</TableHeaderCell>
-            </TableRow>
-        </TableHead>
-        <TableBody>
-            @foreach (var project in projects)
-            {
-                <TableRow @key="project.Code">
-                    <TableCell>@project.Code</TableCell>
-                    <TableCell>@project.Name</TableCell>
-                    <TableCell><Checklist Layout="ChecklistLayout.Icons" Items="project.Nodes" /></TableCell>
-                </TableRow>
-            }
-        </TableBody>
-    </Table>
+    <ColumnTable Items="projects" GetKey="project => project.Code" aria-label="项目">
+        <PropertyColumn Property="project => project.Code" Title="编号" Width="130" />
+        <PropertyColumn Property="project => project.Name" Title="名称" />
+        <TemplateColumn Key="nodes" Title="节点" Context="project">
+            <Checklist Layout="ChecklistLayout.Icons" Items="project.Nodes" />
+        </TemplateColumn>
+    </ColumnTable>
     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
         <Small Tone="TextTone.Muted">PO-2026-0187 的实施节点</Small>
         <Checklist Layout="ChecklistLayout.Inline" Items="projects[0].Nodes" />
@@ -28,12 +16,14 @@
 </Flex>
 
 @code {
+    sealed record Project(string Code, string Name, ChecklistItem[] Nodes);
+
     static ChecklistItem Node(string label, ChecklistStatus status, string? date = null) => new(label) { Status = status, Date = date };
 
-    static readonly (string Code, string Name, ChecklistItem[] Nodes)[] projects =
+    static readonly Project[] projects =
     [
-        ("PO-2026-0187", "官网首页改版", [Node("评审", ChecklistStatus.Done, "08-12"), Node("样品", ChecklistStatus.Done, "09-20"), Node("切换", ChecklistStatus.Overdue, "计划 10-15"), Node("关闭", ChecklistStatus.Todo)]),
-        ("PO-2026-0203", "线缆收纳夹国产化", [Node("评审", ChecklistStatus.Done, "09-02"), Node("样品", ChecklistStatus.Todo, "计划 11-05"), Node("切换", ChecklistStatus.Todo), Node("关闭", ChecklistStatus.Todo)]),
-        ("PO-2026-0211", "门店照明改造", [Node("评审", ChecklistStatus.Done, "07-30"), Node("样品", ChecklistStatus.Done, "08-28"), Node("切换", ChecklistStatus.Done, "09-30"), Node("关闭", ChecklistStatus.Blocked, "等财务复核")]),
+        new("PO-2026-0187", "官网首页改版", [Node("评审", ChecklistStatus.Done, "08-12"), Node("样品", ChecklistStatus.Done, "09-20"), Node("切换", ChecklistStatus.Overdue, "计划 10-15"), Node("关闭", ChecklistStatus.Todo)]),
+        new("PO-2026-0203", "线缆收纳夹国产化", [Node("评审", ChecklistStatus.Done, "09-02"), Node("样品", ChecklistStatus.Todo, "计划 11-05"), Node("切换", ChecklistStatus.Todo), Node("关闭", ChecklistStatus.Todo)]),
+        new("PO-2026-0211", "门店照明改造", [Node("评审", ChecklistStatus.Done, "07-30"), Node("样品", ChecklistStatus.Done, "08-28"), Node("切换", ChecklistStatus.Done, "09-30"), Node("关闭", ChecklistStatus.Blocked, "等财务复核")]),
     ];
 }
