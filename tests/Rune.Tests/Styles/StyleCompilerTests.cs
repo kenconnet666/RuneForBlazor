@@ -147,4 +147,19 @@ public class StyleCompilerTests
 
         Assert.Contains(""":is([aria-expanded="true"],[data-expanded])""", compiled.Css);
     }
+
+    [Fact]
+    public void 可用时的悬停不加特异性_按下排在它后面能盖过()
+    {
+        var compiled = Compile(new Style
+        {
+            [When.Active] = new() { Opacity = 0.5 },
+            [When.HoverEnabled] = new() { Opacity = 0.8 },
+        });
+        var c = compiled.ClassName;
+
+        var hover = compiled.Css.IndexOf($".{c}:hover:where(:not(:disabled,[aria-disabled=\"true\"])){{opacity:0.8;}}", StringComparison.Ordinal);
+        var active = compiled.Css.IndexOf($".{c}:active{{opacity:0.5;}}", StringComparison.Ordinal);
+        Assert.True(hover >= 0 && active > hover);
+    }
 }

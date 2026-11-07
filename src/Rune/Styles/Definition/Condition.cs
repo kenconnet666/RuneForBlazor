@@ -22,8 +22,9 @@ public static class When
     /// <summary>
     /// 可用时的鼠标悬停：不可用（<c>disabled</c>、<c>aria-disabled="true"</c>）的元素照样匹配 :hover，
     /// 悬停变色会让人以为还能点；按钮这类元素的悬停样式用它。
+    /// 排除写在 :where 里、不加特异性：否则它比 :active、:focus-visible 多一级，按优先级排在后面的按下样式也盖不过它。
     /// </summary>
-    public static readonly Condition HoverEnabled = new(""":hover:not(:disabled,[aria-disabled="true"])""");
+    public static readonly Condition HoverEnabled = new(""":hover:where(:not(:disabled,[aria-disabled="true"]))""");
 
     /// <summary>按下。</summary>
     public static readonly Condition Active = new(":active");
