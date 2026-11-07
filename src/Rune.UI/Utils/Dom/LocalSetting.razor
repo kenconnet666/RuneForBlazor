@@ -1,0 +1,60 @@
+@*
+    记在浏览器里的设置（同 vue-tsx-pro 的 usePersistentState，参考 VueUse 的 useStorage）：列宽、隐藏的列、密度、每页条数、侧栏，刷新、再打开时还在。
+    <LocalSetting Key="orders.hiddenColumns" @bind-Value="hidden" />
+    <DataTable @bind-HiddenColumns="hidden" …>…</DataTable>
+    - 存成 JSON（localStorage；Session 时只在这个标签页里记）。交互开始后读出记下的值写回 Value；之后 Value 变了就存。
+      服务端渲染、预渲染时就是 Value 的初始值。
+    - 读出来的不能用（改过版本、被手改坏了）时不动 Value；隐私模式、禁用存储、配额满时只在这次打开有效。
+    - 别的标签页改了同一个键，这里跟着变。
+    - 值的类型：字符串、数字、布尔、字符串列表、字符串 → 数字 / 字符串的字典、DataTable 的列固定，内置；其他类型给 TypeInfo（源生成的 JsonTypeInfo，裁剪友好）。
+    不渲染看得见的内容（一个 template 元素）。
+*@
+@namespace Rune.UI
+@typeparam TValue
+@inherits UIComponent
+@using System.Text.Json
+@using System.Text.Json.Serialization.Metadata
+
+@* 交互模式下才交给 JS：静态渲染、预渲染时 JS 交来的值没有人收 *@
+<template data-rune-local-setting="@(RendererInfo.IsInteractive ? Key : null)" data-storage="@(Session ? "session" : null)" data-value="@Serialized" @onrunecommand="OnCommandAsync"></template>
+
+@code {
+    /// <summary>存储里的键：同一个应用里不要重复（写成“页面.用途”）。</summary>
+    [Parameter, EditorRequired] public string Key { get; set; } = "";
+
+    /// <summary>当前的值（<c>@bind-Value</c>）：一开始是初始值，读出记下的值后换成它。</summary>
+    [Parameter] public TValue Value { get; set; } = default!;
+
+    /// <summary>读出了记下的值（或别的标签页改了）。</summary>
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+
+    /// <summary>只在这个标签页里记（sessionStorage）。</summary>
+    [Parameter] public bool Session { get; set; }
+
+    /// <summary>值的 JSON 类型信息（源生成）；内置类型以外的值要给。</summary>
+    [Parameter] public JsonTypeInfo<TValue>? TypeInfo { get; set; }
+
+    JsonTypeInfo<TValue> Info => TypeInfo
+        ?? UIJson.Default.GetTypeInfo(typeof(TValue)) as JsonTypeInfo<TValue>
+        ?? throw new InvalidOperationException($"LocalSetting 不认识 {typeof(TValue)}：给 TypeInfo（源生成的 JsonTypeInfo）");
+
+    string Serialized => JsonSerializer.Serialize(Value, Info);
+
+    async Task OnCommandAsync(CommandEventArgs e)
+    {
+        if (e.Name != "restore" || e.Text is not { } text) return;
+        TValue? value;
+        try
+        {
+            value = JsonSerializer.Deserialize(text, Info);
+        }
+        catch (JsonException)
+        {
+            // 记下的被改坏了：不动
+            return;
+        }
+        if (value is null) return;
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+    }
+}

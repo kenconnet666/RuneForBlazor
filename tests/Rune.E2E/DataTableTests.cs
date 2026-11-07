@@ -245,4 +245,27 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         await page.GetByRole(AriaRole.Button, new() { Name = "还原", Exact = true }).ClickAsync();
         await Assertions.Expect(page.GetByText("单击单元格修改", new() { Exact = true })).ToBeVisibleAsync();
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 列设置记在浏览器里_刷新后还在_还原清掉(string mode)
+    {
+        var page = await OpenAsync(mode, "data-table");
+        var table = page.GetByRole(AriaRole.Table, new() { Name = "采购单" });
+
+        await table.GetByRole(AriaRole.Button, new() { Name = "“品类”列的操作" }).ClickAsync();
+        await page.GetByRole(AriaRole.Menuitem, new() { Name = "隐藏这一列" }).ClickAsync();
+        await Assertions.Expect(table.Locator("th[data-column=category]")).ToHaveCountAsync(0);
+        await page.WaitForFunctionAsync("() => localStorage.getItem('docs:po-hidden') === '[\"category\"]'");
+
+        await page.ReloadAsync(new() { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 60_000 });
+        await page.WaitForSelectorAsync("[data-demo-interactive=true]", new() { Timeout = 60_000 });
+        await Assertions.Expect(table.Locator("th[data-column=supplier]")).ToBeAttachedAsync();
+        await Assertions.Expect(table.Locator("th[data-column=category]")).ToHaveCountAsync(0);
+
+        await page.GetByRole(AriaRole.Button, new() { Name = "还原列设置" }).ClickAsync();
+        await Assertions.Expect(table.Locator("th[data-column=category]")).ToHaveCountAsync(1);
+        await page.WaitForFunctionAsync("() => localStorage.getItem('docs:po-hidden') === '[]'");
+    }
 }

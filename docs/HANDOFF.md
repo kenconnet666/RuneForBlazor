@@ -81,7 +81,7 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 - 2026-11-06 用户恢复路线图并重新规划（阶段 0 → 9）：锁定对齐 vue-tsx-pro 0.12.0-dev（版本号同步），除了发布，原来不做的扩展也做（阶段 7）。
 - 阶段 3（表格）基本完成（2026-11-07）：TableQuery / TableQueryState（DESIGN §13）；DataTable（列的子组件、排序、筛选、列菜单、列宽、分组表头、详情行、
   网格方向键与编辑、行拖动、虚拟滚动的表格模式、CSV）；SelectionBar、ColumnSettings、ColumnTable、TreeDataTable、PivotTable、FieldCompare 与 Diff。
-  剩下：列设置记在浏览器里（缺 usePersistentState 的对应物）、预渲染不重复取数、Drawer 的两个示例（等阶段 6 的 DeadlineBadge）。
+  剩下：预渲染不重复取数、Drawer 的两个示例（等阶段 6 的 DeadlineBadge）。LocalSetting 是 usePersistentState 的对应物。
 - 单元测试约 600 个、端到端 220 个全过（本地全量跑过一次）；CI 也跑端到端。
 
 ## 下一步

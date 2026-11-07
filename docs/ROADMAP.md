@@ -153,7 +153,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
     骨架与空状态、固定列、合计行、行的色调、主从视图的当前行与点行
   - [x] 表头筛选与列菜单（ColumnFilterButton、ColumnMenuButton）、列宽调整（ColumnResizer）
   - [x] 分组表头（列的 Group）、详情行（DetailContent）、按行与列的单元格属性（PropsCellFor）
-  - [ ] 列设置记在浏览器里（vue 的 usePersistentState，Rune 还没有对应的工具；示例先放在组件里）
+  - [x] 列设置记在浏览器里：LocalSetting（同 vue 的 usePersistentState；js/storage.js，跨标签页同步）
   - [x] 网格方向键与单元格编辑（列校验、行校验、接口拒绝）
   - [x] 行拖动（OnReorder，复用 js/sortable.js）
   - [x] 服务端数据：ManualSort、ManualFilter 直接绑 TableQueryState 的 Sort / ColumnFilters（有测试；示例随阶段 6 的 QueryTable，同 vue）

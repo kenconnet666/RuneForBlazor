@@ -19,6 +19,7 @@ import { closeTreeAfterPick, keyTree, pressTreeItem } from './tree.js';
 import { watchVirtual } from './virtual.js';
 import { keyTour, watchTour } from './tour.js';
 import { watchTable } from './table.js';
+import { watchLocalSetting } from './storage.js';
 import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './lists.js';
 import { watchIndicator } from './indicator.js';
 import { scheduleOverflow, watchOverflow } from './overflow.js';
@@ -180,6 +181,7 @@ const watched = [
   ['[data-rune-virtual]', watchVirtual],
   ['dialog[data-rune-tour]', watchTour],
   ['table[data-rune-table]', watchTable],
+  ['template[data-rune-local-setting]', watchLocalSetting],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 

@@ -2,6 +2,11 @@
 @using System.ComponentModel
 
 @* 采购单：表头筛选（列出出现过的值、状态、关键字）、多列排序（Shift 点追加）、列菜单（固定、前后移动、隐藏）；上方一行说明当前的筛选与排序 *@
+@* 各人的列设置：记在浏览器里，刷新、再打开时还在 *@
+<LocalSetting Key="docs:po-hidden" @bind-Value="hidden" />
+<LocalSetting Key="docs:po-order" @bind-Value="order" />
+<LocalSetting Key="docs:po-pins" @bind-Value="pins" />
+<LocalSetting Key="docs:po-widths" @bind-Value="widths" />
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
     <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true">
         <Small Tone="TextTone.Muted" data-testid="po-summary">@Summary</Small>
@@ -71,7 +76,7 @@
 
     IReadOnlyDictionary<string, IReadOnlyList<string>> filters = new Dictionary<string, IReadOnlyList<string>>();
     IReadOnlyList<ColumnSort> sorts = [new("orderedAt", SortDirection.Descending)];
-    // 各人的列设置：可以存进本地设置，下次打开还是这样
+    // 各人的列设置：上面的 LocalSetting 记在浏览器里
     IReadOnlyList<string> hidden = [];
     IReadOnlyList<string> order = [];
     IReadOnlyDictionary<string, ColumnSticky?> pins = new Dictionary<string, ColumnSticky?>();

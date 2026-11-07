@@ -8,6 +8,15 @@ namespace Rune.UI;
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(Dictionary<string, string>))]
 [JsonSerializable(typeof(WatermarkOptions))]
+// LocalSetting 内置认识的值
+[JsonSerializable(typeof(string))]
+[JsonSerializable(typeof(int))]
+[JsonSerializable(typeof(double))]
+[JsonSerializable(typeof(bool))]
+[JsonSerializable(typeof(IReadOnlyList<string>))]
+[JsonSerializable(typeof(IReadOnlyDictionary<string, double>))]
+[JsonSerializable(typeof(IReadOnlyDictionary<string, string>))]
+[JsonSerializable(typeof(IReadOnlyDictionary<string, ColumnSticky?>))]
 internal sealed partial class UIJson : JsonSerializerContext
 {
     // 文字原样写进属性（Blazor 会转义属性值），不转成 \uXXXX
