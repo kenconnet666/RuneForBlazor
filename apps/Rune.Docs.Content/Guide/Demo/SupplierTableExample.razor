@@ -1,0 +1,47 @@
+@inherits RuneComponent
+@implements IDisposable
+
+@* 服务端分页：查询栏的条件点“查询”才应用；翻页、点表头排序立即请求；换条件、排序回到第一页。
+   筛选、排序、分页都在“服务端”（假接口）做，页面只管把条件交出去 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Align="ItemAlign.End" Gap="SpaceScale.Sm" Wrap="true">
+        <Field Label="关键字">
+            <TextField @bind-Value="draft" placeholder="名称或城市" Clearable="true" />
+        </Field>
+        <Button Loading="suppliers.Loading" @onclick="() => suppliers.SearchAsync(new(draft ?? string.Empty))">查询</Button>
+        <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral" @onclick="ResetAsync">重置</Button>
+    </Flex>
+    <DataTable Items="suppliers.Rows" GetKey="item => item.Id" Sort="suppliers.Sort" SortChanged="sort => suppliers.Sort = sort" ManualSort="true"
+               Loading="suppliers.Loading" aria-label="供应商">
+        <PropertyColumn Property="item => item.Id" Key="id" Title="编号" Width="80" Sortable="true" />
+        <PropertyColumn Property="item => item.Name" Key="name" Title="名称" Width="220" Sortable="true" />
+        <PropertyColumn Property="item => item.City" Key="city" Title="城市" Width="80" Sortable="true" />
+        <PropertyColumn Property="item => item.Category" Title="类别" Width="100" />
+    </DataTable>
+    <Pagination Page="suppliers.Page" PageChanged="page => suppliers.Page = page" Total="(int)suppliers.Total" PageSize="suppliers.PageSize" ShowTotal="true" />
+</Flex>
+
+@code {
+    sealed record SupplierFilters(string Keyword);
+
+    TableQueryState<Supplier, SupplierFilters> suppliers = default!;
+    string? draft = "";
+
+    // 第一次加载由页面开始（TableQueryState 不自己请求）
+    protected override Task OnInitializedAsync()
+    {
+        suppliers = new(
+            (query, cancellation) => DemoSuppliers.SearchAsync(query.Filters.Keyword.Trim(), query.Page, query.PageSize, query.Sorts is [var sort, ..] ? sort : null, cancellation),
+            new() { Filters = new(""), PageSize = 5 },
+            () => InvokeAsync(StateHasChanged));
+        return suppliers.RefreshAsync();
+    }
+
+    Task ResetAsync()
+    {
+        draft = "";
+        return suppliers.SearchAsync(new(""));
+    }
+
+    public void Dispose() => suppliers.Dispose();
+}

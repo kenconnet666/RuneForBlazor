@@ -1,0 +1,118 @@
+@inherits RuneComponent
+@implements IDisposable
+
+@* 供应商查询：关键字停下 300 ms 再请求，翻页立即请求；新请求取消上一次，晚到的旧结果不会覆盖；
+   重新请求时上一页的结果留着、变淡；出错时显示原因与重试 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+        <TextField Value="@keyword" ValueChanged="SearchAsync" Immediate="true" Icon="Lucide.Search" Clearable="true"
+                   placeholder="名称或城市，如“研发”“西安”" aria-label="查询供应商" Sx="SearchWidth" />
+        @if (loading)
+        {
+            <Spinner Size="Size.Sm" Label="查询中" />
+        }
+        @if (data is not null)
+        {
+            <Small Tone="TextTone.Muted">共 @data.Total 家</Small>
+        }
+        <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Icon="Lucide.TriangleExclamationPoint" @onclick="FailOnceAsync">模拟一次失败</Button>
+    </Flex>
+    @if (error is not null)
+    {
+        <Alert Tone="Tone.Danger" Title="查询失败">
+            <ChildContent>@error.Message</ChildContent>
+            <Action><Button Size="Size.Sm" Variant="ButtonVariant.Outline" @onclick="() => LoadAsync(debounce: false)">重试</Button></Action>
+        </Alert>
+    }
+    <Table aria-busy="@(loading ? "true" : "false")" Sx="@(loading ? [Fade, Stale] : Fade)">
+        <TableHead>
+            <TableRow>
+                <TableHeaderCell>编号</TableHeaderCell>
+                <TableHeaderCell>名称</TableHeaderCell>
+                <TableHeaderCell>城市</TableHeaderCell>
+                <TableHeaderCell>类别</TableHeaderCell>
+            </TableRow>
+        </TableHead>
+        <TableBody>
+            @foreach (var item in data?.Rows ?? [])
+            {
+                <TableRow @key="item.Id">
+                    <TableCell>@item.Id</TableCell>
+                    <TableCell>@item.Name</TableCell>
+                    <TableCell>@item.City</TableCell>
+                    <TableCell>@item.Category</TableCell>
+                </TableRow>
+            }
+        </TableBody>
+    </Table>
+    @if (data is { Total: > PageSize })
+    {
+        <Pagination Page="page" PageChanged="TurnToAsync" Total="(int)data.Total" PageSize="PageSize" />
+    }
+</Flex>
+
+@code {
+    const int PageSize = 6;
+
+    string keyword = "";
+    int page = 1;
+    TablePage<Supplier>? data;
+    Exception? error;
+    bool loading;
+    CancellationTokenSource? current;
+
+    protected override Task OnInitializedAsync() => LoadAsync(debounce: false);
+
+    // 换了关键字从第一页看；输入停下再请求
+    Task SearchAsync(string? value)
+    {
+        (keyword, page) = (value ?? "", 1);
+        return LoadAsync(debounce: true);
+    }
+
+    // 翻页是点一下的变化，不用等
+    Task TurnToAsync(int next)
+    {
+        page = next;
+        return LoadAsync(debounce: false);
+    }
+
+    Task FailOnceAsync()
+    {
+        DemoSuppliers.FailNext = true;
+        return LoadAsync(debounce: false);
+    }
+
+    // 只采用最后一次的结果：发新请求时取消上一次，被取消的请求不改任何状态
+    async Task LoadAsync(bool debounce)
+    {
+        current?.Cancel();
+        var run = current = new CancellationTokenSource();
+        try
+        {
+            if (debounce) await Task.Delay(300, run.Token);
+            loading = true;
+            StateHasChanged();
+            data = await DemoSuppliers.SearchAsync(keyword.Trim(), page, PageSize, null, run.Token);
+            error = null;
+        }
+        catch (OperationCanceledException) when (run.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (Exception exception)
+        {
+            error = exception;
+        }
+        loading = false;
+    }
+
+    public void Dispose() => current?.Cancel();
+
+    static Style SearchWidth => Css.Define(static () => new Style { Width = CssLength.Rem(16) });
+
+    // 重新请求时旧结果留着、变淡，表格不闪成空的
+    static Style Fade => Css.Define(static () => new Style { TransitionProperty = "opacity", TransitionDuration = Durations.Md });
+
+    static Style Stale => Css.Define(static () => new Style { Opacity = 0.55 });
+}

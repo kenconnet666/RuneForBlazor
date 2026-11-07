@@ -1,0 +1,109 @@
+@page "/guide/data"
+@attribute [DocMeta("Data 请求与数据", "请求用 .NET 的 HttpClient（或 Refit 这类类型化客户端）；加载、出错、防抖与取消的写法，TableQueryState 管服务端分页，远程选项交给 Load。", DocCategory.Guide, Order = 4)]
+@inherits DocPageBase
+@using Rune.Docs.Guide.Demo
+
+<DocPage Meta="Meta">
+    <GuideSection Id="client" Title="配置请求客户端">
+        <Paragraph>
+            组件库不带自己的请求层：远程选项（<Code>Load</Code>）、上传、列表查询都只接收一个“取数”的委托，里面用什么请求由应用决定。
+            Blazor 里就是 .NET 的 <Code>HttpClient</Code>：用 <Code>AddHttpClient</Code> 注册命名或类型化的客户端，基地址、超时、令牌（<Code>DelegatingHandler</Code>）写在一处。
+            WebAssembly 里它走浏览器的 fetch；Server 与预渲染时在服务端发出，地址要写完整（或直接调用应用服务，不绕 HTTP）。
+        </Paragraph>
+        <CodeBlock Code="@Client" Lang="csharp" Title="Program.cs" />
+        <Paragraph>
+            预渲染时取到的数据用 <Code>PersistentComponentState</Code>（.NET 10 起可以直接在属性上写 <Code>[PersistentState]</Code>）带到浏览器，
+            交互开始后不再请求一次，页面也不闪。
+        </Paragraph>
+    </GuideSection>
+
+    <GuideSection Id="adapter" Title="换成 Refit 或自己的客户端">
+        <Paragraph>
+            项目里已经有请求库、拦截器时不必换：取数的委托里调用它即可，令牌、拆包照旧写在原来的处理器里。接口多时用 Refit 这类按接口生成的客户端，返回的就是强类型的结果。
+        </Paragraph>
+        <CodeBlock Code="@Adapter" Lang="csharp" Title="ISupplierApi.cs" />
+    </GuideSection>
+
+    <GuideSection Id="use-request" Title="请求的状态：加载、取消与只采用最后一次">
+        <Paragraph>一个请求在页面里要管的几件事，组件库的远程选项、TableQueryState 都是这样做的：</Paragraph>
+        <List>
+            <ListItem>输入停下一会儿再发（<Code>Task.Delay</Code> 300 ms，期间又输入就取消重来）；点一下的变化（翻页）立即请求。</ListItem>
+            <ListItem>只采用最后一次的结果：发新请求时取消上一次（<Code>CancellationTokenSource</Code>），被取消的请求不改任何状态，晚到的旧结果不会覆盖。</ListItem>
+            <ListItem>重新请求时保留上一次的数据，表格不闪成空的；正在请求时标上 <Code>aria-busy</Code>。</ListItem>
+            <ListItem>组件销毁时取消还在进行的请求（<Code>IDisposable</Code>）。</ListItem>
+        </List>
+        <Paragraph>
+            下面的演示连着内存里的假接口（300–800 ms 的随机延迟）：快速输入只发最后一次，翻页立即请求，“模拟一次失败”让下一次请求出错。
+        </Paragraph>
+        <CodePreview Code="@ExampleSource.Of(typeof(SupplierSearchExample))"><SupplierSearchExample /></CodePreview>
+    </GuideSection>
+
+    <GuideSection Id="table-query" Title="服务端分页：TableQueryState">
+        <Paragraph>
+            列表页的页码、每页条数、排序、已应用的筛选条件、总数、加载与出错交给 <Code>TableQueryState</Code>（同 vue-tsx-pro 的 useTableQuery）。
+            <Code>Page</Code>、<Code>PageSize</Code>、<Code>Sort</Code> 直接交给 Pagination、DataTable（加 <Code>ManualSort</Code>，排序交给服务端）；
+            查询栏点“查询”时调用 <Code>SearchAsync(条件)</Code>。换排序、条数、条件回到第一页，只请求一次；删掉数据后当前页空了，自动退到最后一页。
+            只翻页、换排序或条数时，交给取数的总数是上一次的，服务端可以不再数行数。
+        </Paragraph>
+        <Paragraph>
+            取数时用 <Code>query.ToParameters()</Code> 把一次查询写成接口的参数：<Code>page</Code>、<Code>pageSize</Code>、<Code>sort=-amount,name</Code>（减号是倒序），
+            表头筛选写成 <Code>filter.列=值</Code>、关键字 <Code>search.列=关键字</Code>，查询栏的条件按属性名平铺。EasyQuerySharp 的 <Code>TableRequest.Parse</Code> 读的就是这套参数。
+            给了 <Code>Navigation</Code> 时页码、排序、条件放进地址栏：刷新、分享链接都是同一份列表。
+        </Paragraph>
+        <CodePreview Code="@ExampleSource.Of(typeof(SupplierTableExample))"><SupplierTableExample /></CodePreview>
+    </GuideSection>
+
+    <GuideSection Id="errors" Title="出错与取消">
+        <Paragraph>
+            取消的请求抛 <Code>OperationCanceledException</Code>：判断是不是自己取消的（<Code>when (token.IsCancellationRequested)</Code>），不当作错误显示。
+            后端按 RFC 9457 回 <Code>ProblemDetails</Code> 时读出标题与按字段的错误，字段错误交给表单（<Code>ValidationMessageStore</Code>），其余显示在页面上并给重试。
+        </Paragraph>
+        <CodeBlock Code="@Errors" Lang="csharp" />
+        <Alert Tone="Tone.Info">
+            组件自己出错时的文字（远程选项加载失败、上传失败）来自语言包；业务错误的说明由应用决定，异常本身的消息是给开发者看的。
+        </Alert>
+    </GuideSection>
+</DocPage>
+
+@code {
+    const string Client = """
+        builder.Services.AddHttpClient<SupplierClient>(client =>
+        {
+            client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress + "api/");
+            client.Timeout = TimeSpan.FromSeconds(15);
+        })
+        .AddHttpMessageHandler<BearerTokenHandler>();   // 发出之前：加令牌
+
+        // 页面里
+        @inject SupplierClient Suppliers
+        var page = await Suppliers.SearchAsync(keyword, page: 1, pageSize: 20, cancellation);
+        """;
+
+    const string Adapter = """
+        public interface ISupplierApi
+        {
+            [Get("/suppliers")]
+            Task<TablePage<Supplier>> SearchAsync([Query] IDictionary<string, string> parameters, CancellationToken cancellation);
+        }
+
+        builder.Services.AddRefitClient<ISupplierApi>().ConfigureHttpClient(c => c.BaseAddress = new Uri("https://example.com/api"));
+
+        // 取数的委托里调用它：TableQueryState、远程选项都只认委托
+        var state = new TableQueryState<Supplier, SupplierFilters>((query, ct) => api.SearchAsync(query.ToParameters().ToDictionary(), ct));
+        """;
+
+    const string Errors = """
+        try
+        {
+            await http.PostAsJsonAsync("tasks", values, cancellation);
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+            return;                                                    // 主动取消的，不是错误
+        }
+        catch (HttpRequestException error)
+        {
+            toasts.Show(new() { Tone = Tone.Danger, Title = "保存失败", Description = error.Message });
+        }
+        """;
+}
