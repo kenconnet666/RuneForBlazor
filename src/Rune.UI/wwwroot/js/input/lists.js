@@ -304,6 +304,8 @@ export function listPopoverClosed(panel) {
   const trigger = listTriggerOf(panel);
   const list = panel.querySelector('[role="listbox"]');
   typedPanels.delete(panel);
+  // 打开后还没定位完（第一次要加载 Floating UI）就关了时 listPopoverOpened 没来得及清它：留着会吞掉下一次打开的默认高亮
+  openedByTyping.delete(panel);
   if (!trigger || !list) return;
   highlightLastOnOpen.delete(trigger);
   for (const host of [trigger, ...panel.querySelectorAll('[data-rune-list]')]) highlight(host, list, -1, false);
