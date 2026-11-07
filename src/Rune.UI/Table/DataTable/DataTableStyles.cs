@@ -363,8 +363,14 @@ public static class DataTableStyles
 
     static Style SortPriority => Css.Define(static () => new Style { FontSize = CssLength.Em(0.75), FontVariantNumeric = FontVariantNumeric.TabularNums, Color = Tones.Accent.Text });
 
-    // 单元格里 24px 的控件：上下的负外边距抵掉比一行文字高出的部分，有控件的行与纯文字的行一样高
-    static Style InlineControl => Css.Define(static () => new Style { MarginBlock = CssLength.Rem(-0.1875) });
+    // 单元格里的勾选框、单选框（样式落在外层 label 上，撑出 24px 点击区域的是它；同 vue-tsx-pro 的 choiceInCell）：
+    // 叠放层在 label 顶上、高一行（1.5em），多出的点击区域在下面。顶部对齐、只在下边用负外边距抵掉多出的部分，
+    // label 正好占一行文字，勾选框在这一行正中，有勾选列的行与纯文字的行一样高（上下对称的负边距加基线或居中对齐会因字体差出零点几像素）
+    static Style InlineControl => Css.Define(static () => new Style
+    {
+        VerticalAlign = VerticalAlign.Top,
+        MarginBlockEnd = $"min(0px, 1.5em - {Sizes.MinTarget})",
+    });
 
     static Style StripedRow => Css.Define(static () => new Style
     {
