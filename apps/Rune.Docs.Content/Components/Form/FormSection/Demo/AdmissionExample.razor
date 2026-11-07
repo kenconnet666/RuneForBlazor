@@ -14,7 +14,7 @@
                         <TextField @bind-Value="code" />
                     </Field>
                     <Field Label="成立日期">
-                        <TextField @bind-Value="founded" Type="date" />
+                        <DatePicker @bind-Value="founded" />
                     </Field>
                     <Field Label="员工人数">
                         <NumberField @bind-Value="staff">
@@ -53,7 +53,7 @@
                         <Select Items="certs" @bind-Value="cert" />
                     </Field>
                     <Field Label="证书有效期至">
-                        <TextField @bind-Value="certExpire" Type="date" />
+                        <DatePicker @bind-Value="certExpire" />
                     </Field>
                     <GridItem FullRow="true">
                         <Field Label="最近一次二方审核" Description="时间、审核方、主要不符合项">
@@ -95,14 +95,14 @@
 
     string? name = "供应商甲精密制造有限公司";
     string? code = "91310115MA1K4XXX0Q";
-    string? founded = "2012-06-18";
+    DateOnly? founded = new(2012, 6, 18);
     int? staff = 860;
     string? address = "上海市浦东新区某路 88 号";
     string? category = "machining";
     IReadOnlyList<string> parts = ["bracket", "fastener"];
     int? capacity = 12000;
     string? cert = "iso9001";
-    string? certExpire = "2027-03-31";
+    DateOnly? certExpire = new(2027, 3, 31);
     string? audit = "";
     string? bank = "某银行上海浦东支行";
     string? account = "6222 0210 0100 1234 567";

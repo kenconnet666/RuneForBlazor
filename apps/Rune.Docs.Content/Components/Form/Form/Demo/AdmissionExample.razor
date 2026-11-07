@@ -20,10 +20,10 @@
             <TextField @bind-Value="model.Phone" Type="tel" />
         </Field>
         <Field Label="有效期起" Required="true">
-            <TextField @bind-Value="model.ValidFrom" Type="date" />
+            <DateField @bind-Value="model.ValidFrom" />
         </Field>
         <Field Label="有效期止" Required="true">
-            <TextField @bind-Value="model.ValidTo" Type="date" />
+            <DateField @bind-Value="model.ValidTo" />
         </Field>
     </Grid>
     <Field Label="补充说明">
@@ -71,10 +71,10 @@
         public string? Phone { get; set; }
 
         [Required(ErrorMessage = "请选择开始日期")]
-        public string? ValidFrom { get; set; }
+        public DateOnly? ValidFrom { get; set; }
 
         [Required(ErrorMessage = "请选择结束日期")]
-        public string? ValidTo { get; set; }
+        public DateOnly? ValidTo { get; set; }
 
         [MaxLength(200)]
         public string? Note { get; set; }
@@ -85,7 +85,7 @@
         // 跨字段：结束日期要晚于开始日期，错误标在结束日期上
         public IEnumerable<ValidationResult> Validate(ValidationContext context)
         {
-            if (ValidFrom is { Length: > 0 } from && ValidTo is { Length: > 0 } to && string.CompareOrdinal(to, from) <= 0)
+            if (ValidFrom is { } from && ValidTo is { } to && to <= from)
                 yield return new ValidationResult("结束日期要晚于开始日期", [nameof(ValidTo)]);
         }
     }

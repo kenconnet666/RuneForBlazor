@@ -154,6 +154,16 @@ public class DataTableTests(DemoServer demo) : E2ETest(demo)
         await page.Keyboard.PressAsync("Escape");
         await Assertions.Expect(quantity).ToHaveTextAsync("40");
         await Assertions.Expect(quantity).ToBeFocusedAsync();
+
+        // 交期用 DateField 编辑：分段里改日，Enter 提交，行校验（交期早于今天）随之消失
+        var due = grid.Locator("tr[data-key='3'] td[data-column=due]");
+        await due.DblClickAsync();
+        var day = due.GetByRole(AriaRole.Spinbutton, new() { Name = "日" });
+        await day.ClickAsync();
+        await page.Keyboard.TypeAsync("30");
+        await page.Keyboard.PressAsync("Enter");
+        await Assertions.Expect(due).ToHaveTextAsync("2026年10月30日");
+        await Assertions.Expect(due).Not.ToHaveAttributeAsync("aria-invalid", "true");
     }
 
     [Theory]

@@ -1,7 +1,7 @@
 @inherits RuneComponent
 @using System.ComponentModel
 
-@* 采购申请明细：就地编辑。零件、数量、单价、交期可以改（交期用自定义编辑器），小计跟着算；
+@* 采购申请明细：就地编辑。零件、数量、单价、交期可以改（交期用自定义编辑器 DateField），小计跟着算；
    列的 Validate 拦下不合理的值，ValidateRow 标出整行的问题（交期早于今天），OnCellChange 模拟保存（已下单的行不能改数量，Reject 说明原因） *@
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
     <DataTable Items="lines" GetKey="l => l.Id" OnCellChange="@((CellChange<Line> change) => SaveAsync(change))" ValidateRow="ValidateRow" aria-label="采购申请明细">
@@ -12,8 +12,7 @@
         <PropertyColumn Property="l => l.Quantity * l.Price" Key="subtotal" Title="小计" Width="130" Type="ColumnType.Currency" Summary="ColumnSummary.Sum" />
         <PropertyColumn Property="l => l.Due" Width="150" Type="ColumnType.Date" Editable="true" Context="edit">
             <Editor>
-                <TextField type="date" Value="@edit.Value.ToString("yyyy-MM-dd")" ValueChanged="@(text => edit.OnChange(DateOnly.TryParse(text, out var day) ? day : edit.Value))"
-                           Size="Size.Sm" Invalid="@(edit.Error is not null)" aria-label="交期" />
+                <DateField Value="edit.Value" ValueChanged="@((DateOnly day) => edit.OnChange(day))" Size="Size.Sm" Invalid="@(edit.Error is not null)" aria-label="交期" />
             </Editor>
         </PropertyColumn>
         <StatusColumn Property="l => l.Status" Statuses="Statuses" Width="100" />

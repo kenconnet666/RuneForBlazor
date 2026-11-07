@@ -26,6 +26,9 @@
                 <Field Label="预计年节省（万元）">
                     <NumberRangeField @bind-Value="filterDraft.Saving" />
                 </Field>
+                <Field Label="计划完成">
+                    <DateRangePicker @bind-Value="filterDraft.Period" />
+                </Field>
             </Flex>
         </ChildContent>
         <Footer>
@@ -40,10 +43,11 @@
         public string? Team { get; set; }
         public IReadOnlyList<string> Statuses { get; set; } = [];
         public NumberRange<decimal?> Saving { get; set; }
+        public DateRange? Period { get; set; }
 
-        public int Count => (Team is null ? 0 : 1) + (Statuses.Count > 0 ? 1 : 0) + (Saving.Low is null && Saving.High is null ? 0 : 1);
+        public int Count => (Team is null ? 0 : 1) + (Statuses.Count > 0 ? 1 : 0) + (Saving.Low is null && Saving.High is null ? 0 : 1) + (Period is null ? 0 : 1);
 
-        public Filters Copy() => new() { Team = Team, Statuses = Statuses, Saving = Saving };
+        public Filters Copy() => new() { Team = Team, Statuses = Statuses, Saving = Saving, Period = Period };
     }
 
     static readonly string[] teams = ["生产部", "研发中心", "产品部", "供应链管理"];
