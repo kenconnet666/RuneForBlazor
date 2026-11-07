@@ -30,7 +30,7 @@
                                 <TableCell>@row.Code</TableCell>
                                 <TableCell>@row.Name</TableCell>
                                 <TableCell>@row.Team</TableCell>
-                                <TableCell Align="TableAlign.End">@row.Amount.ToString("0.0")</TableCell>
+                                <TableCell Align="TableAlign.End">@row.Amount.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)</TableCell>
                             </TableRow>
                         }
                     </TableBody>
