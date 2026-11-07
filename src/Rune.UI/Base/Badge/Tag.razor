@@ -3,12 +3,31 @@
     <Tag OnRemove="() => filters.Remove(item)">@item</Tag>
     给了 OnRemove 才显示移除按钮：点击后标签先淡出缩小，离场结束才调用 OnRemove（JS 初始化器做，没有往返）；
     标签随后被移除时焦点交给同组的下一个（没有就上一个）可聚焦元素，没被移除就重新显示。
+    可选中（筛选条件的一排标签）：写了 Selected（或 @bind-Selected）时整个标签是按钮（aria-pressed），点一下切换；
+    没选中时有描边（Surface），选中时是实底色并在前面加一个对勾（不只靠颜色），不写色调时用 Accent、字号默认 Sm（点击区域够大）。
+    可选中的标签不带移除按钮。一排放在 role="group" 加名称的容器里：<Tag @bind-Selected="urgent">加急</Tag>
 *@
 @namespace Rune.UI
 @inherits UIComponent
-@{ var parts = BadgeStyles.Of(BadgeAppearance.Resolve(Variant, Tone, Size, Radius, Config, OnRemove.HasDelegate ? BadgeKind.RemovableTag : BadgeKind.Tag), Config.Styles); }
+@{
+    var selectable = Selectable;
+    var on = selectable && selected.Value;
+    var parts = selectable
+        ? BadgeStyles.Of(BadgeAppearance.Resolve(on ? StatusVariant.Solid : Variant ?? StatusVariant.Surface, Tone ?? UI.Tone.Accent, Size ?? UI.Size.Sm, Radius, Config, BadgeKind.Tag), Config.Styles)
+        : BadgeStyles.Of(BadgeAppearance.Resolve(Variant, Tone, Size, Radius, Config, OnRemove.HasDelegate ? BadgeKind.RemovableTag : BadgeKind.Tag), Config.Styles);
+}
 
-@if (OnRemove.HasDelegate)
+@if (selectable)
+{
+    <ButtonBase aria-pressed="@(on ? "true" : "false")" @onclick="() => selected.SetAsync(!on)" @attributes="Attrs.MergeProps(Attrs.Layer(parts[BadgePart.Root], SelectableLayer), Rest)">
+        @if (on || Icon is not null)
+        {
+            <Icon Data="@(on ? BuiltInIcons.Check : Icon!)" @attributes="Attrs.MergeProps(parts[BadgePart.Icon], PropsIcon)" />
+        }
+        @ChildContent
+    </ButtonBase>
+}
+else if (OnRemove.HasDelegate)
 {
     <span @attributes="Attrs.Merge(parts[BadgePart.Root], Rest, Dismissible)">
         @if (Icon is not null)
@@ -32,6 +51,8 @@ else
 
 @code {
     static readonly Attrs dismissButton = new() { ["data-rune-dismiss"] = true };
+    // 可选中：手形指针；颜色随选中切换时过渡
+    static readonly Attrs SelectableLayer = new() { Sx = BadgeStyles.Selectable };
 
     /// <summary>样式，默认浅色底。</summary>
     [Parameter] public StatusVariant? Variant { get; set; }
@@ -56,6 +77,16 @@ else
 
     /// <summary>移除按钮的名称（读屏读出），不写时取语言包（UIConfig.Lang）的“移除”；建议写成“移除 张三”这样能区分的说法。</summary>
     [Parameter] public string? RemoveLabel { get; set; }
+
+    /// <summary>可选中：写了它（或 <c>@bind-Selected</c>）时标签是按钮（aria-pressed），点一下切换；选中时实底色、前面一个对勾。</summary>
+    [Parameter] public bool? Selected { get; set; }
+
+    /// <summary>选中切换了。</summary>
+    [Parameter] public EventCallback<bool> SelectedChanged { get; set; }
+
+    Bindable<bool> selected { get => field ??= new(this, () => Selected ?? false, () => SelectedChanged); }
+
+    bool Selectable => Selected is not null || SelectedChanged.HasDelegate;
 
     /// <summary>图标的部件属性。</summary>
     [Parameter] public Attrs? PropsIcon { get; set; }

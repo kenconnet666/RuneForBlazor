@@ -86,4 +86,23 @@ public class BadgeTests : BunitContext
         Assert.Same(first, second);
         Assert.Same(first[BadgePart.Root], second[BadgePart.Root]);
     }
+
+    [Fact]
+    public void 可选中的标签是按钮_点一下切换_选中时前面一个对勾()
+    {
+        var on = false;
+        var cut = Render<Tag>(p => p
+            .Add(x => x.Selected, on)
+            .Add(x => x.SelectedChanged, EventCallback.Factory.Create<bool>(this, v => on = v))
+            .AddChildContent("加急"));
+        var button = cut.Find("button");
+        Assert.Equal("false", button.GetAttribute("aria-pressed"));
+        Assert.Empty(cut.FindAll("svg"));
+
+        button.Click();
+        Assert.True(on);
+        cut.Render(p => p.Add(x => x.Selected, on));
+        Assert.Equal("true", cut.Find("button").GetAttribute("aria-pressed"));
+        Assert.NotEmpty(cut.FindAll("svg"));
+    }
 }

@@ -94,6 +94,13 @@ public static class BadgeStyles
             _ => Sx.Of(),
         });
 
+    /// <summary>可选中的标签（Tag 的 Selected）：手形指针；颜色随选中切换时过渡。</summary>
+    internal static Style Selectable => Css.Define(static () => new Style
+    {
+        Cursor = Cursor.Pointer,
+        Transition = $"background-color {Durations.Sm} {Easings.Standard}, color {Durations.Sm} {Easings.Standard}, border-color {Durations.Sm} {Easings.Standard}",
+    });
+
     static Style Root => Css.Define(static () => new Style
     {
         BoxSizing = BoxSizing.BorderBox,

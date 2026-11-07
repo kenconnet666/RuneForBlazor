@@ -26,6 +26,9 @@
             <Example Id="tag-removable" Title="可移除的标签" Demo="typeof(TagRemovableExample)">
                 写了 OnRemove 就有移除按钮：先淡出，离场结束才调用 OnRemove；按钮的读屏名称是“移除 + 标签文字”，RemoveLabel 可以改。
             </Example>
+            <Example Id="tag-selectable" Title="可选中的标签" Demo="typeof(TagSelectableExample)">
+                写了 <Code>Selected</Code>（或 <Code>@@bind-Selected</Code>）时整个标签是按钮（<Code>aria-pressed</Code>），点一下切换：没选中时有描边，选中时实底色、前面一个对勾（不只靠颜色），不写色调时用 Accent。筛选条件这类一排可选的短文字用它；要“只能选一个”的分段控件用 ToggleGroup。
+            </Example>
         </ExampleColumn>
     </Examples>
     <ApiReference Types="[typeof(Badge), typeof(StatusBadge<>), typeof(Tag)]" />

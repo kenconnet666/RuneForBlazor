@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+@* 可选中的标签：列表上方一排筛选条件，点一下选上、再点取消；一排放在 role="group" 加名称的容器里 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Flex role="group" aria-label="筛选" Gap="SpaceScale.Xs" Wrap="true">
+        @foreach (var option in options)
+        {
+            <Tag @key="option" Selected="picked.Contains(option)" SelectedChanged="on => Toggle(option, on)">@option</Tag>
+        }
+    </Flex>
+    <Small Tone="TextTone.Muted">已选：@(picked.Count == 0 ? "（无）" : string.Join("、", options.Where(picked.Contains)))</Small>
+</Flex>
+
+@code {
+    static readonly string[] options = ["加急", "待我审批", "已逾期", "本周到期", "有附件"];
+
+    readonly HashSet<string> picked = ["加急", "已逾期"];
+
+    void Toggle(string option, bool on)
+    {
+        if (on) picked.Add(option);
+        else picked.Remove(option);
+    }
+}
