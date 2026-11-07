@@ -35,7 +35,7 @@ public static class NavBarStyles
             _ => Sx.Of(Link, SharedStyles.FocusRing, a.Current ? Current : null, a.Disabled ? Disabled : null),
         });
 
-    // 一行：放不下的项由 js/overflow.js 移出排版（容器要 position: relative，间距用 column-gap）
+    // 一行：放不下的项由 js/layout/overflow.js 移出排版（容器要 position: relative，间距用 column-gap）
     static Style List => Css.Define(static () => new Style
     {
         Position = Position.Relative,

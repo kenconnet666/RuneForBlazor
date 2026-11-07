@@ -4,8 +4,8 @@
 // 打开、关闭、焦点圈在里面、Esc 同对话框（overlays.js）。
 
 import { followElement, loadFloatingUi } from './floating.js';
-import { TYPING } from './hotkeys.js';
-import { isRtl, sendCommand } from './shared.js';
+import { TYPING } from '../core/hotkeys.js';
+import { isRtl, sendCommand } from '../core/shared.js';
 
 // 正在跟随目标的引导 → 停止跟随
 const following = new WeakMap();

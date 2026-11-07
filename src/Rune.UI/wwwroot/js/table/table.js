@@ -6,7 +6,7 @@
 // - 编辑：可编辑的格（data-editable）上按 Enter / F2、双击（data-edit-trigger="click" 时单击）或直接打字开始编辑（rune-command edit：行␟列[␟打的字]）；
 //   编辑中（td[data-editing]）Enter 提交、Tab / Shift + Tab 提交并到下一个可编辑的格、Esc 放弃，焦点离开这一格时提交。
 //   编辑器出现时焦点移进去；C# 写 data-focus-cell（序列号:行␟列）时焦点回到那一格。
-import { sendCommand } from './shared.js';
+import { sendCommand } from '../core/shared.js';
 
 // 格里的控件：点在上面交给控件自己
 const CELL_CONTROLS = 'a, button, input, select, textarea, label, [role="button"], [contenteditable="true"]';

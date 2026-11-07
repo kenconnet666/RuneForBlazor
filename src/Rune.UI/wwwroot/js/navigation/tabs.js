@@ -4,7 +4,7 @@
 // - 可关闭的标签（data-closable）上按 Delete、鼠标中键点：转成点它的关闭按钮（[data-rune-tab-close]）；
 //   关掉的标签有焦点时，等 C# 选好旁边的标签，再把焦点交给它（元素一移除，焦点就丢到 body 上了）。
 
-import { speak } from './shared.js';
+import { speak } from '../core/shared.js';
 
 const watched = new WeakSet();
 // 正在关闭的标签（有焦点时）：标签栏 → 那个标签

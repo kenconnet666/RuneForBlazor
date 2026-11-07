@@ -5,7 +5,7 @@
 // - 只改 Blazor 渲染的属性与文字节点本身（不换节点）：C# 的渲染没变的部分 Blazor 不会写回；写回了（晚到的渲染、值变了）时按草稿重画。
 // - data-value 是 C# 认定的值：是自己刚交出去的，草稿留着（删掉一段后其余段还在）；不是时以它为准（父级改了、清空了）。
 // - 静态 SSR 下没有 C#：画出来的就是最终状态，隐藏的 input 随表单提交。
-import { isRtl, sendCommand } from '../../Rune.UI/js/shared.js';
+import { isRtl, sendCommand } from '../../Rune.UI/js/core/shared.js';
 
 const states = new WeakMap();
 

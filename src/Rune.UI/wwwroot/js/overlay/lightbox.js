@@ -8,7 +8,7 @@
 //     C# 换图；从右到左排版时对调）
 // 拖动、捏合期间视口上写 data-interacting（内容不要过渡）。
 
-import { startMove } from './move.js';
+import { startMove } from '../core/move.js';
 
 const MIN = 0.05;
 const MAX = 8;

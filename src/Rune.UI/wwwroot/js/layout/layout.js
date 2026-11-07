@@ -1,6 +1,6 @@
 // 布局：网格里跨列的项按实际列数收窄；尺寸观察；占满到窗口底边的区域量出自己的顶边；截断的文字量出是否真的截断了；跑马灯按一份内容的长度算一圈的时长。
 
-import { reducedMotion } from './shared.js';
+import { reducedMotion } from '../core/shared.js';
 
 /** 量网格实际有几列（计算后的 grid-template-columns 有几段），跨列多于它的项改成跨当前的列数 */
 const gridObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver((entries) => {

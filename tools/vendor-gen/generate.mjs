@@ -22,7 +22,7 @@ import { parseArgs } from 'node:util';
 /** Floating UI 的版本：与 vue-tsx-pro 的依赖一致；升级时改这里并重新生成 */
 const FLOATING_UI_VERSION = '1.8.0';
 
-/** Shiki 打包的语言（@shikijs/langs 里的名字）；别名在 js/highlight.js 里 */
+/** Shiki 打包的语言（@shikijs/langs 里的名字）；别名在 js/display/highlight.js 里 */
 const SHIKI_LANGUAGES = ['razor', 'csharp', 'html', 'css', 'javascript', 'typescript', 'json', 'xml', 'shellscript', 'powershell', 'diff', 'sql'];
 
 const { values } = parseArgs({ options: { check: { type: 'boolean', default: false } } });

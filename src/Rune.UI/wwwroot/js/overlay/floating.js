@@ -3,12 +3,12 @@
 // 同 vue-tsx-pro 的 utils/dom/floating：Floating UI 计算位置（offset、flip、shift，可选 arrow 与 size），autoUpdate 在滚动、缩放、
 // 锚点变化时重新定位。库第一次打开浮层时才加载（wwwroot/vendor，随 Rune.UI 分发）。第一次算好位置之前浮层不可见，不会在默认位置闪一下。
 
-import { caretRect } from './caret.js';
+import { caretRect } from '../input/caret.js';
 
 let floatingUi = null;
 
 /** Floating UI（computePosition、autoUpdate、中间件），第一次用到时加载 */
-export const loadFloatingUi = () => (floatingUi ??= import('../vendor/floating-ui.dom.mjs'));
+export const loadFloatingUi = () => (floatingUi ??= import('../../vendor/floating-ui.dom.mjs'));
 
 // 正在跟随触发元素的浮层 → 停止跟随
 const floatingCleanups = new WeakMap();

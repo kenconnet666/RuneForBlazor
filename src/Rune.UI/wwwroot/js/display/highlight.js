@@ -6,7 +6,7 @@
 // - 按行渲染时（行号、行高亮、diff），各行文字在 [data-rune-code-text] 里：高亮结果按 <br> 拆开分给各行。
 // - CodeBlock 的代码、语言变了时整个 code 元素重建（@key），这里只处理新元素，不和 Blazor 的差异更新抢同一批节点。
 
-const SHIKI = '../vendor/shiki/';
+const SHIKI = '../../vendor/shiki/';
 
 /** 打包了的语言（与 tools/vendor-gen 的 SHIKI_LANGUAGES 一致）与常用的别名 */
 const LANGUAGES = new Set(['razor', 'csharp', 'html', 'css', 'javascript', 'typescript', 'json', 'xml', 'shellscript', 'powershell', 'diff']);

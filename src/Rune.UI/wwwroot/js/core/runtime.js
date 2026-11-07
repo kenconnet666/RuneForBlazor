@@ -1,45 +1,45 @@
 // JS 初始化器的主体（入口 Rune.UI.lib.module.js 在后台加载它，各个 data-rune-* 属性的约定写在入口的开头）：
 // 挂全局的事件委托与 DOM 变化监听，再分给同目录下的各模块。
 
-import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from './controls.js';
+import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from '../input/controls.js';
 import { blockInert, copyFrom, drawCheckOnChange, drawIcon, startDismiss, startRipple } from './effects.js';
-import { createFilePreviews, onFileDragEnter, onFileDragLeave, onFileDrop, pasteFiles, releaseDetachedPreviews, releaseFilePreviews } from './files.js';
+import { createFilePreviews, onFileDragEnter, onFileDragLeave, onFileDrop, pasteFiles, releaseDetachedPreviews, releaseFilePreviews } from '../input/files.js';
 import { guardLeave } from './leave.js';
-import { clickCascader, keyCascader, onCascaderFocusIn } from './cascader.js';
-import { keyMentions, onMentionsClick, onMentionsCompositionEnd, onMentionsFocusOut, onMentionsInput, onMentionsKeyUp, pickMention } from './mentions.js';
+import { clickCascader, keyCascader, onCascaderFocusIn } from '../input/cascader.js';
+import { keyMentions, onMentionsClick, onMentionsCompositionEnd, onMentionsFocusOut, onMentionsInput, onMentionsKeyUp, pickMention } from '../input/mentions.js';
 import { releasePointer, trackPointer, watchPointer } from './pointer.js';
-import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, onToasterFocusOut } from './toast.js';
-import { watchEllipsis, watchGrid, watchMarquee, watchSize, watchViewportFill } from './layout.js';
+import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, onToasterFocusOut } from '../overlay/toast.js';
+import { watchEllipsis, watchGrid, watchMarquee, watchSize, watchViewportFill } from '../layout/layout.js';
 import { onTweenValueChanged, watchTween } from './tween.js';
-import { clickBackTop, watchAffix, watchBackTop } from './affix.js';
-import { drawWatermark } from './watermark.js';
-import { blurSortable, grabSortable, keySortable } from './sortable.js';
-import { showLightboxImage, watchLightbox } from './lightbox.js';
-import { closeTreeAfterPick, keyTree, pressTreeItem } from './tree.js';
-import { watchVirtual } from './virtual.js';
-import { keyTour, watchTour } from './tour.js';
-import { watchTable } from './table.js';
+import { clickBackTop, watchAffix, watchBackTop } from '../layout/affix.js';
+import { drawWatermark } from '../layout/watermark.js';
+import { blurSortable, grabSortable, keySortable } from '../table/sortable.js';
+import { showLightboxImage, watchLightbox } from '../overlay/lightbox.js';
+import { closeTreeAfterPick, keyTree, pressTreeItem } from '../display/tree.js';
+import { watchVirtual } from '../table/virtual.js';
+import { keyTour, watchTour } from '../overlay/tour.js';
+import { watchTable } from '../table/table.js';
 import { watchLocalSetting } from './storage.js';
-import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from './lists.js';
-import { watchIndicator } from './indicator.js';
-import { scheduleOverflow, watchOverflow } from './overflow.js';
+import { activeIndex, closeAfterPick, doubleClickOption, highlightFirstOnFocus, highlightDefault, highlightUnderPointer, holdComposingInput, hostOf, keepFocusOnListHost, moveInList, onHostInput, onOptionsChanged, onQueryChanged, releaseComposedInput, syncHideEmpty, syncHighlight, toggleFromShell } from '../input/lists.js';
+import { watchIndicator } from '../layout/indicator.js';
+import { scheduleOverflow, watchOverflow } from '../layout/overflow.js';
 import { moveRoving, noteRovingFocus, watchRoving } from './roving.js';
-import { onOtpFocus, onOtpInput, watchOtp } from './otp.js';
-import { endRatingPreview, pickRating, previewRating } from './rating.js';
-import { watchPageScrollbar, watchScrollArea } from './scroll-area.js';
-import { highlightCode } from './highlight.js';
-import { watchToc } from './toc.js';
-import { navigationEnded, navigationStarted, watchLoadingBar } from './loading-bar.js';
+import { onOtpFocus, onOtpInput, watchOtp } from '../input/otp.js';
+import { endRatingPreview, pickRating, previewRating } from '../input/rating.js';
+import { watchPageScrollbar, watchScrollArea } from '../layout/scroll-area.js';
+import { highlightCode } from '../display/highlight.js';
+import { watchToc } from '../navigation/toc.js';
+import { navigationEnded, navigationStarted, watchLoadingBar } from '../navigation/loading-bar.js';
 import { formatHotkeyLabel, hotkeyTarget } from './hotkeys.js';
-import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from './tabs.js';
-import { watchCollapse } from './collapse.js';
-import { grabResizeHandle, grabSplitter, keyResizeHandle, keySplitter, resetResizeHandle, resetSplitter, watchResizeHandle } from './resize.js';
-import { grabSlider, keySlider, watchSlider } from './slider.js';
+import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from '../navigation/tabs.js';
+import { watchCollapse } from '../layout/collapse.js';
+import { grabResizeHandle, grabSplitter, keyResizeHandle, keySplitter, resetResizeHandle, resetSplitter, watchResizeHandle } from '../layout/resize.js';
+import { grabSlider, keySlider, watchSlider } from '../input/slider.js';
 import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './theme.js';
 import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './fullscreen.js';
-import { closeOnLink, closeOrRequest, focusArrivedContent, onDialogCancel, onDialogClose, onPopoverToggle, open, syncOpen, watchCloseWhen } from './overlays.js';
-import { clickSubMenuTrigger, hoverSubMenu, leaveSubMenu, moveInMenu, openContextMenu, openMenuFromTrigger, rootMenuOf } from './menus.js';
-import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from './hover-layers.js';
+import { closeOnLink, closeOrRequest, focusArrivedContent, onDialogCancel, onDialogClose, onPopoverToggle, open, syncOpen, watchCloseWhen } from '../overlay/overlays.js';
+import { clickSubMenuTrigger, hoverSubMenu, leaveSubMenu, moveInMenu, openContextMenu, openMenuFromTrigger, rootMenuOf } from '../overlay/menus.js';
+import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from '../overlay/hover-layers.js';
 
 /**
  * 装上事件委托与 DOM 变化监听（入口在 Blazor 启动后调用一次）。document 上的事件经入口的 on(事件, 处理函数, 是否捕获) 挂到
@@ -185,8 +185,8 @@ const watched = [
   ['dialog[data-rune-tour]', watchTour],
   ['table[data-rune-table]', watchTable],
   ['template[data-rune-local-setting]', watchLocalSetting],
-  ['[data-rune-date-segments]', lazy(() => import('../../Rune.UI.Dates/js/date-segments.js'), 'watchDateSegments')],
-  ['[data-rune-calendar]', lazy(() => import('../../Rune.UI.Dates/js/calendar.js'), 'watchCalendar')],
+  ['[data-rune-date-segments]', lazy(() => import('../../../Rune.UI.Dates/js/date-segments.js'), 'watchDateSegments')],
+  ['[data-rune-calendar]', lazy(() => import('../../../Rune.UI.Dates/js/calendar.js'), 'watchCalendar')],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 

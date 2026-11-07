@@ -8,7 +8,7 @@ namespace Rune.UI;
 /// 给根元素写上 <c>data-theme</c>（RuneProvider 的主题类据此取那一套）与底色、文字色、配色方案。
 /// <code>&lt;head&gt; … &lt;ThemeBootScript /&gt; &lt;/head&gt;</code>
 /// 可选的主题取 <see cref="RuneUIOptions.ThemeChoices"/>。
-/// 配置写在 <c>script#rune-theme-config</c>（JSON）里，之后的切换（<c>js/theme.js</c>）也读它。
+/// 配置写在 <c>script#rune-theme-config</c>（JSON）里，之后的切换（<c>js/core/theme.js</c>）也读它。
 /// </summary>
 public sealed class ThemeBootScript : ComponentBase
 {

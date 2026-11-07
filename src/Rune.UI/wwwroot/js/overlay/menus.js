@@ -2,8 +2,8 @@
 // 开关本身走原生 popover，开关事件与打开后的聚焦在 overlays.js，这里只回答“聚焦哪一项”。
 
 import { anchorFloating } from './floating.js';
-import { typeahead } from './lists.js';
-import { isRtl } from './shared.js';
+import { typeahead } from '../input/lists.js';
+import { isRtl } from '../core/shared.js';
 
 const MENU = '[role="menu"][data-rune-overlay]';
 const SUBMENU_TRIGGER = '[role="menuitem"][aria-haspopup="menu"][popovertarget]';

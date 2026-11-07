@@ -1,7 +1,7 @@
 // 列表：类型搜索、高亮与键盘（data-rune-list）、选项弹出层（Select）的开关与焦点、搜索词变化后的高亮与播报。
 // 树（role="tree"，Tree）也是这样的列表：各行是 treeitem，↑↓、Home / End、类型搜索照列表的走，展开、进出层级在 tree.js。
 
-import { sendCommand, speak } from './shared.js';
+import { sendCommand, speak } from '../core/shared.js';
 
 
 // 每个菜单、列表各有一个输入缓冲（同 vue-tsx-pro 的 createTypeahead）

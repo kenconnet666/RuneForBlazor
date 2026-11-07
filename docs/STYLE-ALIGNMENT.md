@@ -95,7 +95,7 @@ vue 那边合并用快进、不 squash，提交号不变；CI 的 `VUE_TSX_PRO_R
 - theme-gen 修了一处：vue 的遮罩 token 只写在 light.ts，其他主题取 defineVars 的默认值；生成器原来只把“主题之外的组”放进 `Themes.Base`，
   主题没写的颜色在 Rune 里就成了未定义的变量（`ThemeTests` 查出来）。现在各组的默认值都进 Base，主题只覆盖写了的，同 vue。
 - 跟随系统时尊重增强对比度（同 vue 的 `SystemThemes.contrast` / builtinSystemThemes）：`ThemeChoices.SystemContrast`（亮、暗两套），
-  `ThemeChoices.Builtin` 配好高对比的两套；开机脚本与 `js/theme.js` 先按 `prefers-contrast: more` 选一对再按明暗选，并监听对比度的变化；
+  `ThemeChoices.Builtin` 配好高对比的两套；开机脚本与 `js/core/theme.js` 先按 `prefers-contrast: more` 选一对再按明暗选，并监听对比度的变化；
   主题类（`ThemeStyles.ClassFor` 的 `contrast`）同样写进媒体查询，脚本没运行时也对。
 - elevated 卡片加 `BorderMuted` 的边框（深色主题里阴影看不见）。
 - ButtonBase 继承字重：Rune 的 `SharedStyles.ButtonReset` 本来就是 `font: inherit`（含字重），不用改。

@@ -1,7 +1,7 @@
 // 跟着滚动位置变的浮动：固钉（Affix）贴住时写 data-stuck，回到顶部（BackTop）滚过阈值才出现、点了滚回顶部。
 // 都在浏览器里处理，滚动时没有往返。
 
-import { reducedMotion, sendCommand } from './shared.js';
+import { reducedMotion, sendCommand } from '../core/shared.js';
 
 // 固钉（data-rune-affix="top|bottom"）：sticky 那层前面（贴底时是后面）有一个零高度的哨兵（data-rune-affix-sentinel），
 // 滚过它就是贴住了。贴住的距离读 sticky 那层计算后的 top / bottom；data-target 是 sticky 相对的滚动容器的 id，不写时是视口。

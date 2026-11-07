@@ -59,16 +59,16 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 ## 这一轮做完的（均已推送，除最后一条见下）
 
 - Toast：ToastService 控制器 + Toaster（位置、叠放、进度、F8/Esc/滑动）。
-- Card：Loading 示例、装饰效果 Tilt / Spotlight / Beam（`js/pointer.js` 写阻尼后的指针变量）。
+- Card：Loading 示例、装饰效果 Tilt / Spotlight / Beam（`js/core/pointer.js` 写阻尼后的指针变量）。
 - Badge：表格里的状态示例。
 - Menu：MenuItemBase（说明、快捷键注册与平台显示）、MenuCheckboxItem、MenuGroup、MenuLinkItem、MenuSub（悬停、安全三角、←/→）、Size、CloseOnSelect、ContextMenu；菜单项改用 ItemStyles。
 - Dialog：AlertDialog、DialogService（Open 对话框/抽屉、句柄 Update/Close/Closed、ConfirmAsync 带必填理由）+ DialogHost（布局里与 Toaster 并排）；浮层关闭原因 OverlayChangeReason（JS 随 rune-toggle 报 close/escape/outside）；ItemList 组件。
 - Pagination / PaginationBar / PageSizeSelect / PageJump；内置图标加了 ellipsis。
 - TextField 的 Format（手机号、身份证、银行卡分组，JS 保持光标）+ `[ChinaPhone]`、`[IdCard]` 校验。
 - Tabs 的“全部标签页”菜单（ShowAllMenu）。
-- Cascader（列内键盘用 data-rune-list，列之间在 `js/cascader.js`）。
+- Cascader（列内键盘用 data-rune-list，列之间在 `js/input/cascader.js`）。
 - Transfer（双击移动：data-rune-option-dblclick）。
-- Mentions + MentionText + MentionSegments（`js/mentions.js`、`js/caret.js`，弹层贴着 @ 的位置）。
+- Mentions + MentionText + MentionSegments（`js/input/mentions.js`、`js/input/caret.js`，弹层贴着 @ 的位置）。
 
 ## 最近的进度
 

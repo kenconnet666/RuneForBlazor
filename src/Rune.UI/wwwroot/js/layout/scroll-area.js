@@ -5,7 +5,7 @@
 // 整页的浮层滚动条（data-rune-page-scrollbar，PageScrollbar）是同一套：视口是 document.scrollingElement，滚动事件在 window 上，
 // 轨道本身就是指针移入时显示的范围（窗口边缘）。
 
-import { startMove } from './move.js';
+import { startMove } from '../core/move.js';
 
 /** 滑块的最小长度（px）：内容再长也能抓得住 */
 const MIN_THUMB = 20;

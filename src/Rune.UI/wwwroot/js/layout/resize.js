@@ -5,8 +5,8 @@
 // 当场改分栏外层的 --rune-split-start / --rune-split-end（两栏的 fr），结束时发 rune-resize（size 是起始一栏的百分比）；
 // Enter 发 rune-command（toggle），C# 收起或展开可收起的那一侧。
 
-import { startMove } from './move.js';
-import { sendCommand } from './shared.js';
+import { startMove } from '../core/move.js';
+import { sendCommand } from '../core/shared.js';
 
 const watched = new WeakSet();
 

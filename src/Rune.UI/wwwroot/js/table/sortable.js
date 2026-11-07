@@ -9,8 +9,8 @@
 // "grid" 是换行排列的一组同样大小的格子（Upload 的图片墙）：被拖的项横竖都跟着指针，落点是离它最近的格子，其余项挪到相邻的格子；
 // 键盘 ← / → 移一格（跟随 RTL），↑ / ↓ 移一行。
 
-import { speak } from './shared.js';
-import { startMove } from './move.js';
+import { speak } from '../core/shared.js';
+import { startMove } from '../core/move.js';
 
 const ITEM = '[data-rune-sortable-item]';
 const THRESHOLD = 3;

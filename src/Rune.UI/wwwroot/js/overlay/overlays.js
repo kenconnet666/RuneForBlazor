@@ -1,9 +1,9 @@
 // 浮层的开关（popover、dialog）、打开后的焦点、对话框的关闭请求与锁定滚动。菜单的键盘、子菜单、右键菜单在 menus.js。
 
 import { anchorFloating, releaseFloating } from './floating.js';
-import { listPopoverClosed, listPopoverOpened, syncTriggerExpanded } from './lists.js';
+import { listPopoverClosed, listPopoverOpened, syncTriggerExpanded } from '../input/lists.js';
 import { menuFocusTarget, openedByHover, restoreContextFocus } from './menus.js';
-import { TABBABLE } from './shared.js';
+import { TABBABLE } from '../core/shared.js';
 
 // 受控浮层（data-open）报给 C# 但还没渲染回来的开关状态，按先后排队。渲染回来的 data-open 是这些旧状态的回响时不再照着开关：
 // 否则在往返期间用户又切换过（打开后马上按 Esc）时，迟到的“打开”回响会把已经关掉的浮层重新打开，再报一次，最后停在打开

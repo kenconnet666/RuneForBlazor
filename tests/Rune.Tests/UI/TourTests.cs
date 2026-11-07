@@ -4,7 +4,7 @@ using Rune.UI;
 
 namespace Rune.Tests.UI;
 
-// 遮罩、定位、焦点在 JS 里（js/tour.js、overlays.js），这里测 C# 的一半：交给 JS 的目标与开关、换步骤、完成与跳过
+// 遮罩、定位、焦点在 JS 里（js/overlay/tour.js、overlays.js），这里测 C# 的一半：交给 JS 的目标与开关、换步骤、完成与跳过
 public class TourTests : BunitContext
 {
     public TourTests()

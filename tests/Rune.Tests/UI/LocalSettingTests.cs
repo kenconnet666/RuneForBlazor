@@ -4,7 +4,7 @@ using Rune.UI;
 
 namespace Rune.Tests.UI;
 
-// 读写存储在 JS 里（js/storage.js）：这里测交给 JS 的键与值、JS 交回记下的值、坏掉的不用、不认识的类型要给 TypeInfo
+// 读写存储在 JS 里（js/core/storage.js）：这里测交给 JS 的键与值、JS 交回记下的值、坏掉的不用、不认识的类型要给 TypeInfo
 public class LocalSettingTests : BunitContext
 {
     public LocalSettingTests()

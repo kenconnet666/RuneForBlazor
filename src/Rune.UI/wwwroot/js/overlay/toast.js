@@ -2,8 +2,8 @@
 // 关闭后焦点交给相邻的通知，没有时回到进入区域之前的位置；横向滑动超过宽度的 35% 就关闭；焦点进出区域时告诉 C#（暂停计时）。
 // 关闭由 C# 做：这里发出冒泡的 rune-command（dismiss；区域上的 focus-enter / focus-leave）。
 
-import { startMove } from './move.js';
-import { reducedMotion, sendCommand, TABBABLE } from './shared.js';
+import { startMove } from '../core/move.js';
+import { reducedMotion, sendCommand, TABBABLE } from '../core/shared.js';
 
 /** 滑动超过宽度的这个比例就关闭 */
 const SWIPE_RATIO = 0.35;

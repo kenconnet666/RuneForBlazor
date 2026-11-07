@@ -2,9 +2,9 @@
 // 这里管 → ←（展开收起、进入第一个子节点、回到父节点）、Enter、空格、Alt + 方向键与指针拖动（移动节点），要改状态的经 rune-command 交给 C#。
 // 看不见的行（虚拟滚动、没渲染）不在 DOM 里：C# 把各行的父行、能否展开、是否展开写在 data-rune-tree-rows 上。
 
-import { activeIndex, highlight } from './lists.js';
-import { startMove } from './move.js';
-import { isRtl, sendCommand } from './shared.js';
+import { activeIndex, highlight } from '../input/lists.js';
+import { startMove } from '../core/move.js';
+import { isRtl, sendCommand } from '../core/shared.js';
 
 // data-rune-tree-rows 解析一次：值没变时直接用
 const structures = new WeakMap();

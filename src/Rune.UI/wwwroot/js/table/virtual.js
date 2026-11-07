@@ -5,7 +5,7 @@
 // 表格（选项 table，DataTable）：列表是 tbody，行不能用 transform 排位置，改为上下两个占位行（data-rune-virtual-before / after）撑出滚动高度；
 // 吸顶的表头、吸底的合计行挡住的部分不算可见，滚动到某一行时停在它们之间（同 vue 的 scrollPaddingStart / End）。
 
-import { sendCommand } from './shared.js';
+import { sendCommand } from '../core/shared.js';
 
 // 动态大小下 scrollToIndex 重新对准的最多次数
 const MAX_SCROLL_ATTEMPTS = 10;

@@ -3,7 +3,7 @@
     <NavBar aria-label="主导航" Items="@([new("工作台", "/"), new("采购", Children: [new("采购单", "po"), new("供应商", "suppliers")]), new("报表", "reports", Badge: 3)])" />
     菜单数据同 NavMenu（NavMenuItem），同一份可以同时给顶栏与侧栏。参考 Ant Design Menu 的 horizontal 模式（溢出收进“…”）。
     当前页按地址判断（同 NavList），链接带 aria-current="page" 与下划线；子项是当前页时它的菜单按钮也高亮。
-    下拉菜单是 Menu（↑↓ 移动、Esc 关闭回到按钮），菜单项是链接（MenuLinkItem）。放不下：JS 量出前几项（js/overflow.js），
+    下拉菜单是 Menu（↑↓ 移动、Esc 关闭回到按钮），菜单项是链接（MenuLinkItem）。放不下：JS 量出前几项（js/layout/overflow.js），
     其余收进“更多”（有子项的按分组列出）；藏起来的项不占位、读屏与 Tab 跳过。未声明的属性落到 nav 上；aria-label 是导航的名称。
 *@
 @namespace Rune.UI

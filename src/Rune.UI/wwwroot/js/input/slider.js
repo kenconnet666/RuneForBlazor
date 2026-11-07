@@ -6,7 +6,7 @@
 // 把旧值写回滑块的属性：C# 还没追上（正在拖，或 data-ack 小于发出的序号）时立刻改回本地的值（MutationObserver 在绘制前回调，看不到闪动）；
 // 追上之后按 data-values 画（父级没采纳改动时，Blazor 的旧树里值没变、不会重写被这里改过的属性，要靠这一步复原）。
 
-import { startMove } from './move.js';
+import { startMove } from '../core/move.js';
 
 /** 本地改过、C# 还没追上的值：root → { values, dragging } */
 const pending = new WeakMap();

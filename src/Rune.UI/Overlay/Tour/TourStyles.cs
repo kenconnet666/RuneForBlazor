@@ -39,7 +39,7 @@ public enum TourPart
     Progress,
 }
 
-/// <summary>新手引导的样式（配方，同 vue-tsx-pro 的 tourStyles）。镂空的位置、卡片的位置由 JS 写（js/tour.js）。</summary>
+/// <summary>新手引导的样式（配方，同 vue-tsx-pro 的 tourStyles）。镂空的位置、卡片的位置由 JS 写（js/overlay/tour.js）。</summary>
 public static class TourStyles
 {
     /// <summary>各部件的默认层。</summary>

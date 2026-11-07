@@ -5,7 +5,7 @@ using Rune.UI;
 
 namespace Rune.Tests.UI;
 
-// 虚拟滚动、点行在 JS 里（js/virtual.js 的表格模式、js/table.js），这里测 C# 的一半：列的收集与显示、排序、勾选、合计、空状态与骨架
+// 虚拟滚动、点行在 JS 里（js/table/virtual.js 的表格模式、js/table/table.js），这里测 C# 的一半：列的收集与显示、排序、勾选、合计、空状态与骨架
 public class DataTableTests : BunitContext
 {
     public DataTableTests()

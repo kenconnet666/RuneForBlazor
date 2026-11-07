@@ -142,19 +142,19 @@
 //
 // 模态对话框打开时锁定页面滚动。
 //
-// 这个文件（入口）注册自定义事件，js/runtime.js 挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
+// 这个文件（入口）注册自定义事件，js/core/runtime.js 挂全局的事件委托与 DOM 变化监听，再分给 js/ 下各模块：
 // overlays（浮层开关、对话框）、menus（菜单的键盘、子菜单、右键菜单）、floating（定位）、lists（列表与选项弹出层）、hover-layers（提示与悬停卡片）、overflow（标签收起）、
 // roving（漫游焦点）、indicator（跟随当前项的指示条）、slider（滑块）与 move（拖动）、rating（评分的悬停预览）、otp（验证码的格子）、scroll-area（浮层滚动条）、collapse（折叠内容区）、resize（宽度调整手柄、分栏的分隔条）、highlight（代码高亮）、tabs（标签栏的溢出滚动与关闭）、toc（本页目录的滚动高亮）、loading-bar（顶部加载条）、hotkeys（打开浮层的快捷键）、fullscreen（应用外壳的全屏）、theme（主题切换）、
 // leave（离开确认）、cascader（级联选择的列）、mentions（@ 提及）与 caret（光标的坐标）、toast（通知区域）、files（选文件区域的拖放高亮）、tween（会滚动的数字）、affix（固钉与回到顶部）、watermark（水印）、sortable（拖动排序）、lightbox（图片预览的平移缩放）、pointer（跟随指针的装饰）、controls（输入框一类）、effects（复制、波纹、描线、离场）、layout（网格、尺寸观察、占满到窗口底边、截断的文字、跑马灯的时长）、shared（共用的小工具）。
 //
 // 加载：Blazor 启动前要等初始化器（连同它静态导入的模块）加载完。这个入口不静态导入任何模块：
-// 主体（js/runtime.js 与它导入的几十个模块）在入口执行时就开始在后台加载，不挡 Blazor 启动。
+// 主体（js/core/runtime.js 与它导入的几十个模块）在入口执行时就开始在后台加载，不挡 Blazor 启动。
 // 启动后同步做两件要赶在交互组件之前的事：注册自定义事件（渲染出 @onrunetoggle 这类处理器之前就要认得事件名）；
 // 在 document 上为每种事件占好位置（下面的 SLOTS），主体到了再把处理函数挂进去。占位决定了处理顺序排在 Blazor 自己的事件委托之前：
 // 有的处理依赖这一点（输入时先清掉旧的高亮，C# 渲染出新结果后再高亮第一项）。WebAssembly 下 C# 在事件里同步渲染，
 // 真实的输入事件在两个监听器之间会跑一次微任务（DOM 变化的回调），顺序反了结果就错。
 
-const runtime = import('./js/runtime.js');
+const runtime = import('./js/core/runtime.js');
 let started = false;
 
 // document 上的事件委托：[事件, 是否捕获]。主体要挂新的事件时在这里加上（没占位的会报错）

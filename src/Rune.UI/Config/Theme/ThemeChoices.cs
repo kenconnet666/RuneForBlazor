@@ -6,7 +6,7 @@ namespace Rune.UI;
 /// <summary>
 /// 用户可以选的几套主题（同 vue-tsx-pro 的 createThemePreference）：选“跟随系统”或某一套，记在浏览器的本地存储里，下次打开、其他标签页都沿用。
 /// 写在 <see cref="RuneUIOptions.ThemeChoices"/>：最外层的 RuneProvider 输出每套主题的变量（按根元素的 <c>data-theme</c> 取用），head 里的 ThemeBootScript 页面显示前按记住的选择设好；
-/// ThemeSwitcher 列出它们。切换全在浏览器里（<c>js/theme.js</c>），不用往返、不用重新渲染，三种渲染模式一样。
+/// ThemeSwitcher 列出它们。切换全在浏览器里（<c>js/core/theme.js</c>），不用往返、不用重新渲染，三种渲染模式一样。
 /// <code>
 /// builder.Services.AddRuneUI(o => o.ThemeChoices = ThemeChoices.Builtin);   // 服务端与 WebAssembly 项目都写
 /// // App.razor 的 head：&lt;ThemeBootScript /&gt;；页面里放 &lt;ThemeSwitcher /&gt;

@@ -2,7 +2,7 @@
 // 列里的 ↑↓、Home / End、类型搜索、Enter 由 lists.js 处理；这里管列之间：→ 进入下一级（下一列渲染出来后把焦点移过去），
 // ← 回到上一级，触发按钮上 ↓ 打开，搜索框空着时 ↓ 进入各列；高亮变了发 rune-command（highlight），C# 据此显示下一列。
 
-import { isRtl, sendCommand } from './shared.js';
+import { isRtl, sendCommand } from '../core/shared.js';
 
 const COLUMN = '[data-rune-cascader-column]';
 const levelOf = (column) => Number(column.getAttribute('data-rune-cascader-column'));

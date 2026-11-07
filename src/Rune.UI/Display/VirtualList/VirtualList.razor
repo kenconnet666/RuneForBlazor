@@ -3,7 +3,7 @@
     <VirtualList Items="users" GetKey="u => u.Id" EstimateSize="48" Sx="listHeight" aria-label="用户" Context="user"><UserRow User="user" /></VirtualList>
     默认组件自己是滚动容器（ScrollArea，浮层滚动条），高度由使用方给（Sx、class、style）；Scroll="VirtualScroll.Window" 时随页面滚动。
     Horizontal 时横向排列与滚动（给宽度），EstimateSize 是估计的宽度。
-    虚拟滚动在 JS 里（js/virtual.js，同 vue 的 virtualizer）：按估计大小排位置，渲染后测量真实大小、按 key 缓存，滚动时算出要渲染的那一段交给 C#；
+    虚拟滚动在 JS 里（js/table/virtual.js，同 vue 的 virtualizer）：按估计大小排位置，渲染后测量真实大小、按 key 缓存，滚动时算出要渲染的那一段交给 C#；
     位置与总大小由 JS 写，不等往返。静态 SSR、预渲染时先在普通流里输出前 InitialCount 项，交互接管后换成虚拟滚动。
     读屏：role="list"，每项带 aria-setsize / aria-posinset，没渲染的项也算在总数里；没有数据时是 role="group"（空状态、骨架不是列表项）。
     Loading：只用骨架行（按 EstimateSize 的高度）：没有数据时铺满，已有数据（加载更多）时接在末尾，不另加进度条；带 aria-busy。

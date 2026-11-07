@@ -94,7 +94,7 @@ public static class SharedStyles
     });
 
     /// <summary>
-    /// 按宽度收起的一行里的一项（data-rune-overflow-item，js/overflow.js 量宽度、写 data-overflow-hidden）：放不下的移出排版、藏起来，
+    /// 按宽度收起的一行里的一项（data-rune-overflow-item，js/layout/overflow.js 量宽度、写 data-overflow-hidden）：放不下的移出排版、藏起来，
     /// 但仍可测量（容器要 position: relative）。SelectedTags 的标签、NavBar 的各项用它。
     /// </summary>
     public static Style OverflowItem => Css.Define(static () => new Style

@@ -6,7 +6,7 @@
         new("就这些", "随时可以在帮助菜单里重新查看"),          // 没有目标：卡片居中
     ])" />
     模态：背景 inert、Esc 关闭、焦点在卡片里循环，关闭后焦点回到打开前的位置（同 Dialog）。目标是 CSS 选择器：切换步骤时滚动到视口中间，
-    滚动、缩放、目标大小变化时镂空与卡片跟着动（js/tour.js）；找不到目标时卡片居中、整页遮罩。
+    滚动、缩放、目标大小变化时镂空与卡片跟着动（js/overlay/tour.js）；找不到目标时卡片居中、整页遮罩。
     卡片：封面（可选）、标题（dialog 的名称）、说明（描述）、步数、上一步 / 下一步（最后一步是“完成”）、跳过。
     → / ← 下一步 / 上一步（从右到左排版时反过来；焦点在输入框里时不处理）。点“完成”时调用 OnFinish，跳过或 Esc 时只关闭。
     未声明的属性落到 dialog 上。
@@ -111,7 +111,7 @@
     string TitleId => $"{TourId}-title";
     string ContentId => $"{TourId}-content";
 
-    // dialog 上由组件管理的属性：data-open 交给 JS 同步原生状态（showModal / close）；这一步的目标、方向、留白交给 js/tour.js
+    // dialog 上由组件管理的属性：data-open 交给 JS 同步原生状态（showModal / close）；这一步的目标、方向、留白交给 js/overlay/tour.js
     Attrs Managed(int index, TourStep? step) => new()
     {
         Id = TourId,

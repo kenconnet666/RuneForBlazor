@@ -8,7 +8,7 @@
 //     不再用的（移除了、没加进列表的）收回，组件不在了全部收回
 //   - data-rune-paste-files：焦点在里面时粘贴文件（截图、复制的图片），塞进里面 FileDrop 的 input 并发 change，与选文件一样交给 C#
 
-import { sendCommand } from './shared.js';
+import { sendCommand } from '../core/shared.js';
 
 const depths = new WeakMap();
 

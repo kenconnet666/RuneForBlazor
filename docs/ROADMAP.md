@@ -124,7 +124,7 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
   （dialog 的进出场用独立的 scale 属性、内容不同造成的宽度差、rating 的填色层不处理，DESIGN 写过）
 - [ ] 0.5 跟进 vue 0.12（它的 ROADMAP 阶段 24，按它的进度逐批跟）：部件补齐（内部节点补 `PropsXxx` 与 `data-part`，部件多却没有配方的改配方，
   登记进 `Components`）、状态写法（Rune 的 `When.Selected` 等与 vue 的条件别名对应，组合状态的先后照 vue 定）、裸值换 token、文档站 API 小节列配方的部件与档位
-- [ ] 0.4 代码走查（单独提交）：过长或职责混杂的文件（`js/runtime.js`、`lists.js`、`overlays.js`、`Cascader.razor.cs`、`ToastService.cs`）、
+- [ ] 0.4 代码走查（单独提交）：过长或职责混杂的文件（`js/core/runtime.js`、`lists.js`、`overlays.js`、`Cascader.razor.cs`、`ToastService.cs`）、
   重复的样式片段与死代码；入口顶部的 data 属性总表与实际用到的核对一遍
 
 ## 阶段 1：树与长列表
@@ -132,14 +132,14 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
 - [x] Tree（勾选与勾选策略、懒加载、搜索过滤、拖动移动、虚拟滚动；从右到左时展开箭头朝下，同 vue 0.11）：`TreeData` 底座、键盘与拖动在 JS（lists.js + tree.js）
 - [x] TreeSelect：外壳同 Select，弹层里是 Tree（单选、勾选与取法、搜索、远程搜索）
 - [x] TreeTransfer：左边是勾选的 Tree，只移叶子；与 Transfer 共用一边（TransferPanel）与中间的按钮（TransferActions）
-- [x] VirtualList 补齐：随页面滚动、横向、骨架行、跳到第几项、可见范围变化的回调（虚拟滚动器移植到 js/virtual.js，不再用 Blazor 的 Virtualize）；文档页
+- [x] VirtualList 补齐：随页面滚动、横向、骨架行、跳到第几项、可见范围变化的回调（虚拟滚动器移植到 js/table/virtual.js，不再用 Blazor 的 Virtualize）；文档页
 
 ## 阶段 2：浮层与导航
 
-- [x] Tour（模态 dialog 同 Dialog；镂空与卡片的跟随在 js/tour.js，卡片定位用 floating.js 新增的 followElement）
+- [x] Tour（模态 dialog 同 Dialog；镂空与卡片的跟随在 js/overlay/tour.js，卡片定位用 floating.js 新增的 followElement）
 - [x] Breadcrumbs、Steps（同一页，同 vue；底座补了 FlexOrderedList）
 - [x] Form 的分步示例换用 Steps
-- [x] NavMenu、NavBar（菜单数据同一份 NavMenuItem；NavBar 放不下的收进“更多”，复用 js/overflow.js）
+- [x] NavMenu、NavBar（菜单数据同一份 NavMenuItem；NavBar 放不下的收进“更多”，复用 js/layout/overflow.js）
 - [x] AppShell 混合布局示例换用 NavBar
 
 ## 阶段 3：表格
@@ -153,9 +153,9 @@ vue 的样式体系改造（0.11，阶段 0–5）已跟进，取舍见 [STYLE-A
     骨架与空状态、固定列、合计行、行的色调、主从视图的当前行与点行
   - [x] 表头筛选与列菜单（ColumnFilterButton、ColumnMenuButton）、列宽调整（ColumnResizer）
   - [x] 分组表头（列的 Group）、详情行（DetailContent）、按行与列的单元格属性（PropsCellFor）
-  - [x] 列设置记在浏览器里：LocalSetting（同 vue 的 usePersistentState；js/storage.js，跨标签页同步）
+  - [x] 列设置记在浏览器里：LocalSetting（同 vue 的 usePersistentState；js/core/storage.js，跨标签页同步）
   - [x] 网格方向键与单元格编辑（列校验、行校验、接口拒绝）
-  - [x] 行拖动（OnReorder，复用 js/sortable.js）
+  - [x] 行拖动（OnReorder，复用 js/table/sortable.js）
   - [x] 服务端数据：ManualSort、ManualFilter 直接绑 TableQueryState 的 Sort / ColumnFilters（有测试；示例随阶段 6 的 QueryTable，同 vue）
 - [x] ColumnHeaderActions（ColumnFilterButton、ColumnMenuButton）、ColumnResizer、SelectionBar、ColumnSettings（列给 ListboxOption：列是表格的子组件，外面看不到）
 - [x] ColumnTable（列与 DataTable 共用；MergeRepeated、CellSpan 合并单元格）——Table 的 column-table 示例

@@ -153,9 +153,9 @@
 ## 8. 浮层（`src/Rune.UI/Overlay`、`wwwroot/Rune.UI.lib.module.js` 与 `wwwroot/js/`）
 
 - **ScrollArea 是滚动的基础组件**（同 vue-tsx-pro）：原生滚动、浮层滚动条。组件只渲染结构，滑块尺寸位置、显隐、拖动、点轨道翻页、滚轮转交、
-  内容超出时视口可聚焦都在 JS（`js/scroll-area.js`），静态 SSR 一样。会滚动的部分都用它：列表框自己滚动时列表元素就是视口（PropsViewport），
+  内容超出时视口可聚焦都在 JS（`js/layout/scroll-area.js`），静态 SSR 一样。会滚动的部分都用它：列表框自己滚动时列表元素就是视口（PropsViewport），
   选项浮层与菜单是 FloatingStyles.ScrollPanel 里放 ScrollArea，对话框、抽屉的正文是 ScrollArea（Body + BodyContent）。
-- **Collapse 是展开收起的基础组件**（同 vue-tsx-pro）：grid-template-rows 0fr ↔ 1fr 做高度过渡；收起时组件渲染 inert，过渡结束后 JS（`js/collapse.js`）加
+- **Collapse 是展开收起的基础组件**（同 vue-tsx-pro）：grid-template-rows 0fr ↔ 1fr 做高度过渡；收起时组件渲染 inert，过渡结束后 JS（`js/layout/collapse.js`）加
   hidden="until-found"，页内查找命中时 beforematch 转成 rune-toggle 让 C# 展开。Collapsible 的内容区是 Collapse（收起后内容仍在页面里，Lazy 时第一次展开才渲染）。
   注意：带内容片段参数的组件会随外层 CascadingValue 的通知重新渲染（ParameterChangeDetector 把 RenderFragment 一律当作变了）。
 - **Avatar**：图片盖在后备内容（首字母）上，加载状态由 JS 按 load / error 写在图片自己的 data-state 上（换图时图片按地址重建、状态重置），
@@ -164,26 +164,26 @@
   标记、角标、提示条两层都用，头像只用颜色层（没有边框）。
 - **Tabs**：Tabs 每次渲染新建 TabsState 级联下去（当前标签变了 Tab、TabPanel 跟着重渲染），标签与面板登记在同一个 TabsRegistry 里（不写值时选第一个，
   只当导航的标签不写 aria-controls）。漫游焦点、下划线指示条复用 roving.js、indicator.js；溢出时的滚动按钮、当前标签滚进来、Delete / 中键关闭、
-  拖动与 Alt + ←→ 排序在 `js/tabs.js`。排序只发 rune-reorder，由使用方重排，JS 不挪 Blazor 管的元素。WebAssembly 下 C# 在 dispatchEvent / click
+  拖动与 Alt + ←→ 排序在 `js/navigation/tabs.js`。排序只发 rune-reorder，由使用方重排，JS 不挪 Blazor 管的元素。WebAssembly 下 C# 在 dispatchEvent / click
   里同步就渲染完了，“等渲染后再做”的逻辑（关闭后交焦点、排序后留焦点）要先同步查一次再挂观察器，否则观察器等不到变化、留到以后误触发。
 - **CommandPalette**：Dialog（Lazy=false：打开时输入框已经在，autofocus 才生效）里放 combobox 输入框与 ListboxView，键盘复用 lists.js：
   列表在打开的对话框里也算“显示着”（原来只认弹出层），宿主写 `data-rune-list="text first"` 时聚焦、结果变了高亮第一项；输入时先清掉旧高亮
-  （C# 渲染出新结果前按 Enter 不选中上一批的项）。快捷键在 `js/hotkeys.js`（`data-rune-hotkey` 写在对话框上，按下时直接打开或关上；
+  （C# 渲染出新结果前按 Enter 不选中上一批的项）。快捷键在 `js/core/hotkeys.js`（`data-rune-hotkey` 写在对话框上，按下时直接打开或关上；
   显示快捷键的 Kbd 在 macOS 上换成 ⌘）。
-- **本页目录、加载条、跳到正文**：TableOfContents 由 C# 按 Items 输出链接（预渲染的 HTML 里就有目录），滚动高亮在 `js/toc.js` 里写 aria-current="location"，
+- **本页目录、加载条、跳到正文**：TableOfContents 由 C# 按 Items 输出链接（预渲染的 HTML 里就有目录），滚动高亮在 `js/navigation/toc.js` 里写 aria-current="location"，
   指示条复用 indicator.js；链接按当前页解析（NavLinks.Resolve）。LoadingBar 的控制器只记状态（Status、Run），延迟显示、先快后慢地涨、走满淡出都在
-  `js/loading-bar.js`，Server 模式不用每 300ms 往返；`Navigation` 时跟着 Blazor 的 enhancednavigationstart / end 走。SkipLink 复用 data-rune-focus
+  `js/navigation/loading-bar.js`，Server 模式不用每 300ms 往返；`Navigation` 时跟着 Blazor 的 enhancednavigationstart / end 走。SkipLink 复用 data-rune-focus
   （加了 data-focus-block="start"）。
 - **AppShell**：抽屉、全屏这类开关尽量放在 JS 里，静态 SSR 也能用：顶栏的菜单按钮写 `data-rune-open` 指向抽屉（DialogBase 加了 `Id` 参数），
   抽屉写 `data-rune-close-on-link`（点了链接关上）与 `data-rune-close-when="(min-width: 64rem)"`（变宽关上）；全屏的状态在 C#，外壳上的
-  `data-rune-fullscreen` 变了时 `js/fullscreen.js` 请求或退出浏览器全屏，用户自己离开浏览器全屏、或没进去时按 Esc，发 rune-command（fullscreen-exit）。
+  `data-rune-fullscreen` 变了时 `js/core/fullscreen.js` 请求或退出浏览器全屏，用户自己离开浏览器全屏、或没进去时按 Esc，发 rune-command（fullscreen-exit）。
   收起、全屏要交互模式，静态渲染时不显示这两个按钮。顶栏高度经 `LayoutVars.StickyOffset`（`--rune-sticky-offset`）交给标题的 scroll-margin 与粘性侧栏。
   注意：样式合并按“条件 + 属性”覆盖，后写的无条件 `display: none` 盖不住先写的断点里的 display，要隐藏写在断点里显示的元素时断点里也写 none。
   整页示例：`[DocFrame]` 组件渲染在 `/frame/{页面}/{名字}`（测试台是 `/{模式}/frame/…`，FrameLayout 不套站点外壳），`Example` 写 `Frame="高度"` 用 iframe 打开。
 - **主题切换全在浏览器里**：可选的主题写在 `RuneUIOptions.ThemeChoices`（服务注册的配置三种渲染模式都拿得到；交互模式的根接不到布局级联下来的值）。
   最外层的 RuneProvider 输出每套主题按 `:root[data-theme="名字"] .主题类` 取用的变量（排在跟随系统的两段之后，选择器更具体）；
   head 里的 ThemeBootScript 输出配置（`script#rune-theme-config`：存储键、每套的底色、文字色、配色方案）与一小段脚本，页面显示前按 localStorage
-  写好根元素的 data-theme 与颜色。ThemeSwitcher 的菜单项写 `data-rune-theme-choice`，`js/theme.js` 处理点击（记下、写根元素、从按钮处圆形展开）、
+  写好根元素的 data-theme 与颜色。ThemeSwitcher 的菜单项写 `data-rune-theme-choice`，`js/core/theme.js` 处理点击（记下、写根元素、从按钮处圆形展开）、
   同步选中标记与按钮图标（复制选中项的图标），并跟着系统明暗与对比度、其他标签页、增强导航换页重新应用。
   跟随系统时先按 `prefers-contrast: more` 选一对（`ThemeChoices.SystemContrast`，内置的是高对比亮、暗，同 vue 的 builtinSystemThemes），再按明暗选一套；
   脚本没运行时主题类里同样的媒体查询兜底。C# 不知道选了哪套，所以单选项的选中标记按
@@ -201,7 +201,7 @@
 - **docs-kit 放在 Rune.UI 里**（不像 vue-tsx-pro 分子路径导出）：CodePreview 的源码由使用方给出，收起时是纯文本，指针移到、焦点进入工具栏或展开时才
   交给 CodeBlock 高亮。PropsTable、TextTable 显式转交 Table 的外观参数（未声明的属性按字符串传，类型对不上）。ColorSwatch 的 token 取值由 JS 读
   （`data-rune-token-value`，插入时与换主题后重读），C# 不知道浏览器里当前是哪套主题。
-- **代码高亮在浏览器里做**（同 vue-tsx-pro 的 createShikiHighlighter）：CodeBlock 输出纯文本的 `code[data-rune-highlight]`，JS 初始化器（`js/highlight.js`）
+- **代码高亮在浏览器里做**（同 vue-tsx-pro 的 createShikiHighlighter）：CodeBlock 输出纯文本的 `code[data-rune-highlight]`，JS 初始化器（`js/display/highlight.js`）
   第一次遇到时加载 vendor 的 Shiki（JavaScript 正则引擎、CSS 变量主题，颜色指向 `--rune-code-colors-*`）上色，三种渲染模式一样，没有往返。
   JS 改过 code 的子节点，所以代码、语言、高亮开关、行设置变了时 code 用 @key 整个重建，不让 Blazor 在上面做差异更新。
   选过 C# 的 TextMateSharp（3.0 起纯托管、能跑 WebAssembly），但只有预览版，且 WebAssembly 接管时要另外保留服务端的结果，暂不用。
@@ -210,16 +210,16 @@
   规范成 #hex 写回或恢复；色块里的颜色经 CSS 变量写在元素上，没有值时露出棋盘格（SwatchStyles，之后的 ColorSwatch 共用）。
 - **Descriptions**：项是子组件 DescriptionsItem（Value 文字 / 子内容任意内容），经级联值拿外观与部件属性。vue 的 columns="auto" 用 ResizeObserver 量宽度算栏数，
   这里写 MinItemWidth（同 Grid）后改用容器查询：每多一栏一条 `@container (min-width: calc(k * 宽度))`，跨栏同理封顶；静态 SSR 也对、不需要往返。
-- **ResizeHandle**：拖动、方向键、双击都在 JS（`js/resize.js`）当场改父元素的宽（横向是高），并去掉按档位给的最大宽度；一次操作结束才发 rune-resize
+- **ResizeHandle**：拖动、方向键、双击都在 JS（`js/layout/resize.js`）当场改父元素的宽（横向是高），并去掉按档位给的最大宽度；一次操作结束才发 rune-resize
   交给 C#（拖动中 C# 不渲染，就不会有晚到的渲染把宽度拉回）。Drawer 左右两侧默认可拖宽（`@bind-Width`，DialogBase 的 Edge / RootInlineStyle 钩子）。
-- **JS 的组织**：入口 `Rune.UI.lib.module.js` 只注册自定义事件；主体 `js/runtime.js`（全局事件委托、DOM 变化监听）在入口执行时就开始在后台加载，
+- **JS 的组织**：入口 `Rune.UI.lib.module.js` 只注册自定义事件；主体 `js/core/runtime.js`（全局事件委托、DOM 变化监听）在入口执行时就开始在后台加载，
   按职责分到 `wwwroot/js/` 的模块：overlays、floating、lists、tooltips、overflow、controls、effects、layout、shared，以及 roving、indicator、slider、move、rating、otp、scroll-area 等。
   模块用相对路径互相 import（浏览器原生 ES 模块，不打包）。入口不静态导入任何模块：Blazor 启动前要等初始化器连同它的静态导入加载完，
   几十个模块挡在启动的关键路径上（本机 HTTP/1.1 约 0.7 秒）。但事件委托的**顺序**要保持排在 Blazor 之前（输入时先清旧高亮、
   C# 渲染出新结果再高亮第一项；WebAssembly 下 C# 在事件里同步渲染，真实事件的两个监听器之间会跑微任务）：入口启动时同步在 document 上
   为每种事件占位（`SLOTS`），主体 `install(blazor, on)` 经 `on` 把处理函数挂进去；新的事件类型要先在 `SLOTS` 里占位。
   入口顶部的注释是全部 data 属性约定的总表，新增约定写在那里。
-- **DOM 变化的处理**（`js/runtime.js` 的 onMutations）：Blazor 先插父元素、再逐个插子元素，一棵新子树的每个节点各有一条记录；
+- **DOM 变化的处理**（`js/core/runtime.js` 的 onMutations）：Blazor 先插父元素、再逐个插子元素，一棵新子树的每个节点各有一条记录；
   只从这一批里最外层的新节点往下找要处理的元素，列表、标签行等按元素去重后每批只处理一次（Select 文档页经增强导航进入时，
   逐条处理要做约 2800 次 querySelectorAll、10 万次 matches）。
 
@@ -282,7 +282,7 @@
   （`#orders`）由 `NavLinks.Resolve` 接在当前页后面——Blazor 按 &lt;base href&gt; 解析会跳到站点根目录。组内各项经级联的 NavGroupState 报告
   自己是不是当前页，分组据此自动展开（静态 SSR 也是：报告时分组 StateHasChanged，输出前处理完）。分组用 Collapse，紧凑分组用 HoverCard（Lazy=false：
   子项要一直在、才能报告）。ItemStyles 补了 Hoverable、Current。
-- **悬停卡片与提示共用悬停层**（`js/hover-layers.js`，同 vue 的 useHoverLayer）：触发元素分别带 `data-rune-tooltip` / `data-rune-hovercard`，
+- **悬停卡片与提示共用悬停层**（`js/overlay/hover-layers.js`，同 vue 的 useHoverLayer）：触发元素分别带 `data-rune-tooltip` / `data-rune-hovercard`，
   面板带 `data-rune-hover-panel="tooltip|card"`（两组各自“同时只开一个”）。卡片停留 700ms 打开、离开 300ms 关闭，焦点移进卡片不关，
   离开触发元素与卡片才关；开关经 rune-toggle 告诉 C#（第一次打开才渲染内容），但不是 data-rune-overlay（打开时焦点不移进去）。
   卡片在交互渲染后才输出：预渲染的 HTML 里触发元素在 `<p>` 里时 `<div>` 会把段落截断（同 vue 的 useMounted）。
@@ -329,7 +329,7 @@
 - **数字框**：写了 name 时提交的是隐藏 input 里的十进制文本（不带千分位与货币符号）；加减按钮按下时不抢输入框的焦点、按住连续加减（JS 初始化器的 `data-rune-repeat`），Clearable 清空成 null。
 - **单选、原生下拉用原生元素**：键盘、读屏、手机上的系统选择器都是原生的。NativeSelect 按位置对应值（任何类型）。
 - **Slider 不用原生 range**（同 vue-tsx-pro）：原生的做不了两个滑块、刻度，外观也只能靠浏览器各自的伪元素。滑块是 role="slider" 的 div，
-  按下、拖动（`js/move.js`，指针捕获）、方向键都在 JS 里算并当场画出来（外层的位置变量、aria-valuenow 与取值范围、刻度的 data-active、隐藏 input），
+  按下、拖动（`js/core/move.js`，指针捕获）、方向键都在 JS 里算并当场画出来（外层的位置变量、aria-valuenow 与取值范围、刻度的 data-active、隐藏 input），
   再经 `rune-slide`（带序号）交给 C#；静态 SSR 下没有 C#，JS 画的就是最终状态，表单照样提交。Server 模式下拖动中 C# 的渲染晚到、会写回旧值：
   C# 把处理到的序号写回 `data-ack`、认定的值写在 `data-values`（JS 从不改它），没追上时 JS 立刻改回本地的值（MutationObserver 在绘制前回调），
   追上之后按 `data-values` 画（父级没采纳改动时 Blazor 的旧树没变、不会重写被 JS 改过的属性）。单值绑 Value，范围绑 Range（`NumberRange`），同 Select 的 Value / Values。
@@ -348,7 +348,7 @@
   类型搜索与菜单共用一个实现（连续输入拼词、停顿 500 毫秒清空、同一个字母轮换）。
   vue-tsx-pro 的 Listbox 用 css.create，没有部件标记：对照工具另按 role 配对。
   渲染拆成 `ListboxView`（只画列表与选项）：Listbox 在它外面加值与焦点，弹出的选项列表 `ListPopover`（Select，之后的 Combobox、TagsInput）在它外面加浮层与头部。
-- **VirtualList**：虚拟滚动器在 JS（js/virtual.js，移植 vue-tsx-pro 的 virtualizer.ts）：按估计大小排位置表，渲染后量真实大小、按 data-key 缓存，
+- **VirtualList**：虚拟滚动器在 JS（js/table/virtual.js，移植 vue-tsx-pro 的 virtualizer.ts）：按估计大小排位置表，渲染后量真实大小、按 data-key 缓存，
   可视区上方的项变了大小时调整滚动位置；位置（transform）与列表的总大小由 JS 写，滚动时算出要渲染的那一段经命令交给 C#（range），C# 只渲染这一段。
   不用 Blazor 的 Virtualize：它没有横向、随页面滚动、跳到第几项与可见范围的回调。ScrollToIndex / ScrollToOffset 由 C# 写 data-rune-virtual-scroll（带序列号）。
   横向时视口 `contain: inline-size`：几万像素的总宽不算进它的固有宽度，按内容排版的祖先（表格、auto 的网格列）不会被撑开；

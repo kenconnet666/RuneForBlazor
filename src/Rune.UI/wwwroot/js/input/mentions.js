@@ -4,7 +4,7 @@
 // - 键盘：↑↓ 移动、Enter 或 Tab 选中、Esc 关闭（这个 @ 不再弹出，直到重新输入）；焦点一直在文本框里。中文输入法组合期间不弹出、不过滤。
 
 import { moveInList } from './lists.js';
-import { sendCommand } from './shared.js';
+import { sendCommand } from '../core/shared.js';
 
 const WORD_BEFORE = /[A-Za-z0-9_.]/;
 // 文本框 → { at: 正在提及的 @ 的位置, query, dismissed: 按 Esc 关掉的那个 @ }

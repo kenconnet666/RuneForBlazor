@@ -1,7 +1,7 @@
 // 一行标签按宽度收起（data-rune-overflow，同 vue-tsx-pro 的 useOverflowItems）。SelectedTags 的“+N”文字在这里写；
 // NavBar 的“更多”菜单要列出收起的项：行上带 data-rune-overflow-report 时，放得下的个数变了就经 rune-command（overflow）告诉 C#。
 
-import { sendCommand } from './shared.js';
+import { sendCommand } from '../core/shared.js';
 
 // 同 vue-tsx-pro 的 useOverflowItems（参考 rc-overflow）：所有标签都渲染，放不下的移出排版、藏起来但仍可测量；
 // 宽度变了、标签加减了就重新量。量不到布局（宽度为 0）时全部显示。至少显示一个。

@@ -1,7 +1,7 @@
 @*
     主题切换（同 vue-tsx-pro 的 ThemeSwitcher）：图标按钮弹出单选菜单，列出“跟随系统”与各套可选主题（RuneProvider 的 Choices）。
     AddRuneUI(o => o.ThemeChoices = ThemeChoices.Builtin)，head 里放 <ThemeBootScript />，页面里 <ThemeSwitcher />。
-    选中后记在浏览器里，新主题从按钮处圆形展开；切换、选中标记、按钮图标都在 JS 里（js/theme.js），没有往返，静态 SSR 也能用。
+    选中后记在浏览器里，新主题从按钮处圆形展开；切换、选中标记、按钮图标都在 JS 里（js/core/theme.js），没有往返，静态 SSR 也能用。
     内置主题与跟随系统有默认的文字（语言包）和图标，其他主题用 Labels、Icons 补上（默认是主题名与调色板）。
     未声明的属性落到菜单（role="menu"）上。
 *@
