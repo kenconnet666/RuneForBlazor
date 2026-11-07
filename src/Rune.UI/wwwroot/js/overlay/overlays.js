@@ -20,7 +20,11 @@ function noteCloseReason(overlay, reason) {
 function announce(overlay, open) {
   if (overlay.hasAttribute('data-open')) {
     if (!pendingEchoes.has(overlay)) pendingEchoes.set(overlay, []);
-    pendingEchoes.get(overlay).push(open);
+    const echoes = pendingEchoes.get(overlay);
+    // C# 将要处于的状态（还没回来的最后一次，没有时是渲染出来的）已经是这个时（它自己关上的，如选好日期后）：
+    // data-open 不会再变，没有回响可等；排进去会让队列错位，之后的开关被当成旧回响
+    const expected = echoes.length ? echoes.at(-1) : overlay.dataset.open === 'true';
+    if (expected !== open) echoes.push(open);
   }
   // 打开都算 trigger（C# 自己打开的会因状态相同而忽略）；关上时没记下原因的（C# 改 Open 引起的）不带原因
   const reason = open ? 'trigger' : closeReasons.get(overlay) ?? null;
@@ -56,12 +60,10 @@ export function syncOpen(overlay) {
   if (state !== 'true' && state !== 'false') return;
   const echoes = pendingEchoes.get(overlay);
   if (echoes?.length) {
-    // 是排在最前的那次回响：后面还有没回来的（C# 还没追上用户）就先不动；不是回响（C# 自己改的）就清空队列、照办
-    if (echoes.shift() === (state === 'true')) {
-      if (echoes.length > 0) return;
-    } else {
-      echoes.length = 0;
-    }
+    // 是排在最前的那次回响：报的时候浏览器这边已经是这个状态了，不再照着开关（之后用户又切换过时，照办会把它改回去）；
+    // 不是回响（C# 自己改的）就清空队列、照办
+    if (echoes.shift() === (state === 'true')) return;
+    echoes.length = 0;
   }
   if (state === 'true') open(overlay);
   else close(overlay);

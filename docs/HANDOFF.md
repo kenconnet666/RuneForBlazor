@@ -98,6 +98,9 @@ dotnet test tests/Rune.E2E --filter "DisplayName~关键词"
 - 小时制、地区惯例不要从 CultureInfo 的时间格式推：WebAssembly 的精简 ICU 没有地区数据，zh-CN 也是 12 小时制（`LangFormat.TwelveHour` 按 CLDR timeData）。
 - RenderFragment 与 string 放进同一个三元表达式会渲染出类型名：用 if / else（Countdown 踩过）。
 - 文档站 API 表的类型可以是抽象基类（SegmentedField），读默认值的实例是 null。
+- 受控浮层（data-open）的开关回响：只在 C# 的状态会变时排队；收到的是回响就只消费、不照着开关。C# 自己关上（选好日期后）也会触发原生 toggle，
+  那一次没有回响可等，排进去会让队列错位，之后快速开关时浮层被重新打开、甚至来回振荡（DatePicker 在负载下 24 次失败 4 次）。
+- 偶发的端到端失败先用 Playwright 脚本在并发负载下复现（4 个上下文并行、重复 24 次），记下属性与事件的先后再改，不要只改测试。
 - 组件转发参数给子组件时要显式声明（未声明的属性以字符串落到子组件，类型不对会抛异常）。
 - Razor 标记里的字面量 @ 写成 `@@`；带引号的 C# 表达式不要直接写在属性值里，挪到 @code 的属性上。
 - 分析器：RUNE006（用类型化常量）、RUNE007（Rune.UI 里不写 px）、RUNE008（lambda 不捕获循环变量）。
