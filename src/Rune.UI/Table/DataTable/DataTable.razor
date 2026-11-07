@@ -9,7 +9,7 @@
     </DataTable>
     - 结构：原生 table（读屏按表格念：第几行第几列、列标题）+ table-layout: fixed + colgroup 定列宽，外层是 ScrollArea（两个方向滚动）。
     - 高度：外层默认最高 32em，用 PropsRoot 的 Sx 改，或 Flexible 放进竖排的弹性容器；表头吸顶、固定列不随横向滚动。
-    - 虚拟滚动在 JS 里（js/virtual.js 的表格模式）：只渲染看得见的行，上下各一个占位行撑出滚动高度；行带 aria-rowindex，表格带 aria-rowcount。
+    - 虚拟滚动在 JS 里（js/table/virtual.js 的表格模式）：只渲染看得见的行，上下各一个占位行撑出滚动高度；行带 aria-rowindex，表格带 aria-rowcount。
     - 排序：点可排序的列标题在 正序 → 倒序 → 不排 之间切换；默认在本地排（Collation：数字、日期、按语言的文字），
       ManualSort 时只写回排序，由调用方向服务端要排好序的数据。MultiSort 时排序写在 Sorts，按住 Shift 点是追加一列。
     - 表头筛选：列写 Filter 时列标题上有筛选按钮，Filters 是各列选中的值；默认在本地筛，ManualFilter 时只写回。
@@ -343,7 +343,7 @@
         }
     };
 
-    // 能拖动时表体是 sortable 的列表（js/sortable.js）：行是项，把手在第一个数据列里
+    // 能拖动时表体是 sortable 的列表（js/table/sortable.js）：行是项，把手在第一个数据列里
     Attrs SortableBody => new()
     {
         Sx = SortableStyles.List.Sx,

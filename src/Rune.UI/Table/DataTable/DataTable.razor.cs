@@ -419,7 +419,7 @@ public partial class DataTable<TItem>
 
     bool Navigable => CellNavigation ?? columns.All.Any(static column => column.Edits);
 
-    // table：名称、行数、忙碌；点行、网格的方向键与编辑的按键由 js/table.js 交给 C#（点在控件上的不算）
+    // table：名称、行数、忙碌；点行、网格的方向键与编辑的按键由 js/table/table.js 交给 C#（点在控件上的不算）
     Attrs TableManaged(int rowCount, IReadOnlyList<ColumnView<TItem>> shown) => new()
     {
         Role = Navigable ? "grid" : null,
@@ -463,7 +463,7 @@ public partial class DataTable<TItem>
         static int Parse(string text) => int.Parse(text, CultureInfo.InvariantCulture);
     }
 
-    // js/table.js 的命令：row-click（行的 key）；edit（行␟列，直接打字时再加 ␟打的字）、commit、commit-next、commit-prev、cancel
+    // js/table/table.js 的命令：row-click（行的 key）；edit（行␟列，直接打字时再加 ␟打的字）、commit、commit-next、commit-prev、cancel
     async Task OnTableCommandAsync(CommandEventArgs e)
     {
         if (e.Text is not { } text) return;
@@ -489,204 +489,6 @@ public partial class DataTable<TItem>
                 CancelEdit();
                 return;
         }
-    }
-
-    TItem? ItemOf(string key)
-    {
-        foreach (var item in Rows)
-        {
-            if (GetKey(item) == key) return item;
-        }
-        return default;
-    }
-
-    DataTableColumn<TItem>? ColumnOf(string key) => columns.All.FirstOrDefault(column => column.ColumnKey == key);
-
-    /// <summary>开始编辑一格；直接打字时用打的字替换原值（数字列只认数字）。</summary>
-    void StartEdit(string rowKey, string columnKey, string? typed = null)
-    {
-        if (ItemOf(rowKey) is not { } item || ColumnOf(columnKey) is not { } column || !column.CanEdit(item)) return;
-        var draft = typed is not null && column.TryDraftFromText(typed, out var fromText) ? fromText : column.ValueOf(item);
-        editing = (rowKey, columnKey, draft, null, false);
-        StateHasChanged();
-    }
-
-    void CancelEdit()
-    {
-        if (editing is not { } current) return;
-        editing = null;
-        FocusCell(current.Row, current.Column);
-    }
-
-    void FocusCell(string row, string column)
-    {
-        focusRequest = (row, column, focusRequest.Sequence + 1);
-        StateHasChanged();
-    }
-
-    /// <summary>提交：列的 Validate、OnCellChange 都接受了才收起；step 是提交后去哪一格（Tab 往后、Shift + Tab 往前）。</summary>
-    async Task CommitEditAsync(int step)
-    {
-        if (editing is not { Saving: false } current || ItemOf(current.Row) is not { } item || ColumnOf(current.Column) is not { } column) return;
-        if (column.ValidateDraft(current.Draft, item) is { } invalid)
-        {
-            editing = current with { Error = invalid };
-            StateHasChanged();
-            return;
-        }
-        editing = current with { Saving = true };
-        var change = new CellChange<TItem>(item, current.Column, current.Draft);
-        await OnCellChange.InvokeAsync(change);
-        if (change.Rejection is { } rejected)
-        {
-            editing = current with { Error = rejected, Saving = false };
-            StateHasChanged();
-            return;
-        }
-        // 保存的时候已经点开了别的格（点别处提交时常这样）：不动它
-        if (editing is { } now && (now.Row != current.Row || now.Column != current.Column)) return;
-        editing = null;
-        if (step != 0 && NeighbourEditable(item, current.Column, step) is { } next) StartEdit(current.Row, next);
-        else FocusCell(current.Row, current.Column);
-    }
-
-    /// <summary>这一行里往后（往前）的下一个可编辑的格。</summary>
-    string? NeighbourEditable(TItem item, string columnKey, int step)
-    {
-        var visible = Shown;
-        var from = visible.ToList().FindIndex(view => view.Key == columnKey);
-        for (var index = from + step; index >= 0 && index < visible.Count; index += step)
-        {
-            if (visible[index].Column.CanEdit(item)) return visible[index].Key;
-        }
-        return null;
-    }
-
-    /// <summary>编辑中的格交给列的编辑状态：草稿改了只更新草稿与错误。</summary>
-    CellEditSession EditSession(DataTableColumn<TItem> column) => new(
-        editing?.Draft,
-        column.Label,
-        value =>
-        {
-            if (editing is { } current) editing = current with { Draft = value, Error = null };
-            StateHasChanged();
-        },
-        () => CommitEditAsync(0),
-        CancelEdit)
-    {
-        Error = editing?.Error,
-    };
-
-    // 每列一个不变的点击处理：滚动时表格随可见范围重新渲染，处理函数变了的话浏览器那边会换一个事件编号，
-    // 正好在两次渲染之间点下去的那一次（Server 模式）就落到已经作废的编号上、被丢掉
-    readonly Dictionary<DataTableColumn<TItem>, Func<MouseEventArgs, Task>> sortClicks = [];
-
-    Func<MouseEventArgs, Task> SortClick(DataTableColumn<TItem> column) =>
-        sortClicks.TryGetValue(column, out var click) ? click : sortClicks[column] = e => OnSortClickAsync(column, e);
-
-    Task OnSortClickAsync(DataTableColumn<TItem> column, MouseEventArgs e)
-    {
-        var key = column.ColumnKey;
-        if (!MultiSort) return sort.SetAsync(ColumnSort.Next(sort.Value, key));
-        // 不按 Shift：只按这一列（同单列排序的循环）
-        if (!e.ShiftKey)
-        {
-            var own = sorts.Value.Count == 1 ? sorts.Value[0] : (ColumnSort?)null;
-            return sorts.SetAsync(ColumnSort.Next(own, key) is { } next ? [next] : []);
-        }
-        return sorts.SetAsync(ColumnSort.NextMultiple(sorts.Value, key));
-    }
-
-    Task SetFilterAsync(string key, IReadOnlyList<string> values) =>
-        filters.SetAsync(new Dictionary<string, IReadOnlyList<string>>(filters.Value) { [key] = values });
-
-    Task SetWidthAsync(string key, double width) =>
-        columnWidths.SetAsync(new Dictionary<string, double>(columnWidths.Value) { [key] = width });
-
-    Task SetSortAsync(string key, SortDirection? direction)
-    {
-        if (!MultiSort) return sort.SetAsync(direction is { } d ? new ColumnSort(key, d) : null);
-        var rest = sorts.Value.Where(item => item.Key != key);
-        return sorts.SetAsync(direction is { } dir ? [new(key, dir), .. rest] : [.. rest]);
-    }
-
-    /// <summary>列菜单里选了一项：排序、固定、前后移动（与相邻的可见列交换）、隐藏。</summary>
-    Task OnColumnActionAsync(ColumnView<TItem> view, IReadOnlyList<ColumnView<TItem>> shown, ColumnMenuAction action)
-    {
-        var key = view.Key;
-        switch (action)
-        {
-            case ColumnMenuAction.SortAscending: return SetSortAsync(key, SortDirection.Ascending);
-            case ColumnMenuAction.SortDescending: return SetSortAsync(key, SortDirection.Descending);
-            case ColumnMenuAction.Unsort: return SetSortAsync(key, null);
-            case ColumnMenuAction.Hide: return hiddenColumns.SetAsync([.. hiddenColumns.Value, key]);
-            case ColumnMenuAction.MoveBackward or ColumnMenuAction.MoveForward:
-                var position = shown.ToList().FindIndex(item => item.Key == key) + (action == ColumnMenuAction.MoveForward ? 1 : -1);
-                if (position < 0 || position >= shown.Count) return Task.CompletedTask;
-                // 全部列（含隐藏的）按当前的排列，与相邻的可见列交换位置
-                var keys = ColumnDisplay.Arrange(columns.All, Rows, columnOrder.Value, columnPins.Value, columnWidths.Value, []).Select(static item => item.Key).ToList();
-                var (from, to) = (keys.IndexOf(key), keys.IndexOf(shown[position].Key));
-                (keys[from], keys[to]) = (keys[to], keys[from]);
-                return columnOrder.SetAsync(keys);
-            default:
-                var side = action switch { ColumnMenuAction.PinStart => ColumnSticky.Start, ColumnMenuAction.PinEnd => ColumnSticky.End, _ => (ColumnSticky?)null };
-                return columnPins.SetAsync(new Dictionary<string, ColumnSticky?>(columnPins.Value) { [key] = side });
-        }
-    }
-
-    bool IsSelectable(TItem item) => IsRowSelectable?.Invoke(item) ?? true;
-
-    Task ToggleRowAsync(string key)
-    {
-        var mode = SelectionMode ?? UI.SelectionMode.Multiple;
-        return ListState.Toggle(selected.Value, key, mode, required: false) is { } next ? selected.SetAsync(next) : Task.CompletedTask;
-    }
-
-    // 用集合查找：逐个 Contains 是 O(n²)，十万行全选会卡住页面；不能勾选的行跳过
-    Task ToggleAllAsync()
-    {
-        var keys = Rows.Where(IsSelectable).Select(GetKey).ToList();
-        var current = SelectedKeys;
-        if (keys.Count == 0 || !keys.All(current.Contains)) return selected.SetAsync([.. selected.Value.Union(keys)]);
-        var shown = keys.ToHashSet();
-        return selected.SetAsync([.. selected.Value.Where(key => !shown.Contains(key))]);
-    }
-
-    (bool All, bool Some, bool Any) SelectAllState
-    {
-        get
-        {
-            var current = SelectedKeys;
-            var total = 0;
-            var picked = 0;
-            foreach (var item in Rows)
-            {
-                if (!IsSelectable(item)) continue;
-                total++;
-                if (current.Contains(GetKey(item))) picked++;
-            }
-            return (total > 0 && picked == total, picked > 0 && picked < total, total > 0);
-        }
-    }
-
-    /// <summary>单选时各行的 Radio 接入这一组：同一个 name（方向键在可见的行之间移动），选中即写回；选中的行变了时换一个对象，各行的 Radio 随之更新。</summary>
-    SelectionRadios Radios => radios.Get(selected.Value.FirstOrDefault(), this, static (current, owner) => new(owner.radioName, current, owner.ToggleRowAsync));
-
-    sealed class SelectionRadios(string name, string? current, Func<string, Task> select) : IRadioGroup<string>
-    {
-        public string GroupName => name;
-
-        public Size? Size => null;
-
-        public Tone Tone => Tone.Accent;
-
-        public bool GroupDisabled => false;
-
-        public bool GroupReadOnly => false;
-
-        public bool IsSelected(string value) => value == current;
-
-        public Task SelectAsync(string value) => select(value);
     }
 
     /// <summary>合计行里一列的内容。</summary>
