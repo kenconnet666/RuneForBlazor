@@ -17,6 +17,10 @@
             <Example Id="filters" Title="筛选" Demo="typeof(FiltersExample)">
                 条件多、页面放不下时收进抽屉：改的是一份草稿，<Code>OnConfirm</Code>（查看结果）时才生效，关掉就放弃；<Code>Footer</Code> 里的“重置”排在取消、确认前面，确认按钮上写着已设几项。
             </Example>
+            <Example Id="imperative" Title="命令式：从表格的一行打开" Demo="typeof(ImperativeExample)">
+                <Code>DialogService.Open(new DrawerOptions { … })</Code> 用法同命令式对话框：每一行的“编辑”直接打开，页面里不放 Drawer。草稿留在这次打开里，
+                <Code>OnConfirm</Code> 保存时写回表格；<Code>await handle.Closed</Code> 得到关上的原因（保存是 Confirm，放弃是 Escape、Outside、Close）。
+            </Example>
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="@([

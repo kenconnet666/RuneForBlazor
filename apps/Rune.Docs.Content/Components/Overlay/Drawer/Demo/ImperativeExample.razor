@@ -1,0 +1,69 @@
+@inherits RuneComponent
+@inject DialogService Dialogs
+
+@* 命令式抽屉：表格每一行的“编辑”直接 Dialogs.Open(new DrawerOptions { … })，页面里不放 Drawer、不管 Open；
+   保存（OnConfirm）后改回表格，await handle.Closed 得到关上的原因，下面一行告诉用户刚才是保存还是放弃 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <DataTable Items="rows" GetKey="row => row.Id" aria-label="供应商">
+        <PropertyColumn Property="row => row.Id" Title="编号" Width="80" />
+        <PropertyColumn Property="row => row.Name" Title="名称" Width="160" />
+        <PropertyColumn Property="row => row.Contact" Title="联系人" Width="100" />
+        <PropertyColumn Property="row => row.Phone" Title="电话" Width="140" />
+        <TemplateColumn Key="actions" Title="操作" Width="64" Context="row">
+            <IconButton Icon="Lucide.Pencil" Size="Size.Sm" Variant="ButtonVariant.Ghost" Label="@($"编辑 {row.Name}")" @onclick="() => EditAsync(row)" />
+        </TemplateColumn>
+    </DataTable>
+    <Small Tone="TextTone.Muted" aria-live="polite">@(status ?? "点“编辑”在抽屉里改一行")</Small>
+</Flex>
+
+@code {
+    sealed record Supplier(string Id, string Name, string Contact, string Phone);
+
+    // 这次编辑的草稿：保存时才写回表格
+    sealed class Draft(Supplier row)
+    {
+        public string Name { get; set; } = row.Name;
+        public string Contact { get; set; } = row.Contact;
+        public string Phone { get; set; } = row.Phone;
+    }
+
+    static readonly Dictionary<OverlayChangeReason, string> Verdicts = new()
+    {
+        [OverlayChangeReason.Confirm] = "已保存",
+        [OverlayChangeReason.Escape] = "按 Esc 放弃",
+        [OverlayChangeReason.Outside] = "点遮罩放弃",
+    };
+
+    List<Supplier> rows =
+    [
+        new("S001", "华辰精密", "林小满", "021-5566 1001"),
+        new("S002", "启航塑胶", "周一航", "0512-6688 2002"),
+        new("S003", "远山钣金", "陈默", "029-8811 3003"),
+    ];
+
+    string? status;
+
+    async Task EditAsync(Supplier row)
+    {
+        var draft = new Draft(row);
+        var handle = Dialogs.Open(new DrawerOptions
+        {
+            Title = $"编辑 {row.Name}",
+            Description = $"编号 {row.Id}",
+            Size = ContainerSize.Xs,
+            ConfirmText = "保存",
+            OnConfirm = async _ =>
+            {
+                await Task.Delay(500);
+                rows = [.. rows.Select(item => item.Id == row.Id ? item with { Name = draft.Name, Contact = draft.Contact, Phone = draft.Phone } : item)];
+            },
+            Content = _ => @<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <Field Label="名称" Required="true"><TextField @bind-Value="draft.Name" /></Field>
+                <Field Label="联系人"><TextField @bind-Value="draft.Contact" /></Field>
+                <Field Label="电话"><TextField @bind-Value="draft.Phone" /></Field>
+            </Flex>,
+        });
+        var reason = await handle.Closed;
+        status = $"{row.Name}：{Verdicts.GetValueOrDefault(reason, "放弃编辑")}";
+    }
+}
