@@ -3,7 +3,7 @@
 @inherits DocPageBase
 @using Rune.Docs.Components.Overlay.Tour.Demo
 
-<DocPage Meta="Meta">
+<DocPage Meta="Meta" Wide="true">
     <Example Id="onboarding" Title="订单中心的引导" Demo="typeof(OnboardingExample)">
         每一步的 <Code>Target</Code> 是 CSS 选择器（这里按 data-tour 找）；没有目标的步骤卡片居中。切换步骤时目标滚到视口中间，滚动、缩放时镂空跟着动。
         <Code>@@bind-Open</Code>、<Code>@@bind-Current</Code> 都可以双向绑定；点“完成”调用 <Code>OnFinish</Code>，跳过或 Esc 只关闭。模态：背景不可操作，焦点在卡片里循环。
