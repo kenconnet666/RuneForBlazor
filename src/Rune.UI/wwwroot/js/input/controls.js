@@ -157,12 +157,14 @@ export function focusOnShell(event) {
     return;
   }
   if (target.closest('input, textarea, select, button, a, [role="spinbutton"]')) return;
-  // 分段输入（DateField、TimeField）：焦点进第一个没填的段（都填了时第一段）
+  // 分段输入（DateField、TimeField、DateRangePicker）：焦点进第一个没填的段（都填了时第一段）
   const segments = shell.querySelector(':scope > [data-rune-date-segments]');
   if (segments) {
     if (segments.getAttribute('aria-disabled') === 'true') return;
     event.preventDefault();
-    (segments.querySelector('[role="spinbutton"][data-placeholder]') ?? segments.querySelector('[role="spinbutton"]'))?.focus();
+    // 有几组时（DateRangePicker）在各组里找
+    const groups = ':scope > [data-rune-date-segments] > [role="spinbutton"]';
+    (shell.querySelector(`${groups}[data-placeholder]`) ?? shell.querySelector(groups))?.focus();
     return;
   }
   const control = shell.querySelector(':scope > :is(input, textarea, select, button[role="combobox"])');

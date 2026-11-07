@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（79 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（80 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -30,6 +30,8 @@ public static partial class BuiltInIcons
     public static IconData Ban => field ??= new("ban", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M4.929 4.929 19.07 19.071\"/>");
     /// <summary>Lucide 图标 <c>calendar-days</c>（day、date、month、year、timestamp、event、birthday、birthdate）。</summary>
     public static IconData CalendarDays => field ??= new("calendar-days", "<path d=\"M8 2v3\"/><path d=\"M16 2v3\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18\"/><path d=\"M8 13h.01\"/><path d=\"M12 13h.01\"/><path d=\"M16 13h.01\"/><path d=\"M8 17h.01\"/><path d=\"M12 17h.01\"/><path d=\"M16 17h.01\"/>");
+    /// <summary>Lucide 图标 <c>calendar-range</c>（day、date、month、year、timestamp、event、birthday、birthdate）。</summary>
+    public static IconData CalendarRange => field ??= new("calendar-range", "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M16 2v3\"/><path d=\"M3 9h18\"/><path d=\"M8 2v3\"/><path d=\"M17 13h-6\"/><path d=\"M13 17H7\"/><path d=\"M7 13h.01\"/><path d=\"M17 17h.01\"/>");
     /// <summary>Lucide 图标 <c>chart-no-axes-combined</c>（diagram、graph、visualization、data、analytics、analysis、statistics、presentation）。</summary>
     public static IconData ChartNoAxesCombined => field ??= new("chart-no-axes-combined", "<path d=\"M12 16v5\"/><path d=\"M16 14.639V21\"/><path d=\"M20 10.656V21\"/><path d=\"m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15\"/><path d=\"M4 18.463V21\"/><path d=\"M8 14.656V21\"/>");
     /// <summary>Lucide 图标 <c>check</c>（checkmark、done、completed、finished、successful、confirmed、verified、validated）。</summary>

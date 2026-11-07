@@ -202,7 +202,7 @@ public static class LangFormat
     /// 一周的第一天：语言包的 <see cref="Lang.FirstDayOfWeek"/>（0 表示周日）；不写时按地区惯例（同 Intl 的 weekInfo）。
     /// 不取 CultureInfo 的：WebAssembly 的精简 ICU 没有地区数据。
     /// </summary>
-    internal static DayOfWeek FirstDayOfWeek(Lang lang)
+    public static DayOfWeek FirstDayOfWeek(Lang lang)
     {
         if (lang.FirstDayOfWeek is { } own) return (DayOfWeek)(((own % 7) + 7) % 7);
         var region = RegionOf(lang.Code);

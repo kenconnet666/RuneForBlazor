@@ -1,0 +1,28 @@
+@page "/components/date-range-picker"
+@attribute [DocMeta("DateRangePicker 日期区间选择器", "一个输入框里开始、结束两组分段，弹出区间日历与快捷区间；报表的统计区间、入住与离店。", DocCategory.Date, Order = 6)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Date.DateRangePicker.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="report" Title="基础用法与快捷区间" Demo="typeof(ReportExample)">
+                值是 <Code>DateRange?</Code>（两端都含），两组都填好才写回，删掉一段写回 <Code>null</Code>；开始那组填满时焦点自动进结束那组。
+                <Code>Presets</Code> 是内置的快捷区间（<Code>DateRangePreset</Code>：今天、最近 7 天、本月……，按今天与语言的一周第一天算；
+                同一套算法也可以单独用 <Code>DateRange.Preset</Code>），超出范围的不可用。默认区间里不能夹着不可选的日期（订满的那晚）。
+                <Code>StartName</Code>、<Code>EndName</Code> 让原生表单提交两端的 ISO 文字。
+            </Example>
+            <Example Id="states" Title="跨过不可选的日子与状态" Demo="typeof(StatesExample)">
+                <Code>AllowsUnavailableInRange</Code> 允许区间跨过不可选的日子；结束早于开始、超出范围时外壳显示出错，值照样写回。外观与只读、不可用同其他输入框。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="periods" Title="按月、按年、按季度与按周" Demo="typeof(PeriodsExample)">
+                <Code>Granularity</Code> 决定两组的段与日历选什么：按月、按年时日历选整月、整年，季度在月份视图里选，周按 ISO 8601（周一开始、行首是周数）；
+                写回的仍是日期：开始是那一段的第一天，结束是最后一天。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([.. DateKeys.Segments, .. DateKeys.Picker, .. DateKeys.Calendar])" />
+    <ApiReference Types="[typeof(DateRangePicker), typeof(DateRange), typeof(DateRangePreset)]" />
+</DocPage>

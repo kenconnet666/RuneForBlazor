@@ -1,0 +1,18 @@
+@inherits RuneComponent
+
+@* 按月的预算期间、按年的对比区间、滚动四个季度、排班周：Granularity 决定两端的形式与日历选什么；结束是那一段的最后一天 *@
+<Grid MinItemWidth="@("18rem")" Gap="SpaceScale.Lg">
+    <Field Label="预算期间（按月）" DescriptionContent="@Show(budget)"><DateRangePicker @bind-Value="budget" Granularity="DateGranularity.Month" Presets="[DateRangePreset.ThisYear]" /></Field>
+    <Field Label="对比年份" DescriptionContent="@Show(years)"><DateRangePicker @bind-Value="years" Granularity="DateGranularity.Year" /></Field>
+    <Field Label="滚动四个季度" DescriptionContent="@Show(quarters)"><DateRangePicker @bind-Value="quarters" Granularity="DateGranularity.Quarter" /></Field>
+    <Field Label="排班周" DescriptionContent="@Show(weeks)"><DateRangePicker @bind-Value="weeks" Granularity="DateGranularity.Week" /></Field>
+</Grid>
+
+@code {
+    DateRange? budget = new(new(2026, 1, 1), new(2026, 6, 30));
+    DateRange? years = new(new(2024, 1, 1), new(2026, 12, 31));
+    DateRange? quarters = new(new(2026, 1, 1), new(2026, 12, 31));
+    DateRange? weeks = new(new(2026, 10, 19), new(2026, 11, 1));
+
+    static RenderFragment Show(DateRange? range) => @<Code>@(range is { } r ? $"{r.Start:yyyy-MM-dd} – {r.End:yyyy-MM-dd}" : "null")</Code>;
+}

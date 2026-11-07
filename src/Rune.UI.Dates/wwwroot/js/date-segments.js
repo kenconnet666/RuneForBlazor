@@ -133,7 +133,7 @@ class SegmentState {
     const value = this.complete ? fieldsToIso(constrained(this.draft), this.fields) : '';
     if (input && input.value !== value) input.value = value;
     const clear = this.root.parentElement?.querySelector(':scope > [data-rune-segments-clear]');
-    if (clear) toggle(clear, 'hidden', !this.fields.some((field) => this.draft[field] != null));
+    if (clear) toggle(clear, 'hidden', !groupsOf(this.root).some((group) => (group === this.root ? this : states.get(group))?.filled));
   }
 
   /** 写一段的值（显示值：12 小时制的时是 1–12）；emit 为 false 时只改草稿（年份没打满） */
@@ -192,9 +192,17 @@ class SegmentState {
     const list = this.segments;
     const index = list.findIndex((segment) => segment.dataset.type === this.focused);
     const next = list[index + direction];
-    if (!next) return;
-    this.setFocused(next.dataset.type);
-    if (this.root.contains(document.activeElement) && document.activeElement !== next) next.focus();
+    if (next) {
+      this.setFocused(next.dataset.type);
+      if (this.root.contains(document.activeElement) && document.activeElement !== next) next.focus();
+      return;
+    }
+    // 越过这组的两端：同一个外壳里的另一组（DateRangePicker 的开始、结束）接着输入
+    const groups = groupsOf(this.root);
+    const other = groups[groups.indexOf(this.root) + direction];
+    if (!other || !this.root.contains(document.activeElement)) return;
+    const segments = [...other.querySelectorAll(':scope > [role="spinbutton"]')];
+    (direction > 0 ? segments[0] : segments.at(-1))?.focus();
   }
 
   type(input) {
@@ -288,7 +296,13 @@ class SegmentState {
     this.draft = {};
     if (wasComplete) this.emit(null);
     this.paint();
-    this.segments[0]?.focus();
+    // 几组共用一个清空按钮：焦点进第一组的第一段
+    if (groupsOf(this.root)[0] === this.root) this.segments[0]?.focus();
+  }
+
+  /** 填了任何一段（清空按钮看得见） */
+  get filled() {
+    return this.fields.some((field) => this.draft[field] != null);
   }
 
   onKeydown(event) {
@@ -353,6 +367,9 @@ class SegmentState {
     else this.paint();
   }
 }
+
+/** 同一个外壳里的几组分段（DateRangePicker 是两组） */
+const groupsOf = (root) => [...(root.parentElement?.querySelectorAll(':scope > [data-rune-date-segments]') ?? [root])];
 
 /** 改段里的文字：改 Blazor 渲染的那个文字节点本身，不换节点（换了 Blazor 之后的更新就落空了） */
 function setText(state, segment, text) {

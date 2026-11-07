@@ -121,6 +121,7 @@ const BUILT_IN = [
   'columns-3',
   // 日期、时间选择器的打开按钮（Rune.UI.Dates）
   'calendar-days',
+  'calendar-range',
   'clock',
 ];
 

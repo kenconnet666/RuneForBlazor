@@ -1,0 +1,25 @@
+@inherits RuneComponent
+
+@* 报表的统计区间带快捷区间，今天之后不能选；酒店入住与离店，订满的日子不能夹在中间 *@
+<Grid MinItemWidth="@("20rem")" Gap="SpaceScale.Lg">
+    <Field Label="统计区间" Description="@(report is { } r ? $"{r.Start:yyyy-MM-dd} – {r.End:yyyy-MM-dd}，共 {r.Days} 天" : "选一个区间")">
+        <DateRangePicker @bind-Value="report" Max="today"
+                         Presets="[DateRangePreset.Today, DateRangePreset.Last7Days, DateRangePreset.Last30Days, DateRangePreset.ThisMonth, DateRangePreset.LastMonth]" />
+    </Field>
+    <Field Label="入住与离店" Description="@(stay is { } s ? $"{s.Days - 1} 晚" : "先选入住，再选离店")">
+        <DateRangePicker @bind-Value="stay" Min="today" IsDateUnavailable="booked.Contains" StartName="checkIn" EndName="checkOut" Clearable="true" />
+    </Field>
+</Grid>
+
+@code {
+    readonly DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+    HashSet<DateOnly> booked = [];
+    DateRange? report;
+    DateRange? stay;
+
+    protected override void OnInitialized()
+    {
+        report = DateRange.Preset(DateRangePreset.Last7Days, today, LangFormat.FirstDayOfWeek(Lang.ZhCn));
+        booked = [today.AddDays(9), today.AddDays(10)];
+    }
+}
