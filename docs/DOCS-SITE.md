@@ -43,19 +43,21 @@
 ### P0 对照的前提：确定性（先做，后面每一项都靠它）
 
 - [x] 整页对照工具 `tools/parity/pages.mjs`。
-- [ ] 对照模式：地址带 `?parity` 时关掉排队渲染（RenderQueue）与进场动画，图表直接画完、不等进入视口；两边都要有同样的开关
-  （vue 的懒画、空闲时渲染同样会让截图不稳定，需要时按“报告 vue 的问题”的流程提给 vue）。
-- [ ] 固定“现在”：文档站注册可以由地址或环境变量指定的 `TimeProvider`（UIComponent.TimeSource 已经统一取它），
-  相对时间、倒计时、日历的“今天”、DeadlineBadge 在两边截图里一样。
-- [ ] 字体：两边都等 `document.fonts.ready`，字体切换的默认值一致（已经一致，进 CI 后要在容器里装同样的字体）。
-- [ ] 截图基线进 CI（阶段 9 的同一项）：固定的 Linux 容器、Chromium，亮、暗；先放本库自己的基线（防回退），与 vue 的对照仍在本地跑。
+- [x] 排队渲染与懒画：不用另加开关。vue 带锚点打开时示例立即全部渲染（parity.mjs 打开 `#parity`），本库首次加载不排队；
+  图表进入视口才画，两个工具都先滚过去再截；进场动画用 `reducedMotion` 或截图前的等待。
+- [x] 固定“现在”：服务端读配置 `FixedNow`（`.claude/launch.json` 给 bench、docs 传 `--FixedNow=2026-10-21T02:00:00Z`），
+  注册固定的 TimeProvider，组件经 UIComponent.TimeSource、示例经 DemoClock 读它；浏览器里两个工具用 Playwright 的 clock 固定同一时刻（`tools/parity/clock.mjs`）。
+  date-time/countdowns 从高度差 −167px 降到 0.3%。
+- [x] 字体：两个工具截图前都等 `document.fonts.ready`。
+- [x] 截图基线进 CI（阶段 9 的同一项）：`tests/Rune.E2E/Visual/VisualTests.cs`，每个组件页（静态 SSR）的每个示例效果区一张，
+  在浏览器里与 `Visual/Baselines` 比较；CI 的 `visual` 任务跑在 ubuntu-24.04，“现在”固定。手动运行 CI 勾选 `update-visual-baselines` 时重新截并上传构件，
+  看过后提交。先只有亮色（387 张，约 7MB）；暗色等 P1 的暗色检查做完再加。
 
 ### P1 外壳与页面骨架补齐
 
-- [ ] 导入行：vue 在简介下有一行 import。本库对应的是“装哪个包、用哪个命名空间”，例如
-  `<PackageReference Include="Rune.Charts" />` 加 `@using Rune.UI`，或只写 `@using`。定下写法后 DocPage 统一生成（按页面的 ApiReference 类型所在的程序集推出包名），
-  这样标题下的竖向节奏与 vue 相同。
-- [ ] 顶栏补 ORM 的链接（EasyQuerySharp，位置、样式同 vue 的 easy-query-ts），窄屏的“链接”一组同步。
+- [x] 导入行：组件都在 Rune.UI 命名空间里，对应的是装哪个包：`dotnet add package Rune.UI`（日期 Rune.UI.Dates、图表 Rune.Charts、地图 Rune.Charts.Maps），
+  DocPage 按分类生成。标题下的竖向节奏与 vue 相同后，button 页第一屏的差异从 7.8% 降到 2.9%。
+- 暂不做（2026-11-07 用户决定）：顶栏的 ORM 链接、属性演练场按钮、示例卡片工具栏的“编辑”。整页对照里这三处的差异是已知的。
 - [ ] 首页：“从这里开始”的卡片随指南页的数量变（vue 5 张）；组件目录的分类顺序、计数文字核对。
 - [ ] 404 页、`/frame/…` 整页示例页的外壳核对。
 - [ ] 暗色主题跑一遍 `pages.mjs --themes=dark` 与全部示例的 `parity.mjs`，修掉只在暗色出现的差异。
