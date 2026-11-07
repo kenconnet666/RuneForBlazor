@@ -46,8 +46,8 @@ public class InputTests(DemoServer demo) : E2ETest(demo)
         await page.Mouse.UpAsync();
 
         await Assertions.Expect(quantity).ToBeFocusedAsync();
-        await Assertions.Expect(quantity).Not.ToHaveValueAsync("2");
-        Assert.True(int.Parse(await quantity.InputValueAsync()) > 3);
+        // 按住时连续加了几次：Server 模式下每次一个往返，忙的时候松开后还在追，等它追上（至少到 4）
+        await Assertions.Expect(quantity).ToHaveValueAsync(new System.Text.RegularExpressions.Regex(@"^([4-9]|\d{2,})$"));
     }
 
     [Theory]
