@@ -1,0 +1,67 @@
+@inherits UIComponent
+@using System.ComponentModel
+
+@* 询价比价单：列与 DataTable 相同（金额按语言、状态、空值），供应商与品类上下相同的格合并（MergeRepeated，层层分组）；
+   没报价的行用 CellSpan 把“单价”“小计”合成一格写原因；底部合计（Sum 精确相加） *@
+<ColumnTable Items="Lines" GetKey="l => l.Supplier + l.Part" MergeRepeated="@(["supplier", "category"])" CellSpan="SpanOf"
+             Density="TableDensity.Compact" aria-label="询价比价单">
+    <PropertyColumn Property="l => l.Supplier">
+        <SummaryContent>@context.Count 项</SummaryContent>
+    </PropertyColumn>
+    <PropertyColumn Property="l => l.Category" />
+    <PropertyColumn Property="l => l.Part" />
+    <PropertyColumn Property="l => l.Quantity" Type="ColumnType.Number" />
+    @* 没报价的行写原因（这一格合并了“小计”） *@
+    <TemplateColumn Key="price" Title="单价" Type="ColumnType.Currency" Align="TableAlign.End" Value="l => l.Price" Context="line">
+        @if (line.Price is { } price)
+        {
+            @LangFormat.Number(price, CurrencyFormat, Config.Lang)
+        }
+        else
+        {
+            <Small Tone="TextTone.Muted">@line.Note</Small>
+        }
+    </TemplateColumn>
+    <PropertyColumn Property="l => l.Price * l.Quantity" Key="subtotal" Title="小计" Type="ColumnType.Currency" Summary="ColumnSummary.Sum" />
+    <StatusColumn Property="l => l.Status" Statuses="Statuses" />
+</ColumnTable>
+
+@code {
+    enum QuoteStatus { Valid, Expiring, Missing }
+
+    sealed record QuoteLine(
+        [property: DisplayName("供应商")] string Supplier,
+        [property: DisplayName("品类")] string Category,
+        [property: DisplayName("零件")] string Part,
+        [property: DisplayName("数量")] int Quantity,
+        decimal? Price,
+        [property: DisplayName("状态")] QuoteStatus Status,
+        string? Note = null);
+
+    static readonly StatusMap<QuoteStatus> Statuses = new()
+    {
+        [QuoteStatus.Valid] = new("有效", Tone.Success),
+        [QuoteStatus.Expiring] = new("即将过期", Tone.Warning),
+        [QuoteStatus.Missing] = new("未报价"),
+    };
+
+    static readonly NumberFormat CurrencyFormat = new() { Style = NumberStyle.Currency };
+
+    static readonly QuoteLine[] Lines =
+    [
+        new("华辰精密", "机械件", "显示器支架", 40, 128m, QuoteStatus.Valid),
+        new("华辰精密", "机械件", "铰链底座", 80, 76.5m, QuoteStatus.Valid),
+        new("华辰精密", "钣金件", "检修口盖板", 24, 212m, QuoteStatus.Expiring),
+        new("启航塑胶", "塑料件", "笔记本电脑", 12, 1860m, QuoteStatus.Valid),
+        new("启航塑胶", "塑料件", "加强筋", 60, null, QuoteStatus.Missing, "工艺评审中，预计 10 月 30 日报价"),
+        new("远山钣金", "钣金件", "检修口盖板", 24, 198m, QuoteStatus.Valid),
+    ];
+
+    // 没报价的行：单价占两列写原因，小计那一格被合并掉
+    static CellSpan? SpanOf(QuoteLine line, string key, int index) => line.Price is not null ? null : key switch
+    {
+        "price" => new CellSpan(ColSpan: 2),
+        "subtotal" => new CellSpan(ColSpan: 0),
+        _ => null,
+    };
+}

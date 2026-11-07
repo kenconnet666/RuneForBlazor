@@ -61,3 +61,8 @@ sealed class CellEditSession(object? draft, string label, Action<object?> change
 
     public void Cancel() => cancel();
 }
+
+/// <summary>ColumnTable 里一格合并几行、几列；0 是被别的格合并掉（不渲染）。</summary>
+/// <param name="RowSpan">往下合并几行，默认 1。</param>
+/// <param name="ColSpan">往后合并几列，默认 1。</param>
+public readonly record struct CellSpan(int RowSpan = 1, int ColSpan = 1);

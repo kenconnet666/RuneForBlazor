@@ -16,5 +16,11 @@
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(TableCell), typeof(TableHeaderCell), typeof(Table)]" />
+    <Example Id="column-table" Title="列定义与合并单元格：询价比价单" Demo="typeof(QuotesExample)">
+        <Code>ColumnTable</Code> 按列渲染静态表格：列与 DataTable 相同（<Code>PropertyColumn</Code>、<Code>StatusColumn</Code>、<Code>TemplateColumn</Code>；
+        <Code>Type</Code>、<Code>Format</Code>、<Code>EmptyText</Code>、<Code>Summary</Code>），不虚拟滚动、列宽按内容，适合详情页的明细、打印与导出预览。
+        <Code>MergeRepeated</Code> 写列的 key：这几列里上下相邻、值相同的格合成一格，后一列只在前一列的同一格里合并（不同供应商下的同名品类不合）；
+        <Code>CellSpan</Code> 更灵活，返回 <Code>CellSpan(RowSpan, ColSpan)</Code>，被合并掉的格返回 0（同 Ant Design 的 onCell）——这里没报价的行把“单价”“小计”合成一格写原因。
+    </Example>
+    <ApiReference Types="[typeof(TableCell), typeof(TableHeaderCell), typeof(Table), typeof(ColumnTable<>)]" />
 </DocPage>

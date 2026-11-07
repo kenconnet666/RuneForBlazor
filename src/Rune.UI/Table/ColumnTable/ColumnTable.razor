@@ -1,0 +1,175 @@
+@*
+    按列定义渲染的静态表格（同 vue-tsx-pro 的 ColumnTable）：列与 DataTable 相同（PropertyColumn、StatusColumn、TemplateColumn；类型、格式、空值、合计、对齐），
+    渲染成普通的 Table（不虚拟滚动、列宽按内容、单元格可以换行），可以合并单元格。打印、导出预览、详情页里的明细表用它；要排序、勾选、筛选、十万行的用 DataTable。
+    <ColumnTable Items="lines" MergeRepeated="@(["supplier", "category"])" aria-label="报价明细">
+        <PropertyColumn Property="l => l.Supplier" />…
+    </ColumnTable>
+    合并单元格：MergeRepeated 写列的 key，这几列里上下相邻、值相同的格合成一格（后一列只在前一列的同一格里合并，层层分组）；
+    更灵活的用 CellSpan，返回 (RowSpan, ColSpan)，被合并掉的格返回 0（同 Ant Design 的 onCell）。合并的格垂直居中。
+    列的排序、筛选、固定、列宽调整在这里不起作用。未声明的属性落到 table 上；外观（Density、Variant、Striped）同 Table。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@inherits UIComponent
+
+<CascadingValue Value="columns" IsFixed="true">
+    @{ columns.Start(); }
+    @ChildContent
+    @Deferred
+</CascadingValue>
+
+@code {
+    readonly DataTableColumns<TItem> columns = new();
+    Memo<(IReadOnlyList<TItem>, IReadOnlyList<DataTableColumn<TItem>>, IReadOnlyList<string>?), Dictionary<string, int[]>> merged;
+
+    static readonly Attrs MergedLayer = new() { Sx = Css.Define(static () => new Style { VerticalAlign = VerticalAlign.Middle }) };
+
+    /// <summary>数据。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    /// <summary>列：PropertyColumn、StatusColumn、TemplateColumn。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>行的 key；不写时用序号。</summary>
+    [Parameter] public Func<TItem, string>? GetKey { get; set; }
+
+    /// <summary>这几列（列的 key）里上下相邻、值相同的格合成一格；后一列只在前一列的同一格里合并。</summary>
+    [Parameter] public IReadOnlyList<string>? MergeRepeated { get; set; }
+
+    /// <summary>合并单元格：返回这一格合并几行、几列（行、列的 key、序号），被合并掉的返回 RowSpan 或 ColSpan 为 0；不合并返回 null。</summary>
+    [Parameter] public Func<TItem, string, int, CellSpan?>? CellSpan { get; set; }
+
+    /// <summary>合计行第一列的文字（第一列自己没写合计时）；默认语言包的“合计”。</summary>
+    [Parameter] public string? SummaryLabel { get; set; }
+
+    /// <summary>密度；不写时同 Table。</summary>
+    [Parameter] public TableDensity? Density { get; set; }
+
+    /// <summary>样式；不写时同 Table。</summary>
+    [Parameter] public TableVariant? Variant { get; set; }
+
+    /// <summary>斑马纹。</summary>
+    [Parameter] public bool? Striped { get; set; }
+
+    /// <summary>按行计算的每一行（tr）的部件属性。</summary>
+    [Parameter] public Func<TItem, int, Attrs?>? PropsRowFor { get; set; }
+
+    /// <summary>按行与列（key）计算的每个单元格（td）的部件属性。</summary>
+    [Parameter] public Func<TItem, string, Attrs?>? PropsCellFor { get; set; }
+
+    // 表格在各列把自己交给表格之后才渲染（同 DataTable）
+    RenderFragment Deferred => builder =>
+    {
+        builder.OpenComponent<Defer>(0);
+        builder.AddComponentParameter(1, nameof(Defer.ChildContent), (RenderFragment)(inner =>
+        {
+            if (columns.Finish()) StateHasChanged();
+            inner.AddContent(0, Body);
+        }));
+        builder.CloseComponent();
+    };
+
+    RenderFragment Body => __builder =>
+    {
+        var shown = columns.All;
+        var types = shown.Select(column => ColumnDisplay.TypeOf(column, Items)).ToArray();
+        var spans = MergeRepeated is { Count: > 0 } keys ? merged.Get((Items, shown, keys), static k => RepeatedRowSpans(k.Item1, k.Item2, k.Item3!)) : null;
+        var summary = shown.Any(static column => column.Summary is not null || column.SummaryContent is not null);
+        <Table Density="Density" Variant="Variant" Striped="Striped" @attributes="Attrs.MergeProps(null, Rest)">
+            <TableHead>
+                <TableRow>
+                    @for (var position = 0; position < shown.Count; position++)
+                    {
+                        var column = shown[position];
+                        <TableHeaderCell @key="column" Align="ColumnAlign(column, types[position])" Width="@(column.Width is { } px ? (CssLength?)ColumnDisplay.Px(px) : null)">
+                            @(column.HeaderContent ?? (b => b.AddContent(0, column.Label)))
+                        </TableHeaderCell>
+                    }
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                @for (var index = 0; index < Items.Count; index++)
+                {
+                    var item = Items[index];
+                    var row = index;
+                    <TableRow @key="@(GetKey?.Invoke(item) ?? (object)index)" @attributes="Attrs.MergeProps(null, PropsRowFor?.Invoke(item, index))">
+                        @for (var position = 0; position < shown.Count; position++)
+                        {
+                            var column = shown[position];
+                            var type = types[position];
+                            var span = SpanOf(item, column, row, spans);
+                            if (span is { RowSpan: 0 } or { ColSpan: 0 }) continue;
+                            <TableCell @key="column" Align="ColumnAlign(column, types[position])" NoWrap="@(!column.Wrap && column.Width is not null)"
+                                       rowspan="@(span?.RowSpan is > 1 ? span.Value.RowSpan : null)" colspan="@(span?.ColSpan is > 1 ? span.Value.ColSpan : null)"
+                                       @attributes="Attrs.MergeProps(span?.RowSpan is > 1 ? MergedLayer : null, PropsCellFor?.Invoke(item, column.ColumnKey))">
+                                @ColumnDisplay.Cell(column, item, type, Config.Lang)
+                            </TableCell>
+                        }
+                    </TableRow>
+                }
+            </TableBody>
+            @if (summary)
+            {
+                <TableFoot>
+                    <TableRow>
+                        @for (var position = 0; position < shown.Count; position++)
+                        {
+                            var column = shown[position];
+                            var content = ColumnDisplay.Summary(column, position, types[position], Items, SummaryLabel, Config.Lang);
+                            <TableCell @key="column" Align="ColumnAlign(column, types[position])">
+                                @content
+                            </TableCell>
+                        }
+                    </TableRow>
+                </TableFoot>
+            }
+        </Table>
+    };
+
+    static TableAlign ColumnAlign(DataTableColumn<TItem> column, ColumnType type) =>
+        column.Align ?? (column.HasStatuses || !ColumnDisplay.IsNumeric(type) ? TableAlign.Start : TableAlign.End);
+
+    /// <summary>一格的合并：CellSpan 优先，其次 MergeRepeated。</summary>
+    CellSpan? SpanOf(TItem item, DataTableColumn<TItem> column, int index, Dictionary<string, int[]>? spans)
+    {
+        if (CellSpan?.Invoke(item, column.ColumnKey, index) is { } own) return own;
+        return spans is not null && spans.TryGetValue(column.ColumnKey, out var list) && list[index] != 1 ? new CellSpan(list[index], 1) : null;
+    }
+
+    /// <summary>
+    /// MergeRepeated 的跨行数：每列一个数组，第 i 行是这一格往下合并几行，被合并掉的是 0。
+    /// 后一列在前一列的分组边界处断开（不把不同供应商下同名的品类合在一起）。
+    /// </summary>
+    internal static Dictionary<string, int[]> RepeatedRowSpans(IReadOnlyList<TItem> items, IReadOnlyList<DataTableColumn<TItem>> columns, IReadOnlyList<string> keys)
+    {
+        var spans = new Dictionary<string, int[]>();
+        // 上一列的分组从哪些行开始：本列的合并不能跨过它们
+        var boundaries = new HashSet<int> { 0 };
+        foreach (var key in keys)
+        {
+            if (columns.FirstOrDefault(column => column.ColumnKey == key) is not { } column) continue;
+            var list = Enumerable.Repeat(1, items.Count).ToArray();
+            var starts = new HashSet<int>();
+            var start = 0;
+            for (var index = 0; index < items.Count; index++)
+            {
+                var same = index > start && !boundaries.Contains(index)
+                    && DataTableColumn<TItem>.FilterText(column.ValueOf(items[index])) == DataTableColumn<TItem>.FilterText(column.ValueOf(items[start]));
+                if (same)
+                {
+                    list[start]++;
+                    list[index] = 0;
+                }
+                else
+                {
+                    start = index;
+                    starts.Add(index);
+                }
+            }
+            spans[key] = list;
+            boundaries.UnionWith(starts);
+        }
+        return spans;
+    }
+}
