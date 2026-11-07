@@ -58,17 +58,20 @@
 - [x] 导入行：组件都在 Rune.UI 命名空间里，对应的是装哪个包：`dotnet add package Rune.UI`（日期 Rune.UI.Dates、图表 Rune.Charts、地图 Rune.Charts.Maps），
   DocPage 按分类生成。标题下的竖向节奏与 vue 相同后，button 页第一屏的差异从 7.8% 降到 2.9%。
 - 暂不做（2026-11-07 用户决定）：顶栏的 ORM 链接、属性演练场按钮、示例卡片工具栏的“编辑”。整页对照里这三处的差异是已知的。
-- [ ] 首页：“从这里开始”的卡片随指南页的数量变（vue 5 张）；组件目录的分类顺序、计数文字核对。
-- [ ] 404 页、`/frame/…` 整页示例页的外壳核对。
-- [ ] 暗色主题跑一遍 `pages.mjs --themes=dark` 与全部示例的 `parity.mjs`，修掉只在暗色出现的差异。
+- [x] 首页：右侧栏去掉后组件目录同 vue 排三列；指南卡片的图标同 vue；卡片数随指南页（本库 4 张，没有 Playground）。
+- [x] 404 页改用 Result 的 404（同 vue）；整页示例（iframe）由 app-shell 页的示例对照覆盖（0 处差异）。
+- [x] 暗色主题跑过 `pages.mjs --themes=light,dark`（116 页）：外壳在亮暗下都一致；暗色比亮色多出的差异来自示例本身（image、badge、code 等），归入 P3。
 
 ### P2 内容补齐（跟着各阶段做，每做一个组件就补它的页面并跑对照）
 
-- [ ] 已有页缺的 8 个示例（见上表）。
+- [x] 已有页缺的示例：drawer（detail、imperative）、date-time（deadlines）、provider（整页按 vue 重写：安装代码、scoped、locales、rtl、services，
+  services 用到新加的 `UIConfig.Highlighter`）、value-change（log），data-table 的单选 id 改成 single。剩下 theme-switcher 的 thumbnail、customizer（阶段 6）。
+- [x] 示例排布：`columns.mjs` 改成比较整页排布（整行的示例、分列、宽列），修了 Descriptions、Image、NavMenu、PivotTable、Tabs 与 Tour、ValueChange、NavMenu、Theming 的宽版。
 - [ ] 阶段 6 的 13 个页面组合组件及其页面；ThemeCustomizer 之后补主题定制页（指南 Theming）与 theme-switcher 的两个示例。
 - [ ] 阶段 7：属性演练场（PropsPlaygroundButton，参数表从 API 文档生成）、3D 与画布、统计看板页。
-- [ ] 指南：Data、Playground 的对应页（见待决）；全栈、移动端两组随阶段 8、7。
-- [ ] 每页的键盘一节（KeyboardReference）补齐；搜索能搜到参数名与示例标题（阶段 9 的同一项）。
+- [x] 指南：Styling 按 vue 的四节加四个示例重写；Theming 加内置主题、跟随系统两个示例（主题编辑器、运行时切换、品牌色等阶段 6）；
+  新增 Data（HttpClient、请求的状态、TableQueryState、出错与取消，两个连假接口的演示）。Playground 暂不做（用户决定）；全栈、移动端两组随阶段 8、7。
+- [x] 键盘一节：已有页面只缺 DataTable，已补；其余缺的属阶段 6、7 的组件。搜索与 vue 一样只搜页面。
 
 ### P3 示例画布逐像素
 
