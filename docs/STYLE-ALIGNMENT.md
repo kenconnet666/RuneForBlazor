@@ -183,3 +183,25 @@ CI 的 `VUE_TSX_PRO_REF` 第四批时前移到 89c01fc8（语言包重新生成�
 | useInfiniteList、InfiniteListStatus（cffe9ad9） | `InfiniteList<T, TCursor>`（状态是信号）、`InfiniteListStatus`；params 换成 `ParamsChangedAsync()`（Blazor 里组件自己知道搜索词何时变）；失败文案一律取语言包，不显示异常原文 |
 | Select、Combobox、Mentions 的 load 分页（同一提交） | 另加 `LoadPage`（C# 的一个参数不能既收数组又收分页结果）；ListboxView 末尾放哨兵，JS 的 IntersectionObserver 看到它在可见范围下方约 5 行内时发 more（虚拟与否都适用）；`LoadingMore` 时骨架接在末尾 |
 | 文档：FloatButton 页、Select“远程搜索与分页”、VirtualList / DataTable 改用 useInfiniteList、数据指南“滚动加载” | 同 |
+
+### 待跟进（2026-11-08 起积压；用户决定等 vue 的计划全部做完再一次性跟进）
+
+已跟到 vue 89c01fc8（第四批）。之后 vue 通知的改动先记在这里，跟进时以 vue 的组件规格 JSON（/spec/components.json）与 RELEASE.md 为准逐项核对：
+
+1. 错误修复（优先）：
+   - 样式合并：后写的简写去掉前面片段里被它重设的长属性（vue 84e6cde2，LONGHANDS 表）。Rune 的 `StyleCompiler.Flatten` 按属性名覆盖，同样有这个问题（如 `Sx` 写 `Padding = 0` 盖不过组件的 `PaddingInline`）
+   - 输入法组合中（isComposing / keyCode 229）：NumberField 不处理 ↑↓、Enter，Select 搜索框的退格不删已选项（vue 930a754d）
+2. 主题：前移 `VUE_TSX_PRO_REF` 重新生成（新增 space.xxs，0e7f08a3；暗色主题实色悬停调亮，bf6d5afd），写死的 2px 改用 Xxs
+3. 焦点环不被裁（vue 9b155f35、c6b0309d、a3ae9428）：参照 vue 的 focus-ring 浏览器检查在 E2E 里写全站检查，按清单修（Collapse 展开后不裁、单元格与 StatGroup 只裁横向、贴边整行与角落按钮用内侧焦点环、Upload 文件名、ItemList 默认 Inset Sm）
+4. CI 接入 vue 的组件规格比对（属性、默认值、部件）
+5. 按规格补齐：
+   - 部件标记（vue 24.1 第一到十批，含图表的 `chart` scope、选择框一族的 `select` scope；Rune 图表里 center-label、area-labels、point-labels、wheel-hint、hover-band 改驼峰，并加 CI 检查部件名）
+   - 可配置的组件：Calendar（合并 CalendarView / QuarterCalendar，scope `calendar`）、Timeline、Stat、CodeBlock、Tour、NavList、Menu、Toaster、AppShell、Transfer、Upload、Countdown、UserButton
+   - 组合组件的属性转发（P12 两批与收尾）
+   - 状态改用统一条件（列表行 data-highlighted、ItemList、NavBar、按钮家族、DataTable 行）
+   - Card `Padding="none"` 时页头页脚的内边距；TreemapChart 读屏表格不重复单位；LinkUnderlineScope 的 Underline 可变
+6. 交互状态精修（P2.5）：共用的状态层样式（ghost 14% / 22%、overlay 叠 8%）用在 Alert / Toast / Banner 的关闭按钮与 Tag；TextLink 的 muted 悬停；Splitter、ResizeHandle 的线宽与 data-dragging
+7. 新组件：QRCode（自写编码器）、省市区数据、JsonViewer、SignaturePad、UserButton、Countdown 数字块；Carousel、ImageCropper（Upload 的 transform）、ColorPicker（ColorField 色块改按钮，破坏性）、DataTable 列虚拟化；语言包合并 zoomIn / zoomOut / slideCounter / resetView（破坏性）；SchemaForm（按 C# 模型生成，先出方案）
+8. 文档站：vue 的页面合并与示例调整，整体跟进时一起重排
+
+上游问题改用 GitHub issue（kenconnet666/vue-tsx-pro，标签 parity）报告。
