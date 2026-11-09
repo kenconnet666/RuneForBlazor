@@ -110,6 +110,7 @@
 //   data-rune-marquee="40"  跑马灯（Marquee）：一份内容（data-rune-marquee-group）的长度除以速度（px/s）写成 --rune-marquee-duration，内容变了重新量；
 //                            减少动态效果时容器可以聚焦（不滚动，手动滚动查看）
 //   data-rune-watermark='{…}' 水印（Watermark）的那一层：按选项（文字或图片、角度、间隔、字号、颜色）用 canvas 画一块平铺单元写成背景，选项变了重画
+//   data-rune-carousel        轮播（Carousel）：箭头、页点滚到那一张，滚动停下时写回序号（rune-command carousel-index），自动播放与暂停
 //   data-rune-signature       手写签名（SignaturePad）：canvas 上按速度粗细写，撤销、清空；每写完一笔把 PNG 写进隐藏输入框并发 rune-command signature
 //   data-rune-viewport-fill  占满到窗口底边的区域（ViewportFill）：量出自己的顶边写成 --rune-fill-top，窗口与文档尺寸变化时重新量
 //   data-rune-grid-span="n"  网格里跨 n 列的项：网格实际的列比 n 少时（按宽度自动换列的网格变窄）改成跨当前的列数

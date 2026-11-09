@@ -1,0 +1,22 @@
+@* 一次看两张半：SlidesPerView、Gap，露出下一张的一半提示还能滑；不循环，到头时那一侧的按钮不可用 *@
+@inherits RuneComponent
+@using Rune.Docs.Components.Display.Image.Demo
+
+<Carousel Items="Drawings.All" GetKey="drawing => drawing.Code" SlidesPerView="2.5" Gap="CssLength.Em(1)" Loop="false" Dots="false" aria-label="推荐零件" Context="drawing">
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Image Src="@drawing.Src" Alt="@drawing.Title" Width="CssLength.Percent(100)" Height="CssLength.Auto" PropsRoot="DrawingsExample.Frame" />
+            <TextSpan Weight="Weight.Medium">@drawing.Title</TextSpan>
+            <Flex Justify="ContentJustify.Between">
+                <Small Tone="TextTone.Muted">@drawing.Code</Small>
+                <Small>@prices[Index(drawing) % prices.Length]</Small>
+            </Flex>
+        </Flex>
+    </Card>
+</Carousel>
+
+@code {
+    static readonly string[] prices = ["¥ 128.00", "¥ 46.50", "¥ 312.00", "¥ 18.90", "¥ 75.00", "¥ 240.00"];
+
+    static int Index(Drawing drawing) => Drawings.All.ToList().IndexOf(drawing);
+}

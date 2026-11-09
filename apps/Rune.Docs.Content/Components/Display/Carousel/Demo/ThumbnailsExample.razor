@@ -1,0 +1,38 @@
+@* 图片组：@bind-Index 双向绑定，下面一排缩略图点了跳过去，滑动大图时缩略图跟着高亮 *@
+@inherits RuneComponent
+@using Rune.Docs.Components.Display.Image.Demo
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Carousel Items="Drawings.All" GetKey="drawing => drawing.Code" @bind-Index="current" Dots="false" aria-label="图纸" Context="drawing">
+        <Image Src="@drawing.Src" Alt="@drawing.Title" Width="CssLength.Percent(100)" Height="CssLength.Auto" Fit="ImageFit.Contain" PropsRoot="DrawingsExample.Frame" />
+    </Carousel>
+    <Flex Gap="SpaceScale.Xs" Wrap="true">
+        @for (var i = 0; i < Drawings.All.Count; i++)
+        {
+            var index = i;
+            var drawing = Drawings.All[index];
+            <ButtonBase @key="drawing.Code" Sx="Thumb" aria-label="@drawing.Title" aria-current="@(index == current ? "true" : null)" @onclick="() => current = index">
+                <Image Src="@drawing.Src" Alt="" Width="72" Height="48" />
+            </ButtonBase>
+        }
+    </Flex>
+    <Small Tone="TextTone.Muted">@Drawings.All[current].Title（@(current + 1) / @Drawings.All.Count）</Small>
+</Flex>
+
+@code {
+    int current;
+
+    // 当前的一张（aria-current）描一圈强调色；其余的淡一些，悬停时亮起来。描边与焦点环共用 outline：键盘聚焦时换成焦点环的颜色、离得更远
+    static Style Thumb => Css.Define(static () => new Style
+    {
+        BorderRadius = Radii.Md,
+        OutlineWidth = BorderWidths.Sm,
+        OutlineStyle = OutlineStyle.Solid,
+        OutlineColor = CssColors.Transparent,
+        OutlineOffset = BorderWidths.Sm,
+        Opacity = 0.6,
+        [When.Hover] = new() { Opacity = 0.9 },
+        [When.Current] = new() { OutlineColor = Tones.Accent.Solid, Opacity = 1, [When.Hover] = new() { Opacity = 1 } },
+        [When.FocusVisible] = new() { OutlineColor = Colors.FocusRing, OutlineOffset = CssLength.Em(0.25) },
+    });
+}

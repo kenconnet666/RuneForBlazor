@@ -1,0 +1,11 @@
+@* 图纸轮播：每 5 秒换一张，指针停在上面或焦点进来时暂停，底部的按钮可以停下；滑动、拖动触摸板也能换 *@
+@inherits RuneComponent
+@using Rune.Docs.Components.Display.Image.Demo
+
+<Carousel Items="Drawings.All" GetKey="drawing => drawing.Code" Autoplay="TimeSpan.FromSeconds(5)" aria-label="零件图纸" Context="drawing">
+    <Image Src="@drawing.Src" Alt="@($"{drawing.Title}（{drawing.Code}）")" Width="CssLength.Percent(100)" Height="CssLength.Auto" Fit="ImageFit.Contain" PropsRoot="Frame" />
+</Carousel>
+
+@code {
+    internal static readonly Attrs Frame = new() { Sx = Css.Define(static () => new Style { Display = Display.Block, AspectRatio = "3 / 2" }) };
+}

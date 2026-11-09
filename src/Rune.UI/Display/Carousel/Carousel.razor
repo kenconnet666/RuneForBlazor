@@ -1,0 +1,158 @@
+@*
+    轮播（同 vue-tsx-pro 的 Carousel）：横幅、商品图、图片组。原生横向滚动加 scroll-snap（触摸板、手指滑动、拖滚动条都是浏览器自己的），
+    上一张 / 下一张、页点、可关的自动播放；参考 WAI-ARIA APG 的 Carousel 模式。
+    <Carousel Items="banners" aria-label="活动" Context="banner"><Image Src="@banner.Src" Alt="@banner.Title" /></Carousel>
+    <Carousel Items="products" SlidesPerView="3" Gap="CssLength.Em(1)" Loop="false" />     一次看三张
+    <Carousel Items="banners" Autoplay="TimeSpan.FromSeconds(6)" @bind-Index="current" />  六秒换一张
+    读屏：根元素是带名称的区域（aria-roledescription="carousel"），每张是 role="group"、名称“第 2 张，共 5 张”；
+    不自动播放时滚动区域是 aria-live="polite"，换张会念，自动播放时关掉播报。
+    自动播放：指针停在上面、焦点进到里面时暂停，底部有暂停 / 播放按钮；偏好减少动态效果时一开始就是暂停的。
+    滚动、按钮、页点、自动播放都是 JS 初始化器做的（data-rune-carousel），静态 SSR 也能用；交互模式下换张后把序号写回 Index。
+    从右到左排版时方向跟着换。未声明的属性落到根元素（section）上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@typeparam TItem
+
+@{
+    var parts = CarouselStyles.Of(Config.Styles);
+    var lang = Config.Lang;
+    var total = Items.Count;
+    var pages = Last + 1;
+    var autoplay = (int)(Autoplay?.TotalMilliseconds ?? 0);
+    var current = Math.Clamp(index.Value, 0, Last);
+}
+<section data-rune-carousel aria-roledescription="carousel" aria-label="@(AriaLabel ?? lang.Carousel)" data-index="@current" data-last="@Last"
+         data-loop="@Loop" data-autoplay="@(autoplay > 0 ? autoplay : null)" @onrunecommand="OnCommandAsync"
+         @attributes="Attrs.Merge(Attrs.Layer(parts[CarouselPart.Root], CarouselStyles.RootMarker.Attrs, Vars), RootAttrs)">
+    @* 能聚焦：键盘用户按方向键横向滚动（停下时吸附到整张） *@
+    <div data-carousel-viewport tabindex="0" aria-live="polite" @attributes="Attrs.Merge(parts[CarouselPart.Viewport], PropsViewport)">
+        @for (var i = 0; i < total; i++)
+        {
+            var item = Items[i];
+            <div @key="KeyOf(item, i)" role="group" aria-roledescription="slide" aria-label="@lang.SlideCounter(i + 1, total)"
+                 @attributes="Attrs.Merge(parts[CarouselPart.Slide], PropsSlide)">@ChildContent?.Invoke(item)</div>
+        }
+    </div>
+    @if (Arrows && pages > 1)
+    {
+        <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@lang.CarouselPrevious" Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Radius="UI.Radius.Full"
+                    PropsIcon="FlipLayer" Disabled="@(!Loop && current <= 0)" data-carousel-step="-1" @attributes="Attrs.MergeProps(parts[CarouselPart.Previous], PropsPrevious)" />
+        <IconButton Icon="BuiltInIcons.ChevronRight" Label="@lang.CarouselNext" Variant="ButtonVariant.Surface" Tone="Tone.Neutral" Radius="UI.Radius.Full"
+                    PropsIcon="FlipLayer" Disabled="@(!Loop && current >= Last)" data-carousel-step="1" @attributes="Attrs.MergeProps(parts[CarouselPart.Next], PropsNext)" />
+    }
+    @if ((Dots && pages > 1) || autoplay > 0)
+    {
+        <div @attributes="Attrs.Merge(parts[CarouselPart.Controls], PropsControls)">
+            @if (autoplay > 0)
+            {
+                @* 两个图标都在：暂停时（根元素的 data-paused，JS 切换）显示播放 *@
+                <ButtonBase data-carousel-pause aria-label="@lang.CarouselPause" data-label-pause="@lang.CarouselPause" data-label-play="@lang.CarouselPlay"
+                            @attributes="Attrs.MergeProps(Attrs.Layer(PauseButton, parts[CarouselPart.Pause]), PropsPause)">
+                    <Icon Data="BuiltInIcons.Pause" Size="UI.Size.Sm" @attributes="Attrs.MergeProps(CarouselStyles.PauseIcon)" />
+                    <Icon Data="BuiltInIcons.Play" Size="UI.Size.Sm" @attributes="Attrs.MergeProps(CarouselStyles.PlayIcon)" />
+                </ButtonBase>
+            }
+            @if (Dots && pages > 1)
+            {
+                @for (var i = 0; i < pages; i++)
+                {
+                    <ButtonBase @key="i" data-carousel-dot="@i" data-active="@(i == current)" aria-current="@(i == current ? "true" : null)" aria-label="@lang.SlideCounter(i + 1, total)"
+                                @attributes="Attrs.MergeProps(parts[CarouselPart.Dot], PropsDot)" />
+                }
+            }
+        </div>
+    }
+</section>
+
+@code {
+    static readonly Attrs FlipLayer = new() { ["FlipInRtl"] = true };
+    // 暂停按钮的外观同幽灵的小图标按钮
+    static readonly Attrs PauseButton = new() { Sx = Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        Width = Sizes.MinTarget,
+        Height = Sizes.MinTarget,
+        BorderRadius = Radii.Full,
+        Color = Colors.TextMuted,
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover, Color = Colors.Text },
+    }) };
+
+    Memo<(double, CssLength?), Attrs> vars;
+
+    /// <summary>每一张的数据。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    /// <summary>渲染一张。</summary>
+    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+
+    /// <summary>每张的 key，默认用序号。</summary>
+    [Parameter] public Func<TItem, object>? GetKey { get; set; }
+
+    /// <summary>最前面那张的序号（<c>@bind-Index</c>）：滚动、按钮、页点、自动播放都会写回。一次看几张时最大是 Items.Count - SlidesPerView。</summary>
+    [Parameter] public int Index { get; set; }
+
+    /// <summary>序号变了。</summary>
+    [Parameter] public EventCallback<int> IndexChanged { get; set; }
+
+    /// <summary>一次看几张，默认 1；可以是 1.5 这样露出下一张的一部分。</summary>
+    [Parameter] public double SlidesPerView { get; set; } = 1;
+
+    /// <summary>张与张之间的间距，默认 0；一次看几张时常用 1em。</summary>
+    [Parameter] public CssLength? Gap { get; set; }
+
+    /// <summary>到头后接着从另一头开始，默认 true。</summary>
+    [Parameter] public bool Loop { get; set; } = true;
+
+    /// <summary>自动播放的间隔；不写时不自动播放。</summary>
+    [Parameter] public TimeSpan? Autoplay { get; set; }
+
+    /// <summary>两侧的上一张 / 下一张按钮，默认显示。</summary>
+    [Parameter] public bool Arrows { get; set; } = true;
+
+    /// <summary>底部的页点，默认显示。</summary>
+    [Parameter] public bool Dots { get; set; } = true;
+
+    /// <summary>滚动区域的部件属性。</summary>
+    [Parameter] public Attrs? PropsViewport { get; set; }
+
+    /// <summary>每一张外层的部件属性。</summary>
+    [Parameter] public Attrs? PropsSlide { get; set; }
+
+    /// <summary>上一张按钮（IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPrevious { get; set; }
+
+    /// <summary>下一张按钮（IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsNext { get; set; }
+
+    /// <summary>底部控制条的部件属性。</summary>
+    [Parameter] public Attrs? PropsControls { get; set; }
+
+    /// <summary>暂停按钮（ButtonBase）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPause { get; set; }
+
+    /// <summary>页点（ButtonBase）的部件属性。</summary>
+    [Parameter] public Attrs? PropsDot { get; set; }
+
+    Bindable<int> index { get => field ??= new(this, () => Index, () => IndexChanged); }
+
+    // 一次看 1.5 张这种：最后一个序号向上取整，滚到底就算到了最后
+    int Last => Math.Max(0, (int)Math.Ceiling(Items.Count - SlidesPerView));
+
+    string? AriaLabel => Rest["aria-label"] as string;
+
+    Attrs RootAttrs => Rest.Without("aria-label");
+
+    object KeyOf(TItem item, int i) => GetKey?.Invoke(item) ?? i;
+
+    Attrs Vars => vars.Get((SlidesPerView, Gap), static k => new Attrs
+    {
+        Vars = [CarouselStyles.PerViewVar.Set(k.Item1), .. k.Item2 is { } gap ? [CarouselStyles.GapVar.Set(gap)] : Array.Empty<CssVarValue>()],
+    });
+
+    async Task OnCommandAsync(CommandEventArgs e)
+    {
+        if (e.Name == "carousel-index" && int.TryParse(e.Text, out var next)) await index.SetAsync(next);
+    }
+}
