@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <!-- 文档站的内容：各组件页与示例（一个示例一个文件）、指南页、站点的部件（示例卡片、API 表）。
-       文档站（Rune.Docs.Client）与渲染模式测试台（Rune.Demo.Client）都渲染这里的页面 -->
+       文档站（Rune.Docs.Client）与渲染模式测试台（Rune.Demo.Client）都渲染这里的页面。
+       示例的源码、API 表的原料不在这里（浏览器不带），由服务端的 Rune.Docs.Server 生成，经 DocsData 取 -->
   <PropertyGroup>
     <RootNamespace>Rune.Docs</RootNamespace>
   </PropertyGroup>
@@ -24,18 +25,5 @@
     <ProjectReference Include="..\..\src\Rune.Generators\Rune.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\Rune.CodeFixes\Rune.CodeFixes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
-
-  <ItemGroup>
-    <!-- 示例的源码嵌进程序集：示例卡片按示例的类型取出原文（examples/ 后面是项目里的路径），WebAssembly 里也能读 -->
-    <EmbeddedResource Include="Components\**\*.razor" LogicalName="examples/Components/%(RecursiveDir)%(Filename)%(Extension)" />
-    <EmbeddedResource Include="Guide\Demo\**\*.razor" LogicalName="examples/Guide/Demo/%(RecursiveDir)%(Filename)%(Extension)" />
-  </ItemGroup>
-
-  <!-- 组件库的 XML 文档注释嵌进程序集：API 表的说明从这里读（引用解析后它在 ReferenceCopyLocalPaths 里） -->
-  <Target Name="EmbedComponentDocs" AfterTargets="ResolveAssemblyReferences">
-    <ItemGroup>
-      <EmbeddedResource Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.xml' and ('%(Filename)' == 'Rune.UI' or '%(Filename)' == 'Rune.UI.Dates' or '%(Filename)' == 'Rune.Charts' or '%(Filename)' == 'Rune.Charts.Maps' or '%(Filename)' == 'Rune.UI.Area')" LogicalName="api/%(Filename)%(Extension)" />
-    </ItemGroup>
-  </Target>
 
 </Project>

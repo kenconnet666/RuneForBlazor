@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Rune.Docs.Client\Rune.Docs.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
+    <ProjectReference Include="..\Rune.Docs.Server\Rune.Docs.Server.csproj" />
   </ItemGroup>
 
 </Project>

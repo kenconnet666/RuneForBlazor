@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\src\Rune.UI.Area\Rune.UI.Area.csproj" />
     <!-- 文档内容：目录、示例源码、API 表的读取 -->
     <ProjectReference Include="..\..\apps\Rune.Docs.Content\Rune.Docs.Content.csproj" />
+    <ProjectReference Include="..\..\apps\Rune.Docs.Server\Rune.Docs.Server.csproj" />
     <!-- 既作为分析器（测试组件里用 [State]），也作为程序集引用（直接驱动生成器做测试） -->
     <ProjectReference Include="..\..\src\Rune.Generators\Rune.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
   </ItemGroup>

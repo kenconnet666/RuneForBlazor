@@ -1,15 +1,16 @@
 @*
-    组件页的 API 小节（同 vue-tsx-pro 文档站的 ApiReference）：从组件类型与 XML 文档注释生成的数据（ComponentApiReader）按种类分表列出：
+    组件页的 API 小节（同 vue-tsx-pro 文档站的 ApiReference）：服务端从组件类型与 XML 文档注释生成的数据（DocsData）按种类分表列出：
     参数、事件、内容、部件属性。复合组件写几个类型，依次列出。
     <ApiReference Types="[typeof(Button), typeof(IconButton)]" />
 *@
 @namespace Rune.Docs.Site
 @inherits RuneComponent
 @inject DocHeadings Headings
+@inject DocsData Docs
 
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
     <H2 id="api" Size="Size.Xl" Anchor="true">API</H2>
-    @foreach (var api in Apis)
+    @foreach (var api in apis)
     {
         <Flex @key="api.Component" Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
             @if (Types.Count > 1)
@@ -50,14 +51,20 @@
     /// <summary>一个或几个组件的类型（复合组件各部分依次列出）；泛型组件写开放类型。</summary>
     [Parameter, EditorRequired] public IReadOnlyList<Type> Types { get; set; } = [];
 
-    IEnumerable<ComponentApi> Apis => Types.Select(ComponentApiReader.Read);
+    IReadOnlyList<ComponentApi> apis = [];
+    IReadOnlyList<Type>? loaded;
 
     /// <inheritdoc/>
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         Headings.Add(this, new("api", "API"), DocHeadings.Last);
+        if (loaded is null || !Types.SequenceEqual(loaded))
+        {
+            loaded = Types;
+            apis = await Task.WhenAll(Types.Select(t => Docs.ApiAsync(t).AsTask()));
+        }
         if (Types.Count > 1)
-            foreach (var api in Apis) Headings.Add(this, new($"api-{Slug(api.Component)}", api.Component, 3), DocHeadings.Last);
+            foreach (var api in apis) Headings.Add(this, new($"api-{Slug(api.Component)}", api.Component, 3), DocHeadings.Last);
     }
 
     /// <inheritdoc/>

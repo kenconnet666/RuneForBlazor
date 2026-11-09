@@ -35,7 +35,7 @@
         <Paragraph>
             下面的演示连着内存里的假接口（300–800 ms 的随机延迟）：快速输入只发最后一次，翻页立即请求，“模拟一次失败”让下一次请求出错。
         </Paragraph>
-        <CodePreview Code="@ExampleSource.Of(typeof(SupplierSearchExample))"><SupplierSearchExample /></CodePreview>
+        <ExamplePreview Demo="typeof(SupplierSearchExample)" />
     </GuideSection>
 
     <GuideSection Id="table-query" Title="服务端分页：TableQueryState">
@@ -50,7 +50,7 @@
             表头筛选写成 <Code>filter.列=值</Code>、关键字 <Code>search.列=关键字</Code>，查询栏的条件按属性名平铺。EasyQuerySharp 的 <Code>TableRequest.Parse</Code> 读的就是这套参数。
             给了 <Code>Navigation</Code> 时页码、排序、条件放进地址栏：刷新、分享链接都是同一份列表。
         </Paragraph>
-        <CodePreview Code="@ExampleSource.Of(typeof(SupplierTableExample))"><SupplierTableExample /></CodePreview>
+        <ExamplePreview Demo="typeof(SupplierTableExample)" />
     </GuideSection>
 
     <GuideSection Id="infinite-list" Title="滚动加载：InfiniteList">

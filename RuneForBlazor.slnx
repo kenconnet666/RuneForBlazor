@@ -16,6 +16,7 @@
     <Project Path="apps/Rune.Docs/Rune.Docs.csproj" />
     <Project Path="apps/Rune.Docs.Client/Rune.Docs.Client.csproj" />
     <Project Path="apps/Rune.Docs.Content/Rune.Docs.Content.csproj" />
+    <Project Path="apps/Rune.Docs.Server/Rune.Docs.Server.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Rune.Tests/Rune.Tests.csproj" />

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 文档内容的服务端一半：示例的源码、组件的 API 表、图标库从这里生成（DocsData 的服务端实现与 /_docs/… 的地址）。
+       原料（示例文件、组件库的 XML 文档注释、全部图标）只在服务端：浏览器不带它们，预渲染时带过去用到的，换页时下载静态文件。
+       文档站（Rune.Docs）与渲染模式测试台（Rune.Demo）的服务端都引用它 -->
+  <PropertyGroup>
+    <RootNamespace>Rune.Docs.Server</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\Rune.Docs.Content\Rune.Docs.Content.csproj" />
+    <!-- API 表列这几个包的组件：直接引用，它们的 XML 文档注释才在 ReferenceCopyLocalPaths 里 -->
+    <ProjectReference Include="..\..\src\Rune.UI\Rune.UI.csproj" />
+    <ProjectReference Include="..\..\src\Rune.UI.Dates\Rune.UI.Dates.csproj" />
+    <ProjectReference Include="..\..\src\Rune.Charts\Rune.Charts.csproj" />
+    <ProjectReference Include="..\..\src\Rune.Charts.Maps\Rune.Charts.Maps.csproj" />
+    <ProjectReference Include="..\..\src\Rune.UI.Area\Rune.UI.Area.csproj" />
+    <ProjectReference Include="..\..\src\Rune.Icons\Rune.Icons.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 示例的源码：按示例组件的类型取出原文（examples/ 后面是内容项目里的路径） -->
+    <EmbeddedResource Include="..\Rune.Docs.Content\Components\**\*.razor" LogicalName="examples/Components/%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+    <EmbeddedResource Include="..\Rune.Docs.Content\Guide\Demo\**\*.razor" LogicalName="examples/Guide/Demo/%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+  </ItemGroup>
+
+  <!-- 组件库的 XML 文档注释：API 表的说明从这里读（引用解析后它在 ReferenceCopyLocalPaths 里） -->
+  <Target Name="EmbedComponentDocs" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <EmbeddedResource Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.xml' and ('%(Filename)' == 'Rune.UI' or '%(Filename)' == 'Rune.UI.Dates' or '%(Filename)' == 'Rune.Charts' or '%(Filename)' == 'Rune.Charts.Maps' or '%(Filename)' == 'Rune.UI.Area')" LogicalName="api/%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

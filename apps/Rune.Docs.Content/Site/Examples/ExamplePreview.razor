@@ -1,0 +1,51 @@
+@*
+    一个示例的卡片：CodePreview 加上示例文件的源码（经 DocsData 取：预渲染带过来的，或站内换页时下载的）。
+    <ExamplePreview Demo="typeof(CounterExample)" />           效果就是示例组件本身
+    <ExamplePreview Demo="typeof(X)"><X Extra="…" /></ExamplePreview>   效果另外给
+    源码到之前代码区是空的（收着，看不出来）。未声明的属性（id）交给 CodePreview。
+*@
+@namespace Rune.Docs.Site
+@inherits RuneComponent
+@inject DocsData Docs
+
+<CodePreview Code="@source" Align="Align" ShowCode="ShowCode" PropsPreview="PropsPreview" PropsLayout="PropsLayout" @attributes="Attrs.MergeProps(null, Rest)">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <DynamicComponent Type="Demo" />
+    }
+</CodePreview>
+
+@code {
+    string source = "";
+    Type? loaded;
+
+    /// <summary>示例组件（源码取它的示例文件）。</summary>
+    [Parameter, EditorRequired] public Type Demo { get; set; } = default!;
+
+    /// <summary>效果；不写时渲染示例组件本身。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>效果区的排列。</summary>
+    [Parameter] public CodePreviewAlign Align { get; set; }
+
+    /// <summary>一开始就展开源码。</summary>
+    [Parameter] public bool ShowCode { get; set; }
+
+    /// <summary>效果区的部件属性（交给 CodePreview）。</summary>
+    [Parameter] public Attrs? PropsPreview { get; set; }
+
+    /// <summary>排布格的部件属性（交给 CodePreview）。</summary>
+    [Parameter] public Attrs? PropsLayout { get; set; }
+
+    /// <inheritdoc/>
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Demo == loaded) return;
+        loaded = Demo;
+        source = await Docs.SourceAsync(Demo);
+    }
+}

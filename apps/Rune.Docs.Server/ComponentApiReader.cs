@@ -6,11 +6,11 @@ using System.Xml.Linq;
 using Microsoft.AspNetCore.Components;
 using Rune.UI;
 
-namespace Rune.Docs.Site;
+namespace Rune.Docs.Server;
 
 /// <summary>
 /// 从组件类型生成 API 文档数据（同 vue-tsx-pro 文档站从 Props 类型与 JSDoc 生成的 virtual:api）：
-/// 参数按反射读出（[Parameter]，不含级联参数与收集未声明属性的那个），说明取组件库的 XML 文档注释（嵌在内容程序集里），
+/// 参数按反射读出（[Parameter]，不含级联参数与收集未声明属性的那个），说明取组件库的 XML 文档注释（嵌在这个程序集里），
 /// 默认值取新建的组件实例上的值（与类型的默认值相同时不列）。
 /// </summary>
 public static partial class ComponentApiReader
@@ -224,8 +224,7 @@ public static partial class ComponentApiReader
     }
 
     /// <summary>
-    /// XML 文档注释的索引：只记下每个成员在原文里的位置，用到时才解析那一段。
-    /// 整份建成 XDocument（三千多个成员）在 WebAssembly 里要大半秒，第一个有 API 表的页面会因此卡住。
+    /// XML 文档注释的索引：只记下每个成员在原文里的位置，用到时才解析那一段（整份建成 XDocument 有三千多个成员）。
     /// </summary>
     sealed class DocsIndex
     {

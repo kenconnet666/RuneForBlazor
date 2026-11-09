@@ -1,7 +1,7 @@
 @*
     示例小节（同 vue-tsx-pro 文档站的 Example）：标题（锚点）、说明、示例卡片（CodePreview：运行中的效果与它的源码）。
     <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">说明文字</Example>
-    源码取自示例文件本身（ExampleSource），与效果永远一致。整页示例（AppShell）写 Frame="40rem"：效果区用 iframe 单独打开它（[DocFrame]）。
+    源码取自示例文件本身（DocsData，服务端从示例文件读出），与效果永远一致。整页示例（AppShell）写 Frame="40rem"：效果区用 iframe 单独打开它（[DocFrame]）。
     效果区带 data-demo（里面的标题不进本页目录）；排布格带 data-demo-canvas（对照工具按它找效果区）。
 *@
 @namespace Rune.Docs.Site
@@ -15,7 +15,7 @@
     {
         <Paragraph Sx="DescriptionStyle">@ChildContent</Paragraph>
     }
-    <CodePreview id="@($"{Id}-preview")" Code="@ExampleSource.Of(Demo)" Align="Align" PropsPreview="PreviewLayer" PropsLayout="@(Frame is null ? CanvasLayer : FramedCanvasLayer)">
+    <ExamplePreview id="@($"{Id}-preview")" Demo="Demo" Align="Align" PropsPreview="PreviewLayer" PropsLayout="@(Frame is null ? CanvasLayer : FramedCanvasLayer)">
         @if (Frame is not null)
         {
             <iframe src="@FrameSrc" title="@Title" loading="lazy" allow="fullscreen" style="height:@Frame" @attributes="Attrs.Merge(FrameLayer)"></iframe>
@@ -25,7 +25,7 @@
             @* 站内换页后排队渲染：卡片外框先出来 *@
             <Queued><DynamicComponent Type="Demo" /></Queued>
         }
-    </CodePreview>
+    </ExamplePreview>
 </section>
 
 @code {

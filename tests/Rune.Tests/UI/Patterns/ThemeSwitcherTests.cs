@@ -24,11 +24,11 @@ public class ThemeSwitcherTests : BunitContext
             .Add(x => x.ValueChanged, (string? v) => value = v)
             .Add(x => x.ChildContent, b =>
             {
-                foreach (var (seq, item) in new[] { (0, "name"), (10, "date") })
+                foreach (var item in new[] { "name", "date" })
                 {
-                    b.OpenComponent<MenuRadioItem>(seq);
-                    b.AddAttribute(seq + 1, nameof(MenuRadioItem.Value), item);
-                    b.AddAttribute(seq + 2, nameof(MenuRadioItem.ChildContent), (RenderFragment)(t => t.AddContent(0, item)));
+                    b.OpenComponent<MenuRadioItem>(0);
+                    b.AddAttribute(1, nameof(MenuRadioItem.Value), item);
+                    b.AddAttribute(2, nameof(MenuRadioItem.ChildContent), (RenderFragment)(t => t.AddContent(0, item)));
                     b.CloseComponent();
                 }
             }));

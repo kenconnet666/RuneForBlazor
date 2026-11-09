@@ -2,6 +2,7 @@
     Icon 文档页的“图标库”（同 vue-tsx-pro 文档站的 IconLibrary）：搜索、点选图标，看大图；复制用法、复制或下载 SVG。
 *@
 @inherits RuneComponent
+@inject DocsData Docs
 
 <div @attributes="Attrs.Merge(LayoutLayer)">
     <IconGallery @bind-Value="selected" />
@@ -51,7 +52,12 @@
     string? copied;
     int copyRun;
 
-    IconEntry? Selected => IconGallery.All.FirstOrDefault(e => e.Name == selected);
+    IReadOnlyList<IconEntry> icons = [];
+
+    IconEntry? Selected => icons.FirstOrDefault(e => e.Name == selected);
+
+    /// <inheritdoc/>
+    protected override async Task OnInitializedAsync() => icons = await Docs.IconsAsync();
 
     static string Usage(IconEntry item) => $"<Icon Data=\"Lucide.{item.Name}\" />";
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Rune.Docs.Components.Input.Rating.Demo;
+using Rune.Docs.Server;
 using Rune.Docs.Site;
 using Rune.UI;
 

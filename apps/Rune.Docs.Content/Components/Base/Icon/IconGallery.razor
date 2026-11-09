@@ -3,13 +3,14 @@
     <IconGallery @bind-Value="name" />          Value 是属性名（Rocket），点选后更新
     Lucide 没有随包提供分类，按名字搜：属性名（ArrowRight）与文件名（arrow-right）都能匹配。
     全部图标都能滚动看到：按行虚拟滚动（VirtualList），每行放几个按容器宽度算（data-rune-observe-size），只画看得见的几行。
+    图标的列表经 DocsData 取（浏览器里下载服务端生成的 /_docs/icons.json）：页面不按名字反射 Lucide，WebAssembly 裁剪时就能去掉没用到的图标。
 *@
 @inherits RuneComponent
-@using System.Reflection
+@inject DocsData Docs
 
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
     <TextField @bind-Value="query" Immediate="true" Icon="Lucide.Search" Clearable="true"
-               placeholder="@($"搜索 {All.Count} 个图标，如 arrow、user、chart")" aria-label="搜索图标" data-testid="icon-search" />
+               placeholder="@(all.Count == 0 ? "搜索图标，如 arrow、user、chart" : $"搜索 {all.Count} 个图标，如 arrow、user、chart")" aria-label="搜索图标" data-testid="icon-search" />
     <div data-rune-observe-size @onruneresize="OnResize">
         <VirtualList Items="Rows" EstimateSize="Row" Sx="Scroller" aria-label="图标" Context="row">
             <div @attributes="Attrs.Merge(RowLayer)" style="@($"grid-template-columns:repeat({columns},minmax(0,1fr))")">
@@ -25,7 +26,7 @@
             </div>
         </VirtualList>
     </div>
-    <Small Tone="TextTone.Muted">@(Matches.Count == 0 ? "没有匹配的图标：换个英文关键词试试" : $"共 {Matches.Count} 个，滚动查看全部")</Small>
+    <Small Tone="TextTone.Muted">@(all.Count == 0 ? "正在加载图标…" : Matches.Count == 0 ? "没有匹配的图标：换个英文关键词试试" : $"共 {Matches.Count} 个，滚动查看全部")</Small>
 </Flex>
 
 @code {
@@ -41,7 +42,7 @@
 
     string query = "";
     int columns = 6;
-    Memo<(string Query, int Columns), Filtered> view;
+    Memo<(string Query, int Columns, IReadOnlyList<IconEntry> All), Filtered> view;
 
     // 搜索结果与按每行几个分好的行
     sealed record Filtered(IReadOnlyList<IconEntry> Matches, IReadOnlyList<IconEntry[]> Rows);
@@ -52,27 +53,23 @@
     /// <summary>点选了一个图标。</summary>
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
 
-    /// <summary>全部图标：属性名、文件名与数据。旧名（[Obsolete] 转发）不重复列出。</summary>
-    public static IReadOnlyList<IconEntry> All => all.Value;
+    // 全部图标（服务端按名字排好，旧名不重复列出）；取到之前是空的
+    IReadOnlyList<IconEntry> all = [];
 
-    static readonly Lazy<IReadOnlyList<IconEntry>> all = new(() =>
-        typeof(Lucide).GetProperties(BindingFlags.Public | BindingFlags.Static)
-            .Where(p => p.PropertyType == typeof(IconData) && !p.IsDefined(typeof(ObsoleteAttribute)))
-            .Select(p => new IconEntry(p.Name, (IconData)p.GetValue(null)!))
-            .OrderBy(e => e.Name, StringComparer.OrdinalIgnoreCase)
-            .ToList());
+    /// <inheritdoc/>
+    protected override async Task OnInitializedAsync() => all = await Docs.IconsAsync();
 
     IReadOnlyList<IconEntry> Matches => Current.Matches;
 
     IReadOnlyList<IconEntry[]> Rows => Current.Rows;
 
-    Filtered Current => view.Get((query, columns), static k =>
+    Filtered Current => view.Get((query, columns, all), static k =>
     {
         var keyword = string.Join('-', k.Query.Trim().ToLowerInvariant().Split([' ', '_'], StringSplitOptions.RemoveEmptyEntries));
         var compact = keyword.Replace("-", "");
         IReadOnlyList<IconEntry> matches = keyword.Length == 0
-            ? All
-            : [.. All.Where(e => e.Icon.Name.Contains(keyword, StringComparison.Ordinal) || e.Name.Contains(compact, StringComparison.OrdinalIgnoreCase))];
+            ? k.All
+            : [.. k.All.Where(e => e.Icon.Name.Contains(keyword, StringComparison.Ordinal) || e.Name.Contains(compact, StringComparison.OrdinalIgnoreCase))];
         return new Filtered(matches, [.. matches.Chunk(k.Columns)]);
     });
 

@@ -24,6 +24,9 @@ public static class DocsServices
         return services;
     }
 
+    /// <summary>浏览器（WebAssembly）里的文档数据：用预渲染带过来的，没有的下载服务端生成的 /_docs/… 文件。服务端注册 Rune.Docs.Server 的实现。</summary>
+    public static IServiceCollection AddBrowserDocsData(this IServiceCollection services) => services.AddScoped<DocsData, BrowserDocsData>();
+
     sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;

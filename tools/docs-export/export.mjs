@@ -12,6 +12,7 @@
 // 3. 启动发布好的服务端，从首页开始按站内链接与 iframe 的地址爬完全部页面，每页存成 路径.html（Cloudflare Pages 对 /components/button
 //    直接取 components/button.html，不跳转），首页是 index.html，找不到页面存成 404.html。
 // 4. 合并、挪走了的旧页面地址（DocRedirects）写成 _redirects，由 Cloudflare Pages 永久跳转到新页的小节。
+// 5. 文档数据（示例的源码、API 表、图标库）：爬页面时用到过的地址取 /_docs/files，逐个写出（浏览器站内换页时下载）。
 import { spawn, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -84,6 +85,15 @@ async function exportSite() {
     const redirects = await fetch(`${origin}/_redirects`);
     if (!redirects.ok) throw new Error(`/_redirects 取不到：${redirects.status}`);
     writeFileSync(join(out, '_redirects'), await redirects.text());
+    // 文档数据（示例的源码、API 表、图标库，Rune.Docs.Server）：爬页面时用到过的都在 /_docs/files 里，浏览器站内换页时下载它们
+    const docsFiles = (await (await fetch(`${origin}/_docs/files`)).text()).split('\n').filter(Boolean);
+    for (const path of docsFiles) {
+      const response = await fetch(`${origin}/${path}`);
+      if (!response.ok) throw new Error(`文档数据 ${path} 取不到：${response.status}`);
+      mkdirSync(dirname(join(out, path)), { recursive: true });
+      writeFileSync(join(out, path), Buffer.from(await response.arrayBuffer()));
+    }
+    console.log(`写出了 ${docsFiles.length} 个文档数据文件`);
     // import map 里有服务端运行时生成的模块（_framework/resource-collection.*.js，WebAssembly 启动时要它），不在静态资源里：从服务端取下来
     let generated = 0;
     for (const target of importMapTargets(pages.values())) {
