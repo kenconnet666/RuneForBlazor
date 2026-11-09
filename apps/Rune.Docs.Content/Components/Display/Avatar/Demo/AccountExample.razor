@@ -1,0 +1,40 @@
+@* 账号菜单的触发器：顶栏里是头像 + 名字的胶囊，侧栏底部是带一行说明的整行，空间紧时只剩头像；点开是账号菜单 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md" Wrap="true">
+        <Menu>
+            <Trigger Context="t"><UserButton Name="@me.Name" Src="@me.Photo" @attributes="t" /></Trigger>
+            <ChildContent>@AccountMenu</ChildContent>
+        </Menu>
+        <Menu>
+            <Trigger Context="t"><UserButton Name="@me.Name" Src="@me.Photo" Compact="true" @attributes="t" /></Trigger>
+            <ChildContent>@AccountMenu</ChildContent>
+        </Menu>
+    </Flex>
+    <Card Padding="SpaceScale.Sm" Sx="Sidebar">
+        <Menu Placement="Placement.TopStart">
+            <Trigger Context="t">
+                <UserButton Name="@me.Name" Src="@me.Photo" @attributes="t"><Description>采购部 · 管理员</Description></UserButton>
+            </Trigger>
+            <ChildContent>@AccountMenu</ChildContent>
+        </Menu>
+    </Card>
+    <Small Tone="TextTone.Muted">@(signedOut ? "已退出登录" : "顶栏、只剩头像、侧栏底部三种写法")</Small>
+</Flex>
+
+@code {
+    readonly DemoPeople.Member me = DemoPeople.Members[0];
+    bool signedOut;
+
+    RenderFragment AccountMenu => @<text>
+        <MenuGroup Label="xiaoman@example.com">
+            <MenuLinkItem Icon="Lucide.UserRound" Href="components/avatar">个人资料</MenuLinkItem>
+            <MenuLinkItem Icon="Lucide.Palette" Href="guide/theming">外观设置</MenuLinkItem>
+        </MenuGroup>
+        <MenuSeparator />
+        <MenuItem Icon="Lucide.LogOut" Tone="Tone.Danger" @onclick="@(() => signedOut = true)">退出登录</MenuItem>
+    </text>;
+
+    static Style Sidebar => Css.Define(static () => new Style { Width = CssLength.Rem(16), MaxWidth = CssLength.Percent(100) });
+}

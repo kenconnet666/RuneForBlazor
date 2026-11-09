@@ -1,0 +1,66 @@
+@*
+    用户按钮（同 vue-tsx-pro 的 UserButton，参考 Mantine 的 UserButton）：头像 + 名字（可带一行说明）+ 展开箭头，
+    做账号菜单、切换账号的触发器；放在 AppShell 顶栏、侧栏底部。
+    <UserButton Name="林小满" />                                         顶栏的胶囊
+    <UserButton Name="林小满" Description="采购部 · 管理员" Src="@url" />  两行：名字与说明，占满宽度，箭头换成上下双箭头
+    <UserButton Name="林小满" Compact="true" />                          只剩头像（名字是按钮的名称）
+    未声明的属性落到按钮（ButtonBase）上：放进 Menu 的触发器时把触发属性交给它。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@{
+    var described = Description is not null;
+    var compact = Compact ?? Config.Defaults.Get<UserButtonDefaults>()?.Compact ?? false;
+    var parts = UserButtonStyles.Of(compact, described, Config.Styles);
+    var icon = Indicator ?? (described && !compact ? BuiltInIcons.ChevronsUpDown : BuiltInIcons.ChevronDown);
+}
+<ButtonBase aria-label="@(compact ? Name : null)" @attributes="Attrs.MergeProps(parts[UserButtonPart.Root], Rest)">
+    <Avatar Name="@Name" Src="@Src" Size="UI.Size.Sm" @attributes="Attrs.MergeProps(parts[UserButtonPart.Avatar], PropsAvatar)" />
+    @if (!compact)
+    {
+        <span @attributes="parts[UserButtonPart.Text]">
+            <span @attributes="Attrs.Merge(parts[UserButtonPart.Name], PropsName)">@Name</span>
+            @if (described)
+            {
+                <span @attributes="Attrs.Merge(parts[UserButtonPart.Description], PropsDescription)">@Description</span>
+            }
+        </span>
+        @if (!HideIndicator)
+        {
+            <Icon Data="icon" @attributes="Attrs.MergeProps(parts[UserButtonPart.Indicator], PropsIndicator)" />
+        }
+    }
+</ButtonBase>
+
+@code {
+    /// <summary>名字：显示在头像旁边；只剩头像时是按钮的名称。</summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+
+    /// <summary>名字下面的一行说明：部门、角色、邮箱。</summary>
+    [Parameter] public RenderFragment? Description { get; set; }
+
+    /// <summary>头像图片；没有时显示名字的首字母。</summary>
+    [Parameter] public string? Src { get; set; }
+
+    /// <summary>只显示头像（顶栏空间紧、侧栏收起时）；不写时取 UIConfig.Components 的默认值。</summary>
+    [Parameter] public bool? Compact { get; set; }
+
+    /// <summary>结束边的箭头；默认 ChevronDown，有说明时 ChevronsUpDown。</summary>
+    [Parameter] public IconData? Indicator { get; set; }
+
+    /// <summary>不要结束边的箭头。</summary>
+    [Parameter] public bool HideIndicator { get; set; }
+
+    /// <summary>头像（Avatar）的部件属性。</summary>
+    [Parameter] public Attrs? PropsAvatar { get; set; }
+
+    /// <summary>名字的部件属性。</summary>
+    [Parameter] public Attrs? PropsName { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>箭头（Icon）的部件属性。</summary>
+    [Parameter] public Attrs? PropsIndicator { get; set; }
+}

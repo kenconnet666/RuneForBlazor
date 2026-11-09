@@ -39,6 +39,7 @@ const BUILT_IN = [
   'chevron-up',
   'chevron-left',
   'chevron-right',
+  'chevrons-up-down',
   'ellipsis',
   'arrow-left',
   'arrow-right',

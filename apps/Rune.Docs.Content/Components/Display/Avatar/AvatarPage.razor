@@ -1,5 +1,5 @@
 @page "/components/avatar"
-@attribute [DocMeta("Avatar 头像", "用户、团队的头像：图片加载失败时显示首字母；头像组叠放并折叠成“+N”；角标（Indicator）标出未读数与在线状态。", DocCategory.Display, Order = 1)]
+@attribute [DocMeta("Avatar 头像", "用户、团队的头像：图片加载失败时显示首字母；头像组叠放并折叠成“+N”；角标（Indicator）标出未读数与在线状态；用户按钮（UserButton）做账号菜单的触发器。", DocCategory.Display, Order = 1)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Display.Avatar.Demo
 
@@ -8,6 +8,9 @@
         <ExampleColumn>
             <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
                 <Code>Name</Code> 是读屏念的名称，也用来生成首字母；图片还没加载好、加载失败时显示后备内容。<Code>Radius.Md</Code> 用于团队、组织；后备内容的 <Code>Variant</Code> 与 <Code>Tone</Code> 同 Badge。
+            </Example>
+            <Example Id="user-button" Title="用户按钮" Demo="typeof(AccountExample)">
+                <Code>UserButton</Code> 是头像 + 名字 + 箭头，做账号菜单的触发器（把 <Code>Trigger</Code> 的属性交给它）。没有说明时是一颗胶囊（顶栏）；写了 <Code>Description</Code> 是占满宽度的一行（侧栏底部），箭头换成上下双箭头；<Code>Compact</Code> 只剩头像，名字是按钮的名称。
             </Example>
         </ExampleColumn>
         <ExampleColumn>
@@ -19,5 +22,5 @@
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(Avatar), typeof(AvatarGroup<>), typeof(Indicator)]" />
+    <ApiReference Types="[typeof(Avatar), typeof(AvatarGroup<>), typeof(Indicator), typeof(UserButton)]" />
 </DocPage>

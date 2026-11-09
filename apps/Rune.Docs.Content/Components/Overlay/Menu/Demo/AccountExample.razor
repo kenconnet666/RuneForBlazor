@@ -3,11 +3,7 @@
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
     <Menu>
         <Trigger Context="t">
-            <ButtonBase Sx="TriggerStyle" @attributes="t">
-                <Avatar Name="林小满" Size="Size.Sm" />
-                <Strong Size="Size.Sm">林小满</Strong>
-                <Icon Data="Lucide.ChevronDown" Tone="TextTone.Muted" />
-            </ButtonBase>
+            <UserButton Name="林小满" @attributes="t" />
         </Trigger>
         <ChildContent>
             <MenuGroup Label="xiaoman@example.com">
@@ -25,16 +21,4 @@
 
 @code {
     bool signedOut;
-
-    static Style TriggerStyle => Css.Define(static () => new Style
-    {
-        Display = Display.InlineFlex,
-        AlignItems = AlignItems.Center,
-        Gap = Space.Sm,
-        PaddingBlock = Space.Xs,
-        PaddingInlineStart = Space.Xs,
-        PaddingInlineEnd = Space.Sm,
-        BorderRadius = Radii.Full,
-        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
-    });
 }
