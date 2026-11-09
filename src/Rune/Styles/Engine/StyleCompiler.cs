@@ -30,9 +30,9 @@ internal sealed class CompiledStyle(string className, string css)
 /// 后面的段不论特异性都盖过前面的段。第 k 段（k &gt; 0）输出它改到的属性所在的属性族（<see cref="FamilyOf"/>）在前 k + 1 段合并后的完整取值，
 /// 含它没改的条件值：每个属性族最高的那一层里总有这一族完整的合并结果，层里排出的规则与合成一个类时相同，语义逐字一致。
 /// 简写与长属性分在不同的段时靠属性族一起带（前段写 <c>outline</c>、后段写 <c>outline-color</c>，后段带上那条简写，顺序照常）。
-/// 合并只按“条件 + 属性”覆盖、没有“去掉属性”的写法，所以低层的条件取值不会漏上来，不需要 vue-tsx-pro 那样补 <c>revert</c>。
+/// 合并只在同一条件链里覆盖（含简写去掉被它重设的长属性，<see cref="MergeFragment"/>），前 k + 1 段的合并结果里没有的低层取值也不会漏上来，不需要 vue-tsx-pro 那样补 <c>revert</c>。
 /// </para>
-/// <para>合并：同一“条件 + 属性”后写的覆盖先写的；条件块之间互不影响（只改悬停时的颜色不会清掉默认颜色）。</para>
+/// <para>合并：同一“条件 + 属性”后写的覆盖先写的，后写的简写去掉同一条件里先写的长属性；条件块之间互不影响（只改悬停时的颜色不会清掉默认颜色）。</para>
 /// <para>
 /// 缓存分两层：
 /// <list type="number">
@@ -177,8 +177,39 @@ internal static class StyleCompiler
     static Dictionary<string, Dictionary<string, string>> FlattenAll(IEnumerable<Style> styles)
     {
         var blocks = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
-        foreach (var style in styles) Flatten(style, "", blocks);
+        foreach (var style in styles)
+        {
+            if (blocks.Count == 0)
+            {
+                Flatten(style, "", blocks);
+                continue;
+            }
+            var fragment = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
+            Flatten(style, "", fragment);
+            MergeFragment(blocks, fragment);
+        }
         return blocks;
+    }
+
+    /// <summary>
+    /// 后面的样式并进前面合并的结果：同一条件链里写了简写，就去掉前面写的、被它重设的长属性（同 CSS 的“后写的赢”）。
+    /// 不去掉的话两者进了同一个类，长属性排在简写后面（<see cref="StylePriority.OfProperty"/>），后写的 <c>Padding = 0</c> 反而盖不过组件的 <c>PaddingInline</c>。
+    /// 同一个样式里两者都写时仍是长属性赢。
+    /// </summary>
+    static void MergeFragment(Dictionary<string, Dictionary<string, string>> blocks, Dictionary<string, Dictionary<string, string>> fragment)
+    {
+        foreach (var (chain, declarations) in fragment)
+        {
+            if (!blocks.TryGetValue(chain, out var merged))
+            {
+                blocks[chain] = declarations;
+                continue;
+            }
+            foreach (var property in declarations.Keys)
+                foreach (var longhand in CssShorthands.CoveredBy(property))
+                    if (!declarations.ContainsKey(longhand)) merged.Remove(longhand);
+            foreach (var (property, value) in declarations) merged[property] = value;
+        }
     }
 
     /// <summary>声明表 → 第 segment 段的类：类名按内容哈希（第 0 段与不分段时相同；后面的段带上段号，同样的规则在不同的层里是不同的类）。</summary>

@@ -36,6 +36,29 @@ public class StyleCompilerTests
     }
 
     [Fact]
+    public void 后写的简写去掉前面样式里被它重设的长属性_同一条件里才去掉_同一个样式里仍是长属性赢()
+    {
+        var component = new Style
+        {
+            PaddingInlineEnd = 4,
+            Flex = "1",
+            FlexDirection = FlexDirection.Column,
+            [When.Hover] = new() { PaddingInlineEnd = 6 },
+        };
+        var css = Compile(component, new Style { Padding = 0, FlexGrow = 0 }).Css;
+
+        Assert.DoesNotContain("padding-inline-end:4px", css);
+        Assert.Contains("padding-inline-end:6px", css);
+        Assert.Contains("flex:1;", css);
+        Assert.Contains("flex-direction:column", css);
+
+        css = Compile(new Style { Padding = 0, PaddingInlineEnd = 4 }).Css;
+        Assert.Contains("padding-inline-end:4px", css);
+        Assert.Equal(["inset-block-start", "inset-block-end", "top", "bottom"], CssShorthands.CoveredBy("inset-block"));
+        Assert.Contains("padding-inline-start", CssShorthands.CoveredBy("padding"));
+    }
+
+    [Fact]
     public void 数字按属性补单位()
     {
         var css = Compile(new Style { Padding = 8, LineHeight = 1.5, TransitionDuration = 200, Opacity = 0 }).Css;
