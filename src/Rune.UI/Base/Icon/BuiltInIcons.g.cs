@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（84 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（87 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -80,6 +80,8 @@ public static partial class BuiltInIcons
     public static IconData Ellipsis => field ??= new("ellipsis", "<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/>");
     /// <summary>Lucide 图标 <c>ellipsis-vertical</c>（menu、options、spread、more、further、extra、overflow、dots）。</summary>
     public static IconData EllipsisVertical => field ??= new("ellipsis-vertical", "<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"12\" cy=\"5\" r=\"1\"/><circle cx=\"12\" cy=\"19\" r=\"1\"/>");
+    /// <summary>Lucide 图标 <c>eraser</c>（minus、remove、delete、cancel、erase、subtract、reduce、clear）。</summary>
+    public static IconData Eraser => field ??= new("eraser", "<path d=\"M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21\"/><path d=\"m5.082 11.09 8.828 8.828\"/>");
     /// <summary>Lucide 图标 <c>eye</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>
     public static IconData Eye => field ??= new("eye", "<path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>");
     /// <summary>Lucide 图标 <c>eye-off</c>（view、watch、see、show、expose、reveal、display、visible）。</summary>
@@ -138,6 +140,10 @@ public static partial class BuiltInIcons
     public static IconData PanelLeftOpen => field ??= new("panel-left-open", "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M9 3v18\"/><path d=\"m14 9 3 3-3 3\"/>");
     /// <summary>Lucide 图标 <c>party-popper</c>（emoji、congratulations、celebration、party、tada、🎉、🎊、excitement）。</summary>
     public static IconData PartyPopper => field ??= new("party-popper", "<path d=\"M5.8 11.3 2 22l10.7-3.79\"/><path d=\"M4 3h.01\"/><path d=\"M22 8h.01\"/><path d=\"M15 2h.01\"/><path d=\"M22 20h.01\"/><path d=\"m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10\"/><path d=\"m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17\"/><path d=\"m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7\"/><path d=\"M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z\"/>");
+    /// <summary>Lucide 图标 <c>pause</c>（suspend、hold、halt、wait、freeze、stop、break、interruption）。</summary>
+    public static IconData Pause => field ??= new("pause", "<rect x=\"14\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\"/><rect x=\"5\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\"/>");
+    /// <summary>Lucide 图标 <c>play</c>（start、run、running、execute、launch、resume、preview、begin）。</summary>
+    public static IconData Play => field ??= new("play", "<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\"/>");
     /// <summary>Lucide 图标 <c>plus</c>（plus、add、new、create、+、increase、increment、extra）。</summary>
     public static IconData Plus => field ??= new("plus", "<path d=\"M5 12h14\"/><path d=\"M12 5v14\"/>");
     /// <summary>Lucide 图标 <c>rotate-ccw</c>（arrow、left、counter-clockwise、restart、reload、rerun、refresh、backup）。</summary>

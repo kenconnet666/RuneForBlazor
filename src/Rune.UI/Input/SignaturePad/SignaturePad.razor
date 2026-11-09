@@ -1,0 +1,85 @@
+@*
+    手写签名（同 vue-tsx-pro 的 SignaturePad）：审批签字、签收、合同确认。canvas 上用指针（鼠标、笔、手指）写，笔画按速度粗细（写得快变细），
+    可以撤销上一笔、清空；值是透明底的 PNG（data URL），写了 Name 时随表单提交。只读时显示已签的图。
+    <Field Label="签收人签字"><SignaturePad @bind-Value="signature" Name="signature" /></Field>
+    <SignaturePad Value="@record.Signature" ReadOnly="true" />
+    画是 JS 初始化器做的（data-rune-signature）：不等往返，静态 SSR 也能签（值写进隐藏输入框随表单提交）；交互模式下每写完一笔经 rune-command 交给 C#。
+    PNG 按 CSS 尺寸导出（高分屏上也是 1 倍），一般十几 KB：Blazor Server 单条消息默认上限 32 KB，画布很大时调高 MaximumReceiveMessageSize。
+    外框是输入框的外壳（边框、悬停、焦点环、出错、不可用、只读一样），底色与墨色是“纸面”：深色主题下仍是白底深色，导出的图放到白纸上看得见。
+    父级换了 Value（编辑页读回的旧签名）时把它画上，可以接着写或清空。写字只能靠指针（签名本身就是手写）：撤销、清空是按钮，键盘照常可用；
+    画布是 role="img"，读屏念名称与“已签名 / 未签名”。未声明的属性落到外壳上；名称写 aria-label，或放在 Field 里。
+*@
+@namespace Rune.UI
+@inherits InputControl<string?>
+
+@{
+    var writable = !IsDisabled && !IsReadOnly;
+    var parts = SignaturePadStyles.Of(writable, Config.Styles);
+    var shell = InputStyles.Of(Appearance with { Size = null, Attached = null }, Config.Styles)[InputPart.Root];
+    var signed = !string.IsNullOrEmpty(CurrentValue);
+    var lang = Config.Lang;
+}
+<div data-rune-signature data-value="@CurrentValue" data-writable="@writable" data-signed="@signed" data-disabled="@IsDisabled" data-invalid="@IsInvalid"
+     data-pen-color="@PenColor?.ToString()" data-min-width="@MinWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+     data-max-width="@MaxWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)" @onrunecommand="OnCommandAsync"
+     @attributes="Attrs.Merge(Attrs.Layer(shell, parts[SignaturePadPart.Root], HeightVars), RootAttrs)">
+    <canvas id="@ControlId" role="img" aria-labelledby="@Field?.LabelId" aria-label="@(Field?.LabelId is null ? AriaLabel ?? lang.Signature : null)"
+            aria-describedby="@DescribedBy" @attributes="Attrs.Merge(parts[SignaturePadPart.Canvas], PropsCanvas)"></canvas>
+    <span id="@statusId" hidden>@(signed ? lang.SignatureSigned : lang.SignatureEmpty)</span>
+    <span aria-hidden="true" @attributes="parts[SignaturePadPart.Placeholder]">@(writable ? lang.SignaturePlaceholder : lang.SignatureEmpty)</span>
+    @if (writable)
+    {
+        <div @attributes="parts[SignaturePadPart.Toolbar]">
+            <IconButton Icon="BuiltInIcons.Undo2" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@lang.SignatureUndo"
+                        data-signature-action="undo" @attributes="Attrs.MergeProps(null, PropsUndo)" />
+            <IconButton Icon="BuiltInIcons.Eraser" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@lang.SignatureClear"
+                        data-signature-action="clear" @attributes="Attrs.MergeProps(null, PropsClear)" />
+        </div>
+    }
+    @* 没签时也在：静态 SSR 下 JS 把值直接写进它，随表单提交 *@
+    @if (FieldName is { } name)
+    {
+        <input type="hidden" name="@name" value="@CurrentValue" disabled="@IsDisabled" />
+    }
+</div>
+
+@code {
+    readonly string statusId = UniqueId.Next("signature-status");
+    Memo<CssLength, Attrs> heightVars;
+
+    /// <summary>画布的高度，默认 10rem；宽度占满。</summary>
+    [Parameter] public CssLength? Height { get; set; }
+
+    /// <summary>墨色；默认是纸面的墨色。</summary>
+    [Parameter] public CssColor? PenColor { get; set; }
+
+    /// <summary>最细的笔宽（px），默认 0.75。</summary>
+    [Parameter] public double MinWidth { get; set; } = 0.75;
+
+    /// <summary>最粗的笔宽（px），默认 2.75。</summary>
+    [Parameter] public double MaxWidth { get; set; } = 2.75;
+
+    /// <summary>画布（canvas）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCanvas { get; set; }
+
+    /// <summary>撤销按钮（IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsUndo { get; set; }
+
+    /// <summary>清空按钮（IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsClear { get; set; }
+
+    string? AriaLabel => AdditionalAttributes?.TryGetValue("aria-label", out var label) == true ? label as string : null;
+
+    // aria-label 是画布的名称，不写在外壳上
+    Attrs RootAttrs => Attrs.Layer(RootUserAttrs, InputUserAttrs.Without("aria-label", "id", "name"));
+
+    string DescribedBy => Field?.DescribedBy is { } described ? $"{statusId} {described}" : statusId;
+
+    Attrs HeightVars => Height is { } height ? heightVars.Get(height, static h => new Attrs { Vars = [SignaturePadStyles.HeightVar.Set(h)] }) : Attrs.Empty;
+
+    async Task OnCommandAsync(CommandEventArgs e)
+    {
+        if (e.Name != "signature") return;
+        await SetValueAsync(string.IsNullOrEmpty(e.Text) ? null : e.Text);
+    }
+}

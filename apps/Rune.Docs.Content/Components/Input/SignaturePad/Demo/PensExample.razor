@@ -1,0 +1,31 @@
+@* 换墨色与笔宽；签好的值是 PNG 的 data URL，可以直接下载 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <ToggleGroup @bind-Value="pen" Required="true" Size="Size.Sm" aria-label="笔">
+        @foreach (var (key, item) in pens)
+        {
+            <ToggleItem @key="key" Value="@key">@item.Label</ToggleItem>
+        }
+    </ToggleGroup>
+    <SignaturePad @bind-Value="signature" PenColor="@Current.Color" MinWidth="Current.Min" MaxWidth="Current.Max" aria-label="签名" />
+    <Flex Gap="SpaceScale.Xs">
+        <LinkButton Href="@(signature ?? "#")" Disabled="signature is null" Size="Size.Sm" Variant="ButtonVariant.Soft" Icon="Lucide.Download" download="signature.png">下载 PNG</LinkButton>
+    </Flex>
+</Flex>
+
+@code {
+    sealed record Pen(string Label, string Color, double Min, double Max);
+
+    static readonly Dictionary<string, Pen> pens = new()
+    {
+        ["ink"] = new("墨黑", "#1c2024", 0.75, 2.75),
+        ["blue"] = new("签字笔蓝", "#1d4ed8", 0.6, 2.2),
+        ["marker"] = new("马克笔", "#b91c1c", 2.5, 5),
+    };
+
+    string? pen = "ink";
+    string? signature;
+
+    Pen Current => pens[pen ?? "ink"];
+}

@@ -91,6 +91,9 @@ const BUILT_IN = [
   'zoom-out',
   'rotate-ccw',
   'undo-2',
+  'eraser',
+  'pause',
+  'play',
   'download',
   // Result 的常见状态：403、404、500
   'shield-x',

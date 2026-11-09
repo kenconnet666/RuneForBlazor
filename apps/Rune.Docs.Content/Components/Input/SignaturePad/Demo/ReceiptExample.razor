@@ -1,0 +1,32 @@
+@* 签收：签了字才能确认；确认后用只读的 SignaturePad 显示签好的图 *@
+@inherits RuneComponent
+
+@if (confirmedAt is { } at)
+{
+    <Card Padding="SpaceScale.Md">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <TextSpan Weight="Weight.Semibold">已签收</TextSpan>
+            <SignaturePad Value="@signature" ReadOnly="true" Height="CssLength.Rem(7)" aria-label="签收人签字" />
+            <Flex Justify="ContentJustify.Between" Align="ItemAlign.Center">
+                <Small Tone="TextTone.Muted"><DateTimeText Value="at" /></Small>
+                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" @onclick="Reset">重新签收</Button>
+            </Flex>
+        </Flex>
+    </Card>
+}
+else
+{
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+        <Field Label="签收人签字" Description="用鼠标、触控笔或手指写" Required="true">
+            <SignaturePad @bind-Value="signature" Name="signature" />
+        </Field>
+        <Button Disabled="signature is null" @onclick="() => confirmedAt = DemoClock.Now">确认签收</Button>
+    </Flex>
+}
+
+@code {
+    string? signature;
+    DateTimeOffset? confirmedAt;
+
+    void Reset() => (confirmedAt, signature) = (null, null);
+}

@@ -1,0 +1,28 @@
+@page "/components/signature-pad"
+@attribute [DocMeta("SignaturePad 手写签名", "审批签字、签收、合同确认：用鼠标、触控笔或手指写，笔画按速度粗细；可以撤销、清空，值是透明底的 PNG，随表单提交。", DocCategory.Input, Order = 17)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.SignaturePad.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="receipt" Title="签收" Demo="typeof(ReceiptExample)">
+                <Code>@@bind-Value</Code> 是透明底的 PNG（data URL），每写完一笔更新；没签时是 null。写了 <Code>Name</Code> 时随表单提交（静态 SSR 也能签：画与写值都在浏览器里做）。
+                外框是输入框的外壳：放在 <Code>Field</Code> 里跟着它的必填、出错、不可用；<Code>ReadOnly</Code> 只显示签好的图。
+                底色与墨色是“纸面”：深色主题下仍是白底深色，导出的图放到白纸上也看得见。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="pens" Title="墨色与笔宽" Demo="typeof(PensExample)">
+                <Code>PenColor</Code> 换墨色；<Code>MinWidth</Code>、<Code>MaxWidth</Code> 是笔宽的范围（px）：写得快变细、慢变粗。
+                PNG 按 CSS 尺寸导出（高分屏上也是 1 倍），一般十几 KB；Blazor Server 单条消息默认上限 32 KB，画布很大时调高 <Code>MaximumReceiveMessageSize</Code>。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("Tab", "移到“撤销上一笔”“清空签名”按钮（签了之后才有）"),
+    ])">
+        写字只能靠指针（签名本身就是手写）；画布是 role="img"，读屏念名称与“已签名 / 未签名”。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(SignaturePad)]" />
+</DocPage>
