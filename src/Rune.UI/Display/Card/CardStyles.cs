@@ -125,7 +125,7 @@ public static class CardStyles
         {
             CardPart.Root => Sx.Of(Root, Variant(a.Variant), ScaleStyles.Radius(a.Radius), a.Effect is null ? null : FillFrame),
             CardPart.Header => Sx.Of(Header, a.HasExtra ? HeaderWithExtra : null, ScaleStyles.Padding(a.Padding)),
-            CardPart.Body => ScaleStyles.Padding(a.Padding),
+            CardPart.Body => Sx.Of(Body, ScaleStyles.Padding(a.Padding)),
             CardPart.Footer => Sx.Of(Footer, ScaleStyles.Padding(a.Padding)),
             CardPart.Skeleton => Sx.Of(),
             CardPart.Frame => Sx.Of(Frame, ScaleStyles.Radius(a.Radius), a.Effect == CardEffect.Tilt ? Tilt : null),
@@ -173,6 +173,9 @@ public static class CardStyles
         JustifyContent = JustifyContent.SpaceBetween,
         Gap = Space.Sm,
     });
+
+    // 正文撑开：网格里被拉齐的几张卡片，页脚都贴着底边对齐
+    static Style Body => Css.Define(static () => new Style { FlexGrow = 1 });
 
     static Style Footer => Css.Define(static () => new Style
     {

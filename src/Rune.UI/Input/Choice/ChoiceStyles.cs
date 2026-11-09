@@ -104,10 +104,12 @@ public static class ChoiceStyles
     public static readonly CssVar<CssLength> CardMinItemWidth = CssVar.Length("rune-choice-min-item-width");
 
     // 控件与文字一行，整块可点；点击区域不小于 24px（WCAG 2.5.8）
+    // 按基线排、控件自己贴顶（Control）：整块的基线取文字的，表单里起始边的标签（Field 按基线对齐）与文字对齐，
+    // 而不是与方框、轨道的底边对齐
     static Style Root => Css.Define(static () => new Style
     {
         Display = Display.InlineFlex,
-        AlignItems = AlignItems.FlexStart,
+        AlignItems = AlignItems.Baseline,
         Gap = Space.Sm,
         MinHeight = Sizes.MinTarget,
         LineHeight = LineHeights.Normal,
@@ -124,6 +126,7 @@ public static class ChoiceStyles
     {
         Display = Display.InlineGrid,
         PlaceItems = PlaceItems.Center,
+        AlignSelf = AlignSelf.FlexStart,
         FlexShrink = 0,
         MinHeight = CssLength.Em(1.5),
     });
@@ -329,7 +332,8 @@ public static class ChoiceStyles
     static Style CardLabel => Css.Define(static () => new Style { FlexGrow = 1 });
 
     // 排在横排、竖排的 flex 后面，盖过它
-    static Style CardGroup => Css.Define(static () => new Style { Display = Display.Grid, Gap = Space.Sm });
+    // 卡片一样高：盖过横排的竖直居中
+    static Style CardGroup => Css.Define(static () => new Style { Display = Display.Grid, Gap = Space.Sm, AlignItems = AlignItems.Stretch });
 
     static Style CardColumns => Css.Define(static () => new Style
     {
@@ -338,12 +342,15 @@ public static class ChoiceStyles
 
     static Style VerticalGroup => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Xs });
 
+    // 横排：至少与单行控件一样高、内容竖直居中——和输入框、选择框放在同一排（查询栏、表单）时文字在一条线上
     static Style HorizontalGroup => Css.Define(static () => new Style
     {
         Display = Display.Flex,
         FlexWrap = FlexWrap.Wrap,
+        AlignItems = AlignItems.Center,
         ColumnGap = Space.Lg,
         RowGap = Space.Xs,
+        MinHeight = Sizes.Control,
     });
 }
 

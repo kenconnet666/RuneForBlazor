@@ -1,7 +1,7 @@
 @*
     外壳顶栏的品牌（同 vue-tsx-pro 的 AppShellBrand）：品牌色的标志（装饰，对读屏隐藏）与产品名，名字就是链接的名称，点了回首页。
     放在 AppShell 的 Brand 里：<AppShellBrand Href="" Icon="Lucide.Boxes">采购管理平台</AppShellBrand>；自己的标志图写在 Logo 里。
-    侧栏收起成图标栏时只剩标志，产品名留给读屏。未声明的属性落到链接（a）上。
+    侧栏收起成图标栏时品牌格不放它（只有展开按钮）。未声明的属性落到链接（a）上。
 *@
 @namespace Rune.UI
 @inherits UIComponent
@@ -16,13 +16,12 @@
     {
         <Icon Data="Icon" @attributes="Attrs.MergeProps(MarkLayer, PropsIcon)" />
     }
-    <span @attributes="Attrs.Merge(Shell?.Collapsed == true ? NameCollapsedLayer : null)">@ChildContent</span>
+    @ChildContent
 </a>
 
 @code {
     static readonly Attrs RootLayer = new() { Sx = Sx.Of(Root, SharedStyles.FocusRing) };
     static readonly Attrs MarkLayer = new() { Sx = Mark };
-    static readonly Attrs NameCollapsedLayer = new() { Sx = AppShellStyles.BrandNameCollapsed };
 
     /// <summary>点了去哪儿（相对 &lt;base href&gt;），一般是首页（空字符串）。</summary>
     [Parameter, EditorRequired] public string Href { get; set; } = "";
@@ -38,8 +37,6 @@
 
     /// <summary>产品名。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-
-    [CascadingParameter] AppShellContext? Shell { get; set; }
 
     static Style Root => Css.Define(static () => new Style
     {

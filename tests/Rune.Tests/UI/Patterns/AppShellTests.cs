@@ -73,7 +73,7 @@ public class AppShellTests : BunitContext
     }
 
     [Fact]
-    public void 收起侧栏_导航变紧凑_品牌名只留给读屏_抽屉里仍完整()
+    public void 收起侧栏_按钮在品牌格里_导航变紧凑_品牌格只剩展开按钮_抽屉里仍完整()
     {
         var collapsed = false;
         var cut = Render<AppShell>(p => p
@@ -82,8 +82,9 @@ public class AppShellTests : BunitContext
             .Add(x => x.SidebarCollapsible, true)
             .Add(x => x.SidebarCollapsed, collapsed)
             .Add(x => x.SidebarCollapsedChanged, (bool v) => collapsed = v));
-        var name = cut.Find("header a span");
-        var expandedClass = name.ClassName;
+        var brand = cut.Find("[data-scope=app-shell][data-part=brand]");
+        Assert.NotNull(brand.QuerySelector("a"));
+        Assert.Equal("collapseButton", brand.QuerySelector("button")!.GetAttribute("data-part"));
         Assert.Null(cut.Find("nav").GetAttribute("data-compact"));
 
         cut.Find("button[aria-label='收起侧栏']").Click();
@@ -96,8 +97,9 @@ public class AppShellTests : BunitContext
         Assert.Equal(2, navs.Count);
         Assert.True(navs[0].HasAttribute("data-compact"));
         Assert.False(navs[1].HasAttribute("data-compact"));
-        Assert.NotEqual(expandedClass, cut.Find("header a span").ClassName);
-        Assert.NotNull(cut.Find("button[aria-label='展开侧栏']"));
+        brand = cut.Find("[data-scope=app-shell][data-part=brand]");
+        Assert.Null(brand.QuerySelector("a"));
+        Assert.NotNull(brand.QuerySelector("button[aria-label='展开侧栏']"));
     }
 
     [Fact]

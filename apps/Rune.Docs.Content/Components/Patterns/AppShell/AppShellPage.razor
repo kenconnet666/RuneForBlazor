@@ -10,7 +10,7 @@
         顶栏结束边默认有全屏按钮（<Code>Fullscreenable</Code>）：进入后不显示顶栏和左侧栏，正文占满窗口，同时请求浏览器全屏；右上角留一个退出按钮，Esc 也退出。<Code>@@bind-Fullscreen</Code> 可以双向绑定。隐藏的顶栏和侧栏留在页面里，退出后滚动位置、展开的分组都还在。浏览器不让全屏时（如 iframe 没写 <Code>allow="fullscreen"</Code>）照样隐藏这两块。收起与全屏的状态在 C#，静态 SSR 时不显示这两个按钮。
     </Example>
     <Example Id="mixed" Title="混合布局" Demo="typeof(Frames.Mixed)" Frame="40rem">
-        顶栏放一级导航（<Code>Nav</Code>），侧栏放当前模块的二级导航，正文下面是页脚（<Code>Footer</Code>）。只要顶部导航时不写 <Code>Sidebar</Code> 即可。<Code>SidebarCollapsible</Code> 在侧栏底部加“收起侧栏”按钮，宽屏时把侧栏收成只有图标的窄栏（<Code>NavList</Code> 自动换成紧凑样式，分组悬停弹出子项），品牌格只剩标志；<Code>@@bind-SidebarCollapsed</Code> 可以双向绑定，存起来记住各人的设置。
+        顶栏放一级导航（<Code>Nav</Code>），侧栏放当前模块的二级导航，正文下面是页脚（<Code>Footer</Code>）。只要顶部导航时不写 <Code>Sidebar</Code> 即可。<Code>SidebarCollapsible</Code> 在品牌格的结束边加“收起侧栏”按钮（只在宽屏），把侧栏收成只有图标的窄栏（<Code>NavList</Code> 自动换成紧凑样式，分组悬停弹出子项），品牌格只放展开按钮；<Code>@@bind-SidebarCollapsed</Code> 可以双向绑定，存起来记住各人的设置。
     </Example>
     <ApiReference Types="[typeof(AppShell), typeof(AppShellBrand)]" />
 </DocPage>

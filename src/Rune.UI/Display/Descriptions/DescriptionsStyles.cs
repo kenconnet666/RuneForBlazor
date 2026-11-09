@@ -208,8 +208,10 @@ public static class DescriptionsStyles
     // 暗色主题的 SurfaceMuted 与 Surface 同色，标签格要在两种模式下都看得出来
     static Style LabelBordered => Css.Define(static () => new Style { BackgroundColor = Colors.Fill, MinWidth = CssLength.Em(8) });
 
+    // 占满标签后剩下的宽度：值是表格、可滚动的块时不被压到最窄
     static Style Value => Css.Define(static () => new Style
     {
+        FlexGrow = 1,
         MinWidth = 0,
         Margin = 0,
         Color = Colors.Text,

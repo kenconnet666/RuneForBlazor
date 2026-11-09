@@ -15,7 +15,7 @@
     整页与两侧栏都是浮层滚动条（PageScrollbar、ScrollArea）：不占宽度，滚动时出现；PageScrollbar="false" 时用浏览器原生的。
     写了 Brand 时，侧栏常驻的宽度下品牌格与侧栏同宽，侧栏的竖线一直延伸到顶栏顶端，Header 的内容与正文的起始边对齐。
     Nav：顶栏里品牌后面的导航；只有它时是顶部导航布局，和 Sidebar 一起时是混合布局（顶栏一级、侧栏二级）。Footer：正文下面的页脚。
-    SidebarCollapsible：侧栏底部有“收起侧栏”，收起后只剩图标栏（宽屏时；NavList 变紧凑、分组悬停弹出，品牌格只剩标志），@bind-SidebarCollapsed 记住。
+    SidebarCollapsible：宽屏时品牌格的结束边有“收起侧栏”，收起后只剩图标栏（NavList 变紧凑、分组悬停弹出），品牌格变窄、只放展开按钮（不放标志），@bind-SidebarCollapsed 记住；没写 Brand 时也有这一格放按钮。
     全屏（Fullscreenable，默认开，手机宽度不显示）：进入后不显示顶栏和左侧栏，正文占满窗口，同时请求浏览器全屏；右上角留一个退出按钮，Esc 也退出。
     @bind-Fullscreen 双向绑定；浏览器不让全屏时（iframe 没有 allow="fullscreen"）照样隐藏这两块。收起与全屏要交互模式，静态 SSR 时不显示这两个按钮。
     自带 SkipLink（跳到正文）；顶栏的高度经 LayoutVars.StickyOffset 交给里面的标题，锚点跳转后不被顶栏挡住。
@@ -37,31 +37,40 @@
     {
         <PageScrollbar />
     }
-    <CascadingValue Value="AppShellContext.Of(Collapsed)">
-        <header @attributes="Attrs.Merge(parts[AppShellPart.Header], PropsHeader)">
-            @if (Sidebar is not null)
-            {
-                <IconButton Icon="BuiltInIcons.Menu" Label="@lang.NavigationOpen" @attributes="Attrs.MergeProps(parts[AppShellPart.MenuButton], PropsMenuButton, MenuManaged)" />
-            }
-            @if (Brand is not null)
-            {
-                <div @attributes="Attrs.Merge(parts[AppShellPart.Brand], PropsBrand)">@Brand</div>
-            }
-            @if (Nav is not null)
-            {
-                <div @attributes="Attrs.Merge(parts[AppShellPart.Nav], PropsNav)">@Nav</div>
-            }
-            <div @attributes="Attrs.Merge(parts[AppShellPart.HeaderContent], PropsHeaderContent)">
-                <div @attributes="Attrs.Merge(parts[AppShellPart.HeaderMain])">@Header</div>
-                @* 放在内容格里：和顶栏的工具同一个间距，顶栏自己的列间距是给品牌格对齐用的 *@
-                @if (Fullscreenable && CanInteract)
+    <header @attributes="Attrs.Merge(parts[AppShellPart.Header], PropsHeader)">
+        @if (Sidebar is not null)
+        {
+            <IconButton Icon="BuiltInIcons.Menu" Label="@lang.NavigationOpen" @attributes="Attrs.MergeProps(parts[AppShellPart.MenuButton], PropsMenuButton, MenuManaged)" />
+        }
+        @if (BrandCell)
+        {
+            <div @attributes="Attrs.Merge(parts[AppShellPart.Brand], PropsBrand)">
+                @if (!Collapsed)
                 {
-                    <IconButton Icon="BuiltInIcons.Maximize" Label="@lang.FullscreenEnter" title="@lang.FullscreenEnter" @onclick="() => fullscreen.SetAsync(true)"
-                                @attributes="Attrs.MergeProps(parts[AppShellPart.FullscreenButton], PropsFullscreenButton)" />
+                    @Brand
+                }
+                @if (Collapsible)
+                {
+                    <IconButton Icon="@(sidebarCollapsed.Value ? BuiltInIcons.PanelLeftOpen : BuiltInIcons.PanelLeftClose)" Size="UI.Size.Sm" PropsIcon="FlipLayer"
+                                Label="@(sidebarCollapsed.Value ? lang.SidebarExpand : lang.SidebarCollapse)" @onclick="() => sidebarCollapsed.SetAsync(!sidebarCollapsed.Value)"
+                                @attributes="Attrs.MergeProps(parts[AppShellPart.CollapseButton], PropsCollapse)" />
                 }
             </div>
-        </header>
-    </CascadingValue>
+        }
+        @if (Nav is not null)
+        {
+            <div @attributes="Attrs.Merge(parts[AppShellPart.Nav], PropsNav)">@Nav</div>
+        }
+        <div @attributes="Attrs.Merge(parts[AppShellPart.HeaderContent], PropsHeaderContent)">
+            <div @attributes="Attrs.Merge(parts[AppShellPart.HeaderMain])">@Header</div>
+            @* 放在内容格里：和顶栏的工具同一个间距，顶栏自己的列间距是给品牌格对齐用的 *@
+            @if (Fullscreenable && CanInteract)
+            {
+                <IconButton Icon="BuiltInIcons.Maximize" Label="@lang.FullscreenEnter" title="@lang.FullscreenEnter" @onclick="() => fullscreen.SetAsync(true)"
+                            @attributes="Attrs.MergeProps(parts[AppShellPart.FullscreenButton], PropsFullscreenButton)" />
+            }
+        </div>
+    </header>
     @if (fullscreen.Value)
     {
         <IconButton Icon="BuiltInIcons.Minimize" Label="@lang.FullscreenExit" title="@lang.FullscreenExit" @onclick="() => fullscreen.SetAsync(false)"
@@ -74,14 +83,6 @@
                 <ScrollArea PropsViewport="RailViewportLayer" PropsContent="SidebarContentLayer" @attributes="Attrs.MergeProps(parts[AppShellPart.SidebarScroll], PropsSidebarScroll)">
                     <CascadingValue Value="NavListContext.Of(Collapsed)">@Sidebar</CascadingValue>
                 </ScrollArea>
-                @if (SidebarCollapsible && CanInteract)
-                {
-                    <div @attributes="Attrs.Merge(parts[AppShellPart.CollapseBar])">
-                        <IconButton Icon="@(sidebarCollapsed.Value ? BuiltInIcons.PanelLeftOpen : BuiltInIcons.PanelLeftClose)" Size="UI.Size.Sm" PropsIcon="FlipLayer"
-                                    Label="@(sidebarCollapsed.Value ? lang.SidebarExpand : lang.SidebarCollapse)" @onclick="() => sidebarCollapsed.SetAsync(!sidebarCollapsed.Value)"
-                                    @attributes="Attrs.MergeProps(null, PropsCollapse)" />
-                    </div>
-                }
             </div>
         }
         <div @attributes="Attrs.Merge(parts[AppShellPart.Column])">
@@ -151,7 +152,7 @@
     /// <summary>抽屉打开或关上了。</summary>
     [Parameter] public EventCallback<bool> SidebarOpenChanged { get; set; }
 
-    /// <summary>侧栏底部有“收起侧栏”按钮：收起后只剩图标栏（NavList 变紧凑，分组的子项悬停弹出）。</summary>
+    /// <summary>宽屏时品牌格里有“收起侧栏”按钮：收起后只剩图标栏（NavList 变紧凑，分组的子项悬停弹出）。</summary>
     [Parameter] public bool SidebarCollapsible { get; set; }
 
     /// <summary>侧栏收起了（<c>@bind-SidebarCollapsed</c>，存起来记住各人的设置）。</summary>
@@ -230,12 +231,18 @@
     Bindable<bool> fullscreen { get => field ??= new(this, () => Fullscreen, () => FullscreenChanged); }
 
     // 收起成图标栏（宽屏时；窄屏时侧栏在抽屉里，抽屉总是完整的，样式都在 Lg 断点以上）
+    // 侧栏能收起：品牌格里有收起、展开按钮（静态渲染时点不了，不出按钮）
+    bool Collapsible => Sidebar is not null && SidebarCollapsible && CanInteract;
+
+    // 没写 Brand 时也给出品牌格放收起按钮
+    bool BrandCell => Brand is not null || Collapsible;
+
     bool Collapsed => Sidebar is not null && SidebarCollapsible && sidebarCollapsed.Value;
 
     // 收起、全屏的状态在 C#：交互模式（含即将接管的预渲染）才有用
     bool CanInteract => RendererInfo.IsInteractive || AssignedRenderMode is not null;
 
-    AppShellStyles.ShellState State => new(Brand is not null, Sidebar is not null, Aside is not null, Nav is not null, SidebarCollapsible, Collapsed, fullscreen.Value);
+    AppShellStyles.ShellState State => new(BrandCell, Brand is null, Sidebar is not null, Aside is not null, Nav is not null, Collapsed, fullscreen.Value);
 
     Attrs RootManaged => new() { ["data-rune-fullscreen"] = Fullscreenable || fullscreen.Value ? (fullscreen.Value ? "true" : "false") : null };
 

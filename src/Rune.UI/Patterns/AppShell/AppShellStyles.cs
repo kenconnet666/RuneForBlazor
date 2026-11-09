@@ -41,8 +41,8 @@ public enum AppShellPart
     /// <summary>左侧栏里的滚动区域（ScrollArea 组件）。</summary>
     SidebarScroll,
 
-    /// <summary>左侧栏底部放“收起侧栏”按钮的一条（div）。</summary>
-    CollapseBar,
+    /// <summary>品牌格里收起、展开侧栏的按钮（IconButton 组件，只在侧栏常驻的宽屏显示）。</summary>
+    CollapseButton,
 
     /// <summary>正文那一列：正文与页脚（div）。</summary>
     Column,
@@ -82,14 +82,14 @@ public static class AppShellStyles
     public const string WideQuery = "(min-width: 64rem)";
 
     /// <summary>外壳的布局状态（配方的键）。</summary>
-    /// <param name="Brand">写了品牌。</param>
+    /// <param name="Brand">有品牌格（写了品牌，或侧栏可以收起：放收起按钮）。</param>
+    /// <param name="ButtonOnly">品牌格里只有收起按钮（没写品牌）：窄屏时侧栏在抽屉里，这一格不显示。</param>
     /// <param name="Sidebar">有左侧栏（全屏时也算：侧栏留在页面里，只是藏起来）。</param>
     /// <param name="Aside">有右侧栏。</param>
     /// <param name="Nav">顶栏里有导航。</param>
-    /// <param name="Collapsible">侧栏可以收起。</param>
     /// <param name="Collapsed">侧栏收起成了图标栏。</param>
     /// <param name="Fullscreen">全屏中：不显示顶栏和左侧栏。</param>
-    public readonly record struct ShellState(bool Brand, bool Sidebar, bool Aside, bool Nav, bool Collapsible, bool Collapsed, bool Fullscreen);
+    public readonly record struct ShellState(bool Brand, bool ButtonOnly, bool Sidebar, bool Aside, bool Nav, bool Collapsed, bool Fullscreen);
 
     /// <summary>某种布局状态、某套定制下各部件的默认层。</summary>
     public static PartLayers<AppShellPart> Of(ShellState state, ComponentStyles styles) =>
@@ -98,16 +98,16 @@ public static class AppShellStyles
             AppShellPart.Root => Sx.Of(Root, s.Fullscreen ? FullscreenOffset : HeaderOffset),
             AppShellPart.Header => Sx.Of(Header, s.Brand && s.Sidebar ? HeaderWithBrand : null, s.Fullscreen ? Hidden : null),
             AppShellPart.MenuButton => MenuButton,
-            AppShellPart.Brand => Sx.Of(Brand, s.Sidebar ? BrandRail : null, s.Collapsed ? BrandRailCollapsed : null),
+            AppShellPart.Brand => Sx.Of(Brand, s.Sidebar ? BrandRail : null, s.Collapsed ? BrandRailCollapsed : null, s.Brand && s.ButtonOnly ? BrandOnlyWide : null),
             AppShellPart.Nav => Nav,
             AppShellPart.HeaderContent => Sx.Of(HeaderContent, s.Nav ? HeaderContentAfterNav : null),
             AppShellPart.HeaderMain => HeaderContent,
             AppShellPart.FullscreenButton => FullscreenButton,
             AppShellPart.FullscreenExit => FullscreenExit,
             AppShellPart.Body => Sx.Of(Body, Columns(s.Sidebar && !s.Fullscreen, s.Aside, s.Collapsed)),
-            AppShellPart.Sidebar => Sx.Of(Rail, Sidebar, s.Collapsible ? SidebarColumn : null, s.Fullscreen ? SidebarHidden : null),
-            AppShellPart.SidebarScroll => Sx.Of(RailScroll, s.Collapsible ? SidebarScroll : null),
-            AppShellPart.CollapseBar => Sx.Of(CollapseBar, s.Collapsed ? CollapseBarCollapsed : null),
+            AppShellPart.Sidebar => Sx.Of(Rail, Sidebar, s.Fullscreen ? SidebarHidden : null),
+            AppShellPart.SidebarScroll => RailScroll,
+            AppShellPart.CollapseButton => Sx.Of(CollapseButton, s.Collapsed ? CollapseButtonCentered : null),
             AppShellPart.Column => Column,
             AppShellPart.Main => Main,
             AppShellPart.Footer => Footer,
@@ -124,25 +124,6 @@ public static class AppShellStyles
 
     /// <summary>右侧栏滚动区域的内容层。</summary>
     internal static Style AsideContent => Css.Define(static () => new Style { PaddingBlock = Space.Xl, PaddingInline = Space.Lg });
-
-    /// <summary>品牌的产品名：侧栏收起成图标栏（宽屏）时只留给读屏。</summary>
-    internal static Style BrandNameCollapsed => Css.Define(static () => new Style
-    {
-#pragma warning disable RUNE007 // 同 SharedStyles.VisuallyHidden，只在宽屏时
-        [Breakpoints.Lg] = new()
-        {
-            Position = Position.Absolute,
-            Width = 1,
-            Height = 1,
-            Padding = 0,
-            Margin = -1,
-            Overflow = Overflow.Hidden,
-            Clip = "rect(0, 0, 0, 0)",
-            WhiteSpace = WhiteSpace.Nowrap,
-            BorderWidth = 0,
-        },
-#pragma warning restore RUNE007
-    });
 
     // 栅格的列：侧栏（常驻的宽度以上）、正文、右栏（更宽时）；一个属性上两个断点时窄的一档用 LgOnly，不和 Xl 重叠
     static Style? Columns(bool sidebar, bool aside, bool collapsed) => (sidebar, aside) switch
@@ -335,31 +316,27 @@ public static class AppShellStyles
         [Breakpoints.Lg] = new() { Display = Display.Block },
     });
 
-    // 有收起按钮的侧栏：滚动区域占满剩下的高度，按钮在最下面
-    static Style SidebarColumn => Css.Define(static () => new Style
-    {
-        FlexDirection = FlexDirection.Column,
-        [Breakpoints.Lg] = new() { Display = Display.Flex },
-    });
-
-    static Style SidebarScroll => Css.Define(static () => new Style { FlexGrow = 1, MinHeight = 0, Height = CssLength.Auto });
-
     static Style SidebarContentFull => Css.Define(static () => new Style { PaddingBlock = Space.Xl, PaddingInline = Space.Md });
 
     static Style SidebarContentCompact => Css.Define(static () => new Style { PaddingBlock = Space.Xl, PaddingInline = Space.Xs });
 
-    static Style CollapseBar => Css.Define(static () => new Style
+    // 收起、展开侧栏的按钮：在品牌格的结束边，只在侧栏常驻的宽屏显示（窄屏时侧栏在抽屉里）
+    static Style CollapseButton => Css.Define(static () => new Style
     {
-        Display = Display.Flex,
-        JustifyContent = JustifyContent.FlexEnd,
-        FlexShrink = 0,
-        Padding = Space.Sm,
-        BorderBlockStartWidth = BorderWidths.Xs,
-        BorderBlockStartStyle = BorderStyle.Solid,
-        BorderBlockStartColor = Colors.BorderMuted,
+        Display = Display.None,
+        MarginInlineStart = CssLength.Auto,
+        [Breakpoints.Lg] = new() { Display = Display.InlineFlex },
     });
 
-    static Style CollapseBarCollapsed => Css.Define(static () => new Style { JustifyContent = JustifyContent.Center });
+    // 收起后品牌格只有展开按钮：居中
+    static Style CollapseButtonCentered => Css.Define(static () => new Style { MarginInlineEnd = CssLength.Auto });
+
+    // 没写品牌、只放收起按钮的品牌格：窄屏时侧栏在抽屉里，这一格不显示
+    static Style BrandOnlyWide => Css.Define(static () => new Style
+    {
+        Display = Display.None,
+        [Breakpoints.Lg] = new() { Display = Display.Flex },
+    });
 
     static Style Aside => Css.Define(static () => new Style
     {
@@ -390,18 +367,4 @@ public static class AppShellStyles
         Color = Colors.TextMuted,
         FontSize = FontSizes.Sm,
     });
-}
-
-/// <summary>AppShell 交给里面的部件的状态（级联值）：AppShellBrand 据此在侧栏收起时只显示标志。</summary>
-/// <param name="Collapsed">侧栏收起成了图标栏（宽屏时）。</param>
-public sealed record AppShellContext(bool Collapsed)
-{
-    /// <summary>侧栏展开（或没有侧栏）。</summary>
-    public static readonly AppShellContext Expanded = new(false);
-
-    /// <summary>侧栏收起成了图标栏。</summary>
-    public static readonly AppShellContext Rail = new(true);
-
-    /// <summary>按是否收起取共用的实例。</summary>
-    public static AppShellContext Of(bool collapsed) => collapsed ? Rail : Expanded;
 }
