@@ -184,6 +184,24 @@ CI 的 `VUE_TSX_PRO_REF` 第四批时前移到 89c01fc8（语言包重新生成�
 | Select、Combobox、Mentions 的 load 分页（同一提交） | 另加 `LoadPage`（C# 的一个参数不能既收数组又收分页结果）；ListboxView 末尾放哨兵，JS 的 IntersectionObserver 看到它在可见范围下方约 5 行内时发 more（虚拟与否都适用）；`LoadingMore` 时骨架接在末尾 |
 | 文档：FloatButton 页、Select“远程搜索与分页”、VirtualList / DataTable 改用 useInfiniteList、数据指南“滚动加载” | 同 |
 
+### 整体跟进（2026-11-09 起，vue 89c01fc8..9afdc156，0.17.0–0.21.0）
+
+已完成（CI 的 `VUE_TSX_PRO_REF` 已前移到 9afdc156）：
+- 错误修复：样式合并按 LONGHANDS 表去掉被后写简写重设的长属性（`CssShorthands`）；输入法组合中的按键在 keydown 入口统一挡掉（`isComposingKey`，数字框 ↑↓、表格编辑器的 Enter 也覆盖到）
+- 主题与语言包重新生成：`Space.Xxs`、暗色实色悬停调亮；语言包 Lightbox / Chart 的缩放、还原、计数合并成 `ZoomIn`、`ZoomOut`、`ResetView`、`SlideCounter`（破坏性）；写死的 2px 换成 `Space.Xxs` / `BorderWidths.Sm`
+- P2.5 交互状态：`SharedStyles.StateLayerGhost` / `StateLayerOverlay`（Alert、Banner、Tag、Upload 图片墙），Link 下划线、muted 悬停，Splitter / ResizeHandle（线宽变量、data-dragging），TabList 边缘渐隐（`data-fade`），Steps 连接线，悬停补齐（Switch、soft 输入框、Checklist、Steps、色块 `SwatchStyles.Interactive`、Image、Splitter 收起按钮）
+- 布局：AppShell 收起按钮进品牌格（删 CollapseBar、AppShellContext，破坏性）、横排单选 / 复选组、choice 基线对齐、Card 正文撑开与 `Padding=None` 的页头页脚、Descriptions 值撑开
+- Tabs：id 按码位编码；整组卸载不改选（`TabsRegistry.Unmounting`）
+- 触屏输入框 ≥ 16px（`Media.CoarsePointer`、`SharedStyles.TouchInputFont`）
+- 焦点环全站检查（`FocusRingTests`，114 页清零）与修复；手写部件名改小驼峰并加源码检查（`PartNameTests`）
+- 配方化：Stat、Timeline、Upload、Countdown（新增 `Variant=Blocks`）；Calendar、CodeBlock、Tour、NavList、Menu、Toaster、AppShell、Transfer 原本就是
+- 小修：Treemap 读屏表格不重复单位、DataTable 展开按钮 `Sizes.MinTarget`、LinkUnderlineScope 跟着 Underline 变、Splitter 主从示例改用 ItemList、ItemList 可悬停 / 可点的条目默认留 Sm
+
+不需要改：列表状态按属性（Rune 本来就用 `data-highlighted` 等）；Listbox / Tree 的虚拟行（Rune 用 Virtualize，行在文档流里）。
+Rune 还没有的组件（这一轮通知里它们的改动随组件一起做）：FilterBar、QueryTable、FormDialog、PeoplePicker、NotificationList / NotificationCenter、SchemaForm、KanbanBoard、Carousel、ColorPicker。
+
+下面是原先积压的清单，没在上面列出的仍待做：
+
 ### 待跟进（2026-11-08 起积压；用户决定等 vue 的计划全部做完再一次性跟进）
 
 已跟到 vue 89c01fc8（第四批）。之后 vue 通知的改动先记在这里，跟进时以 vue 的组件规格 JSON（/spec/components.json）与 RELEASE.md 为准逐项核对：
