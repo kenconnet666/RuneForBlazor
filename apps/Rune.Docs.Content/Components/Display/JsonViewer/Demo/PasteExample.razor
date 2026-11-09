@@ -1,0 +1,71 @@
+@* 粘贴 JSON 看结构：解析出错时提示位置；“生成 5000 条”看大数据下的虚拟滚动与搜索 *@
+@inherits RuneComponent
+@using System.Text.Json
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Field Label="JSON" Error="@error">
+        <Textarea @bind-Value="Text" Rows="5" spellcheck="false" />
+    </Field>
+    <Flex Gap="SpaceScale.Xs">
+        <Button Size="Size.Sm" Variant="ButtonVariant.Soft" @onclick="() => Text = Big()">生成 5000 条</Button>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => Text = Initial">还原</Button>
+    </Flex>
+    @if (value is { } parsed)
+    {
+        <JsonViewer Value="parsed" MaxHeight="CssLength.Rem(18)" aria-label="解析结果" />
+    }
+</Flex>
+
+@code {
+    const string Initial = """
+        {
+          "name": "rune-ui",
+          "private": true,
+          "workspaces": ["src/*", "apps/*"],
+          "engines": { "dotnet": ">=10" }
+        }
+        """;
+
+    string text = "";
+    JsonElement? value;
+    string? error;
+
+    protected override void OnInitialized() => Text = Initial;
+
+    string Text
+    {
+        get => text;
+        set
+        {
+            text = value;
+            try
+            {
+                this.value = JsonDocument.Parse(value).RootElement;
+                error = null;
+            }
+            catch (JsonException exception)
+            {
+                error = exception.Message;
+            }
+        }
+    }
+
+    static string Big()
+    {
+        using var buffer = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(buffer))
+        {
+            writer.WriteStartArray();
+            for (var index = 0; index < 5000; index++)
+            {
+                writer.WriteStartObject();
+                writer.WriteNumber("id", index + 1);
+                writer.WriteString("level", ((string[])["info", "warn", "error"])[index % 3]);
+                writer.WriteString("message", $"job-{index % 37} finished in {index * 7 % 1000} ms");
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
+        }
+        return System.Text.Encoding.UTF8.GetString(buffer.ToArray());
+    }
+}

@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（83 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（84 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -44,6 +44,8 @@ public static partial class BuiltInIcons
     public static IconData ChevronRight => field ??= new("chevron-right", "<path d=\"m9 18 6-6-6-6\"/>");
     /// <summary>Lucide 图标 <c>chevron-up</c>（direction、movement、vertical、upward、upwards、north、ascend、page up）。</summary>
     public static IconData ChevronUp => field ??= new("chevron-up", "<path d=\"m18 15-6-6-6 6\"/>");
+    /// <summary>Lucide 图标 <c>chevrons-down-up</c>（direction、movement、vertical、downward、downwards、south、descend、page down）。</summary>
+    public static IconData ChevronsDownUp => field ??= new("chevrons-down-up", "<path d=\"m7 20 5-5 5 5\"/><path d=\"m7 4 5 5 5-5\"/>");
     /// <summary>Lucide 图标 <c>chevrons-up-down</c>（direction、movement、vertical、upward、upwards、north、ascend、page up）。</summary>
     public static IconData ChevronsUpDown => field ??= new("chevrons-up-down", "<path d=\"m7 15 5 5 5-5\"/><path d=\"m7 9 5-5 5 5\"/>");
     /// <summary>Lucide 图标 <c>circle-check</c>（checkmark、done、completed、finished、successful、confirmed、verified、validated）。</summary>

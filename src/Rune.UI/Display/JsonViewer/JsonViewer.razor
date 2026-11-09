@@ -1,0 +1,154 @@
+@*
+    JSON 查看器（同 vue-tsx-pro 的 JsonViewer）：接口返回、日志、配置、导入的原始数据，展开收起的键值树。建在 Tree 上：
+    虚拟滚动（上万个节点也流畅）、树的键盘操作（↑↓ 移动、→ 展开、← 收起、按字母跳）与搜索过滤（留下匹配的项与祖先）。
+    <JsonViewer Value="response" />
+    <JsonViewer Value="JsonSerializer.SerializeToElement(config)" ExpandDepth="2" MaxHeight="CssLength.Rem(32)" aria-label="配置" />
+    值按类型着色（代码高亮的颜色）：字符串带引号，数字照原文（不丢精度），null、布尔是关键字色；对象、数组收起时显示项数。
+    选中一项（点击、Enter）后，下方的路径栏显示它的路径（$.items[0]["unit-price"]）并可复制路径与值（对象、数组复制成缩进两格的 JSON）。
+    子节点按需生成：展开到哪一层才建哪一层；“全部展开”会建全部。未声明的属性落到外层（div）上，aria-label 是树的名称。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using System.Text.Json
+
+@{
+    var parts = JsonViewerStyles.Of(Config.Styles);
+    var lang = Config.Lang;
+    var node = SelectedNode;
+}
+@* aria-label 是树的名称，不写在外层上 *@
+<div @attributes="Attrs.Merge(parts[JsonViewerPart.Root], RootAttrs)">
+    @if (Toolbar)
+    {
+        <div @attributes="parts[JsonViewerPart.Toolbar]">
+            <TextField @bind-Value="query" Icon="BuiltInIcons.Search" Size="UI.Size.Sm" Type="search" placeholder="@lang.JsonSearch" aria-label="@lang.JsonSearch"
+                       @attributes="Attrs.MergeProps(JsonViewerStyles.Search, PropsSearch)" />
+            <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Icon="BuiltInIcons.ChevronsUpDown" @onclick="ExpandAll"
+                    @attributes="Attrs.MergeProps(null, PropsExpandAll)">@lang.JsonExpandAll</Button>
+            <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Icon="BuiltInIcons.ChevronsDownUp" @onclick="() => expanded = []"
+                    @attributes="Attrs.MergeProps(null, PropsCollapseAll)">@lang.JsonCollapseAll</Button>
+        </div>
+    }
+    <Tree TItem="JsonViewerNode" Items="roots" GetKey="KeyOf" GetLabel="LabelOf" GetChildren="ChildrenOf" SelectionMode="SelectionMode.Single"
+          @bind-Expanded="expanded" @bind-Selected="selected" Filter="@query" EstimateSize="28" Indent="1" aria-label="@AriaLabel"
+          PropsScrollArea="HeightLayer" @attributes="Attrs.MergeProps(parts[JsonViewerPart.Tree], PropsTree)">
+        <span @attributes="parts[JsonViewerPart.Row]">
+            <span @attributes="Attrs.Merge(parts[JsonViewerPart.Name], context.Node.IsIndex ? JsonViewerStyles.Index : null)">@context.Node.Name:</span>
+            <span @attributes="Attrs.Merge(parts[JsonViewerPart.Value], JsonViewerStyles.ValueKind(context.Node.Value.ValueKind))">@context.Node.Display</span>
+            @if (context.Node.IsContainer)
+            {
+                <span @attributes="parts[JsonViewerPart.Summary]">@lang.JsonItems(context.Node.Count)</span>
+            }
+        </span>
+    </Tree>
+    <div @attributes="Attrs.Merge(parts[JsonViewerPart.PathBar], PropsPathBar)">
+        @if (node is not null)
+        {
+            <span title="@node.Path" @attributes="parts[JsonViewerPart.Path]">@node.Path</span>
+            @* 两个按钮图标一样：悬停、聚焦时提示各复制什么 *@
+            <Tooltip>
+                <Trigger Context="t"><CopyButton Value="@node.Path" Label="@lang.JsonCopyPath" Size="UI.Size.Sm" @attributes="t" /></Trigger>
+                <ChildContent>@lang.JsonCopyPath</ChildContent>
+            </Tooltip>
+            <Tooltip>
+                <Trigger Context="t"><CopyButton Value="@node.CopyText" Label="@lang.JsonCopyValue" Size="UI.Size.Sm" @attributes="t" /></Trigger>
+                <ChildContent>@lang.JsonCopyValue</ChildContent>
+            </Tooltip>
+        }
+        else
+        {
+            @lang.JsonPathHint
+        }
+    </div>
+</div>
+
+@code {
+    static readonly Func<JsonViewerNode, string> KeyOf = static node => node.Path;
+    static readonly Func<JsonViewerNode, string> LabelOf = static node => $"{node.Name}: {node.Display}";
+    static readonly Func<JsonViewerNode, IReadOnlyList<JsonViewerNode>?> ChildrenOf = static node => node.Children;
+
+    IReadOnlyList<JsonViewerNode> roots = [];
+    IReadOnlyList<string> expanded = [];
+    IReadOnlyList<string> selected = [];
+    string query = "";
+    JsonElement? shownValue;
+    int? shownDepth;
+    Memo<CssLength, Attrs> heightLayer;
+
+    /// <summary>要看的数据（<c>JsonDocument</c> 的根，或 <c>JsonSerializer.SerializeToElement(值)</c>）。</summary>
+    [Parameter, EditorRequired] public JsonElement Value { get; set; }
+
+    /// <summary>一开始展开几层，默认 1（第一层的对象、数组是展开的）；0 全部收起。</summary>
+    [Parameter] public int ExpandDepth { get; set; } = 1;
+
+    /// <summary>树的最大高度，超出后滚动；默认 24rem。</summary>
+    [Parameter] public CssLength? MaxHeight { get; set; }
+
+    /// <summary>顶部的搜索框与“全部展开 / 收起”，默认显示。</summary>
+    [Parameter] public bool Toolbar { get; set; } = true;
+
+    /// <summary>搜索框（TextField）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSearch { get; set; }
+
+    /// <summary>树（Tree）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTree { get; set; }
+
+    /// <summary>路径栏的部件属性。</summary>
+    [Parameter] public Attrs? PropsPathBar { get; set; }
+
+    /// <summary>“全部展开”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsExpandAll { get; set; }
+
+    /// <summary>“全部收起”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsCollapseAll { get; set; }
+
+    string? AriaLabel => Rest["aria-label"] as string;
+
+    Attrs RootAttrs => Rest.Without("aria-label");
+
+    Attrs HeightLayer => heightLayer.Get(MaxHeight ?? CssLength.Rem(24), static height => new Attrs { Sx = Css.Define(height, static h => new Style { MaxHeight = h }) });
+
+    JsonViewerNode? SelectedNode => selected.Count == 0 ? null : Find(roots, selected[0]);
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        // 数据或展开层数换了：重新建根，按层数展开，清掉选中
+        if (shownValue is { } shown && shown.Equals(Value) && shownDepth == ExpandDepth) return;
+        (shownValue, shownDepth) = (Value, ExpandDepth);
+        roots = JsonViewerNode.RootsOf(Value);
+        expanded = ContainersTo(ExpandDepth);
+        selected = [];
+    }
+
+    void ExpandAll() => expanded = ContainersTo(int.MaxValue);
+
+    // 展开到第 depth 层的容器
+    IReadOnlyList<string> ContainersTo(int depth)
+    {
+        var keys = new List<string>();
+        Visit(roots, 0);
+        return keys;
+
+        void Visit(IReadOnlyList<JsonViewerNode> nodes, int level)
+        {
+            foreach (var node in nodes)
+            {
+                if (level >= depth || node.Children is not { } children) continue;
+                keys.Add(node.Path);
+                Visit(children, level + 1);
+            }
+        }
+    }
+
+    // 按路径找回节点：路径是祖先路径的延长，只往前缀相同的那一枝里找
+    static JsonViewerNode? Find(IReadOnlyList<JsonViewerNode> nodes, string path)
+    {
+        foreach (var node in nodes)
+        {
+            if (node.Path == path) return node;
+            if (path.StartsWith(node.Path, StringComparison.Ordinal) && node.Children is { } children && Find(children, path) is { } found) return found;
+        }
+        return null;
+    }
+}
