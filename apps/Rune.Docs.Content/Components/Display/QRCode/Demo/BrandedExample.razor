@@ -1,0 +1,21 @@
+@* 中间放 logo（纠错自动用 H）；Color、BgColor 换颜色，深色模块配浅色底才好扫 *@
+@inherits RuneComponent
+
+<Flex Gap="SpaceScale.Lg" Wrap="true">
+    <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+        <QRCode Value="https://rune.example/app" LogoSrc="@DemoPeople.Members[1].Photo" />
+        <Small Tone="TextTone.Muted">图片地址</Small>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+        <QRCode Value="https://rune.example/u/lin-xiaoman" LogoSize="0.26">
+            <Logo><Avatar Name="林小满" Size="Size.Sm" /></Logo>
+        </QRCode>
+        <Small Tone="TextTone.Muted">头像</Small>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+        <QRCode Value="https://rune.example/store/42" Color="@("#1d4ed8")" BgColor="@("#eff6ff")">
+            <Logo><Icon Data="Lucide.Store" /></Logo>
+        </QRCode>
+        <Small Tone="TextTone.Muted">自定义颜色</Small>
+    </Flex>
+</Flex>

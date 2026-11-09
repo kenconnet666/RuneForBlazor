@@ -1,0 +1,146 @@
+@*
+    二维码（同 vue-tsx-pro 的 QRCode）：把文字（链接、口令）画成 SVG 二维码；中间可以放 logo；扫码登录这类场景有加载中、已过期（可刷新）、已扫描的状态。
+    <QRCode Value="https://example.com" />
+    <QRCode Value="@url" LogoSrc="/logo.svg" Size="CssLength.Em(12)" />
+    <QRCode Value="@ticket" Status="@(expired ? QRCodeStatus.Expired : QRCodeStatus.Active)" OnRefresh="Renew" />
+    编码在服务端完成（QrEncoder，ISO/IEC 18004）：UTF-8 字节模式，自动选最小的版本与罚分最低的掩码；整个码是一条 path，静态 SSR 也能显示。
+    有 logo 时纠错默认 H（能恢复约 30%，logo 默认占边长的 22%）。四周留 Margin 个模块的静区（默认 2）。
+    颜色是“纸面”：浅色主题下是主题的 surface 底、文字色模块，深色主题下仍是白底深色模块（反色码很多扫码器认不出）；Color、BgColor 可以改。
+    读屏：svg 是 role="img"，名称默认“二维码”（写 aria-label 改）；状态层是 role="status"，换状态时播报。未声明的属性落到外层（div）上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@{
+    var lang = Config.Lang;
+    var shown = Status != QRCodeStatus.Active;
+    var parts = QRCodeStyles.Of(shown, Config.Styles);
+    var extent = Matrix.Size + Margin * 2;
+}
+<div @attributes="Attrs.Merge(Attrs.Layer(parts[QRCodePart.Root], Vars), RootAttrs)">
+    <svg role="img" aria-label="@(AriaLabel ?? lang.QrCode)" viewBox="@($"0 0 {extent} {extent}")" @attributes="Attrs.Merge(parts[QRCodePart.Code], PropsCode)">
+        <path d="@Path" fill="currentColor" />
+    </svg>
+    @if (Logo is not null || LogoSrc is not null)
+    {
+        <div aria-hidden="true" @attributes="Attrs.Merge(parts[QRCodePart.Logo], PropsLogo)">
+            @if (Logo is not null)
+            {
+                @Logo
+            }
+            else
+            {
+                <img src="@LogoSrc" alt="" @attributes="parts[QRCodePart.LogoImage]" />
+            }
+        </div>
+    }
+    <div role="status" @attributes="Attrs.Merge(parts[QRCodePart.Overlay], PropsOverlay)">
+        @switch (Status)
+        {
+            case QRCodeStatus.Loading:
+                <Spinner Size="UI.Size.Lg" />
+                break;
+            case QRCodeStatus.Scanned:
+                <Icon Data="BuiltInIcons.Check" Size="UI.Size.Lg" />
+                <TextSpan Size="UI.Size.Sm">@lang.QrScanned</TextSpan>
+                break;
+            case QRCodeStatus.Expired:
+                <TextSpan Size="UI.Size.Sm">@lang.QrExpired</TextSpan>
+                @if (OnRefresh.HasDelegate)
+                {
+                    <Button Size="UI.Size.Sm" Variant="ButtonVariant.Soft" Icon="BuiltInIcons.RotateCw" @onclick="() => OnRefresh.InvokeAsync()"
+                            @attributes="Attrs.MergeProps(null, PropsRefresh)">@lang.QrRefresh</Button>
+                }
+                break;
+        }
+    </div>
+</div>
+
+@code {
+    Memo<(string, QrErrorCorrection), QrMatrix> matrix;
+    Memo<(QrMatrix, int), string> path;
+    Memo<(CssLength?, double, CssColor?, CssColor?), Attrs> vars;
+
+    /// <summary>要编码的文字（链接、口令），按 UTF-8。</summary>
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+
+    /// <summary>纠错等级：L、M、Q、H 依次能恢复约 7%、15%、25%、30% 的损坏；默认 M，有 logo 时 H。</summary>
+    [Parameter] public QrErrorCorrection? ErrorCorrection { get; set; }
+
+    /// <summary>边长，默认 10em。</summary>
+    [Parameter] public CssLength? Size { get; set; }
+
+    /// <summary>四周静区的宽度（模块数），默认 2。</summary>
+    [Parameter] public int Margin { get; set; } = 2;
+
+    /// <summary>模块的颜色；默认浅色主题下是文字色，深色主题下是近黑。</summary>
+    [Parameter] public CssColor? Color { get; set; }
+
+    /// <summary>底色；默认浅色主题下是 surface，深色主题下是白色。</summary>
+    [Parameter] public CssColor? BgColor { get; set; }
+
+    /// <summary>中间的 logo（Avatar、Icon 等任意内容）。</summary>
+    [Parameter] public RenderFragment? Logo { get; set; }
+
+    /// <summary>中间的 logo 图片地址（没写 Logo 时用）。</summary>
+    [Parameter] public string? LogoSrc { get; set; }
+
+    /// <summary>logo 占边长的比例，默认 0.22；太大会扫不出来。</summary>
+    [Parameter] public double LogoSize { get; set; } = 0.22;
+
+    /// <summary>状态：Loading 加载中、Expired 已过期（写了 OnRefresh 时可刷新）、Scanned 已扫描；默认 Active。</summary>
+    [Parameter] public QRCodeStatus Status { get; set; }
+
+    /// <summary>已过期时点“刷新”。</summary>
+    [Parameter] public EventCallback OnRefresh { get; set; }
+
+    /// <summary>svg 的部件属性。</summary>
+    [Parameter] public Attrs? PropsCode { get; set; }
+
+    /// <summary>logo 底板的部件属性。</summary>
+    [Parameter] public Attrs? PropsLogo { get; set; }
+
+    /// <summary>状态层的部件属性。</summary>
+    [Parameter] public Attrs? PropsOverlay { get; set; }
+
+    /// <summary>刷新按钮（Button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsRefresh { get; set; }
+
+    bool HasLogo => Logo is not null || LogoSrc is not null;
+
+    QrMatrix Matrix => matrix.Get((Value, ErrorCorrection ?? (HasLogo ? QrErrorCorrection.H : QrErrorCorrection.M)), static k => QrEncoder.Encode(k.Item1, k.Item2));
+
+    string Path => path.Get((Matrix, Margin), static k => ModulesPath(k.Item1, k.Item2));
+
+    // aria-label 是二维码图片的名称，不写在外层上
+    string? AriaLabel => Rest["aria-label"] as string;
+
+    Attrs RootAttrs => Rest.Without("aria-label");
+
+    Attrs Vars => vars.Get((Size, LogoSize, Color, BgColor), static k => k is (null, 0.22, null, null) ? Attrs.Empty : new Attrs
+    {
+        Vars =
+        [
+            .. k.Item1 is { } size ? [QRCodeStyles.SizeVar.Set(size)] : Array.Empty<CssVarValue>(),
+            .. k.Item2 != 0.22 ? [QRCodeStyles.LogoSizeVar.Set(CssLength.Percent(k.Item2 * 100))] : Array.Empty<CssVarValue>(),
+            .. k.Item3 is { } color ? [QRCodeStyles.ColorVar.Set(color)] : Array.Empty<CssVarValue>(),
+            .. k.Item4 is { } background ? [QRCodeStyles.BackgroundVar.Set(background)] : Array.Empty<CssVarValue>(),
+        ],
+    });
+
+    // 一行里连续的深色模块合成一个矩形，整个码是一条 path
+    static string ModulesPath(QrMatrix qr, int margin)
+    {
+        var path = new System.Text.StringBuilder();
+        for (var y = 0; y < qr.Size; y++)
+            for (var x = 0; x < qr.Size; x++)
+            {
+                if (!qr.IsDark(x, y)) continue;
+                var run = 1;
+                while (qr.IsDark(x + run, y)) run++;
+                path.Append(System.Globalization.CultureInfo.InvariantCulture, $"M{x + margin} {y + margin}h{run}v1h-{run}z");
+                x += run;
+            }
+        return path.ToString();
+    }
+}

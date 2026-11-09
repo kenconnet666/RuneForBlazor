@@ -1,0 +1,55 @@
+@* 扫码登录：取票据时加载中，60 秒后过期、点刷新重新取；手机扫到后显示“已扫描” *@
+@inherits RuneComponent
+@implements IDisposable
+
+<Card Padding="SpaceScale.Lg">
+    <Flex Direction="LayoutDirection.Column" Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+        <TextSpan Weight="Weight.Semibold">扫码登录</TextSpan>
+        <QRCode Value="@ticket" Status="status" OnRefresh="Renew" Size="CssLength.Em(11)" aria-label="登录二维码" />
+        <Small Tone="TextTone.Muted">
+            @if (status == QRCodeStatus.Active)
+            {
+                <Countdown To="expiresAt" OnEnd="() => status = QRCodeStatus.Expired" Context="left">@(left.Minutes * 60 + left.Seconds) 秒后过期</Countdown>
+            }
+            else
+            {
+                <span>打开手机 App，扫一扫</span>
+            }
+        </Small>
+        <Flex Gap="SpaceScale.Xs">
+            <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Disabled="status != QRCodeStatus.Active" @onclick="() => status = QRCodeStatus.Scanned">模拟扫码</Button>
+            <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" @onclick="() => status = QRCodeStatus.Expired">立即过期</Button>
+        </Flex>
+    </Flex>
+</Card>
+
+@code {
+    QRCodeStatus status = QRCodeStatus.Loading;
+    string ticket = "https://rune.example/login";
+    DateTimeOffset expiresAt = DemoClock.Now;
+    CancellationTokenSource? pending;
+
+    protected override void OnInitialized() => _ = Renew();
+
+    // 假的票据接口：600 ms 后给一个新票据，60 秒后过期
+    async Task Renew()
+    {
+        pending?.Cancel();
+        var run = pending = new CancellationTokenSource();
+        status = QRCodeStatus.Loading;
+        try
+        {
+            await Task.Delay(600, run.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        ticket = $"https://rune.example/login?ticket={Guid.NewGuid():N}"[..44];
+        expiresAt = DemoClock.Now.AddSeconds(60);
+        status = QRCodeStatus.Active;
+        StateHasChanged();
+    }
+
+    void IDisposable.Dispose() => pending?.Cancel();
+}

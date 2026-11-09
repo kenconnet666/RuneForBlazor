@@ -1,0 +1,52 @@
+@* 分享链接：输入内容即时生成；纠错等级越高能扛的污损越多，码也越密；下载成 SVG（白底深色） *@
+@inherits RuneComponent
+
+<Flex Gap="SpaceScale.Lg" Align="ItemAlign.Center" Wrap="true">
+    <QRCode Value="@value" ErrorCorrection="ecc" Size="CssLength.Em(9)" aria-label="邀请链接" />
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Sx="Panel">
+        <Field Label="内容"><TextField @bind-Value="value" Immediate="true" /></Field>
+        <Field Label="纠错等级">
+            <ToggleGroup @bind-Value="Level" Required="true" Size="Size.Sm" aria-label="纠错等级">
+                <ToggleItem Value="L">L 7%</ToggleItem>
+                <ToggleItem Value="M">M 15%</ToggleItem>
+                <ToggleItem Value="Q">Q 25%</ToggleItem>
+                <ToggleItem Value="H">H 30%</ToggleItem>
+            </ToggleGroup>
+        </Field>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Justify="ContentJustify.Between">
+            <Small Tone="TextTone.Muted">版本 @Matrix.Version，@Matrix.Size × @Matrix.Size 个模块</Small>
+            <LinkButton Href="@SvgUrl" Size="Size.Sm" Variant="ButtonVariant.Soft" Icon="Lucide.Download" download="invite.svg">下载 SVG</LinkButton>
+        </Flex>
+    </Flex>
+</Flex>
+
+@code {
+    string value = "https://rune.example/invite/8f3a2c";
+    QrErrorCorrection ecc = QrErrorCorrection.M;
+
+    string? Level
+    {
+        get => ecc.ToString();
+        set => ecc = Enum.Parse<QrErrorCorrection>(value!);
+    }
+
+    QrMatrix Matrix => QrEncoder.Encode(value, ecc);
+
+    // 下载的文件：白底深色（同纸面在暗色主题下的颜色），四周留 2 个模块的静区
+    string SvgUrl
+    {
+        get
+        {
+            var qr = Matrix;
+            var extent = qr.Size + 4;
+            var path = new System.Text.StringBuilder();
+            for (var y = 0; y < qr.Size; y++)
+                for (var x = 0; x < qr.Size; x++)
+                    if (qr.IsDark(x, y)) path.Append(System.Globalization.CultureInfo.InvariantCulture, $"M{x + 2} {y + 2}h1v1h-1z");
+            var svg = $"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {extent} {extent}\" shape-rendering=\"crispEdges\"><rect width=\"100%\" height=\"100%\" fill=\"#fff\"/><path d=\"{path}\" fill=\"#1c2024\"/></svg>";
+            return "data:image/svg+xml;charset=utf-8," + Uri.EscapeDataString(svg);
+        }
+    }
+
+    static Style Panel => Css.Define(static () => new Style { Flex = "1 1 16em", MinWidth = 0 });
+}

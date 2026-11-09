@@ -110,6 +110,19 @@ public static class SharedStyles
 #pragma warning restore RUNE007
     });
 
+    /// <summary>
+    /// “纸面”的底色（同 vue-tsx-pro 的 paperBackground）：要被拍照、扫描、打印、导出成图片的东西（二维码、手写签名）一律浅底深色。
+    /// 浅色主题下跟着主题的 surface；深色主题下仍是白底，不跟着反色（反色的二维码很多扫码器认不出，导出的签名放到白纸上也看不见）。
+    /// 靠 CSS 的 light-dark()，取决于所在元素的 color-scheme（主题写在容器上）。
+    /// </summary>
+    public static readonly CssColor PaperBackground = $"light-dark({Colors.Surface}, #ffffff)";
+
+    /// <summary>“纸面”上的墨色：浅色主题下是文字色，深色主题下仍是近黑。</summary>
+    public static readonly CssColor PaperInk = $"light-dark({Colors.Text}, #1c2024)";
+
+    /// <summary>纸面的底色与墨色（二维码、手写签名）。</summary>
+    public static Style Paper => Css.Define(static () => new Style { Color = PaperInk, BackgroundColor = PaperBackground });
+
     /// <summary>相对所在文字小一档（0.93em）：提示条里的关闭按钮。</summary>
     public static Style RelativeSmall => Css.Define(static () => new Style { FontSize = CssLength.Em(0.93) });
 
