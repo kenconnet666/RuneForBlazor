@@ -10,6 +10,8 @@
 - 受控浮层（data-open）的开关回响：只在 C# 的状态会变时排队；收到回响只消费、不照着开关。C# 自己关上也会触发原生 toggle，那次没有回响可等，排进去会让队列错位、浮层来回振荡。
 - 偶发的端到端失败先用 Playwright 脚本在并发负载下复现（4 个上下文并行、重复 24 次），记下属性与事件的先后再改，不要只改测试。
 - 包 ID 改了，静态资源路径、初始化器文件名、跨包的 import 都要跟着改（见 SKILL.md 的“发版”）。
+- 新加的自定义事件参数类型（`[EventHandler]`）要在 `AddRuneUI` 上加 `[DynamicDependency]`：Blazor 按反射从 JSON 反序列化它，WebAssembly 裁剪后没有构造函数，
+  事件全部失效（DeserializeNoConstructor）。端到端测试跑的是没裁剪的 Demo 测不出来，要用 `node tools/docs-export/export.mjs --preview`（5320）看裁剪后的效果。
 
 ## Razor 与组件
 

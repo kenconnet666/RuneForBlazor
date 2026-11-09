@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Rune.Styles;
 
@@ -97,6 +98,15 @@ public static class RuneUIServiceCollectionExtensions
     /// builder.Services.AddRuneUI(o => o.Components = new() { new ComponentConfig&lt;CardDefaults, CardPart&gt; { Defaults = new() { Variant = CardVariant.Outline } } });
     /// </code>
     /// </summary>
+    // 自定义事件（RuneEvents.cs 的 [EventHandler]）的参数由 Blazor 按反射从 JSON 反序列化，但 [EventHandler] 没有告诉裁剪器要留下这些类型的构造函数与属性：
+    // WebAssembly 发布裁剪后反序列化失败（DeserializeNoConstructor），rune-command 等事件全部不生效（虚拟滚动不再换行）。每个应用都调用这里，挂在这里一定保留
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicProperties, typeof(OverlayToggleEventArgs))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicProperties, typeof(CloseRequestEventArgs))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicProperties, typeof(CommandEventArgs))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicProperties, typeof(CopiedEventArgs))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicProperties, typeof(ResizeEventArgs))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicProperties, typeof(SlideEventArgs))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicProperties, typeof(ReorderEventArgs))]
     public static IServiceCollection AddRuneUI(this IServiceCollection services, Action<RuneUIOptions>? configure = null)
     {
         var options = new RuneUIOptions();

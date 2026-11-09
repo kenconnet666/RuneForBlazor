@@ -31,10 +31,12 @@ public static class CollapseStyles
     });
 
     // 网格项默认的最小高度是内容高度，要设为 0 才能收到 0fr
-    // 过渡中与收起时裁掉溢出（内容跟着高度出现）；完全展开后（JS 加 data-expanded）不裁，贴着边的焦点环、阴影不被裁掉
+    // 过渡中与收起时裁掉溢出（内容跟着高度出现）；完全展开后（JS 加 data-expanded）不裁，贴着边的焦点环、阴影不被裁掉。
+    // 最小宽度同样设 0：不裁时网格项的最小宽度变回内容宽度，里面一行很长的代码会把它撑宽、横向滚动条出不来（CodePreview 的源码）
     static Style Content => Css.Define(static () => new Style
     {
         MinHeight = 0,
+        MinWidth = 0,
         Overflow = Overflow.Hidden,
         [When.Parent(When.Attribute("[data-expanded]"))] = new() { Overflow = Overflow.Visible },
     });

@@ -77,6 +77,7 @@ gh run download <run-id> -n visual-baselines -D tests/Rune.E2E/Visual/Baselines
 
 ## 发版
 
+0. 端到端测试跑的是没裁剪的 Demo：发版前用 `node tools/docs-export/export.mjs --preview` 导出一份裁剪过的文档站，在 5320 上点一遍有 JS 交互的页面（虚拟滚动、键盘命令），看控制台没有报错。
 1. `Directory.Build.props` 的 `VersionPrefix` 是下一个版本；CHANGELOG.md 把 `## [Unreleased]` 改成 `## [x.y.z] - 日期`，写清对齐的 vue 版本与破坏性改动，文末加链接。
 2. 提交推送 master，再在同一个提交上打 tag：`git tag -a vx.y.z -m "RuneForBlazor x.y.z" <sha> && git push origin vx.y.z`。
 3. `release.yml` 核对版本与 CHANGELOG、等这个提交的 CI 全部通过，然后打包、经 nuget.org 的可信发布推送（策略“RuneForBlazor release”：本仓库、release.yml、环境 `release`、包名 `RuneForBlazor*`），最后建 GitHub Release。
