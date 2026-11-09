@@ -85,6 +85,13 @@ public sealed class RuneUIOptions
 
     /// <inheritdoc cref="UIConfig.Highlighter"/>
     public CodeHighlighter? Highlighter { get; set; }
+
+    /// <summary>
+    /// 应用级主题（含可选主题）的变量放进外部样式表，不内联在每个页面里：带十几套可选主题时变量有一百多 KB，
+    /// 放进样式表后浏览器只下载一次、长期缓存。打开时 DI 里有 <see cref="Rune.Styles.ThemeStylesheet"/>：
+    /// 应用按它的文件名提供这个文件，在 head 里放 <see cref="ThemeStylesheetLink"/>。服务端与 WebAssembly 要一致。
+    /// </summary>
+    public bool ThemeStylesheet { get; set; }
 }
 
 /// <summary>注册组件库的服务。</summary>
@@ -123,6 +130,10 @@ public static class RuneUIServiceCollectionExtensions
         {
             services.AddSingleton(config);
         }
+        if (options.ThemeStylesheet)
+            services.AddSingleton(options.ThemeChoices is { } choices
+                ? ThemeStyles.Stylesheet(choices.SystemLight, choices.SystemDark, ColorScheme.System, choices.Themes, choices.SystemContrast)
+                : ThemeStyles.Stylesheet(options.Theme, options.DarkTheme, options.ColorScheme));
         // 部件一律 border-box：使用方给部件写的宽高就是整个部件的宽高（同 vue-tsx-pro 313f0e23）
         services.AddSingleton(PartBoxSizing);
         services.AddScoped<ToastService>();

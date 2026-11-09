@@ -35,6 +35,23 @@ public class ThemeTests : IDisposable
     }
 
     [Fact]
+    public void 主题放进外部样式表后_类名照旧_规则不再写进页面()
+    {
+        // 用只在这里出现的主题：外部样式表的登记是进程内的
+        var light = new Theme("stylesheet-light") { [ink] = "navy" };
+        var dark = new Theme("stylesheet-dark", basedOn: light) { IsDark = true, [ink] = "gold" };
+
+        var sheet = ThemeStyles.Stylesheet(light, dark);
+        var className = ThemeStyles.ClassFor(light, dark);
+
+        Assert.Equal($"rune-theme.{className}.css", sheet.FileName);
+        // 开头声明级联层的顺序（与页面里的样式块一致），变量在 rune.vars
+        Assert.StartsWith("@layer rune.base,rune.vars,", sheet.Css);
+        Assert.Contains($".{className}{{--test-ink:navy;color-scheme:light;}}", sheet.Css);
+        Assert.Empty(registry.Rules);
+    }
+
+    [Fact]
     public void 跟随系统时暗色主题写进媒体查询()
     {
         var light = new Theme("light") { [ink] = "black" };

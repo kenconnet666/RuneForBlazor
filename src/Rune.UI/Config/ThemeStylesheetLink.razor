@@ -1,0 +1,12 @@
+@*
+    应用级主题的外部样式表（RuneUIOptions.ThemeStylesheet 打开时）：放在 App.razor 的 head 里，在 RuneStyles 之前。
+    <ThemeStylesheetLink />
+    没打开时什么也不输出（主题变量照常内联）。文件名按内容哈希，应用可以给它设长期缓存。
+*@
+@namespace Rune.UI
+@inject IServiceProvider Services
+
+@if (Services.GetService(typeof(Rune.Styles.ThemeStylesheet)) is Rune.Styles.ThemeStylesheet sheet)
+{
+    <link rel="stylesheet" href="@sheet.FileName" />
+}

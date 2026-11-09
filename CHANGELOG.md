@@ -6,6 +6,11 @@
 
 ## [Unreleased]
 
+### 新增
+
+- `RuneUIOptions.ThemeStylesheet` 与 `ThemeStylesheetLink`：应用级主题（含可选主题）的变量放进按内容哈希命名的外部样式表，不再内联在每个页面里
+  （十六套可选主题约 120 KB，放进样式表后浏览器只下载一次）；底层是 `ThemeStyles.Stylesheet`
+
 ### 改动
 
 - Collapsible 的触发器、CodePreview 的“显示代码”在 JS 里当场切换（`data-rune-disclose`），再写回 C#：静态 SSR 与 WebAssembly 还在启动时也能点；

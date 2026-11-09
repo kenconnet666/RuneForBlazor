@@ -126,6 +126,11 @@ public enum ColorScheme
     Dark,
 }
 
+/// <summary>放主题变量的外部样式表：文件名（相对站点根）与内容。</summary>
+/// <param name="FileName">文件名，按内容哈希（<c>rune-theme.rt….css</c>）。</param>
+/// <param name="Css">样式表的内容。</param>
+public sealed record ThemeStylesheet(string FileName, string Css);
+
 /// <summary>把主题变成只设置变量的类，并登记到当前作用域（由 <see cref="RuneStyles"/> 输出）。</summary>
 public static class ThemeStyles
 {
@@ -146,10 +151,32 @@ public static class ThemeStyles
     /// </summary>
     public static string ClassFor(Theme light, Theme? dark = null, ColorScheme scheme = ColorScheme.System, IReadOnlyList<Theme>? choices = null, (Theme Light, Theme Dark)? contrast = null)
     {
-        var key = (light, dark, scheme, choices is null ? "" : string.Join(',', choices.Select(t => t.Name)), contrast);
-        var style = compiled.GetOrAdd(key, static (key, choices) => Compile(key.Light, key.Dark, key.Scheme, choices, key.Contrast), choices);
-        StyleRegistry.Register(style);
+        var style = Compiled(light, dark, scheme, choices, contrast);
+        if (!external.ContainsKey(style.ClassName)) StyleRegistry.Register(style);
         return style.ClassName;
+    }
+
+    /// <summary>
+    /// 把这套主题的变量放进外部样式表：返回文件名（按内容哈希，内容变了才换名字，可以长期缓存）与 CSS 文本，
+    /// 之后 <see cref="ClassFor"/> 只给类名、不再把规则写进页面（服务端与 WebAssembly 各调用一次）。
+    /// 应用级主题带十几套可选主题时变量有一百多 KB，内联在每个页面里每次都要重新下载；放进样式表后只下载一次。
+    /// 应用负责按文件名提供这个文件，并在 head 里引用它。
+    /// </summary>
+    public static ThemeStylesheet Stylesheet(Theme light, Theme? dark = null, ColorScheme scheme = ColorScheme.System, IReadOnlyList<Theme>? choices = null, (Theme Light, Theme Dark)? contrast = null)
+    {
+        var style = Compiled(light, dark, scheme, choices, contrast);
+        external.TryAdd(style.ClassName, 0);
+        // 开头声明级联层的顺序，与页面里的样式块一致（谁先加载都不改变层序）
+        return new ThemeStylesheet($"rune-theme.{style.ClassName}.css", StyleCompiler.LayerOrder + style.Css);
+    }
+
+    // 规则由外部样式表提供的主题类
+    static readonly ConcurrentDictionary<string, byte> external = new();
+
+    static CompiledStyle Compiled(Theme light, Theme? dark, ColorScheme scheme, IReadOnlyList<Theme>? choices, (Theme Light, Theme Dark)? contrast)
+    {
+        var key = (light, dark, scheme, choices is null ? "" : string.Join(',', choices.Select(t => t.Name)), contrast);
+        return compiled.GetOrAdd(key, static (key, choices) => Compile(key.Light, key.Dark, key.Scheme, choices, key.Contrast), choices);
     }
 
     static CompiledStyle Compile(Theme light, Theme? dark, ColorScheme scheme, IReadOnlyList<Theme>? choices, (Theme Light, Theme Dark)? contrast)
