@@ -42,7 +42,7 @@ public static class OtpFieldStyles
         Recipe.Of("otp-field", size, styles, static (Size? size, OtpFieldPart part) => part switch
         {
             OtpFieldPart.Root => Sx.Of(Root, size is { } s ? ScaleStyles.FontSize(s) : null),
-            OtpFieldPart.Input => Input,
+            OtpFieldPart.Input => Sx.Of(SharedStyles.TouchInputFont, Input),
             OtpFieldPart.Slot => Slot,
             _ => Separator,
         });
@@ -68,7 +68,6 @@ public static class OtpFieldStyles
         OutlineStyle = OutlineStyle.None,
         BackgroundColor = CssColors.Transparent,
         Appearance = Appearance.None,
-        Font = CssWide.Inherit,
         Color = CssColors.Transparent,
         CaretColor = CssColors.Transparent,
         FontSize = CssLength.Em(1),

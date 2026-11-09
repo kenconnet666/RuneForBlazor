@@ -39,6 +39,10 @@ public static class SegmentedFieldStyles
         PaddingBlock = Space.Xs,
         WhiteSpace = WhiteSpace.Nowrap,
         FontVariantNumeric = FontVariantNumeric.TabularNums,
+        // 每段是可编辑的（contenteditable）：触屏上整组字号不小于 16px，iOS 聚焦时才不放大整页（同 SharedStyles.TouchInputFont）
+#pragma warning disable RUNE007 // 16px 是 iOS 不放大的门槛，与字号档位无关
+        [Media.CoarsePointer] = new() { FontSize = "max(16px, 1em)" },
+#pragma warning restore RUNE007
     });
 
     static Style Segment => Css.Define(static () => new Style

@@ -94,6 +94,22 @@ public static class SharedStyles
         },
     });
 
+    /// <summary>
+    /// 原生输入框（input、textarea、可编辑的分段）继承外壳的字体（同 vue-tsx-pro 的 touchInputStyles.font）；
+    /// 触屏上字号不小于 16px：iOS 的 Safari 聚焦小于 16px 的输入框时会放大整页，用户还得手动缩回去。桌面不变。
+    /// </summary>
+    public static Style TouchInputFont => Css.Define(static () => new Style
+    {
+        FontFamily = CssWide.Inherit,
+        FontStyle = CssWide.Inherit,
+        FontWeight = CssWide.Inherit,
+        LineHeight = CssWide.Inherit,
+        FontSize = CssWide.Inherit,
+#pragma warning disable RUNE007 // 16px 是 iOS 不放大的门槛，与字号档位无关
+        [Media.CoarsePointer] = new() { FontSize = "max(16px, 1em)" },
+#pragma warning restore RUNE007
+    });
+
     /// <summary>相对所在文字小一档（0.93em）：提示条里的关闭按钮。</summary>
     public static Style RelativeSmall => Css.Define(static () => new Style { FontSize = CssLength.Em(0.93) });
 

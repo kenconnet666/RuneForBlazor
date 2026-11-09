@@ -14,7 +14,7 @@ public static class NativeSelectStyles
 {
     /// <summary>某套定制下的部件默认层。</summary>
     public static PartLayers<NativeSelectPart> Of(ComponentStyles styles) =>
-        Recipe.Of("native-select", styles, static (NativeSelectPart _) => Sx.Of(InputStyles.InputElement, Select));
+        Recipe.Of("native-select", styles, static (NativeSelectPart _) => Sx.Of(SharedStyles.TouchInputFont, InputStyles.InputElement, Select));
 
     /// <summary>箭头叠在 select 上，不接收点击（点在它上面也是点 select）。</summary>
     internal static Style Chevron => Css.Define(static () => new Style { PointerEvents = PointerEvents.None });

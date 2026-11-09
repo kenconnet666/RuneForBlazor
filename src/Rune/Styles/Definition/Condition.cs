@@ -175,6 +175,9 @@ public static class Media
     /// <remarks>上限减 0.02px（同 Bootstrap）：与 <see cref="Up"/> 同一个断点不会同时成立。</remarks>
     public static Condition Down(int pixels) => new(FormattableString.Invariant($"@media (max-width: {pixels - 0.02:0.##}px)"));
 
+    /// <summary>触屏（手指是主要的指点设备）：手机、平板。</summary>
+    public static readonly Condition CoarsePointer = new("@media (pointer: coarse)");
+
     /// <summary>用户要求减少动态效果：动画、过渡在这里关掉或减弱。</summary>
     public static readonly Condition ReducedMotion = new("@media (prefers-reduced-motion: reduce)");
 

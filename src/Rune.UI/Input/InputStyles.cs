@@ -113,12 +113,13 @@ public static class InputStyles
                 a.Size is { } size ? ScaleStyles.FontSize(size) : null),
             InputPart.Input => a.Multiline
                 ? Sx.Of(
+                    SharedStyles.TouchInputFont,
                     InputElement,
                     TextareaStyles.Textarea,
                     a.Fixed ? TextareaStyles.Resizable : null,
                     TextareaStyles.MinRows(a.Rows),
                     !a.Fixed && a.MaxRows is { } max ? TextareaStyles.MaxRows(max) : null)
-                : a.Wrap ? Sx.Of(InputElement, WrapInput) : InputElement,
+                : Sx.Of(SharedStyles.TouchInputFont, InputElement, a.Wrap ? WrapInput : null),
             InputPart.Icon => Icon,
             InputPart.Affix => Affix,
             _ => Button,
@@ -202,7 +203,7 @@ public static class InputStyles
     static Style MultilineRoot => Css.Define(static () => new Style { AlignItems = AlignItems.Stretch, PaddingBlock = Space.Xs });
 
     /// <summary>
-    /// 原生 input / textarea：透明、无边框，占满剩余宽度，字体继承外壳。参与基线对齐、高度撑满外壳：
+    /// 原生 input / textarea：透明、无边框，占满剩余宽度，字体继承外壳（前面排 <see cref="SharedStyles.TouchInputFont"/>：触屏上字号不小于 16px）。参与基线对齐、高度撑满外壳：
     /// 外壳的基线取输入框文字的基线（而不是前面图标的底边），起始边的标签（按基线对齐）才与输入的文字在一条线上。
     /// </summary>
     internal static Style InputElement => Css.Define(static () => new Style
@@ -219,7 +220,6 @@ public static class InputStyles
         OutlineStyle = OutlineStyle.None,
         BackgroundColor = CssColors.Transparent,
         Color = CssWide.Inherit,
-        Font = CssWide.Inherit,
         Cursor = CssWide.Inherit,
         [Pseudo.Placeholder] = new() { Color = Colors.TextPlaceholder, Opacity = 1 },
     });
