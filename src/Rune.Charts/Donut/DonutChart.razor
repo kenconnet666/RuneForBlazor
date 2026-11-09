@@ -160,7 +160,7 @@
                 </g>
                 @if (center is not null)
                 {
-                    <g data-part="center-label" @attributes="Attrs.Merge(NoPointerLayer)">
+                    <g data-part="centerLabel" @attributes="Attrs.Merge(NoPointerLayer)">
                         @ChartSvg.Text(center, 0, -2, CenterValueLayer, "middle")
                         @ChartSvg.Text(CenterSubLabel ?? Config.Lang.ChartTotal, 0, 18, CenterLabelLayer, "middle")
                     </g>

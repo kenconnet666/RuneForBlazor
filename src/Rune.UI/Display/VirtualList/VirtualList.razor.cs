@@ -45,11 +45,11 @@ public partial class VirtualList<TItem>
 
     static readonly Attrs RootLayer = new() { Sx = Css.Define(static () => new Style { OverflowAnchor = OverflowAnchor.None }) };
     // 容器模式：列表元素是 ScrollArea 的视口；自己调整滚动位置，不要浏览器再按锚点调整一次
-    static readonly Attrs ContainerLayer = new() { Sx = Rune.Styles.Sx.Of(ContainerStyle, SharedStyles.FocusRing) };
+    static readonly Attrs ContainerLayer = new() { Sx = Rune.Styles.Sx.Of(ContainerStyle, SharedStyles.FocusRingInset) };
     // 横向：视口的固有宽度不算内容（列表的总宽有几万像素），否则按内容排版的祖先（表格、auto 的网格列）会被一路撑开
     static readonly Attrs HorizontalContainerLayer = new()
     {
-        Sx = Rune.Styles.Sx.Of(ContainerStyle, SharedStyles.FocusRing, Css.Define(static () => new Style { Contain = Contain.InlineSize })),
+        Sx = Rune.Styles.Sx.Of(ContainerStyle, SharedStyles.FocusRingInset, Css.Define(static () => new Style { Contain = Contain.InlineSize })),
     };
     static readonly Attrs ListLayer = new() { Sx = Css.Define(static () => new Style { Position = Position.Relative, OverflowAnchor = OverflowAnchor.None }) };
     static readonly Attrs VerticalItemLayer = new() { Sx = Rune.Styles.Sx.Of(ItemBase, Css.Define(static () => new Style { Width = CssLength.Percent(100) })) };

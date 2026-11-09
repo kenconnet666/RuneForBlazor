@@ -57,6 +57,6 @@
 
     static Style List => Css.Define(static () => new Style { PaddingInline = Space.Sm, BackgroundColor = Colors.SurfaceMuted, FontSize = FontSizes.Sm });
 
-    // 焦点框画在面板里面：外框裁掉了溢出
-    static Style Panel => Css.Define(static () => new Style { OutlineOffset = $"calc(-1 * {BorderWidths.Sm})" });
+    // 面板贴着外框（外框为圆角裁掉溢出）：焦点环画在里面；写在条件里才盖得过 TabPanel 自己的焦点环
+    static Style Panel => Css.Define(static () => new Style { [When.FocusVisible] = new() { OutlineOffset = $"calc(-1 * {BorderWidths.Sm})" } });
 }

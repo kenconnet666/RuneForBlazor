@@ -33,7 +33,7 @@ function serializeSvg(svg) {
     target.style.setProperty('stroke-dashoffset', '0');
     target.style.setProperty('scale', 'none');
   });
-  clone.querySelectorAll('[data-part="crosshair"], [data-part="hover-band"]').forEach((element) => element.remove());
+  clone.querySelectorAll('[data-part="crosshair"], [data-part="hoverBand"]').forEach((element) => element.remove());
   const { width, height } = svg.getBoundingClientRect();
   clone.setAttribute('width', String(width));
   clone.setAttribute('height', String(height));

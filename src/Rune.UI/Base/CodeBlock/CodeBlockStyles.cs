@@ -81,7 +81,7 @@ public static class CodeBlockStyles
             CodeBlockPart.Code => Sx.Of(Code, a.ByLine ? Lines : null),
             CodeBlockPart.Line => Line,
             CodeBlockPart.LineNumber => LineNumber,
-            CodeBlockPart.Copy => a.CopyInCorner ? Copy : Sx.Of(),
+            CodeBlockPart.Copy => Sx.Of(a.CopyInCorner ? Copy : null, CopyRing),
             // 同 vue-tsx-pro 建在 ButtonBase 上：去掉浏览器的按钮样式、颜色过渡、波纹
             CodeBlockPart.Expand => Sx.Of(SharedStyles.ButtonReset, SharedStyles.FocusRingInset, SharedStyles.RippleHost, SharedStyles.InteractionColors, Expand),
             _ => DisclosureStyles.Icon,
@@ -145,6 +145,9 @@ public static class CodeBlockStyles
     });
 
     // 不透明的底色：横向滚动的长行从按钮下面经过时，字不和图标叠在一起
+    // 复制按钮贴着圆角外框的角（或在标题栏里）：焦点环画在里面，不被外框裁掉
+    static Style CopyRing => Css.Define(static () => new Style { [When.FocusVisible] = new() { OutlineOffset = $"calc(-1 * {BorderWidths.Sm})" } });
+
     static Style Copy => Css.Define(static () => new Style
     {
         Position = Position.Absolute,

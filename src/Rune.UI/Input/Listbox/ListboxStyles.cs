@@ -34,7 +34,8 @@ public static class ListboxStyles
     public static PartLayers<ListboxPart> Of(bool ownScroll, ComponentStyles styles) =>
         Recipe.Of("listbox", ownScroll, styles, static (bool ownScroll, ListboxPart part) => part switch
         {
-            ListboxPart.Root => Sx.Of(Root, ownScroll ? Scroll : null, SharedStyles.FocusRing),
+            // 自己滚动时它就是滚动区域的视口：焦点环画在里面，不被外框裁掉
+            ListboxPart.Root => Sx.Of(Root, ownScroll ? Scroll : null, ownScroll ? SharedStyles.FocusRingInset : SharedStyles.FocusRing),
             ListboxPart.GroupLabel => Sx.Of(GroupLabel, SharedStyles.TextColor(TextTone.Muted)),
             ListboxPart.Option => Sx.Of(ItemStyles.Row, ItemStyles.Highlighted, ItemStyles.Selected, ItemStyles.Disabled),
             ListboxPart.Content => Content,

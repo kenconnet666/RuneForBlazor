@@ -1,6 +1,7 @@
 // 折叠内容区（data-rune-collapse，同 vue-tsx-pro 的 Collapse）：收起（data-state="closed"）的过渡结束后加 hidden="until-found"，
 // 页内查找、锚点命中时浏览器自动展开并发 beforematch，这里转成冒泡的 rune-toggle（open: true）交给 C#；展开时立刻去掉 hidden。
 // 不支持 until-found 的浏览器（Safari）只靠组件渲染的 inert。
+// 完全展开（过渡结束）后加 data-expanded：内容层不再裁剪，贴着边的焦点环、阴影不被裁掉；过渡中与收起时照旧裁，内容跟着高度出现。
 
 const watched = new WeakSet();
 const supportsUntilFound = 'onbeforematch' in HTMLElement.prototype;
@@ -11,8 +12,12 @@ const afterTransitions = (element) => Promise.allSettled(element.getAnimations()
 function sync(root, animated) {
   if (root.dataset.state === 'open') {
     root.removeAttribute('hidden');
+    const expand = () => root.toggleAttribute('data-expanded', root.dataset.state === 'open');
+    if (animated) afterTransitions(root).then(expand);
+    else expand();
     return;
   }
+  root.removeAttribute('data-expanded');
   if (!supportsUntilFound) return;
   const hide = () => {
     if (root.dataset.state !== 'open') root.setAttribute('hidden', 'until-found');

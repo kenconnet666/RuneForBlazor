@@ -31,6 +31,14 @@ internal static class UploadStyles
     internal static readonly Attrs Body = new() { Sx = BodyStyle };
     internal static readonly Attrs Name = new() { Sx = NameStyle };
 
+    // 文件名是链接时省略号放在链接上、外层不裁：链接的焦点环不被裁掉
+    internal static readonly Attrs NameLinked = new() { Sx = Sx.Of(NameStyle, NameLinkedStyle) };
+
+    internal static readonly Attrs NameLink = new() { Sx = NameLinkStyle };
+
+    // 图片墙的缩略图（能看大图的按钮）贴着格子的圆角：焦点环画在里面
+    internal static readonly Attrs ThumbnailRing = new() { Sx = SharedStyles.FocusRingInset };
+
     /// <summary>文件图标：按状态是文件、对勾（完成）或警告（失败）的颜色。</summary>
     internal static Attrs Icon(UploadStatus status) => status switch
     {
@@ -78,6 +86,17 @@ internal static class UploadStyles
     static Style BodyStyle => Css.Define(static () => new Style { Display = Display.Grid, Gap = Space.Xs, FlexGrow = 1, MinWidth = 0 });
 
     static Style NameStyle => Css.Define(static () => new Style { Overflow = Overflow.Hidden, TextOverflow = TextOverflow.Ellipsis, WhiteSpace = WhiteSpace.Nowrap });
+
+    static Style NameLinkedStyle => Css.Define(static () => new Style { Overflow = Overflow.Visible });
+
+    static Style NameLinkStyle => Css.Define(static () => new Style
+    {
+        Display = Display.InlineBlock,
+        MaxWidth = CssLength.Percent(100),
+        VerticalAlign = VerticalAlign.Top,
+        Overflow = Overflow.Hidden,
+        TextOverflow = TextOverflow.Ellipsis,
+    });
 
     static Style MetaStyle => Css.Define(static () => new Style { FontSize = FontSizes.Sm, Color = Colors.TextMuted });
 

@@ -48,7 +48,7 @@ export function onPointerMove(plot, state, event) {
 export function hover(plot, state, current) {
   const data = dataOf(plot, state);
   state.hovered = current;
-  const band = plot.querySelector('[data-part="hover-band"]');
+  const band = plot.querySelector('[data-part="hoverBand"]');
   const crosshair = plot.querySelector('[data-part="crosshair"]');
   const tooltip = plot.querySelector('[data-part="tooltip"]');
   // 散点图：悬停的那一行的点描粗（data-active）

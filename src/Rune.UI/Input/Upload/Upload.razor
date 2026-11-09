@@ -30,7 +30,7 @@
                          @attributes="Attrs.Merge(UploadStyles.Card, PropsItem)">
                         @if (src is not null)
                         {
-                            <Image Src="@src" Alt="@item.Name" Width="Fill" Height="Fill" Radius="UI.Radius.None" Preview="true" OnPreview="() => OpenPreview(item)" />
+                            <Image Src="@src" Alt="@item.Name" Width="Fill" Height="Fill" Radius="UI.Radius.None" Preview="true" OnPreview="() => OpenPreview(item)" PropsRoot="UploadStyles.ThumbnailRing" />
                         }
                         else
                         {
@@ -116,7 +116,7 @@ else
                         <Icon Data="@(failed ? BuiltInIcons.CircleExclamationPoint : item.Status == UploadStatus.Done ? BuiltInIcons.CircleCheck : BuiltInIcons.File)"
                               @attributes="Attrs.MergeProps(UploadStyles.Icon(item.Status), PropsIcon)" />
                         <div @attributes="Attrs.Merge(UploadStyles.Body, PropsBody)">
-                            <span @attributes="Attrs.Merge(UploadStyles.Name, PropsName)">@if (item.Url is { } url) { <TextLink Href="@url" Underline="LinkUnderline.Hover" target="_blank">@item.Name</TextLink> } else { @item.Name }</span>
+                            <span @attributes="Attrs.Merge(item.Url is null ? UploadStyles.Name : UploadStyles.NameLinked, PropsName)">@if (item.Url is { } url) { <TextLink Href="@url" Underline="LinkUnderline.Hover" target="_blank" @attributes="Attrs.MergeProps(UploadStyles.NameLink, null)">@item.Name</TextLink> } else { @item.Name }</span>
                             @if (item.Status == UploadStatus.Uploading)
                             {
                                 <Progress Size="UI.Size.Xs" Value="@PercentOf(item)" aria-label="@item.Name" @attributes="Attrs.MergeProps(UploadStyles.Progress, PropsProgress)" />

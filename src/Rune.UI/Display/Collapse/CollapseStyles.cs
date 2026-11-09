@@ -31,5 +31,11 @@ public static class CollapseStyles
     });
 
     // 网格项默认的最小高度是内容高度，要设为 0 才能收到 0fr
-    static Style Content => Css.Define(static () => new Style { MinHeight = 0, Overflow = Overflow.Hidden });
+    // 过渡中与收起时裁掉溢出（内容跟着高度出现）；完全展开后（JS 加 data-expanded）不裁，贴着边的焦点环、阴影不被裁掉
+    static Style Content => Css.Define(static () => new Style
+    {
+        MinHeight = 0,
+        Overflow = Overflow.Hidden,
+        [When.Parent(When.Attribute("[data-expanded]"))] = new() { Overflow = Overflow.Visible },
+    });
 }

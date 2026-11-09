@@ -94,7 +94,8 @@ public static class NavListStyles
                 ItemStyles.Row,
                 ItemStyles.Hoverable,
                 Row,
-                SharedStyles.FocusRing,
+                // 整行贴着侧栏、折叠区域的边：焦点环画在里面
+                SharedStyles.FocusRingInset,
                 SharedStyles.RippleHost,
                 s.IconOnly ? CompactRow : null,
                 s.Current ? ItemStyles.Current : null,

@@ -36,7 +36,8 @@ public static class AccordionStyles
             AccordionPart.Item => Item,
             AccordionPart.Heading => Heading,
             // 同 vue 的 ButtonBase：去默认外观、焦点环、波纹、交互状态的颜色过渡
-            AccordionPart.Trigger => Sx.Of(SharedStyles.ButtonReset, SharedStyles.FocusRing, SharedStyles.RippleHost, SharedStyles.InteractionColors, Trigger, s.Disabled ? TriggerDisabled : null),
+            // 标题贴着卡片、边框的边：焦点环画在里面
+            AccordionPart.Trigger => Sx.Of(SharedStyles.ButtonReset, SharedStyles.FocusRingInset, SharedStyles.RippleHost, SharedStyles.InteractionColors, Trigger, s.Disabled ? TriggerDisabled : null),
             AccordionPart.Chevron => Sx.Of(Chevron, DisclosureStyles.Icon, s.Open ? DisclosureStyles.Flip : null),
             _ => Content,
         });

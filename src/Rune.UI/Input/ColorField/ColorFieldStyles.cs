@@ -25,9 +25,10 @@ public static class ColorFieldStyles
     public static PartLayers<ColorFieldPart> Of(ComponentStyles styles) =>
         Recipe.Of("color-field", styles, static (ColorFieldPart part) => part switch
         {
-            ColorFieldPart.Swatch => Sx.Of(SwatchStyles.Checkerboard, SwatchStyles.Interactive, Swatch),
+            // 取色器（透明的原生 input）在色块里：焦点环画在色块上，画在 input 上既看不见又被色块裁掉
+            ColorFieldPart.Swatch => Sx.Of(SwatchStyles.Checkerboard, SwatchStyles.Interactive, Swatch, SharedStyles.FocusRingWithin),
             ColorFieldPart.Fill => Sx.Of(Fill, SwatchStyles.Ring),
-            _ => Sx.Of(Picker, SharedStyles.FocusRing),
+            _ => Picker,
         });
 
     // 色块：棋盘格垫底，颜色铺在上面一层
@@ -61,6 +62,7 @@ public static class ColorFieldStyles
         Margin = 0,
         Padding = 0,
         BorderWidth = 0,
+        OutlineStyle = OutlineStyle.None,
         Opacity = 0,
         Font = CssWide.Inherit,
         Cursor = CssWide.Inherit,

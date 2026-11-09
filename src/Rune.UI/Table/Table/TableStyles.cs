@@ -236,7 +236,8 @@ public static class TableStyles
         FontWeight = FontWeights.Medium,
         TextAlign = TextAlign.Start,
         WhiteSpace = WhiteSpace.Nowrap,
-        Overflow = Overflow.Hidden,
+        // 只横向裁（clip 不像 hidden 会把纵向变成 auto）：格里按钮、链接的焦点环上下不被裁
+        OverflowX = Overflow.Clip,
         TextOverflow = TextOverflow.Ellipsis,
     });
 
@@ -253,7 +254,8 @@ public static class TableStyles
         BorderBottomStyle = BorderStyle.Solid,
         BorderBottomColor = Colors.BorderMuted,
         BackgroundColor = CssWide.Inherit,
-        Overflow = Overflow.Hidden,
+        // 只横向裁：紧凑行里按钮、最后一行链接的焦点环上下不被裁
+        OverflowX = Overflow.Clip,
         TextOverflow = TextOverflow.Ellipsis,
         WhiteSpace = WhiteSpace.Nowrap,
         VerticalAlign = VerticalAlign.Middle,

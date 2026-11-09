@@ -7,7 +7,7 @@
             <End><Badge>今天</Badge></End>
         </ItemListItem>
     </ItemList>
-    Divided 在条目之间画线；Hoverable 悬停时着底色（整条可点时）；Inset 是条目两侧的内边距（放在弹出层、卡片正文里时与容器的内边距对齐）。
+    Divided 在条目之间画线；Hoverable 悬停时着底色（整条可点时）；Inset 是条目两侧的内边距（放在弹出层、卡片正文里时与容器的内边距对齐；悬停着底色、整条可点的条目不写时留 Sm，底色与焦点环不贴着内容）。
     未声明的属性落到 ul 上。
 *@
 @namespace Rune.UI
@@ -30,7 +30,7 @@
     /// <summary>疏密，默认标准。</summary>
     [Parameter] public ItemListDensity Density { get; set; }
 
-    /// <summary>条目两侧的内边距（与弹出层、卡片的内边距对齐）。</summary>
+    /// <summary>条目两侧的内边距（与弹出层、卡片的内边距对齐）；不写时悬停着底色、整条可点的条目留 Sm，其余不留。</summary>
     [Parameter] public SpaceScale? Inset { get; set; }
 
     /// <summary>ItemListItem。</summary>

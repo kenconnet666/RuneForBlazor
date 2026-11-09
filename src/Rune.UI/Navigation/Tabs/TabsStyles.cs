@@ -202,7 +202,8 @@ public static class TabsStyles
                 TabPart.Root => Sx.Of(
                     SharedStyles.ButtonReset,
                     SharedStyles.InteractionColors,
-                    SharedStyles.FocusRing,
+                    // 放不下时标签列表横向滚动（overflow）：焦点环画在里面
+                    SharedStyles.FocusRingInset,
                     SharedStyles.RippleHost,
                     Tab,
                     line ? LineTab : SoftTab,

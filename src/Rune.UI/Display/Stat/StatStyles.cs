@@ -145,12 +145,12 @@ internal static class StatStyles
 
     static Style ChangeSkeletonStyle => Css.Define(static () => new Style { Width = CssLength.Em(6), Height = CssLength.Em(1.5) });
 
-    // 每个指标的起始边一条竖线；整组往起始方向挪一条线的位置，每行第一个的竖线藏到外面（overflow 裁掉）
+    // 每个指标的起始边一条竖线；整组往起始方向挪一条线的位置，每行第一个的竖线藏到外面（只横向裁：里面链接的焦点环上下不被裁）
     static Style GroupRootStyle => Css.Define(static () => new Style
     {
         Display = Display.Grid,
         RowGap = Space.Md,
-        Overflow = Overflow.Hidden,
+        OverflowX = Overflow.Clip,
         GridTemplateColumns = $"repeat(auto-fit, minmax(min({MinItemWidth}, 100%), 1fr))",
     });
 

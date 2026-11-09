@@ -311,7 +311,7 @@
             @* 只给指针用户的提示（读屏不用滚轮缩放）：浮在绘图区右上角，不挤动布局；charts.js 写 data-open *@
             @if (Zoom)
             {
-                <span data-part="wheel-hint" @attributes="Attrs.Merge(HintLayer)">@Config.Lang.ChartZoomWheelHint</span>
+                <span data-part="wheelHint" @attributes="Attrs.Merge(HintLayer)">@Config.Lang.ChartZoomWheelHint</span>
             }
         </div>
     };

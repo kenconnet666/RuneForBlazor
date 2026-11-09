@@ -247,7 +247,7 @@ public static class DataTableStyles
     internal static Style ClickToEdit => Css.Define(static () => new Style { Cursor = Cursor.Text });
 
     /// <summary>编辑中的格：编辑器贴满格子，上下内边距收小；提交被拒的原因浮在下面。</summary>
-    internal static Style EditingCell => Css.Define(static () => new Style { PaddingBlock = 0, Overflow = Overflow.Visible });
+    internal static Style EditingCell => Css.Define(static () => new Style { PaddingBlock = 0, OverflowX = Overflow.Visible });
 
     /// <summary>校验没过的格：红色内描边；聚焦时仍是焦点环。</summary>
     internal static Style InvalidCell => Css.Define(static () => new Style
@@ -355,6 +355,8 @@ public static class DataTableStyles
         MaxWidth = CssLength.Percent(100),
         Color = CssWide.Inherit,
         [When.Hover] = new() { Color = Colors.Text },
+        // 表头格裁掉溢出（省略号）：焦点环画在里面
+        [When.FocusVisible] = new() { OutlineOffset = $"calc(-1 * {BorderWidths.Sm})" },
     });
 
     static Style Ellipsis => Css.Define(static () => new Style { Overflow = Overflow.Hidden, TextOverflow = TextOverflow.Ellipsis });

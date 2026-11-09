@@ -61,7 +61,8 @@ public static class ScrollAreaStyles
         Recipe.Of("scroll-area", axis, styles, static (ScrollAxis axis, ScrollAreaPart part) => part switch
         {
             ScrollAreaPart.Root => Root,
-            ScrollAreaPart.Viewport => Sx.Of(Viewport, SharedStyles.FocusRing, axis switch
+            // 焦点环画在里面：外层 overflow: hidden 会裁掉画在外面的
+            ScrollAreaPart.Viewport => Sx.Of(Viewport, SharedStyles.FocusRingInset, axis switch
             {
                 ScrollAxis.X => ScrollX,
                 ScrollAxis.Both => ScrollBoth,
@@ -114,8 +115,6 @@ public static class ScrollAreaStyles
         MinHeight = 0,
         // 隐藏原生滚动条（标准属性：Chromium 121、Firefox、Safari 18.2 起）
         ScrollbarWidth = ScrollbarWidth.None,
-        // 焦点环画在里面：外层 overflow: hidden 会裁掉画在外面的
-        [When.FocusVisible] = new() { OutlineOffset = $"calc(-1 * {BorderWidths.Sm})" },
     });
 
     static Style ScrollY => Css.Define(static () => new Style { OverflowX = Overflow.Hidden, OverflowY = Overflow.Auto });

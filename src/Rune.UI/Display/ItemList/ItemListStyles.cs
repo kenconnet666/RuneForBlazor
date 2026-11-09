@@ -75,7 +75,9 @@ public static class ItemListStyles
                 a.AlignStart ? AlignStart : null,
                 a.Look.Divided ? Divided : null,
                 a.Look.Hoverable ? ItemStyles.Hoverable : null,
-                a.Look.Inset is { } inset ? ScaleStyles.PaddingInline(inset) : null,
+                a.Look.Hoverable ? Rounded : null,
+                // 悬停着底色、整条可点的条目不写 Inset 时两侧留 Sm：底色与焦点环不贴着内容
+                (a.Look.Inset ?? (a.Look.Hoverable || a.Interactive ? SpaceScale.Sm : null)) is { } inset ? ScaleStyles.PaddingInline(inset) : null,
                 a.Interactive ? Interactive : null,
                 a.Selected ? Selected : null,
                 a.Interactive && a.Disabled ? Disabled : null),
@@ -91,6 +93,8 @@ public static class ItemListStyles
 
     static readonly Attrs PlainAction = new() { Sx = ActionStyle, ["data-item-action"] = true };
     static readonly Attrs SelectedAction = new() { Sx = ActionStyle, ["data-item-action"] = true, ["aria-current"] = "true" };
+
+    static Style Rounded => Css.Define(static () => new Style { BorderRadius = Radii.Sm });
 
     // 整条可点：悬停着底色；焦点在标题的链接或按钮上时整条画焦点环
     static Style Interactive => Css.Define(static () => new Style

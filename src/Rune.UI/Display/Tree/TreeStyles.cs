@@ -42,7 +42,8 @@ public static class TreeStyles
     public static PartLayers<TreePart> Of(TreeItemLook look, ComponentStyles styles) =>
         Recipe.Of("tree", look, styles, static (TreeItemLook a, TreePart part) => part switch
         {
-            TreePart.Root => Sx.Of(Root, SharedStyles.FocusRing),
+            // 树一般在滚动区域、穿梭框里：焦点环画在里面
+            TreePart.Root => Sx.Of(Root, SharedStyles.FocusRingInset),
             TreePart.Item => Sx.Of(ItemStyles.Row, ItemStyles.Hoverable, Item, ItemStyles.Highlighted, a.Selected ? ItemStyles.Current : null, ItemStyles.Disabled),
             TreePart.Toggle => Toggle,
             TreePart.Checkbox => Sx.Of(SharedStyles.ToneFill(Tone.Accent), Checkbox),

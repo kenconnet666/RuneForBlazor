@@ -42,7 +42,7 @@ export function watchPanZoom(plot, state) {
   plot.addEventListener('wheel', (event) => {
     if (!enabled(event)) return;
     if (!event.ctrlKey && !event.metaKey) {
-      const hint = plot.closest('[role="figure"]')?.querySelector('[data-part="wheel-hint"]');
+      const hint = plot.closest('[role="figure"]')?.querySelector('[data-part="wheelHint"]');
       hint?.setAttribute('data-open', '');
       clearTimeout(state.hintTimer);
       state.hintTimer = setTimeout(() => hint?.removeAttribute('data-open'), 1500);
