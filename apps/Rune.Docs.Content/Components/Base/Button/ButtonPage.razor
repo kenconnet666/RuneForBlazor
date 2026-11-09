@@ -1,5 +1,5 @@
 @page "/components/button"
-@attribute [DocMeta("Button 按钮", "触发一个操作：提交表单、打开对话框、删除一项。跳转到别的页面用 LinkButton。", DocCategory.Base, Order = 1)]
+@attribute [DocMeta("Button 按钮", "触发一个操作：提交表单、打开对话框、删除一项。只有图标时用 IconButton，跳转到别的页面用 LinkButton / IconLinkButton；关闭、复制有预设的按钮。", DocCategory.Base, Order = 1)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Base.Button.Demo
 
@@ -24,10 +24,19 @@
             <Example Id="types" Title="表单里的按钮与波纹" Demo="typeof(TypesExample)">
                 Type 默认是 button，放在表单里也不会误提交；submit 提交所在的表单，reset 触发表单的 reset 事件。Ripple="false" 关掉单个按钮的点击波纹。
             </Example>
+            <Example Id="icon-states" Title="图标按钮的加载、不可用与异步复制" Demo="typeof(IconStatesExample)">
+                Loading 时图标换成转圈、点击无效；FocusableWhenDisabled 让不可用的按钮仍能聚焦，配 Tooltip 说明为什么不能点。CopyButton 的 GetValue 点击时才生成内容（等待时转圈），Timeout 是对勾停留的毫秒数，OnCopied 拿到是否成功。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="icons" Title="图标" Demo="typeof(IconsExample)">
                 Icon 在文字前，IconEnd 在文字后；文字旁也可以放快捷键、计数。只有图标时用 IconButton，必须写 Label。
+            </Example>
+            <Example Id="icon-buttons" Title="图标按钮" Demo="typeof(IconButtonsExample)">
+                宽高相等，默认 Ghost 样式、中性色（一排图标不会满屏品牌色）；外观选项同 Button。没有文字，必须写 Label，读屏才知道它是做什么的。
+            </Example>
+            <Example Id="presets" Title="关闭、清空与复制" Demo="typeof(PresetsExample)">
+                CloseButton、ClearButton 带好了图标与读屏名称；CopyButton 复制成功时图标换成对勾、读屏播报“已复制”，几秒后复原。
             </Example>
             <Example Id="loading" Title="加载中" Demo="typeof(LoadingExample)">
                 加载中显示旋转指示，宽度不变，点击无效，焦点留在按钮上。
@@ -38,6 +47,9 @@
             <Example Id="links" Title="链接按钮" Demo="typeof(LinksExample)">
                 跳转到别的页面用 LinkButton（a 元素）而不是 Button 加点击跳转：能右键、在新标签页打开，读屏念“链接”。External 在新窗口打开。
             </Example>
+            <Example Id="icon-links" Title="图标链接" Demo="typeof(IconLinksExample)">
+                点了去别处的图标用 IconLinkButton（a 元素）；External 在新窗口打开。
+            </Example>
             <Example Id="group" Title="按钮组" Demo="typeof(GroupExample)">
                 ButtonGroup 把相关的按钮连成一条：拆分按钮、翻页、缩放、对齐方式。组上写的 <Code>Variant</Code>、<Code>Tone</Code>、<Code>Size</Code> 是组里按钮的默认值；<Code>Orientation.Vertical</Code> 竖排。
             </Example>
@@ -46,5 +58,5 @@
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(Button), typeof(ButtonGroup), typeof(LinkButton)]" />
+    <ApiReference Types="[typeof(Button), typeof(ButtonGroup), typeof(LinkButton), typeof(CopyButton), typeof(IconButton), typeof(IconLinkButton)]" />
 </DocPage>

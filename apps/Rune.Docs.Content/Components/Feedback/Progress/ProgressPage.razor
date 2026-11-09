@@ -1,5 +1,5 @@
 @page "/components/progress"
-@attribute [DocMeta("Progress 进度与加载", "进度条（Progress）、加载中的旋转指示（Spinner）与盖住一块区域的加载遮罩（LoadingOverlay）；内容还没来时的占位用 Skeleton。", DocCategory.Feedback, Order = 2)]
+@attribute [DocMeta("Progress 进度与加载", "进度条（Progress）、加载中的旋转指示（Spinner）、盖住一块区域的加载遮罩（LoadingOverlay）与窗口顶部的加载条（LoadingBar）；内容还没来时的占位用 Skeleton。", DocCategory.Feedback, Order = 2)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Feedback.Progress.Demo
 
@@ -23,7 +23,10 @@
             <Example Id="shapes" Title="粗细与不确定进度" Demo="typeof(ShapesExample)">
                 <Code>Size</Code> 跟字号档位缩放粗细，<Code>Radius</Code> 改圆角；不写 <Code>Value</Code> 是不确定进度，循环滑动，减少动态效果时变慢。
             </Example>
+            <Example Id="loading-bar" Title="窗口顶部的加载条（LoadingBar）" Demo="typeof(LoadingBarExample)">
+                控制器加显示（同 Toast）：<Code>LoadingBarController</Code> 的 <Code>Start</Code> 开始、<Code>Finish</Code> 走满后淡出、<Code>Error</Code> 变成危险色走满。不知道真实进度，所以先快后慢地涨，停在 90% 前等完成；动画在浏览器里，没有往返。<Code>Delay</Code>（默认 200ms）之内就完成的不显示，免得每次切换都闪一下。加载条只是视觉提示：读屏读到的是页面内容区域的 <Code>aria-busy</Code> 与“正在加载”的文字。示例把加载条放进了框里（<Code>position: absolute</Code>），平时它贴在窗口顶部；<Code>Navigation="true"</Code> 时跟着 Blazor 的增强导航自己走。
+            </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(LoadingOverlay), typeof(Progress), typeof(Spinner)]" />
+    <ApiReference Types="[typeof(LoadingOverlay), typeof(Progress), typeof(Spinner), typeof(LoadingBar)]" />
 </DocPage>

@@ -1,5 +1,5 @@
 @page "/components/item-list"
-@attribute [DocMeta("ItemList 条目列表", "界面里的列表：起始边是图标、色点或头像，中间是标题与说明，结束边是标记、数字或操作。待办、通知、我负责的任务。StatusDot 是其中常用的状态色点。", DocCategory.Display, Order = 13)]
+@attribute [DocMeta("ItemList 条目列表", "界面里的列表：起始边是图标、色点或头像，中间是标题与说明，结束边是标记、数字或操作。待办、通知、我负责的任务；整条可以是链接或按钮。状态色点 StatusDot 见 Badge 页，正文里的圆点、编号列表见 Text 页。", DocCategory.Display, Order = 13)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Display.ItemList.Demo
 
@@ -15,13 +15,10 @@
             </Example>
         </ExampleColumn>
         <ExampleColumn>
-            <Example Id="dots" Title="状态色点" Demo="typeof(DotsExample)">
-                <Code>StatusDot</Code> 比 Badge 轻，标出未读、新到、退回、图例。色调与 Badge 同名，<Code>Color</Code> 给任意颜色；点本身就是信息时写 <Code>Label</Code>，否则对读屏隐藏。
-            </Example>
             <Example Id="selectable" Title="可选中的行" Demo="typeof(SelectableExample)">
                 <Code>OnSelect</Code> 时标题是按钮，整条可点；<Code>Selected</Code> 是正在看的一条（主从视图左边的列表、收件箱）：选中色的底色，按钮带 aria-current。<Code>Disabled</Code> 的一条变淡、点不了。标题的按钮、链接经 <Code>PropsButton</Code>、<Code>PropsLink</Code> 改。
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(ItemList), typeof(ItemListItem), typeof(StatusDot)]" />
+    <ApiReference Types="[typeof(ItemList), typeof(ItemListItem)]" />
 </DocPage>

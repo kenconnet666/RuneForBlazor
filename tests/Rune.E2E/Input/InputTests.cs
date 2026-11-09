@@ -105,7 +105,7 @@ public class InputTests(DemoServer demo) : E2ETest(demo)
     [InlineData("server")]
     public async Task 复制按钮写入剪贴板并显示对勾(string mode)
     {
-        var page = await OpenAsync(mode, "icon-button");
+        var page = await OpenAsync(mode, "button");
         var copy = page.GetByTestId("copy-key");
         await copy.ClickAsync();
 

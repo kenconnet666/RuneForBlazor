@@ -57,7 +57,7 @@
 | `useToast()` / `useDialog()` 等组合式函数 | scoped 服务（`ToastService`、`DialogService`）+ 布局里放宿主（`Toaster`、`DialogHost`） |
 | `el.focus()` | 可聚焦的组件公开 `Element`（`ElementReference?`）与 `FocusAsync()`，同 `InputBase.Element` |
 | `createUi` / `Provider` | `AddRuneUI`（DI，服务端与 WebAssembly 各一次）+ `RuneProvider`（级联值） |
-| `Can`（权限）、`useCan` | 直接用 Blazor 的 `AuthorizeView`（`Policy` 写权限点、`Roles`、`NotAuthorized`）与 `IAuthorizationService`，不另做组件；文档站的 Can 页演示这种写法 |
+| `Can`（权限）、`useCan` | 直接用 Blazor 的 `AuthorizeView`（`Policy` 写权限点、`Roles`、`NotAuthorized`）与 `IAuthorizationService`，不另做组件；文档站 Provider 页的“权限”一节演示这种写法 |
 | `ClientOnly` / `useMounted` | `RendererInfo.IsInteractive`；`ClientOnly` 只是它的组件写法 |
 | “现在”（今天、相对时间） | 注入 `TimeProvider`：预渲染与交互渲染用同一个时刻，测试可以固定 |
 | 日期模型 `DateTime` | `DateOnly`、`TimeOnly`、`DateTime`、`DateTimeOffset`；格式、周起始、月份名取 `CultureInfo`，不另造日期类型 |

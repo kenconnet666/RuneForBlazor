@@ -195,14 +195,24 @@ CI 的 `VUE_TSX_PRO_REF` 第四批时前移到 89c01fc8（语言包重新生成�
 - 触屏输入框 ≥ 16px（`Media.CoarsePointer`、`SharedStyles.TouchInputFont`）
 - 焦点环全站检查（`FocusRingTests`，114 页清零）与修复；手写部件名改小驼峰并加源码检查（`PartNameTests`）
 - 配方化：Stat、Timeline、Upload、Countdown（新增 `Variant=Blocks`）；Calendar、CodeBlock、Tour、NavList、Menu、Toaster、AppShell、Transfer 原本就是
-- 小修：Treemap 读屏表格不重复单位、DataTable 展开按钮 `Sizes.MinTarget`、LinkUnderlineScope 跟着 Underline 变、Splitter 主从示例改用 ItemList、ItemList 可悬停 / 可点的条目默认留 Sm
+- 小修：Treemap 读屏表格不重复单位、DataTable 展开按钮 `Sizes.MinTarget`、LinkUnderlineScope 跟着 Underline 变、Splitter 主从示例改用 ItemList、ItemList 可悬停 / 可点的条目默认留 Sm
+
 - 新组件：UserButton、JsonViewer（建在 Tree 上，值是 JsonElement）、QRCode（`QrEncoder` 与 vue 的编码器逐模块一致；`SharedStyles.Paper` 纸面配色）、SignaturePad（画在 JS 里，静态 SSR 也能签）、Carousel（滚动吸附与自动播放在 JS 里）、ColorPicker（`ColorHsva`、`RecentColors`；ColorField 改为弹出它，`PropsPicker` 破坏性）
 - 顺带修的：ColorPicker 里的零件不拿外层 Field 的 id、不往它那里登记字段（曾在 Field 里无限重新渲染）；InfiniteList 计时测试放宽
 
 不需要改：列表状态按属性（Rune 本来就用 `data-highlighted` 等）；Listbox / Tree 的虚拟行（Rune 用 Virtualize，行在文档流里）。
 Rune 还没有的组件（这一轮通知里它们的改动随组件一起做）：FilterBar、QueryTable、FormDialog、PeoplePicker、NotificationList / NotificationCenter、SchemaForm、KanbanBoard。
 
-还没做：ImageCropper 与 Upload 的 transform、省市区数据（Cascader）、DataTable 列虚拟化、P12 组合组件的属性转发、24.1 内部节点的部件标记、CI 接入规格比对、文档站重排、截图基线重新生成。
+- ImageCropper（平移缩放在 JS 里，导出经隐藏的 InputFile 回到 C#，不受 SignalR 32 KB 限制）与 Upload 的 `Transform`
+- 省市区数据：新包 Rune.UI.Area（`tools/area-gen` 从 vue 的 area/data.ts 生成 area.json，嵌入资源；`Area.Tree`、`Area.Names`），Cascader 的地区示例用全量数据
+- DataTable `VirtualColumns`：只渲染看得见的列（`ColumnWindow`，两端固定列总在），跳过的列由 colspan 占位，分组表头按露出的列重排，`aria-colcount` / `aria-colindex`
+- CI 规格比对：`tools/parity/spec.mjs` 取 vue 的 /spec/components.json，`SpecParityTests` 按名字约定比对组件与参数，差异记在 spec-baseline.txt（514 → 251 行；部件属性只剩 Tree.PropsRow——Virtualize 没有行包装）；把 Rest 原样交给里面组件的按 `Forwards` 表连同里面的参数一起算
+- P12 部件属性：DataTable 全部部件、FormControl 的 `PropsRoot`（外壳；直接写的属性仍落在输入元素上）、Radio / Checkbox、CalendarBoard、日期选择器的快捷选项与今天、Cascader 选项、Upload、TabList、Breadcrumbs、FormSection、Timeline、Transfer、Toaster、各组的 `PropsItem`、SelectedTags、NavItem、ColumnSettings、图表的缩放复位与地图控件、ColumnTable / PivotTable 的格子、FieldCompare、FormErrorSummary、PageScrollbar、CommandPalette
+- 24.1 部件标记：Checklist 改成带名字的配方；DataTable 第一列的 Leading / Content、Timeline 的 Pending / Avatar 成为部件
+- 文档站重排（同 vue P2.1）：IconButton 并进 Button、Banner 并进 Alert、LoadingBar 并进 Progress、ValueChange 并进 FieldCompare、ResizeHandle 并进 Splitter、FormSection 并进 Form、List 并进 Text、Can 并进 Provider、NavMenu / NavBar 并进 NavList、ViewportFill 并进 AsideLayout、Gauge / ProportionBar 并进 Sparkline（挪到图表组）、StatusDot 挪到 Badge 页、新组“文档工具”一页（DocArticle、PropsTable、CodePreview、CodeGroup、ColorSwatch）；旧地址按 `DocRedirects` 永久跳转（服务端 301，静态导出写 _redirects）
+- 截图基线在 CI 上重新生成（合并过的页面随下一次重新生成）
+
+还没做：vue P2.2 / P2.3 的逐页示例调整（示例改用组件库组件、卡片网格落单等）。
 
 下面是原先积压的清单，没在上面列出的仍待做：
 
@@ -236,7 +246,7 @@ Rune 还没有的组件（这一轮通知里它们的改动随组件一起做）
    - Tabs：id 里字母数字 - 以外的字符写成 `_码位_`（dfb688b2）；整组卸载时 Tab 逐个注销不改选、不发 ValueChanged（fe17e18c）；TabPanel 听 beforematch 切到自己
    - 触屏（pointer: coarse）输入框字号 max(16px, 1em)：输入外壳里的 input/textarea、OtpField、日期时间分段、CodeEditor（0.21.0）
 9. 表单：FormDialog select 支持 multiple（返回 string[]）、选项 group 分组、多选 defaultValue 给数组（1fde03ee、88943ae0）；PeoplePicker 触发框 role=combobox；语言包新键 formRowLabel / formRowActions / formTabs / formValueTrue / formValueFalse / formValueEmpty；SchemaForm 一族（visibleWhen / requiredWhen / readonlyWhen、access、明细表与合计、formSources、页签、SchemaView、focusControl 发 beforematch）在 Rune 出 SchemaForm 方案时一起做
-10. 文档站：vue 的页面合并与示例调整，整体跟进时一起重排
+10. 文档站：vue 的页面合并（已做）与逐页示例调整（P2.2 / P2.3，未做）
 
 vue 于 2026-11-09 通知计划 plan-2026-11-07 做完（0.17.0，436cea6e），之后到 0.21.0（9afdc156）是表单模块与零星修复；流程引擎的改动与组件无关，不跟。
 

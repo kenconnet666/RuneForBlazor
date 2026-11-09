@@ -8,10 +8,12 @@ public class ResizeHandleTests(DemoServer demo) : E2ETest(demo)
     [InlineData("wasm")]
     public async Task 拖动改宽度_夹在范围内_方向键与双击_松开后交给CSharp(string mode)
     {
-        var page = await OpenAsync(mode, "resize-handle");
+        var page = await OpenAsync(mode, "splitter");
         var panel = page.GetByTestId("panel");
         var handle = page.GetByTestId("handle");
         var width = page.GetByTestId("width").Locator("dd");
+        // 示例在 Splitter 页的后面：先滚进视口，鼠标才按得到
+        await handle.ScrollIntoViewIfNeededAsync();
         var box = await handle.BoundingBoxAsync() ?? throw new InvalidOperationException("看不到手柄");
 
         await page.Mouse.MoveAsync(box.X + box.Width / 2, box.Y + box.Height / 2);

@@ -27,7 +27,7 @@ public class PageNavigationTests(DemoServer demo) : E2ETest(demo)
     [InlineData("wasm")]
     public async Task 加载条延迟出现_完成后淡出_出错变危险色(string mode)
     {
-        var page = await OpenAsync(mode, "loading-bar");
+        var page = await OpenAsync(mode, "progress");
         var bar = page.GetByTestId("bar");
         await page.GetByRole(AriaRole.Tab, new() { Name = "库存台账" }).ClickAsync();
         await Assertions.Expect(bar).ToHaveAttributeAsync("data-state", "loading");

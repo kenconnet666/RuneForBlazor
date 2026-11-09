@@ -11,6 +11,7 @@
 //    （app.abc123.css、import map 里的 JS），磁盘上只有原名，清单写着每个地址对应哪个文件。压缩版本（.br、.gz）不要：Cloudflare 自己压缩。
 // 3. 启动发布好的服务端，从首页开始按站内链接与 iframe 的地址爬完全部页面，每页存成 路径.html（Cloudflare Pages 对 /components/button
 //    直接取 components/button.html，不跳转），首页是 index.html，找不到页面存成 404.html。
+// 4. 合并、挪走了的旧页面地址（DocRedirects）写成 _redirects，由 Cloudflare Pages 永久跳转到新页的小节。
 import { spawn, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -80,6 +81,9 @@ async function exportSite() {
     }
     const notFound = await fetch(`${origin}/not-found`);
     writeFileSync(join(out, '404.html'), await notFound.text());
+    const redirects = await fetch(`${origin}/_redirects`);
+    if (!redirects.ok) throw new Error(`/_redirects 取不到：${redirects.status}`);
+    writeFileSync(join(out, '_redirects'), await redirects.text());
     // import map 里有服务端运行时生成的模块（_framework/resource-collection.*.js，WebAssembly 启动时要它），不在静态资源里：从服务端取下来
     let generated = 0;
     for (const target of importMapTargets(pages.values())) {
@@ -173,12 +177,23 @@ function freePort() {
   });
 }
 
-/** 按 Cloudflare Pages 的规则预览：/a/b 取 a/b.html，目录取 index.html，找不到时 404.html */
+/** 按 Cloudflare Pages 的规则预览：先按 _redirects 跳转，/a/b 取 a/b.html，目录取 index.html，找不到时 404.html */
 function preview(root) {
+  const redirectsFile = join(root, '_redirects');
+  const redirects = new Map(
+    existsSync(redirectsFile)
+      ? readFileSync(redirectsFile, 'utf8').split(/\r?\n/).filter(Boolean).map((line) => line.split(' ').slice(0, 2))
+      : [],
+  );
   const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wasm': 'application/wasm', '.svg': 'image/svg+xml', '.dat': 'application/octet-stream', '.txt': 'text/plain' };
   const candidates = (path) => [join(root, path), join(root, `${path}.html`), join(root, path, 'index.html')];
   createServer((request, response) => {
     const path = decodeURIComponent(new URL(request.url, 'http://x').pathname);
+    if (redirects.has(path)) {
+      response.writeHead(301, { location: redirects.get(path) });
+      response.end();
+      return;
+    }
     const file = candidates(path).find((f) => existsSync(f) && statSync(f).isFile());
     const status = file ? 200 : 404;
     const served = file ?? join(root, '404.html');

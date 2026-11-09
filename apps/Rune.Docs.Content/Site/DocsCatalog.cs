@@ -47,6 +47,9 @@ public enum DocCategory
 
     /// <summary>配置。</summary>
     Config,
+
+    /// <summary>文档工具（写文档站用的，不是业务界面，放在最后）。</summary>
+    DocsKit,
 }
 
 /// <summary>
@@ -130,6 +133,7 @@ public static class DocsCatalog
         DocCategory.Patterns => "页面组合",
         DocCategory.Charts => "图表",
         DocCategory.Config => "配置",
+        DocCategory.DocsKit => "文档工具",
         _ => category.ToString(),
     };
 

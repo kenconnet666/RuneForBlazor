@@ -1,0 +1,59 @@
+@*
+    列表页（整页，在 iframe 里打开）：外壳的品牌、占满到窗口底边（ViewportFill）、表格在里面滚动，分页贴着窗口底边。
+    同 vue-tsx-pro 文档站 ViewportFill 的 frames/ListPage（那边是 DataTable 的 flexible；这里先用静态 Table 放进滚动区域，阶段 4 换用 DataTable）。
+*@
+@attribute [DocFrame("aside-layout", "viewport-fill")]
+@inherits RuneComponent
+
+<AppShell PropsMain="Main">
+    <Brand><AppShellBrand Href="#" Icon="Lucide.Plane">采购管理平台</AppShellBrand></Brand>
+    <ChildContent>
+        <ViewportFill Gap="SpaceScale.Md" Bottom="SpaceScale.Md">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+                <TextField Icon="Lucide.Search" placeholder="编码 / 名称" aria-label="关键字" />
+                <Small Tone="TextTone.Muted">表格占满到窗口底边，行多时在表格里滚动</Small>
+            </Flex>
+            <ScrollArea Sx="Fill" PropsViewport="@(new Attrs { ["aria-label"] = "台账" })">
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableHeaderCell>编码</TableHeaderCell>
+                            <TableHeaderCell>项目名称</TableHeaderCell>
+                            <TableHeaderCell>责任团队</TableHeaderCell>
+                            <TableHeaderCell Align="TableAlign.End">预期（万元）</TableHeaderCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        @foreach (var row in rows.Skip((page - 1) * PageSize).Take(PageSize))
+                        {
+                            <TableRow @key="row.Code">
+                                <TableCell>@row.Code</TableCell>
+                                <TableCell>@row.Name</TableCell>
+                                <TableCell>@row.Team</TableCell>
+                                <TableCell Align="TableAlign.End">@row.Amount.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)</TableCell>
+                            </TableRow>
+                        }
+                    </TableBody>
+                </Table>
+            </ScrollArea>
+            <Pagination @bind-Page="page" Total="rows.Length" PageSize="PageSize" />
+        </ViewportFill>
+    </ChildContent>
+</AppShell>
+
+@code {
+    const int PageSize = 20;
+    static readonly Attrs Main = new() { Sx = MainStyle };
+    static readonly string[] names = ["线缆收纳夹改版", "桌面挡板流程优化", "机柜导轨第二供应商"];
+    static readonly string[] teams = ["技术部", "研发中心", "运营部"];
+    static readonly Row[] rows = [.. Enumerable.Range(0, 40).Select(i => new Row($"PO-2026-{i + 1:0000}", names[i % 3], teams[i % 3], 2 + (i * 37 % 300) / 10m))];
+
+    int page = 1;
+
+    sealed record Row(string Code, string Name, string Team, decimal Amount);
+
+    static Style MainStyle => Css.Define(static () => new Style { PaddingBlock = Space.Md });
+
+    // 撑满 ViewportFill 剩下的高度，在里面滚动
+    static Style Fill => Css.Define(static () => new Style { FlexGrow = 1, MinHeight = 0 });
+}

@@ -1,5 +1,5 @@
 @page "/components/field-compare"
-@attribute [DocMeta("FieldCompare 字段对比", "两份记录按字段列出原值与新值（测算版本对比、编辑前后、审批前后），数值字段带变化量与变化率，按好坏着色。", DocCategory.Display, Order = 8)]
+@attribute [DocMeta("FieldCompare 字段对比与值的变化", "两份记录按字段列出原值与新值（测算版本对比、编辑前后、审批前后），数值字段带变化量与变化率，按好坏着色；单个值的变化用 ValueChange。", DocCategory.Display, Order = 8)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Display.FieldCompare.Demo
 
@@ -14,5 +14,9 @@
         <Code>FieldCompareLayout.List</Code> 一行一个字段：原值划掉、箭头、新值（<Code>ValueChange</Code>，要自己排版时单独用），默认只列改了的，放在保存前的确认、审批意见、时间线的一项里。
         原值是 del、新值是 ins，中间有给读屏的“改为”；<Code>Before</Code> 为空（新建）时只列新值，什么都没改时显示“没有改动”（语言包可改）。
     </Example>
-    <ApiReference Types="[typeof(FieldCompare<>)]" />
+    <Example Id="value-change" Title="单个值的变化（ValueChange）" Demo="typeof(ValueChangeExample)">
+        <Code>Before</Code> 是原值，<Code>After</Code> 是新值；没有原值（新建）时只显示新值。原值是 del、新值是 ins，中间有给读屏的“改为”。
+        要放组件（标记、链接）时用 <Code>BeforeContent</Code>、<Code>AfterContent</Code>。整份记录按字段对比用 <Code>FieldCompare</Code>，表格里标出改过的格见 DataTable 的“数据修正”。
+    </Example>
+    <ApiReference Types="[typeof(FieldCompare<>), typeof(ValueChange)]" />
 </DocPage>

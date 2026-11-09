@@ -14,9 +14,6 @@
             </Example>
         </ExampleColumn>
         <ExampleColumn>
-            <Example Id="swatch" Title="ColorSwatch" Demo="typeof(SwatchExample)">
-                <Code>Color</Code> 是颜色值或主题 token：token 的取值按当前主题读出，换主题时跟着变（左上角切换主题试试）。半透明的颜色下面垫棋盘格。
-            </Example>
             <Example Id="states" Title="外观与状态" Demo="typeof(StatesExample)">
                 <Code>Variant</Code>、<Code>Size</Code>、<Code>Radius</Code> 与其他输入框同一套；Field 上的 <Code>Required</Code>、<Code>Error</Code>、<Code>ReadOnly</Code>、<Code>Disabled</Code> 交给里面的 ColorField。
             </Example>
@@ -27,5 +24,5 @@
         ("Enter / Space", "在色块上：打开取色器；Esc 关上，焦点回到色块"),
         ("Tab", "色块与文字输入框各占一个 Tab 位置"),
     ])" />
-    <ApiReference Types="[typeof(ColorField), typeof(ColorSwatch)]" />
+    <ApiReference Types="[typeof(ColorField)]" />
 </DocPage>

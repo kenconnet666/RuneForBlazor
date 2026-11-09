@@ -8,7 +8,7 @@ public class NavBarTests(DemoServer demo) : E2ETest(demo)
     [InlineData("wasm")]
     public async Task 顶栏变窄时后面的项收进更多菜单(string mode)
     {
-        var page = await OpenAsync(mode, "nav-bar");
+        var page = await OpenAsync(mode, "nav-list");
         var nav = page.GetByTestId("header");
         var more = nav.GetByRole(AriaRole.Button, new() { Name = "更多" });
 
@@ -27,7 +27,7 @@ public class NavBarTests(DemoServer demo) : E2ETest(demo)
     [InlineData("wasm")]
     public async Task 菜单树_空目录不显示_含当前页的分组自动展开(string mode)
     {
-        var page = await OpenAsync(mode, "nav-menu");
+        var page = await OpenAsync(mode, "nav-list");
         var menu = page.GetByTestId("menu");
 
         await Assertions.Expect(menu.GetByText("审批")).ToHaveCountAsync(0);
