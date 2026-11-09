@@ -1,4 +1,4 @@
-// JS 初始化器的主体（入口 Rune.UI.lib.module.js 在后台加载它，各个 data-rune-* 属性的约定写在入口的开头）：
+// JS 初始化器的主体（入口 RuneForBlazor.UI.lib.module.js 在后台加载它，各个 data-rune-* 属性的约定写在入口的开头）：
 // 挂全局的事件委托与 DOM 变化监听，再分给同目录下的各模块。
 
 import { autosize, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from '../input/controls.js';
@@ -146,7 +146,7 @@ export function install(blazor, on) {
   Promise.allSettled([...loading]).then(() => document.documentElement.setAttribute('data-rune-ready', ''));
 }
 
-// 别的包（Rune.UI.Dates、Rune.Charts）的模块：第一次遇到它的元素时才加载，只用表格、表单的页面不下载。加载中的记在 loading 里（见 install）
+// 别的包（RuneForBlazor.UI.Dates、RuneForBlazor.Charts，路径是 _content/{包 ID}）的模块：第一次遇到它的元素时才加载，只用表格、表单的页面不下载。加载中的记在 loading 里（见 install）
 const loading = new Set();
 const lazy = (load, name) => (element) => {
   const pending = load().then((module) => module[name](element));
@@ -201,9 +201,9 @@ const watched = [
   ['[data-rune-color-picker]', lazy(() => import('../input/color-picker.js'), 'watchColorPicker')],
   ['[data-rune-cropper]', lazy(() => import('../input/cropper.js'), 'watchCropper')],
   ['[data-rune-signature]', lazy(() => import('../input/signature.js'), 'watchSignature')],
-  ['[data-rune-date-segments]', lazy(() => import('../../../Rune.UI.Dates/js/date-segments.js'), 'watchDateSegments')],
-  ['[data-rune-calendar]', lazy(() => import('../../../Rune.UI.Dates/js/calendar.js'), 'watchCalendar')],
-  ['[data-rune-chart]', lazy(() => import('../../../Rune.Charts/js/charts.js'), 'watchChart')],
+  ['[data-rune-date-segments]', lazy(() => import('../../../RuneForBlazor.UI.Dates/js/date-segments.js'), 'watchDateSegments')],
+  ['[data-rune-calendar]', lazy(() => import('../../../RuneForBlazor.UI.Dates/js/calendar.js'), 'watchCalendar')],
+  ['[data-rune-chart]', lazy(() => import('../../../RuneForBlazor.Charts/js/charts.js'), 'watchChart')],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 

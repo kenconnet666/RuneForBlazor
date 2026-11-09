@@ -1,7 +1,7 @@
 // 图表的绘图区（[data-rune-chart]，同 vue-tsx-pro 的 usePlotArea）：图形由 C# 画，这里量尺寸，悬停、点击、平移缩放、导出见 chart/ 下各模块。
 // 量尺寸：ResizeObserver 量出绘图区的内容尺寸，进入过视口附近（IntersectionObserver，提前 200px；打印前全部算看见）之后
 // 以 rune-command size（"宽,高"，取整，变了才发）交给 C#，C# 按尺寸重排。一页很多图表时先画看得见的。
-import { sendCommand } from '../../Rune.UI/js/core/shared.js';
+import { sendCommand } from '../../RuneForBlazor.UI/js/core/shared.js';
 import './chart/export.js';
 import { watchPanZoom } from './chart/pan-zoom.js';
 import { hover, onClick, onPointerMove } from './chart/pointer.js';

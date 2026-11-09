@@ -1,4 +1,5 @@
-// Rune.UI 的 JS 初始化器：Blazor 启动时按文件名约定（{程序集名}.lib.module.js）自动加载，静态 SSR、Server、WebAssembly 都会运行。
+// RuneForBlazor.UI 的 JS 初始化器：Blazor 启动时自动加载，静态 SSR、Server、WebAssembly 都会运行。
+// 文件名必须是 {PackageId}.lib.module.js（SDK 按包 ID 而不是程序集名找初始化器）：包 ID 改了这里要跟着改名，否则所有交互都不生效。
 //
 // 浮层尽量交给浏览器原生：popover 属性（顶层、点外面与 Esc 关闭、popovertarget 打开）、<dialog>（模态、焦点圈在里面、关闭后焦点还给触发元素）、
 // @starting-style 进出场。组件不直接调用 JS，只在元素上写属性，这里用全局的事件委托补原生没有的几样：

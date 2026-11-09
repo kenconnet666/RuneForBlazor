@@ -112,7 +112,7 @@ public sealed class CopiedEventArgs : EventArgs
 }
 
 /// <summary>
-/// 组件库自定义的 DOM 事件，由 JS 初始化器（<c>wwwroot/Rune.UI.lib.module.js</c>）发出：
+/// 组件库自定义的 DOM 事件，由 JS 初始化器（<c>wwwroot/RuneForBlazor.UI.lib.module.js</c>）发出：
 /// <list type="bullet">
 /// <item><c>@onrunetoggle</c>：浮层开关。原生的 <c>toggle</c>（popover）、<c>close</c>（dialog）不冒泡，Blazor 内置的 <c>@ontoggle</c> 也不带新状态，JS 转发成冒泡的 <c>rune-toggle</c>。</item>
 /// <item><c>@onrunecopied</c>：复制按钮写完剪贴板（成功或失败）。</item>

@@ -20,8 +20,8 @@ test "$(ls "$out"/*.nupkg | wc -l)" -eq "${#projects[@]}"
 # 生成器在核心包里（装 RuneForBlazor.UI 也能用 [State]：库之间的依赖不排除分析器）
 unzip -l "$(package RuneForBlazor)" | grep "analyzers/dotnet/cs/Rune.Generators.dll" >/dev/null
 unzip -p "$(package RuneForBlazor.UI)" RuneForBlazor.UI.nuspec | grep '<dependency id="RuneForBlazor" [^>]*include="All"' >/dev/null
-# 浮层等 JS 初始化器在组件库包里；Lucide 的许可随两个带图标数据的包
-unzip -l "$(package RuneForBlazor.UI)" | grep "Rune.UI.*lib.module.js" >/dev/null
+# 浮层等 JS 初始化器在组件库包里，文件名要等于包 ID（SDK 只认 {PackageId}.lib.module.js）；Lucide 的许可随两个带图标数据的包
+unzip -p "$(package RuneForBlazor.UI)" build/Microsoft.AspNetCore.StaticWebAssets.props | grep "<AssetTraitValue>JSLibraryModule</AssetTraitValue>" >/dev/null
 unzip -l "$(package RuneForBlazor.UI)" | grep "LICENSE-lucide.txt" >/dev/null
 unzip -l "$(package RuneForBlazor.Icons)" | grep "LICENSE-lucide.txt" >/dev/null
 ls -l "$out"

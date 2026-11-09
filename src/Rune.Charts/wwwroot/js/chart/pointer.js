@@ -2,7 +2,7 @@
 // - band、line：找出指针所在的行，移动十字线、圆点、浅底（C# 渲染的元素，这里只改属性）；point：最近的点；
 //   item：指针下的那一项（data-index）高亮，其余变淡；提示框在容器里克隆原型填字。
 // - 点击：data-clickable 时发 rune-command activate（点在柱上按那根柱，其余按悬停的行）；select 时点空白处发 deselect。
-import { sendCommand } from '../../../Rune.UI/js/core/shared.js';
+import { sendCommand } from '../../../RuneForBlazor.UI/js/core/shared.js';
 import { dataOf, round } from './state.js';
 
 /** 指针移动：找出悬停的行（散点图是最近的点） */

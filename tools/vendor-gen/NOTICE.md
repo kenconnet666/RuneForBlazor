@@ -1,7 +1,7 @@
 # 第三方浏览器脚本的来源
 
 `generate.mjs` 用 `npm pack` 下载下面的 npm 包（版本见脚本里的常量），取其浏览器构建放进 `src/Rune.UI/wwwroot/vendor`，
-随 Rune.UI 包分发（`_content/Rune.UI/vendor/…`），JS 初始化器第一次用到时才 `import()`。
+随 Rune.UI 包分发（`_content/RuneForBlazor.UI/vendor/…`），JS 初始化器第一次用到时才 `import()`。
 
 | 文件 | 来源 | 版本 | 许可 |
 | ---- | ---- | ---- | ---- |

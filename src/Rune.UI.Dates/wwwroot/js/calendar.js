@@ -3,7 +3,7 @@
 //   翻页、夹到可选范围由 C# 定；渲染后焦点跟到 C# 认定的那一格（[data-focused]）。
 // - 点一格交 activate（选中，或在月份、年份视图里进到下一级），Esc 在区间选到一半时交 cancel（没有时不拦，交给弹层关闭）。
 // - 区间选到一半（data-anchor）：从开始到悬停（没有时是焦点）那一格画预览（data-preview*，C# 不写这几个属性）。
-import { isRtl, sendCommand } from '../../Rune.UI/js/core/shared.js';
+import { isRtl, sendCommand } from '../../RuneForBlazor.UI/js/core/shared.js';
 
 const states = new WeakMap();
 

@@ -150,7 +150,7 @@
 - **不让下面的组件白白重新渲染**：Provider 的参数没变时给出同一个配置对象；配置是 record，级联参数与普通参数一样比较，没变就跳过。
 - **共用的交互样式**：`SharedStyles.InteractionColors`（悬停、按下时颜色与阴影的过渡）、焦点环、视觉隐藏、色调文字色、波纹宿主；浮层进出场是 `OverlayTransitions`。
 
-## 8. 浮层（`src/Rune.UI/Overlay`、`wwwroot/Rune.UI.lib.module.js` 与 `wwwroot/js/`）
+## 8. 浮层（`src/Rune.UI/Overlay`、`wwwroot/RuneForBlazor.UI.lib.module.js` 与 `wwwroot/js/`）
 
 - **ScrollArea 是滚动的基础组件**（同 vue-tsx-pro）：原生滚动、浮层滚动条。组件只渲染结构，滑块尺寸位置、显隐、拖动、点轨道翻页、滚轮转交、
   内容超出时视口可聚焦都在 JS（`js/layout/scroll-area.js`），静态 SSR 一样。会滚动的部分都用它：列表框自己滚动时列表元素就是视口（PropsViewport），
@@ -212,7 +212,7 @@
   这里写 MinItemWidth（同 Grid）后改用容器查询：每多一栏一条 `@container (min-width: calc(k * 宽度))`，跨栏同理封顶；静态 SSR 也对、不需要往返。
 - **ResizeHandle**：拖动、方向键、双击都在 JS（`js/layout/resize.js`）当场改父元素的宽（横向是高），并去掉按档位给的最大宽度；一次操作结束才发 rune-resize
   交给 C#（拖动中 C# 不渲染，就不会有晚到的渲染把宽度拉回）。Drawer 左右两侧默认可拖宽（`@bind-Width`，DialogBase 的 Edge / RootInlineStyle 钩子）。
-- **JS 的组织**：入口 `Rune.UI.lib.module.js` 只注册自定义事件；主体 `js/core/runtime.js`（全局事件委托、DOM 变化监听）在入口执行时就开始在后台加载，
+- **JS 的组织**：入口 `RuneForBlazor.UI.lib.module.js` 只注册自定义事件；主体 `js/core/runtime.js`（全局事件委托、DOM 变化监听）在入口执行时就开始在后台加载，
   按职责分到 `wwwroot/js/` 的模块：overlays、floating、lists、tooltips、overflow、controls、effects、layout、shared，以及 roving、indicator、slider、move、rating、otp、scroll-area 等。
   模块用相对路径互相 import（浏览器原生 ES 模块，不打包）。入口不静态导入任何模块：Blazor 启动前要等初始化器连同它的静态导入加载完，
   几十个模块挡在启动的关键路径上（本机 HTTP/1.1 约 0.7 秒）。但事件委托的**顺序**要保持排在 Blazor 之前（输入时先清旧高亮、
@@ -225,7 +225,7 @@
 
 - **尽量用浏览器原生**：弹出层是 `popover="auto"`（顶层、点外面与 Esc 关闭、同时只开一个、`popovertarget` 打开），对话框与抽屉是模态 `<dialog>`
   （焦点圈在里面、Esc 关闭、关闭后焦点还给触发元素），进出场用 `@starting-style` 加 display / overlay 的离散过渡（`When.Starting`），关闭动画不需要 JS 等待。
-- **组件不调用 JS**：只在元素上写属性，JS 初始化器（Blazor 按 `{程序集名}.lib.module.js` 自动加载）用全局事件委托处理：
+- **组件不调用 JS**：只在元素上写属性，JS 初始化器（Blazor 按 `{包 ID}.lib.module.js` 自动加载，见 `wwwroot/RuneForBlazor.UI.lib.module.js` 的开头）用全局事件委托处理：
   `data-rune-overlay`（开关时发出冒泡的 `rune-toggle`，C# 里是 `@onrunetoggle`）、`data-open`（受控时 JS 同步原生状态）、
   `data-rune-open` / `data-rune-close`（点击打开、关闭）、`data-rune-light-dismiss`、菜单键盘、提示的 Esc 与 aria-describedby、模态时锁定滚动、
   锚定浮层的定位。好处：Server / WebAssembly / 静态 SSR 行为一致，没有 `IJSRuntime` 的异步与往返；
@@ -423,7 +423,10 @@
 - **可裁剪**：三个库都是 `IsTrimmable`（同时打开裁剪分析器，警告即错误）。不用反射能做到的改掉了（组件默认值的叠加走非泛型接口、主题配置的 JSON 用 Utf8JsonWriter 手写）；
   剩下的反射（组件参数、表单模型的属性、record 判断、事件处理器的合并）放在具名方法上，写明为什么裁剪后仍然安全。
 - 库专属的设置（文档注释检查、打包信息）在 `Directory.Build.targets`：props 在项目文件之前导入，那时项目里的 `IsLibrary` 还没有值。版本号例外，写在 props（SDK 更早算版本）。
-- CI 在 Linux 上打包三个库，检查生成器在 Rune 包里、Lucide 许可证在 Rune.Icons 包里，并把包作为产物留存；发布到哪里（CD）待定。
+- 包 ID 是 `RuneForBlazor.*`（nuget.org 上的 `Rune` 已被占用），程序集与命名空间仍是 `Rune.*`。静态资源跟着包 ID 走：路径是 `_content/RuneForBlazor.UI/…`，
+  JS 初始化器的文件名必须是 `{PackageId}.lib.module.js`（SDK 按包 ID 找，不按程序集名）；改包 ID 时它没跟着改名，所有交互都不生效，端到端测试卡在等 `data-rune-ready`。
+- `tools/pack/pack.sh` 打七个包并检查内容（生成器在核心包、库之间的依赖不排除分析器、初始化器登记为 `JSLibraryModule`、Lucide 许可），CI 与发版共用。
+  推 `v*` tag 由 `release.yml` 等 CI 通过后经 nuget.org 的可信发布推送，见 CHANGELOG.md 开头。
 
 ## 12. 已知限制与下一步
 
