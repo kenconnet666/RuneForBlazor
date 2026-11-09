@@ -9,7 +9,7 @@ namespace Rune.Tests.Parity;
 /// 与 vue-tsx-pro 的组件规格比对（vue-spec.json，由 tools/parity/spec.mjs 从 vue 文档站的 /spec/components.json 精简而来）：
 /// vue 的每个组件、每个属性（普通属性、部件属性 propsXxx、事件 onXxx、内容 children）在 Rune 里有没有对应的组件与参数。
 /// 名字按约定换算：_value → Value，propsTrigger → PropsTrigger，onClose → OnClose，children → ChildContent，renderDetail → DetailContent；
-/// aria-* 是元素的属性，不比；改了名的组件（Link → TextLink 等）按 Renamed 找。现有的差异记在 spec-baseline.txt（有意的不同、还没跟的都在里面），只对新出现的差异报错，
+/// aria-* 是元素的属性，不比；改了名的组件（Link → TextLink 等）按 Renamed 找；把没声明的参数原样交给里面组件的（Forwards）连同里面组件的参数一起算。现有的差异记在 spec-baseline.txt（有意的不同、还没跟的都在里面），只对新出现的差异报错，
 /// 也提醒把已经补上的从基线里删掉。跟进 vue 时重新取规格，补上的属性从基线里去掉；确实不跟的加进基线。
 /// RUNE_SPEC_UPDATE=1 时按当前的差异重写基线。
 /// </summary>
@@ -24,6 +24,21 @@ public class SpecParityTests
         ["Text"] = "TextSpan",
         ["DateTime"] = "DateTimeText",
         ["Provider"] = "RuneProvider",
+    };
+
+    // 建在另一个组件上、没声明的参数（Rest）原样交给它的：Rune 的组件名 → 里面的组件名（可以一层套一层）
+    static readonly Dictionary<string, string> Forwards = new(StringComparer.Ordinal)
+    {
+        ["TreeDataTable"] = "DataTable",
+        ["PageSizeSelect"] = "Select",
+        ["Popconfirm"] = "Popover",
+        ["StatusBadge"] = "Badge",
+        ["DeadlineBadge"] = "Badge",
+        ["NavMenu"] = "NavList",
+        ["ColumnTable"] = "Table",
+        ["PropsTable"] = "Table",
+        ["BackTop"] = "FloatButton",
+        ["FloatButton"] = "IconButton",
     };
 
     [Fact]
@@ -60,10 +75,8 @@ public class SpecParityTests
                 yield return $"{component.Name}（组件）";
                 continue;
             }
-            var parameters = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(property => property.GetCustomAttribute<ParameterAttribute>() is not null)
-                .Select(property => property.Name)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var parameters = ParametersOf(type);
+            for (var name = type.Name.Split('`')[0]; Forwards.TryGetValue(name, out var inner); name = inner) parameters.UnionWith(ParametersOf(types[inner]));
             foreach (var prop in component.Value.EnumerateArray())
             {
                 var name = prop.GetProperty("name").GetString()!;
@@ -72,6 +85,11 @@ public class SpecParityTests
             }
         }
     }
+
+    static HashSet<string> ParametersOf(Type type) => type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+        .Where(property => property.GetCustomAttribute<ParameterAttribute>() is not null)
+        .Select(property => property.Name)
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     // vue 的属性名 → Rune 的参数名；元素属性（aria-*）不比
     static string? Expected(string name, string kind)

@@ -214,7 +214,7 @@ public partial class DataTable<TItem>
     /// <summary>单元格导航：表格是 role="grid"，方向键在格之间走，只有一格能 Tab 进入；有可编辑的列时默认开。</summary>
     [Parameter] public bool? CellNavigation { get; set; }
 
-    /// <summary>按行与列（key）计算的每个单元格的部件属性：节省是负数时标红这类。</summary>
+    /// <summary>按行与列（key）计算的每个单元格的部件属性：节省是负数时标红这类（写了时代替 <see cref="PropsCell"/>）。</summary>
     [Parameter] public Func<TItem, string, Attrs?>? PropsCellFor { get; set; }
 
     /// <summary>行的色调：导入校验的错误行、即将超期的行整行着浅色底（不透明，固定列也盖得住）。</summary>
@@ -252,6 +252,75 @@ public partial class DataTable<TItem>
 
     /// <summary>加载中占位的部件属性（交给 Skeleton）。</summary>
     [Parameter] public Attrs? PropsSkeleton { get; set; }
+
+    /// <summary>表头（thead）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHead { get; set; }
+
+    /// <summary>表头每一行（tr）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeadRow { get; set; }
+
+    /// <summary>列标题（th）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeaderCell { get; set; }
+
+    /// <summary>分组标题（th）的部件属性。</summary>
+    [Parameter] public Attrs? PropsGroupHeaderCell { get; set; }
+
+    /// <summary>勾选列的列标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsSelectHeaderCell { get; set; }
+
+    /// <summary>全选勾选框的部件属性（交给 Checkbox）。</summary>
+    [Parameter] public Attrs? PropsSelectAll { get; set; }
+
+    /// <summary>详情列的列标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsDetailHeaderCell { get; set; }
+
+    /// <summary>排序按钮的部件属性（交给 ButtonBase）。</summary>
+    [Parameter] public Attrs? PropsSortButton { get; set; }
+
+    /// <summary>排序按钮里文字的部件属性。</summary>
+    [Parameter] public Attrs? PropsSortLabel { get; set; }
+
+    /// <summary>调整列宽手柄的部件属性（交给 ColumnResizer）。</summary>
+    [Parameter] public Attrs? PropsResizer { get; set; }
+
+    /// <summary>数据单元格（td）的部件属性；按行与列计算的用 <see cref="PropsCellFor"/>。</summary>
+    [Parameter] public Attrs? PropsCell { get; set; }
+
+    /// <summary>勾选列的格的部件属性。</summary>
+    [Parameter] public Attrs? PropsSelectCell { get; set; }
+
+    /// <summary>每行勾选框的部件属性（多选，交给 Checkbox）。</summary>
+    [Parameter] public Attrs? PropsSelectCheckbox { get; set; }
+
+    /// <summary>每行单选框的部件属性（单选，交给 Radio）。</summary>
+    [Parameter] public Attrs? PropsSelectRadio { get; set; }
+
+    /// <summary>展开详情那一列的格的部件属性。</summary>
+    [Parameter] public Attrs? PropsDetailToggleCell { get; set; }
+
+    /// <summary>展开详情按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsDetailToggle { get; set; }
+
+    /// <summary>第一个数据列里把手、Leading 与内容那一行的部件属性。</summary>
+    [Parameter] public Attrs? PropsLeading { get; set; }
+
+    /// <summary>上面一行里格的内容的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>详情行（tr）的部件属性。</summary>
+    [Parameter] public Attrs? PropsDetailRow { get; set; }
+
+    /// <summary>详情所在的格的部件属性。</summary>
+    [Parameter] public Attrs? PropsDetailCell { get; set; }
+
+    /// <summary>空状态所在的格的部件属性。</summary>
+    [Parameter] public Attrs? PropsEmptyCell { get; set; }
+
+    /// <summary>表尾（tfoot）的部件属性。</summary>
+    [Parameter] public Attrs? PropsFoot { get; set; }
+
+    /// <summary>合计行的格的部件属性。</summary>
+    [Parameter] public Attrs? PropsSummaryCell { get; set; }
 
     /// <summary>当前的可见范围（JS 报告过之后才有）。</summary>
     public VisibleRange? Visible => visible;

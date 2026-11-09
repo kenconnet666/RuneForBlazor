@@ -112,7 +112,7 @@
                      aria-disabled="@(off ? "true" : null)" aria-haspopup="@(branch ? "listbox" : null)"
                      aria-expanded="@(branch ? (at == active && Columns.Count > level + 1 ? "true" : "false") : null)"
                      data-active="@(at == active ? "true" : null)" data-state="@(selected ? "checked" : "unchecked")"
-                     @attributes="Attrs.Merge(parts[CascaderPart.Option])" @onclick="() => ClickAsync(level, node, key)">
+                     @attributes="Attrs.Merge(parts[CascaderPart.Option], PropsOption)" @onclick="() => ClickAsync(level, node, key)">
                     <span @attributes="Attrs.Merge(parts[CascaderPart.Label])">@GetLabel(node)</span>
                     @if (branch)
                     {
@@ -149,7 +149,7 @@
                 var id = string.Join('\u0000', hit.Keys);
                 var selected = id == chosen;
                 <div @key="id" id="@($"{ColumnId(0)}-{index}")" role="option" aria-selected="@(selected ? "true" : "false")"
-                     aria-disabled="@(hit.Disabled ? "true" : null)" @attributes="Attrs.Merge(parts[CascaderPart.Option])"
+                     aria-disabled="@(hit.Disabled ? "true" : null)" @attributes="Attrs.Merge(parts[CascaderPart.Option], PropsOption)"
                      @onclick="() => PickHitAsync(hit)">
                     <span @attributes="Attrs.Merge(parts[CascaderPart.Label])">@hit.Label</span>
                     @if (selected)

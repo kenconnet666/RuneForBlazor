@@ -21,7 +21,8 @@ public abstract class FormControl<TValue> : UIComponent
     Memo<(string Id, string? DescribedBy, bool Invalid, bool Required, bool Disabled, bool ReadOnly), Attrs> controlAttrs;
     Memo<(string Id, string Role, string? LabelledBy, string? DescribedBy, Orientation Orientation, bool Invalid, bool Required, bool Disabled, bool ReadOnly, Attrs? Extra), Attrs> groupAttrs;
     Memo<IReadOnlyDictionary<string, object>?, Attrs> inputUserAttrs;
-    Memo<Sx?, Attrs> rootUserAttrs;
+    Memo<(Attrs? Props, Sx? Sx), Attrs> rootUserAttrs;
+    Memo<(Attrs? Props, Attrs Direct), Attrs> rootRest;
     EditContext? subscribedContext;
     Expression<Func<TValue>>? identifiedExpression;
     FieldIdentifier? fieldIdentifier;
@@ -33,6 +34,12 @@ public abstract class FormControl<TValue> : UIComponent
 
     /// <summary>值改变后。</summary>
     [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+
+    /// <summary>
+    /// 根元素的部件属性：输入框一类是外壳（看得见的那个盒子），勾选框、开关是整个标签。
+    /// 这类控件上直接写的属性（placeholder、name……）落在输入元素上，要给外壳的 class、data-* 写在这里；Sx 也落在外壳上，排在它之后。
+    /// </summary>
+    [Parameter] public Attrs? PropsRoot { get; set; }
 
     /// <summary>绑定的字段（<c>@bind-Value</c> 自动给出）：用它在表单里找到这个字段的校验状态。</summary>
     [Parameter] public Expression<Func<TValue>>? ValueExpression { get; set; }
@@ -171,8 +178,11 @@ public abstract class FormControl<TValue> : UIComponent
     /// <summary>外壳上由组件管理的标记：点在外壳的空白处（内边距、图标、前后缀）时 JS 初始化器把焦点交给里面的输入元素。</summary>
     protected static readonly Attrs ShellAttrs = new() { ["data-rune-control"] = true };
 
-    /// <summary>使用方的 Sx：落在外框（看得见的那个盒子）上。</summary>
-    protected Attrs RootUserAttrs => rootUserAttrs.Get(Sx, static sx => sx is null ? Attrs.Empty : new Attrs { Sx = sx });
+    /// <summary>使用方给外框（看得见的那个盒子）的：<see cref="PropsRoot"/> 与 Sx。</summary>
+    protected Attrs RootUserAttrs => rootUserAttrs.Get((PropsRoot, Sx), static k => k.Sx is null ? k.Props ?? Attrs.Empty : Attrs.Layer(k.Props, new Attrs { Sx = k.Sx }));
+
+    /// <summary>根元素就是控件本身的（一组控件）：<see cref="PropsRoot"/> 在下，直接写的属性与 Sx 在上。</summary>
+    protected Attrs RootRest => rootRest.Get((PropsRoot, Rest), static k => k.Props is null ? k.Direct : Attrs.Layer(k.Props, k.Direct));
 
     /// <summary>改值：受控时交给父级，否则改自己的；然后通知表单这个字段变了（触发校验）。</summary>
     protected async Task SetValueAsync(TValue newValue)

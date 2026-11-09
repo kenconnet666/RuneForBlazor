@@ -25,7 +25,7 @@
     @* Responsive 时“+N”一直在（没有折起的项时藏起来，但 JS 仍要量它的宽度）；文字由 JS 从 data-rune-more 里按折起的个数取 *@
     @if (Responsive || hidden > 0)
     {
-        <Tag Size="Size.Sm" Variant="StatusVariant.Soft" @attributes="Attrs.MergeProps(TagLayer, PropsTag, Responsive ? OverflowRest : null)">@Config.Lang.SelectMoreTags(hidden)</Tag>
+        <Tag Size="Size.Sm" Variant="StatusVariant.Soft" @attributes="Attrs.MergeProps(TagLayer, PropsMore ?? PropsTag, Responsive ? OverflowRest : null)">@Config.Lang.SelectMoreTags(hidden)</Tag>
     }
 </span>
 
@@ -51,6 +51,9 @@
 
     /// <summary>每个标签的部件属性（交给 Tag）。</summary>
     [Parameter] public Attrs? PropsTag { get; set; }
+
+    /// <summary>“+N”标签的部件属性（交给 Tag）；不写时同 <see cref="PropsTag"/>。</summary>
+    [Parameter] public Attrs? PropsMore { get; set; }
 
     bool Responsive => MaxTagCount?.IsResponsive == true;
 

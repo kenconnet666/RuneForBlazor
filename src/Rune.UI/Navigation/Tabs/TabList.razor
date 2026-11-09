@@ -21,10 +21,10 @@ else
     <div data-rune-tabs @attributes="Attrs.Merge(parts[TabsPart.Bar], PropsBar)">
         @* 滚动按钮只给指针用：键盘在标签之间移动时，当前标签会自己滚进来 *@
         <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@Config.Lang.TabScrollPrevious" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
-                    PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(Part.Unmarked(parts[TabsPart.BarButton]), null, ScrollBack)" />
+                    PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(Part.Unmarked(parts[TabsPart.BarButton]), PropsScrollButton, ScrollBack)" />
         @List(parts)
         <IconButton Icon="BuiltInIcons.ChevronRight" Label="@Config.Lang.TabScrollNext" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost"
-                    PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(Part.Unmarked(parts[TabsPart.BarButton]), null, ScrollForward)" />
+                    PropsIcon="FlipIcon" @attributes="Attrs.MergeProps(Part.Unmarked(parts[TabsPart.BarButton]), PropsScrollButton, ScrollForward)" />
         @if (ShowAllMenu)
         {
             <Menu Placement="Placement.BottomEnd">
@@ -83,6 +83,9 @@ else
 
     /// <summary>“新建标签页”按钮的部件属性。</summary>
     [Parameter] public Attrs? PropsAdd { get; set; }
+
+    /// <summary>两端滚动按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsScrollButton { get; set; }
 
     [CascadingParameter] TabsState? State { get; set; }
 

@@ -14,7 +14,7 @@
 
 <ListboxView TItem="TItem" Id="@ControlId" Entries="Entries" Selected="Selected" Multiple="Multiple" Loading="Loading" OwnScroll="true"
              OnPick="PickAsync" ChildContent="ChildContent" Empty="Empty" PropsOption="PropsOption" PropsGroupLabel="PropsGroupLabel"
-             PropsCheck="PropsCheck" PropsEmpty="PropsEmpty" PropsSkeleton="PropsSkeleton" @attributes="Attrs.MergeProps(null, Rest, RootManaged)" />
+             PropsCheck="PropsCheck" PropsEmpty="PropsEmpty" PropsSkeleton="PropsSkeleton" @attributes="Attrs.MergeProps(null, RootRest, RootManaged)" />
 
 @code {
     /// <inheritdoc cref="ListboxView{TItem}.VirtualThreshold"/>

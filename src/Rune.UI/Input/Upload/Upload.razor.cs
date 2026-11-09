@@ -94,6 +94,12 @@ public partial class Upload
     /// <summary>移除按钮的部件属性（交给 IconButton；名称按语言包的 UploadRemove 生成）。</summary>
     [Parameter] public Attrs? PropsRemove { get; set; }
 
+    /// <summary>拖动排序的把手的部件属性（交给 ButtonBase）。</summary>
+    [Parameter] public Attrs? PropsHandle { get; set; }
+
+    /// <summary>有地址时文件名的链接的部件属性（交给 TextLink）。</summary>
+    [Parameter] public Attrs? PropsLink { get; set; }
+
     const int DefaultThumbnailSize = 104;
 
     IReadOnlyList<UploadFile> Files => CurrentValue ?? [];

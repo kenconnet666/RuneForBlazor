@@ -13,10 +13,10 @@
 
 <label data-state="@(selected ? "checked" : "unchecked")" data-disabled="@(off ? "true" : null)"
        data-readonly="@(Group?.GroupReadOnly == true ? "true" : null)" @attributes="Attrs.Merge(parts[ChoicePart.Root], RootAttrs)">
-    <span @attributes="Attrs.Merge(parts[ChoicePart.Control])">
+    <span @attributes="Attrs.Merge(parts[ChoicePart.Control], PropsControl)">
         <input type="radio" @attributes="Attrs.Merge(parts[ChoicePart.Input], InputAttrs, Managed)"
                @onclick:preventDefault="@(Group?.GroupReadOnly == true)" />
-        <span @attributes="Attrs.Merge(parts[ChoicePart.Indicator])"></span>
+        <span @attributes="Attrs.Merge(parts[ChoicePart.Indicator], PropsIndicator)"></span>
     </span>
     @if (ChildContent is not null)
     {
@@ -24,7 +24,7 @@
             @ChildContent
             @if (Description is not null)
             {
-                <span id="@descriptionId" @attributes="Attrs.Merge(parts[ChoicePart.Description])">@Description</span>
+                <span id="@descriptionId" @attributes="Attrs.Merge(parts[ChoicePart.Description], PropsDescription)">@Description</span>
             }
         </span>
     }
@@ -36,7 +36,7 @@
 
 @code {
     Memo<IReadOnlyDictionary<string, object>?, Attrs> inputAttrs;
-    Memo<Sx?, Attrs> rootAttrs;
+    Memo<(Attrs? Props, Sx? Sx), Attrs> rootAttrs;
     readonly string descriptionId = UniqueId.Next("radio-description");
     Memo<(string? Name, bool Checked, bool Disabled, string? DescribedBy), Attrs> managed;
 
@@ -70,10 +70,22 @@
     /// <summary>文字的部件属性。</summary>
     [Parameter] public Attrs? PropsLabel { get; set; }
 
-    // 使用方写的属性落在 input 上，Sx 落在外层 label 上（同 FormControl）
+    /// <summary>外层 label 的部件属性（直接写的属性落在 input 上，同 FormControl）。</summary>
+    [Parameter] public Attrs? PropsRoot { get; set; }
+
+    /// <summary>圆点外框（input 与指示器）的部件属性。</summary>
+    [Parameter] public Attrs? PropsControl { get; set; }
+
+    /// <summary>选中时的圆点的部件属性。</summary>
+    [Parameter] public Attrs? PropsIndicator { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    // 使用方写的属性落在 input 上，PropsRoot 与 Sx 落在外层 label 上（同 FormControl）
     Attrs InputAttrs => inputAttrs.Get(AdditionalAttributes, static attributes => Attrs.From(attributes, null));
 
-    Attrs RootAttrs => rootAttrs.Get(Sx, static sx => sx is null ? Attrs.Empty : new Attrs { Sx = sx });
+    Attrs RootAttrs => rootAttrs.Get((PropsRoot, Sx), static k => k.Sx is null ? k.Props ?? Attrs.Empty : Attrs.Layer(k.Props, new Attrs { Sx = k.Sx }));
 
     Attrs Managed => managed.Get((Group?.GroupName, Group?.IsSelected(Value) == true, Disabled || Group?.GroupDisabled == true, Description is null ? null : descriptionId), this,
         static (k, owner) => new Attrs

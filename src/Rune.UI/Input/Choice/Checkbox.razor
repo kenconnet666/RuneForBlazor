@@ -19,7 +19,7 @@
             @ChildContent
             @if (Description is not null)
             {
-                <span id="@descriptionId" @attributes="Attrs.Merge(parts[ChoicePart.Description])">@Description</span>
+                <span id="@descriptionId" @attributes="Attrs.Merge(parts[ChoicePart.Description], PropsDescription)">@Description</span>
             }
         </span>
     }
@@ -79,6 +79,9 @@
 
     /// <summary>对勾的部件属性（交给 Icon）。</summary>
     [Parameter] public Attrs? PropsIndicator { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
 
     // input 上由组件管理的属性：表单状态、勾选、半选（原生的 indeterminate 只能用 JS 设置，JS 初始化器按 data-indeterminate 同步）
     Attrs InputManaged => inputManaged.Get((ControlAttrs, IsChecked, Indeterminate, DescribedBy, InGroup is { } group ? group.Name : FieldName), this,

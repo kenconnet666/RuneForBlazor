@@ -77,6 +77,12 @@ public enum DataTablePart
     /// <summary>详情行（tr）。</summary>
     DetailRow,
 
+    /// <summary>第一个数据列里的一行：拖动的把手、Leading（树形表格的缩进与展开按钮），再是格的内容。</summary>
+    Leading,
+
+    /// <summary>上面一行里格的内容（占满剩下的宽度，放不下时省略）。</summary>
+    Content,
+
     /// <summary>详情所在的格（跨全部列），叠在 <see cref="Cell"/> 上。</summary>
     DetailCell,
 
@@ -166,6 +172,8 @@ public static class DataTableStyles
                 DataTablePart.Spacer => Spacer,
                 DataTablePart.Foot => Foot,
                 DataTablePart.SummaryCell => SummaryCell,
+                DataTablePart.Leading => Leading,
+                DataTablePart.Content => LeadingContent,
                 _ => Sx.Of(),
             };
         });

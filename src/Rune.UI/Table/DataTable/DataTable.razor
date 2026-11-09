@@ -96,16 +96,16 @@
                         <col @key="view.Column" data-column="@view.Key" style="@(width is null ? null : $"width:{width}")" />
                     }
                 </colgroup>
-                <thead @attributes="Attrs.Merge(parts[DataTablePart.Head])">
-                    <tr aria-rowindex="1" @attributes="Attrs.Merge(parts[DataTablePart.HeadRow])">
+                <thead @attributes="Attrs.Merge(parts[DataTablePart.Head], PropsHead)">
+                    <tr aria-rowindex="1" @attributes="Attrs.Merge(parts[DataTablePart.HeadRow], PropsHeadRow)">
                         @if (SelectionMode is not null)
                         {
-                            <th scope="col" rowspan="@rowSpan" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.SelectHeaderCell], stickySelect))">
+                            <th scope="col" rowspan="@rowSpan" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.SelectHeaderCell]), PropsSelectHeaderCell, stickySelect)">
                                 @if (SelectionMode == UI.SelectionMode.Multiple)
                                 {
                                     var state = SelectAllState;
                                     <Checkbox Value="state.All" Indeterminate="state.Some" Disabled="!state.Any" ValueChanged="@(_ => ToggleAllAsync())"
-                                              aria-label="@Config.Lang.TableSelectAll" @attributes="Attrs.MergeProps(parts[DataTablePart.SelectAll])" />
+                                              aria-label="@Config.Lang.TableSelectAll" @attributes="Attrs.MergeProps(parts[DataTablePart.SelectAll], PropsSelectAll)" />
                                 }
                                 else
                                 {
@@ -115,7 +115,7 @@
                         }
                         @if (hasDetail)
                         {
-                            <th scope="col" rowspan="@rowSpan" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.DetailHeaderCell], stickyDetail))">
+                            <th scope="col" rowspan="@rowSpan" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.DetailHeaderCell]), PropsDetailHeaderCell, stickyDetail)">
                                 <VisuallyHidden>@Config.Lang.TableDetails</VisuallyHidden>
                             </th>
                         }
@@ -125,7 +125,7 @@
                             {
                                 if (skip is { } gap)
                                 {
-                                    <th @key="@($"skip-{gap.From}")" colspan="@gap.Span" aria-hidden="true" @attributes="Attrs.Merge(parts[DataTablePart.HeaderCell])"></th>
+                                    <th @key="@($"skip-{gap.From}")" colspan="@gap.Span" aria-hidden="true" @attributes="Attrs.Merge(parts[DataTablePart.HeaderCell], PropsHeaderCell)"></th>
                                     continue;
                                 }
                                 @HeaderCell(shown[column], shown, parts, offsets, 1, false)
@@ -139,12 +139,12 @@
                                 var divider = at > 0 && slot.Position > 0 && (slot.Cell?.Group is not null || layout[slot.Position - 1].Group is not null);
                                 if (slot.Gap is { } gap)
                                 {
-                                    <th @key="@($"skip-{gap.From}")" colspan="@gap.Span" rowspan="2" aria-hidden="true" @attributes="Attrs.Merge(parts[DataTablePart.HeaderCell])"></th>
+                                    <th @key="@($"skip-{gap.From}")" colspan="@gap.Span" rowspan="2" aria-hidden="true" @attributes="Attrs.Merge(parts[DataTablePart.HeaderCell], PropsHeaderCell)"></th>
                                 }
                                 else if (slot.Cell is { Group: { } group } cell)
                                 {
                                     <th @key="@($"{group}-{slot.Position}")" scope="colgroup" colspan="@cell.Columns.Count"
-                                        @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.GroupHeaderCell], GroupLayer(cell.Columns, offsets, divider)))">@group</th>
+                                        @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.GroupHeaderCell]), PropsGroupHeaderCell, GroupLayer(cell.Columns, offsets, divider))">@group</th>
                                 }
                                 else
                                 {
@@ -162,7 +162,7 @@
                                 if (cell.Group is { } group)
                                 {
                                     <th @key="@($"{group}-{position}")" scope="colgroup" colspan="@cell.Columns.Count"
-                                        @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.GroupHeaderCell], GroupLayer(cell.Columns, offsets, divider)))">@group</th>
+                                        @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.GroupHeaderCell]), PropsGroupHeaderCell, GroupLayer(cell.Columns, offsets, divider))">@group</th>
                                 }
                                 else
                                 {
@@ -175,7 +175,7 @@
                     {
                         // 第二行：各组（列虚拟化时只是露出来的）的列；跳过的列由第一行跨两行的占位占住
                         IReadOnlyList<HeaderGroup<TItem>> groups = slots is null ? layout : [.. slots.Where(static slot => slot.Cell is not null).Select(static slot => slot.Cell!)];
-                        <tr aria-rowindex="2" @attributes="Attrs.Merge(parts[DataTablePart.HeadRow])">
+                        <tr aria-rowindex="2" @attributes="Attrs.Merge(parts[DataTablePart.HeadRow], PropsHeadRow)">
                             @for (var position = 0; position < groups.Count; position++)
                             {
                                 var cell = groups[position];
@@ -196,7 +196,7 @@
                     else if (items.Count == 0 && !Loading)
                     {
                         <tr>
-                            <td colspan="@span" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.EmptyCell]))">
+                            <td colspan="@span" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.EmptyCell]), PropsEmptyCell)">
                                 @if (Empty is not null)
                                 {
                                     @Empty
@@ -228,8 +228,8 @@
                             {
                                 // 详情：一行一个跨全部列的格；内容让过勾选列与展开列，和第一个数据列对齐
                                 <tr @key="@($"{key}\u0000detail")" data-index="@position" data-virtual-key="@($"{key}#detail")" data-detail aria-rowindex="@(position + headerRows + 1)"
-                                    @attributes="Attrs.Merge(parts[DataTablePart.DetailRow])">
-                                    <td id="@detailId" colspan="@span" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.DetailCell]))">
+                                    @attributes="Attrs.Merge(parts[DataTablePart.DetailRow], PropsDetailRow)">
+                                    <td id="@detailId" colspan="@span" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.DetailCell]), PropsDetailCell)">
                                         <div @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.DetailContent], DetailIndent))">@DetailContent!(item)</div>
                                     </td>
                                 </tr>
@@ -255,29 +255,29 @@
                                 @attributes="Attrs.Merge(rowLayer, PropsRowFor?.Invoke(item, index) ?? PropsRow)">
                                 @if (SelectionMode is not null)
                                 {
-                                    <td @attributes="Attrs.Merge(Attrs.Layer(rowParts[DataTablePart.Cell], rowParts[DataTablePart.SelectCell], new Attrs { Sx = Sx.Of(stickySelectStyle, active ? DataTableStyles.ActiveEdge : null) }))">
+                                    <td @attributes="Attrs.Merge(Attrs.Layer(rowParts[DataTablePart.Cell], rowParts[DataTablePart.SelectCell]), PropsSelectCell, new Attrs { Sx = Sx.Of(stickySelectStyle, active ? DataTableStyles.ActiveEdge : null) })">
                                         @if (SelectionMode == UI.SelectionMode.Single)
                                         {
                                             <CascadingValue TValue="IRadioGroup<string>" Value="Radios">
                                                 <Radio TValue="string" Value="key" Disabled="!IsSelectable(item)" aria-label="@Config.Lang.TableSelectRow(number)"
-                                                       Sx="rowParts[DataTablePart.SelectRadio].Sx" />
+                                                       @attributes="Attrs.MergeProps(rowParts[DataTablePart.SelectRadio], PropsSelectRadio)" />
                                             </CascadingValue>
                                         }
                                         else
                                         {
                                             <Checkbox Value="isSelected" Indeterminate="@(PartialKeys?.Contains(key) == true)" Disabled="!IsSelectable(item)" ValueChanged="@(_ => ToggleRowAsync(key))"
-                                                      aria-label="@Config.Lang.TableSelectRow(number)" @attributes="Attrs.MergeProps(rowParts[DataTablePart.SelectCheckbox])" />
+                                                      aria-label="@Config.Lang.TableSelectRow(number)" @attributes="Attrs.MergeProps(rowParts[DataTablePart.SelectCheckbox], PropsSelectCheckbox)" />
                                         }
                                     </td>
                                 }
                                 @if (hasDetail)
                                 {
-                                    <td @attributes="Attrs.Merge(Attrs.Layer(rowParts[DataTablePart.Cell], rowParts[DataTablePart.DetailToggleCell], Attrs.Layer(stickyDetail, active && SelectionMode is null ? (Attrs)DataTableStyles.ActiveEdge : null)))">
+                                    <td @attributes="Attrs.Merge(Attrs.Layer(rowParts[DataTablePart.Cell], rowParts[DataTablePart.DetailToggleCell]), PropsDetailToggleCell, Attrs.Layer(stickyDetail, active && SelectionMode is null ? (Attrs)DataTableStyles.ActiveEdge : null))">
                                         @if (HasDetail?.Invoke(item) ?? true)
                                         {
                                             <IconButton Icon="BuiltInIcons.ChevronRight" Size="Size.Sm" Radius="Radius.Full" Label="@Config.Lang.TableRowDetails(RowLabel(item, shown))"
                                                         PropsIcon="@(isExpanded ? ExpandedIcon : CollapsedIcon)" aria-expanded="@(isExpanded ? "true" : "false")" aria-controls="@(isExpanded ? detailId : null)"
-                                                        @onclick="DetailClick(key)" @attributes="Attrs.MergeProps(rowParts[DataTablePart.DetailToggle])" />
+                                                        @onclick="DetailClick(key)" @attributes="Attrs.MergeProps(rowParts[DataTablePart.DetailToggle], PropsDetailToggle)" />
                                         }
                                     </td>
                                 }
@@ -286,7 +286,7 @@
                                 {
                                     if (skip is { } gap)
                                     {
-                                        <td @key="@($"skip-{gap.From}")" colspan="@gap.Span" aria-hidden="true" @attributes="Attrs.Merge(rowParts[DataTablePart.Cell])"></td>
+                                        <td @key="@($"skip-{gap.From}")" colspan="@gap.Span" aria-hidden="true" @attributes="Attrs.Merge(rowParts[DataTablePart.Cell], PropsCell)"></td>
                                         continue;
                                     }
                                     var view = shown[column];
@@ -310,7 +310,7 @@
                                         ["aria-invalid"] = error is null ? null : "true",
                                         ["aria-description"] = error,
                                     } : null;
-                                    <td @key="view.Column" aria-colindex="@ColIndex(column)" @attributes="Attrs.Merge(cellLayer, PropsCellFor?.Invoke(item, view.Key), gridLayer)">
+                                    <td @key="view.Column" aria-colindex="@ColIndex(column)" @attributes="Attrs.Merge(cellLayer, PropsCellFor?.Invoke(item, view.Key) ?? PropsCell, gridLayer)">
                                         @if (editingHere)
                                         {
                                             @EditorCell(view.Column, item)
@@ -318,7 +318,7 @@
                                         else if (column == 0 && (reorderable || Leading is not null))
                                         {
                                             @* 第一个数据列前面：拖动的把手，再是 Leading（树形表格的缩进与展开按钮） *@
-                                            <div @attributes="Attrs.Merge(DataTableStyles.Leading)">
+                                            <div @attributes="Attrs.Merge(parts[DataTablePart.Leading], PropsLeading)">
                                                 @if (reorderable)
                                                 {
                                                     <ButtonBase Ripple="false" data-rune-sortable-handle aria-label="@Config.Lang.SortableHandle(label!)" aria-describedby="@sortableInstructionsId"
@@ -327,7 +327,7 @@
                                                     </ButtonBase>
                                                 }
                                                 @Leading?.Invoke(item)
-                                                <div @attributes="Attrs.Merge(DataTableStyles.LeadingContent)">@CellOf(view.Column, item, view.Type)</div>
+                                                <div @attributes="Attrs.Merge(parts[DataTablePart.Content], PropsContent)">@CellOf(view.Column, item, view.Type)</div>
                                             </div>
                                         }
                                         else
@@ -350,26 +350,26 @@
                 </tbody>
                 @if (summary)
                 {
-                    <tfoot @attributes="Attrs.Merge(parts[DataTablePart.Foot])">
+                    <tfoot @attributes="Attrs.Merge(parts[DataTablePart.Foot], PropsFoot)">
                         <tr aria-rowindex="@(bodyCount + headerRows + 1)">
                             @if (SelectionMode is not null)
                             {
-                                <td @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell], stickySelect))"></td>
+                                <td @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell]), PropsSummaryCell, stickySelect)"></td>
                             }
                             @if (hasDetail)
                             {
-                                <td @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell], stickyDetail))"></td>
+                                <td @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell]), PropsSummaryCell, stickyDetail)"></td>
                             }
                             @foreach (var (position, skip) in ColumnWindow.Walk(shown.Count, skips))
                             {
                                 if (skip is { } gap)
                                 {
-                                    <td @key="@($"skip-{gap.From}")" colspan="@gap.Span" aria-hidden="true" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell]))"></td>
+                                    <td @key="@($"skip-{gap.From}")" colspan="@gap.Span" aria-hidden="true" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell]), PropsSummaryCell)"></td>
                                     continue;
                                 }
                                 var view = shown[position];
-                                <td @key="view.Column" aria-colindex="@ColIndex(position)" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell],
-                                        Attrs.Layer(TableStyles.AlignOf(view.Align), StickyLayer(view, offsets))))">
+                                <td @key="view.Column" aria-colindex="@ColIndex(position)" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell]), PropsSummaryCell,
+                                        Attrs.Layer(TableStyles.AlignOf(view.Align), StickyLayer(view, offsets)))">
                                     @SummaryOf(view.Column, position, view.Type)
                                 </td>
                             }
@@ -419,7 +419,7 @@
         var position = IndexOfView(shown, view.Key);
         <th @key="column" scope="col" rowspan="@(rowSpan > 1 ? rowSpan : null)" data-column="@view.Key" data-sticky="@view.Sticky?.ToString().ToLowerInvariant()" aria-colindex="@ColIndex(position)"
             aria-sort="@(column.Sortable ? (priority == 0 ? AriaSort(direction) : "none") : null)"
-            @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], new Attrs { Sx = Sx.Of(TableStyles.AlignOf(view.Align), divider ? DataTableStyles.GroupDivider : null) }, StickyLayer(view, offsets)))">
+            @attributes="Attrs.Merge(parts[DataTablePart.HeaderCell], PropsHeaderCell, Attrs.Layer(new Attrs { Sx = Sx.Of(TableStyles.AlignOf(view.Align), divider ? DataTableStyles.GroupDivider : null) }, StickyLayer(view, offsets)))">
             @if (actions)
             {
                 <div @attributes="Attrs.Merge(parts[DataTablePart.HeaderContent])">
@@ -446,7 +446,7 @@
             }
             @if (column.Resizable ?? Resizable)
             {
-                <ColumnResizer Label="@column.Label" Width="view.Width" MinWidth="@(column.MinWidth ?? 64)" WidthChanged="@(width => SetWidthAsync(view.Key, width))" />
+                <ColumnResizer Label="@column.Label" Width="view.Width" MinWidth="@(column.MinWidth ?? 64)" WidthChanged="@(width => SetWidthAsync(view.Key, width))" @attributes="Attrs.MergeProps(null, PropsResizer)" />
             }
         </th>
     };
@@ -460,8 +460,8 @@
             @Header(column)
             return;
         }
-        <ButtonBase @attributes="Attrs.MergeProps(parts[DataTablePart.SortButton])" @onclick="SortClick(column)">
-            <span @attributes="Attrs.Merge(parts[DataTablePart.SortLabel])">@Header(column)</span>
+        <ButtonBase @attributes="Attrs.MergeProps(parts[DataTablePart.SortButton], PropsSortButton)" @onclick="SortClick(column)">
+            <span @attributes="Attrs.Merge(parts[DataTablePart.SortLabel], PropsSortLabel)">@Header(column)</span>
             <Icon Data="@(direction switch { SortDirection.Ascending => BuiltInIcons.ArrowUp, SortDirection.Descending => BuiltInIcons.ArrowDown, _ => BuiltInIcons.ArrowUpDown })"
                   @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.SortIcon], direction is null ? null : (Attrs)DataTableStyles.SortActive))" />
             @if (sortCount > 1 && priority >= 0)

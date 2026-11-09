@@ -87,6 +87,12 @@ public partial class DateRangePicker<TValue> where TValue : struct, IComparable<
     /// <summary>弹层的部件属性。</summary>
     [Parameter] public Attrs? PropsPopover { get; set; }
 
+    /// <summary>快捷选项一栏的部件属性。</summary>
+    [Parameter] public Attrs? PropsPresets { get; set; }
+
+    /// <summary>每个快捷选项（Button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPreset { get; set; }
+
     /// <summary>弹层里区间日历（RangeCalendar）的部件属性。</summary>
     [Parameter] public Attrs? PropsCalendar { get; set; }
 

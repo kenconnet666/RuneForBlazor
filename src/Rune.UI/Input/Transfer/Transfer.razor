@@ -12,7 +12,7 @@
 @inherits FormControl<IReadOnlyList<string>?>
 @{ var parts = TransferStyles.Of(Config.Styles); }
 
-<div role="group" aria-labelledby="@(Field?.LabelId)" aria-describedby="@ControlAttrs.AriaDescribedBy" @attributes="Attrs.Merge(parts[TransferPart.Root], Rest)">
+<div role="group" aria-labelledby="@(Field?.LabelId)" aria-describedby="@ControlAttrs.AriaDescribedBy" @attributes="Attrs.Merge(parts[TransferPart.Root], RootRest)">
     @Panel(parts, 0)
     <TransferActions Titles="(TitleOf(0), TitleOf(1))" CanMoveRight="@(!IsDisabled && checkedKeys[0].Count > 0)" CanMoveLeft="@(!IsDisabled && checkedKeys[1].Count > 0)"
                      OnMoveRight="() => MoveAsync(0, checkedKeys[0])" OnMoveLeft="() => MoveAsync(1, checkedKeys[1])" PropsAction="PropsAction" />
@@ -31,7 +31,7 @@
         <TransferPanel Title="@title" TitleId="@titleId" Selectable="@([.. shown.Where(e => !e.Option.Disabled).Select(e => e.Option.Value)])"
                        Checked="checkedKeys[side]" CheckedChanged="keys => checkedKeys[side] = keys" Total="SideEntries(side).Count"
                        Searchable="Searchable" Search="@searches[side]" SearchChanged="text => searches[side] = text ?? string.Empty" Disabled="IsDisabled"
-                       PropsSearch="PropsSearch" @attributes="Attrs.MergeProps(null, PropsPanel)">
+                       PropsSearch="PropsSearch" PropsCheckAll="PropsCheckAll" @attributes="Attrs.MergeProps(null, PropsPanel)">
             <Listbox TItem="TItem" Items="shown.Select(e => e.Item)" ToOption="ToOption" SelectionMode="SelectionMode.Multiple" Disabled="IsDisabled"
                      Values="checkedKeys[side]" ValuesChanged="keys => checkedKeys[side] = keys" id="@($"{ControlId}-{side}")" aria-labelledby="@titleId"
                      data-rune-option-dblclick @onrunecommand="e => DoubleClickAsync(side, e)" @attributes="Attrs.MergeProps(parts[TransferPart.List], PropsList)" />

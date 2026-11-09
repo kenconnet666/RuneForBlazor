@@ -18,9 +18,9 @@
 
 <div @attributes="Attrs.Merge(parts[CalendarPart.Root], Rest, RootManaged)" @onrunecommand="OnCommandAsync">
     <div @attributes="Attrs.Merge(parts[CalendarPart.Header])">
-        <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@lang.CalendarPreviousYear" PropsIcon="FlipIcon" Disabled="Disabled" @onclick="() => year--" />
+        <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@lang.CalendarPreviousYear" PropsIcon="FlipIcon" Disabled="Disabled" @onclick="() => year--" @attributes="Attrs.MergeProps(null, PropsPrevious)" />
         <span data-static @attributes="Attrs.Merge(parts[CalendarPart.Heading])">@lang.CalendarYear(year)</span>
-        <IconButton Icon="BuiltInIcons.ChevronRight" Label="@lang.CalendarNextYear" PropsIcon="FlipIcon" Disabled="Disabled" @onclick="() => year++" />
+        <IconButton Icon="BuiltInIcons.ChevronRight" Label="@lang.CalendarNextYear" PropsIcon="FlipIcon" Disabled="Disabled" @onclick="() => year++" @attributes="Attrs.MergeProps(null, PropsNext)" />
     </div>
     <table role="grid" aria-label="@lang.CalendarYear(year)" aria-multiselectable="@(IsRange ? "true" : null)" data-view="month" @attributes="Attrs.Merge(parts[CalendarPart.Grid])">
         <tbody>
@@ -93,6 +93,12 @@
 
     /// <summary>选好了一个季度（区间时是选完了结束）：日期选择器据此关闭弹层。</summary>
     [Parameter] public EventCallback OnPick { get; set; }
+
+    /// <summary>上一年按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsPrevious { get; set; }
+
+    /// <summary>下一年按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsNext { get; set; }
 
     bool IsRange => RangeChanged.HasDelegate || Range is not null;
 

@@ -14,7 +14,7 @@
 @inherits FormControl<IReadOnlyList<string>>
 
 @* State 要在本组件的渲染里读（放在最外层）：嵌在别的 CascadingValue 的子内容里时由框架组件执行，读不到依赖，非受控时勾选变了组不会重新渲染 *@
-<div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Card, Config.Styles)[ChoicePart.Group], Rest, RootAttrs)">
+<div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Card, Config.Styles)[ChoicePart.Group], RootRest, RootAttrs)">
     <CascadingValue Value="State">
         <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
             @if (ChildContent is not null)
@@ -26,7 +26,7 @@
                 foreach (var entry in Entries)
                 {
                     var option = entry.Option;
-                    <Checkbox @key="option.Value" GroupValue="@option.Value" Disabled="@(option.Disabled ? true : null)" Description="@option.Description">@option.Label</Checkbox>
+                    <Checkbox @key="option.Value" GroupValue="@option.Value" Disabled="@(option.Disabled ? true : null)" Description="@option.Description" @attributes="Attrs.MergeProps(null, PropsItem)">@option.Label</Checkbox>
                 }
             }
         </CascadingValue>
@@ -54,6 +54,9 @@
 
     /// <summary>复选框（写了 GroupValue 的 Checkbox）；不写时按 Items 生成。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>按 Items 生成的每个复选框的部件属性（交给 Checkbox；PropsRoot、PropsLabel 这些也写在里面）。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
 
     IReadOnlyList<string> Checked => CurrentValue ?? [];
 

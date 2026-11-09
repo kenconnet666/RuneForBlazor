@@ -103,6 +103,9 @@ public partial class Cascader<TItem>
     /// <summary>每一列（视口，role="listbox"）的部件属性。</summary>
     [Parameter] public Attrs? PropsColumn { get; set; }
 
+    /// <summary>每个选项（role="option"，搜索结果也是）的部件属性。</summary>
+    [Parameter] public Attrs? PropsOption { get; set; }
+
     bool Locked => IsDisabled || IsReadOnly;
 
     string ShellId => $"{ControlId}-shell";

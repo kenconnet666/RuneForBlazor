@@ -61,7 +61,7 @@
                                 {
                                     @* 拖动的把手不出波纹 *@
                                     <ButtonBase Ripple="false" Disabled="IsDisabled" data-rune-sortable-handle aria-label="@Config.Lang.SortableHandle(item.Name)"
-                                                aria-describedby="@instructionsId" aria-pressed="false" @attributes="Attrs.MergeProps(parts[UploadPart.Handle])">
+                                                aria-describedby="@instructionsId" aria-pressed="false" @attributes="Attrs.MergeProps(parts[UploadPart.Handle], PropsHandle)">
                                         <Icon Data="BuiltInIcons.GripVertical" />
                                     </ButtonBase>
                                 }
@@ -117,7 +117,7 @@ else
                         <Icon Data="@(failed ? BuiltInIcons.CircleExclamationPoint : item.Status == UploadStatus.Done ? BuiltInIcons.CircleCheck : BuiltInIcons.File)"
                               @attributes="Attrs.MergeProps(Attrs.Layer(parts[UploadPart.Icon], UploadStyles.IconStatus(item.Status)), PropsIcon)" />
                         <div @attributes="Attrs.Merge(parts[UploadPart.Body], PropsBody)">
-                            <span @attributes="Attrs.Merge(parts[UploadPart.Name], item.Url is null ? null : UploadStyles.NameLinked, PropsName)">@if (item.Url is { } url) { <TextLink Href="@url" Underline="LinkUnderline.Hover" target="_blank" @attributes="Attrs.MergeProps(parts[UploadPart.Link], null)">@item.Name</TextLink> } else { @item.Name }</span>
+                            <span @attributes="Attrs.Merge(parts[UploadPart.Name], item.Url is null ? null : UploadStyles.NameLinked, PropsName)">@if (item.Url is { } url) { <TextLink Href="@url" Underline="LinkUnderline.Hover" target="_blank" @attributes="Attrs.MergeProps(parts[UploadPart.Link], PropsLink)">@item.Name</TextLink> } else { @item.Name }</span>
                             @if (item.Status == UploadStatus.Uploading)
                             {
                                 <Progress Size="UI.Size.Xs" Value="@PercentOf(item)" aria-label="@item.Name" @attributes="Attrs.MergeProps(parts[UploadPart.Progress], PropsProgress)" />

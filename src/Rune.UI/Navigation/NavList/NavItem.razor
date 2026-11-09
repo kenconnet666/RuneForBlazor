@@ -66,6 +66,9 @@
     /// <summary>文字的部件属性。</summary>
     [Parameter] public Attrs? PropsLabel { get; set; }
 
+    /// <summary>展开时文字后面计数角标的部件属性（交给 Badge）。</summary>
+    [Parameter] public Attrs? PropsBadge { get; set; }
+
     /// <summary>文字。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -128,7 +131,7 @@
                 @End
                 if (Badge > 0)
                 {
-                    <Badge Size="Size.Xs" Variant="StatusVariant.Solid" Tone="BadgeTone" Radius="Radius.Full">@(Badge > 99 ? "99+" : Badge)</Badge>
+                    <Badge Size="Size.Xs" Variant="StatusVariant.Solid" Tone="BadgeTone" Radius="Radius.Full" @attributes="Attrs.MergeProps(null, PropsBadge)">@(Badge > 99 ? "99+" : Badge)</Badge>
                 }
             }
         </a>;

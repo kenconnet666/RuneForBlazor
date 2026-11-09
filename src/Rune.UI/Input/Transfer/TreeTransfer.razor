@@ -12,10 +12,10 @@
     var sourceLeaves = SourceLeaves;
 }
 
-<div role="group" aria-labelledby="@(Field?.LabelId)" aria-describedby="@ControlAttrs.AriaDescribedBy" @attributes="Attrs.Merge(parts[TransferPart.Root], Rest)">
+<div role="group" aria-labelledby="@(Field?.LabelId)" aria-describedby="@ControlAttrs.AriaDescribedBy" @attributes="Attrs.Merge(parts[TransferPart.Root], RootRest)">
     <TransferPanel Title="@TitleOf(0)" TitleId="@TitleId(0)" Selectable="@([.. sourceLeaves.Where(key => Matches(key, 0))])" Checked="checkedKeys[0]"
                    CheckedChanged="keys => checkedKeys[0] = keys" Total="sourceLeaves.Count" Searchable="Searchable" Search="@searches[0]"
-                   SearchChanged="text => searches[0] = text ?? string.Empty" Disabled="IsDisabled" PropsSearch="PropsSearch" @attributes="Attrs.MergeProps(null, PropsPanel)">
+                   SearchChanged="text => searches[0] = text ?? string.Empty" Disabled="IsDisabled" PropsSearch="PropsSearch" PropsCheckAll="PropsCheckAll" @attributes="Attrs.MergeProps(null, PropsPanel)">
         <Tree TItem="TItem" Items="Items" GetKey="GetKey" GetLabel="GetLabel" GetChildren="GetChildren" Checkable="true" IsDisabled="Off"
               Checked="@([.. Chosen, .. checkedKeys[0]])" CheckedChanged="SetSourceChecked" Filter="@searches[0]" @bind-Expanded="expanded"
               PropsScrollArea="Attrs.Layer(parts[TransferPart.List])" aria-labelledby="@TitleId(0)" @attributes="Attrs.MergeProps(null, PropsTree)" />
@@ -24,7 +24,7 @@
                      OnMoveRight="() => MoveAsync(0, checkedKeys[0])" OnMoveLeft="() => MoveAsync(1, checkedKeys[1])" PropsAction="PropsAction" />
     <TransferPanel Title="@TitleOf(1)" TitleId="@TitleId(1)" Selectable="@([.. Chosen.Where(key => Matches(key, 1))])" Checked="checkedKeys[1]"
                    CheckedChanged="keys => checkedKeys[1] = keys" Total="Targets.Count" Searchable="Searchable" Search="@searches[1]"
-                   SearchChanged="text => searches[1] = text ?? string.Empty" Disabled="IsDisabled" PropsSearch="PropsSearch" @attributes="Attrs.MergeProps(null, PropsPanel)">
+                   SearchChanged="text => searches[1] = text ?? string.Empty" Disabled="IsDisabled" PropsSearch="PropsSearch" PropsCheckAll="PropsCheckAll" @attributes="Attrs.MergeProps(null, PropsPanel)">
         <Listbox TItem="ListboxOption" Items="@([.. Targets.Where(option => Matches(option.Value, 1))])" SelectionMode="SelectionMode.Multiple" Disabled="IsDisabled"
                  Values="checkedKeys[1]" ValuesChanged="keys => checkedKeys[1] = keys" id="@($"{ControlId}-1")" aria-labelledby="@TitleId(1)"
                  data-rune-option-dblclick @onrunecommand="DoubleClickAsync" @attributes="Attrs.MergeProps(parts[TransferPart.List], PropsList)" />

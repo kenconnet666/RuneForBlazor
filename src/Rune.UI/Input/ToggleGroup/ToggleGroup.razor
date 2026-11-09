@@ -14,7 +14,7 @@
 @{ var parts = ToggleGroupStyles.Of(Orientation, Config.Styles); }
 
 <CascadingValue Value="State">
-    <div @attributes="Attrs.Merge(parts[ToggleGroupPart.Root], Rest, RootAttrs)">
+    <div @attributes="Attrs.Merge(parts[ToggleGroupPart.Root], RootRest, RootAttrs)">
         @if (!Multiple && Selected.Count > 0)
         {
             <span @attributes="Attrs.Merge(parts[ToggleGroupPart.Indicator], PropsIndicator, IndicatorManaged)"></span>

@@ -18,7 +18,7 @@
 @implements IRadioGroup<TValue>
 
 <CascadingValue Value="this">
-    <div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Card, Config.Styles)[ChoicePart.Group], Rest, RootAttrs)">
+    <div @attributes="Attrs.Merge(ChoiceStyles.Group(Orientation, Card, Config.Styles)[ChoicePart.Group], RootRest, RootAttrs)">
         @if (ChildContent is not null)
         {
             @ChildContent
@@ -28,7 +28,7 @@
             foreach (var item in Items)
             {
                 var option = ListState.OptionOf(item, ToOption);
-                <Radio @key="option.Value" Value="item" Disabled="option.Disabled" Description="@option.Description">@option.Label</Radio>
+                <Radio @key="option.Value" Value="item" Disabled="option.Disabled" Description="@option.Description" @attributes="Attrs.MergeProps(null, PropsItem)">@option.Label</Radio>
             }
         }
     </div>
@@ -67,6 +67,9 @@
 
     /// <summary>单选项（Radio）；不写时按 Items 生成。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>按 Items 生成的每个单选框的部件属性（交给 Radio；PropsRoot、PropsLabel 这些也写在里面）。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
 
     Attrs RootAttrs => GroupAttrs("radiogroup", Orientation, extraAttrs.Get(ColumnsAttrs, static columns => Attrs.Merge(MarkerAttrs, columns)));
 

@@ -45,6 +45,15 @@ public sealed class DatePicker<TValue> : DateField<TValue>
     /// <summary>弹层里日历（Calendar）的部件属性：可以写它的参数（ShowWeekNumbers、FirstDayOfWeek……）。</summary>
     [Parameter] public Attrs? PropsCalendar { get; set; }
 
+    /// <summary>快捷选项一栏的部件属性。</summary>
+    [Parameter] public Attrs? PropsPresets { get; set; }
+
+    /// <summary>每个快捷选项（Button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPreset { get; set; }
+
+    /// <summary>“今天”按钮（Button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsToday { get; set; }
+
     internal bool IsOpen => open;
 
     internal Lang Lang => Config.Lang;

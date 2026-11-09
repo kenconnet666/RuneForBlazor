@@ -52,14 +52,14 @@
         {
             var today = Today;
             var first = LangFormat.FirstDayOfWeek(lang);
-            <div role="group" aria-label="@lang.DateRangePresets" @attributes="Attrs.Merge(picker[PickerPart.Presets])">
+            <div role="group" aria-label="@lang.DateRangePresets" @attributes="Attrs.Merge(picker[PickerPart.Presets], PropsPresets)">
                 @foreach (var preset in Presets)
                 {
                     var range = preset.RangeOn(today, first);
                     var active = CalendarValue == range;
                     <Button @key="preset.LabelIn(lang)" Size="UI.Size.Sm" Variant="@(active ? ButtonVariant.Soft : ButtonVariant.Ghost)" Tone="Tone.Neutral"
                             aria-pressed="@(active ? "true" : "false")" Disabled="!Selectable(range)"
-                            @onclick="() => PickAsync(range)" @attributes="Attrs.MergeProps(picker[PickerPart.Preset])">@preset.LabelIn(lang)</Button>
+                            @onclick="() => PickAsync(range)" @attributes="Attrs.MergeProps(picker[PickerPart.Preset], PropsPreset)">@preset.LabelIn(lang)</Button>
                 }
             </div>
         }

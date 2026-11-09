@@ -43,7 +43,7 @@
     <CascadingValue Value="LayoutFor()">
         @if (Collapsible)
         {
-            <Collapse id="@bodyId" Open="open.Value" OpenChanged="open.SetAsync">@Body(parts, false)</Collapse>
+            <Collapse id="@bodyId" Open="open.Value" OpenChanged="open.SetAsync" @attributes="Attrs.MergeProps(null, PropsCollapse)">@Body(parts, false)</Collapse>
         }
         else
         {
@@ -130,6 +130,9 @@
 
     /// <summary>字段栅格的部件属性。</summary>
     [Parameter] public Attrs? PropsBody { get; set; }
+
+    /// <summary>可折叠时包着字段栅格的 Collapse 的部件属性。</summary>
+    [Parameter] public Attrs? PropsCollapse { get; set; }
 
     [CascadingParameter] FieldLayout? Outer { get; set; }
 

@@ -16,14 +16,14 @@
     {
         @if (Picker.Presets.Count > 0)
         {
-            <div role="group" aria-label="@lang.DatePickerPresets" @attributes="Attrs.Merge(parts[PickerPart.Presets])">
+            <div role="group" aria-label="@lang.DatePickerPresets" @attributes="Attrs.Merge(parts[PickerPart.Presets], Picker.PropsPresets)">
                 @foreach (var preset in Picker.Presets)
                 {
                     var day = preset.Date();
                     var active = Picker.IsCurrent(day);
                     <Button @key="preset.Label" Size="UI.Size.Sm" Variant="@(active ? ButtonVariant.Soft : ButtonVariant.Ghost)" Tone="Tone.Neutral"
                             aria-pressed="@(active ? "true" : "false")" Disabled="!Picker.Selectable(day)" @onclick="() => Picker.PickAsync(day)"
-                            @attributes="Attrs.MergeProps(parts[PickerPart.Preset])">@preset.Label</Button>
+                            @attributes="Attrs.MergeProps(parts[PickerPart.Preset], Picker.PropsPreset)">@preset.Label</Button>
                 }
             </div>
         }
@@ -44,7 +44,7 @@
             {
                 var today = Picker.Today;
                 <div @attributes="Attrs.Merge(parts[PickerPart.Footer])">
-                    <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Disabled="!Picker.Selectable(today)" @onclick="() => Picker.PickAsync(today)">@Picker.TodayLabel</Button>
+                    <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Disabled="!Picker.Selectable(today)" @onclick="() => Picker.PickAsync(today)" @attributes="Attrs.MergeProps(null, Picker.PropsToday)">@Picker.TodayLabel</Button>
                 </div>
             }
         </div>

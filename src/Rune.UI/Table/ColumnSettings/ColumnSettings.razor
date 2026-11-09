@@ -26,7 +26,7 @@
                           @attributes="Attrs.MergeProps(null, PropsList)" Context="column">
                     @{ var visible = !hidden.Value.Contains(column.Value); }
                     @* 只剩这一列可见时不能再隐藏 *@
-                    <Checkbox Value="visible" Disabled="@(visible && VisibleCount <= 1)" ValueChanged="@(on => ToggleAsync(column.Value, on))">@column.Label</Checkbox>
+                    <Checkbox Value="visible" Disabled="@(visible && VisibleCount <= 1)" ValueChanged="@(on => ToggleAsync(column.Value, on))" @attributes="Attrs.MergeProps(null, PropsCheckbox)">@column.Label</Checkbox>
                 </Sortable>
             </ScrollArea>
         </div>
@@ -72,6 +72,9 @@
 
     /// <summary>“重置”按钮（交给 Button）的部件属性。</summary>
     [Parameter] public Attrs? PropsReset { get; set; }
+
+    /// <summary>每列勾选框（交给 Checkbox）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCheckbox { get; set; }
 
     int VisibleCount => Columns.Count(column => !hidden.Value.Contains(column.Value));
 

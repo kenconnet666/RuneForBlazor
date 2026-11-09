@@ -62,7 +62,7 @@
                 }
                 else if (OnNavigate.HasDelegate)
                 {
-                    <Button Variant="ButtonVariant.Link" @onclick="() => OnNavigate.InvokeAsync(at2)">@Label(parts, entry)</Button>
+                    <Button Variant="ButtonVariant.Link" @onclick="() => OnNavigate.InvokeAsync(at2)" @attributes="Attrs.MergeProps(null, PropsButton)">@Label(parts, entry)</Button>
                 }
                 else
                 {
@@ -116,6 +116,9 @@
 
     /// <summary>折叠按钮（IconButton，菜单的触发器）的部件属性。</summary>
     [Parameter] public Attrs? PropsExpand { get; set; }
+
+    /// <summary>没有地址、交给 OnNavigate 的一级（Button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsButton { get; set; }
 
     /// <summary>被折叠各级的菜单（Menu）的部件属性。</summary>
     [Parameter] public Attrs? PropsMenu { get; set; }

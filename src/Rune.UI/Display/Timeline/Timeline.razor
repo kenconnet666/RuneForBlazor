@@ -42,7 +42,7 @@
             <div @attributes="Attrs.Merge(parts[TimelinePart.Rail], PropsRail)">
                 @if (pending)
                 {
-                    <Spinner @attributes="Attrs.MergeProps(TimelineStyles.Pending)" />
+                    <Spinner @attributes="Attrs.MergeProps(parts[TimelinePart.Pending], PropsPending)" />
                 }
                 else
                 {
@@ -64,7 +64,7 @@
                 {
                     <div @attributes="Attrs.Merge(parts[TimelinePart.Meta], PropsMeta)">
                         <span @attributes="parts[TimelinePart.Actor]">
-                            <Avatar Src="@item.Avatar" Name="@item.Actor" @attributes="Attrs.MergeProps(TimelineStyles.Avatar)" />
+                            <Avatar Src="@item.Avatar" Name="@item.Actor" @attributes="Attrs.MergeProps(parts[TimelinePart.Avatar], PropsAvatar)" />
                             @item.Actor
                         </span>
                         @InlineTime(item)
@@ -155,6 +155,12 @@
 
     /// <summary>说明的部件属性。</summary>
     [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>进行中那一项的加载指示的部件属性（交给 Spinner）。</summary>
+    [Parameter] public Attrs? PropsPending { get; set; }
+
+    /// <summary>操作人头像的部件属性（交给 Avatar）。</summary>
+    [Parameter] public Attrs? PropsAvatar { get; set; }
 
     /// <summary>详情（交给 Collapsible）的部件属性。</summary>
     [Parameter] public Attrs? PropsDetails { get; set; }

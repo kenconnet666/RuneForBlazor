@@ -37,6 +37,9 @@ public partial class Transfer<TItem>
     /// <summary>搜索框（TextField）的部件属性。</summary>
     [Parameter] public Attrs? PropsSearch { get; set; }
 
+    /// <summary>每栏标题前全选勾选框的部件属性（交给 Checkbox）。</summary>
+    [Parameter] public Attrs? PropsCheckAll { get; set; }
+
     /// <summary>中间两个按钮（IconButton）的部件属性。</summary>
     [Parameter] public Attrs? PropsAction { get; set; }
 

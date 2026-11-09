@@ -90,6 +90,39 @@ public partial class CalendarBoard<TItem>
     /// <summary>每格（td）的部件属性。</summary>
     [Parameter] public Attrs? PropsCell { get; set; }
 
+    /// <summary>页头（标题、今天、翻页）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>标题（年月）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>上一月按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsPrevious { get; set; }
+
+    /// <summary>下一月按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsNext { get; set; }
+
+    /// <summary>月历表格（table）的部件属性。</summary>
+    [Parameter] public Attrs? PropsGrid { get; set; }
+
+    /// <summary>星期标题（th）的部件属性。</summary>
+    [Parameter] public Attrs? PropsWeekday { get; set; }
+
+    /// <summary>格里日期按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsDayButton { get; set; }
+
+    /// <summary>日期旁备注（农历、节日）的部件属性。</summary>
+    [Parameter] public Attrs? PropsNote { get; set; }
+
+    /// <summary>格里事件列表（ul）的部件属性。</summary>
+    [Parameter] public Attrs? PropsEvents { get; set; }
+
+    /// <summary>每个事件的部件属性。</summary>
+    [Parameter] public Attrs? PropsEvent { get; set; }
+
+    /// <summary>“还有 n 项”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsMore { get; set; }
+
     DayOfWeek FirstDay => FirstDayOfWeek ?? LangFormat.FirstDayOfWeek(Config.Lang);
 
     DateOnly Today => LocalToday();

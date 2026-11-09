@@ -34,7 +34,7 @@
             <li @key="toast.Id" data-rune-toast data-closable="@(toast.Options.Closable && !toast.Closing ? true : null)" data-state="@(toast.Closing ? "closing" : "open")"
                 aria-live="@(toast.Options.Important ? "assertive" : null)" aria-atomic="@(toast.Options.Important ? "true" : null)"
                 @onrunecommand="e => OnCommand(toast, e)" @attributes="Attrs.Merge(parts[ToasterPart.Item], PropsItem, ItemManaged(toast, stacked ? layer : null, fromTop))">
-                <Collapse Open="!toast.Closing" PropsContent="GapLayer">
+                <Collapse Open="!toast.Closing" PropsContent="GapLayer" @attributes="Attrs.MergeProps(null, PropsCollapse)">
                     <Alert Variant="AlertVariant.Surface" Tone="@(toast.Options.Tone ?? Tone.Neutral)" Icon="toast.Options.Icon" HideIcon="toast.Options.HideIcon"
                            Loading="toast.Options.Loading" Title="@toast.Options.Title" Description="@Text(toast.Options.Description)" Action="toast.Options.Action"
                            Live="AlertLive.Off" CloseLabel="@CloseLabel" OnClose="@(toast.Options.Closable ? EventCallback.Factory.Create(this, () => Toasts.Dismiss(toast.Id)) : default(EventCallback))"
@@ -93,6 +93,9 @@
 
     /// <summary>剩余时间条的部件属性。</summary>
     [Parameter] public Attrs? PropsProgress { get; set; }
+
+    /// <summary>每条通知外面收起动画的 Collapse 的部件属性。</summary>
+    [Parameter] public Attrs? PropsCollapse { get; set; }
 
     /// <inheritdoc/>
     protected override void OnParametersSet() => Toasts.Limit = Max;

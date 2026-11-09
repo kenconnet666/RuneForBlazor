@@ -24,19 +24,19 @@
 }
 
 <div @attributes="Attrs.Merge(parts[CalendarBoardPart.Root], Rest, RootManaged)" @onrunecommand="OnCommandAsync">
-    <div @attributes="Attrs.Merge(parts[CalendarBoardPart.Header])">
-        <span id="@TitleId" @attributes="Attrs.Merge(parts[CalendarBoardPart.Title])">@title</span>
+    <div @attributes="Attrs.Merge(parts[CalendarBoardPart.Header], PropsHeader)">
+        <span id="@TitleId" @attributes="Attrs.Merge(parts[CalendarBoardPart.Title], PropsTitle)">@title</span>
         @Toolbar
         <Button Size="UI.Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Neutral" @onclick="TodayAsync" @attributes="Attrs.MergeProps(null, PropsToday)">@lang.DateRangePreset["today"]</Button>
-        <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@lang.CalendarPreviousMonth" PropsIcon="FlipIcon" Size="UI.Size.Sm" Disabled="!state.CanTurnPage(-1)" @onclick="() => TurnAsync(-1)" />
-        <IconButton Icon="BuiltInIcons.ChevronRight" Label="@lang.CalendarNextMonth" PropsIcon="FlipIcon" Size="UI.Size.Sm" Disabled="!state.CanTurnPage(1)" @onclick="() => TurnAsync(1)" />
+        <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@lang.CalendarPreviousMonth" PropsIcon="FlipIcon" Size="UI.Size.Sm" Disabled="!state.CanTurnPage(-1)" @onclick="() => TurnAsync(-1)" @attributes="Attrs.MergeProps(null, PropsPrevious)" />
+        <IconButton Icon="BuiltInIcons.ChevronRight" Label="@lang.CalendarNextMonth" PropsIcon="FlipIcon" Size="UI.Size.Sm" Disabled="!state.CanTurnPage(1)" @onclick="() => TurnAsync(1)" @attributes="Attrs.MergeProps(null, PropsNext)" />
     </div>
-    <table role="grid" aria-labelledby="@TitleId" @attributes="Attrs.Merge(parts[CalendarBoardPart.Grid])">
+    <table role="grid" aria-labelledby="@TitleId" @attributes="Attrs.Merge(parts[CalendarBoardPart.Grid], PropsGrid)">
         <thead>
             <tr>
                 @for (var index = 0; index < 7; index++)
                 {
-                    <th scope="col" @attributes="Attrs.Merge(parts[CalendarBoardPart.Weekday])">@info.AbbreviatedDayNames[((int)first + index) % 7]</th>
+                    <th scope="col" @attributes="Attrs.Merge(parts[CalendarBoardPart.Weekday], PropsWeekday)">@info.AbbreviatedDayNames[((int)first + index) % 7]</th>
                 }
             </tr>
         </thead>
@@ -60,15 +60,15 @@
                                 <button type="button" tabindex="@(focusable ? "0" : "-1")" aria-disabled="@(cell.Disabled ? "true" : null)"
                                         aria-label="@(string.Join("，", new[] { cell.Today ? lang.CalendarToday(label) : label, list.Count > 0 ? lang.CalendarBoardCount(list.Count) : null }.OfType<string>()))"
                                         data-date="@iso" data-focused="@(focusable ? true : null)" data-today="@(cell.Today ? true : null)"
-                                        @attributes="Attrs.Merge(parts[CalendarBoardPart.DayButton])">@day.Day</button>
+                                        @attributes="Attrs.Merge(parts[CalendarBoardPart.DayButton], PropsDayButton)">@day.Day</button>
                                 @if (DayNote?.Invoke(day) is { } note)
                                 {
-                                    <span @attributes="Attrs.Merge(parts[CalendarBoardPart.Note])">@note</span>
+                                    <span @attributes="Attrs.Merge(parts[CalendarBoardPart.Note], PropsNote)">@note</span>
                                 }
                             </div>
                             @if (shown.Count > 0)
                             {
-                                <ul @attributes="Attrs.Merge(parts[CalendarBoardPart.Events])">
+                                <ul @attributes="Attrs.Merge(parts[CalendarBoardPart.Events], PropsEvents)">
                                     @for (var index = 0; index < shown.Count; index++)
                                     {
                                         var item = shown[index];
@@ -79,13 +79,13 @@
                                             }
                                             else
                                             {
-                                                <span @attributes="Attrs.Merge(Attrs.Layer(parts[CalendarBoardPart.Event], ToneLayer(EventTone?.Invoke(item) ?? Tone.Accent)))">@EventLabel?.Invoke(item)</span>
+                                                <span @attributes="Attrs.Merge(Attrs.Layer(parts[CalendarBoardPart.Event], ToneLayer(EventTone?.Invoke(item) ?? Tone.Accent)), PropsEvent)">@EventLabel?.Invoke(item)</span>
                                             }
                                         </li>
                                     }
                                     @if (list.Count > shown.Count)
                                     {
-                                        <li><button type="button" data-activate="@iso" @attributes="Attrs.Merge(parts[CalendarBoardPart.More])">@lang.CalendarBoardMore(list.Count - shown.Count)</button></li>
+                                        <li><button type="button" data-activate="@iso" @attributes="Attrs.Merge(parts[CalendarBoardPart.More], PropsMore)">@lang.CalendarBoardMore(list.Count - shown.Count)</button></li>
                                     }
                                 </ul>
                             }

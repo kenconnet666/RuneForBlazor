@@ -13,7 +13,7 @@
 <section aria-labelledby="@TitleId" @attributes="Attrs.Merge(parts[TransferPart.Panel], Rest)">
     <div @attributes="Attrs.Merge(parts[TransferPart.Header])">
         <Checkbox Value="all" ValueChanged="CheckAllAsync" Indeterminate="@(!all && visibleChecked > 0)"
-                  Disabled="@(Disabled || Selectable.Count == 0)" aria-label="@Config.Lang.TransferSelectAll(Title)" />
+                  Disabled="@(Disabled || Selectable.Count == 0)" aria-label="@Config.Lang.TransferSelectAll(Title)" @attributes="Attrs.MergeProps(null, PropsCheckAll)" />
         <span id="@TitleId" @attributes="Attrs.Merge(parts[TransferPart.Title])">@Title</span>
         <Small Tone="TextTone.Muted">@Config.Lang.TransferCount(Checked.Count, Total)</Small>
     </div>
@@ -64,6 +64,9 @@
 
     /// <summary>搜索框（TextField）的部件属性。</summary>
     [Parameter] public Attrs? PropsSearch { get; set; }
+
+    /// <summary>每栏标题前全选勾选框的部件属性（交给 Checkbox）。</summary>
+    [Parameter] public Attrs? PropsCheckAll { get; set; }
 
     /// <summary>这一边的列表。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }

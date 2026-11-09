@@ -16,7 +16,7 @@
 
 @if (IsReadOnly)
 {
-    <div @attributes="Attrs.Merge(parts[RatingPart.Root], Rest, ReadOnlyManaged)">
+    <div @attributes="Attrs.Merge(parts[RatingPart.Root], RootRest, ReadOnlyManaged)">
         @for (var index = 1; index <= Count; index++)
         {
             <span aria-hidden="true" @attributes="Attrs.Merge(parts[RatingPart.Star], PropsStar, FillOf(Filled(CurrentValue, index)))">
@@ -27,7 +27,7 @@
 }
 else
 {
-    <div @attributes="Attrs.Merge(parts[RatingPart.Root], Rest, RootManaged)">
+    <div @attributes="Attrs.Merge(parts[RatingPart.Root], RootRest, RootManaged)">
         @for (var index = 1; index <= Count; index++)
         {
             var score = (double)index;

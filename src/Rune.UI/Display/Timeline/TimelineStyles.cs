@@ -43,6 +43,12 @@ public enum TimelinePart
 
     /// <summary>展开、收起按钮的那一格。</summary>
     ToggleContent,
+
+    /// <summary>进行中那一项的加载指示（Spinner）。</summary>
+    Pending,
+
+    /// <summary>操作人的头像（Avatar）。</summary>
+    Avatar,
 }
 
 /// <summary>
@@ -54,8 +60,6 @@ public static class TimelineStyles
 {
     static readonly Condition Narrow = Containers.MaxWidth(CssLength.Em(32));
 
-    internal static readonly Attrs Pending = new() { Sx = Sx.Of(PendingStyle, ToneStyle(Tone.Accent)) };
-    internal static readonly Attrs Avatar = new() { Sx = AvatarStyle };
     internal static readonly Attrs ContentEnd = new() { Sx = ContentEndStyle };
     internal static readonly Attrs TimeOpposite = new() { Sx = TimeOppositeStyle };
     internal static readonly Attrs TimeInline = new() { Sx = TimeInlineStyle };
@@ -79,6 +83,8 @@ public static class TimelineStyles
             TimelinePart.Time => TimeStyle,
             TimelinePart.Description => DescriptionStyle,
             TimelinePart.ToggleLine => ToggleLineStyle,
+            TimelinePart.Pending => Sx.Of(PendingStyle, ToneStyle(Tone.Accent)),
+            TimelinePart.Avatar => AvatarStyle,
             _ => ToggleContentStyle,
         });
 
