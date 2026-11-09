@@ -68,7 +68,13 @@ internal static class ImageStyles
         Color = Colors.TextMuted,
     });
 
-    static Style ButtonStyle => Css.Define(static () => new Style { Cursor = Cursor.ZoomIn });
+    // 能看大图的：悬停时略微压暗（同 Ant Design 图片预览的遮罩），配合放大镜指针
+    static Style ButtonStyle => Css.Define(static () => new Style
+    {
+        Cursor = Cursor.ZoomIn,
+        Transition = $"filter {Durations.Sm} {Easings.Standard}",
+        [When.Hover] = new() { Filter = "brightness(0.9)" },
+    });
 
     // 加载完之前透明（下面的占位在扫光）：没写尺寸时仍占位，量得出图片大小；加载好了淡入，失败了不占位
     static Style ImageStyle => Css.Define(static () => new Style

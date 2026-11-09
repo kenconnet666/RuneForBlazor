@@ -114,6 +114,9 @@ public static class StepsStyles
         Gap = Space.Sm,
         BorderRadius = Radii.Sm,
         TextAlign = TextAlign.Start,
+        // 悬停同幽灵按钮：可以点回去的步骤一眼看得出
+        BackgroundColor = CssColors.Transparent,
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
     });
 
     static Style Link => Css.Define(static () => new Style { Color = CssWide.Inherit, TextDecorationLine = TextDecorationLine.None });
@@ -151,11 +154,12 @@ public static class StepsStyles
 
     static Style Description => Css.Define(static () => new Style { Color = Colors.TextMuted, FontSize = CssLength.Em(0.93) });
 
-    // 步骤之间的连接线：横排在标题右侧延伸
+    // 步骤之间的连接线：横排在标题右侧延伸，对齐圆圈的中线（圆圈高 2 × 0.93em）；带说明的步骤更高，按整项居中会偏下
     static Style Connector => Css.Define(static () => new Style
     {
         FlexGrow = 1,
-        AlignSelf = AlignSelf.Center,
+        AlignSelf = AlignSelf.FlexStart,
+        MarginBlockStart = $"calc(0.93em - {BorderWidths.Xs} / 2)",
         MinWidth = Space.Lg,
         Height = BorderWidths.Xs,
         BackgroundColor = Colors.Border,
@@ -172,8 +176,9 @@ public static class StepsStyles
         Width = BorderWidths.Xs,
         Height = CssLength.Auto,
         MinWidth = 0,
-        // 两端都定了位置时按 align-self 对齐：横排的 center 会让空的 span 缩成 0 高，这里要拉伸
+        // 两端都定了位置时按 align-self 对齐：横排的 flex-start 会让空的 span 缩成 0 高，这里要拉伸
         AlignSelf = AlignSelf.Stretch,
+        MarginBlockStart = 0,
         MarginInlineStart = $"calc({BorderWidths.Xs} / -2)",
     });
 

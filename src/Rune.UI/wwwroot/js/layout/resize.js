@@ -74,13 +74,18 @@ export function grabResizeHandle(event) {
   const horizontal = horizontalOf(handle);
   let size = Math.round(from);
   event.preventDefault();
+  // 拖动中（data-dragging）：指针离开了手柄也保持高亮
+  handle.toggleAttribute('data-dragging', true);
   startMove(event, {
     target: handle,
     onMove: ({ deltaX, deltaY }) => {
       size = fit(handle, from + sign * (horizontal ? deltaY : deltaX));
       apply(handle, size);
     },
-    onEnd: () => commit(handle, size),
+    onEnd: () => {
+      handle.removeAttribute('data-dragging');
+      commit(handle, size);
+    },
   });
 }
 
@@ -137,13 +142,17 @@ export function grabSplitter(event) {
   const from = Number(handle.getAttribute('aria-valuenow'));
   let size = from;
   event.preventDefault();
+  handle.toggleAttribute('data-dragging', true);
   startMove(event, {
     target: handle,
     onMove: ({ deltaX, deltaY }) => {
       size = fitSplit(handle, from + ((horizontal ? deltaX * sign : deltaY) / total) * 100);
       applySplit(handle, size);
     },
-    onEnd: () => commit(handle, size),
+    onEnd: () => {
+      handle.removeAttribute('data-dragging');
+      commit(handle, size);
+    },
   });
 }
 

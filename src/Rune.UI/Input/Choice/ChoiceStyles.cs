@@ -180,7 +180,7 @@ public static class ChoiceStyles
 
     static Style Circle => Css.Define(static () => new Style { Width = CssLength.Em(1.125), Height = CssLength.Em(1.125), BorderRadius = Radii.Full });
 
-    // 轨道：关着时是深一点的描边色
+    // 轨道：关着时是深一点的描边色。悬停时混进一点正文色：亮色里变深、暗色里变亮（同暗色主题实色按钮的悬停调亮）
     static Style Track => Css.Define(static () => new Style
     {
         Width = CssLength.Em(2.25),
@@ -188,6 +188,8 @@ public static class ChoiceStyles
         BorderRadius = Radii.Full,
         BorderColor = CssColors.Transparent,
         BackgroundColor = Colors.BorderStrong,
+        [When.Hover] = new() { BackgroundColor = $"color-mix(in oklab, {Colors.BorderStrong} 85%, {Colors.Text})" },
+        [When.Checked] = new() { [When.Hover] = new() { BackgroundColor = $"color-mix(in oklab, {SharedStyles.FillColor} 88%, {Colors.Text})" } },
     });
 
     // 对勾（或半选的横线）跟在 input 后面：勾上时显示（用户点击勾上时 JS 初始化器把它一笔画出）

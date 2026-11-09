@@ -226,7 +226,8 @@ public static class TabsStyles
 
     static Style List => Css.Define(static () => new Style { Display = Display.Flex, FlexShrink = 0 });
 
-    // 横排放不下时在列表里横向滚动；滚动条藏起来，触控板、拖动照样能滚
+    // 横排放不下时在列表里横向滚动；滚动条藏起来，触控板、拖动照样能滚。
+    // 还能往哪头滚（JS 标 data-fade：start、end、both），哪头的边缘渐隐：被截断的标签不是生硬地切开；从右到左时镜像
     static Style Scrollable => Css.Define(static () => new Style
     {
         FlexShrink = 1,
@@ -234,7 +235,20 @@ public static class TabsStyles
         OverflowX = Overflow.Auto,
         OverflowY = Overflow.Hidden,
         ScrollbarWidth = ScrollbarWidth.None,
+        [When.Attribute("[data-fade=start]")] = Fade(start: true, end: false),
+        [When.Attribute("[data-fade=end]")] = Fade(start: false, end: true),
+        [When.Attribute("[data-fade=both]")] = Fade(start: true, end: true),
     });
+
+    static Style Fade(bool start, bool end) => new()
+    {
+        MaskImage = FadeMask("right", start, end),
+        [When.Rtl] = new() { MaskImage = FadeMask("left", start, end) },
+    };
+
+    // to 是行内方向（从右到左时 left）
+    static string FadeMask(string to, bool start, bool end) =>
+        $"linear-gradient(to {to}, {(start ? "transparent, #000 1.5em" : "#000")}, {(end ? "#000 calc(100% - 1.5em), transparent" : "#000")})";
 
     // 指示条按标签的 offsetLeft / offsetTop 定位，列表要是它的定位容器
     static Style LineList => Css.Define(static () => new Style { Position = Position.Relative, Gap = Space.Md });

@@ -52,7 +52,7 @@ else
 @code {
     static readonly Attrs dismissButton = new() { ["data-rune-dismiss"] = true };
     // 可选中：手形指针；颜色随选中切换时过渡
-    static readonly Attrs SelectableLayer = new() { Sx = BadgeStyles.Selectable };
+    static readonly Attrs SelectableLayer = new() { Sx = Sx.Of(BadgeStyles.Selectable, SharedStyles.StateLayerOverlay) };
 
     /// <summary>样式，默认浅色底。</summary>
     [Parameter] public StatusVariant? Variant { get; set; }

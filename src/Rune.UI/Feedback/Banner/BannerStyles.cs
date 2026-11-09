@@ -30,7 +30,7 @@ public enum BannerPart
     /// <summary>操作区（div）。</summary>
     Action,
 
-    /// <summary>关闭按钮（CloseButton 组件，保留按钮自己的部件标记，同 vue-tsx-pro）。</summary>
+    /// <summary>关闭按钮（CloseButton 组件）。</summary>
     Close,
 }
 
@@ -53,7 +53,7 @@ public static class BannerStyles
             BannerPart.Content => Content,
             BannerPart.Title => Title,
             BannerPart.Action => Action,
-            _ => Sx.Of(Close, SharedStyles.RelativeSmall),
+            _ => Sx.Of(SharedStyles.StateLayerGhost, Close, SharedStyles.RelativeSmall),
         });
 
     static Style Root => Css.Define(static () => new Style

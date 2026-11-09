@@ -25,7 +25,7 @@ public static class ColorFieldStyles
     public static PartLayers<ColorFieldPart> Of(ComponentStyles styles) =>
         Recipe.Of("color-field", styles, static (ColorFieldPart part) => part switch
         {
-            ColorFieldPart.Swatch => Sx.Of(SwatchStyles.Checkerboard, Swatch),
+            ColorFieldPart.Swatch => Sx.Of(SwatchStyles.Checkerboard, SwatchStyles.Interactive, Swatch),
             ColorFieldPart.Fill => Sx.Of(Fill, SwatchStyles.Ring),
             _ => Sx.Of(Picker, SharedStyles.FocusRing),
         });

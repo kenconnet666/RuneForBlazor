@@ -18,6 +18,9 @@ public enum SplitterSide
 /// </summary>
 internal static class SplitterStyles
 {
+    // 线的粗细：分隔条按状态给，里面的线读它（线看不到分隔条的悬停）；写在最前面，下面的静态 Attrs 初始化时就要用到
+    static readonly CssVar<CssLength> LineWidth = CssVar.Length("rune-splitter-line");
+
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它们
     internal static readonly CssVar<CssValue> Start = CssVar.Value("rune-split-start");
     internal static readonly CssVar<CssValue> End = CssVar.Value("rune-split-end");
@@ -47,8 +50,8 @@ internal static class SplitterStyles
 
     static readonly Attrs TrackHorizontal = new() { Sx = Sx.Of(TrackStyle, HorizontalSize) };
     static readonly Attrs TrackVertical = new() { Sx = Sx.Of(TrackStyle, VerticalSize) };
-    static readonly Attrs HandleHorizontal = new() { Sx = Sx.Of(HandleStyle, HorizontalSize, ColResize, SharedStyles.FocusRing) };
-    static readonly Attrs HandleVertical = new() { Sx = Sx.Of(HandleStyle, VerticalSize, RowResize, SharedStyles.FocusRing) };
+    static readonly Attrs HandleHorizontal = new() { Sx = Sx.Of(HandleStyle, HorizontalSize, ColResize) };
+    static readonly Attrs HandleVertical = new() { Sx = Sx.Of(HandleStyle, VerticalSize, RowResize) };
     static readonly Attrs LineHorizontal = new() { Sx = Sx.Of(LineStyle, LineHorizontalStyle) };
     static readonly Attrs LineVertical = new() { Sx = Sx.Of(LineStyle, LineVerticalStyle) };
 
@@ -92,38 +95,55 @@ internal static class SplitterStyles
 
     static Style VerticalSize => Css.Define(static () => new Style { Height = Space.Md });
 
-    // 看得见的是中间一条细线，能拖的范围更宽；悬停、拖动时变成强调色
+    // 看得见的是中间一条细线，能拖的范围更宽。悬停、拖动时线加粗变深，键盘聚焦时加粗变成强调色（同 ResizeHandle、vue-tsx-pro）；
+    // 不画焦点框：贯穿整栏的框两端会被容器裁掉
     static Style HandleStyle => Css.Define(static () => new Style
     {
         Position = Position.Absolute,
         Inset = 0,
         TouchAction = TouchAction.None,
+        OutlineStyle = OutlineStyle.None,
         Color = Colors.BorderMuted,
-        [When.Hover] = new() { Color = Colors.BorderStrong },
-        [When.FocusVisible] = new() { Color = Tones.Accent.Solid },
+        [LineWidth.Name] = BorderWidths.Xs.ToString(),
+        [When.Hover] = new() { Color = Colors.BorderStrong, [LineWidth.Name] = BorderWidths.Md.ToString() },
+        [When.Dragging] = new() { Color = Colors.BorderStrong, [LineWidth.Name] = BorderWidths.Md.ToString() },
+        [When.FocusVisible] = new() { Color = Tones.Accent.Solid, [LineWidth.Name] = BorderWidths.Md.ToString() },
     });
 
     static Style ColResize => Css.Define(static () => new Style { Cursor = Cursor.ColResize });
 
     static Style RowResize => Css.Define(static () => new Style { Cursor = Cursor.RowResize });
 
-    static Style LineStyle => Css.Define(static () => new Style { Position = Position.Absolute, BackgroundColor = CssColors.CurrentColor, PointerEvents = PointerEvents.None });
+    static Style LineStyle => Css.Define(static () => new Style
+    {
+        Position = Position.Absolute,
+        BackgroundColor = CssColors.CurrentColor,
+        PointerEvents = PointerEvents.None,
+        Transition = $"width {Durations.Sm} {Easings.Standard}, height {Durations.Sm} {Easings.Standard}, inset {Durations.Sm} {Easings.Standard}",
+    });
 
-    // 细线宽取主题的边框宽度，减去一半居中
+    // 线宽取分隔条给的变量（平时是主题的边框宽度），减去一半居中
     static Style LineHorizontalStyle => Css.Define(static () => new Style
     {
         InsetBlock = 0,
-        InsetInlineStart = $"calc(50% - {BorderWidths.Xs} / 2)",
-        Width = BorderWidths.Xs,
+        InsetInlineStart = $"calc(50% - {LineWidth} / 2)",
+        Width = LineWidth,
     });
 
     static Style LineVerticalStyle => Css.Define(static () => new Style
     {
         InsetInline = 0,
-        Top = $"calc(50% - {BorderWidths.Xs} / 2)",
-        Height = BorderWidths.Xs,
+        Top = $"calc(50% - {LineWidth} / 2)",
+        Height = LineWidth,
     });
 
-    // 收起、展开的小按钮压在线上：背景盖住线
-    static Style ToggleStyle => Css.Define(static () => new Style { Position = Position.Relative, ZIndex = 1, BackgroundColor = Colors.Surface, Cursor = Cursor.Pointer });
+    // 收起、展开的小按钮压在线上：不透明的底盖住线；悬停换成同样不透明的填充色（实底会盖掉描边按钮自己的悬停）
+    static Style ToggleStyle => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        ZIndex = 1,
+        BackgroundColor = Colors.Surface,
+        Cursor = Cursor.Pointer,
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
+    });
 }

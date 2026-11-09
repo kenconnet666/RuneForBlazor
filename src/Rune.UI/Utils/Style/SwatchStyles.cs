@@ -15,6 +15,14 @@ public static class SwatchStyles
         BackgroundSize = "0.5em 0.5em",
     });
 
+    /// <summary>能点的色块（打开取色器的按钮、预设色）：悬停时略微放大。描边画在里层，按钮的悬停改不到它，所以放大整块。</summary>
+    public static Style Interactive => Css.Define(static () => new Style
+    {
+        Scale = "1",
+        Transition = $"scale {Durations.Sm} {Easings.Standard}",
+        [When.Hover] = new() { Scale = "1.1" },
+    });
+
     /// <summary>色块的内描边。</summary>
     public static Style Ring => Css.Define(static () => new Style
     {

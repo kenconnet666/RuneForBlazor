@@ -21,8 +21,8 @@ public class BannerResultTests : BunitContext
         var root = cut.Find("[data-scope=banner][data-part=root]");
         Assert.Equal("系统维护", cut.Find("strong").TextContent);
         Assert.True(root.HasAttribute("data-rune-dismissible"));
-        // 关闭按钮保留自己的部件标记（同 vue-tsx-pro），由 JS 先播放离场
-        Assert.True(cut.Find("button[data-rune-dismiss]").GetAttribute("data-scope") == "button");
+        // 关闭按钮带横幅的部件标记（同 vue-tsx-pro），由 JS 先播放离场
+        Assert.Equal("close", cut.Find("button[data-rune-dismiss]").GetAttribute("data-part"));
         root.TriggerEvent("onrunedismiss", EventArgs.Empty);
         Assert.True(closed);
 

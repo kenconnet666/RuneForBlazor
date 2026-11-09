@@ -70,6 +70,30 @@ public static class SharedStyles
         [When.Attribute("[data-dismissing]")] = new() { Opacity = 0, Transition = $"opacity {Durations.Sm} {Easings.Exit}" },
     });
 
+    /// <summary>
+    /// 状态层（同 vue-tsx-pro 的 stateLayerStyles.ghost，Material 的 state layer）：本身透明的按钮悬停 14%、按下 22% 的文字色作底。
+    /// 用在有底色的容器（提示条、横幅、彩色标签）里的关闭、移除按钮：幽灵按钮的灰色悬停底与那里的底色不搭。
+    /// </summary>
+    public static Style StateLayerGhost => Css.Define(static () => new Style
+    {
+        BackgroundColor = CssColors.Transparent,
+        [When.Hover] = new() { BackgroundColor = "color-mix(in srgb, currentColor 14%, transparent)" },
+        [When.Active] = new() { BackgroundColor = "color-mix(in srgb, currentColor 22%, transparent)" },
+    });
+
+    /// <summary>
+    /// 状态层（同 vue-tsx-pro 的 stateLayerStyles.overlay）：本身有底色的元素（可选中的标签）悬停时在底色上叠 8% 的文字色。
+    /// 叠在背景图层，不改底色：各色调、亮暗主题上都协调（亮色里变深、暗色里变亮）。
+    /// </summary>
+    public static Style StateLayerOverlay => Css.Define(static () => new Style
+    {
+        BackgroundImage = "none",
+        [When.Hover] = new()
+        {
+            BackgroundImage = "linear-gradient(color-mix(in srgb, currentColor 8%, transparent), color-mix(in srgb, currentColor 8%, transparent))",
+        },
+    });
+
     /// <summary>相对所在文字小一档（0.93em）：提示条里的关闭按钮。</summary>
     public static Style RelativeSmall => Css.Define(static () => new Style { FontSize = CssLength.Em(0.93) });
 

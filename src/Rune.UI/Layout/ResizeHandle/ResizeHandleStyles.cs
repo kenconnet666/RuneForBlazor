@@ -40,7 +40,9 @@ public static class ResizeHandleStyles
         TouchAction = TouchAction.None,
         BackgroundColor = CssColors.Transparent,
         OutlineStyle = OutlineStyle.None,
+        // 悬停、拖动时深色（拖动中指针离开了手柄也保持），键盘聚焦时强调色（同 Splitter 的分隔条）
         [When.Hover] = new() { BackgroundColor = Colors.BorderStrong },
+        [When.Dragging] = new() { BackgroundColor = Colors.BorderStrong },
         [When.FocusVisible] = new() { BackgroundColor = Tones.Accent.Solid },
     });
 

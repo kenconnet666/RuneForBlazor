@@ -90,7 +90,7 @@ public static class BadgeStyles
                 a.Kind == BadgeKind.Badge ? null : TagRoot,
                 a.Kind == BadgeKind.RemovableTag ? Removable : null),
             BadgePart.Dot => Dot,
-            BadgePart.Remove => Remove,
+            BadgePart.Remove => Sx.Of(SharedStyles.StateLayerGhost, Remove),
             _ => Sx.Of(),
         });
 
@@ -144,7 +144,8 @@ public static class BadgeStyles
         },
     });
 
-    // 移除按钮（CloseButton）比独立的图标按钮紧凑；标签之间留有间距，满足目标尺寸的间距例外
+    // 移除按钮（CloseButton）比独立的图标按钮紧凑；标签之间留有间距，满足目标尺寸的间距例外。
+    // 悬停、按下的底色取标签的文字色（状态层）：彩色标签上不是一块灰
     static Style Remove => Css.Define(static () => new Style
     {
         Width = CssLength.Em(1.5),

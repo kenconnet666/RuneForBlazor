@@ -35,6 +35,11 @@ function measureOverflow(bar, list) {
   const scrolled = Math.abs(list.scrollLeft);
   const max = list.scrollWidth - list.clientWidth;
   bar.toggleAttribute('data-overflowing', max > 1);
+  // 还能往哪头滚：那头的边缘渐隐（样式见 TabsStyles.Scrollable）
+  const start = max > 1 && scrolled > 1;
+  const end = max > 1 && scrolled < max - 1;
+  if (start || end) list.setAttribute('data-fade', start && end ? 'both' : start ? 'start' : 'end');
+  else list.removeAttribute('data-fade');
   for (const button of bar.querySelectorAll(':scope > [data-rune-tab-scroll]')) {
     const canScroll = button.getAttribute('data-rune-tab-scroll') === '1' ? scrolled < max - 1 : scrolled > 1;
     button.toggleAttribute('hidden', max <= 1);

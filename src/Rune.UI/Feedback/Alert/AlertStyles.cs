@@ -115,7 +115,7 @@ public static class AlertStyles
             AlertPart.Description => Description,
             AlertPart.Content => Content,
             AlertPart.Action => Action,
-            _ => Sx.Of(Close, SharedStyles.RelativeSmall),
+            _ => Sx.Of(SharedStyles.StateLayerGhost, Close, SharedStyles.RelativeSmall),
         });
 
     static StatusVariant StatusVariantOf(AlertVariant variant) => variant switch
@@ -157,7 +157,7 @@ public static class AlertStyles
 
     static Style Action => Css.Define(static () => new Style { FlexShrink = 0, AlignSelf = AlignSelf.Center });
 
-    // 关闭按钮：抵消一部分上下内边距，与标题行对齐；颜色跟着色调
+    // 关闭按钮：抵消一部分上下内边距，与标题行对齐；颜色跟着色调，悬停的底色取文字色（状态层）
     static Style Close => Css.Define(static () => new Style
     {
         FlexShrink = 0,

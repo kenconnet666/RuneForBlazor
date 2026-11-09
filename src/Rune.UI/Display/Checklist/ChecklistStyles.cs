@@ -69,7 +69,9 @@ internal static class ChecklistStyles
         Padding = 0,
         Margin = 0,
         BorderWidth = 0,
+        // 悬停同幽灵按钮：圆圈后面铺一层底色
         BackgroundColor = CssColors.Transparent,
+        [When.Hover] = new() { BackgroundColor = Colors.FillHover },
         Color = CssWide.Inherit,
         Font = CssWide.Inherit,
         BorderRadius = Radii.Full,

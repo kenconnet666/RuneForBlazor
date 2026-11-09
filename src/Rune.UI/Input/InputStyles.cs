@@ -160,7 +160,9 @@ public static class InputStyles
     {
         BorderColor = CssColors.Transparent,
         BackgroundColor = Colors.Fill,
-        [When.Hover] = new() { BorderColor = CssColors.Transparent },
+        Transition = $"background-color {Durations.Sm} {Easings.Standard}",
+        // 没有描边可变：悬停时底色加深一档
+        [When.Hover] = new() { BorderColor = CssColors.Transparent, BackgroundColor = Colors.FillHover },
     });
 
     /// <summary>只读：底色变浅，不显示悬停。下拉框也用。</summary>
@@ -168,7 +170,7 @@ public static class InputStyles
     {
         BorderColor = Colors.BorderMuted,
         BackgroundColor = Colors.Fill,
-        [When.Hover] = new() { BorderColor = Colors.BorderMuted },
+        [When.Hover] = new() { BorderColor = Colors.BorderMuted, BackgroundColor = Colors.Fill },
     });
 
     /// <summary>校验未通过、不可用（按里面输入元素的状态）。下拉框也用。</summary>

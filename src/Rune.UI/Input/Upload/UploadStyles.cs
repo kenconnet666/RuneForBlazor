@@ -50,8 +50,8 @@ internal static class UploadStyles
     internal static readonly Attrs Placeholder = new() { Sx = PlaceholderStyle };
     internal static readonly Attrs Overlay = new() { Sx = OverlayStyle };
     internal static readonly Attrs Actions = new() { Sx = ActionsStyle };
-    internal static readonly Attrs Action = new() { Sx = ActionStyle };
-    internal static readonly Attrs Handle = new() { Sx = Sx.Of(ActionStyle, HandleStyle) };
+    internal static readonly Attrs Action = new() { Sx = Sx.Of(ActionStyle, SharedStyles.StateLayerOverlay) };
+    internal static readonly Attrs Handle = new() { Sx = Sx.Of(ActionStyle, SharedStyles.StateLayerOverlay, HandleStyle) };
     internal static readonly Attrs AddCard = new() { Sx = AddCardStyle };
     internal static readonly Attrs Hint = new() { Sx = MetaStyle };
 
@@ -160,10 +160,10 @@ internal static class UploadStyles
         Gap = Space.Xxs,
     });
 
+    // 悬停叠状态层（换成实底在图片上几乎看不出来）
     static Style ActionStyle => Css.Define(static () => new Style
     {
         BackgroundColor = $"color-mix(in oklab, {Colors.Surface} 85%, transparent)",
-        [When.Hover] = new() { BackgroundColor = Colors.Surface },
     });
 
     static Style HandleStyle => Css.Define(static () => new Style

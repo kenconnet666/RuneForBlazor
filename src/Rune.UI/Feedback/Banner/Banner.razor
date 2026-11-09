@@ -27,7 +27,7 @@
     }
     @if (OnClose.HasDelegate)
     {
-        <CloseButton Label="@CloseLabel" @attributes="Attrs.MergeProps(Part.Unmarked(parts[BannerPart.Close]), PropsClose, DismissButton)" />
+        <CloseButton Label="@CloseLabel" @attributes="Attrs.MergeProps(parts[BannerPart.Close], PropsClose, DismissButton)" />
     }
 </div>
 

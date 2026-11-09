@@ -61,7 +61,7 @@ public static class LinkStyles
     public static PartLayers<LinkPart> Of(TextTone tone, LinkUnderline underline, ComponentStyles styles) =>
         Recipe.Of("link", (tone, underline), styles, static ((TextTone Tone, LinkUnderline Underline) a, LinkPart part) => part switch
         {
-            LinkPart.Root => Sx.Of(SharedStyles.TextColor(a.Tone), Root, Underline(a.Underline), SharedStyles.FocusRing),
+            LinkPart.Root => Sx.Of(SharedStyles.TextColor(a.Tone), a.Tone == TextTone.Muted ? MutedHover : null, Root, Underline(a.Underline), SharedStyles.FocusRing),
             _ => Icon,
         });
 
@@ -71,8 +71,13 @@ public static class LinkStyles
         TextDecorationThickness = BorderWidths.Xs,
         TextUnderlineOffset = CssLength.Em(0.2),
         Cursor = Cursor.Pointer,
+        // 下划线平时是半透明的文字色，悬停时变成实色（同 vue-tsx-pro、Radix Themes）：一直有下划线的链接也有悬停反馈，各色调都适用
+        TextDecorationColor = "color-mix(in srgb, currentColor 50%, transparent)",
+        [When.Hover] = new() { TextDecorationColor = CssColors.CurrentColor },
     });
 
+    // 次要链接（导航、页脚）悬停时换成正文色：不画下划线时也有悬停反馈
+    static Style MutedHover => Css.Define(static () => new Style { [When.Hover] = new() { Color = Colors.Text } });
 
     static Style Underline(LinkUnderline underline) => Css.Define(underline, static underline => underline switch
     {
