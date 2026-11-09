@@ -202,6 +202,20 @@ CI 的 `VUE_TSX_PRO_REF` 第四批时前移到 89c01fc8（语言包重新生成�
    - Card `Padding="none"` 时页头页脚的内边距；TreemapChart 读屏表格不重复单位；LinkUnderlineScope 的 Underline 可变
 6. 交互状态精修（P2.5）：共用的状态层样式（ghost 14% / 22%、overlay 叠 8%）用在 Alert / Toast / Banner 的关闭按钮与 Tag；TextLink 的 muted 悬停；Splitter、ResizeHandle 的线宽与 data-dragging
 7. 新组件：QRCode（自写编码器）、省市区数据、JsonViewer、SignaturePad、UserButton、Countdown 数字块；Carousel、ImageCropper（Upload 的 transform）、ColorPicker（ColorField 色块改按钮，破坏性）、DataTable 列虚拟化；语言包合并 zoomIn / zoomOut / slideCounter / resetView（破坏性）；SchemaForm（按 C# 模型生成，先出方案）
-8. 文档站：vue 的页面合并与示例调整，整体跟进时一起重排
+8. 组件布局与交互（P2.5 增量与之后的通知）：
+   - Link 下划线平时 50% currentColor、悬停实色；TabList 横排可滚时还能滚的那头边缘渐隐（mask，RTL 镜像）；Steps 横排连接线对齐圆圈中线、可点回的步骤悬停 _fillHover
+   - 悬停补齐：Switch 轨道（混 text：关 85% / 开 88%）、输入外壳 soft、Checklist 勾选圈、KanbanBoard 把手、Upload 照片墙按钮（overlay）、色块 scale 1.1（swatchStyles.interactive）、Image 预览 brightness(0.9)、Carousel 页点、Splitter 收起按钮
+   - 紧凑密度 = 主题 scaling 0.9，不另设密度开关
+   - FilterBar：去掉竖线；默认只排一排（常用在前、more 在后），其余收进“展开”，全放得下不出“展开”；展开的几排与第一排每格同宽；按钮区与 QueryTable 工具栏 minWidth 0、maxWidth 100%（窄屏不撑宽，6fad7bfc）
+   - AppShell：collapseBar 删掉，收起按钮在顶栏品牌格右侧（仅宽屏），收起后品牌格只放居中的展开按钮；AppShellBrand 不再按收起隐藏产品名
+   - 横排 RadioGroup / CheckboxGroup：alignItems center、minHeight = 控件高度（card 外观 stretch）；Card 正文 flex-grow 1
+   - Descriptions 值 flexGrow 1；choice 根 alignItems baseline、控件 alignSelf flex-start
+   - Listbox、Tree 虚拟行不再绝对定位：叠在同一 grid 格子里（gridArea 1/1 + translateY），弹层按最宽一行定宽（c11dd9a3）
+   - Tabs：id 里字母数字 - 以外的字符写成 `_码位_`（dfb688b2）；整组卸载时 Tab 逐个注销不改选、不发 ValueChanged（fe17e18c）；TabPanel 听 beforematch 切到自己
+   - 触屏（pointer: coarse）输入框字号 max(16px, 1em)：输入外壳里的 input/textarea、OtpField、日期时间分段、CodeEditor（0.21.0）
+9. 表单：FormDialog select 支持 multiple（返回 string[]）、选项 group 分组、多选 defaultValue 给数组（1fde03ee、88943ae0）；PeoplePicker 触发框 role=combobox；语言包新键 formRowLabel / formRowActions / formTabs / formValueTrue / formValueFalse / formValueEmpty；SchemaForm 一族（visibleWhen / requiredWhen / readonlyWhen、access、明细表与合计、formSources、页签、SchemaView、focusControl 发 beforematch）在 Rune 出 SchemaForm 方案时一起做
+10. 文档站：vue 的页面合并与示例调整，整体跟进时一起重排
+
+vue 于 2026-11-09 通知计划 plan-2026-11-07 做完（0.17.0，436cea6e），之后到 0.21.0（9afdc156）是表单模块与零星修复；流程引擎的改动与组件无关，不跟。
 
 上游问题改用 GitHub issue（kenconnet666/vue-tsx-pro，标签 parity）报告。
