@@ -80,6 +80,9 @@
     /// <summary>斑马纹（同 Table）。</summary>
     [Parameter] public bool? Striped { get; set; }
 
+    /// <summary>每个单元格的部件属性（叠在热力图底色、合计列加粗之后）；ColumnTable 的其他部件属性（PropsRow……）直接写，原样交给它。</summary>
+    [Parameter] public Attrs? PropsCell { get; set; }
+
     PivotResult Result => result.Get((Data, Rows, Columns, Value, Aggregate), Config.Lang.Code,
         static (k, culture) => Pivot.Compute(k.Item1, k.Item2, k.Item3, k.Item4, k.Item5, culture));
 
@@ -93,8 +96,11 @@
             Aggregate == PivotAggregate.Count ? null : Value?.Format, Config.Lang)
         : EmptyText ?? Config.Lang.EmptyValue;
 
+    Attrs? CellAttrs(PivotRow row, string key) =>
+        OwnCellAttrs(row, key) is { } own ? PropsCell is null ? own : Attrs.Layer(own, PropsCell) : PropsCell;
+
     // 数值格着色（热力图），合计列加粗
-    Attrs? CellAttrs(PivotRow row, string key)
+    Attrs? OwnCellAttrs(PivotRow row, string key)
     {
         if (key == "total") return TotalLayer;
         if (!Heatmap || !key.StartsWith("column:", StringComparison.Ordinal) || Result.Extent is not var (low, high)) return null;

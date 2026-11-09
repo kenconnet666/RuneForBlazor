@@ -2,39 +2,91 @@ using Rune.Styles;
 
 namespace Rune.UI;
 
-/// <summary>完成清单的样式（同 vue-tsx-pro 的 checklistStyles）：状态一列、内容一列、操作一列，状态贴着名称那一行。</summary>
-internal static class ChecklistStyles
+/// <summary>完成清单的部件（同 vue-tsx-pro 的 checklistPart）。</summary>
+public enum ChecklistPart
 {
-    internal static readonly Attrs Root = new() { Sx = RootStyle };
-    internal static readonly Attrs Summary = new() { Sx = SummaryStyle };
-    internal static readonly Attrs List = new() { Sx = ListStyle };
-    internal static readonly Attrs Item = new() { Sx = ItemStyle };
-    internal static readonly Attrs Status = new() { Sx = StatusStyle };
-    internal static readonly Attrs Toggle = new() { Sx = Sx.Of(ToggleStyle, SharedStyles.FocusRing) };
-    internal static readonly Attrs Body = new() { Sx = BodyStyle };
-    internal static readonly Attrs Description = new() { Sx = DescriptionStyle };
-    internal static readonly Attrs Meta = new() { Sx = MetaStyle };
-    internal static readonly Attrs LateMeta = new() { Sx = Sx.Of(MetaStyle, LateStyle) };
-    internal static readonly Attrs Late = new() { Sx = LateStyle };
-    internal static readonly Attrs Action = new() { Sx = ActionStyle };
-    internal static readonly Attrs Inline = new() { Sx = InlineStyle };
-    internal static readonly Attrs InlineItem = new() { Sx = InlineItemStyle };
-    internal static readonly Attrs Icons = new() { Sx = IconsStyle };
+    /// <summary>外层：一项一行时是 div，一行排开时是 ul，只有图标时是 span（role="img"）。</summary>
+    Root,
+
+    /// <summary>上面的“已完成 2 / 3”与进度条。</summary>
+    Summary,
+
+    /// <summary>上面的进度条（Progress）。</summary>
+    Progress,
+
+    /// <summary>一项一行时的列表（ul）。</summary>
+    List,
+
+    /// <summary>一项（li）：状态一列、内容一列、操作一列；一行排开时是一个行内的小组。</summary>
+    Item,
+
+    /// <summary>状态（图标与给读屏的状态文字）。</summary>
+    Status,
+
+    /// <summary>可以勾选时的复选按钮（只有图标）。</summary>
+    Toggle,
+
+    /// <summary>内容一列：名称、说明、负责人与日期。</summary>
+    Body,
 
     /// <summary>名称：完成的是正文色，没完成的是次要色，不适用的划掉。</summary>
-    internal static Attrs Label(ChecklistStatus status) => status switch
+    Label,
+
+    /// <summary>说明。</summary>
+    Description,
+
+    /// <summary>负责人、日期、证据一行（超时的日期用危险色）。</summary>
+    Meta,
+
+    /// <summary>操作一列。</summary>
+    Action,
+}
+
+/// <summary>
+/// 完成清单的样式（配方，同 vue-tsx-pro 的 checklistStyles）：排法是档位；状态一列、内容一列、操作一列，状态贴着名称那一行。
+/// 名称按状态的颜色、超时的日期、状态图标的颜色随项变化，叠在部件的默认层后面。
+/// </summary>
+public static class ChecklistStyles
+{
+    /// <summary>某种排法、某套定制下各部件的默认层。</summary>
+    public static PartLayers<ChecklistPart> Of(ChecklistLayout layout, ComponentStyles styles) =>
+        Recipe.Of("checklist", layout, styles, static (ChecklistLayout layout, ChecklistPart part) => part switch
+        {
+            ChecklistPart.Root => layout switch
+            {
+                ChecklistLayout.Inline => InlineStyle,
+                ChecklistLayout.Icons => IconsStyle,
+                _ => RootStyle,
+            },
+            ChecklistPart.Summary => SummaryStyle,
+            ChecklistPart.List => ListStyle,
+            ChecklistPart.Item => layout == ChecklistLayout.Inline ? InlineItemStyle : ItemStyle,
+            ChecklistPart.Status => StatusStyle,
+            ChecklistPart.Toggle => Sx.Of(ToggleStyle, SharedStyles.FocusRing),
+            ChecklistPart.Body => BodyStyle,
+            ChecklistPart.Label => LabelStyle,
+            ChecklistPart.Description => DescriptionStyle,
+            ChecklistPart.Meta => MetaStyle,
+            ChecklistPart.Action => ActionStyle,
+            _ => Sx.Of(),
+        });
+
+    /// <summary>名称按状态：没完成的是次要色，不适用的划掉。</summary>
+    internal static Attrs? LabelState(ChecklistStatus status) => status switch
     {
-        ChecklistStatus.Done => LabelDone,
+        ChecklistStatus.Done => null,
         ChecklistStatus.Skipped => LabelSkipped,
         _ => LabelPending,
     };
 
+    /// <summary>超时的日期。</summary>
+    internal static readonly Attrs Late = new() { Sx = LateStyle };
+
     /// <summary>状态图标的颜色。</summary>
     internal static Attrs StatusIcon(ChecklistStatus status) => StatusIcons[(int)status];
 
-    static readonly Attrs LabelDone = new() { Sx = LabelStyle };
-    static readonly Attrs LabelPending = new() { Sx = Sx.Of(LabelStyle, PendingStyle) };
-    static readonly Attrs LabelSkipped = new() { Sx = Sx.Of(LabelStyle, SkippedStyle) };
+    static readonly Attrs LabelPending = new() { Sx = PendingStyle };
+    static readonly Attrs LabelSkipped = new() { Sx = SkippedStyle };
     static readonly Attrs[] StatusIcons = [.. Enum.GetValues<ChecklistStatus>().Select(status => new Attrs { Sx = StatusColor(status) })];
 
     static Style RootStyle => Css.Define(static () => new Style { Display = Display.Grid, Gap = Space.Sm });

@@ -11,12 +11,15 @@
 @inherits UIComponent
 
 @* 清单里的链接悬停才有下划线 *@
+@{
+    var parts = ChecklistStyles.Of(Layout, Config.Styles);
+}
 <CascadingValue Value="LinkUnderlineContext.Hover" IsFixed="true">
 @switch (Layout)
 {
     case ChecklistLayout.Icons:
         var label = Config.Lang.ChecklistIconsLabel([.. Items.Select(item => Config.Lang.ChecklistItemState(item.Label, StatusText(item.Status)))]);
-        <span role="img" aria-label="@label" title="@label" @attributes="Attrs.Merge(ChecklistStyles.Icons, SizeLayer, Rest)">
+        <span role="img" aria-label="@label" title="@label" @attributes="Attrs.Merge(Attrs.Layer(parts[ChecklistPart.Root], SizeLayer), Rest)">
             @foreach (var item in Items)
             {
                 <span @key="KeyOf(item)">@StatusIcon(item)</span>
@@ -24,16 +27,16 @@
         </span>
         break;
     case ChecklistLayout.Inline:
-        <ul @attributes="Attrs.Merge(ChecklistStyles.Inline, SizeLayer, Rest)">
+        <ul @attributes="Attrs.Merge(Attrs.Layer(parts[ChecklistPart.Root], SizeLayer), Rest)">
             @foreach (var item in Items)
             {
                 var labelId = LabelId(item);
-                <li @key="KeyOf(item)" @attributes="ChecklistStyles.InlineItem">
-                    @Status(item, labelId)
-                    <span id="@labelId" @attributes="ChecklistStyles.Label(item.Status)">@item.Label</span>
+                <li @key="KeyOf(item)" data-status="@item.Status.ToString().ToLowerInvariant()" @attributes="Attrs.Merge(parts[ChecklistPart.Item], PropsItem)">
+                    @Status(parts, item, labelId)
+                    <span id="@labelId" @attributes="Attrs.Merge(Attrs.Layer(parts[ChecklistPart.Label], ChecklistStyles.LabelState(item.Status)), PropsLabel)">@item.Label</span>
                     @if (item.Date is not null)
                     {
-                        <span @attributes="item.Status == ChecklistStatus.Overdue ? ChecklistStyles.LateMeta : ChecklistStyles.Meta">@item.Date</span>
+                        <span @attributes="Attrs.Merge(Attrs.Layer(parts[ChecklistPart.Meta], item.Status == ChecklistStatus.Overdue ? ChecklistStyles.Late : null), PropsMeta)">@item.Date</span>
                     }
                     @item.Evidence
                 </li>
@@ -43,37 +46,37 @@
     default:
         var counted = Items.Where(item => item.Status != ChecklistStatus.Skipped).ToList();
         var done = counted.Count(item => item.Status == ChecklistStatus.Done);
-        <div @attributes="Attrs.Merge(ChecklistStyles.Root, SizeLayer, Rest)">
+        <div @attributes="Attrs.Merge(Attrs.Layer(parts[ChecklistPart.Root], SizeLayer), Rest)">
             @if (Summary && counted.Count > 0)
             {
                 var summary = Config.Lang.ChecklistSummary(done, counted.Count);
-                <div @attributes="ChecklistStyles.Summary">
+                <div @attributes="Attrs.Merge(parts[ChecklistPart.Summary], PropsSummary)">
                     <span>@summary</span>
-                    <Progress Value="done" Max="counted.Count" Size="UI.Size.Xs" Tone="@(done == counted.Count ? UI.Tone.Success : UI.Tone.Accent)" aria-label="@summary" />
+                    <Progress Value="done" Max="counted.Count" Size="UI.Size.Xs" Tone="@(done == counted.Count ? UI.Tone.Success : UI.Tone.Accent)" aria-label="@summary" @attributes="Attrs.MergeProps(parts[ChecklistPart.Progress], PropsProgress)" />
                 </div>
             }
-            <ul @attributes="ChecklistStyles.List">
+            <ul @attributes="Attrs.Merge(parts[ChecklistPart.List], PropsList)">
                 @foreach (var item in Items)
                 {
                     var labelId = LabelId(item);
-                    <li @key="KeyOf(item)" data-status="@item.Status.ToString().ToLowerInvariant()" @attributes="Attrs.Merge(ChecklistStyles.Item, PropsItem)">
-                        @Status(item, labelId)
-                        <div @attributes="ChecklistStyles.Body">
-                            <span id="@labelId" @attributes="ChecklistStyles.Label(item.Status)">@item.Label</span>
+                    <li @key="KeyOf(item)" data-status="@item.Status.ToString().ToLowerInvariant()" @attributes="Attrs.Merge(parts[ChecklistPart.Item], PropsItem)">
+                        @Status(parts, item, labelId)
+                        <div @attributes="Attrs.Merge(parts[ChecklistPart.Body])">
+                            <span id="@labelId" @attributes="Attrs.Merge(Attrs.Layer(parts[ChecklistPart.Label], ChecklistStyles.LabelState(item.Status)), PropsLabel)">@item.Label</span>
                             @if (item.Description is not null)
                             {
-                                <span @attributes="ChecklistStyles.Description">@item.Description</span>
+                                <span @attributes="Attrs.Merge(parts[ChecklistPart.Description], PropsDescription)">@item.Description</span>
                             }
                             @if (item.Owner is not null || item.Date is not null || item.Evidence is not null)
                             {
-                                <span @attributes="ChecklistStyles.Meta">
+                                <span @attributes="Attrs.Merge(parts[ChecklistPart.Meta], PropsMeta)">
                                     @if (item.Owner is not null)
                                     {
                                         <span>@item.Owner</span>
                                     }
                                     @if (item.Date is not null)
                                     {
-                                        <span @attributes="item.Status == ChecklistStatus.Overdue ? ChecklistStyles.Late : null">@item.Date</span>
+                                        <span @attributes="Attrs.Merge(item.Status == ChecklistStatus.Overdue ? ChecklistStyles.Late : null)">@item.Date</span>
                                     }
                                     @item.Evidence
                                 </span>
@@ -81,7 +84,7 @@
                         </div>
                         @if (item.Action is not null)
                         {
-                            <div @attributes="ChecklistStyles.Action">@item.Action</div>
+                            <div @attributes="Attrs.Merge(parts[ChecklistPart.Action], PropsAction)">@item.Action</div>
                         }
                         else
                         {
@@ -126,6 +129,30 @@
     /// <summary>每一项（li）的部件属性。</summary>
     [Parameter] public Attrs? PropsItem { get; set; }
 
+    /// <summary>上面“已完成 2 / 3”一行的部件属性。</summary>
+    [Parameter] public Attrs? PropsSummary { get; set; }
+
+    /// <summary>上面进度条的部件属性（交给 Progress）。</summary>
+    [Parameter] public Attrs? PropsProgress { get; set; }
+
+    /// <summary>列表（ul，一项一行时）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>每项状态的部件属性。</summary>
+    [Parameter] public Attrs? PropsStatus { get; set; }
+
+    /// <summary>每项名称的部件属性。</summary>
+    [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>每项说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>每项负责人、日期一行的部件属性。</summary>
+    [Parameter] public Attrs? PropsMeta { get; set; }
+
+    /// <summary>每项操作一列的部件属性。</summary>
+    [Parameter] public Attrs? PropsAction { get; set; }
+
     Attrs? SizeLayer => Size is { } size ? sizeLayers.Get(size, static s => new Attrs { Sx = ScaleStyles.FontSize(s) }) : null;
 
     static string KeyOf(ChecklistItem item) => item.Key ?? item.Label;
@@ -137,16 +164,16 @@
     RenderFragment StatusIcon(ChecklistItem item) => @<Icon Data="Icons[item.Status]" @attributes="Attrs.MergeProps(ChecklistStyles.StatusIcon(item.Status))" />;
 
     // 状态：可以勾选时是复选按钮（名称是这一项的名称），否则是图标加给读屏的状态文字
-    RenderFragment Status(ChecklistItem item, string labelId) => OnCheckedChange.HasDelegate
-        ? @<span @attributes="ChecklistStyles.Status">
+    RenderFragment Status(PartLayers<ChecklistPart> parts, ChecklistItem item, string labelId) => OnCheckedChange.HasDelegate
+        ? @<span @attributes="Attrs.Merge(parts[ChecklistPart.Status], PropsStatus)">
               <button type="button" role="checkbox" aria-checked="@(item.Status == ChecklistStatus.Done ? "true" : "false")" aria-labelledby="@labelId"
                       aria-describedby="@($"{labelId}-status")" disabled="@(item.Status is ChecklistStatus.Skipped or ChecklistStatus.Blocked)"
-                      @onclick="() => OnCheckedChange.InvokeAsync(new(item, item.Status != ChecklistStatus.Done))" @attributes="ChecklistStyles.Toggle">
+                      @onclick="() => OnCheckedChange.InvokeAsync(new(item, item.Status != ChecklistStatus.Done))" @attributes="Attrs.Merge(parts[ChecklistPart.Toggle])">
                   @StatusIcon(item)
               </button>
               <VisuallyHidden id="@($"{labelId}-status")">@StatusText(item.Status)</VisuallyHidden>
           </span>
-        : @<span @attributes="ChecklistStyles.Status">
+        : @<span @attributes="Attrs.Merge(parts[ChecklistPart.Status], PropsStatus)">
               @StatusIcon(item)
               <VisuallyHidden>@StatusText(item.Status)</VisuallyHidden>
           </span>;

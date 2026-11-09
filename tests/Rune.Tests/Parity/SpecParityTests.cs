@@ -39,6 +39,11 @@ public class SpecParityTests
         ["PropsTable"] = "Table",
         ["BackTop"] = "FloatButton",
         ["FloatButton"] = "IconButton",
+        ["CommandPalette"] = "Dialog",
+        ["Mentions"] = "Textarea",
+        ["FormErrorSummary"] = "Alert",
+        ["PivotTable"] = "ColumnTable",
+        ["TextTable"] = "Table",
     };
 
     [Fact]

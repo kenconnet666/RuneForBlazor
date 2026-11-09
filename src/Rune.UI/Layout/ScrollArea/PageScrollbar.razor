@@ -12,7 +12,7 @@
 @HideNative
 <div aria-hidden="true" data-rune-page-scrollbar data-rune-scrollbar data-axis="y" data-visibility="hover"
      data-hide-delay="@HideDelay.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-     @attributes="Attrs.Merge(ScrollAreaStyles.PageTrack, Rest)">
+     @attributes="Attrs.Merge(ScrollAreaStyles.PageTrack, PropsScrollbar, Rest)">
     <div @attributes="Attrs.Merge(ScrollAreaStyles.PageThumb, PropsThumb)"></div>
 </div>
 
@@ -23,6 +23,9 @@
     /// <summary>停止滚动后多久淡出（毫秒），默认 800。</summary>
     [Parameter] public int HideDelay { get; set; } = 800;
 
-    /// <summary>滑块的部件属性（大小与位置由 JS 写在行内样式上）。未声明的属性落到轨道上。</summary>
+    /// <summary>滑块的部件属性（大小与位置由 JS 写在行内样式上）。</summary>
     [Parameter] public Attrs? PropsThumb { get; set; }
+
+    /// <summary>轨道的部件属性；直接写的属性也落在轨道上，排在它之后。</summary>
+    [Parameter] public Attrs? PropsScrollbar { get; set; }
 }

@@ -43,7 +43,7 @@
                     ValueText="position => CategoryOf(Data[Math.Clamp(position, 0, last)])" aria-label="@Config.Lang.ChartZoom" @attributes="Attrs.MergeProps(ZoomSliderLayer)" />
             @if (Range is not null)
             {
-                <Button Variant="ButtonVariant.Link" Size="UI.Size.Sm" @onclick="() => ZoomAsync(null)">@Config.Lang.ChartZoomReset</Button>
+                <Button Variant="ButtonVariant.Link" Size="UI.Size.Sm" @onclick="() => ZoomAsync(null)" @attributes="Attrs.MergeProps(null, PropsZoomReset)">@Config.Lang.ChartZoomReset</Button>
             }
         </div>
     };

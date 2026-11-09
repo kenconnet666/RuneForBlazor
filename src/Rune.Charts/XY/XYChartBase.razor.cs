@@ -53,6 +53,9 @@ public abstract partial class XYChartBase<TItem>
     /// <summary>区间：类目轴或数值轴上的一段，画成浅色的带（数值轴的范围会包含它）。</summary>
     [Parameter] public IReadOnlyList<ChartBand>? Bands { get; set; }
 
+    /// <summary>缩放后“复位”按钮（Button）的部件属性。</summary>
+    [Parameter] public Attrs? PropsZoomReset { get; set; }
+
     // ───────── 数据（XYChart 来自参数，瀑布图由各步算出） ─────────
 
     /// <summary>画的行：每一行是类目轴上的一项。</summary>

@@ -75,6 +75,9 @@
     /// <summary>值（dd）的部件属性。</summary>
     [Parameter] public Attrs? PropsValue { get; set; }
 
+    /// <summary>列表里每个字段（字段名与值的一组）的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
     // 内容在各字段把自己交给这里之后才渲染（同 DataTable）
     RenderFragment Deferred => builder =>
     {
@@ -127,7 +130,7 @@
                 <dl @attributes="Attrs.Merge(ListLayer, PropsList)">
                     @foreach (var row in rows)
                     {
-                        <div @key="row.Key" @attributes="Attrs.Merge(ItemLayer)">
+                        <div @key="row.Key" @attributes="Attrs.Merge(ItemLayer, PropsItem)">
                             <dt @attributes="Attrs.Merge(LabelLayer, PropsLabel)">@row.Field.Label</dt>
                             <dd @attributes="Attrs.Merge(ValueLayer, PropsValue)">
                                 <ValueChange BeforeContent="@(Before is null ? null : Shown(row, Before))" AfterContent="@(After is null ? null : Shown(row, After))" />

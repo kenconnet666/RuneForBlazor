@@ -52,11 +52,23 @@
     /// <summary>斑马纹。</summary>
     [Parameter] public bool? Striped { get; set; }
 
-    /// <summary>按行计算的每一行（tr）的部件属性。</summary>
+    /// <summary>按行计算的每一行（tr）的部件属性（写了时代替 <see cref="PropsRow"/>）。</summary>
     [Parameter] public Func<TItem, int, Attrs?>? PropsRowFor { get; set; }
 
-    /// <summary>按行与列（key）计算的每个单元格（td）的部件属性。</summary>
+    /// <summary>按行与列（key）计算的每个单元格（td）的部件属性（写了时代替 <see cref="PropsCell"/>）。</summary>
     [Parameter] public Func<TItem, string, Attrs?>? PropsCellFor { get; set; }
+
+    /// <summary>列标题（TableHeaderCell）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeaderCell { get; set; }
+
+    /// <summary>每一行（TableRow）的部件属性；按行计算的用 <see cref="PropsRowFor"/>。</summary>
+    [Parameter] public Attrs? PropsRow { get; set; }
+
+    /// <summary>每个单元格（TableCell）的部件属性；按行与列计算的用 <see cref="PropsCellFor"/>。</summary>
+    [Parameter] public Attrs? PropsCell { get; set; }
+
+    /// <summary>合计行的格（TableCell）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSummaryCell { get; set; }
 
     // 表格在各列把自己交给表格之后才渲染（同 DataTable）
     RenderFragment Deferred => builder =>
@@ -82,7 +94,7 @@
                     @for (var position = 0; position < shown.Count; position++)
                     {
                         var column = shown[position];
-                        <TableHeaderCell @key="column" Align="ColumnAlign(column, types[position])" Width="@(column.Width is { } px ? (CssLength?)ColumnDisplay.Px(px) : null)">
+                        <TableHeaderCell @key="column" Align="ColumnAlign(column, types[position])" Width="@(column.Width is { } px ? (CssLength?)ColumnDisplay.Px(px) : null)" @attributes="Attrs.MergeProps(null, PropsHeaderCell)">
                             @(column.HeaderContent ?? (b => b.AddContent(0, column.Label)))
                         </TableHeaderCell>
                     }
@@ -93,7 +105,7 @@
                 {
                     var item = Items[index];
                     var row = index;
-                    <TableRow @key="@(GetKey?.Invoke(item) ?? (object)index)" @attributes="Attrs.MergeProps(null, PropsRowFor?.Invoke(item, index))">
+                    <TableRow @key="@(GetKey?.Invoke(item) ?? (object)index)" @attributes="Attrs.MergeProps(null, PropsRowFor?.Invoke(item, index) ?? PropsRow)">
                         @for (var position = 0; position < shown.Count; position++)
                         {
                             var column = shown[position];
@@ -102,7 +114,7 @@
                             if (span is { RowSpan: 0 } or { ColSpan: 0 }) continue;
                             <TableCell @key="column" Align="ColumnAlign(column, types[position])" NoWrap="@(!column.Wrap && column.Width is not null)"
                                        rowspan="@(span?.RowSpan is > 1 ? span.Value.RowSpan : null)" colspan="@(span?.ColSpan is > 1 ? span.Value.ColSpan : null)"
-                                       @attributes="Attrs.MergeProps(span?.RowSpan is > 1 ? MergedLayer : null, PropsCellFor?.Invoke(item, column.ColumnKey))">
+                                       @attributes="Attrs.MergeProps(span?.RowSpan is > 1 ? MergedLayer : null, PropsCellFor?.Invoke(item, column.ColumnKey) ?? PropsCell)">
                                 @ColumnDisplay.Cell(column, item, type, Config.Lang)
                             </TableCell>
                         }
@@ -117,7 +129,7 @@
                         {
                             var column = shown[position];
                             var content = ColumnDisplay.Summary(column, position, types[position], Items, SummaryLabel, Config.Lang);
-                            <TableCell @key="column" Align="ColumnAlign(column, types[position])">
+                            <TableCell @key="column" Align="ColumnAlign(column, types[position])" @attributes="Attrs.MergeProps(null, PropsSummaryCell)">
                                 @content
                             </TableCell>
                         }

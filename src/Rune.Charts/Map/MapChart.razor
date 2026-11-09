@@ -90,6 +90,9 @@
     /// <summary>点了一个地点。</summary>
     [Parameter] public EventCallback<MapPoint> OnPointClick { get; set; }
 
+    /// <summary>缩放控件（放大、缩小、复位三个 IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsControl { get; set; }
+
     /// <inheritdoc/>
     protected override void OnParametersSet()
     {
@@ -148,9 +151,9 @@
     {
         <span @attributes="Attrs.Merge(ZoomLayer)">
             <span data-part="wheelHint" role="status" @attributes="Attrs.Merge(HintLayer)">@Config.Lang.ChartZoomWheelHint</span>
-            <IconButton Icon="BuiltInIcons.Plus" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.ZoomIn" data-chart-zoom="in" />
-            <IconButton Icon="BuiltInIcons.Minus" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.ZoomOut" data-chart-zoom="out" />
-            <IconButton Icon="BuiltInIcons.Maximize" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.ChartZoomFit" data-chart-zoom="fit" />
+            <IconButton Icon="BuiltInIcons.Plus" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.ZoomIn" data-chart-zoom="in" @attributes="Attrs.MergeProps(null, PropsControl)" />
+            <IconButton Icon="BuiltInIcons.Minus" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.ZoomOut" data-chart-zoom="out" @attributes="Attrs.MergeProps(null, PropsControl)" />
+            <IconButton Icon="BuiltInIcons.Maximize" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@Config.Lang.ChartZoomFit" data-chart-zoom="fit" @attributes="Attrs.MergeProps(null, PropsControl)" />
         </span>
     };
 

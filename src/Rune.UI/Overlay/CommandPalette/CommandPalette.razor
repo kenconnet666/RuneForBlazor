@@ -20,7 +20,7 @@
 @* 内容一开始就渲染（Lazy=false）：打开时输入框已经在里面，autofocus 才生效 *@
 <Dialog Open="open.Value" OpenChanged="OpenChangedAsync" Title="@AriaLabel" Size="DialogSize.Sm" Closable="false" Lazy="false"
         Trigger="@(ShowTrigger ? (Trigger ?? (attrs => DefaultTrigger(parts, shell, attrs))) : null)"
-        PropsHeader="VisuallyHiddenLayer" PropsBody="BodyLayer" @attributes="Attrs.MergeProps(DialogLayer, Rest, DialogManaged)">
+        PropsHeader="Attrs.Layer(VisuallyHiddenLayer, PropsHeader)" PropsBody="Attrs.Layer(BodyLayer, PropsBody)" @attributes="Attrs.MergeProps(DialogLayer, Rest, DialogManaged)">
     <div @attributes="Attrs.Merge(parts[CommandPalettePart.Search])">
         <Icon Data="BuiltInIcons.Search" @attributes="Attrs.MergeProps(shell[InputPart.Icon])" />
         @ValueElement.Input("search", Attrs.Merge(Attrs.Layer(shell[InputPart.Input], parts[CommandPalettePart.Input]), PropsInput, InputManaged))
@@ -103,6 +103,12 @@
 
     /// <summary>结果列表的部件属性（交给 ListboxView 组件）。</summary>
     [Parameter] public Attrs? PropsListbox { get; set; }
+
+    /// <summary>对话框页头（只给读屏的标题）的部件属性；Dialog 的其他部件属性（PropsFooter……）直接写，原样交给 Dialog。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>对话框内容区的部件属性。</summary>
+    [Parameter] public Attrs? PropsBody { get; set; }
 
     Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
 

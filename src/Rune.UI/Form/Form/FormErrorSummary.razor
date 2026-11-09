@@ -19,7 +19,7 @@
                 <li>
                     @if (controlId is not null)
                     {
-                        <TextLink Href="@($"#{controlId}")" data-rune-focus="@controlId">@text</TextLink>
+                        <TextLink Href="@($"#{controlId}")" data-rune-focus="@controlId" @attributes="Attrs.MergeProps(null, PropsLink)">@text</TextLink>
                     }
                     else
                     {
@@ -42,6 +42,9 @@
 
     /// <summary>列表（ul）的部件属性。</summary>
     [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>每条错误的链接（TextLink）的部件属性。</summary>
+    [Parameter] public Attrs? PropsLink { get; set; }
 
     [CascadingParameter] FormState? Form { get; set; }
 
