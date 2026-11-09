@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
 using System.Reflection;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Rune.Docs.Components.Base.Icon;
 using Rune.Docs.Site;
 using Rune.Icons;
@@ -11,8 +9,7 @@ namespace Rune.Docs.Server;
 
 /// <summary>
 /// 服务端的文档数据：当场从示例文件、程序集与 XML 文档注释生成（同一份结果全进程缓存）。
-/// 这次请求用到的源码与 API 表随页面带给浏览器（PersistentComponentState），浏览器接管后不用再请求；
-/// 用到过的地址记进 <see cref="DocsFiles"/>，静态导出按它把这些文件写出来，站内换页时浏览器从那里下载。
+/// 用到过的地址记进 <see cref="DocsFiles"/>，静态导出按它把这些文件写出来，浏览器从那里下载。
 /// </summary>
 public sealed class ServerDocsData : DocsData
 {
@@ -20,20 +17,9 @@ public sealed class ServerDocsData : DocsData
     static readonly Lazy<(IReadOnlyList<IconEntry> List, string Json)> icons = new(LoadIcons);
 
     readonly DocsFiles files;
-    readonly Dictionary<string, string> used = [];
 
-    /// <summary>注册把这次用到的数据带给浏览器（预渲染结束时）。</summary>
-    public ServerDocsData(DocsFiles files, PersistentComponentState state)
-    {
-        this.files = files;
-        // 带给会在浏览器或电路里接着运行的页面；纯静态 SSR 的页面没有交互，不输出
-        state.RegisterOnPersisting(() =>
-        {
-            lock (used)
-                if (used.Count > 0) state.PersistAsJson(StateKey, used);
-            return Task.CompletedTask;
-        }, RenderMode.InteractiveAuto);
-    }
+    /// <summary>用到的地址记进 <paramref name="files"/>。</summary>
+    public ServerDocsData(DocsFiles files) => this.files = files;
 
     /// <inheritdoc/>
     public override ValueTask<string> SourceAsync(Type example) => new(Use(SourcePath(example), () => ExampleSource.Of(example)));
@@ -44,17 +30,14 @@ public sealed class ServerDocsData : DocsData
     /// <inheritdoc/>
     public override ValueTask<IReadOnlyList<IconEntry>> IconsAsync()
     {
-        // 图标库有几百 KB，不随页面带过去：浏览器下载静态文件
         files.Add(IconsPath);
         return new(icons.Value.List);
     }
 
     string Use(string path, Func<string> create)
     {
-        var content = rendered.GetOrAdd(path, _ => create());
         files.Add(path);
-        lock (used) used[path] = content;
-        return content;
+        return rendered.GetOrAdd(path, _ => create());
     }
 
     /// <summary>地址对应的文件内容（/_docs/… 的响应）；不认识的地址为 null。</summary>

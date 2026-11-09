@@ -12,6 +12,13 @@
     <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
   </PropertyGroup>
 
+  <!-- 只有部分页面用到的程序集：启动时不下载，进入那些页面前由 Routes 加载（LazyAssemblies） -->
+  <ItemGroup>
+    <BlazorWebAssemblyLazyLoad Include="Rune.Charts.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="Rune.Charts.Maps.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="Rune.UI.Area.wasm" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
     <ProjectReference Include="..\Rune.Docs.Content\Rune.Docs.Content.csproj" />

@@ -6,8 +6,9 @@ using Rune.UI;
 namespace Rune.Docs.Site;
 
 /// <summary>
-/// 浏览器里（WebAssembly）的文档数据：先用预渲染带过来的（第一屏不用再请求、不闪），没有的再下载服务端生成的静态文件。
-/// 下载过的留在内存里，同一份不重复请求；同时要同一份时共用一次请求。
+/// 浏览器里（WebAssembly）的文档数据：下载服务端生成的静态文件（按类型一个，几 KB，各页共用、CDN 与浏览器都缓存）。
+/// 不随页面带过去：预渲染的 HTML 里已经有源码与 API 表，再带一份（PersistentComponentState 转义加两层 base64）每页要多三十几 KB；
+/// 接管后源码区是收着的、API 表在页面底部，下载期间看不出空白。下载过的留在内存里，同一份不重复请求，同时要同一份时共用一次请求。
 /// </summary>
 public sealed class BrowserDocsData : DocsData
 {
@@ -15,13 +16,8 @@ public sealed class BrowserDocsData : DocsData
     readonly ConcurrentDictionary<string, Task<string>> files = new();
     IReadOnlyList<IconEntry>? icons;
 
-    /// <summary>站点根作基地址；预渲染带过来的数据此时就取走（只能在第一次渲染完之前取）。</summary>
-    public BrowserDocsData(NavigationManager navigation, PersistentComponentState state)
-    {
-        http = new HttpClient { BaseAddress = new Uri(navigation.BaseUri) };
-        if (state.TryTakeFromJson<Dictionary<string, string>>(StateKey, out var carried) && carried is not null)
-            foreach (var (path, content) in carried) files[path] = Task.FromResult(content);
-    }
+    /// <summary>以站点根作基地址。</summary>
+    public BrowserDocsData(NavigationManager navigation) => http = new HttpClient { BaseAddress = new Uri(navigation.BaseUri) };
 
     /// <inheritdoc/>
     public override async ValueTask<string> SourceAsync(Type example) => await FileAsync(SourcePath(example));

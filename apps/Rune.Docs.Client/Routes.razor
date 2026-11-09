@@ -1,13 +1,42 @@
 @*
     文档站的路由：首页、找不到页面在这里，指南与组件页在 Rune.Docs.Content（带 @page 与 [DocMeta]）。
     整个路由是 WebAssembly 的交互根（App.razor 给它加 @rendermode）：交互模式下新用到的样式由这里的 RuneStyles 输出。
+    只有部分页面用到的程序集（图表、地图数据、省市区，见 LazyAssemblies）进入那些页面前才下载，期间顶部显示加载条。
 *@
+@using Microsoft.AspNetCore.Components.WebAssembly.Services
 @inherits RuneComponent
+@inject LazyAssemblyLoader Loader
 
 <RuneStyles />
-<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="[typeof(DocsCatalog).Assembly]" NotFoundPage="typeof(Pages.NotFound)">
+<LoadingBar Controller="bar" />
+<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="[typeof(DocsCatalog).Assembly]" NotFoundPage="typeof(Pages.NotFound)"
+        OnNavigateAsync="LoadAssembliesAsync">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(DocsLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>
+
+@code {
+    readonly LoadingBarController bar = new();
+    readonly HashSet<string> loaded = [];
+
+    // 页面用到的程序集在渲染页面之前加载好（第一次打开时下载，之后在内存里）
+    async Task LoadAssembliesAsync(NavigationContext context)
+    {
+        var files = LazyAssemblies.For(context.Path).Where(f => !loaded.Contains(f)).ToList();
+        if (files.Count == 0) return;
+        bar.Start();
+        try
+        {
+            await Loader.LoadAssembliesAsync(files);
+            loaded.UnionWith(files);
+            bar.Finish();
+        }
+        catch
+        {
+            bar.Error();
+            throw;
+        }
+    }
+}

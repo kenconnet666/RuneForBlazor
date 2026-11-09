@@ -7,15 +7,11 @@ namespace Rune.Docs.Site;
 
 /// <summary>
 /// 文档的数据：示例的源码、组件的 API 表、图标库的全部图标。
-/// 它们由服务端从程序集、示例文件与 XML 文档注释生成（Rune.Docs.Server），浏览器里不带这些原料（几 MB）：
-/// 预渲染时用到的随页面带过去（PersistentComponentState），站内换页时再按类型下载 <c>/_docs/…</c> 的静态文件（静态导出时一并写出）。
-/// 服务端、浏览器各注册一个实现；组件只经这里取，取到之前显示空的内容。
+/// 它们由服务端从程序集、示例文件与 XML 文档注释生成（Rune.Docs.Server），浏览器里不带这些原料（几 MB），
+/// 按类型下载 <c>/_docs/…</c> 的静态文件（静态导出时一并写出）。服务端、浏览器各注册一个实现；组件只经这里取，取到之前显示空的内容。
 /// </summary>
 public abstract class DocsData
 {
-    /// <summary>随页面带给浏览器的数据在 PersistentComponentState 里的键：地址 → 文件内容。</summary>
-    public const string StateKey = "rune-docs-data";
-
     /// <summary>示例组件的源码（示例文件原文）。</summary>
     public abstract ValueTask<string> SourceAsync(Type example);
 

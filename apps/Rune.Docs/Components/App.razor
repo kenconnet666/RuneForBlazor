@@ -1,6 +1,7 @@
 @*
     文档站的页面骨架：整站是 WebAssembly 的交互根（Routes 与 HeadOutlet 加 @rendermode），服务端只做预渲染。
     head 里的 ThemeBootScript 在页面显示前按记住的选择设好主题，fonts.js 同样设好字体（顶栏的字体切换）。
+    十六套主题的变量在外部样式表里（ThemeStylesheetLink，按内容哈希命名，浏览器只下载一次），不内联在每个页面。
 *@
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -11,6 +12,7 @@
     <base href="/" />
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["app.css"]" />
+    <ThemeStylesheetLink />
     <ImportMap />
     <ThemeBootScript />
     <script src="@Assets["fonts.js"]"></script>

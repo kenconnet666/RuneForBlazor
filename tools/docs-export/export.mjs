@@ -13,6 +13,7 @@
 //    直接取 components/button.html，不跳转），首页是 index.html，找不到页面存成 404.html。
 // 4. 合并、挪走了的旧页面地址（DocRedirects）写成 _redirects，由 Cloudflare Pages 永久跳转到新页的小节。
 // 5. 文档数据（示例的源码、API 表、图标库）：爬页面时用到过的地址取 /_docs/files，逐个写出（浏览器站内换页时下载）。
+// 6. 运行时生成的模块与样式表（主题变量）从服务端取下来；_headers 让 Cloudflare 压缩 ICU 数据。
 import { spawn, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -94,18 +95,22 @@ async function exportSite() {
       writeFileSync(join(out, path), Buffer.from(await response.arrayBuffer()));
     }
     console.log(`写出了 ${docsFiles.length} 个文档数据文件`);
-    // import map 里有服务端运行时生成的模块（_framework/resource-collection.*.js，WebAssembly 启动时要它），不在静态资源里：从服务端取下来
+    // 服务端运行时生成、不在静态资源里的文件：import map 里的模块（_framework/resource-collection.*.js，WebAssembly 启动时要它）
+    // 与页面引用的样式表（主题变量的 rune-theme.*.css）：从服务端取下来
     let generated = 0;
-    for (const target of importMapTargets(pages.values())) {
+    for (const target of new Set([...importMapTargets(pages.values()), ...stylesheetTargets(pages.values())])) {
       const file = join(out, target);
       if (existsSync(file) || /\.(br|gz)$/.test(target)) continue;
       const response = await fetch(`${origin}/${target}`);
-      if (!response.ok) throw new Error(`import map 里的 ${target} 取不到：${response.status}`);
+      if (!response.ok) throw new Error(`${target} 取不到：${response.status}`);
       mkdirSync(dirname(file), { recursive: true });
       writeFileSync(file, Buffer.from(await response.arrayBuffer()));
       generated++;
     }
-    if (generated) console.log(`取下了 ${generated} 个运行时生成的模块`);
+    if (generated) console.log(`取下了 ${generated} 个运行时生成的文件`);
+    // Cloudflare 不压缩 application/octet-stream：ICU 数据（_framework/icudt*.dat，1.5 MB，压缩后约 0.45 MB）标成 application/wasm 让它压缩
+    // （运行时按字节读取，不看类型）
+    writeFileSync(join(out, '_headers'), ['/_framework/*.dat', '  Content-Type: application/wasm', ''].join('\n'));
     console.log(`导出了 ${pages.size} 个页面与 404.html → ${out}`);
   } catch (error) {
     console.error(serverLog);
@@ -149,6 +154,15 @@ function importMapTargets(htmls) {
       for (const value of values) if (!/^[a-z]+:/i.test(value)) targets.add(value.replace(/^\.?\//, ''));
     }
   }
+  return targets;
+}
+
+/** 页面引用的站内样式表（link rel="stylesheet" 的 href，去掉开头的 ./ 与 /） */
+function stylesheetTargets(htmls) {
+  const targets = new Set();
+  for (const html of htmls)
+    for (const match of html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g))
+      if (!/^[a-z]+:/i.test(match[1])) targets.add(match[1].replace(/^\.?\//, '').split('?')[0]);
   return targets;
 }
 
