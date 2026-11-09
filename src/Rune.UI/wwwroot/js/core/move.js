@@ -10,18 +10,25 @@
  *   target   捕获指针、接收后续事件的元素（事件是委托在 document 上接住的，所以要显式给）
  *   onMove   ({ clientX, clientY, deltaX, deltaY }) => void
  *   onEnd    ({ ...最后的位置, cancelled }) => void
+ *   threshold 移动超过这么多像素才捕获指针（按下的元素既能点也能拖时用，如 Tree 的行）：捕获后松开时的 click 落在 target 上，
+ *            里面的按钮（展开箭头、勾选框）收不到；只是点一下的不捕获，click 照常落在点到的元素上。默认 0（按下就捕获）
  * 返回提前结束的函数。
  */
-export function startMove(event, { target, onMove, onEnd }) {
+export function startMove(event, { target, onMove, onEnd, threshold = 0 }) {
   if (event.button !== 0) return () => {};
   const { pointerId, clientX: startX, clientY: startY } = event;
   let last = { clientX: startX, clientY: startY, deltaX: 0, deltaY: 0 };
   let finished = false;
 
   // 捕获失败（指针已经松开、元素不在文档里）时照常用元素上的事件，只是移出元素后收不到
-  try {
-    target.setPointerCapture(pointerId);
-  } catch {}
+  let captured = false;
+  const capture = () => {
+    captured = true;
+    try {
+      target.setPointerCapture(pointerId);
+    } catch {}
+  };
+  if (threshold <= 0) capture();
   const root = document.documentElement;
   const userSelect = root.style.userSelect;
   root.style.userSelect = 'none';
@@ -29,6 +36,7 @@ export function startMove(event, { target, onMove, onEnd }) {
   const move = (moved) => {
     if (moved.pointerId !== pointerId) return;
     last = { clientX: moved.clientX, clientY: moved.clientY, deltaX: moved.clientX - startX, deltaY: moved.clientY - startY };
+    if (!captured && Math.hypot(last.deltaX, last.deltaY) >= threshold) capture();
     onMove(last);
   };
   const finish = (cancelled) => {

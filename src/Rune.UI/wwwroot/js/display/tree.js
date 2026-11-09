@@ -139,8 +139,9 @@ function dragFrom(tree, from, event) {
   };
 
   startMove(event, {
-    // 虚拟滚动会换掉行元素：捕获在不动的树上
+    // 虚拟滚动会换掉行元素：捕获在不动的树上；移动过了拖动的门槛才捕获，只是点一下时 click 照常落在展开箭头、勾选框上
     target: tree,
+    threshold: DRAG_THRESHOLD,
     onMove: ({ clientX, clientY, deltaX, deltaY }) => {
       if (!dragging && Math.hypot(deltaX, deltaY) < DRAG_THRESHOLD) return;
       dragging = true;

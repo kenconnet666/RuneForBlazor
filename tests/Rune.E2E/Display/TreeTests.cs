@@ -72,6 +72,23 @@ public class TreeTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(process).Not.ToHaveAttributeAsync("data-drop", "inside");
     }
 
+    // 能拖动的树：按下时不立刻捕获指针，只是点一下的照常落在展开箭头上（捕获了 click 会落在整棵树上）
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 能拖动的树_点展开箭头照常收起展开(string mode)
+    {
+        var page = await OpenAsync(mode, "tree");
+        var process = page.GetByTestId("outline").GetByRole(AriaRole.Treeitem, new() { Name = "第二章 采购流程" });
+        var toggle = process.Locator("[data-rune-tree-toggle]");
+        await Assertions.Expect(process).ToHaveAttributeAsync("aria-expanded", "true");
+
+        await toggle.ClickAsync();
+        await Assertions.Expect(process).ToHaveAttributeAsync("aria-expanded", "false");
+        await toggle.ClickAsync();
+        await Assertions.Expect(process).ToHaveAttributeAsync("aria-expanded", "true");
+    }
+
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
