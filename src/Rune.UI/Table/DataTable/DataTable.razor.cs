@@ -45,7 +45,7 @@ public partial class DataTable<TItem>
     Memo<(IReadOnlyList<TItem>, IReadOnlyList<ColumnSort>, IReadOnlyList<DataTableColumn<TItem>>, IReadOnlyDictionary<string, IReadOnlyList<string>>, bool, bool), IReadOnlyList<TItem>> rows;
     Memo<(IReadOnlyList<TItem>, IReadOnlyList<DataTableColumn<TItem>>), Dictionary<string, IReadOnlyList<ListboxOption>>> filterOptions;
     Memo<ColumnSort?, IReadOnlyList<ColumnSort>> singleSort;
-    Memo<(IReadOnlyList<DataTableColumn<TItem>>, IReadOnlyList<TItem>, IReadOnlyList<string>, IReadOnlyDictionary<string, ColumnSticky?>, IReadOnlyDictionary<string, double>, IReadOnlyList<string>), IReadOnlyList<ColumnView<TItem>>> shown;
+    Memo<(IReadOnlyList<DataTableColumn<TItem>>, IReadOnlyList<TItem>, IReadOnlyList<string>, IReadOnlyDictionary<string, ColumnSticky?>, IReadOnlyDictionary<string, double>, IReadOnlyList<string>, bool), IReadOnlyList<ColumnView<TItem>>> shown;
     Memo<IReadOnlyList<string>, HashSet<string>> selectedSet;
     Memo<(IReadOnlyList<TItem>, IReadOnlyList<string>, bool), BodyEntry[]> entries;
     Memo<string?, SelectionRadios> radios;
@@ -57,6 +57,8 @@ public partial class DataTable<TItem>
 
     // JS 报告的要渲染的那一段；还没报告时是开头的 InitialCount 行
     (int From, int To)? reported;
+    // 列虚拟化：JS 报告的视口横向位置与宽度；还没报告时按 1280px 宽算
+    (double Offset, double Width) columnWindow = (0, ColumnWindow.InitialViewport);
     VisibleRange? visible;
     (int Index, ScrollAlign Align, int Sequence) scrollRequest;
 
@@ -164,6 +166,12 @@ public partial class DataTable<TItem>
 
     /// <summary>静态渲染（没有交互时）与交互接管前先输出前多少行，默认 30。</summary>
     [Parameter] public int InitialCount { get; set; } = 30;
+
+    /// <summary>
+    /// 列虚拟化（同 vue-tsx-pro 的 virtualColumns）：几十上百列的宽表、透视结果只渲染看得见的列（前后各多三列）。
+    /// 没写宽度的列按 150px；两端的固定列总在。交互模式下才生效。
+    /// </summary>
+    [Parameter] public bool VirtualColumns { get; set; }
 
     /// <summary>可见行范围变化（不含 overscan）：接近末尾时加载更多。</summary>
     [Parameter] public EventCallback<VisibleRange> OnRangeChange { get; set; }
@@ -309,8 +317,23 @@ public partial class DataTable<TItem>
         });
 
     /// <summary>显示中的列：按列菜单排好、去掉隐藏的，带上调整后的宽度与推断的值类型。</summary>
-    IReadOnlyList<ColumnView<TItem>> Shown => shown.Get((columns.All, Rows, columnOrder.Value, columnPins.Value, columnWidths.Value, hiddenColumns.Value),
-        static k => ColumnDisplay.Arrange(k.Item1, k.Item2, k.Item3, k.Item4, k.Item5, k.Item6));
+    IReadOnlyList<ColumnView<TItem>> Shown => shown.Get((columns.All, Rows, columnOrder.Value, columnPins.Value, columnWidths.Value, hiddenColumns.Value, VirtualColumns),
+        static k => k.Item7
+            // 列虚拟化：宽度要确定，才算得出哪些列看得见
+            ? [.. ColumnDisplay.Arrange(k.Item1, k.Item2, k.Item3, k.Item4, k.Item5, k.Item6).Select(static view => view.Width is null ? view with { Width = ColumnWindow.DefaultWidth } : view)]
+            : ColumnDisplay.Arrange(k.Item1, k.Item2, k.Item3, k.Item4, k.Item5, k.Item6));
+
+    bool ColumnsVirtual => VirtualColumns && Virtual;
+
+    /// <summary>要跳过的列段（列虚拟化时）；不虚拟化时为空。</summary>
+    IReadOnlyList<ColumnSkip> SkipsOf(IReadOnlyList<ColumnView<TItem>> shown) =>
+        ColumnsVirtual ? ColumnWindow.Skips(shown, columnWindow.Offset, columnWindow.Width, LeadingWidth) : [];
+
+    /// <summary>数据列前面的几列（勾选列、详情列）。</summary>
+    int LeadingCount => (SelectionMode is null ? 0 : 1) + (DetailContent is null ? 0 : 1);
+
+    /// <summary>列虚拟化时各格的 aria-colindex（第 column 个数据列）。</summary>
+    int? ColIndex(int column) => ColumnsVirtual ? LeadingCount + column + 1 : null;
 
     /// <summary>表头筛选的选项：列出出现过的值时看全部行（不是筛过的）；行与列不变时不重算。</summary>
     IReadOnlyList<ListboxOption> FilterOptionsOf(DataTableColumn<TItem> column) =>
@@ -391,7 +414,7 @@ public partial class DataTable<TItem>
     Attrs ViewportManaged => new()
     {
         ["data-rune-virtual"] = Virtual
-            ? FormattableString.Invariant($$"""{"count":{{BodyCount}},"estimate":{{EstimateRowHeight ?? RowHeights[Look.Density]}},"overscan":8,"table":true}""")
+            ? FormattableString.Invariant($$"""{"count":{{BodyCount}},"estimate":{{EstimateRowHeight ?? RowHeights[Look.Density]}},"overscan":8,"table":true,"columns":{{(VirtualColumns ? "true" : "false")}}}""")
             : null,
         ["data-rune-virtual-scroll"] = scrollRequest.Sequence == 0
             ? null
@@ -428,6 +451,7 @@ public partial class DataTable<TItem>
         ["data-focus-cell"] = focusRequest.Sequence == 0 ? null : FormattableString.Invariant($"{focusRequest.Sequence}:{focusRequest.Row}\u001f{focusRequest.Column}"),
         InlineStyle = $"min-width:{ColumnDisplay.Px(ColumnDisplay.MinWidth(shown, LeadingWidth))}",
         ["aria-rowcount"] = rowCount,
+        ["aria-colcount"] = ColumnsVirtual ? LeadingCount + shown.Count : null,
         ["aria-busy"] = Loading ? "true" : null,
         ["data-rune-table"] = "",
         ["data-row-click"] = OnRowClick.HasDelegate ? "" : null,
@@ -453,6 +477,11 @@ public partial class DataTable<TItem>
     // JS 报告要渲染的那一段与可见范围：{第一行}:{最后一行}:{第一个可见}:{最后一个可见}
     async Task OnViewportCommandAsync(CommandEventArgs e)
     {
+        if (e.Name == "columns" && e.Text?.Split(' ') is [var offset, var width])
+        {
+            columnWindow = (double.Parse(offset, CultureInfo.InvariantCulture), double.Parse(width, CultureInfo.InvariantCulture));
+            return;
+        }
         if (e.Name != "range" || e.Text?.Split(':') is not [var from, var to, var start, var end]) return;
         reported = (Parse(from), Parse(to));
         var range = new VisibleRange(Parse(start), Parse(end));

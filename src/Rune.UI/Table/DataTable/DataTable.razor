@@ -73,6 +73,9 @@
         };
         var rowSpan = headerRows > 1 ? headerRows : (int?)null;
         var navigable = Navigable;
+        // 列虚拟化：跳过的列段（每行一格 colspan 占住）；分组表头时第一行按它重排
+        var skips = SkipsOf(shown);
+        var slots = layout is not null && skips.Count > 0 ? HeaderSlot<TItem>.Of(layout, shown, skips) : null;
         var reorderable = Reorderable;
 
         <ScrollArea Axis="ScrollAxis.Both" Focusable="Virtual" PropsViewport="ViewportManaged"
@@ -118,9 +121,35 @@
                         }
                         @if (layout is null)
                         {
-                            foreach (var view in shown)
+                            foreach (var (column, skip) in ColumnWindow.Walk(shown.Count, skips))
                             {
-                                @HeaderCell(view, shown, parts, offsets, 1, false)
+                                if (skip is { } gap)
+                                {
+                                    <th @key="@($"skip-{gap.From}")" colspan="@gap.Span" aria-hidden="true" @attributes="Attrs.Merge(parts[DataTablePart.HeaderCell])"></th>
+                                    continue;
+                                }
+                                @HeaderCell(shown[column], shown, parts, offsets, 1, false)
+                            }
+                        }
+                        else if (slots is not null)
+                        {
+                            for (var at = 0; at < slots.Count; at++)
+                            {
+                                var slot = slots[at];
+                                var divider = at > 0 && slot.Position > 0 && (slot.Cell?.Group is not null || layout[slot.Position - 1].Group is not null);
+                                if (slot.Gap is { } gap)
+                                {
+                                    <th @key="@($"skip-{gap.From}")" colspan="@gap.Span" rowspan="2" aria-hidden="true" @attributes="Attrs.Merge(parts[DataTablePart.HeaderCell])"></th>
+                                }
+                                else if (slot.Cell is { Group: { } group } cell)
+                                {
+                                    <th @key="@($"{group}-{slot.Position}")" scope="colgroup" colspan="@cell.Columns.Count"
+                                        @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], parts[DataTablePart.GroupHeaderCell], GroupLayer(cell.Columns, offsets, divider)))">@group</th>
+                                }
+                                else
+                                {
+                                    @HeaderCell(slot.Cell!.Columns[0], shown, parts, offsets, 2, divider)
+                                }
                             }
                         }
                         else
@@ -144,10 +173,12 @@
                     </tr>
                     @if (layout is not null)
                     {
+                        // 第二行：各组（列虚拟化时只是露出来的）的列；跳过的列由第一行跨两行的占位占住
+                        IReadOnlyList<HeaderGroup<TItem>> groups = slots is null ? layout : [.. slots.Where(static slot => slot.Cell is not null).Select(static slot => slot.Cell!)];
                         <tr aria-rowindex="2" @attributes="Attrs.Merge(parts[DataTablePart.HeadRow])">
-                            @for (var position = 0; position < layout.Count; position++)
+                            @for (var position = 0; position < groups.Count; position++)
                             {
-                                var cell = layout[position];
+                                var cell = groups[position];
                                 if (cell.Group is null) continue;
                                 for (var member = 0; member < cell.Columns.Count; member++)
                                 {
@@ -160,7 +191,7 @@
                 <tbody data-rune-virtual-list @attributes="Attrs.Merge(parts[DataTablePart.Body], reorderable ? SortableBody : null)">
                     @if (Replacing)
                     {
-                        @SkeletonRows(SkeletonRowCount, parts, shown.Count)
+                        @SkeletonRows(SkeletonRowCount, parts, shown.Count, skips)
                     }
                     else if (items.Count == 0 && !Loading)
                     {
@@ -251,8 +282,13 @@
                                     </td>
                                 }
                                 @{ var rowErrors = navigable ? ValidateRow?.Invoke(item) : null; }
-                                @for (var column = 0; column < shown.Count; column++)
+                                @foreach (var (column, skip) in ColumnWindow.Walk(shown.Count, skips))
                                 {
+                                    if (skip is { } gap)
+                                    {
+                                        <td @key="@($"skip-{gap.From}")" colspan="@gap.Span" aria-hidden="true" @attributes="Attrs.Merge(rowParts[DataTablePart.Cell])"></td>
+                                        continue;
+                                    }
                                     var view = shown[column];
                                     var editingHere = editing is { } edit && edit.Row == key && edit.Column == view.Key;
                                     var editable = navigable && view.Column.CanEdit(item);
@@ -274,7 +310,7 @@
                                         ["aria-invalid"] = error is null ? null : "true",
                                         ["aria-description"] = error,
                                     } : null;
-                                    <td @key="view.Column" @attributes="Attrs.Merge(cellLayer, PropsCellFor?.Invoke(item, view.Key), gridLayer)">
+                                    <td @key="view.Column" aria-colindex="@ColIndex(column)" @attributes="Attrs.Merge(cellLayer, PropsCellFor?.Invoke(item, view.Key), gridLayer)">
                                         @if (editingHere)
                                         {
                                             @EditorCell(view.Column, item)
@@ -309,7 +345,7 @@
                     }
                     @if (Appending)
                     {
-                        @SkeletonRows(MoreSkeletonRows, parts, shown.Count)
+                        @SkeletonRows(MoreSkeletonRows, parts, shown.Count, skips)
                     }
                 </tbody>
                 @if (summary)
@@ -324,10 +360,15 @@
                             {
                                 <td @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell], stickyDetail))"></td>
                             }
-                            @for (var position = 0; position < shown.Count; position++)
+                            @foreach (var (position, skip) in ColumnWindow.Walk(shown.Count, skips))
                             {
+                                if (skip is { } gap)
+                                {
+                                    <td @key="@($"skip-{gap.From}")" colspan="@gap.Span" aria-hidden="true" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell]))"></td>
+                                    continue;
+                                }
                                 var view = shown[position];
-                                <td @key="view.Column" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell],
+                                <td @key="view.Column" aria-colindex="@ColIndex(position)" @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.Cell], parts[DataTablePart.SummaryCell],
                                         Attrs.Layer(TableStyles.AlignOf(view.Align), StickyLayer(view, offsets))))">
                                     @SummaryOf(view.Column, position, view.Type)
                                 </td>
@@ -376,7 +417,7 @@
         var direction = priority >= 0 ? sortList[priority].Direction : (SortDirection?)null;
         var actions = column.Filter is not null || ColumnMenu;
         var position = IndexOfView(shown, view.Key);
-        <th @key="column" scope="col" rowspan="@(rowSpan > 1 ? rowSpan : null)" data-column="@view.Key" data-sticky="@view.Sticky?.ToString().ToLowerInvariant()"
+        <th @key="column" scope="col" rowspan="@(rowSpan > 1 ? rowSpan : null)" data-column="@view.Key" data-sticky="@view.Sticky?.ToString().ToLowerInvariant()" aria-colindex="@ColIndex(position)"
             aria-sort="@(column.Sortable ? (priority == 0 ? AriaSort(direction) : "none") : null)"
             @attributes="Attrs.Merge(Attrs.Layer(parts[DataTablePart.HeaderCell], new Attrs { Sx = Sx.Of(TableStyles.AlignOf(view.Align), divider ? DataTableStyles.GroupDivider : null) }, StickyLayer(view, offsets)))">
             @if (actions)
@@ -436,7 +477,7 @@
     };
 
     // 一行骨架：同一行的单元格一起扫，行与行依次错开（一道波从上往下推过表格）
-    RenderFragment SkeletonRows(int count, PartLayers<DataTablePart> parts, int columnCount) => __builder =>
+    RenderFragment SkeletonRows(int count, PartLayers<DataTablePart> parts, int columnCount, IReadOnlyList<ColumnSkip> skips) => __builder =>
     {
         for (var row = 0; row < count; row++)
         {
@@ -449,8 +490,13 @@
                 {
                     <td @attributes="Attrs.Merge(parts[DataTablePart.Cell])"></td>
                 }
-                @for (var position = 0; position < columnCount; position++)
+                @foreach (var (position, skip) in ColumnWindow.Walk(columnCount, skips))
                 {
+                    if (skip is { } gap)
+                    {
+                        <td colspan="@gap.Span" @attributes="Attrs.Merge(parts[DataTablePart.Cell])"></td>
+                        continue;
+                    }
                     <td @attributes="Attrs.Merge(parts[DataTablePart.Cell])">
                         <Skeleton Delay="@(row * ShimmerStyles.Stagger)" @attributes="Attrs.MergeProps(Attrs.Layer(parts[DataTablePart.Skeleton], SkeletonWidth(row, position)), PropsSkeleton)" />
                     </td>

@@ -79,6 +79,10 @@
                 <Code>OnRangeChange</Code> 报告可见行的范围，接近末尾时取下一页；取的时候 <Code>Loading</Code>，已有数据时骨架接在末尾（不换掉表体、不丢滚动位置）。页码、去重与失败重试交给 <Code>InfiniteList</Code>，它的 <Code>OnRangeChange</Code> 直接交给表格。
                 <Code>EstimateRowHeight</Code> 是行高的估计，渲染后按实际高度测量。
             </Example>
+            <Example Id="wide" Title="宽表：列也虚拟滚动" Demo="typeof(WideExample)">
+                <Code>VirtualColumns</Code> 时只渲染看得见的列（前后各多三列），跳过的列用一格 colspan 占住位置：colgroup 里的列宽都在，固定列、分组表头照常。几十上百列的宽表、透视结果打开它；行本来就是虚拟滚动的。
+                没写宽度的列按 150px；两端的固定列总在。各格带 aria-colindex、表格带 aria-colcount，读屏照样知道第几列。
+            </Example>
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="@([

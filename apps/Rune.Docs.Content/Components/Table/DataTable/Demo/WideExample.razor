@@ -1,0 +1,32 @@
+@* 宽表：60 家门店 × 120 天的日销量，按月分组；门店固定在起始边、合计固定在结束边。VirtualColumns 只渲染看得见的列（行本来就是虚拟滚动的） *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <DataTable Items="stores" GetKey="store => store.Name" Density="TableDensity.Compact" VirtualColumns="true" aria-label="门店日销量" PropsRoot="TableHeight">
+        <PropertyColumn Property="store => store.Name" Title="门店" Width="120" Sticky="ColumnSticky.Start" />
+        @for (var day = 0; day < Days; day++)
+        {
+            var index = day;
+            <TemplateColumn TItem="StoreSales" Key="@($"d{index}")" Title="@($"{dates[index].Day} 日")" Group="@($"{dates[index].Month} 月")" Width="64"
+                            Align="TableAlign.End" Value="store => store.Days[index]" Context="store">@store.Days[index]</TemplateColumn>
+        }
+        <TemplateColumn TItem="StoreSales" Key="total" Title="合计" Width="96" Sticky="ColumnSticky.End" Align="TableAlign.End" Value="store => store.Days.Sum()" Context="store">@store.Days.Sum()</TemplateColumn>
+    </DataTable>
+    <Small Tone="TextTone.Muted">@stores.Length 行 × @(Days + 2) 列，只渲染看得见的几十格</Small>
+</Flex>
+
+@code {
+    const int Days = 120;
+
+    sealed record StoreSales(string Name, int[] Days);
+
+    static readonly DateOnly[] dates = [.. Enumerable.Range(0, Days).Select(day => new DateOnly(2026, 7, 1).AddDays(day))];
+
+    static readonly string[] cities = ["杭州", "宁波", "苏州", "南京", "合肥", "上海"];
+
+    static readonly StoreSales[] stores = [.. Enumerable.Range(0, 60).Select(store => new StoreSales(
+        $"{cities[store % cities.Length]} {store + 1:00} 店",
+        [.. Enumerable.Range(0, Days).Select(day => 40 + (store * 37 + day * 13) % 90)]))];
+
+    static readonly Attrs TableHeight = new() { Sx = Css.Define(static () => new Style { Height = CssLength.Rem(22) }) };
+}

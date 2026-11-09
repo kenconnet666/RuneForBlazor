@@ -224,3 +224,104 @@ static class ColumnDisplay
     /// <summary>像素值写成 CSS 文字。</summary>
     public static string Px(double value) => value.ToString("0.##", CultureInfo.InvariantCulture) + "px";
 }
+
+/// <summary>不渲染的一段列 [From, To)：用一格 colspan 占住它们的位置（colgroup 里的列都在，宽度不变）。</summary>
+/// <param name="From">第一列的下标。</param>
+/// <param name="To">最后一列的下一列的下标。</param>
+readonly record struct ColumnSkip(int From, int To)
+{
+    /// <summary>跨几列。</summary>
+    public int Span => To - From;
+}
+
+/// <summary>列虚拟化（同 vue-tsx-pro 的 columnSkips）：只渲染看得见的列，前后各多几列。</summary>
+static class ColumnWindow
+{
+    /// <summary>没写宽度的列按这个宽度（px）：宽度要确定，才算得出哪些列看得见。</summary>
+    public const double DefaultWidth = 150;
+
+    /// <summary>挂载前（服务端、浏览器第一次渲染）按这个视口宽度算，两边一致。</summary>
+    public const double InitialViewport = 1280;
+
+    /// <summary>
+    /// 要跳过的几段（最多两段）。两端的固定列（开头的 start、末尾的 end）总是渲染。
+    /// <paramref name="offset"/> 是视口起始边在表格里的位置（scrollLeft 的绝对值），<paramref name="leading"/> 是数据列前面的宽度（勾选列、详情列）。
+    /// </summary>
+    public static IReadOnlyList<ColumnSkip> Skips<TItem>(IReadOnlyList<ColumnView<TItem>> columns, double offset, double width, double leading, int overscan = 3)
+    {
+        var lead = 0;
+        while (lead < columns.Count && columns[lead].Sticky == ColumnSticky.Start) lead++;
+        var trail = columns.Count;
+        while (trail > lead && columns[trail - 1].Sticky == ColumnSticky.End) trail--;
+        var position = leading;
+        for (var index = 0; index < lead; index++) position += WidthOf(columns[index]);
+        int first = -1, last = -1;
+        for (var index = lead; index < trail; index++)
+        {
+            var size = WidthOf(columns[index]);
+            if (first < 0 && position + size > offset) first = index;
+            if (position < offset + width) last = index;
+            position += size;
+        }
+        if (first < 0) first = trail - 1;
+        if (last < first) last = first;
+        first = Math.Max(lead, first - overscan);
+        last = Math.Min(trail - 1, last + overscan);
+        var skips = new List<ColumnSkip>(2);
+        if (first > lead) skips.Add(new(lead, first));
+        if (last + 1 < trail) skips.Add(new(last + 1, trail));
+        return skips;
+    }
+
+    static double WidthOf<TItem>(ColumnView<TItem> column) => column.Width ?? DefaultWidth;
+
+    /// <summary>按顺序走一遍列：要渲染的列给出下标，跳过的一段给出那一段（只给一次）。</summary>
+    public static IEnumerable<(int Column, ColumnSkip? Skip)> Walk(int count, IReadOnlyList<ColumnSkip> skips)
+    {
+        var column = 0;
+        while (column < count)
+        {
+            ColumnSkip? skip = null;
+            foreach (var candidate in skips)
+                if (candidate.From == column && candidate.Span > 0) skip = candidate;
+            yield return (column, skip);
+            column = skip?.To ?? column + 1;
+        }
+    }
+}
+
+/// <summary>列虚拟化时表头第一行的一格：分组里露出来的几列、没有分组的一列，或跳过的一段（跨两行的占位）。</summary>
+/// <param name="Position">在原来的表头布局里是第几格（占位时是它后面那一格的）。</param>
+/// <param name="Cell">露出来的组或列；占位时为 null。</param>
+/// <param name="Gap">跳过的一段；不是占位时为 null。</param>
+sealed record HeaderSlot<TItem>(int Position, HeaderGroup<TItem>? Cell, ColumnSkip? Gap)
+{
+    /// <summary>
+    /// 分组表头按跳过的列段重排第一行：跳过的列合成跨两行的占位，部分露出的组只跨露出的列。
+    /// <paramref name="layout"/> 是 <see cref="ColumnDisplay.HeaderLayout{TItem}"/> 的结果，列的顺序与 <paramref name="shown"/> 一致。
+    /// </summary>
+    public static IReadOnlyList<HeaderSlot<TItem>> Of(IReadOnlyList<HeaderGroup<TItem>> layout, IReadOnlyList<ColumnView<TItem>> shown, IReadOnlyList<ColumnSkip> skips)
+    {
+        var positionOf = new int[shown.Count];
+        var index = 0;
+        for (var position = 0; position < layout.Count; position++)
+            foreach (var _ in layout[position].Columns) positionOf[index++] = position;
+
+        var slots = new List<HeaderSlot<TItem>>();
+        foreach (var (column, gap) in ColumnWindow.Walk(shown.Count, skips))
+        {
+            if (gap is { } skipped)
+            {
+                slots.Add(new(skipped.To < shown.Count ? positionOf[skipped.To] : layout.Count, null, skipped));
+                continue;
+            }
+            var position = positionOf[column];
+            var cell = layout[position];
+            if (cell.Group is not null && slots.Count > 0 && slots[^1] is { Cell.Group: not null } open && open.Position == position)
+                slots[^1] = open with { Cell = open.Cell! with { Columns = [.. open.Cell.Columns, shown[column]] } };
+            else
+                slots.Add(new(position, cell.Group is null ? cell : new HeaderGroup<TItem>(cell.Group, [shown[column]]), null));
+        }
+        return slots;
+    }
+}

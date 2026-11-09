@@ -62,10 +62,10 @@ class Virtualizer {
   }
 
   readOptions() {
-    const { count = 0, estimate = 40, overscan = 4, horizontal = false, window: followWindow = false, table = false } =
+    const { count = 0, estimate = 40, overscan = 4, horizontal = false, window: followWindow = false, table = false, columns = false } =
       JSON.parse(this.host.getAttribute('data-rune-virtual') || '{}');
     const changed = count !== this.options?.count || estimate !== this.options?.estimate;
-    this.options = { count, estimate, overscan, horizontal, followWindow, table };
+    this.options = { count, estimate, overscan, horizontal, followWindow, table, columns };
     // 总数变了：序号与 key 的对应作废（数据换了、过滤了），测量过的大小按 key 保留
     if (changed) {
       this.keys.clear();
@@ -82,10 +82,12 @@ class Virtualizer {
     const onScroll = () => {
       if (!this.host.isConnected) return this.unmount();
       this.readScroll();
+      this.reportColumns();
     };
     const onResize = () => {
       this.readViewport();
       this.readScroll();
+      this.reportColumns();
     };
     this.onScroll = onScroll;
     this.onResize = onResize;
@@ -107,6 +109,24 @@ class Virtualizer {
     this.domObserver.observe(this.host, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-rune-virtual', 'data-rune-virtual-scroll'] });
     this.readViewport();
     this.syncRendered();
+    this.reportColumns();
+  }
+
+  /**
+   * 列虚拟化（data-rune-virtual 的 columns）：视口的横向位置（scrollLeft 的绝对值，从右到左排版也对）与宽度发 rune-command columns。
+   * 每帧最多一次；挪了不到 40px 且宽度没变时不发（C# 前后各多渲染三列，够用）
+   */
+  reportColumns() {
+    if (!this.options.columns || this.columnFrame) return;
+    this.columnFrame = requestAnimationFrame(() => {
+      this.columnFrame = 0;
+      const offset = Math.round(Math.abs(this.host.scrollLeft));
+      const width = this.host.clientWidth;
+      const last = this.columnsSent;
+      if (last && Math.abs(last.offset - offset) < 40 && last.width === width) return;
+      this.columnsSent = { offset, width };
+      sendCommand(this.host, 'columns', `${offset} ${width}`);
+    });
   }
 
   unmount() {
