@@ -109,7 +109,8 @@ public class InfiniteListTests : BunitContext
 
     static async Task WaitUntil(Func<bool> condition)
     {
-        for (var i = 0; i < 200 && !condition(); i++) await Task.Delay(5);
+        // 机器忙时（全量测试并行跑）回调要等一会儿：最多等 5 秒
+        for (var i = 0; i < 1000 && !condition(); i++) await Task.Delay(5);
         Assert.True(condition());
     }
 }
