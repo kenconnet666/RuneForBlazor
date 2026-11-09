@@ -70,6 +70,7 @@ jobs:
           dotnet pack src/Rune.UI.Dates/Rune.UI.Dates.csproj --configuration Release --no-build --output artifacts
           dotnet pack src/Rune.Charts/Rune.Charts.csproj --configuration Release --no-build --output artifacts
           dotnet pack src/Rune.Charts.Maps/Rune.Charts.Maps.csproj --configuration Release --no-build --output artifacts
+          dotnet pack src/Rune.UI.Area/Rune.UI.Area.csproj --configuration Release --no-build --output artifacts
           unzip -l "$(ls artifacts/Rune.[0-9]*.nupkg)" | grep -q "analyzers/dotnet/cs/Rune.Generators.dll"
           unzip -l "$(ls artifacts/Rune.Icons.[0-9]*.nupkg)" | grep -q "LICENSE-lucide.txt"
           unzip -l "$(ls artifacts/Rune.UI.[0-9]*.nupkg)" | grep -q "Rune.UI.*lib.module.js"
@@ -210,6 +211,7 @@ jobs:
             packages/ui/src/config/lang
             packages/ui/src/patterns
             packages/ui/src/docs-kit
+            packages/ui/src/area
 
       - uses: actions/setup-node@v7
         with:
@@ -223,3 +225,6 @@ jobs:
 
       - name: 检查 Lang.g.cs
         run: node tools/lang-gen/generate.mjs --check --source .deps/vue-tsx-pro
+
+      - name: 检查省市区数据（Rune.UI.Area）
+        run: node tools/area-gen/generate.mjs --check --source .deps/vue-tsx-pro

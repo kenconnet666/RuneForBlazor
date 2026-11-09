@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 全国省市区的行政区划（约 85 KB）：单独成包，用不到的应用不带它（同 vue-tsx-pro 的 /area 子路径） -->
+  <PropertyGroup>
+    <IsLibrary>true</IsLibrary>
+    <!-- 公开成员必须写文档注释（CS1591 视为错误）；XML 文档也给文档站的 API 表用 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>Rune.UI</RootNamespace>
+    <Description>Rune.UI 的省市区数据：按 6 位代码的省、市、区县，给 Cascader、TreeSelect 做地址选择。</Description>
+    <PackageTags>$(PackageTags);area;region;address</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\area.json" LogicalName="area.json" />
+    <!-- 数据的来源与许可（@vant/area-data，MIT），随包分发 -->
+    <None Include="NOTICE.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

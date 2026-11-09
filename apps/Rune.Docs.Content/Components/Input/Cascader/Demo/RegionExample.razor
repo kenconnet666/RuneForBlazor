@@ -1,39 +1,28 @@
-@* 收货地址：省 / 市 / 区三级，只能选到区；可搜索、可清空 *@
+@* 收货地址：全国省 / 市 / 区三级（Rune.UI.Area 包的数据），只能选到区；可搜索、可清空。开票地区只到市（Area.Tree(2)） *@
 @inherits RuneComponent
 
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
     <Switch @bind-Value="allLevels">显示整条路径</Switch>
     <Grid MinItemWidth="CssLength.Rem(17)" Gap="SpaceScale.Md">
         <Field Label="收货地址">
-            <Cascader Items="regions" GetKey="(r, _) => r.Code" GetLabel="r => r.Name" GetChildren="r => r.Children"
+            <Cascader TItem="AreaNode" Items="Area.Tree()" GetKey="Area.KeyAt" GetLabel="Area.LabelOf" GetChildren="Area.ChildrenOf"
                       @bind-Value="address" ShowAllLevels="allLevels" Icon="Lucide.MapPin" Searchable="true" Clearable="true" />
         </Field>
         <Field Label="开票地区">
-            <Cascader Items="regions" GetKey="(r, _) => r.Code" GetLabel="r => r.Name" GetChildren="r => r.Children"
-                      @bind-Value="invoice" ShowAllLevels="allLevels" Placeholder="省 / 市 / 区" Searchable="true" />
+            <Cascader TItem="AreaNode" Items="Area.Tree(2)" GetKey="Area.KeyAt" GetLabel="Area.LabelOf" GetChildren="Area.ChildrenOf"
+                      @bind-Value="invoice" ShowAllLevels="allLevels" Placeholder="省 / 市" Searchable="true" />
         </Field>
     </Grid>
-    <Small Tone="TextTone.Muted">value：@(address is null ? "null" : $"[{string.Join(", ", address.Select(code => $"\"{code}\""))}]")</Small>
+    <Small Tone="TextTone.Muted">
+        value：@(address is null ? "null" : $"[{string.Join(", ", address.Select(code => $"\"{code}\""))}]")
+        @if (address is not null)
+        {
+            <span>（@string.Join(" ", Area.Names(address))）</span>
+        }
+    </Small>
 </Flex>
 
 @code {
-    sealed record Region(string Code, string Name, Region[]? Children = null);
-
-    static readonly Region[] regions =
-    [
-        new("330000", "浙江省",
-        [
-            new("330100", "杭州市", [new("330106", "西湖区"), new("330108", "滨江区"), new("330110", "余杭区")]),
-            new("330200", "宁波市", [new("330212", "鄞州区"), new("330213", "奉化区")]),
-        ]),
-        new("320000", "江苏省",
-        [
-            new("320500", "苏州市", [new("320505", "虎丘区"), new("320506", "吴中区"), new("320508", "姑苏区")]),
-            new("320100", "南京市", [new("320106", "鼓楼区")]),
-        ]),
-        new("110000", "北京市", [new("110100", "市辖区", [new("110105", "朝阳区"), new("110108", "海淀区")])]),
-    ];
-
     IReadOnlyList<string>? address = ["330000", "330100", "330106"];
     IReadOnlyList<string>? invoice;
     bool allLevels = true;

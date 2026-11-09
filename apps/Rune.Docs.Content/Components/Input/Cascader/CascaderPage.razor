@@ -10,6 +10,7 @@
                 数据形状不限，<Code>GetKey</Code>、<Code>GetLabel</Code>、<Code>GetChildren</Code> 读出层级。<Code>@@bind-Value</Code>
                 是从第一级到选中节点的 key 路径，key 只要在同级里唯一。默认只能选到叶子，点有下一级的项只是展开。
                 <Code>Searchable</Code> 时输入就换成一列匹配的完整路径（按已加载的节点）；<Code>ShowAllLevels</Code> 关掉时只显示最后一级。
+                全国省市区的数据在 <Code>Rune.UI.Area</Code> 包里（单独成包，用不到的应用不带它）：<Code>Area.Tree()</Code> 是省 → 市 → 区县的树（<Code>Area.Tree(2)</Code> 只到市），<Code>Area.Names(path)</Code> 把代码换回名称。
             </Example>
         </ExampleColumn>
         <ExampleColumn>
@@ -33,5 +34,5 @@
     ])">
         每一级是一列 listbox（名称是上一级的文字），焦点在列上，高亮项经 aria-activedescendant 告诉读屏。
     </KeyboardReference>
-    <ApiReference Types="[typeof(Cascader<>)]" />
+    <ApiReference Types="[typeof(Cascader<>), typeof(Area)]" />
 </DocPage>

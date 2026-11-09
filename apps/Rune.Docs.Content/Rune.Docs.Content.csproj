@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\src\Rune.UI.Dates\Rune.UI.Dates.csproj" />
     <ProjectReference Include="..\..\src\Rune.Charts\Rune.Charts.csproj" />
     <ProjectReference Include="..\..\src\Rune.Charts.Maps\Rune.Charts.Maps.csproj" />
+    <ProjectReference Include="..\..\src\Rune.UI.Area\Rune.UI.Area.csproj" />
     <!-- [State] 生成器：以分析器方式引用 -->
     <ProjectReference Include="..\..\src\Rune.Generators\Rune.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\Rune.CodeFixes\Rune.CodeFixes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
@@ -33,7 +34,7 @@
   <!-- 组件库的 XML 文档注释嵌进程序集：API 表的说明从这里读（引用解析后它在 ReferenceCopyLocalPaths 里） -->
   <Target Name="EmbedComponentDocs" AfterTargets="ResolveAssemblyReferences">
     <ItemGroup>
-      <EmbeddedResource Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.xml' and ('%(Filename)' == 'Rune.UI' or '%(Filename)' == 'Rune.UI.Dates' or '%(Filename)' == 'Rune.Charts' or '%(Filename)' == 'Rune.Charts.Maps')" LogicalName="api/%(Filename)%(Extension)" />
+      <EmbeddedResource Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.xml' and ('%(Filename)' == 'Rune.UI' or '%(Filename)' == 'Rune.UI.Dates' or '%(Filename)' == 'Rune.Charts' or '%(Filename)' == 'Rune.Charts.Maps' or '%(Filename)' == 'Rune.UI.Area')" LogicalName="api/%(Filename)%(Extension)" />
     </ItemGroup>
   </Target>
 

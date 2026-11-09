@@ -19,19 +19,18 @@ public class CascaderTests(DemoServer demo) : E2ETest(demo)
         var first = page.Locator("[data-rune-cascader]:popover-open [data-rune-cascader-column='0']");
         await Assertions.Expect(first).ToBeFocusedAsync();
 
-        // ↓ 到江苏省：下一列跟着换；→ 进入，焦点到第二列
+        // ↓ 到天津市（全国数据按代码排：北京、天津……）：下一列跟着换；→ 进入，焦点到第二列
         await page.Keyboard.PressAsync("ArrowDown");
-        await Assertions.Expect(page.GetByRole(AriaRole.Listbox, new() { Name = "江苏省" })).ToBeVisibleAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Listbox, new() { Name = "天津市" })).ToBeVisibleAsync();
         await page.Keyboard.PressAsync("ArrowRight");
-        await Assertions.Expect(page.GetByRole(AriaRole.Listbox, new() { Name = "江苏省" })).ToBeFocusedAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Listbox, new() { Name = "天津市" })).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("ArrowLeft");
         await Assertions.Expect(first).ToBeFocusedAsync();
 
+        // 开票地区只到市：第二列就是叶子，Enter 选中后关闭
         await page.Keyboard.PressAsync("ArrowRight");
-        await page.Keyboard.PressAsync("ArrowRight");
-        await Assertions.Expect(page.GetByRole(AriaRole.Listbox, new() { Name = "苏州市" })).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("Enter");
-        await Assertions.Expect(trigger).ToHaveTextAsync("江苏省 / 苏州市 / 虎丘区");
+        await Assertions.Expect(trigger).ToHaveTextAsync("天津市 / 天津市");
         await Assertions.Expect(trigger).ToBeFocusedAsync();
     }
 }

@@ -8,6 +8,7 @@
     <Project Path="src/Rune.UI.Dates/Rune.UI.Dates.csproj" />
     <Project Path="src/Rune.Charts/Rune.Charts.csproj" />
     <Project Path="src/Rune.Charts.Maps/Rune.Charts.Maps.csproj" />
+    <Project Path="src/Rune.UI.Area/Rune.UI.Area.csproj" />
   </Folder>
   <Folder Name="/apps/">
     <Project Path="apps/Rune.Demo/Rune.Demo.csproj" />
