@@ -90,8 +90,10 @@ public sealed record TabsState(
     /// <summary>面板的 id。</summary>
     public string PanelId(string value) => $"{Registry.BaseId}-panel-{Safe(value)}";
 
-    // 值里的空格等字符不能出现在 id 里
-    static string Safe(string value) => string.Concat(value.Select(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' ? c : '_'));
+    // 值放进 id（同 vue-tsx-pro）：字母、数字、- 以外的字符（空格、中文、_ 本身）写成 _码位_，不同的值不会撞成同一个 id
+    // （只换成 _ 时，“行程”与“费用”都成了 __）
+    static string Safe(string value) => string.Concat(value.EnumerateRunes().Select(rune =>
+        rune.IsAscii && (char.IsAsciiLetterOrDigit((char)rune.Value) || rune.Value == '-') ? rune.ToString() : $"_{rune.Value:x}_"));
 }
 
 /// <summary>Tabs 的登记表：各标签按渲染顺序登记（带文字，“全部标签页”菜单用），各面板登记自己（只当导航用的标签没有面板，不写 aria-controls）。</summary>
@@ -131,6 +133,9 @@ public sealed class TabsRegistry(string baseId, Action changed)
         tabs.Clear();
         tabs.AddRange(ordered);
     }
+
+    /// <summary>整组正在卸载（Tabs 先于里面的标签释放）：标签逐个注销时不另选，不然会依次写回旁边的值。</summary>
+    public bool Unmounting { get; set; }
 
     /// <summary>注销标签；返回它原来的位置（关掉当前标签时按它选旁边的）。</summary>
     public int RemoveTab(string value)

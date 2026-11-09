@@ -67,4 +67,7 @@
         Orientation, Activation, EffectiveVariant, Lazy, Ripple, Registry, SelectAsync);
 
     Task SelectAsync(string next) => next == value.Value ? Task.CompletedTask : value.SetAsync(next);
+
+    // Blazor 先释放 Tabs 再释放里面的标签：标签逐个注销时据此不另选
+    protected override void OnDispose() => Registry.Unmounting = true;
 }

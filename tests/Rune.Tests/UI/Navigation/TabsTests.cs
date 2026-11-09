@@ -122,6 +122,29 @@ public class TabsTests : BunitContext
     }
 
     [Fact]
+    public async Task 整组卸载时标签逐个注销_不另选也不写回()
+    {
+        var writes = new List<string?>();
+        Render<Tabs>(p => p
+            .Add(x => x.Value, "a")
+            .Add(x => x.ValueChanged, (string? v) => writes.Add(v))
+            .Add(x => x.ChildContent, Content(["a", "b", "c"])));
+
+        await DisposeComponentsAsync();
+        Assert.Empty(writes);
+    }
+
+    [Fact]
+    public void id里字母数字连字符以外的字符写成码位_中文的值不撞id()
+    {
+        var cut = Render<Tabs>(p => p.Add(x => x.ChildContent, Content(["行程", "费用", "a_b c"])));
+        var ids = cut.FindAll("[role=tab]").Select(tab => tab.Id!).ToList();
+        Assert.Equal(3, ids.Distinct().Count());
+        Assert.EndsWith("-tab-_884c__7a0b_", ids[0]);
+        Assert.EndsWith("-tab-a_5f_b_20_c", ids[2]);
+    }
+
+    [Fact]
     public void 懒渲染时面板第一次显示才有内容()
     {
         var cut = Render<Tabs>(p => p.Add(x => x.Lazy, true).Add(x => x.ChildContent, Content(["a", "b"])));
