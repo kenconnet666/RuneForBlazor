@@ -36,8 +36,8 @@
 
 ## 上线前
 
-- [ ] 程序集懒加载：Charts、Charts.Maps（地图数据大）、Dates 只在用到的页面下载（`BlazorWebAssemblyLazyLoad` + `Router.OnNavigateAsync`）；
-  换页等下载时接上顶栏的 LoadingBar（与 vue 换页时懒加载页面代码的表现一致）。
-- [ ] WebAssembly 裁剪与首屏体积预算（记进 PERFORMANCE.md）；预渲染全部地址（docs-export 已有），检查每页的 title、description。
+- [x] 程序集懒加载：Charts、Charts.Maps、Rune.UI.Area 只在用到的页面下载，下载时顶栏显示 LoadingBar；Dates 有五个别的页面用到、只有 159 KB，照常启动时下载。
+  首次加载的体积与改法见 PERFORMANCE.md 第 3 节。
+- [ ] 每页的 title、description 检查一遍（预渲染全部地址 docs-export 已有）。
 - [ ] SEO：sitemap.xml、canonical、Open Graph；不加第三方统计。
 - [ ] 部署：`docs.yml` 部署到 https://rune-for-blazor.zerodep.dpdns.org（自定义域名的 DNS 与证书由 wrangler 建）；版本（只放最新版，或按大版本分目录）待定。

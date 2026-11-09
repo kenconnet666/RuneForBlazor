@@ -45,11 +45,29 @@
 - 计算样式：`tools/style-snapshot` 前后比对全部文档页（亮暗两套、强制 :hover / :focus-visible / :active），真实差异为 0
   （差异只有改了文字的样式指南页、动画中途的取值，以及改造前那份在两个元素上亮暗不一致的不稳定值）。
 
-## 3. 待议项（结构性的，先不动）
+## 3. 文档站的 WebAssembly 首次加载（2026-11-09）
+
+线上文档站（静态导出，整站是 WebAssembly 的交互根）打开 Button 页：HTML 0.7 秒显示，.NET 的文件 1.7 秒下载完，点击到 4.5 秒才生效
+（之前点的被丢掉）。慢在 WebAssembly 下载与启动，按体积从大到小处理：
+
+| 项 | 之前 | 之后 | 改法 |
+| -- | ---- | ---- | ---- |
+| 启动时下载的 .NET 文件（Button 页，解压后） | 71 个，19.8 MB | 64 个，14.9 MB | 下面几项合计 |
+| Rune.Docs.Content | 4.86 MB | 2.42 MB | 示例源码（2.6 MB）与组件库的 XML 文档注释（1.4 MB）不再嵌进程序集：服务端 Rune.Docs.Server 生成，浏览器按类型下载 `/_docs/…` |
+| System.Private.Xml | 537 KB | 不再下载 | API 表的说明在服务端读 XML |
+| Rune.Icons | 1.05 MB | 91 KB | 图标库的列表改为服务端生成的 JSON（只有图标页下载），浏览器不再反射 Lucide 全集，裁剪去掉没用到的图标 |
+| Rune.Charts、Rune.Charts.Maps、Rune.UI.Area | 启动时下载 | 进入用到的页面前才下载 | `BlazorWebAssemblyLazyLoad` + Routes 的 OnNavigateAsync（`LazyAssemblies`，`LazyAssemblyTests` 检查别的页面没用到） |
+| ICU 数据 | 1.49 MB，Cloudflare 不压缩 | 同样大小，传输时压缩 | 导出写 `_headers` 把 `.dat` 标成 application/wasm；分片（CJK）不行：Calendar、DateField 有德文、Provider 有阿拉伯文的示例 |
+| 每页的 HTML（Button 页） | 950 KB（gzip 81 KB） | 837 KB（gzip 72 KB） | 十六套主题的变量（120 KB）放进按内容哈希命名的外部样式表（`ThemeStylesheet`），只下载一次 |
+| 显示代码 | 等 WebAssembly 启动完才能点 | 页面一出来就能点 | Collapse 的触发器在 JS 里切换（`data-rune-disclose`） |
+
+没采用的：文档数据随页面带给浏览器（PersistentComponentState）。框架的 JSON 把中文转义成 \uXXXX、再套两层 base64，Button 页要多 143 KB（gzip 31 KB），
+而接管后源码区是收着的、API 表在页底，直接下载几 KB 的文件看不出空白。
+
+## 4. 待议项（结构性的，先不动）
 
 | 项 | 现状与数字 | 方向 | 取舍 |
 | -- | ---------- | ---- | ---- |
-| 主题变量内联在每个响应里 | 文档站一页约 200 KB 样式文本，其中 105 KB 是全部主题的变量（开了 16 套主题，切换不用往返）；每次整页加载、增强导航都重新下载，浏览器缓存不了 | 主题变量做成静态样式表（构建时由主题生成，或启动时生成、带指纹与长缓存），页面只引用 | 需要改 `RuneProvider` / 主题启动脚本的输出方式；只用亮暗两套的应用收益小 |
 | 选项弹出层关着也渲染选项 | Select、Combobox 的列表一直在 DOM 里（多时虚拟滚动） | 交互模式下第一次打开才渲染（同 Dialog 的 Lazy） | 关着时按字母选中、原生 popover 打开不往返都依赖列表在 DOM 里，改了要另想办法；静态 SSR 仍要一开始就渲染 |
 | 参数比较的装箱 | 每个值类型参数一次装箱、按名字查一次属性（6 个参数约 0.5 µs） | 由源代码生成器为组件生成按类型比较的代码（Rune.Generators 已有） | 收益看父级重渲染的频率；生成器要覆盖继承的参数 |
 | JS 不压缩、不打包 | 约 270 KB（一半是注释），开发时未压缩；发布时 MapStaticAssets 有 br / gzip | 构建时去注释或打包成一个文件 | 打包要引入构建步骤（node），与“浏览器原生 ES 模块、不打包”的现有约定冲突；入口拆分后模块已不在启动的关键路径上 |
