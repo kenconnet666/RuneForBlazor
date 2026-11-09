@@ -58,6 +58,16 @@ public class TimerComponentTests : BunitContext
     }
 
     [Fact]
+    public void 倒计时的数字块_天数一格_时分秒各一格_中间是冒号()
+    {
+        var cut = Render<Countdown>(p => p.Add(x => x.To, Start + new TimeSpan(2, 1, 2, 3)).Add(x => x.Variant, CountdownVariant.Blocks));
+        var timer = cut.Find("[role=timer]");
+        Assert.Equal("countdown", timer.GetAttribute("data-scope"));
+        Assert.Equal(["2天", "01", "02", "03"], timer.QuerySelectorAll("[data-part=segment]").Select(segment => segment.TextContent));
+        Assert.Equal(2, timer.QuerySelectorAll("[data-part=separator]").Length);
+    }
+
+    [Fact]
     public void 到点时OnEnd调用一次_挂载时已过的不调用()
     {
         var ends = 0;

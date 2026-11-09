@@ -14,7 +14,7 @@
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="countdowns" Title="倒计时" Demo="typeof(CountdownsExample)">
-                <Code>Countdown</Code> 默认显示“时:分:秒”，超过一天时前面加天数；<Code>ChildContent</Code> 拿到拆好的天、时、分、秒，可以排成任意样子。
+                <Code>Countdown</Code> 默认显示“时:分:秒”，超过一天时前面加天数；<Code>Variant="CountdownVariant.Blocks"</Code> 排成一格一格的数字块（限时抢购），天数单独一格、字号随上下文；<Code>ChildContent</Code> 拿到拆好的天、时、分、秒，可以排成任意样子。
                 <Code>role="timer"</Code> 默认不播报，到点时 <Code>OnEnd</Code> 调用一次（发送验证码后恢复按钮）。几个计时器对齐到整秒一起跳；
                 <Code>CountdownPrecision.Minute</Code> 只到分、每分钟更新一次，适合以天计的期限。
             </Example>

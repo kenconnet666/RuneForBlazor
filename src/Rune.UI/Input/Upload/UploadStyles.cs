@@ -12,11 +12,78 @@ public enum UploadListType
     Picture,
 }
 
+/// <summary>上传的部件（同 vue-tsx-pro 的 uploadRecipe）。</summary>
+public enum UploadPart
+{
+    /// <summary>外层。</summary>
+    Root,
+
+    /// <summary>选文件的区域（FileDrop；图片墙里是“添加图片”那一格）。</summary>
+    Drop,
+
+    /// <summary>图片墙下面的提示。</summary>
+    Hint,
+
+    /// <summary>文件列表（GridList）。</summary>
+    List,
+
+    /// <summary>列表的一项。</summary>
+    Item,
+
+    /// <summary>文件图标（按状态着色）。</summary>
+    Icon,
+
+    /// <summary>文件名与下面一行。</summary>
+    Body,
+
+    /// <summary>文件名。</summary>
+    Name,
+
+    /// <summary>文件名的链接（有 Url 时）。</summary>
+    Link,
+
+    /// <summary>上传进度条。</summary>
+    Progress,
+
+    /// <summary>文件名下面一行：大小或错误信息。</summary>
+    Meta,
+
+    /// <summary>重试按钮（IconButton）。</summary>
+    Retry,
+
+    /// <summary>移除按钮（IconButton）。</summary>
+    Remove,
+
+    /// <summary>图片墙：缩略图与添加的那一格。</summary>
+    Wall,
+
+    /// <summary>图片墙的缩略图列表。</summary>
+    WallList,
+
+    /// <summary>图片墙的一格。</summary>
+    Card,
+
+    /// <summary>缩略图（Image，能看大图的按钮）。</summary>
+    Image,
+
+    /// <summary>没有缩略图时的占位（图标与文件名）。</summary>
+    Placeholder,
+
+    /// <summary>缩略图上的进度、错误信息。</summary>
+    Overlay,
+
+    /// <summary>右上角的把手、重试、移除。</summary>
+    Actions,
+
+    /// <summary>拖动排序的把手。</summary>
+    Handle,
+}
+
 /// <summary>
 /// 上传的样式（同 vue-tsx-pro 的 uploadStyles）：选文件的区域在上，文件一行一个列在下面；
 /// 图片墙是一排同样大小的格子（边长是 --rune-upload-thumbnail），拖动排序的位移由 JS 写在格子上（同 Sortable）。
 /// </summary>
-internal static class UploadStyles
+public static class UploadStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它们
     internal static readonly CssVar<CssLength> ThumbnailVar = CssVar.Length("rune-upload-thumbnail", "104px");
@@ -26,48 +93,53 @@ internal static class UploadStyles
     static readonly Condition Settling = When.Inside(When.Attribute("[data-settling]"), WallMarker);
     static readonly Condition Failed = When.Attribute("""[data-state="error"]""");
 
-    internal static readonly Attrs Root = new() { Sx = RootStyle };
-    internal static readonly Attrs Item = new() { Sx = Sx.Of(ItemStyles.Row, ItemStyle) };
-    internal static readonly Attrs Body = new() { Sx = BodyStyle };
-    internal static readonly Attrs Name = new() { Sx = NameStyle };
+    /// <summary>列表或图片墙时各部件的默认层。</summary>
+    public static PartLayers<UploadPart> Of(bool wall, ComponentStyles styles) =>
+        Recipe.Of("upload", wall, styles, static (bool wall, UploadPart part) => part switch
+        {
+            UploadPart.Root => RootStyle,
+            UploadPart.Drop => wall ? AddCardStyle : Sx.Of(),
+            UploadPart.Hint => MetaStyle,
+            UploadPart.Item => Sx.Of(ItemStyles.Row, ItemStyle),
+            UploadPart.Icon => IconStyle,
+            UploadPart.Body => BodyStyle,
+            UploadPart.Name => NameStyle,
+            UploadPart.Link => NameLinkStyle,
+            UploadPart.Progress => ProgressStyle,
+            UploadPart.Meta => MetaStyle,
+            // 图片墙上的重试、移除：半透明底，悬停叠状态层
+            UploadPart.Retry or UploadPart.Remove => wall ? Sx.Of(ActionStyle, SharedStyles.StateLayerOverlay) : Sx.Of(),
+            UploadPart.Wall => WallStyle,
+            UploadPart.WallList => WallListStyle,
+            UploadPart.Card => CardStyle,
+            // 缩略图贴着格子的圆角：焦点环画在里面
+            UploadPart.Image => SharedStyles.FocusRingInset,
+            UploadPart.Placeholder => PlaceholderStyle,
+            UploadPart.Overlay => OverlayStyle,
+            UploadPart.Actions => ActionsStyle,
+            UploadPart.Handle => Sx.Of(ActionStyle, SharedStyles.StateLayerOverlay, HandleStyle),
+            _ => Sx.Of(),
+        });
 
-    // 文件名是链接时省略号放在链接上、外层不裁：链接的焦点环不被裁掉
-    internal static readonly Attrs NameLinked = new() { Sx = Sx.Of(NameStyle, NameLinkedStyle) };
+    /// <summary>图片墙列表的标记：拖动排序时各格据此过渡。</summary>
+    internal static readonly Attrs WallMarkerLayer = WallMarker.Attrs;
 
-    internal static readonly Attrs NameLink = new() { Sx = NameLinkStyle };
+    /// <summary>文件名是链接时：省略号放在链接上、外层不裁，链接的焦点环不被裁掉。</summary>
+    internal static readonly Attrs NameLinked = new() { Sx = NameLinkedStyle };
 
-    // 图片墙的缩略图（能看大图的按钮）贴着格子的圆角：焦点环画在里面
-    internal static readonly Attrs ThumbnailRing = new() { Sx = SharedStyles.FocusRingInset };
-
-    /// <summary>文件图标：按状态是文件、对勾（完成）或警告（失败）的颜色。</summary>
-    internal static Attrs Icon(UploadStatus status) => status switch
+    /// <summary>文件图标随状态的颜色：对勾（完成）、警告（失败）。</summary>
+    internal static Attrs? IconStatus(UploadStatus status) => status switch
     {
-        UploadStatus.Error => IconError,
-        UploadStatus.Done => IconDone,
-        _ => IconPlain,
+        UploadStatus.Error => ErrorLayer,
+        UploadStatus.Done => DoneLayer,
+        _ => null,
     };
 
-    /// <summary>文件名下面一行：大小，失败时是错误信息。</summary>
-    internal static Attrs Meta(bool failed) => failed ? MetaError : MetaPlain;
+    /// <summary>失败时文件名下面一行是错误信息的颜色。</summary>
+    internal static Attrs? MetaStatus(bool failed) => failed ? ErrorLayer : null;
 
-    internal static readonly Attrs Progress = new() { Sx = ProgressStyle };
-
-    internal static readonly Attrs Wall = new() { Sx = WallStyle };
-    internal static readonly Attrs WallList = Attrs.Layer(WallMarker.Attrs, new Attrs { Sx = WallListStyle });
-    internal static readonly Attrs Card = new() { Sx = CardStyle };
-    internal static readonly Attrs Placeholder = new() { Sx = PlaceholderStyle };
-    internal static readonly Attrs Overlay = new() { Sx = OverlayStyle };
-    internal static readonly Attrs Actions = new() { Sx = ActionsStyle };
-    internal static readonly Attrs Action = new() { Sx = Sx.Of(ActionStyle, SharedStyles.StateLayerOverlay) };
-    internal static readonly Attrs Handle = new() { Sx = Sx.Of(ActionStyle, SharedStyles.StateLayerOverlay, HandleStyle) };
-    internal static readonly Attrs AddCard = new() { Sx = AddCardStyle };
-    internal static readonly Attrs Hint = new() { Sx = MetaStyle };
-
-    static readonly Attrs IconPlain = new() { Sx = IconStyle };
-    static readonly Attrs IconError = new() { Sx = Sx.Of(IconStyle, ErrorText) };
-    static readonly Attrs IconDone = new() { Sx = Sx.Of(IconStyle, DoneText) };
-    static readonly Attrs MetaPlain = new() { Sx = MetaStyle };
-    static readonly Attrs MetaError = new() { Sx = Sx.Of(MetaStyle, ErrorText) };
+    static readonly Attrs ErrorLayer = new() { Sx = ErrorText };
+    static readonly Attrs DoneLayer = new() { Sx = DoneText };
 
     static Style RootStyle => Css.Define(static () => new Style { Display = Display.Grid, Gap = Space.Sm });
 

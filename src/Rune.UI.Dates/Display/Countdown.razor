@@ -3,6 +3,7 @@
     <Countdown To="sale.StartsAt" OnEnd="Refresh" />                     2天 03:15:42
     <Countdown To="deadline" Precision="CountdownPrecision.Minute" />    2天 03:15
     <Countdown To="deadline" Context="left">还剩 @left.Days 天 @left.Hours 小时</Countdown>
+    <Countdown To="sale.StartsAt" Variant="CountdownVariant.Blocks" />   [2天] [03]:[15]:[42]，限时抢购的数字块
     目标时刻同 DateTimeText 的值。默认显示 时:分:秒，超过一天时前面加天数。role="timer" 默认不播报，到点的提示放在 OnEnd 里（Toast 等）。
     “现在”取 TimeProvider（DI 里有就用）。未声明的属性落到 span 上。
 *@
@@ -10,10 +11,27 @@
 @inherits UIComponent
 @implements IDisposable
 
-<span role="timer" @attributes="Attrs.Merge(RootLayer, Rest)">
+@{ var parts = CountdownStyles.Of(EffectiveVariant, Config.Styles); }
+<span role="timer" @attributes="Attrs.Merge(parts[CountdownPart.Root], Rest)">
     @if (ChildContent is { } content)
     {
         @content(Parts)
+    }
+    else if (EffectiveVariant == CountdownVariant.Blocks)
+    {
+        var left = Parts;
+        if (left.Days > 0)
+        {
+            <span @attributes="parts[CountdownPart.Segment]">@DayText(left.Days)</span>
+        }
+        @for (var i = 0; i < ClockOf(left).Length; i++)
+        {
+            if (i > 0)
+            {
+                <span @attributes="parts[CountdownPart.Separator]">:</span>
+            }
+            <span @attributes="parts[CountdownPart.Segment]">@ClockOf(left)[i]</span>
+        }
     }
     else
     {
@@ -22,14 +40,14 @@
 </span>
 
 @code {
-    // 等宽数字：每秒跳动时宽度不变
-    static readonly Attrs RootLayer = new() { Sx = Css.Define(static () => new Style { FontVariantNumeric = FontVariantNumeric.TabularNums, WhiteSpace = WhiteSpace.Nowrap }) };
-
     Clock? clock;
     bool ended;
 
     /// <summary>目标时刻：DateOnly、DateTime 或 DateTimeOffset。</summary>
     [Parameter, EditorRequired] public object To { get; set; } = null!;
+
+    /// <summary>外观，默认一串文字（可在 UIConfig.Components 里改默认值）。</summary>
+    [Parameter] public CountdownVariant? Variant { get; set; }
 
     /// <summary>精度，默认到秒。</summary>
     [Parameter] public CountdownPrecision Precision { get; set; }
@@ -44,15 +62,22 @@
 
     CountdownParts Parts => CountdownParts.Of(Target - (clock?.Now ?? TimeSource.GetUtcNow()), Precision);
 
+    CountdownVariant EffectiveVariant => Variant ?? Config.Defaults.Get<CountdownDefaults>()?.Variant ?? CountdownVariant.Text;
+
     string Text
     {
         get
         {
             var parts = Parts;
-            var clockText = Precision == CountdownPrecision.Minute ? $"{parts.Hours:D2}:{parts.Minutes:D2}" : $"{parts.Hours:D2}:{parts.Minutes:D2}:{parts.Seconds:D2}";
+            var clockText = string.Join(':', ClockOf(parts));
             return parts.Days > 0 ? $"{DayText(parts.Days)} {clockText}" : clockText;
         }
     }
+
+    // 时、分（、秒），各补成两位
+    string[] ClockOf(CountdownParts parts) => Precision == CountdownPrecision.Minute
+        ? [$"{parts.Hours:D2}", $"{parts.Minutes:D2}"]
+        : [$"{parts.Hours:D2}", $"{parts.Minutes:D2}", $"{parts.Seconds:D2}"];
 
     // 天数的写法（同 Intl 的 unit: day, unitDisplay: long）：2天、2 days
     string DayText(long days) => Config.Lang.Code.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ? $"{days}天" : $"{days} {(days == 1 ? "day" : "days")}";
