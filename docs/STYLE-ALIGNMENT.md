@@ -195,10 +195,14 @@ CI 的 `VUE_TSX_PRO_REF` 第四批时前移到 89c01fc8（语言包重新生成�
 - 触屏输入框 ≥ 16px（`Media.CoarsePointer`、`SharedStyles.TouchInputFont`）
 - 焦点环全站检查（`FocusRingTests`，114 页清零）与修复；手写部件名改小驼峰并加源码检查（`PartNameTests`）
 - 配方化：Stat、Timeline、Upload、Countdown（新增 `Variant=Blocks`）；Calendar、CodeBlock、Tour、NavList、Menu、Toaster、AppShell、Transfer 原本就是
-- 小修：Treemap 读屏表格不重复单位、DataTable 展开按钮 `Sizes.MinTarget`、LinkUnderlineScope 跟着 Underline 变、Splitter 主从示例改用 ItemList、ItemList 可悬停 / 可点的条目默认留 Sm
+- 小修：Treemap 读屏表格不重复单位、DataTable 展开按钮 `Sizes.MinTarget`、LinkUnderlineScope 跟着 Underline 变、Splitter 主从示例改用 ItemList、ItemList 可悬停 / 可点的条目默认留 Sm
+- 新组件：UserButton、JsonViewer（建在 Tree 上，值是 JsonElement）、QRCode（`QrEncoder` 与 vue 的编码器逐模块一致；`SharedStyles.Paper` 纸面配色）、SignaturePad（画在 JS 里，静态 SSR 也能签）、Carousel（滚动吸附与自动播放在 JS 里）、ColorPicker（`ColorHsva`、`RecentColors`；ColorField 改为弹出它，`PropsPicker` 破坏性）
+- 顺带修的：ColorPicker 里的零件不拿外层 Field 的 id、不往它那里登记字段（曾在 Field 里无限重新渲染）；InfiniteList 计时测试放宽
 
 不需要改：列表状态按属性（Rune 本来就用 `data-highlighted` 等）；Listbox / Tree 的虚拟行（Rune 用 Virtualize，行在文档流里）。
-Rune 还没有的组件（这一轮通知里它们的改动随组件一起做）：FilterBar、QueryTable、FormDialog、PeoplePicker、NotificationList / NotificationCenter、SchemaForm、KanbanBoard、Carousel、ColorPicker。
+Rune 还没有的组件（这一轮通知里它们的改动随组件一起做）：FilterBar、QueryTable、FormDialog、PeoplePicker、NotificationList / NotificationCenter、SchemaForm、KanbanBoard。
+
+还没做：ImageCropper 与 Upload 的 transform、省市区数据（Cascader）、DataTable 列虚拟化、P12 组合组件的属性转发、24.1 内部节点的部件标记、CI 接入规格比对、文档站重排、截图基线重新生成。
 
 下面是原先积压的清单，没在上面列出的仍待做：
 
