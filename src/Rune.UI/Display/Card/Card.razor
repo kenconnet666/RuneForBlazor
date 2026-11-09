@@ -81,7 +81,7 @@ else
     /// <summary>样式，默认表面色加细边框。</summary>
     [Parameter] public CardVariant? Variant { get; set; }
 
-    /// <summary>页头、正文、页脚的内边距档位，默认 Lg。</summary>
+    /// <summary>页头、正文、页脚的内边距档位，默认 Lg；None 时正文贴边（表格、列表），页头、页脚仍留 Sm / Md 的内边距。</summary>
     [Parameter] public SpaceScale? Padding { get; set; }
 
     /// <summary>圆角，默认大圆角。</summary>

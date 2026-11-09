@@ -79,7 +79,8 @@
         var lang = Config.Lang;
         return new ChartTable(
             [lang.ChartCategory, Unit is null ? lang.ChartValue : $"{lang.ChartValue}（{Unit}）", lang.ChartShare],
-            [.. visible.Select(row => new ChartTableRow(string.Join(" / ", Groups.Select(key => key(row))), [ValueText(Value(row) ?? 0), ShareText(NumberOf(row), total)]))]);
+            // 单位已在表头里，格子只写数（同环形图）
+            [.. visible.Select(row => new ChartTableRow(string.Join(" / ", Groups.Select(key => key(row))), [NumberText(Value(row) ?? 0), ShareText(NumberOf(row), total)]))]);
     }
 
     Rune.Styles.CssColor ColorOfTop(TreemapNode<TItem> node) => topColors.GetValueOrDefault(node.Top.Key, ChartColor.Resolve(null, 0));

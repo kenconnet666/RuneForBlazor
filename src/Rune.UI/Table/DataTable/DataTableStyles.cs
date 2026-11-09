@@ -383,11 +383,12 @@ public static class DataTableStyles
     // 分组标题居中，下边线淡一些：与下面一行的列标题仍是一个表头
     static Style GroupHeaderCell => Css.Define(static () => new Style { TextAlign = TextAlign.Center, BorderBottomColor = Colors.BorderMuted });
 
+    // 展开按钮就是最小可点区域（24px）
     static Style DetailToggle => Css.Define(static () => new Style
     {
-        Width = CssLength.Rem(1.5),
-        Height = CssLength.Rem(1.5),
-        MinHeight = CssLength.Rem(1.5),
+        Width = Sizes.MinTarget,
+        Height = Sizes.MinTarget,
+        MinHeight = Sizes.MinTarget,
         MarginBlock = CssLength.Rem(-0.1875),
     });
 

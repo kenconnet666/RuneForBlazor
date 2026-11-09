@@ -124,9 +124,9 @@ public static class CardStyles
         Recipe.Of("card", appearance, styles, static (CardAppearance a, CardPart part) => part switch
         {
             CardPart.Root => Sx.Of(Root, Variant(a.Variant), ScaleStyles.Radius(a.Radius), a.Effect is null ? null : FillFrame),
-            CardPart.Header => Sx.Of(Header, a.HasExtra ? HeaderWithExtra : null, ScaleStyles.Padding(a.Padding)),
+            CardPart.Header => Sx.Of(Header, a.HasExtra ? HeaderWithExtra : null, EdgePadding(a.Padding)),
             CardPart.Body => Sx.Of(Body, ScaleStyles.Padding(a.Padding)),
-            CardPart.Footer => Sx.Of(Footer, ScaleStyles.Padding(a.Padding)),
+            CardPart.Footer => Sx.Of(Footer, EdgePadding(a.Padding)),
             CardPart.Skeleton => Sx.Of(),
             CardPart.Frame => Sx.Of(Frame, ScaleStyles.Radius(a.Radius), a.Effect == CardEffect.Tilt ? Tilt : null),
             CardPart.Effect => Sx.Of(Layer, a.Effect == CardEffect.Tilt ? Glare : SpotlightSurface),
@@ -173,6 +173,11 @@ public static class CardStyles
         JustifyContent = JustifyContent.SpaceBetween,
         Gap = Space.Sm,
     });
+
+    // 页头、页脚的内边距：Padding 是 None 时正文贴边（表格、列表），页头、页脚的文字仍不能贴着边框，留小一档
+    static Style EdgePadding(SpaceScale padding) => padding == SpaceScale.None ? TightEdge : ScaleStyles.Padding(padding);
+
+    static Style TightEdge => Css.Define(static () => new Style { PaddingBlock = Space.Sm, PaddingInline = Space.Md });
 
     // 正文撑开：网格里被拉齐的几张卡片，页脚都贴着底边对齐
     static Style Body => Css.Define(static () => new Style { FlexGrow = 1 });

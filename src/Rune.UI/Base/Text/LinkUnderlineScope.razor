@@ -6,18 +6,16 @@
 @namespace Rune.UI
 @inherits RuneComponent
 
-<CascadingValue Value="context" IsFixed="true">@ChildContent</CascadingValue>
+<CascadingValue Value="Contexts[(int)Underline]">@ChildContent</CascadingValue>
 
 @code {
-    LinkUnderlineContext? context;
+    // 每种下划线一个共用的实例：Underline 变了换成另一个实例，里面的链接跟着重新渲染
+    static readonly LinkUnderlineContext[] Contexts =
+        [.. Enum.GetValues<LinkUnderline>().Select(underline => underline == LinkUnderline.Hover ? LinkUnderlineContext.Hover : new LinkUnderlineContext(underline))];
 
     /// <summary>里面的链接默认的下划线。</summary>
     [Parameter, EditorRequired] public LinkUnderline Underline { get; set; }
 
     /// <summary>内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-
-    /// <inheritdoc/>
-    protected override void OnInitialized() =>
-        context = Underline == LinkUnderline.Hover ? LinkUnderlineContext.Hover : new LinkUnderlineContext(Underline);
 }
