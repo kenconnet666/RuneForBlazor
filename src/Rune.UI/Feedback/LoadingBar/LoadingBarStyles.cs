@@ -30,6 +30,8 @@ public static class LoadingBarStyles
         Opacity = 0,
         Transition = $"opacity {Durations.Md} {Easings.Standard}",
         [When.Attribute("[data-visible]")] = new() { Opacity = 1 },
+        // 启动加载条（Startup）：预渲染出来就显示，不等 JS（JS 在 Blazor 的脚本与初始化器之后才到，约一秒）
+        [When.Attribute("[data-startup]")] = new() { Opacity = 1 },
     });
 
     // 进度由 JS 写成 scaleX；起始边对齐，从右到左排版时从右边长出来
@@ -44,5 +46,19 @@ public static class LoadingBarStyles
         [When.Rtl] = new() { TransformOrigin = "right center" },
         [Media.ForcedColors] = new() { BackgroundColor = CssColors.Highlight },
         [When.Attribute("[data-state=\"error\"]")] = new() { BackgroundColor = Tones.Danger.Solid, BoxShadow = BoxShadow.None },
+        // JS 接手之前先用 CSS 慢慢涨到 30%；接手时 JS 去掉 data-startup，从当前位置接着涨
+        [When.Parent(When.Attribute("[data-startup]"))] = new()
+        {
+            Keyframes = Creep,
+            AnimationDuration = "3s",
+            AnimationTimingFunction = Easings.Enter,
+            AnimationFillMode = AnimationFillMode.Forwards,
+        },
+    });
+
+    static Keyframes Creep => Css.Define(static () => new Keyframes
+    {
+        ["from"] = new() { Transform = "scaleX(0.05)" },
+        ["to"] = new() { Transform = "scaleX(0.3)" },
     });
 }

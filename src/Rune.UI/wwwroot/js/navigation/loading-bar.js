@@ -98,6 +98,14 @@ function sync(bar) {
 export function watchLoadingBar(bar) {
   if (states.has(bar)) return;
   const state = stateOf(bar);
+  // 启动加载条（data-startup）：预渲染出来就已经显示、由 CSS 动画在涨，这里从它当前的位置接着走
+  if (bar.hasAttribute('data-startup')) {
+    const scale = new DOMMatrix(getComputedStyle(bar.firstElementChild).transform).a;
+    state.visible = true;
+    state.progress = Math.round(scale * 100);
+    bar.removeAttribute('data-startup');
+    render(bar, state);
+  }
   // 第一次渲染时就在加载：照常开始；否则只记下当前的状态
   state.status = bar.dataset.status === 'loading' ? 'idle' : bar.dataset.status ?? 'idle';
   state.run = bar.dataset.status === 'loading' ? null : bar.dataset.run ?? '0';

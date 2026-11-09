@@ -66,4 +66,17 @@ public class PageNavigationTests : BunitContext
         cut.InvokeAsync(bar.Finish);
         Assert.Equal(LoadingBarStatus.Failed, bar.Status);
     }
+
+    [Fact]
+    public void 启动加载条_预渲染时在走_交互模式接管后不再加载()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var prerendered = Render<LoadingBar>(p => p.Add(x => x.Startup, true));
+        Assert.Equal("loading", prerendered.Find("[data-rune-loading-bar]").GetAttribute("data-status"));
+
+        // 接管后重新渲染出来的：按控制器（没给时不加载）
+        SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
+        var interactive = Render<LoadingBar>(p => p.Add(x => x.Startup, true));
+        Assert.Equal("idle", interactive.Find("[data-rune-loading-bar]").GetAttribute("data-status"));
+    }
 }
