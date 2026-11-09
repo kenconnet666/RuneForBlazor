@@ -1,0 +1,29 @@
+@page "/components/image-cropper"
+@attribute [DocMeta("ImageCropper 裁剪图片", "头像、封面上传前裁一块：裁剪框固定在中间，图片在底下拖动、缩放，框里永远是图；裁好的按指定的像素大小、类型导出。", DocCategory.Input, Order = 14)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.ImageCropper.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="avatar" Title="上传头像" Demo="typeof(AvatarExample)">
+                Upload 的 <Code>Transform</Code> 在文件加进列表前依次过一遍（返回 null 不加）：这里打开对话框裁剪，确定后交回 <Code>CropAsync</Code> 裁好的 256 × 256 圆形 PNG。
+                <Code>Shape="ImageCropShape.Round"</Code> 时裁剪框是圆的，输出的图四角透明。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="cover" Title="封面" Demo="typeof(CoverExample)">
+                <Code>Aspect</Code> 是裁剪框的宽高比；<Code>CropAsync</Code> 的 <Code>ImageCropOutput</Code> 给输出的像素大小（只写一边时按宽高比算另一边）、类型与质量。
+                缩放下限正好盖满裁剪框，上限是它的 <Code>MaxZoom</Code> 倍（默认 4）。裁好的图经隐藏的文件输入框交回（<Code>IBrowserFile</Code>），图大也不受 Blazor Server 单条消息的上限。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("+ / −", "区域聚焦时：放大 / 缩小"),
+        ("0", "回到初始：盖满裁剪框、居中"),
+        ("方向键", "微调图片的位置"),
+    ])">
+        区域是 role="group"，名称默认“裁剪图片”，操作说明经 aria-describedby 念出；工具条的缩放滑块念百分比。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(ImageCropper)]" />
+</DocPage>

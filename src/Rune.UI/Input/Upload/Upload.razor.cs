@@ -23,6 +23,12 @@ public partial class Upload
     /// <summary>怎样上传一个文件；不写时只选文件、不上传（停在 Selected）。</summary>
     [Parameter] public UploadHandler? UploadAsync { get; set; }
 
+    /// <summary>
+    /// 选到的（类型对的）文件加进列表前依次过一遍（同 vue-tsx-pro 的 transform）：裁剪（ImageCropper）、压缩，返回 null 不加。
+    /// 拖放、对话框、粘贴都经过它。
+    /// </summary>
+    [Parameter] public Func<IBrowserFile, Task<IBrowserFile?>>? Transform { get; set; }
+
     /// <summary>接受的文件类型（同原生 accept）；不符合的列出来、带错误、不上传。</summary>
     [Parameter] public string? Accept { get; set; }
 
@@ -120,6 +126,8 @@ public partial class Upload
         .Where(item => !item.Rejected && item.File is not null)
         .Select(item => localPreviews.GetValueOrDefault(KeyOf(item.File!)))
         .OfType<string>()
+        // data URL（Transform 的缩略图）不用 JS 收回，也别把整张图写进属性
+        .Where(url => !url.StartsWith("data:", StringComparison.Ordinal))
         .Distinct());
 
     // 与 JS 的 files.js 一致：名称|大小|修改时间（毫秒）
@@ -174,6 +182,13 @@ public partial class Upload
 
     async Task AddAsync(IReadOnlyList<IBrowserFile> files, bool rejectedType)
     {
+        if (Transform is { } transform && !rejectedType)
+        {
+            var originals = files;
+            files = await TransformAsync(files, transform);
+            await PreviewTransformedAsync(files.Except(originals));
+        }
+        if (files.Count == 0) return;
         var entries = files.Select(file =>
         {
             // 选文件夹时显示相对路径（报告/附图/图 1.png），看得出文件在哪一层
@@ -189,6 +204,28 @@ public partial class Upload
         var added = (Many ? entries : entries.TakeLast(1)).Take(room).ToList();
         await SetValueAsync([.. kept, .. added]);
         StartPending();
+    }
+
+    // Transform 换出来的图片（裁好的头像）不是从这里的文件输入框选的，没有本地地址：小图读成 data URL 做缩略图
+    async Task PreviewTransformedAsync(IEnumerable<IBrowserFile> files)
+    {
+        const long MaxPreview = 2 * 1024 * 1024;
+        foreach (var file in files)
+        {
+            if (!file.ContentType.StartsWith("image/", StringComparison.Ordinal) || file.Size > MaxPreview) continue;
+            using var buffer = new MemoryStream();
+            await using (var stream = file.OpenReadStream(MaxPreview)) await stream.CopyToAsync(buffer);
+            localPreviews[KeyOf(file)] = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer.ToArray())}";
+        }
+    }
+
+    // 选到的文件依次过一遍 Transform（裁剪、压缩）：返回 null 的不加
+    static async Task<IReadOnlyList<IBrowserFile>> TransformAsync(IReadOnlyList<IBrowserFile> files, Func<IBrowserFile, Task<IBrowserFile?>> transform)
+    {
+        var result = new List<IBrowserFile>(files.Count);
+        foreach (var file in files)
+            if (await transform(file) is { } transformed) result.Add(transformed);
+        return result;
     }
 
     /// <inheritdoc/>

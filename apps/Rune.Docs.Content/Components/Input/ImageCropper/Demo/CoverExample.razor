@@ -1,0 +1,31 @@
+@* 封面：16:9 的框，裁出 1280 × 720 的 JPEG，下面显示结果与大小 *@
+@inherits UIComponent
+@using Rune.Docs.Components.Display.Image.Demo
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <ImageCropper @ref="cropper" Src="@Drawings.All[3].Src" Aspect="16.0 / 9" aria-label="裁剪封面" />
+    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+        <Button Size="Size.Sm" Icon="Lucide.Crop" @onclick="Crop">裁出 1280 × 720</Button>
+        @if (result is { } done)
+        {
+            <Small Tone="TextTone.Muted">JPEG，@LangFormat.FileSize(done.Size, Config.Lang.Code)</Small>
+        }
+    </Flex>
+    @if (result is { } shown)
+    {
+        <Image Src="@shown.Url" Alt="裁好的封面" Width="CssLength.Percent(100)" Height="CssLength.Auto" />
+    }
+</Flex>
+
+@code {
+    ImageCropper? cropper;
+    (string Url, long Size)? result;
+
+    async Task Crop()
+    {
+        if (cropper is null || await cropper.CropAsync("cover.jpg", new ImageCropOutput(Width: 1280, ContentType: "image/jpeg", Quality: 0.9)) is not { } file) return;
+        using var buffer = new MemoryStream();
+        await using (var stream = file.OpenReadStream(10 * 1024 * 1024)) await stream.CopyToAsync(buffer);
+        result = ($"data:image/jpeg;base64,{Convert.ToBase64String(buffer.ToArray())}", file.Size);
+    }
+}

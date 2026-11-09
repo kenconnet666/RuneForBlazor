@@ -1,0 +1,53 @@
+@* 上传头像：选好图片先弹出裁剪（Upload 的 Transform），确定后交回裁好的 256 × 256 圆形 PNG；取消就不加 *@
+@inherits RuneComponent
+@using Microsoft.AspNetCore.Components.Forms
+
+<Upload @bind-Value="files" Accept="image/*" ListType="UploadListType.Picture" MaxFiles="1" Transform="Transform"><Description>选好后先裁成圆形头像</Description></Upload>
+<Dialog @bind-Open="Open" Title="裁剪头像" Size="DialogSize.Sm" ConfirmText="使用这张" OnConfirm="Confirm">
+    @if (source is not null)
+    {
+        <ImageCropper @ref="cropper" Src="@source" Shape="ImageCropShape.Round" />
+    }
+</Dialog>
+
+@code {
+    IReadOnlyList<UploadFile> files = [];
+    ImageCropper? cropper;
+    string? source;
+    bool open;
+    (IBrowserFile File, TaskCompletionSource<IBrowserFile?> Result)? pending;
+
+    // 关上对话框：没确认就是取消
+    bool Open
+    {
+        get => open;
+        set
+        {
+            open = value;
+            if (value || pending is not { } waiting) return;
+            pending = null;
+            waiting.Result.TrySetResult(null);
+        }
+    }
+
+    // 交给 Upload：读出图片给裁剪区，打开对话框，等用户裁好（或取消）
+    async Task<IBrowserFile?> Transform(IBrowserFile file)
+    {
+        using var buffer = new MemoryStream();
+        await using (var stream = file.OpenReadStream(10 * 1024 * 1024)) await stream.CopyToAsync(buffer);
+        source = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer.ToArray())}";
+        var result = new TaskCompletionSource<IBrowserFile?>();
+        pending = (file, result);
+        open = true;
+        StateHasChanged();
+        return await result.Task;
+    }
+
+    async Task Confirm()
+    {
+        if (pending is not { } waiting || cropper is null) return;
+        pending = null;
+        var name = Path.GetFileNameWithoutExtension(waiting.File.Name) + ".png";
+        waiting.Result.TrySetResult(await cropper.CropAsync(name, new ImageCropOutput(Width: 256)));
+    }
+}

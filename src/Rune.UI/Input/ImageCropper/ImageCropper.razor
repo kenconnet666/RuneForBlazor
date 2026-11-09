@@ -1,0 +1,110 @@
+@*
+    裁剪图片（同 vue-tsx-pro 的 ImageCropper）：头像、封面上传前裁一块。裁剪框固定在中间（按 Aspect 的宽高比，Round 时是圆的），
+    图片在底下拖动、缩放，框里永远是图；裁好的用 CropAsync 拿（canvas 输出，可以指定输出的像素大小、类型与质量）。
+    <ImageCropper @ref="cropper" Src="@url" Aspect="1" Shape="ImageCropShape.Round" />
+    var file = await cropper.CropAsync("avatar.png", new ImageCropOutput(Width: 256));
+    拖动平移、滚轮与触控板以指针为中心缩放、双击放大；区域能聚焦，+ / − 缩放、0 还原、方向键微调。下面的工具条：缩小、缩放滑块、放大、还原。
+    平移缩放与导出都在 JS 初始化器里（data-rune-cropper）；导出的图经隐藏的文件输入框交回（InputFile），图大也不受 Blazor Server 单条消息的上限。
+    和 Upload 的 Transform 配合：选到图片时弹出对话框裁剪，交回裁好的文件（见文档的示例）。未声明的属性落到根元素上；aria-label 是区域的名称。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using Microsoft.AspNetCore.Components.Forms
+
+@{
+    var parts = ImageCropperStyles.Of(Config.Styles);
+    var lang = Config.Lang;
+}
+<div data-rune-cropper data-aspect="@Aspect.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-shape="@(Shape == ImageCropShape.Round ? "round" : "rect")"
+     data-max-zoom="@MaxZoom.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-padding="@Padding.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+     data-zoom="@zoom.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-crop-request="@request" @onrunecommand="OnCommand"
+     @attributes="Attrs.Merge(Attrs.Layer(parts[ImageCropperPart.Root], ImageCropperStyles.RootMarker.Attrs, HeightVars), RootAttrs)">
+    <div data-crop-viewport role="group" tabindex="0" aria-label="@(AriaLabel ?? lang.CropLabel)" aria-describedby="@hintId"
+         @attributes="Attrs.Merge(parts[ImageCropperPart.Viewport], PropsViewport)">
+        <img src="@Src" alt="" draggable="false" @attributes="parts[ImageCropperPart.Image]" />
+        <div data-crop-frame aria-hidden="true" @attributes="parts[ImageCropperPart.Frame]"></div>
+    </div>
+    <span id="@hintId" hidden>@lang.CropHint</span>
+    <div @attributes="Attrs.Merge(parts[ImageCropperPart.Toolbar], PropsToolbar)">
+        <IconButton Icon="BuiltInIcons.ZoomOut" Label="@lang.ZoomOut" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Disabled="zoom <= 1.001"
+                    data-crop-action="out" @attributes="Attrs.MergeProps(null, PropsButton)" />
+        <Slider TValue="double" Value="zoom" ValueChanged="value => zoom = value" Min="1" Max="MaxZoom" Step="0.01" Size="UI.Size.Sm" aria-label="@lang.CropZoom"
+                ValueText="PercentText" @attributes="Attrs.MergeProps(ImageCropperStyles.Slider)" />
+        <IconButton Icon="BuiltInIcons.ZoomIn" Label="@lang.ZoomIn" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Disabled="zoom >= MaxZoom - 0.001"
+                    data-crop-action="in" @attributes="Attrs.MergeProps(null, PropsButton)" />
+        <IconButton Icon="BuiltInIcons.RotateCcw" Label="@lang.ResetView" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral"
+                    data-crop-action="reset" @attributes="Attrs.MergeProps(null, PropsButton)" />
+    </div>
+    @* 裁好的图从这里交回：JS 写进 files 并触发 change *@
+    <InputFile hidden tabindex="-1" aria-hidden="true" data-crop-output OnChange="OnOutput" />
+</div>
+
+@code {
+    readonly string hintId = UniqueId.Next("crop-hint");
+    double zoom = 1;
+    string? request;
+    int requests;
+    TaskCompletionSource<IBrowserFile?>? pending;
+    Memo<CssLength, Attrs> heightVars;
+
+    /// <summary>图片地址（对象 URL 或 data URL；别的域名的图要允许跨域，canvas 才能导出）。</summary>
+    [Parameter, EditorRequired] public string Src { get; set; } = "";
+
+    /// <summary>裁剪框的宽高比（宽 / 高），默认 1。</summary>
+    [Parameter] public double Aspect { get; set; } = 1;
+
+    /// <summary>裁剪框的形状，默认矩形。</summary>
+    [Parameter] public ImageCropShape Shape { get; set; }
+
+    /// <summary>最多放大到盖满裁剪框时的几倍，默认 4。</summary>
+    [Parameter] public double MaxZoom { get; set; } = 4;
+
+    /// <summary>区域的高度，默认 18rem；宽度占满。</summary>
+    [Parameter] public CssLength? Height { get; set; }
+
+    /// <summary>裁剪框离区域边缘至少多远（px），默认 24。</summary>
+    [Parameter] public int Padding { get; set; } = 24;
+
+    /// <summary>区域的部件属性。</summary>
+    [Parameter] public Attrs? PropsViewport { get; set; }
+
+    /// <summary>工具条的部件属性。</summary>
+    [Parameter] public Attrs? PropsToolbar { get; set; }
+
+    /// <summary>工具条按钮（IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsButton { get; set; }
+
+    /// <summary>
+    /// 裁好的图（交给 Upload、上传接口）：<paramref name="name"/> 是文件名，<paramref name="output"/> 是像素大小、类型与质量。
+    /// 图片还没加载好、不是交互模式时返回 null。
+    /// </summary>
+    public Task<IBrowserFile?> CropAsync(string name = "cropped.png", ImageCropOutput? output = null)
+    {
+        if (!RendererInfo.IsInteractive) return Task.FromResult<IBrowserFile?>(null);
+        output ??= new ImageCropOutput();
+        pending?.TrySetResult(null);
+        pending = new TaskCompletionSource<IBrowserFile?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var invariant = System.Globalization.CultureInfo.InvariantCulture;
+        request = string.Join(';', ++requests, output.Width?.ToString(invariant), output.Height?.ToString(invariant), output.ContentType, output.Quality?.ToString(invariant), name);
+        StateHasChanged();
+        return pending.Task;
+    }
+
+    string? AriaLabel => Rest["aria-label"] as string;
+
+    Attrs RootAttrs => Rest.Without("aria-label");
+
+    Attrs HeightVars => Height is { } height ? heightVars.Get(height, static h => new Attrs { Vars = [ImageCropperStyles.HeightVar.Set(h)] }) : Attrs.Empty;
+
+    static string PercentText(double value) => $"{Math.Round(value * 100)}%";
+
+    void OnCommand(CommandEventArgs e)
+    {
+        if (e.Name == "crop-zoom" && double.TryParse(e.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var value)) zoom = value;
+    }
+
+    void OnOutput(InputFileChangeEventArgs e) => pending?.TrySetResult(e.FileCount == 1 ? e.File : null);
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => pending?.TrySetResult(null);
+}
