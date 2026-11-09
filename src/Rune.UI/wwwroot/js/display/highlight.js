@@ -85,11 +85,24 @@ async function ensureLanguage(highlighter, lang) {
 }
 
 /** 给一个 code 元素上色（插入时调用；同一个元素只做一次） */
+/** 等折叠内容区展开（data-state 变成 open） */
+const opened = (collapse) => new Promise((resolve) => {
+  const observer = new MutationObserver(() => {
+    if (collapse.dataset.state !== 'open') return;
+    observer.disconnect();
+    resolve();
+  });
+  observer.observe(collapse, { attributes: true, attributeFilter: ['data-state'] });
+});
+
 export async function highlightCode(code) {
   if (highlighted.has(code)) return;
   const lang = code.getAttribute('data-rune-highlight')?.toLowerCase();
   if (!lang) return;
   highlighted.add(code);
+  // 收着的源码（CodePreview）先保持纯文本：展开时再上色，多数人不展开，不必加载 Shiki
+  const collapse = code.closest('[data-rune-collapse]');
+  if (collapse && collapse.dataset.state !== 'open') await opened(collapse);
   const lines = [...code.querySelectorAll('[data-rune-code-text]')];
   const source = lines.length > 0 ? lines.map((line) => line.textContent).join('\n') : code.textContent;
   try {

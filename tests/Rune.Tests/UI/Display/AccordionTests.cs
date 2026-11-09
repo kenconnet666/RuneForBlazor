@@ -27,17 +27,26 @@ public class AccordionTests : BunitContext
         });
 
     [Fact]
-    public void Collapsible_触发器拿到aria属性与点击_点了自己展开()
+    public void Collapsible_触发器拿到aria属性与切换标记_JS切换后写回()
     {
         var cut = RenderCollapsible();
         var button = cut.Find("button");
         Assert.Equal("false", button.GetAttribute("aria-expanded"));
         Assert.Equal(cut.Find("[data-rune-collapse]").Id, button.GetAttribute("aria-controls"));
+        // 自动生成的 id 预渲染与 WebAssembly 里不同：不要求接管后恢复
+        Assert.Equal("", button.GetAttribute("data-rune-disclose"));
 
-        button.Click();
-
+        // 点击由 JS 当场切换，再发 rune-toggle：这里模拟 JS 发的那一次
+        Toggle(cut, true);
         Assert.Equal("true", cut.Find("button").GetAttribute("aria-expanded"));
         Assert.Equal("open", cut.Find("[data-rune-collapse]").GetAttribute("data-state"));
+
+        Toggle(cut, false);
+        Assert.Equal("closed", cut.Find("[data-rune-collapse]").GetAttribute("data-state"));
+
+        // 写了 id：接管后恢复（keep）
+        var kept = RenderCollapsible(p => p.AddUnmatched("id", "advanced"));
+        Assert.Equal(("advanced", "keep"), (kept.Find("button").GetAttribute("aria-controls"), kept.Find("button").GetAttribute("data-rune-disclose")));
     }
 
     [Fact]
@@ -55,12 +64,12 @@ public class AccordionTests : BunitContext
     public void Collapsible_双向绑定写回父级_父级不采纳时保持原状()
     {
         var host = Render<BindHost>();
-        host.Find("button").Click();
+        host.Find("[data-rune-collapse]").TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = true });
         Assert.Equal("True", host.Find("#host-open").TextContent);
 
         var requested = new List<bool>();
         var cut = RenderCollapsible(p => p.Add(c => c.OpenChanged, open => requested.Add(open)));
-        cut.Find("button").Click();
+        Toggle(cut, true);
         Assert.Equal([true], requested);
         Assert.Equal("false", cut.Find("button").GetAttribute("aria-expanded"));
     }
@@ -73,7 +82,7 @@ public class AccordionTests : BunitContext
         Assert.Equal(("closed", true), (content.GetAttribute("data-state"), content.HasAttribute("inert")));
         Assert.Contains("内容", content.TextContent);
 
-        cut.Find("button").Click();
+        Toggle(cut, true);
         content = cut.Find("[data-rune-collapse]");
         Assert.Equal(("open", false), (content.GetAttribute("data-state"), content.HasAttribute("inert")));
     }
@@ -88,6 +97,9 @@ public class AccordionTests : BunitContext
         Assert.Equal("open", cut.Find("[data-rune-collapse]").GetAttribute("data-state"));
         Assert.Contains("很重的内容", cut.Markup);
     }
+
+    static void Toggle(IRenderedComponent<Collapsible> cut, bool open) =>
+        cut.Find("[data-rune-collapse]").TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = open });
 
     IRenderedComponent<Accordion> RenderAccordion(Action<ComponentParameterCollectionBuilder<Accordion>> parameters) =>
         Render<Accordion>(p =>

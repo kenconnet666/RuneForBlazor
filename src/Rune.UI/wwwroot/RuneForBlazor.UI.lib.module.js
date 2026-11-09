@@ -67,6 +67,7 @@
 //   data-rune-scroll-area    滚动区域：浮层滚动条的大小与位置、显示与淡出、拖动、点轨道翻页、滚轮转交；内容超出时视口可聚焦（data-focusable）
 //   data-rune-page-scrollbar 整页的浮层滚动条（PageScrollbar）：同上，视口是整个窗口
 //   data-rune-collapse       折叠内容区：收起的过渡结束后加 hidden="until-found"，页内查找命中时发 rune-toggle（open: true）让 C# 展开
+//   data-rune-disclose       折叠的触发器（带 aria-controls）：点了当场切换内容区并发 rune-toggle 让 C# 写回；="keep" 时 WebAssembly 接管重画后恢复
 //   data-rune-image          图片（Avatar、Image）：加载完写 data-state="loaded"（显示出来），失败写 "error"（藏起来，露出后备内容）；插入时已经加载完的照样标
 //   data-rune-lightbox-viewport 图片预览（Lightbox）的图片区：拖动平移，滚轮、捏合缩放，双击放大 / 放回，+ / − / 0 / ↑↓ 键；
 //                            同一个 dialog 里 data-rune-lightbox-action 的按钮缩放、旋转、还原，← / → 点 data-rune-lightbox-step 的按钮（C# 换图）；

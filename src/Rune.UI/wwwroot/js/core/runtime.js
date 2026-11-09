@@ -33,7 +33,7 @@ import { watchToc } from '../navigation/toc.js';
 import { navigationEnded, navigationStarted, watchLoadingBar } from '../navigation/loading-bar.js';
 import { formatHotkeyLabel, hotkeyTarget, isComposingKey } from './hotkeys.js';
 import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from '../navigation/tabs.js';
-import { watchCollapse } from '../layout/collapse.js';
+import { toggleDisclosure, watchCollapse } from '../layout/collapse.js';
 import { grabResizeHandle, grabSplitter, keyResizeHandle, keySplitter, resetResizeHandle, resetSplitter, watchResizeHandle } from '../layout/resize.js';
 import { grabSlider, keySlider, watchSlider } from '../input/slider.js';
 import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './theme.js';
@@ -310,6 +310,7 @@ function onClick(event) {
 
   refocusFrom(target);
   toggleReveal(target);
+  toggleDisclosure(target);
   clickBackTop(target);
 
   const copier = target.closest('[data-rune-copy-on-click]');

@@ -3,7 +3,9 @@
     <CodePreview Code="@source"><Basic /></CodePreview>
     效果与源码由使用方各自给出（组件本身不执行代码）：文档站从示例文件读出源码（嵌入的资源），两者永远一致。
     源码默认收起，“显示代码”按钮带 aria-expanded / aria-controls；复制按钮一直在工具栏上。收起的源码是纯文本（页内搜索照样找得到），
-    指针移到、焦点进入工具栏或展开时才高亮。Actions 往工具栏最前面加按钮。
+    展开时才高亮（JS 等内容区展开再加载 Shiki）。Actions 往工具栏最前面加按钮。
+    展开收起在 JS 里当场切换（data-rune-disclose），WebAssembly 还在启动时也能点；写了 id 时源码区的 id 跟着固定（{id}-code），
+    WebAssembly 接管重画后保持接管前点开的状态。
     外框是 Card（Outline），源码是 CodeBlock，收起展开用 Collapse。未声明的属性落到 Card 组件上。
 *@
 @namespace Rune.UI
@@ -12,14 +14,15 @@
 
 <Card Variant="CardVariant.Outline" Padding="SpaceScale.None" PropsFooter="Attrs.Layer(FooterLayer, PropsFooter)" @attributes="Attrs.MergeProps(null, PropsCard, Rest)">
     <Footer>
-        <div @attributes="Attrs.Merge(ToolbarLayer, PropsToolbar)" @onpointerenter="Prepare" @onfocusin="Prepare">
+        <div @attributes="Attrs.Merge(ToolbarLayer, PropsToolbar)">
             @Actions
-            <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="UI.Size.Sm" Icon="BuiltInIcons.Code" @onclick="ToggleAsync"
-                    @attributes="Attrs.MergeProps(null, PropsToggle, ToggleManaged)">@(showCode.Value ? lang.HideCode : lang.ShowCode)</Button>
+            @* 两个文字都在，按按钮的 aria-expanded 显示其中一个：JS 切换时不用改文字 *@
+            <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="UI.Size.Sm" Icon="BuiltInIcons.Code"
+                    @attributes="Attrs.MergeProps(null, PropsToggle, ToggleManaged)"><span @attributes="Attrs.Merge(ShowLabelLayer)">@lang.ShowCode</span><span @attributes="Attrs.Merge(HideLabelLayer)">@lang.HideCode</span></Button>
             <CopyButton Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="UI.Size.Sm" Value="@Code" @attributes="Attrs.MergeProps(null, PropsCopy)" />
         </div>
-        <Collapse id="@codeId" Open="showCode.Value" OpenChanged="showCode.SetAsync" @attributes="Attrs.MergeProps(null, PropsCollapse)">
-            <CodeBlock Code="@Code" Lang="@Lang" Highlight="@(showCode.Value || wanted)" MaxLines="MaxLines" Copyable="false" Flush="true"
+        <Collapse id="@CodeId" Open="showCode.Value" OpenChanged="showCode.SetAsync" @attributes="Attrs.MergeProps(null, PropsCollapse)">
+            <CodeBlock Code="@Code" Lang="@Lang" MaxLines="MaxLines" Copyable="false" Flush="true"
                        PropsRoot="CodeLayer" @attributes="Attrs.MergeProps(null, PropsCode)" />
         </Collapse>
     </Footer>
@@ -40,9 +43,11 @@
     static readonly Attrs LayoutLayer = new() { Sx = Layout };
     static readonly Attrs CenteredLayer = new() { Sx = Sx.Of(Layout, Center) };
 
-    readonly string codeId = UniqueId.Next("code-preview");
-    // 收起的源码先按纯文本渲染：要显示时才高亮，指针移到、焦点落到工具栏上就开始
-    bool wanted;
+    static readonly Marker ToggleMarker = Css.Marker("rune-code-preview-toggle");
+    static readonly Attrs ShowLabelLayer = new() { Sx = ShowLabel };
+    static readonly Attrs HideLabelLayer = new() { Sx = HideLabel };
+
+    readonly string generatedId = UniqueId.Next("code-preview");
 
     /// <summary>源码。</summary>
     [Parameter, EditorRequired] public string Code { get; set; } = "";
@@ -100,11 +105,29 @@
 
     Bindable<bool> showCode { get => field ??= new(this, () => ShowCode, () => ShowCodeChanged); }
 
-    Attrs ToggleManaged => new() { ["aria-expanded"] = showCode.Value ? "true" : "false", ["aria-controls"] = codeId };
+    // 写了 id 时源码区的 id 由它派生：预渲染与 WebAssembly 里相同，JS 才认得出接管前点开的是哪一个
+    string? StableId => AdditionalAttributes?.GetValueOrDefault("id") as string;
 
-    void Prepare() => wanted = true;
+    string CodeId => StableId is { } id ? $"{id}-code" : generatedId;
 
-    Task ToggleAsync() => showCode.SetAsync(!showCode.Value);
+    Attrs ToggleManaged => new()
+    {
+        Class = ToggleMarker.ClassName,
+        ["aria-expanded"] = showCode.Value ? "true" : "false",
+        ["aria-controls"] = CodeId,
+        ["data-rune-disclose"] = StableId is null ? "" : "keep",
+    };
+
+    static Style ShowLabel => Css.Define(static () => new Style
+    {
+        [When.Inside(When.Attribute("[aria-expanded=\"true\"]"), ToggleMarker)] = new() { Display = Display.None },
+    });
+
+    static Style HideLabel => Css.Define(static () => new Style
+    {
+        Display = Display.None,
+        [When.Inside(When.Attribute("[aria-expanded=\"true\"]"), ToggleMarker)] = new() { Display = Display.Inline },
+    });
 
     // Card 的页脚默认是一行靠右的按钮：这里是工具栏加源码，上下排
     static Style FooterStyle => Css.Define(static () => new Style { Display = Display.Block, Padding = 0 });

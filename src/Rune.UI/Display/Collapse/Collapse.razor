@@ -4,6 +4,8 @@
     高度过渡用 grid-template-rows 0fr ↔ 1fr（各浏览器都能动画；interpolate-size 只有 Chromium），减少动态效果时直接到位。
     收起时 inert（不能 Tab 进去、读屏读不到）；收起的过渡结束后 JS 初始化器再加 hidden="until-found"（data-rune-collapse）：
     页内查找、锚点命中收起的内容时浏览器自动展开，JS 发出 rune-toggle，这里把 Open 写回。
+    触发按钮带 data-rune-disclose 与 aria-controls（Collapsible、CodePreview）时由 JS 当场切换，同样发 rune-toggle 写回：
+    WebAssembly 还在启动、C# 还没运行时点了也立刻展开。
     使用方写的属性落到外层；内容层（裁掉溢出、放内边距的地方）用 PropsContent。
 *@
 @namespace Rune.UI
@@ -14,8 +16,8 @@
     if (isOpen) everOpened = true;
 }
 
-<div data-state="@(isOpen ? "open" : "closed")" inert="@(!isOpen)" @onrunetoggle="ExpandAsync" @onrunetoggle:stopPropagation
-     @attributes="Attrs.Merge(parts[CollapsePart.Root], Rest, isOpen ? OpenLayer : RootMarker)">
+<div data-state="@(isOpen ? "open" : "closed")" inert="@(!isOpen)" @onrunetoggle="SyncAsync" @onrunetoggle:stopPropagation
+     @attributes="Attrs.Merge(parts[CollapsePart.Root], Rest, RootMarker)">
     <div @attributes="Attrs.Merge(parts[CollapsePart.Content], PropsContent)">
         @if (!Lazy || everOpened)
         {
@@ -26,7 +28,6 @@
 
 @code {
     static readonly Attrs RootMarker = new() { ["data-rune-collapse"] = true };
-    static readonly Attrs OpenLayer = new() { ["data-rune-collapse"] = true, Sx = CollapseStyles.Open };
 
     bool everOpened;
 
@@ -47,6 +48,6 @@
 
     Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
 
-    // 页内查找命中收起的内容：浏览器已经去掉 hidden，这里展开
-    Task ExpandAsync(OverlayToggleEventArgs e) => e.Open && !open.Value ? open.SetAsync(true) : Task.CompletedTask;
+    // JS 已经切换好了（页内查找命中时浏览器去掉 hidden；触发器 data-rune-disclose 改了 data-state），这里把状态写回
+    Task SyncAsync(OverlayToggleEventArgs e) => e.Open != open.Value ? open.SetAsync(e.Open) : Task.CompletedTask;
 }

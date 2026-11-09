@@ -14,7 +14,7 @@ public class DocsKitTests : BunitContext
     }
 
     [Fact]
-    public void 示例卡片_源码默认收起不高亮_工具栏有意图时高亮_展开按钮控制源码区()
+    public void 示例卡片_源码默认收起_JS切换展开_展开时才上色_写了id时源码区id固定()
     {
         var shown = false;
         var cut = Render<CodePreview>(p => p
@@ -26,18 +26,22 @@ public class DocsKitTests : BunitContext
         Assert.Equal("预览", cut.Find("[role=group]").GetAttribute("aria-label"));
         var toggle = cut.Find("button[aria-controls]");
         Assert.Equal("false", toggle.GetAttribute("aria-expanded"));
-        Assert.Contains("显示代码", toggle.TextContent);
+        // 两个文字都在，按 aria-expanded 显示其中一个（JS 切换时不用改文字）
+        Assert.Equal(["显示代码", "隐藏代码"], toggle.QuerySelectorAll("span:not([data-part])").Select(s => s.TextContent).Where(t => t.Length > 0).ToArray());
         Assert.Equal(toggle.GetAttribute("aria-controls"), cut.Find("[data-rune-collapse]").Id);
-        // 收起时是纯文本，页内搜索也找得到
-        Assert.Null(cut.Find("code").GetAttribute("data-rune-highlight"));
+        Assert.Equal("", toggle.GetAttribute("data-rune-disclose"));
+        // 收起时是纯文本（页内搜索也找得到）；语言照常写上，JS 等内容区展开再上色
+        Assert.Equal("razor", cut.Find("code").GetAttribute("data-rune-highlight"));
         Assert.Equal("<Button>保存</Button>", cut.Find("code").TextContent);
 
-        cut.Find("[role=group] + * div, div:has(> button[aria-controls])").TriggerEvent("onpointerenter", new Microsoft.AspNetCore.Components.Web.PointerEventArgs());
-        Assert.Equal("razor", cut.Find("code").GetAttribute("data-rune-highlight"));
-
-        toggle.Click();
+        // 点击由 JS 当场切换，再发 rune-toggle 让 C# 写回：这里模拟 JS 发的那一次
+        cut.Find("[data-rune-collapse]").TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = true });
         Assert.True(shown);
         Assert.Equal("<Button>保存</Button>", cut.Find("button[data-rune-copy]").GetAttribute("data-rune-copy"));
+
+        var stable = Render<CodePreview>(p => p.Add(x => x.Code, "x").AddUnmatched("id", "basic-preview"));
+        Assert.Equal(("basic-preview-code", "keep"), (stable.Find("button[aria-controls]").GetAttribute("aria-controls"), stable.Find("button[aria-controls]").GetAttribute("data-rune-disclose")));
+        Assert.Equal("basic-preview-code", stable.Find("[data-rune-collapse]").Id);
     }
 
     [Fact]

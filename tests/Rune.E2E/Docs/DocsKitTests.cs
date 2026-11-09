@@ -25,6 +25,24 @@ public class DocsKitTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(code).Not.ToBeVisibleAsync();
     }
 
+    // 静态 SSR 没有 C#：展开收起全在 JS 里，等同 WebAssembly 还在启动时点的情形
+    [Fact]
+    public async Task 没有CSharp时示例卡片照样展开源码_上色()
+    {
+        var page = await OpenAsync("static", "docs-kit");
+        var preview = page.GetByTestId("preview");
+        await preview.GetByRole(AriaRole.Button, new() { Name = "显示代码" }).ClickAsync();
+
+        var hide = preview.GetByRole(AriaRole.Button, new() { Name = "隐藏代码" });
+        await Assertions.Expect(hide).ToHaveAttributeAsync("aria-expanded", "true");
+        var code = preview.Locator("code[data-rune-highlight]");
+        await Assertions.Expect(code).ToBeVisibleAsync();
+        await Assertions.Expect(code.Locator("span[style]").First).ToBeAttachedAsync();
+
+        await hide.ClickAsync();
+        await Assertions.Expect(code).Not.ToBeVisibleAsync();
+    }
+
     [Theory]
     [InlineData("static")]
     [InlineData("server")]

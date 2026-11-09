@@ -19,14 +19,13 @@ public static class CollapseStyles
     public static PartLayers<CollapsePart> Of(ComponentStyles styles) =>
         Recipe.Of("collapse", styles, static (CollapsePart part) => part == CollapsePart.Root ? Root : Content);
 
-    /// <summary>展开时。</summary>
-    internal static Style Open => Css.Define(static () => new Style { GridTemplateRows = "1fr" });
-
+    // 展开按 data-state 取（不是另加一个类）：触发器在 JS 里切换（data-rune-disclose）时只改这个属性，C# 还没运行也能展开
     static Style Root => Css.Define(static () => new Style
     {
         Display = Display.Grid,
         GridTemplateRows = "0fr",
         Transition = $"grid-template-rows {Durations.Md} {Easings.Standard}",
+        [When.Attribute("[data-state=\"open\"]")] = new() { GridTemplateRows = "1fr" },
         [Media.ReducedMotion] = new() { Transition = Transition.None },
     });
 

@@ -4,7 +4,8 @@
         <Trigger Context="t"><Button Variant="ButtonVariant.Ghost" @attributes="t">高级选项</Button></Trigger>
         <ChildContent>…</ChildContent>
     </Collapsible>
-    触发器由使用方给（任意按钮）：Context 带着 aria-expanded、aria-controls、点击切换与不可用，展开到按钮上即可。
+    触发器由使用方给（任意按钮）：Context 带着 aria-expanded、aria-controls、data-rune-disclose 与不可用，展开到按钮上即可。
+    点击在 JS 里当场切换（WebAssembly 还在启动时也能点），再写回 Open；写了 id 时 WebAssembly 接管重画后保持接管前的状态。
     键盘由触发器元素自己提供（按钮的 Enter、空格）。不包外层元素；未声明的属性落到 Collapse 上。
 *@
 @namespace Rune.UI
@@ -17,9 +18,9 @@
 
 @code {
     readonly string generatedId = UniqueId.Next("collapsible");
-    Memo<(bool Open, bool Disabled, string ContentId), Attrs> triggerAttrs;
+    Memo<(bool Open, bool Disabled, string ContentId, bool Stable), Attrs> triggerAttrs;
 
-    /// <summary>触发器：<c>&lt;Trigger Context="t"&gt;&lt;Button @@attributes="t"&gt;更多&lt;/Button&gt;&lt;/Trigger&gt;</c>，t 带 aria-expanded、aria-controls、点击与不可用。</summary>
+    /// <summary>触发器：<c>&lt;Trigger Context="t"&gt;&lt;Button @@attributes="t"&gt;更多&lt;/Button&gt;&lt;/Trigger&gt;</c>，t 带 aria-expanded、aria-controls、切换与不可用。</summary>
     [Parameter, EditorRequired] public RenderFragment<Attrs>? Trigger { get; set; }
 
     /// <summary>展开收起的内容。</summary>
@@ -43,13 +44,16 @@
     Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
 
     // 使用方写了 id 时内容区用它（触发器的 aria-controls 跟着指过去）
-    string ContentId => AdditionalAttributes?.GetValueOrDefault("id") as string ?? generatedId;
+    string? GivenId => AdditionalAttributes?.GetValueOrDefault("id") as string;
 
-    Attrs TriggerAttrs => triggerAttrs.Get((open.Value, Disabled, ContentId), this, static (k, owner) => new Attrs
+    string ContentId => GivenId ?? generatedId;
+
+    // 切换由 JS 做（Collapse 收到 rune-toggle 写回 Open）；id 是使用方给的才在预渲染与 WebAssembly 里相同，才能在接管后恢复
+    Attrs TriggerAttrs => triggerAttrs.Get((open.Value, Disabled, ContentId, GivenId is not null), static k => new Attrs
     {
         AriaExpanded = k.Open,
         AriaControls = k.ContentId,
         ["disabled"] = k.Disabled ? true : null,
-        OnClick = _ => k.Disabled ? Task.CompletedTask : owner.open.SetAsync(!owner.open.Value),
+        ["data-rune-disclose"] = k.Stable ? "keep" : "",
     });
 }

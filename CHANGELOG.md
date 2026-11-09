@@ -6,6 +6,12 @@
 
 ## [Unreleased]
 
+### 改动
+
+- Collapsible 的触发器、CodePreview 的“显示代码”在 JS 里当场切换（`data-rune-disclose`），再写回 C#：静态 SSR 与 WebAssembly 还在启动时也能点；
+  写了 id 时 WebAssembly 接管重画后保持接管前的状态。Collapsible 的触发器不再带 `OnClick`
+- CodePreview 的源码展开时才上色（JS 等内容区展开再加载 Shiki），去掉了指针移到工具栏时预先上色
+
 ## [0.12.1] - 2026-11-09
 
 ### 修复

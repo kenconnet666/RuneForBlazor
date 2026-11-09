@@ -15,7 +15,7 @@
     {
         <Paragraph Sx="DescriptionStyle">@ChildContent</Paragraph>
     }
-    <CodePreview Code="@ExampleSource.Of(Demo)" Align="Align" PropsPreview="PreviewLayer" PropsLayout="@(Frame is null ? CanvasLayer : FramedCanvasLayer)">
+    <CodePreview id="@($"{Id}-preview")" Code="@ExampleSource.Of(Demo)" Align="Align" PropsPreview="PreviewLayer" PropsLayout="@(Frame is null ? CanvasLayer : FramedCanvasLayer)">
         @if (Frame is not null)
         {
             <iframe src="@FrameSrc" title="@Title" loading="lazy" allow="fullscreen" style="height:@Frame" @attributes="Attrs.Merge(FrameLayer)"></iframe>
