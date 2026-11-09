@@ -55,7 +55,7 @@
 
 ### P1 外壳与页面骨架补齐
 
-- [x] 导入行：组件都在 Rune.UI 命名空间里，对应的是装哪个包：`dotnet add package Rune.UI`（日期 Rune.UI.Dates、图表 Rune.Charts、地图 Rune.Charts.Maps），
+- [x] 导入行：组件都在 Rune.UI 命名空间里，对应的是装哪个包：`dotnet add package RuneForBlazor.UI`（日期 RuneForBlazor.UI.Dates、图表 RuneForBlazor.Charts、地图 RuneForBlazor.Charts.Maps；包名带前缀是因为 nuget.org 上的 Rune 已被占用），
   DocPage 按分类生成。标题下的竖向节奏与 vue 相同后，button 页第一屏的差异从 7.8% 降到 2.9%。
 - 暂不做（2026-11-07 用户决定）：顶栏的 ORM 链接、属性演练场按钮、示例卡片工具栏的“编辑”。整页对照里这三处的差异是已知的。
 - [x] 首页：右侧栏去掉后组件目录同 vue 排三列；指南卡片的图标同 vue；卡片数随指南页（本库 4 张，没有 Playground）。

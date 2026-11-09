@@ -28,8 +28,8 @@
     RenderFragment? Install => (Package ?? Meta.Category switch
     {
         DocCategory.Guide => null,
-        DocCategory.Date => "Rune.UI.Dates",
-        DocCategory.Charts => "Rune.Charts",
-        _ => "Rune.UI",
+        DocCategory.Date => "RuneForBlazor.UI.Dates",
+        DocCategory.Charts => "RuneForBlazor.Charts",
+        _ => "RuneForBlazor.UI",
     }) is { } package ? @<CodeBlock Code="@($"dotnet add package {package}")" Lang="bash" /> : null;
 }

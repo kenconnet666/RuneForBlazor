@@ -12,6 +12,8 @@
   <!-- 对外发布的库：NuGet 包的信息。文档注释（GenerateDocumentationFile）写在各库的项目文件里：SDK 在导入本文件之前就按它算好了 XML 文档的路径 -->
   <PropertyGroup Condition="'$(IsLibrary)' == 'true'">
     <IsPackable>true</IsPackable>
+    <!-- nuget.org 上的 Rune 已被别人占用：包 ID 一律是 RuneForBlazor.*（Rune.UI → RuneForBlazor.UI），程序集与命名空间仍是 Rune.* -->
+    <PackageId>RuneForBlazor$(MSBuildProjectName.Substring(4))</PackageId>
     <Authors>kenconnet666</Authors>
     <Copyright>Copyright (c) 2026 kenconnet666</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -31,4 +33,14 @@
   <ItemGroup Condition="'$(IsLibrary)' == 'true'">
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
+
+  <!--
+    库之间的依赖不排除分析器：NuGet 默认给依赖加 exclude="Build,Analyzers"，只装 RuneForBlazor.UI 的使用方就拿不到核心包里的 [State] 生成器。
+    生成器、代码修复自己的引用（ReferenceOutputAssembly=false）不会变成包依赖
+  -->
+  <ItemDefinitionGroup Condition="'$(IsLibrary)' == 'true'">
+    <ProjectReference>
+      <PrivateAssets>none</PrivateAssets>
+    </ProjectReference>
+  </ItemDefinitionGroup>
 </Project>

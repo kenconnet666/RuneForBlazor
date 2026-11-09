@@ -8,7 +8,7 @@ public class DocsKitTests(DemoServer demo) : E2ETest(demo)
     [InlineData("wasm")]
     public async Task 示例卡片展开源码_上色_再收起(string mode)
     {
-        var page = await OpenAsync(mode, "code");
+        var page = await OpenAsync(mode, "docs-kit");
         var preview = page.GetByTestId("preview");
         var toggle = preview.GetByRole(AriaRole.Button, new() { Name = "显示代码" });
 
@@ -30,7 +30,7 @@ public class DocsKitTests(DemoServer demo) : E2ETest(demo)
     [InlineData("server")]
     public async Task 色块显示token的取值_换主题后跟着变(string mode)
     {
-        var page = await OpenAsync(mode, "color-field");
+        var page = await OpenAsync(mode, "docs-kit");
         var surface = page.GetByTestId("swatches").Locator("[data-rune-token-value='--rune-colors-surface']");
         await Assertions.Expect(surface).ToHaveTextAsync("#ffffff");
 

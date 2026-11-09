@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <!--
-    生成器随 Rune 包一起发布：放进包的 analyzers/dotnet/cs，安装 Rune 就能用 [State]。
+    生成器随核心包（RuneForBlazor）一起发布：放进包的 analyzers/dotnet/cs，安装它（或依赖它的 RuneForBlazor.UI）就能用 [State]。
     先构建生成器（不作为程序集引用），再把它的输出打进包里。仓库里的项目仍各自以分析器方式引用生成器
   -->
   <ItemGroup>

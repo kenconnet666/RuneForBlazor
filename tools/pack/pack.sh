@@ -5,6 +5,7 @@
 #
 # 先要有 Release 构建（这里 --no-build）。包 ID 是 RuneForBlazor.*（见 Directory.Build.targets）。
 set -euo pipefail
+# 检查用 grep 而不是 grep -q：-q 读到第一处就退出，unzip 写不进管道，pipefail 下整条命令算失败
 
 out=$1
 version=${2:-}
@@ -17,10 +18,10 @@ done
 package() { ls "$out"/"$1".[0-9]*.nupkg; }
 test "$(ls "$out"/*.nupkg | wc -l)" -eq "${#projects[@]}"
 # 生成器在核心包里（装 RuneForBlazor.UI 也能用 [State]：库之间的依赖不排除分析器）
-unzip -l "$(package RuneForBlazor)" | grep -q "analyzers/dotnet/cs/Rune.Generators.dll"
-unzip -p "$(package RuneForBlazor.UI)" RuneForBlazor.UI.nuspec | grep -q '<dependency id="RuneForBlazor" [^>]*include="All"'
+unzip -l "$(package RuneForBlazor)" | grep "analyzers/dotnet/cs/Rune.Generators.dll" >/dev/null
+unzip -p "$(package RuneForBlazor.UI)" RuneForBlazor.UI.nuspec | grep '<dependency id="RuneForBlazor" [^>]*include="All"' >/dev/null
 # 浮层等 JS 初始化器在组件库包里；Lucide 的许可随两个带图标数据的包
-unzip -l "$(package RuneForBlazor.UI)" | grep -q "Rune.UI.*lib.module.js"
-unzip -l "$(package RuneForBlazor.UI)" | grep -q "LICENSE-lucide.txt"
-unzip -l "$(package RuneForBlazor.Icons)" | grep -q "LICENSE-lucide.txt"
+unzip -l "$(package RuneForBlazor.UI)" | grep "Rune.UI.*lib.module.js" >/dev/null
+unzip -l "$(package RuneForBlazor.UI)" | grep "LICENSE-lucide.txt" >/dev/null
+unzip -l "$(package RuneForBlazor.Icons)" | grep "LICENSE-lucide.txt" >/dev/null
 ls -l "$out"

@@ -1,0 +1,31 @@
+# Changelog
+
+格式按 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号按 [语义化版本](https://semver.org/lang/zh-CN/)。
+1.0 之前次版本号的升级可能带破坏性改动，会写在对应版本的“破坏性改动”里。发版见 `.github/workflows/release.yml`：
+推送 `v` 开头的 tag（与 `Directory.Build.props` 的 `VersionPrefix` 一致、这里有对应的一节），CI 通过后推送到 nuget.org。
+
+## [0.12.0] - 2026-11-09
+
+第一次发布到 nuget.org。组件、样式与交互对齐 [vue-tsx-pro](https://github.com/kenconnet666/vue-tsx-pro) 0.21.0。
+
+### 包
+
+包名带 `RuneForBlazor` 前缀（nuget.org 上的 `Rune` 是别人的包），程序集与命名空间仍是 `Rune`、`Rune.UI`……
+
+| 包 | 内容 |
+| --- | --- |
+| `RuneForBlazor` | 运行时：信号与 `[State]` 生成器、组件基类与双向绑定、属性合并、强类型的运行时样式引擎、RUNE 诊断与代码修复 |
+| `RuneForBlazor.UI` | 组件库：基础、布局、展示、反馈、浮层、导航、输入、表单、表格、页面组合；16 套内置主题、简体中文与美国英语语言包、组件默认值与按部件定制 |
+| `RuneForBlazor.UI.Dates` | 日期组件：DateField、TimeField、Calendar、DatePicker、DateRangePicker、TimePicker、CalendarBoard |
+| `RuneForBlazor.Charts` | 图表：折线、面积、柱状、组合、散点、瀑布、环形、雷达、漏斗、矩形树图、桑基、和弦、关系、时间线 |
+| `RuneForBlazor.Charts.Maps` | MapChart 的地理数据：中国省份与世界国家 |
+| `RuneForBlazor.Icons` | Lucide 图标全集（WebAssembly 发布时裁剪未用到的） |
+| `RuneForBlazor.UI.Area` | 全国省、市、区县数据（Cascader 用） |
+
+### 能力
+
+- 静态 SSR、Server、WebAssembly、Auto 四种渲染模式下行为一致；交互在 JS 初始化器里，C# 不用 IJSRuntime
+- 每个部件带 `data-scope` / `data-part` 标记，都有 `PropsXxx` 部件属性，组合组件把里面每层的部件属性转发出去
+- 组件规格与 vue-tsx-pro 的 `/spec/components.json` 逐项比对（`tests/Rune.Tests/Parity`），差异记在基线里
+
+[0.12.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.12.0

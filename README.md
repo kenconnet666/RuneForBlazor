@@ -1,8 +1,8 @@
 # Rune for Blazor
 
 基于 .NET 10 Blazor 的组件库底座：容易理解的响应式状态、可以逐层覆盖的属性合并，以及与属性一起管理的强类型运行时样式。
-设计思路来自姊妹项目 [vue-tsx-pro](../../IdeaProjects/vue-tsx-pro)，按 Blazor 与 C# 的特点重新设计，取舍见 [docs/DESIGN.md](docs/DESIGN.md)，
-接下来的计划见 [docs/ROADMAP.md](docs/ROADMAP.md)。
+设计思路来自姊妹项目 [vue-tsx-pro](https://github.com/kenconnet666/vue-tsx-pro)，按 Blazor 与 C# 的特点重新设计，取舍见 [docs/DESIGN.md](https://github.com/kenconnet666/RuneForBlazor/blob/master/docs/DESIGN.md)，
+接下来的计划见 [docs/ROADMAP.md](https://github.com/kenconnet666/RuneForBlazor/blob/master/docs/ROADMAP.md)。
 
 ```razor
 @* 组件：状态、双向绑定、部件样式与使用方覆盖 *@
@@ -20,6 +20,23 @@ public sealed partial class CartStore
     [State] public partial int Count { get; set; }
 }
 ```
+
+## 安装
+
+```bash
+dotnet add package RuneForBlazor.UI
+```
+
+| 包 | 内容 |
+| --- | --- |
+| `RuneForBlazor` | 运行时：信号与 `[State]` 生成器、组件基类、属性合并、样式引擎（RuneForBlazor.UI 已依赖它） |
+| `RuneForBlazor.UI` | 组件库（`builder.Services.AddRuneUI()`） |
+| `RuneForBlazor.UI.Dates` | 日期组件 |
+| `RuneForBlazor.Charts`、`RuneForBlazor.Charts.Maps` | 图表；地图的地理数据 |
+| `RuneForBlazor.Icons` | Lucide 图标全集 |
+| `RuneForBlazor.UI.Area` | 省市区数据 |
+
+包名带 RuneForBlazor 前缀（nuget.org 上的 Rune 是别人的包），程序集与命名空间仍是 `Rune`、`Rune.UI`……。
 
 ## 结构
 

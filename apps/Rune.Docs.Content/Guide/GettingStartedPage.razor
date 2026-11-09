@@ -5,10 +5,11 @@
 <DocPage Meta="Meta">
     <GuideSection Id="install" Title="引用">
         <Paragraph>
-            组件库分三个包：<Code>Rune</Code>（运行时：信号、组件基类、属性合并、样式引擎）、<Code>Rune.UI</Code>（组件、主题与语言包）、
-            <Code>Rune.Icons</Code>（Lucide 图标全集，WebAssembly 发布时裁掉没用到的）。还没有发布到 NuGet：先克隆仓库，用项目引用。
+            从 NuGet 安装 <Code>RuneForBlazor.UI</Code>（组件、主题与语言包），它带着 <Code>RuneForBlazor</Code>（运行时：信号与 <Code>[State]</Code> 生成器、组件基类、属性合并、样式引擎）。
+            按需再装 <Code>RuneForBlazor.Icons</Code>（Lucide 图标全集，WebAssembly 发布时裁掉没用到的）、<Code>RuneForBlazor.UI.Dates</Code>（日期）、
+            <Code>RuneForBlazor.Charts</Code>（图表）。包名带前缀，程序集与命名空间仍是 <Code>Rune</Code>、<Code>Rune.UI</Code>……
         </Paragraph>
-        <CodeBlock Code="@install" Lang="xml" />
+        <CodeBlock Code="@install" Lang="bash" />
         <Paragraph>Blazor Web App 的服务端项目与 WebAssembly 项目都要引用（同一个页面可能在任一边运行）。</Paragraph>
     </GuideSection>
 
@@ -67,10 +68,8 @@
 
 @code {
     const string install = """
-        <ItemGroup>
-          <ProjectReference Include="..\RuneForBlazor\src\Rune.UI\Rune.UI.csproj" />
-          <ProjectReference Include="..\RuneForBlazor\src\Rune.Icons\Rune.Icons.csproj" />
-        </ItemGroup>
+        dotnet add package RuneForBlazor.UI
+        dotnet add package RuneForBlazor.Icons
         """;
 
     const string services = """
