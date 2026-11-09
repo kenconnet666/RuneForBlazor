@@ -168,7 +168,7 @@ export function highlightDefault(host, list) {
 }
 
 export function moveInList(host, event) {
-  if (event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+  if (event.altKey || event.ctrlKey || event.metaKey) return;
   if (host.getAttribute('aria-disabled') === 'true') return;
   const list = listOf(host);
   if (!list) return;

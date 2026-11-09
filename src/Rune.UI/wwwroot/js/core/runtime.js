@@ -31,7 +31,7 @@ import { watchPageScrollbar, watchScrollArea } from '../layout/scroll-area.js';
 import { highlightCode } from '../display/highlight.js';
 import { watchToc } from '../navigation/toc.js';
 import { navigationEnded, navigationStarted, watchLoadingBar } from '../navigation/loading-bar.js';
-import { formatHotkeyLabel, hotkeyTarget } from './hotkeys.js';
+import { formatHotkeyLabel, hotkeyTarget, isComposingKey } from './hotkeys.js';
 import { auxClickTabs, grabTab, keyTabs, scrollTabs, watchTabs } from '../navigation/tabs.js';
 import { watchCollapse } from '../layout/collapse.js';
 import { grabResizeHandle, grabSplitter, keyResizeHandle, keySplitter, resetResizeHandle, resetSplitter, watchResizeHandle } from '../layout/resize.js';
@@ -346,6 +346,8 @@ function onClick(event) {
 }
 
 function onKeyDown(event) {
+  // 输入法组合中的按键全归输入法：不加减数字、不移动高亮、不删已选项、不触发快捷键
+  if (isComposingKey(event)) return;
   // 打开浮层的快捷键（命令面板的 Mod+K）：已经开着时关上
   const hotkeyed = hotkeyTarget(event);
   if (hotkeyed?.matches('[role^="menuitem"]')) {

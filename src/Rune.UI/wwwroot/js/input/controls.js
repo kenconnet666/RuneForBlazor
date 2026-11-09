@@ -63,7 +63,7 @@ function firstInvalidControl(form) {
  */
 export function sendKeyCommand(event) {
   const target = event.target;
-  if (!(target instanceof Element) || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+  if (!(target instanceof Element) || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
   const typed = target instanceof HTMLInputElement && target.value.trim() !== '';
   let name = null;
   if (event.key === 'Backspace' && !(target instanceof HTMLInputElement && target.value !== '')) name = target.getAttribute('data-rune-backspace');

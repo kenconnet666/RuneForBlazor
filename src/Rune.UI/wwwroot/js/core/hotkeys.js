@@ -7,6 +7,11 @@ const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
 const SYMBOLS = { ctrl: '⌃', alt: '⌥', shift: '⇧', meta: '⌘' };
 const ARROWS = { arrowup: '↑', arrowdown: '↓', arrowleft: '←', arrowright: '→' };
+/** 输入法组合中的按键（同 vue-tsx-pro 的 isComposingKey）：方向键、Enter、退格是给输入法的（选候选、上屏、删组合里的字）；Safari 组合开始那一下 isComposing 还是 false，只有 keyCode 229 */
+export function isComposingKey(event) {
+  return event.isComposing || event.keyCode === 229;
+}
+
 export const TYPING = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
 
 function matches(event, hotkey) {

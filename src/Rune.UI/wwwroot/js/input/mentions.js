@@ -4,6 +4,7 @@
 // - 键盘：↑↓ 移动、Enter 或 Tab 选中、Esc 关闭（这个 @ 不再弹出，直到重新输入）；焦点一直在文本框里。中文输入法组合期间不弹出、不过滤。
 
 import { moveInList } from './lists.js';
+import { isComposingKey } from '../core/hotkeys.js';
 import { sendCommand } from '../core/shared.js';
 
 const WORD_BEFORE = /[A-Za-z0-9_.]/;
@@ -60,7 +61,7 @@ export function onMentionsClick(target) {
 /** 列表打开时的按键：处理了返回 true */
 export function keyMentions(event) {
   const textarea = event.target;
-  if (!isMentions(textarea) || event.isComposing) return false;
+  if (!isMentions(textarea)) return false;
   const panel = panelOf(textarea);
   if (!panel?.matches(':popover-open')) return false;
   if (event.key === 'Escape') {
@@ -88,7 +89,7 @@ export function keyMentions(event) {
 /** 移动光标（方向键、Home / End）后重新判断；↑↓ 在列表打开时是移动高亮，不算 */
 export function onMentionsKeyUp(event) {
   const textarea = event.target;
-  if (!isMentions(textarea) || event.isComposing) return;
+  if (!isMentions(textarea) || isComposingKey(event)) return;
   const open = panelOf(textarea)?.matches(':popover-open');
   if (open && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) return;
   if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key) || !open) detect(textarea);

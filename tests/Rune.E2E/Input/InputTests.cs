@@ -1,6 +1,6 @@
 namespace Rune.E2E;
 
-/// <summary>输入类组件的客户端行为：数字框的方向键与按住连续加减、文本框的显示密码与清空、复制按钮、标签移除、表单错误汇总。</summary>
+/// <summary>输入类组件的客户端行为：数字框的方向键（输入法组合中不算）与按住连续加减、文本框的显示密码与清空、复制按钮、标签移除、表单错误汇总。</summary>
 public class InputTests(DemoServer demo) : E2ETest(demo)
 {
     [Theory]
@@ -27,6 +27,27 @@ public class InputTests(DemoServer demo) : E2ETest(demo)
         await quantity.FillAsync("150");
         await page.Keyboard.PressAsync("Enter");
         await Assertions.Expect(quantity).ToHaveValueAsync("99");
+    }
+
+    [Fact]
+    public async Task 输入法组合中的方向键不加减()
+    {
+        var page = await OpenAsync("server", "number-field");
+        var quantity = page.GetByTestId("quantity");
+        await quantity.FocusAsync();
+        var before = await quantity.InputValueAsync();
+
+        // 组合中：isComposing（Chrome、Firefox）或 keyCode 229（Safari 组合开始的那一下）
+        await quantity.EvaluateAsync("""
+            input => {
+              input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', isComposing: true, bubbles: true, cancelable: true }));
+              input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', keyCode: 229, bubbles: true, cancelable: true }));
+            }
+            """);
+        await Assertions.Expect(quantity).ToHaveValueAsync(before);
+
+        await page.Keyboard.PressAsync("ArrowUp");
+        await Assertions.Expect(quantity).ToHaveValueAsync((int.Parse(before) + 1).ToString());
     }
 
     [Theory]
