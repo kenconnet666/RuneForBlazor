@@ -156,7 +156,10 @@ public class ChartTests(DemoServer demo) : E2ETest(demo)
         var chart = page.Locator("[role=figure][aria-label=\"各团队的销售额对着指标\"]");
         await chart.ScrollIntoViewIfNeededAsync();
         await Assertions.Expect(chart.Locator("[data-part=target]")).ToHaveCountAsync(2);
-        await chart.Locator("[data-part=bar][data-index=\"2\"]").First.ClickAsync(new() { Force = true });
+        var bar = chart.Locator("[data-part=bar][data-index=\"2\"]").First;
+        // 柱从基线长出来（@starting-style 的 scale 0）：强制点击不等动画，长好之前点会落空（“outside of the viewport”）
+        await (await bar.ElementHandleAsync()).WaitForElementStateAsync(ElementState.Stable);
+        await bar.ClickAsync(new() { Force = true });
         await Assertions.Expect(page.GetByText("点了：华北大区")).ToBeVisibleAsync();
     }
 }

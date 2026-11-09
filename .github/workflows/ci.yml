@@ -81,9 +81,9 @@ jobs:
     strategy:
       fail-fast: false
       # 按测试类名的首字母分四段并行（各段内各测试类也并行）：段是字母区间，合起来正好 A–Z，以后新加的类自然落进某一段。
-      # 区间按各段在 CI 上的用时划分，某段明显变慢时再调
+      # 区间按各段在 CI 上的用时划分（FocusRingTests 逐页查全部文档页，最重，单独在 E–H），某段明显变慢时再调
       matrix:
-        letters: [A-C, D-L, M-R, S-Z]
+        letters: [A-D, E-H, I-R, S-Z]
     steps:
       - uses: actions/checkout@v7
 
