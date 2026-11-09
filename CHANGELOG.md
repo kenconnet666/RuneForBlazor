@@ -4,6 +4,14 @@
 1.0 之前次版本号的升级可能带破坏性改动，会写在对应版本的“破坏性改动”里。发版见 `.github/workflows/release.yml`：
 推送 `v` 开头的 tag（与 `Directory.Build.props` 的 `VersionPrefix` 一致、这里有对应的一节），CI 通过后推送到 nuget.org。
 
+## [0.12.1] - 2026-11-09
+
+### 修复
+
+- WebAssembly 发布（开启裁剪）后，组件库的自定义事件（`rune-command` 等）参数反序列化失败：虚拟滚动（VirtualList、DataTable、Listbox、Tree 的长列表）滚动后不再换行，
+  键盘命令、粘贴、滑块、拖动排序等经 JS 交给 C# 的交互不生效。`AddRuneUI` 声明了这些参数类型的依赖，裁剪后仍保留
+- Collapse 展开后宽度被里面最长的一行撑开：CodePreview 的源码看不全、没有横向滚动条
+
 ## [0.12.0] - 2026-11-09
 
 第一次发布到 nuget.org。组件、样式与交互对齐 [vue-tsx-pro](https://github.com/kenconnet666/vue-tsx-pro) 0.21.0。
@@ -28,4 +36,5 @@
 - 每个部件带 `data-scope` / `data-part` 标记，都有 `PropsXxx` 部件属性，组合组件把里面每层的部件属性转发出去
 - 组件规格与 vue-tsx-pro 的 `/spec/components.json` 逐项比对（`tests/Rune.Tests/Parity`），差异记在基线里
 
+[0.12.1]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.12.1
 [0.12.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.12.0
