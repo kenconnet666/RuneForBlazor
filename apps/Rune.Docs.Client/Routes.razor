@@ -1,21 +1,25 @@
 @*
     文档站的路由：首页、找不到页面在这里，指南与组件页在 Rune.Docs.Content（带 @page 与 [DocMeta]）。
     整个路由是 WebAssembly 的交互根（App.razor 给它加 @rendermode）：交互模式下新用到的样式由这里的 RuneStyles 输出。
-    只有部分页面用到的程序集（图表、地图数据、省市区，见 LazyAssemblies）进入那些页面前才下载，期间顶部显示加载条。
+    顶部的加载条：预渲染的页面显示后 WebAssembly 还在下载、启动（这期间点什么都没反应）时在走，接管后消失；
+    只有部分页面用到的程序集（图表、地图数据、省市区，见 LazyAssemblies）进入那些页面前才下载，期间同样显示。
 *@
 @using Microsoft.AspNetCore.Components.WebAssembly.Services
 @inherits RuneComponent
 @inject LazyAssemblyLoader Loader
 
 <RuneStyles />
-<LoadingBar Controller="bar" />
-<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="[typeof(DocsCatalog).Assembly]" NotFoundPage="typeof(Pages.NotFound)"
-        OnNavigateAsync="LoadAssembliesAsync">
-    <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(DocsLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
-    </Found>
-</Router>
+@* 应用级主题在最外层：加载条与各页面都在里面（主题的变量只在这个类下面有定义） *@
+<RuneProvider>
+    <LoadingBar Controller="bar" Startup="true" />
+    <Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="[typeof(DocsCatalog).Assembly]" NotFoundPage="typeof(Pages.NotFound)"
+            OnNavigateAsync="LoadAssembliesAsync">
+        <Found Context="routeData">
+            <RouteView RouteData="routeData" DefaultLayout="typeof(DocsLayout)" />
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+    </Router>
+</RuneProvider>
 
 @code {
     readonly LoadingBarController bar = new();

@@ -2,34 +2,33 @@
     文档站的外壳（同 vue-tsx-pro 文档站的 App）：AppShell 的顶栏（站点名、搜索、主题切换、仓库链接、全屏）、左侧的站点导航、右侧的本页目录，
     正文是当前路由的页面，末尾是上一篇 / 下一篇。导航、搜索、翻页都取文档目录（DocsCatalog），顺序一致。
     换页时路由交来新的 Body，外壳重新渲染一次；侧栏、顶栏工具、本页目录是各自独立、没有参数的组件，不跟着重来。
+    主题与配置的 RuneProvider 在 Routes 里（顶部的加载条也要取主题的变量）。
 *@
 @inherits RuneLayoutComponent
 @inject NavigationManager Navigation
 @* 启动时就建好：它要记下打开站点时的那一页（那一页的示例不排队） *@
 @inject RenderQueue RenderQueue
 
-<RuneProvider>
-    @* 首页没有右侧栏（同 vue：aside 只在非首页给），正文占满剩下的宽度 *@
-    <AppShell PropsMain="MainLayer" Aside="@(IsHome ? null : Toc)">
-        <Brand><AppShellBrand Href="" Icon="Lucide.Boxes">Rune</AppShellBrand></Brand>
-        <Header><DocsHeaderTools /></Header>
-        <Sidebar><DocsNav /></Sidebar>
-        <ChildContent>
-            <div @attributes="Attrs.Merge(PageLayer)">
-                @* 按地址换 key：每次换页重新播放进场动画 *@
-                <div @key="Path" @attributes="Attrs.Merge(EnterLayer)">@Body</div>
-                @if (!IsHome && Neighbors() is var (previous, next))
-                {
-                    <Container Size="@(Path.StartsWith("components/", StringComparison.Ordinal) ? ContainerSize.Xl : ContainerSize.Md)" Padding="SpaceScale.None">
-                        <Pager Previous="previous" Next="next" Sx="PagerStyle" />
-                    </Container>
-                }
-            </div>
-        </ChildContent>
-    </AppShell>
-    <Toaster />
-    <DialogHost />
-</RuneProvider>
+@* 首页没有右侧栏（同 vue：aside 只在非首页给），正文占满剩下的宽度 *@
+<AppShell PropsMain="MainLayer" Aside="@(IsHome ? null : Toc)">
+    <Brand><AppShellBrand Href="" Icon="Lucide.Boxes">Rune</AppShellBrand></Brand>
+    <Header><DocsHeaderTools /></Header>
+    <Sidebar><DocsNav /></Sidebar>
+    <ChildContent>
+        <div @attributes="Attrs.Merge(PageLayer)">
+            @* 按地址换 key：每次换页重新播放进场动画 *@
+            <div @key="Path" @attributes="Attrs.Merge(EnterLayer)">@Body</div>
+            @if (!IsHome && Neighbors() is var (previous, next))
+            {
+                <Container Size="@(Path.StartsWith("components/", StringComparison.Ordinal) ? ContainerSize.Xl : ContainerSize.Md)" Padding="SpaceScale.None">
+                    <Pager Previous="previous" Next="next" Sx="PagerStyle" />
+                </Container>
+            }
+        </div>
+    </ChildContent>
+</AppShell>
+<Toaster />
+<DialogHost />
 
 @code {
     /// <summary>仓库地址（顶栏与窄屏侧栏的链接）。</summary>

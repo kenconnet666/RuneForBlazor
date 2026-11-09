@@ -13,7 +13,7 @@
 //    直接取 components/button.html，不跳转），首页是 index.html，找不到页面存成 404.html。
 // 4. 合并、挪走了的旧页面地址（DocRedirects）写成 _redirects，由 Cloudflare Pages 永久跳转到新页的小节。
 // 5. 文档数据（示例的源码、API 表、图标库）：爬页面时用到过的地址取 /_docs/files，逐个写出（浏览器站内换页时下载）。
-// 6. 运行时生成的模块与样式表（主题变量）从服务端取下来；_headers 让 Cloudflare 压缩 ICU 数据。
+// 6. 运行时生成的模块与样式表（主题变量）从服务端取下来；_headers 给带哈希的文件长期缓存、让 Cloudflare 压缩 ICU 数据。
 import { spawn, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -108,9 +108,18 @@ async function exportSite() {
       generated++;
     }
     if (generated) console.log(`取下了 ${generated} 个运行时生成的文件`);
-    // Cloudflare 不压缩 application/octet-stream：ICU 数据（_framework/icudt*.dat，1.5 MB，压缩后约 0.45 MB）标成 application/wasm 让它压缩
-    // （运行时按字节读取，不看类型）
-    writeFileSync(join(out, '_headers'), ['/_framework/*.dat', '  Content-Type: application/wasm', ''].join('\n'));
+    // 响应头（Cloudflare 的 _headers）：
+    // - _framework 下的文件页面都按带内容哈希的名字引用（import map、resource-collection），主题变量的样式表也按内容命名：
+    //   内容变了名字就变，可以长期缓存、不用每次回源确认（默认 max-age=0，再次打开时六十多个文件逐个确认）
+    // - Cloudflare 不压缩 application/octet-stream：ICU 数据（_framework/icudt*.dat，1.5 MB，压缩后约 0.45 MB）标成 application/wasm 让它压缩
+    //   （运行时按字节读取，不看类型）
+    const immutable = '  Cache-Control: public, max-age=31536000, immutable';
+    writeFileSync(join(out, '_headers'), [
+      '/_framework/*', immutable,
+      '/rune-theme.*', immutable,
+      '/_framework/*.dat', '  Content-Type: application/wasm',
+      '',
+    ].join('\n'));
     console.log(`导出了 ${pages.size} 个页面与 404.html → ${out}`);
   } catch (error) {
     console.error(serverLog);
