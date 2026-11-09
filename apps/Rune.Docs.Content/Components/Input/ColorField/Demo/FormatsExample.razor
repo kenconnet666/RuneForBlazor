@@ -5,7 +5,7 @@
         <ColorField @bind-Value="color" data-testid="any" />
     </Field>
     <Small Tone="TextTone.Muted">值：<Code data-testid="any-value">@color</Code></Small>
-    <Field Label="带透明度" Description="#rrggbbaa；用原生取色器选色时透明度会去掉（它不支持透明度）">
+    <Field Label="带透明度" Description="#rrggbbaa；取色器里有不透明度滑块">
         <ColorField @bind-Value="overlay" />
     </Field>
     <Field Label="只读" ReadOnly="true">

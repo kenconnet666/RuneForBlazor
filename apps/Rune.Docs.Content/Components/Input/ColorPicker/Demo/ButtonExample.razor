@@ -1,0 +1,39 @@
+@* 按钮配色：取色器平铺在页面上，右边实时预览按钮，并算白字在这个底色上的对比度（AA 要 4.5:1） *@
+@inherits RuneComponent
+
+<Flex Gap="SpaceScale.Xl" Wrap="true" Align="ItemAlign.Start">
+    <ColorPicker @bind-Value="color" Presets="presets" aria-label="按钮底色" />
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Align="ItemAlign.Start">
+        <span style="background-color: @color" @attributes="Sample">立即购买</span>
+        <TextSpan Mono="true">@color</TextSpan>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+            <Small Tone="TextTone.Muted">白字对比度 @Ratio.ToString("0.00"):1</Small>
+            <Badge Tone="@(Ratio >= 4.5 ? Tone.Success : Tone.Danger)" Size="Size.Xs">@(Ratio >= 4.5 ? "达到 AA" : "不够")</Badge>
+        </Flex>
+    </Flex>
+</Flex>
+
+@code {
+    static readonly string[] presets = ["#3e63dd", "#6e56cf", "#12a594", "#30a46c", "#e5484d", "#f76b15", "#ffc53d", "#1c2024"];
+
+    static readonly Attrs Sample = new()
+    {
+        Sx = Css.Define(static () => new Style
+        {
+            PaddingBlock = CssLength.Em(0.5),
+            PaddingInline = CssLength.Em(1.25),
+            BorderRadius = Radii.Md,
+            Color = "#ffffff",
+            FontWeight = FontWeights.Medium,
+        }),
+    };
+
+    string? color = "#3e63dd";
+
+    // WCAG 的对比度：白色与底色的相对亮度
+    double Ratio => ColorValue.TryParse(color, out var c) ? 1.05 / (Luminance(c) + 0.05) : 1;
+
+    static double Luminance(ColorValue c) => 0.2126 * Linear(c.R) + 0.7152 * Linear(c.G) + 0.0722 * Linear(c.B);
+
+    static double Linear(double channel) => channel <= 0.04045 ? channel / 12.92 : Math.Pow((channel + 0.055) / 1.055, 2.4);
+}

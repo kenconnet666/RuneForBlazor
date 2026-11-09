@@ -94,6 +94,7 @@ const BUILT_IN = [
   'eraser',
   'pause',
   'play',
+  'pipette',
   'download',
   // Result 的常见状态：403、404、500
   'shield-x',

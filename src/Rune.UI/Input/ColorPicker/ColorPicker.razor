@@ -1,0 +1,216 @@
+@*
+    取色器（面板，同 vue-tsx-pro 的 ColorPicker）：饱和度 / 明度的色板、色相与不透明度滑块、吸管（EyeDropper）、按格式输入、预设与最近使用。
+    平铺在页面上（主题编辑器）或放进 ColorField 的弹出层。参考 React Aria 的 ColorArea / ColorSlider、Ant Design ColorPicker。
+    <ColorPicker @bind-Value="brand" Presets="@(["#3e63dd", "#e5484d", "#30a46c"])" />
+    <ColorPicker @bind-Value="overlay" Alpha="false" />                 不要透明度
+    - 值是 #rrggbb（有透明度时 #rrggbbaa），同 ColorField；内部按 HSV 记着，灰色、黑色时色相不丢。
+    - 色板：指针按下即跳过去并接着拖；聚焦后 ←→ 改饱和度、↑↓ 改明度（Shift 一次 10%），读屏念“饱和度 80%，明度 45%”。
+      拖动与方向键由 JS 初始化器当场挪把手（data-rune-color-picker），每帧把位置交给 C#。
+    - 色相、不透明度是 Slider（同一套键盘与读屏），轨道画成渐变。
+    - 吸管只在支持 EyeDropper 的浏览器里出现（Chromium）；格式在 HEX、RGB、HSL 之间切，输入框里写任何 CSS 颜色回车或失焦写回。
+    - 最近使用：同一个页面里的取色器共用（RecentColors），最多 8 个；拖完一次、选了预设、取了色、输入后记下。
+    未声明的属性落到根元素（div）上。
+*@
+@namespace Rune.UI
+@inherits FormControl<string?>
+@implements IDisposable
+@inject RecentColors Recent
+
+@{
+    var parts = ColorPickerStyles.Of(Config.Styles);
+    var lang = Config.Lang;
+    var hex = Hex;
+    var opaque = (hsva with { A = 1 }).ToHex();
+    var percentS = Percent(hsva.S);
+    var percentV = Percent(hsva.V);
+    var recent = ShowRecent ? Recent.Colors : [];
+}
+<div data-rune-color-picker data-disabled="@IsDisabled" @onrunecommand="OnCommandAsync"
+     @attributes="Attrs.Merge(Attrs.Layer(parts[ColorPickerPart.Root], ColorVars(opaque)), RootAttrs)">
+    @* 里面的滑块、写法切换、输入框是取色器自己的零件：不拿外层 Field 的 id、不往它那里登记字段（会与外层的控件轮流登记，来回重新渲染） *@
+    <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
+    <div data-color-area @attributes="Attrs.Merge(Attrs.Layer(parts[ColorPickerPart.Area], AreaVars(hsva.H, hsva.S, hsva.V)), PropsArea)">
+        <div role="slider" tabindex="@(IsDisabled ? -1 : 0)" aria-label="@lang.ColorArea" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@percentS"
+             aria-valuetext="@lang.ColorAreaValue(percentS, percentV)" aria-disabled="@(IsDisabled ? "true" : null)"
+             @attributes="Attrs.Merge(parts[ColorPickerPart.Thumb], PropsThumb)"></div>
+    </div>
+    <div @attributes="ColorPickerStyles.Row">
+        <IconButton Icon="BuiltInIcons.Pipette" Label="@lang.ColorEyeDropper" Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Disabled="IsDisabled"
+                    hidden data-color-eyedropper @attributes="Attrs.MergeProps(parts[ColorPickerPart.EyeDropper], PropsEyeDropper)" />
+        <div @attributes="ColorPickerStyles.Sliders">
+            <Slider TValue="int" Value="(int)Math.Round(hsva.H)" ValueChanged="hue => Set(hsva with { H = hue }, remember: false)" OnValueCommit="_ => Remember()"
+                    Min="0" Max="360" Size="UI.Size.Sm" Disabled="IsDisabled" ValueText="HueText" aria-label="@lang.ColorHue"
+                    PropsTrack="ColorPickerStyles.HueTrack" PropsRange="ColorPickerStyles.HiddenRange" @attributes="Attrs.MergeProps(parts[ColorPickerPart.Hue], PropsHue)" />
+            @if (Alpha)
+            {
+                <Slider TValue="int" Value="Percent(hsva.A)" ValueChanged="a => Set(hsva with { A = a / 100d }, remember: false)" OnValueCommit="_ => Remember()"
+                        Min="0" Max="100" Size="UI.Size.Sm" Disabled="IsDisabled" ValueText="PercentText" aria-label="@lang.ColorAlpha"
+                        PropsTrack="ColorPickerStyles.AlphaTrack" PropsRange="ColorPickerStyles.HiddenRange" @attributes="Attrs.MergeProps(parts[ColorPickerPart.Alpha], PropsAlpha)" />
+            }
+        </div>
+        <span @attributes="Attrs.Merge(parts[ColorPickerPart.Preview], PropsPreview)"><span @attributes="ColorPickerStyles.Fill"></span></span>
+    </div>
+    <div @attributes="ColorPickerStyles.Row">
+        <ToggleGroup Value="@format.ToString()" ValueChanged="(string? name) => format = Enum.Parse<ColorFormat>(name!)" Required="true" Size="UI.Size.Xs" aria-label="@lang.ColorFormat" Disabled="IsDisabled"
+                     @attributes="Attrs.MergeProps(parts[ColorPickerPart.Format], PropsFormat)">
+            <ToggleItem Value="Hex">HEX</ToggleItem>
+            <ToggleItem Value="Rgb">RGB</ToggleItem>
+            <ToggleItem Value="Hsl">HSL</ToggleItem>
+        </ToggleGroup>
+        <TextField Value="@Draft" ValueChanged="CommitDraftAsync" Size="UI.Size.Sm" Disabled="IsDisabled" spellcheck="false" aria-label="@lang.ColorPick"
+                   @attributes="Attrs.MergeProps(parts[ColorPickerPart.Input], PropsInput)" />
+    </div>
+    @Swatches(lang.ColorPresets, Presets ?? [], hex, parts)
+    @Swatches(lang.ColorRecent, recent, hex, parts)
+    </CascadingValue>
+</div>
+
+@code {
+    ColorHsva hsva = new(0, 0, 0);
+    // 自己最后写出去的值：Value 等于它时不重算 HSV（拖到灰色时色相不丢）
+    string? emitted;
+    bool initialized;
+    ColorFormat format;
+    Memo<string, Attrs> colorVars;
+    Memo<(double, double, double), Attrs> areaVars;
+
+    /// <summary>有不透明度滑块，默认 true。</summary>
+    [Parameter] public bool Alpha { get; set; } = true;
+
+    /// <summary>预设的颜色（品牌色、主题色）。</summary>
+    [Parameter] public IReadOnlyList<string>? Presets { get; set; }
+
+    /// <summary>显示最近使用的颜色，默认 true。</summary>
+    [Parameter] public bool ShowRecent { get; set; } = true;
+
+    /// <summary>输入框一开始的写法，默认 Hex。</summary>
+    [Parameter] public ColorFormat Format { get; set; }
+
+    /// <summary>色板的部件属性。</summary>
+    [Parameter] public Attrs? PropsArea { get; set; }
+
+    /// <summary>色板上把手的部件属性。</summary>
+    [Parameter] public Attrs? PropsThumb { get; set; }
+
+    /// <summary>吸管按钮（IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsEyeDropper { get; set; }
+
+    /// <summary>色相滑块（Slider）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHue { get; set; }
+
+    /// <summary>不透明度滑块（Slider）的部件属性。</summary>
+    [Parameter] public Attrs? PropsAlpha { get; set; }
+
+    /// <summary>预览块的部件属性。</summary>
+    [Parameter] public Attrs? PropsPreview { get; set; }
+
+    /// <summary>写法切换（ToggleGroup）的部件属性。</summary>
+    [Parameter] public Attrs? PropsFormat { get; set; }
+
+    /// <summary>颜色输入框（TextField）的部件属性。</summary>
+    [Parameter] public Attrs? PropsInput { get; set; }
+
+    /// <summary>一排颜色（预设、最近使用）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSwatches { get; set; }
+
+    /// <summary>每一格颜色（ButtonBase）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSwatch { get; set; }
+
+    string Hex => (Alpha ? hsva : hsva with { A = 1 }).ToHex();
+
+    string Draft => ColorHsva.Format(Hex, format);
+
+    Attrs RootAttrs => RootUserAttrs is { } root ? Attrs.Layer(root, InputUserAttrs) : InputUserAttrs;
+
+    static int Percent(double value) => (int)Math.Round(value * 100);
+
+    static string HueText(int hue) => $"{hue}°";
+
+    static string PercentText(int value) => $"{value}%";
+
+    /// <inheritdoc/>
+    protected override void OnInitialized()
+    {
+        format = Format;
+        Recent.Changed += OnRecentChanged;
+    }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        // 第一次、或父级换了颜色（不是自己写出去的）：按新值重算 HSV
+        if (initialized && CurrentValue == emitted) return;
+        initialized = true;
+        emitted = CurrentValue;
+        if (ColorHsva.Parse(CurrentValue) is { } parsed) hsva = parsed;
+    }
+
+    void OnRecentChanged() => InvokeAsync(StateHasChanged);
+
+    void IDisposable.Dispose() => Recent.Changed -= OnRecentChanged;
+
+    Attrs ColorVars(string opaque) => colorVars.Get(opaque, static c => new Attrs { Vars = [ColorPickerStyles.CurrentColor.Set(c)] });
+
+    Attrs AreaVars(double h, double s, double v) => areaVars.Get((h, s, v), static k => new Attrs
+    {
+        Vars =
+        [
+            ColorPickerStyles.HueColor.Set(new ColorHsva(k.Item1, 1, 1).ToHex()),
+            ColorPickerStyles.Saturation.Set(k.Item2),
+            ColorPickerStyles.Brightness.Set(k.Item3),
+        ],
+    });
+
+    async Task Set(ColorHsva next, bool remember)
+    {
+        hsva = next;
+        emitted = Hex;
+        await SetValueAsync(emitted);
+        if (remember) Remember();
+    }
+
+    void Remember() => Recent.Remember(Hex);
+
+    async Task Pick(string color)
+    {
+        if (ColorHsva.Parse(color) is { } next) await Set(next, remember: true);
+    }
+
+    async Task CommitDraftAsync(string? text)
+    {
+        if (ColorValue.ToHex(text) is { } hex) await Pick(hex);
+    }
+
+    async Task OnCommandAsync(CommandEventArgs e)
+    {
+        switch (e.Name)
+        {
+            case "color-area":
+                var values = (e.Text ?? "").Split(' ');
+                if (values.Length == 2 && double.TryParse(values[0], System.Globalization.CultureInfo.InvariantCulture, out var s) && double.TryParse(values[1], System.Globalization.CultureInfo.InvariantCulture, out var v))
+                    await Set(hsva with { S = Math.Clamp(s, 0, 1), V = Math.Clamp(v, 0, 1) }, remember: false);
+                break;
+            case "color-area-end":
+                Remember();
+                break;
+            case "color-pick" when e.Text is { } color:
+                await Pick(color);
+                break;
+        }
+    }
+
+    RenderFragment Swatches(string title, IReadOnlyList<string> colors, string current, PartLayers<ColorPickerPart> parts) => colors.Count == 0 ? _ => { } :
+        @<div role="group" aria-label="@title">
+            <div aria-hidden="true" @attributes="ColorPickerStyles.Label">@title</div>
+            <div @attributes="Attrs.Merge(parts[ColorPickerPart.Swatches], PropsSwatches)">
+                @foreach (var color in colors)
+                {
+                    <ButtonBase @key="color" aria-label="@color" aria-pressed="@(ColorValue.ToHex(color) == current ? "true" : "false")" Disabled="IsDisabled"
+                                @onclick="() => Pick(color)" @attributes="Attrs.MergeProps(Attrs.Layer(parts[ColorPickerPart.Swatch], ColorVars(color)), PropsSwatch)">
+                        <span @attributes="ColorPickerStyles.Fill"></span>
+                    </ButtonBase>
+                }
+            </div>
+        </div>;
+}

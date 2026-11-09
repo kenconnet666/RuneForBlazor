@@ -1,0 +1,26 @@
+@page "/components/color-picker"
+@attribute [DocMeta("ColorPicker 取色器", "饱和度 / 明度色板、色相与不透明度滑块、吸管、按格式输入、预设与最近使用；平铺在页面上，或由 ColorField 弹出。", DocCategory.Input, Order = 12)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.ColorPicker.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="button" Title="按钮配色" Demo="typeof(ButtonExample)">
+                <Code>@@bind-Value</Code> 是 #rrggbb（有透明度时 #rrggbbaa），同 <TextLink Href="components/color-field">ColorField</TextLink>；内部按 HSV 记着，拖到灰色、黑色时色相不丢。
+                色板按下即跳过去并接着拖（在浏览器里当场挪，不等往返）；色相、不透明度是 Slider，轨道画成渐变；<Code>Alpha="false"</Code> 去掉不透明度。
+                吸管只在支持 EyeDropper 的浏览器里出现；格式在 HEX、RGB、HSL 之间切，输入框里写任何 CSS 颜色回车或失焦写回。
+                <Code>Presets</Code> 是预设色板；最近使用同一个页面里的取色器共用，最多 8 个。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("← / →", "色板：减少 / 增加饱和度（Shift 一次 10%）"),
+        ("↓ / ↑", "色板：降低 / 提高明度（Shift 一次 10%）"),
+        ("← / → 等", "色相、不透明度滑块：同 Slider"),
+        ("Enter", "输入框：写回输入的颜色"),
+    ])">
+        色板的把手是 role="slider"，读屏念“饱和度 80%，明度 45%”；预设与最近使用是按钮，名称是颜色值，当前颜色 aria-pressed。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(ColorPicker)]" />
+</DocPage>

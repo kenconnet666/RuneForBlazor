@@ -198,6 +198,7 @@ const watched = [
   ['table[data-rune-table]', watchTable],
   ['template[data-rune-local-setting]', watchLocalSetting],
   ['[data-rune-carousel]', lazy(() => import('../display/carousel.js'), 'watchCarousel')],
+  ['[data-rune-color-picker]', lazy(() => import('../input/color-picker.js'), 'watchColorPicker')],
   ['[data-rune-signature]', lazy(() => import('../input/signature.js'), 'watchSignature')],
   ['[data-rune-date-segments]', lazy(() => import('../../../Rune.UI.Dates/js/date-segments.js'), 'watchDateSegments')],
   ['[data-rune-calendar]', lazy(() => import('../../../Rune.UI.Dates/js/calendar.js'), 'watchCalendar')],

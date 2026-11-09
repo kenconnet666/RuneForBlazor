@@ -1,5 +1,5 @@
 @page "/components/color-field"
-@attribute [DocMeta("ColorField 颜色输入", "颜色输入：色块点开原生取色器，后面可以直接输入颜色值；ColorSwatch 列出一块颜色与它的名称、取值（调色板、设计 token）。", DocCategory.Input, Order = 12)]
+@attribute [DocMeta("ColorField 颜色输入", "颜色输入：色块点开取色器（ColorPicker），后面可以直接输入颜色值；ColorSwatch 列出一块颜色与它的名称、取值（调色板、设计 token）。", DocCategory.Input, Order = 12)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Input.ColorField.Demo
 
@@ -7,7 +7,7 @@
     <Examples>
         <ExampleColumn>
             <Example Id="brand" Title="品牌配色" Demo="typeof(BrandExample)">
-                值是 <Code>#rrggbb</Code>，绑定后随拖动实时写回。外观、Field 关联与 TextField 相同。
+                值是 <Code>#rrggbb</Code>：色块是按钮，点开弹出层里的 <TextLink Href="components/color-picker">ColorPicker</TextLink>，改动实时写回，Esc 回到色块；<Code>Presets</Code> 给预设色板（这里是品牌色），<Code>Alpha="false"</Code> 去掉不透明度。外观、Field 关联与 TextField 相同。
             </Example>
             <Example Id="formats" Title="格式与透明度" Demo="typeof(FormatsExample)">
                 能输入 CSS 的颜色写法（rgb()、hsl()、hwb()、oklch()、颜色名），失焦或回车时规范成 #hex；写不成颜色时标为无效、值不变，失焦后恢复。
@@ -24,7 +24,7 @@
     </Examples>
     <KeyboardReference Keys="@([
         ("Enter", "在文字输入框里：按当前文字解析颜色并写回；解析不了时恢复原值"),
-        ("Enter / Space", "在色块上：打开系统的取色器"),
+        ("Enter / Space", "在色块上：打开取色器；Esc 关上，焦点回到色块"),
         ("Tab", "色块与文字输入框各占一个 Tab 位置"),
     ])" />
     <ApiReference Types="[typeof(ColorField), typeof(ColorSwatch)]" />

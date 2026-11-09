@@ -2,7 +2,7 @@
 
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
     <Grid MinItemWidth="@CssLength.Rem(10)" Gap="SpaceScale.Md">
-        <Field Label="品牌色"><ColorField @bind-Value="brand" data-testid="brand" /></Field>
+        <Field Label="品牌色"><ColorField @bind-Value="brand" Presets="BrandPalette" data-testid="brand" /></Field>
         <Field Label="卡片底色"><ColorField @bind-Value="background" /></Field>
         <Field Label="文字色"><ColorField @bind-Value="text" /></Field>
     </Grid>
@@ -18,6 +18,9 @@
 </Flex>
 
 @code {
+    // 品牌色板：取色器里的预设
+    static readonly string[] BrandPalette = ["#3e63dd", "#6e56cf", "#12a594", "#30a46c", "#e5484d", "#f76b15"];
+
     static readonly Attrs Preview = new() { Sx = PreviewStyle };
 
     static readonly Attrs BrandBadge = new() { Sx = BadgeStyle };

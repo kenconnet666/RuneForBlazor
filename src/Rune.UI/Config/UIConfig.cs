@@ -117,6 +117,7 @@ public static class RuneUIServiceCollectionExtensions
         services.AddSingleton(PartBoxSizing);
         services.AddScoped<ToastService>();
         services.AddScoped<DialogService>();
+        services.AddScoped<RecentColors>();
         return services;
     }
 }

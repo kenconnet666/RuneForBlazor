@@ -1,9 +1,9 @@
 @*
-    颜色输入（同 vue-tsx-pro 的 ColorField）：前面是色块（点开浏览器原生的取色器），后面可以直接输入颜色值。主题编辑器、品牌色设置这类地方用。
+    颜色输入（同 vue-tsx-pro 的 ColorField）：前面是色块（按钮，点开弹出层里的 ColorPicker），后面可以直接输入颜色值。主题编辑器、品牌色设置这类地方用。
     <ColorField @bind-Value="brand" aria-label="品牌色" />
     - 值是 #rrggbb（有透明度时 #rrggbbaa）：输入 rgb()、hsl()、oklch()、颜色名也行（见 ColorValue），失焦或回车时规范成 #hex 写回；
       写不成颜色时外壳标为无效（aria-invalid），值不变，失焦后恢复成原来的值。输入时每次按键一次往返（Server 模式），要按草稿实时标无效。
-    - 原生取色器不带透明度：用它选色时透明度去掉。
+    - 取色器的改动实时写回；Presets 给预设色板，Alpha="false" 去掉不透明度。Esc 关上弹出层，焦点回到色块。
     - 接入 Field（标签、说明、错误、必填、不可用），外观同 TextField。未声明的属性落到文字输入框上；Sx 落在外壳上。
 *@
 @namespace Rune.UI
@@ -16,12 +16,17 @@
 }
 
 <div @attributes="Attrs.Merge(parts[InputPart.Root], RootUserAttrs, ShellAttrs)" data-invalid="@(ShowInvalid ? true : null)" data-disabled="@(IsDisabled ? true : null)">
-    <label @attributes="Attrs.Merge(own[ColorFieldPart.Swatch], PropsSwatch)">
-        @* 没有值（或写不成颜色）时色块是空的，露出棋盘格 *@
-        <span @attributes="Attrs.Merge(own[ColorFieldPart.Fill], null, FillVars(hex ?? NoColor))"></span>
-        @* 原生取色器只认 #rrggbb *@
-        <input type="color" @attributes="Attrs.Merge(own[ColorFieldPart.Picker], PropsPicker, PickerManaged(hex?[..7] ?? DefaultColor, editable))" />
-    </label>
+    <Popover @bind-Open="picking" Placement="Placement.BottomStart" @attributes="Attrs.MergeProps(null, PropsPopover)">
+        <Trigger Context="t">
+            <ButtonBase Disabled="!editable" aria-label="@Config.Lang.ColorPick" @attributes="Attrs.MergeProps(own[ColorFieldPart.Swatch], PropsSwatch, t)">
+                @* 没有值（或写不成颜色）时色块是空的，露出棋盘格 *@
+                <span @attributes="Attrs.Merge(own[ColorFieldPart.Fill], null, FillVars(hex ?? NoColor))"></span>
+            </ButtonBase>
+        </Trigger>
+        <ChildContent>
+            <ColorPicker Value="@(hex ?? DefaultColor)" ValueChanged="CommitAsync" Alpha="Alpha" Presets="Presets" @attributes="Attrs.MergeProps(null, PropsPicker)" />
+        </ChildContent>
+    </Popover>
     @ValueElement.Input("text", Attrs.Merge(Attrs.Layer(parts[InputPart.Input], MonoInput), NamedInputUserAttrs, InputManaged), CaptureElement)
 </div>
 
@@ -36,10 +41,21 @@
     string draft = DefaultColor;
     string? draftOf;
 
-    /// <summary>色块（包着原生取色器的 label）的部件属性。</summary>
+    bool picking;
+
+    /// <summary>取色器有不透明度滑块，默认 true。</summary>
+    [Parameter] public bool Alpha { get; set; } = true;
+
+    /// <summary>取色器里的预设颜色（品牌色板）。</summary>
+    [Parameter] public IReadOnlyList<string>? Presets { get; set; }
+
+    /// <summary>色块按钮（ButtonBase）的部件属性。</summary>
     [Parameter] public Attrs? PropsSwatch { get; set; }
 
-    /// <summary>原生取色器的部件属性；类型、取值、可用性与名称由组件管理。</summary>
+    /// <summary>弹出层（Popover）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPopover { get; set; }
+
+    /// <summary>取色器（ColorPicker）的部件属性。</summary>
     [Parameter] public Attrs? PropsPicker { get; set; }
 
     bool ShowInvalid => IsInvalid || !ColorValue.TryParse(draft, out _);
@@ -59,14 +75,6 @@
     }
 
     Attrs FillVars(string color) => fillVars.Get(color, static c => new Attrs { Vars = [ColorFieldStyles.Color.Set(c)] });
-
-    Attrs PickerManaged(string opaque, bool editable) => new()
-    {
-        ["value"] = opaque,
-        ["disabled"] = editable ? null : true,
-        ["aria-label"] = Config.Lang.ColorPick,
-        ["oninput"] = EventCallback.Factory.Create<ChangeEventArgs>(this, e => CommitAsync((string?)e.Value)),
-    };
 
     Attrs InputManaged => Attrs.Merge(ControlAttrs, new Attrs
     {
