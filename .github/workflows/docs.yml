@@ -20,6 +20,11 @@ jobs:
   export-deploy:
     name: 导出与部署
     runs-on: ubuntu-latest
+    # CLOUDFLARE_API_TOKEN 存在 docs 环境里，该环境只允许 master 使用（同 vue-tsx-pro）。令牌用模板 “Edit Cloudflare Workers”：
+    # Workers Scripts 编辑与 zerodep.dpdns.org 的 Workers Routes 编辑；自定义域名的 DNS 记录与证书由 Cloudflare 代建，不需要 DNS 权限
+    environment:
+      name: docs
+      url: https://rune-for-blazor.zerodep.dpdns.org
     steps:
       - uses: actions/checkout@v7
 
@@ -54,10 +59,9 @@ jobs:
         working-directory: apps/Rune.Docs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
-            echo '::warning::没有配置 CLOUDFLARE_API_TOKEN，跳过部署'
+            echo '::warning::docs 环境里没有 CLOUDFLARE_API_TOKEN，只导出、不部署'
             exit 0
           fi
           npx --yes wrangler@4.156.1 deploy

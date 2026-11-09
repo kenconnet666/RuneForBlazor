@@ -29,7 +29,7 @@
 | 7 | 演示 | 文档页的路由、示例的场景与顺序照 vue-tsx-pro 文档站，方便逐页对照；渲染模式测试台 Rune.Demo 保留，与文档站共用 Rune.Docs.Content 的页面 |
 | 8 | 范围（2026-11-06 修订） | code-editor、diagram、three、xlsx、演练场、拼音、storage、mobile、流程的前端都做（阶段 7）。mini（Vue 渲染器跑进小程序）与 kit（Nitro 上的全栈框架）是 Vue / Node 专用的：kit 的角色由 Blazor Web App 本身与阶段 8 的全栈示例承担，mini 不做。完整的流程引擎暂不做 |
 | 9 | 地图数据 | 图表的 Map 用公有领域或许可明确的来源（如 Natural Earth）导出，来源与许可写进 NOTICE |
-| 10 | 部署 | 文档站导出静态文件，部署到 Cloudflare Workers 的静态资源；工作流只手动触发，令牌放仓库 secret `CLOUDFLARE_API_TOKEN`，由用户配置后自己运行 |
+| 10 | 部署 | 文档站导出静态文件，部署到 Cloudflare Workers 的静态资源（https://rune-for-blazor.zerodep.dpdns.org，同 vue-tsx-pro 的做法）；`docs.yml` 只手动触发，令牌 `CLOUDFLARE_API_TOKEN` 在只允许 master 的 `docs` 环境里 |
 | 11 | 发布与版本（2026-11-09 修订） | 推 `v*` tag 由 `release.yml` 经 nuget.org 的可信发布推送，步骤见 rune-dev skill。版本号自己走（0.12.0 起），不跟 vue-tsx-pro 的版本号；对齐的 vue 版本写在 CHANGELOG 每一节 |
 | 12 | 全栈示例（2026-11-06） | 做阶段 8。EasyQuerySharp 只进示例，组件库不引用；`TableQuery` 到 `FilterBy` / `SortBy` 的接线先写在示例里、不单独出包；CI 按固定的提交检出 EasyQuerySharp（同 `VUE_TSX_PRO_REF`） |
 

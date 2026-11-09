@@ -56,6 +56,7 @@ export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$PATH"
 | 对照 | `MSYS_NO_PATHCONV=1 node tools/parity/parity.mjs <页面> --themes=light --shots --mode=server`；全站 `node tools/parity/all.mjs --shots --mode=server && python tools/parity/shots.py`；整页 `pages.mjs`、排布 `columns.mjs`、状态 `--states`（见 tools/parity/README.md） |
 | 生成器检查 | `node tools/{css,theme,lang,area}-gen/generate.mjs --check --source <vue-tsx-pro>`、`node tools/{icon,vendor}-gen/generate.mjs --check` |
 | 打包 | Release 构建后 `bash tools/pack/pack.sh <输出目录> [版本]`（同时检查包的内容） |
+| 部署文档站 | `gh workflow run docs.yml --ref master`：导出静态站点，部署到 https://rune-for-blazor.zerodep.dpdns.org（令牌在 `docs` 环境） |
 
 截图基线（`tests/Rune.E2E/Visual`，CI 的“截图基线”任务）：示例画面改了以后基线会报不同。重新截：
 
@@ -79,6 +80,7 @@ gh run download <run-id> -n visual-baselines -D tests/Rune.E2E/Visual/Baselines
 1. `Directory.Build.props` 的 `VersionPrefix` 是下一个版本；CHANGELOG.md 把 `## [Unreleased]` 改成 `## [x.y.z] - 日期`，写清对齐的 vue 版本与破坏性改动，文末加链接。
 2. 提交推送 master，再在同一个提交上打 tag：`git tag -a vx.y.z -m "RuneForBlazor x.y.z" <sha> && git push origin vx.y.z`。
 3. `release.yml` 核对版本与 CHANGELOG、等这个提交的 CI 全部通过，然后打包、经 nuget.org 的可信发布推送（策略“RuneForBlazor release”：本仓库、release.yml、环境 `release`、包名 `RuneForBlazor*`），最后建 GitHub Release。
+   **release 等 CI 期间不要再推 master**：CI 的并发组对同一分支取消还在跑的旧运行，release 等的那次 CI 被取消就会失败。
 4. CI 没过时 release 会拒绝发布：删掉 tag（`git push origin :refs/tags/vx.y.z`、`git tag -d vx.y.z`），修好后在新提交上重打。nuget.org 上的版本号发了就不能复用、包删不掉（只能 unlist）。
 5. 发完把 `VersionPrefix` 改成下一个版本，CHANGELOG 加回 `## [Unreleased]`。
 

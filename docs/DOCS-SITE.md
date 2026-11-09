@@ -40,4 +40,4 @@
   换页等下载时接上顶栏的 LoadingBar（与 vue 换页时懒加载页面代码的表现一致）。
 - [ ] WebAssembly 裁剪与首屏体积预算（记进 PERFORMANCE.md）；预渲染全部地址（docs-export 已有），检查每页的 title、description。
 - [ ] SEO：sitemap.xml、canonical、Open Graph；不加第三方统计。
-- [ ] 部署：docs.yml 配好 `CLOUDFLARE_API_TOKEN` 后正式部署；域名与版本（只放最新版，或按大版本分目录）待定。
+- [ ] 部署：`docs.yml` 部署到 https://rune-for-blazor.zerodep.dpdns.org（自定义域名的 DNS 与证书由 wrangler 建）；版本（只放最新版，或按大版本分目录）待定。
