@@ -4,14 +4,11 @@ namespace Rune.E2E;
 /// 焦点环没有被裁（同 vue-tsx-pro 的 focus-ring.browser.test）：每个文档页的示例里每个可聚焦的元素，用键盘的方式聚焦后
 /// 按 outline 的宽度与偏移算出焦点环的范围，检查它没有被 overflow 不是 visible 的祖先裁掉。被裁的改用 SharedStyles.FocusRingInset
 /// （画在里面）、只在需要的方向裁（OverflowX = Clip）或给容器留出余量。元素本身就在容器外（滚走了、被有意截断）的不算。
+/// 页面分成几组并行查（<see cref="DocsPages.Shard"/>）。
 /// </summary>
-public class FocusRingTests(DemoServer demo) : E2ETest(demo)
+public abstract class FocusRingTests(DemoServer demo) : E2ETest(demo)
 {
-    /// <summary>全部文档页。</summary>
-    public static TheoryData<string> Pages => VisualTests.Pages;
-
-    [Theory, MemberData(nameof(Pages))]
-    public async Task 键盘聚焦时焦点环没有被祖先的overflow裁掉(string page)
+    protected async Task CheckAsync(string page)
     {
         var tab = await OpenAsync("static", page);
         // 先按一下 Tab：之后的 focus() 算键盘聚焦（:focus-visible）
@@ -65,4 +62,28 @@ public class FocusRingTests(DemoServer demo) : E2ETest(demo)
           return clipped;
         }
         """;
+}
+
+public sealed class FocusRingTests0(DemoServer demo) : FocusRingTests(demo)
+{
+    [Theory, MemberData(nameof(DocsPages.Shard), 0, MemberType = typeof(DocsPages))]
+    public Task 键盘聚焦时焦点环没有被祖先的overflow裁掉(string page) => CheckAsync(page);
+}
+
+public sealed class FocusRingTests1(DemoServer demo) : FocusRingTests(demo)
+{
+    [Theory, MemberData(nameof(DocsPages.Shard), 1, MemberType = typeof(DocsPages))]
+    public Task 键盘聚焦时焦点环没有被祖先的overflow裁掉(string page) => CheckAsync(page);
+}
+
+public sealed class FocusRingTests2(DemoServer demo) : FocusRingTests(demo)
+{
+    [Theory, MemberData(nameof(DocsPages.Shard), 2, MemberType = typeof(DocsPages))]
+    public Task 键盘聚焦时焦点环没有被祖先的overflow裁掉(string page) => CheckAsync(page);
+}
+
+public sealed class FocusRingTests3(DemoServer demo) : FocusRingTests(demo)
+{
+    [Theory, MemberData(nameof(DocsPages.Shard), 3, MemberType = typeof(DocsPages))]
+    public Task 键盘聚焦时焦点环没有被祖先的overflow裁掉(string page) => CheckAsync(page);
 }

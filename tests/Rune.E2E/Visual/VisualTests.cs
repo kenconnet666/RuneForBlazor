@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace Rune.E2E;
 
 /// <summary>截图基线用的演示项目：“现在”固定在 <see cref="FixedNow"/>，相对时间、倒计时、日历的今天每次一样。</summary>
@@ -27,8 +25,9 @@ public sealed class VisualServer : IAsyncLifetime
 /// 截图基线：每个文档页（静态 SSR）的每个示例效果区在亮、暗两套主题下各截一张，与 Visual/Baselines/{页}/{示例}-{light,dark}.png 比较，防止样式改动意外改了画面。
 /// 基线在 CI 的 Linux 上生成（字体与渲染随系统不同），所以只在 Linux 上比；手动运行 CI 并勾选更新基线时（RUNE_VISUAL_UPDATE=1）重新截，
 /// 作为构件上传，人工看过后提交。不一致时实际的截图写到 artifacts/visual/{页}/，CI 上传以便对照。
+/// 页面分成几组并行截（<see cref="DocsPages.Shard"/>）。
 /// </summary>
-public partial class VisualTests(DemoServer demo, VisualServer visual) : IClassFixture<VisualServer>
+public abstract class VisualTests(DemoServer demo, VisualServer visual) : IClassFixture<VisualServer>
 {
     static readonly string Baselines = Path.Combine(DemoProcess.RepositoryRoot, "tests", "Rune.E2E", "Visual", "Baselines");
     static readonly string Failures = Path.Combine(DemoProcess.RepositoryRoot, "artifacts", "visual");
@@ -37,22 +36,7 @@ public partial class VisualTests(DemoServer demo, VisualServer visual) : IClassF
     // 明显不同的像素（任一通道差 > 16）超过这个比例才算变了：同一台机器、同一个浏览器截的图本应完全相同，留一点给抗锯齿
     const double Threshold = 0.002;
 
-    /// <summary>全部文档页（组件页的地址 /components/{页}）。</summary>
-    public static TheoryData<string> Pages =>
-    [
-        .. Directory.EnumerateFiles(Path.Combine(DemoProcess.RepositoryRoot, "apps", "Rune.Docs.Content", "Components"), "*Page.razor", SearchOption.AllDirectories)
-            .Select(file => PageRoute().Match(File.ReadAllText(file)))
-            .Where(match => match.Success)
-            .Select(match => match.Groups[1].Value)
-            .Order(StringComparer.Ordinal),
-    ];
-
-    // 页面文件可能是 CRLF：多行模式的 $ 只认 \n
-    [GeneratedRegex("""@page "/components/([a-z0-9-]+)"\r?$""", RegexOptions.Multiline)]
-    private static partial Regex PageRoute();
-
-    [Theory, MemberData(nameof(Pages))]
-    public async Task 示例与基线一致(string page)
+    protected async Task CompareAsync(string page)
     {
         // RUNE_VISUAL=1 在别的系统上也跑（试用这套检查；截出来的图与 CI 的基线对不上）
         Assert.SkipUnless(OperatingSystem.IsLinux() || Environment.GetEnvironmentVariable("RUNE_VISUAL") == "1", "基线是在 CI 的 Linux 上截的，只在 Linux 上比");
@@ -162,4 +146,28 @@ public partial class VisualTests(DemoServer demo, VisualServer visual) : IClassF
           return different / (x.width * x.height);
         }
         """, new[] { Convert.ToBase64String(expected), Convert.ToBase64String(actual) });
+}
+
+public sealed class VisualTests0(DemoServer demo, VisualServer visual) : VisualTests(demo, visual)
+{
+    [Theory, MemberData(nameof(DocsPages.Shard), 0, MemberType = typeof(DocsPages))]
+    public Task 示例与基线一致(string page) => CompareAsync(page);
+}
+
+public sealed class VisualTests1(DemoServer demo, VisualServer visual) : VisualTests(demo, visual)
+{
+    [Theory, MemberData(nameof(DocsPages.Shard), 1, MemberType = typeof(DocsPages))]
+    public Task 示例与基线一致(string page) => CompareAsync(page);
+}
+
+public sealed class VisualTests2(DemoServer demo, VisualServer visual) : VisualTests(demo, visual)
+{
+    [Theory, MemberData(nameof(DocsPages.Shard), 2, MemberType = typeof(DocsPages))]
+    public Task 示例与基线一致(string page) => CompareAsync(page);
+}
+
+public sealed class VisualTests3(DemoServer demo, VisualServer visual) : VisualTests(demo, visual)
+{
+    [Theory, MemberData(nameof(DocsPages.Shard), 3, MemberType = typeof(DocsPages))]
+    public Task 示例与基线一致(string page) => CompareAsync(page);
 }

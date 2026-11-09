@@ -74,26 +74,16 @@ jobs:
 
   # 端到端测试只在 Linux 上跑：只构建要用的演示项目与测试项目，装 Chromium 与它要的系统库，再启动演示项目逐个操作页面
   e2e:
-    name: 端到端测试（${{ matrix.shard }}）
+    name: 端到端测试（${{ matrix.letters }}）
     runs-on: ubuntu-latest
     # 全部用例本地约 3 分钟；卡住时不占着 runner 等默认的 6 小时
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      # 按测试类名的首字母分两半并行：A–L 一半，其余（含以后新加的）一半，两边合起来正好是全部
+      # 按测试类名的首字母分四段并行（各段内各测试类也并行）：段是字母区间，合起来正好 A–Z，以后新加的类自然落进某一段。
+      # 区间按各段在 CI 上的用时划分，某段明显变慢时再调
       matrix:
-        include:
-          - shard: A–L
-            filter: >-
-              --filter-class 'Rune.E2E.A*' --filter-class 'Rune.E2E.B*' --filter-class 'Rune.E2E.C*' --filter-class 'Rune.E2E.D*'
-              --filter-class 'Rune.E2E.E*' --filter-class 'Rune.E2E.F*' --filter-class 'Rune.E2E.G*' --filter-class 'Rune.E2E.H*'
-              --filter-class 'Rune.E2E.I*' --filter-class 'Rune.E2E.J*' --filter-class 'Rune.E2E.K*' --filter-class 'Rune.E2E.L*'
-          - shard: M–Z
-            filter: >-
-              --filter-not-class 'Rune.E2E.A*' --filter-not-class 'Rune.E2E.B*' --filter-not-class 'Rune.E2E.C*' --filter-not-class 'Rune.E2E.D*'
-              --filter-not-class 'Rune.E2E.E*' --filter-not-class 'Rune.E2E.F*' --filter-not-class 'Rune.E2E.G*' --filter-not-class 'Rune.E2E.H*'
-              --filter-not-class 'Rune.E2E.I*' --filter-not-class 'Rune.E2E.J*' --filter-not-class 'Rune.E2E.K*' --filter-not-class 'Rune.E2E.L*'
-              --filter-not-class 'Rune.E2E.VisualTests'
+        letters: [A-C, D-L, M-R, S-Z]
     steps:
       - uses: actions/checkout@v7
 
@@ -115,10 +105,16 @@ jobs:
       - name: 安装 Playwright 的 Chromium
         run: pwsh tests/Rune.E2E/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
 
+      # 截图基线（VisualTests*）由下面的 visual 任务跑
       - name: 端到端测试
-        run: dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build ${{ matrix.filter }}
+        env:
+          LETTERS: ${{ matrix.letters }}
+        run: |
+          filters=()
+          for letter in $(eval echo "{${LETTERS/-/..}}"); do filters+=(--filter-class "Rune.E2E.$letter*"); done
+          dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build "${filters[@]}" --filter-not-class 'Rune.E2E.VisualTests*'
 
-  # 截图基线：每个文档页示例的效果区与 tests/Rune.E2E/Visual/Baselines 比较。系统、浏览器、字体都固定（ubuntu-24.04、Playwright 的 Chromium），
+  # 截图基线：每个文档页示例的效果区与 tests/Rune.E2E/Visual/Baselines 比较（页面分给几个测试类并行截，见 VisualTests）。系统、浏览器、字体都固定（ubuntu-24.04、Playwright 的 Chromium），
   # “现在”也固定（VisualServer）。不一致时实际的截图作为构件 visual-failures 上传
   visual:
     name: 截图基线
@@ -146,7 +142,7 @@ jobs:
         run: pwsh tests/Rune.E2E/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
 
       - name: 截图比较
-        run: dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build --filter-class 'Rune.E2E.VisualTests'
+        run: dotnet test --project tests/Rune.E2E/Rune.E2E.csproj --configuration Release --no-build --filter-class 'Rune.E2E.VisualTests*'
         env:
           RUNE_VISUAL_UPDATE: ${{ inputs.update-visual-baselines && '1' || '' }}
 
