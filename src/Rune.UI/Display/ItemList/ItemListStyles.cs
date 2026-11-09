@@ -173,7 +173,7 @@ public static class ItemListStyles
     {
         Display = Display.Flex,
         FlexDirection = FlexDirection.Column,
-        Gap = CssLength.Em(0.15),
+        Gap = Space.Xxs,
         MinWidth = 0,
     });
 

@@ -252,6 +252,9 @@ public static class Space
     /// <summary>0。</summary>
     public static readonly CssLength None = "var(--rune-space-none)";
 
+    /// <summary>0.125em：紧挨着的两行（标题与说明）、挨在一起的小按钮之间。</summary>
+    public static readonly CssLength Xxs = "var(--rune-space-xxs)";
+
     /// <summary>0.25em：图标与文字之间、紧凑的元素之间。</summary>
     public static readonly CssLength Xs = "var(--rune-space-xs)";
 

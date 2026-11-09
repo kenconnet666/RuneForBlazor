@@ -19,14 +19,14 @@
 
 <dialog @attributes="Attrs.Merge(LightboxStyles.Root, Rest, Managed)" @onrunetoggle="HandleToggle">
     <div @attributes="LightboxStyles.Toolbar">
-        <span aria-live="polite" @attributes="LightboxStyles.Counter">@(total > 1 ? Config.Lang.LightboxCounter(at + 1, total) : "")</span>
-        <IconButton Icon="BuiltInIcons.ZoomOut" Label="@Config.Lang.LightboxZoomOut" data-rune-lightbox-action="zoom-out" @attributes="button" />
+        <span aria-live="polite" @attributes="LightboxStyles.Counter">@(total > 1 ? Config.Lang.SlideCounter(at + 1, total) : "")</span>
+        <IconButton Icon="BuiltInIcons.ZoomOut" Label="@Config.Lang.ZoomOut" data-rune-lightbox-action="zoom-out" @attributes="button" />
         @* 缩放比例由 JS 写 *@
         <span aria-hidden="true" data-rune-lightbox-zoom @attributes="LightboxStyles.Zoom">100%</span>
-        <IconButton Icon="BuiltInIcons.ZoomIn" Label="@Config.Lang.LightboxZoomIn" data-rune-lightbox-action="zoom-in" @attributes="button" />
+        <IconButton Icon="BuiltInIcons.ZoomIn" Label="@Config.Lang.ZoomIn" data-rune-lightbox-action="zoom-in" @attributes="button" />
         <IconButton Icon="BuiltInIcons.RotateCcw" Label="@Config.Lang.LightboxRotateLeft" data-rune-lightbox-action="rotate-left" @attributes="button" />
         <IconButton Icon="BuiltInIcons.RotateCw" Label="@Config.Lang.LightboxRotateRight" data-rune-lightbox-action="rotate-right" @attributes="button" />
-        <IconButton Icon="BuiltInIcons.Undo2" Label="@Config.Lang.LightboxReset" data-rune-lightbox-action="reset" @attributes="button" />
+        <IconButton Icon="BuiltInIcons.Undo2" Label="@Config.Lang.ResetView" data-rune-lightbox-action="reset" @attributes="button" />
         @if (item is { Downloadable: true })
         {
             @* 下载而不是打开：download 是文件名，空字符串时用地址里的名字 *@

@@ -138,7 +138,7 @@ public static class CalendarBoardStyles
     {
         Display = Display.Flex,
         FlexDirection = FlexDirection.Column,
-        Gap = CssLength.Rem(0.125),
+        Gap = Space.Xxs,
         MarginBlock = Space.Xs,
         MarginInline = 0,
         Padding = 0,

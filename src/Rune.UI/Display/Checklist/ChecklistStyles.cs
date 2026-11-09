@@ -77,7 +77,7 @@ internal static class ChecklistStyles
         [When.Disabled] = new() { Cursor = Cursor.Default },
     });
 
-    static Style BodyStyle => Css.Define(static () => new Style { Display = Display.Grid, Gap = CssLength.Rem(0.125), MinWidth = 0 });
+    static Style BodyStyle => Css.Define(static () => new Style { Display = Display.Grid, Gap = Space.Xxs, MinWidth = 0 });
 
     static Style LabelStyle => Css.Define(static () => new Style { Color = Colors.Text, OverflowWrap = OverflowWrap.Anywhere });
 
@@ -93,7 +93,7 @@ internal static class ChecklistStyles
         FlexWrap = FlexWrap.Wrap,
         AlignItems = AlignItems.Center,
         ColumnGap = Space.Sm,
-        RowGap = CssLength.Rem(0.125),
+        RowGap = Space.Xxs,
         FontSize = FontSizes.Sm,
         Color = Colors.TextMuted,
     });
@@ -115,7 +115,7 @@ internal static class ChecklistStyles
 
     static Style InlineItemStyle => Css.Define(static () => new Style { Display = Display.InlineFlex, AlignItems = AlignItems.Center, Gap = Space.Xs, WhiteSpace = WhiteSpace.Nowrap });
 
-    static Style IconsStyle => Css.Define(static () => new Style { Display = Display.InlineFlex, AlignItems = AlignItems.Center, Gap = CssLength.Rem(0.125) });
+    static Style IconsStyle => Css.Define(static () => new Style { Display = Display.InlineFlex, AlignItems = AlignItems.Center, Gap = Space.Xxs });
 
     static Style StatusColor(ChecklistStatus status) => Css.Define(status, static status => new Style
     {

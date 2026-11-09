@@ -52,23 +52,35 @@ public sealed partial record Lang
     /// <summary>请求失败、又没有可用的错误文案时的文字，默认“请求失败，请稍后重试”</summary>
     public required string RequestFailed { get; init; }
 
+    /// <summary>放大按钮（图片预览、地图、裁剪图片共用），默认“放大”</summary>
+    public required string ZoomIn { get; init; }
+
+    /// <summary>缩小按钮（图片预览、地图、裁剪图片共用），默认“缩小”</summary>
+    public required string ZoomOut { get; init; }
+
+    /// <summary>第几张（图片预览的计数、轮播每一张与页点的名称）：(2, 5) → “第 2 张，共 5 张”</summary>
+    public required Func<double, double, string> SlideCounter { get; init; }
+
+    /// <summary>回到初始的大小、位置与方向（图片预览、裁剪图片共用），默认“还原”</summary>
+    public required string ResetView { get; init; }
+
+    /// <summary>裁剪图片：区域的名称，默认“裁剪图片”</summary>
+    public required string CropLabel { get; init; }
+
+    /// <summary>裁剪图片：操作说明（读屏），默认“拖动移动图片，滚轮或 + − 缩放，方向键微调”</summary>
+    public required string CropHint { get; init; }
+
+    /// <summary>裁剪图片：缩放滑块的名称，默认“缩放”</summary>
+    public required string CropZoom { get; init; }
+
     /// <summary>图片预览（Lightbox）的名称，默认“图片预览”</summary>
     public required string LightboxLabel { get; init; }
-
-    /// <summary>图片预览：放大，默认“放大”</summary>
-    public required string LightboxZoomIn { get; init; }
-
-    /// <summary>图片预览：缩小，默认“缩小”</summary>
-    public required string LightboxZoomOut { get; init; }
 
     /// <summary>图片预览：向左旋转，默认“向左旋转”</summary>
     public required string LightboxRotateLeft { get; init; }
 
     /// <summary>图片预览：向右旋转，默认“向右旋转”</summary>
     public required string LightboxRotateRight { get; init; }
-
-    /// <summary>图片预览：回到初始的大小、位置与方向，默认“还原”</summary>
-    public required string LightboxReset { get; init; }
 
     /// <summary>图片预览：下载，默认“下载”</summary>
     public required string LightboxDownload { get; init; }
@@ -78,9 +90,6 @@ public sealed partial record Lang
 
     /// <summary>图片预览：下一张，默认“下一张”</summary>
     public required string LightboxNext { get; init; }
-
-    /// <summary>图片预览的位置：(2, 5) → “第 2 张，共 5 张”</summary>
-    public required Func<double, double, string> LightboxCounter { get; init; }
 
     /// <summary>描述列表里复制一项的值的按钮：('订单号') → “复制订单号”</summary>
     public required Func<string, string> DescriptionsCopy { get; init; }
@@ -139,12 +148,6 @@ public sealed partial record Lang
     /// <summary>图表缩放后恢复全部，默认“显示全部”</summary>
     public required string ChartZoomReset { get; init; }
 
-    /// <summary>地图的放大按钮，默认“放大”</summary>
-    public required string ChartZoomIn { get; init; }
-
-    /// <summary>地图的缩小按钮，默认“缩小”</summary>
-    public required string ChartZoomOut { get; init; }
-
     /// <summary>地图的复位按钮，默认“复位”</summary>
     public required string ChartZoomFit { get; init; }
 
@@ -198,6 +201,36 @@ public sealed partial record Lang
 
     /// <summary>错误汇总里的一项：('邮箱', '格式不对') → “邮箱：格式不对”</summary>
     public required Func<string, string, string> FormErrorItem { get; init; }
+
+    /// <summary>SchemaForm 的提交按钮，默认“提交”</summary>
+    public required string FormSubmit { get; init; }
+
+    /// <summary>SchemaForm 的重置按钮，默认“重置”</summary>
+    public required string FormReset { get; init; }
+
+    /// <summary>SchemaForm 列表字段加一行的按钮：('联系人') → “添加联系人”</summary>
+    public required Func<string, string> FormAddRow { get; init; }
+
+    /// <summary>SchemaForm 列表字段删一行的按钮：('联系人', 2) → “删除第 2 个联系人”</summary>
+    public required Func<string, double, string> FormRemoveRow { get; init; }
+
+    /// <summary>明细表里一行的说明（格子里控件的读屏标签：“单价（第 2 个明细）”）</summary>
+    public required Func<string, double, string> FormRowLabel { get; init; }
+
+    /// <summary>明细表操作列的表头（只给读屏）</summary>
+    public required string FormRowActions { get; init; }
+
+    /// <summary>表单页签那一排的读屏名</summary>
+    public required string FormTabs { get; init; }
+
+    /// <summary>只读视图（SchemaView）里开关、复选框打开时的值</summary>
+    public required string FormValueTrue { get; init; }
+
+    /// <summary>只读视图里开关、复选框关着时的值</summary>
+    public required string FormValueFalse { get; init; }
+
+    /// <summary>只读视图里没有值时显示的</summary>
+    public required string FormValueEmpty { get; init; }
 
     /// <summary>未保存离开时确认对话框的标题，默认“离开这个页面？”</summary>
     public required string LeaveTitle { get; init; }
@@ -471,6 +504,96 @@ public sealed partial record Lang
 
     /// <summary>回到顶部按钮的名称，默认“回到顶部”</summary>
     public required string BackToTop { get; init; }
+
+    /// <summary>JsonViewer：对象、数组收起时的项数，默认“{count} 项”</summary>
+    public required Func<double, string> JsonItems { get; init; }
+
+    /// <summary>JsonViewer：搜索框的提示，默认“搜索键或值”</summary>
+    public required string JsonSearch { get; init; }
+
+    /// <summary>JsonViewer：全部展开，默认“全部展开”</summary>
+    public required string JsonExpandAll { get; init; }
+
+    /// <summary>JsonViewer：全部收起，默认“全部收起”</summary>
+    public required string JsonCollapseAll { get; init; }
+
+    /// <summary>JsonViewer：复制选中项的值，默认“复制值”</summary>
+    public required string JsonCopyValue { get; init; }
+
+    /// <summary>JsonViewer：复制选中项的路径，默认“复制路径”</summary>
+    public required string JsonCopyPath { get; init; }
+
+    /// <summary>JsonViewer：没有选中项时路径栏的提示，默认“选中一项后可以复制它的值与路径”</summary>
+    public required string JsonPathHint { get; init; }
+
+    /// <summary>ColorPicker：饱和度与明度的色板（读屏），默认“饱和度与明度”</summary>
+    public required string ColorArea { get; init; }
+
+    /// <summary>ColorPicker：色板当前的位置：(80, 45) → “饱和度 80%，明度 45%”</summary>
+    public required Func<double, double, string> ColorAreaValue { get; init; }
+
+    /// <summary>ColorPicker：色相滑块，默认“色相”</summary>
+    public required string ColorHue { get; init; }
+
+    /// <summary>ColorPicker：不透明度滑块，默认“不透明度”</summary>
+    public required string ColorAlpha { get; init; }
+
+    /// <summary>ColorPicker：从屏幕上取色（吸管），默认“从屏幕取色”</summary>
+    public required string ColorEyeDropper { get; init; }
+
+    /// <summary>ColorPicker：颜色值的写法，默认“格式”</summary>
+    public required string ColorFormat { get; init; }
+
+    /// <summary>ColorPicker：预设的颜色，默认“预设颜色”</summary>
+    public required string ColorPresets { get; init; }
+
+    /// <summary>ColorPicker：最近用过的颜色，默认“最近使用”</summary>
+    public required string ColorRecent { get; init; }
+
+    /// <summary>Carousel：区域的默认名称，默认“轮播”</summary>
+    public required string Carousel { get; init; }
+
+    /// <summary>Carousel：上一张，默认“上一张”</summary>
+    public required string CarouselPrevious { get; init; }
+
+    /// <summary>Carousel：下一张，默认“下一张”</summary>
+    public required string CarouselNext { get; init; }
+
+    /// <summary>Carousel：暂停自动播放，默认“暂停自动播放”</summary>
+    public required string CarouselPause { get; init; }
+
+    /// <summary>Carousel：继续自动播放，默认“开始自动播放”</summary>
+    public required string CarouselPlay { get; init; }
+
+    /// <summary>SignaturePad：签名区域的默认名称，默认“签名”</summary>
+    public required string Signature { get; init; }
+
+    /// <summary>SignaturePad：还没签时区域里的提示，默认“在此处签名”</summary>
+    public required string SignaturePlaceholder { get; init; }
+
+    /// <summary>SignaturePad：撤销上一笔，默认“撤销上一笔”</summary>
+    public required string SignatureUndo { get; init; }
+
+    /// <summary>SignaturePad：清空，默认“清空签名”</summary>
+    public required string SignatureClear { get; init; }
+
+    /// <summary>SignaturePad：读屏念的状态，默认“已签名”</summary>
+    public required string SignatureSigned { get; init; }
+
+    /// <summary>SignaturePad：读屏念的状态（只读时也显示），默认“未签名”</summary>
+    public required string SignatureEmpty { get; init; }
+
+    /// <summary>二维码图片的默认名称（读屏），默认“二维码”</summary>
+    public required string QrCode { get; init; }
+
+    /// <summary>二维码已过期（status="expired"），默认“二维码已过期”</summary>
+    public required string QrExpired { get; init; }
+
+    /// <summary>已过期时的刷新按钮，默认“刷新”</summary>
+    public required string QrRefresh { get; init; }
+
+    /// <summary>已扫描、等手机上确认（status="scanned"），默认“已扫描，请在手机上确认”</summary>
+    public required string QrScanned { get; init; }
 
     /// <summary>截断文字的展开按钮，默认“展开”</summary>
     public required string EllipsisExpand { get; init; }
@@ -901,7 +1024,7 @@ public sealed partial record Lang
     /// <summary>主题：青瓷，默认“青瓷”</summary>
     public required string ThemeCeladon { get; init; }
 
-    /// <summary>ColorField 色块（原生取色器）的名称，默认“选择颜色”</summary>
+    /// <summary>ColorField 色块（打开取色器的按钮）的名称，默认“选择颜色”</summary>
     public required string ColorPick { get; init; }
 
     /// <summary>翻页导航（上一篇、下一篇）的名称，默认“翻页”</summary>
@@ -932,16 +1055,19 @@ public sealed partial record Lang
         ImagePreview = alt => string.Concat("查看大图：", alt),
         ImageError = "图片加载失败",
         RequestFailed = "请求失败，请稍后重试",
+        ZoomIn = "放大",
+        ZoomOut = "缩小",
+        SlideCounter = (index, total) => string.Concat("第 ", index.ToString(CultureInfo.CurrentCulture), " 张，共 ", total.ToString(CultureInfo.CurrentCulture), " 张"),
+        ResetView = "还原",
+        CropLabel = "裁剪图片",
+        CropHint = "拖动移动图片，滚轮或 + − 缩放，方向键微调",
+        CropZoom = "缩放",
         LightboxLabel = "图片预览",
-        LightboxZoomIn = "放大",
-        LightboxZoomOut = "缩小",
         LightboxRotateLeft = "向左旋转",
         LightboxRotateRight = "向右旋转",
-        LightboxReset = "还原",
         LightboxDownload = "下载",
         LightboxPrevious = "上一张",
         LightboxNext = "下一张",
-        LightboxCounter = (index, total) => string.Concat("第 ", index.ToString(CultureInfo.CurrentCulture), " 张，共 ", total.ToString(CultureInfo.CurrentCulture), " 张"),
         DescriptionsCopy = label => string.Concat("复制", label),
         FieldCompareHeaders = ["字段", "原值", "新值", "变化"],
         FieldCompareTo = "改为",
@@ -961,8 +1087,6 @@ public sealed partial record Lang
         ChartExportName = "图表",
         ChartZoom = "显示范围",
         ChartZoomReset = "显示全部",
-        ChartZoomIn = "放大",
-        ChartZoomOut = "缩小",
         ChartZoomFit = "复位",
         ChartZoomWheelHint = "按住 Ctrl 滚动缩放地图",
         ChartSeries = "系列",
@@ -981,6 +1105,16 @@ public sealed partial record Lang
         FormRequired = "必填",
         FormErrorSummary = count => string.Concat("有 ", count.ToString(CultureInfo.CurrentCulture), " 项需要修改"),
         FormErrorItem = (label, message) => string.Concat(label, "：", message),
+        FormSubmit = "提交",
+        FormReset = "重置",
+        FormAddRow = label => string.Concat("添加", label),
+        FormRemoveRow = (label, index) => string.Concat("删除第 ", index.ToString(CultureInfo.CurrentCulture), " 个", label),
+        FormRowLabel = (label, index) => string.Concat("第 ", index.ToString(CultureInfo.CurrentCulture), " 个", label),
+        FormRowActions = "操作",
+        FormTabs = "表单分页",
+        FormValueTrue = "是",
+        FormValueFalse = "否",
+        FormValueEmpty = "—",
         LeaveTitle = "离开这个页面？",
         LeaveDescription = "有未保存的修改，离开后会丢失。",
         LeaveConfirm = "离开",
@@ -1072,6 +1206,36 @@ public sealed partial record Lang
         RatingStar = @value => string.Concat(@value.ToString(CultureInfo.CurrentCulture), " 星"),
         RatingSummary = (@value, count) => ((@value == null) ? "未评分" : string.Concat(@value?.ToString(CultureInfo.CurrentCulture), " 星，满分 ", count.ToString(CultureInfo.CurrentCulture), " 星")),
         BackToTop = "回到顶部",
+        JsonItems = count => string.Concat(count.ToString(CultureInfo.CurrentCulture), " 项"),
+        JsonSearch = "搜索键或值",
+        JsonExpandAll = "全部展开",
+        JsonCollapseAll = "全部收起",
+        JsonCopyValue = "复制值",
+        JsonCopyPath = "复制路径",
+        JsonPathHint = "选中一项后可以复制它的值与路径",
+        ColorArea = "饱和度与明度",
+        ColorAreaValue = (saturation, brightness) => string.Concat("饱和度 ", saturation.ToString(CultureInfo.CurrentCulture), "%，明度 ", brightness.ToString(CultureInfo.CurrentCulture), "%"),
+        ColorHue = "色相",
+        ColorAlpha = "不透明度",
+        ColorEyeDropper = "从屏幕取色",
+        ColorFormat = "格式",
+        ColorPresets = "预设颜色",
+        ColorRecent = "最近使用",
+        Carousel = "轮播",
+        CarouselPrevious = "上一张",
+        CarouselNext = "下一张",
+        CarouselPause = "暂停自动播放",
+        CarouselPlay = "开始自动播放",
+        Signature = "签名",
+        SignaturePlaceholder = "在此处签名",
+        SignatureUndo = "撤销上一笔",
+        SignatureClear = "清空签名",
+        SignatureSigned = "已签名",
+        SignatureEmpty = "未签名",
+        QrCode = "二维码",
+        QrExpired = "二维码已过期",
+        QrRefresh = "刷新",
+        QrScanned = "已扫描，请在手机上确认",
         EllipsisExpand = "展开",
         EllipsisCollapse = "收起",
         ProgressTarget = @value => string.Concat("目标 ", @value),
@@ -1236,16 +1400,19 @@ public sealed partial record Lang
         ImagePreview = alt => string.Concat("View larger: ", alt),
         ImageError = "Image failed to load",
         RequestFailed = "Request failed. Try again later.",
+        ZoomIn = "Zoom in",
+        ZoomOut = "Zoom out",
+        SlideCounter = (index, total) => string.Concat(index.ToString(CultureInfo.CurrentCulture), " of ", total.ToString(CultureInfo.CurrentCulture)),
+        ResetView = "Reset",
+        CropLabel = "Crop image",
+        CropHint = "Drag to move the image, scroll or press + and − to zoom, arrow keys to nudge",
+        CropZoom = "Zoom",
         LightboxLabel = "Image viewer",
-        LightboxZoomIn = "Zoom in",
-        LightboxZoomOut = "Zoom out",
         LightboxRotateLeft = "Rotate left",
         LightboxRotateRight = "Rotate right",
-        LightboxReset = "Reset",
         LightboxDownload = "Download",
         LightboxPrevious = "Previous image",
         LightboxNext = "Next image",
-        LightboxCounter = (index, total) => string.Concat(index.ToString(CultureInfo.CurrentCulture), " of ", total.ToString(CultureInfo.CurrentCulture)),
         DescriptionsCopy = label => string.Concat("Copy ", label),
         FieldCompareHeaders = ["Field", "Before", "After", "Change"],
         FieldCompareTo = "changed to",
@@ -1265,8 +1432,6 @@ public sealed partial record Lang
         ChartExportName = "chart",
         ChartZoom = "Visible range",
         ChartZoomReset = "Show all",
-        ChartZoomIn = "Zoom in",
-        ChartZoomOut = "Zoom out",
         ChartZoomFit = "Fit to view",
         ChartZoomWheelHint = "Hold Ctrl and scroll to zoom the map",
         ChartSeries = "Series",
@@ -1285,6 +1450,16 @@ public sealed partial record Lang
         FormRequired = "Required",
         FormErrorSummary = count => ((count == 1) ? "There is 1 problem" : string.Concat("There are ", count.ToString(CultureInfo.CurrentCulture), " problems")),
         FormErrorItem = (label, message) => string.Concat(label, ": ", message),
+        FormSubmit = "Submit",
+        FormReset = "Reset",
+        FormAddRow = label => string.Concat("Add ", label),
+        FormRemoveRow = (label, index) => string.Concat("Remove ", label, " ", index.ToString(CultureInfo.CurrentCulture)),
+        FormRowLabel = (label, index) => string.Concat(label, " ", index.ToString(CultureInfo.CurrentCulture)),
+        FormRowActions = "Actions",
+        FormTabs = "Form sections",
+        FormValueTrue = "Yes",
+        FormValueFalse = "No",
+        FormValueEmpty = "—",
         LeaveTitle = "Leave this page?",
         LeaveDescription = "You have unsaved changes that will be lost.",
         LeaveConfirm = "Leave",
@@ -1376,6 +1551,36 @@ public sealed partial record Lang
         RatingStar = @value => ((@value == 1) ? "1 star" : string.Concat(@value.ToString(CultureInfo.CurrentCulture), " stars")),
         RatingSummary = (@value, count) => ((@value == null) ? "Not rated" : string.Concat(@value?.ToString(CultureInfo.CurrentCulture), " out of ", count.ToString(CultureInfo.CurrentCulture), " stars")),
         BackToTop = "Back to top",
+        JsonItems = count => ((count == 1) ? "1 item" : string.Concat(count.ToString(CultureInfo.CurrentCulture), " items")),
+        JsonSearch = "Search keys or values",
+        JsonExpandAll = "Expand all",
+        JsonCollapseAll = "Collapse all",
+        JsonCopyValue = "Copy value",
+        JsonCopyPath = "Copy path",
+        JsonPathHint = "Select an item to copy its value or path",
+        ColorArea = "Saturation and brightness",
+        ColorAreaValue = (saturation, brightness) => string.Concat("Saturation ", saturation.ToString(CultureInfo.CurrentCulture), "%, brightness ", brightness.ToString(CultureInfo.CurrentCulture), "%"),
+        ColorHue = "Hue",
+        ColorAlpha = "Opacity",
+        ColorEyeDropper = "Pick a color from the screen",
+        ColorFormat = "Format",
+        ColorPresets = "Preset colors",
+        ColorRecent = "Recently used",
+        Carousel = "Carousel",
+        CarouselPrevious = "Previous slide",
+        CarouselNext = "Next slide",
+        CarouselPause = "Pause autoplay",
+        CarouselPlay = "Start autoplay",
+        Signature = "Signature",
+        SignaturePlaceholder = "Sign here",
+        SignatureUndo = "Undo last stroke",
+        SignatureClear = "Clear signature",
+        SignatureSigned = "Signed",
+        SignatureEmpty = "Not signed",
+        QrCode = "QR code",
+        QrExpired = "QR code expired",
+        QrRefresh = "Refresh",
+        QrScanned = "Scanned. Confirm on your phone.",
         EllipsisExpand = "More",
         EllipsisCollapse = "Less",
         ProgressTarget = @value => string.Concat("target ", @value),

@@ -41,7 +41,7 @@ internal static class ProportionBarStyles
 
     static Style RootStyle => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Sm, MinWidth = 0 });
 
-    static Style BarStyle => Css.Define(static () => new Style { Display = Display.Flex, Gap = CssLength.Rem(0.125), BorderRadius = Radii.Full, Overflow = Overflow.Hidden });
+    static Style BarStyle => Css.Define(static () => new Style { Display = Display.Flex, Gap = BorderWidths.Sm, BorderRadius = Radii.Full, Overflow = Overflow.Hidden });
 
     static Style SmStyle => Css.Define(static () => new Style { Height = CssLength.Rem(0.5) });
 

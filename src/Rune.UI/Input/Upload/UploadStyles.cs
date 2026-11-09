@@ -157,7 +157,7 @@ internal static class UploadStyles
         Top = Space.Xs,
         InsetInlineEnd = Space.Xs,
         Display = Display.Flex,
-        Gap = CssLength.Em(0.125),
+        Gap = Space.Xxs,
     });
 
     static Style ActionStyle => Css.Define(static () => new Style
