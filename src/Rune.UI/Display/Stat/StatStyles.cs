@@ -2,37 +2,75 @@ using Rune.Styles;
 
 namespace Rune.UI;
 
+/// <summary>统计数值的部件（同 vue-tsx-pro 的 statRecipe）。</summary>
+public enum StatPart
+{
+    /// <summary>dl。</summary>
+    Root,
+
+    /// <summary>指标名（dt，图标与名称）。</summary>
+    Label,
+
+    /// <summary>图标的外层（span）。</summary>
+    Icon,
+
+    /// <summary>数值那一行（dd）。</summary>
+    Value,
+
+    /// <summary>数字本身（span 或 AnimatedNumber）：按色调着色。</summary>
+    Number,
+
+    /// <summary>单位。</summary>
+    Unit,
+
+    /// <summary>变化量（dd）。</summary>
+    Change,
+
+    /// <summary>变化量后面的说明（“较上月”）。</summary>
+    ChangeLabel,
+
+    /// <summary>说明（dd）。</summary>
+    Description,
+
+    /// <summary>补充内容（dd，ChildContent 的外层）。</summary>
+    Body,
+
+    /// <summary>底栏（dd）。</summary>
+    Footer,
+}
+
 /// <summary>
-/// 统计数值的样式（同 vue-tsx-pro 的 statStyles）：第一行是图标与指标名、结束边是变化量，第二行是数值，其余各占一整行。
+/// 统计数值的样式（配方，同 vue-tsx-pro 的 statRecipe）：第一行是图标与指标名、结束边是变化量，第二行是数值，其余各占一整行。
 /// 可换行的弹性布局而不是两列网格：卡片窄时变化量换到下一行，指标名不被挤成一字一行；DOM 顺序不变（读屏仍是名称、数值、变化量）。
+/// 数值的色调是档位。
 /// </summary>
-internal static class StatStyles
+public static class StatStyles
 {
     // 放在最前：下面的层在静态初始化时就生成样式，要用到它
     /// <summary>StatGroup 每个指标的最小宽度：经它写在外层上（类不随宽度变化）。</summary>
     internal static readonly CssVar<CssLength> MinItemWidth = CssVar.Length("rune-stat-min-item-width", "9rem");
 
-    internal static readonly Attrs Root = new() { Sx = RootStyle };
-    internal static readonly Attrs GroupedRoot = new() { Sx = Sx.Of(RootStyle, GroupItem) };
-    internal static readonly Attrs Label = new() { Sx = LabelStyle };
-    internal static readonly Attrs Icon = new() { Sx = IconStyle, ["aria-hidden"] = "true" };
-    internal static readonly Attrs Value = new() { Sx = ValueStyle };
-    internal static readonly Attrs Unit = new() { Sx = UnitStyle };
-    internal static readonly Attrs Change = new() { Sx = ChangeStyle };
-    internal static readonly Attrs ChangeLabel = new() { Sx = ChangeLabelStyle };
-    internal static readonly Attrs Description = new() { Sx = DescriptionStyle };
-    internal static readonly Attrs Body = new() { Sx = BodyStyle };
-    internal static readonly Attrs Footer = new() { Sx = FooterStyle };
     internal static readonly Attrs NumberSkeleton = new() { Sx = NumberSkeletonStyle };
     internal static readonly Attrs ChangeSkeleton = new() { Sx = ChangeSkeletonStyle };
     internal static readonly Attrs Reveal = new() { Sx = ShimmerStyles.Reveal };
     internal static readonly Attrs GroupRoot = new() { Sx = GroupRootStyle };
 
-    /// <summary>数字本身：字号大一档、粗体、等宽数字，按色调着色。</summary>
-    internal static Attrs Number(TextTone? tone) => tone is { } t ? TonedNumbers[(int)t] : PlainNumber;
-
-    static readonly Attrs PlainNumber = new() { Sx = NumberStyle };
-    static readonly Attrs[] TonedNumbers = [.. Enum.GetValues<TextTone>().Select(tone => new Attrs { Sx = Sx.Of(NumberStyle, SharedStyles.TextColor(tone)) })];
+    /// <summary>某个色调、在不在 StatGroup 里时各部件的默认层。</summary>
+    public static PartLayers<StatPart> Of(TextTone? tone, bool grouped, ComponentStyles styles) =>
+        Recipe.Of("stat", (tone, grouped), styles, static ((TextTone? Tone, bool Grouped) a, StatPart part) => part switch
+        {
+            StatPart.Root => Sx.Of(RootStyle, a.Grouped ? GroupItem : null),
+            StatPart.Label => LabelStyle,
+            StatPart.Icon => IconStyle,
+            StatPart.Value => ValueStyle,
+            StatPart.Number => Sx.Of(NumberStyle, a.Tone is { } t ? SharedStyles.TextColor(t) : null),
+            StatPart.Unit => UnitStyle,
+            StatPart.Change => ChangeStyle,
+            StatPart.ChangeLabel => ChangeLabelStyle,
+            StatPart.Description => DescriptionStyle,
+            StatPart.Body => BodyStyle,
+            _ => FooterStyle,
+        });
 
     static Style RootStyle => Css.Define(static () => new Style
     {

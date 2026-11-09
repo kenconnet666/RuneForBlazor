@@ -15,38 +15,39 @@
     // 出现过骨架之后，换回数值时淡入
     if (skeleton) revealing = true;
     var reveal = revealing && !skeleton ? StatStyles.Reveal : null;
+    var parts = StatStyles.Of(Tone, Grouped, Config.Styles);
 }
 @* 指标里的链接（操作、附件、值）悬停才有下划线 *@
 <CascadingValue Value="LinkUnderlineContext.Hover" IsFixed="true">
-<dl aria-busy="@(Loading ? "true" : null)" @attributes="Attrs.Merge(Grouped ? StatStyles.GroupedRoot : StatStyles.Root, Rest)">
-    <dt @attributes="Attrs.Merge(StatStyles.Label, PropsLabel)">
+<dl aria-busy="@(Loading ? "true" : null)" @attributes="Attrs.Merge(parts[StatPart.Root], Rest)">
+    <dt @attributes="Attrs.Merge(parts[StatPart.Label], PropsLabel)">
         @if (Icon is not null)
         {
-            <span @attributes="Attrs.Merge(StatStyles.Icon, PropsIcon)"><Icon Data="Icon" /></span>
+            <span aria-hidden="true" @attributes="Attrs.Merge(parts[StatPart.Icon], PropsIcon)"><Icon Data="Icon" /></span>
         }
         <span>@Label</span>
     </dt>
-    <dd @attributes="Attrs.Merge(StatStyles.Value, reveal, PropsValue)">
+    <dd @attributes="Attrs.Merge(parts[StatPart.Value], reveal, PropsValue)">
         @if (skeleton)
         {
             <Skeleton @attributes="Attrs.MergeProps(StatStyles.NumberSkeleton)" />
         }
         else if (Value is { } value)
         {
-            <AnimatedNumber Value="value" Format="Format" @attributes="Attrs.MergeProps(StatStyles.Number(Tone), PropsNumber)" />
+            <AnimatedNumber Value="value" Format="Format" @attributes="Attrs.MergeProps(parts[StatPart.Number], PropsNumber)" />
         }
         else
         {
-            <span @attributes="Attrs.Merge(StatStyles.Number(Tone), PropsNumber)">@Text</span>
+            <span @attributes="Attrs.Merge(parts[StatPart.Number], PropsNumber)">@Text</span>
         }
         @if (Unit is not null && !skeleton)
         {
-            <span @attributes="Attrs.Merge(StatStyles.Unit, PropsUnit)">@Unit</span>
+            <span @attributes="Attrs.Merge(parts[StatPart.Unit], PropsUnit)">@Unit</span>
         }
     </dd>
     @if (Change is { } change)
     {
-        <dd data-trend="@(skeleton ? null : Direction(change))" @attributes="Attrs.Merge(StatStyles.Change, reveal, PropsChange)">
+        <dd data-trend="@(skeleton ? null : Direction(change))" @attributes="Attrs.Merge(parts[StatPart.Change], reveal, PropsChange)">
             @if (skeleton)
             {
                 <Skeleton @attributes="Attrs.MergeProps(StatStyles.ChangeSkeleton)" />
@@ -63,22 +64,22 @@
                 </AnimatedNumber>
                 @if (ChangeLabel is not null)
                 {
-                    <span @attributes="Attrs.Merge(StatStyles.ChangeLabel, PropsChangeLabel)">@ChangeLabel</span>
+                    <span @attributes="Attrs.Merge(parts[StatPart.ChangeLabel], PropsChangeLabel)">@ChangeLabel</span>
                 }
             }
         </dd>
     }
     @if (Description is not null)
     {
-        <dd @attributes="Attrs.Merge(StatStyles.Description, PropsDescription)">@Description</dd>
+        <dd @attributes="Attrs.Merge(parts[StatPart.Description], PropsDescription)">@Description</dd>
     }
     @if (ChildContent is not null)
     {
-        <dd @attributes="Attrs.Merge(StatStyles.Body, PropsBody)">@ChildContent</dd>
+        <dd @attributes="Attrs.Merge(parts[StatPart.Body], PropsBody)">@ChildContent</dd>
     }
     @if (Footer is not null)
     {
-        <dd @attributes="Attrs.Merge(StatStyles.Footer, PropsFooter)">@Footer</dd>
+        <dd @attributes="Attrs.Merge(parts[StatPart.Footer], PropsFooter)">@Footer</dd>
     }
 </dl>
 </CascadingValue>

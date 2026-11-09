@@ -18,10 +18,11 @@
     if (Reverse) chronological.Reverse();
     // 按钮在旧的那一端：倒序时在最后，最后一项仍连线到它
     var toggleAtEnd = hidden > 0 && Reverse;
+    parts = TimelineStyles.Of(Size, Alternate, Config.Styles);
 }
 @* 时间线里的链接（附件、单号）悬停才有下划线 *@
 <CascadingValue Value="LinkUnderlineContext.Hover" IsFixed="true">
-<ol reversed="@Reverse" data-alternate="@(Alternate ? "true" : null)" @attributes="Attrs.Merge(TimelineStyles.Root, SizeLayer, Rest)">
+<ol reversed="@Reverse" role="list" data-alternate="@(Alternate ? "true" : null)" @attributes="Attrs.Merge(parts[TimelinePart.Root], Rest)">
     @if (hidden > 0 && !Reverse)
     {
         @Toggle(hidden)
@@ -32,20 +33,20 @@
         var last = i == chronological.Count - 1 && !toggleAtEnd;
         var end = Alternate && i % 2 == 1;
         <li @key="@(item.Key ?? (object)i)" data-state="@(pending ? "pending" : null)" aria-busy="@(pending ? "true" : null)"
-            @attributes="Attrs.Merge(Alternate ? TimelineStyles.ItemAlternate : TimelineStyles.Item, PropsItem)">
+            @attributes="Attrs.Merge(parts[TimelinePart.Item], PropsItem)">
             @* 交替排布：奇数项左侧放时间，偶数项右侧放时间 *@
             @if (Alternate && !end)
             {
                 @OppositeTime(item)
             }
-            <div @attributes="Attrs.Merge(TimelineStyles.Rail, PropsRail)">
+            <div @attributes="Attrs.Merge(parts[TimelinePart.Rail], PropsRail)">
                 @if (pending)
                 {
                     <Spinner @attributes="Attrs.MergeProps(TimelineStyles.Pending)" />
                 }
                 else
                 {
-                    <span @attributes="Attrs.Merge(TimelineStyles.Marker(item.Tone ?? Tone.Neutral, item.Icon is not null), PropsMarker)">
+                    <span aria-hidden="true" @attributes="Attrs.Merge(parts[TimelinePart.Marker], TimelineStyles.MarkerLook(item.Tone ?? Tone.Neutral, item.Icon is not null), PropsMarker)">
                         @if (item.Icon is { } icon)
                         {
                             <Icon Data="icon" />
@@ -54,15 +55,15 @@
                 }
                 @if (!last)
                 {
-                    <span @attributes="Attrs.Merge(TimelineStyles.Line, PropsLine)"></span>
+                    <span aria-hidden="true" @attributes="Attrs.Merge(parts[TimelinePart.Line], PropsLine)"></span>
                 }
             </div>
-            <div @attributes="Attrs.Merge(end ? TimelineStyles.ContentEnd : TimelineStyles.Content, PropsContent)">
-                <div @attributes="Attrs.Merge(TimelineStyles.Title, PropsTitle)">@(item.TitleContent ?? (RenderFragment)(b => b.AddContent(0, item.Title)))</div>
+            <div @attributes="Attrs.Merge(parts[TimelinePart.Content], end ? TimelineStyles.ContentEnd : null, PropsContent)">
+                <div @attributes="Attrs.Merge(parts[TimelinePart.Title], PropsTitle)">@(item.TitleContent ?? (RenderFragment)(b => b.AddContent(0, item.Title)))</div>
                 @if (item.Actor is not null)
                 {
-                    <div @attributes="Attrs.Merge(TimelineStyles.Meta, PropsMeta)">
-                        <span @attributes="TimelineStyles.Actor">
+                    <div @attributes="Attrs.Merge(parts[TimelinePart.Meta], PropsMeta)">
+                        <span @attributes="parts[TimelinePart.Actor]">
                             <Avatar Src="@item.Avatar" Name="@item.Actor" @attributes="Attrs.MergeProps(TimelineStyles.Avatar)" />
                             @item.Actor
                         </span>
@@ -75,7 +76,7 @@
                 }
                 @if (item.DescriptionContent is not null || item.Description is not null)
                 {
-                    <div @attributes="Attrs.Merge(TimelineStyles.Description, PropsDescription)">@(item.DescriptionContent ?? (RenderFragment)(b => b.AddContent(0, item.Description)))</div>
+                    <div @attributes="Attrs.Merge(parts[TimelinePart.Description], PropsDescription)">@(item.DescriptionContent ?? (RenderFragment)(b => b.AddContent(0, item.Description)))</div>
                 }
                 @if (item.Details is not null)
                 {
@@ -161,28 +162,26 @@
     /// <summary>展开其余各项的按钮（交给 Button）的部件属性。</summary>
     [Parameter] public Attrs? PropsToggle { get; set; }
 
-    Attrs? SizeLayer => Size is { } size ? sizeLayers.Get(size, static s => new Attrs { Sx = ScaleStyles.FontSize(s) }) : null;
-
-    Memo<Size, Attrs> sizeLayers;
+    PartLayers<TimelinePart> parts = null!;
 
     // 内容里的时间：交替排布时只在窄的容器里显示（宽时在对侧）
-    RenderFragment InlineTime(TimelineItem item) => item.Time is null ? _ => { } : TimeOf(item, Alternate ? TimelineStyles.TimeInline : TimelineStyles.Time);
+    RenderFragment InlineTime(TimelineItem item) => item.Time is null ? _ => { } : TimeOf(item, Alternate ? TimelineStyles.TimeInline : null);
 
     // 交替排布时对侧的一格：没有时间也占位，保持三列对齐
     RenderFragment OppositeTime(TimelineItem item) => item.Time is null
         ? @<span @attributes="TimelineStyles.OppositeGap"></span>
         : TimeOf(item, TimelineStyles.TimeOpposite);
 
-    RenderFragment TimeOf(TimelineItem item, Attrs layer) =>
-        @<time @attributes="Attrs.Merge(layer, PropsTime)" datetime="@item.DateTime">@item.Time</time>;
+    RenderFragment TimeOf(TimelineItem item, Attrs? layer) =>
+        @<time @attributes="Attrs.Merge(parts[TimelinePart.Time], layer, PropsTime)" datetime="@item.DateTime">@item.Time</time>;
 
     // 收起的那几项所在的位置：节点列一段虚线，内容是展开、收起的按钮
     RenderFragment Toggle(int hidden) =>
-        @<li @key="@("toggle")" @attributes="TimelineStyles.Item">
-            <div @attributes="Attrs.Merge(TimelineStyles.Rail, PropsRail)">
-                <span @attributes="TimelineStyles.ToggleLine"></span>
+        @<li @key="@("toggle")" @attributes="Attrs.Merge(parts[TimelinePart.Item], PropsItem)">
+            <div @attributes="Attrs.Merge(parts[TimelinePart.Rail], PropsRail)">
+                <span aria-hidden="true" @attributes="parts[TimelinePart.ToggleLine]"></span>
             </div>
-            <div @attributes="TimelineStyles.ToggleContent">
+            <div @attributes="parts[TimelinePart.ToggleContent]">
                 <Button Variant="ButtonVariant.Link" Size="UI.Size.Sm" IconEnd="@(expanded.Value ? BuiltInIcons.ChevronUp : BuiltInIcons.ChevronDown)"
                         aria-expanded="@(expanded.Value ? "true" : "false")" @onclick="() => expanded.SetAsync(!expanded.Value)"
                         @attributes="Attrs.MergeProps(null, PropsToggle)">

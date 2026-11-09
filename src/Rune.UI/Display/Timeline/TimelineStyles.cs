@@ -2,41 +2,91 @@ using Rune.Styles;
 
 namespace Rune.UI;
 
+/// <summary>时间线的部件（同 vue-tsx-pro 的 timelineRecipe）。</summary>
+public enum TimelinePart
+{
+    /// <summary>ol。</summary>
+    Root,
+
+    /// <summary>每一项（li）。</summary>
+    Item,
+
+    /// <summary>节点那一列（节点与连线）。</summary>
+    Rail,
+
+    /// <summary>节点：圆点或图标（按各项的色调着色）。</summary>
+    Marker,
+
+    /// <summary>连到下一项的线。</summary>
+    Line,
+
+    /// <summary>内容那一列。</summary>
+    Content,
+
+    /// <summary>标题。</summary>
+    Title,
+
+    /// <summary>标题下面的一行：操作人与时间。</summary>
+    Meta,
+
+    /// <summary>操作人（头像与名字）。</summary>
+    Actor,
+
+    /// <summary>时间（time）。</summary>
+    Time,
+
+    /// <summary>说明。</summary>
+    Description,
+
+    /// <summary>收起的几项所在位置的虚线。</summary>
+    ToggleLine,
+
+    /// <summary>展开、收起按钮的那一格。</summary>
+    ToggleContent,
+}
+
 /// <summary>
-/// 时间线的样式（同 vue-tsx-pro 的 timelineStyles）。每项是独立的网格：节点一列、内容一列，交替排布时三列（左内容、节点、右内容）；
-/// 节点列至少有图标节点那么宽，圆点、图标、加载指示混排时各项才对得齐。交替排布按容器宽度切换（窄于 32em 排回一侧）。
+/// 时间线的样式（配方，同 vue-tsx-pro 的 timelineRecipe）：字号与交替排布是档位。每项是独立的网格：节点一列、内容一列，
+/// 交替排布时三列（左内容、节点、右内容）；节点列至少有图标节点那么宽，圆点、图标、加载指示混排时各项才对得齐。
+/// 交替排布按容器宽度切换（窄于 32em 排回一侧）。各项的色调、内容在哪一侧、时间放在哪里随项变化，排在部件的默认层后面。
 /// </summary>
-internal static class TimelineStyles
+public static class TimelineStyles
 {
     static readonly Condition Narrow = Containers.MaxWidth(CssLength.Em(32));
 
-    internal static readonly Attrs Root = new() { Sx = RootStyle, Role = "list" };
-    internal static readonly Attrs Item = new() { Sx = ItemStyle };
-    internal static readonly Attrs ItemAlternate = new() { Sx = Sx.Of(ItemStyle, ItemAlternateStyle) };
-    internal static readonly Attrs Rail = new() { Sx = RailStyle };
-    internal static readonly Attrs Line = new() { Sx = LineStyle, ["aria-hidden"] = "true" };
     internal static readonly Attrs Pending = new() { Sx = Sx.Of(PendingStyle, ToneStyle(Tone.Accent)) };
-    internal static readonly Attrs Content = new() { Sx = ContentStyle };
-    internal static readonly Attrs ContentEnd = new() { Sx = Sx.Of(ContentStyle, ContentEndStyle) };
-    internal static readonly Attrs Title = new() { Sx = TitleStyle };
-    internal static readonly Attrs Meta = new() { Sx = MetaStyle };
-    internal static readonly Attrs Actor = new() { Sx = ActorStyle };
     internal static readonly Attrs Avatar = new() { Sx = AvatarStyle };
-    internal static readonly Attrs Time = new() { Sx = TimeStyle };
-    internal static readonly Attrs TimeOpposite = new() { Sx = Sx.Of(TimeStyle, TimeOppositeStyle) };
-    internal static readonly Attrs TimeInline = new() { Sx = Sx.Of(TimeStyle, TimeInlineStyle) };
+    internal static readonly Attrs ContentEnd = new() { Sx = ContentEndStyle };
+    internal static readonly Attrs TimeOpposite = new() { Sx = TimeOppositeStyle };
+    internal static readonly Attrs TimeInline = new() { Sx = TimeInlineStyle };
     internal static readonly Attrs OppositeGap = new() { Sx = TimeOppositeStyle };
-    internal static readonly Attrs Description = new() { Sx = DescriptionStyle };
     internal static readonly Attrs DetailsToggle = new() { Sx = DetailsToggleStyle };
     internal static readonly Attrs DetailsContent = new() { Sx = DetailsContentStyle };
-    internal static readonly Attrs ToggleLine = new() { Sx = ToggleLineStyle, ["aria-hidden"] = "true" };
-    internal static readonly Attrs ToggleContent = new() { Sx = ToggleContentStyle };
 
-    /// <summary>节点：圆点，有图标时大一些、描边；按色调着色。</summary>
-    internal static Attrs Marker(Tone tone, bool icon) => (icon ? IconMarkers : DotMarkers)[(int)tone];
+    /// <summary>某个字号、是否交替排布时各部件的默认层。</summary>
+    public static PartLayers<TimelinePart> Of(Size? size, bool alternate, ComponentStyles styles) =>
+        Recipe.Of("timeline", (size, alternate), styles, static ((Size? Size, bool Alternate) a, TimelinePart part) => part switch
+        {
+            TimelinePart.Root => Sx.Of(RootStyle, a.Size is { } s ? ScaleStyles.FontSize(s) : null),
+            TimelinePart.Item => Sx.Of(ItemStyle, a.Alternate ? ItemAlternateStyle : null),
+            TimelinePart.Rail => RailStyle,
+            TimelinePart.Marker => MarkerStyle,
+            TimelinePart.Line => LineStyle,
+            TimelinePart.Content => ContentStyle,
+            TimelinePart.Title => TitleStyle,
+            TimelinePart.Meta => MetaStyle,
+            TimelinePart.Actor => ActorStyle,
+            TimelinePart.Time => TimeStyle,
+            TimelinePart.Description => DescriptionStyle,
+            TimelinePart.ToggleLine => ToggleLineStyle,
+            _ => ToggleContentStyle,
+        });
 
-    static readonly Attrs[] DotMarkers = [.. Enum.GetValues<Tone>().Select(tone => new Attrs { Sx = Sx.Of(MarkerStyle, ToneStyle(tone)), ["aria-hidden"] = "true" })];
-    static readonly Attrs[] IconMarkers = [.. Enum.GetValues<Tone>().Select(tone => new Attrs { Sx = Sx.Of(MarkerStyle, MarkerIconStyle, ToneStyle(tone)), ["aria-hidden"] = "true" })];
+    /// <summary>节点随项变化的那一层：色调，有图标时大一些、描边。</summary>
+    internal static Attrs MarkerLook(Tone tone, bool icon) => (icon ? IconMarkers : DotMarkers)[(int)tone];
+
+    static readonly Attrs[] DotMarkers = [.. Enum.GetValues<Tone>().Select(tone => new Attrs { Sx = ToneStyle(tone) })];
+    static readonly Attrs[] IconMarkers = [.. Enum.GetValues<Tone>().Select(tone => new Attrs { Sx = Sx.Of(MarkerIconStyle, ToneStyle(tone)) })];
 
     static Style ToneStyle(Tone tone) => Css.Define(tone, static tone => new Style
     {
