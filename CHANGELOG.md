@@ -4,7 +4,22 @@
 1.0 之前次版本号的升级可能带破坏性改动，会写在对应版本的“破坏性改动”里。发版见 `.github/workflows/release.yml`：
 推送 `v` 开头的 tag（与 `Directory.Build.props` 的 `VersionPrefix` 一致、这里有对应的一节），CI 通过后推送到 nuget.org。
 
-## [Unreleased]
+## [0.16.0] - 2026-11-10
+
+组件的样式与交互仍对齐 vue-tsx-pro 0.21.0。这一版主要打磨桌面应用的启动与关闭。
+
+### 修复
+
+- 没有预渲染的交互根（Blazor Hybrid、只在客户端渲染的应用）第一屏闪一帧没有样式的页面（图标铺满窗口）：
+  `RuneStyles` 在渲染器的线程上收到新登记的样式时，直接排进正在进行的这一批渲染，样式与内容一起到达页面
+  （之前经 `InvokeAsync`，MAUI 的调度器总是排到下一轮）
+
+### 改进
+
+- RuneForBlazor.Desktop.Maui：启动时 WebView 在页面画出来之前保持透明，不再露出 WebView2 自己的灰色底（#202020）；
+  关闭窗口（标题栏的关闭、Alt+F4、任务栏、`IDesktopWindow.CloseAsync`）时先隐藏窗口再拆，不再闪一帧白（亮色系统）或灰
+- 桌面样板的启动：窗口一打开就是主题的底色，中间是标志（先原生画、再由页面里的启动画面接着轻轻呼吸），
+  Rune 的样式到了内容淡入；自检与 CI 的“桌面”任务检查第一屏内容出来时样式已经在了
 
 ## [0.15.0] - 2026-11-10
 
@@ -89,7 +104,7 @@
 - 每个部件带 `data-scope` / `data-part` 标记，都有 `PropsXxx` 部件属性，组合组件把里面每层的部件属性转发出去
 - 组件规格与 vue-tsx-pro 的 `/spec/components.json` 逐项比对（`tests/Rune.Tests/Parity`），差异记在基线里
 
-[Unreleased]: https://github.com/kenconnet666/RuneForBlazor/compare/v0.15.0...HEAD
+[0.16.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.16.0
 [0.15.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.15.0
 [0.14.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.14.0
 [0.13.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.13.0
