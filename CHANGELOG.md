@@ -10,7 +10,13 @@
 
 - Blazor Hybrid（.NET MAUI、WPF、WinForms 的 BlazorWebView）可用：`ThemeBootScript` 放在根组件（Routes）的开头，
   交互渲染时只输出主题配置，Rune 的脚本看到配置后给根元素设好主题与底色（没有 Razor 的 head，插入的脚本不执行）。
-  仓库里的 `apps/Rune.Desktop` 是 MAUI（Windows）的样板，窗口里是文档站的全部页面
+  仓库里的 `apps/Rune.Desktop` 是 MAUI（Windows）的样板，窗口里是整个文档站（外壳、首页与全部页面同网站）
+- 新包 RuneForBlazor.Desktop.Maui（.NET MAUI，目前只支持 Windows）：`builder.UseRuneDesktop()` 去掉系统标题栏，
+  AppShell 的顶栏就是窗口的标题栏，保留 Windows 11 的窗口外框；WebView2 按桌面应用设置：页面请求全屏时窗口本身全屏，
+  正式版关掉网页的右键菜单（输入框与选中文字的剪切、复制、粘贴照常）、浏览器快捷键与缩放，不显示链接网址；记住窗口的大小与位置
+- AppShell 的桌面模式（注册了 `IDesktopWindow`，或给了 `Window`）：顶栏的空白处拖动窗口、双击最大化、拖到屏幕边缘贴靠，
+  结束边是窗口按钮（`WindowControls`：最小化、最大化 / 还原、关闭）；顶栏矮一些（40px）、不透明，窗口失去焦点时变淡；
+  整页滚动条从顶栏下面开始，侧栏的文字不被拖动选中。浏览器里打开时一切照旧。窗口按钮的名称在语言包的 `Desktop` 里
 
 ### 修复
 

@@ -16,6 +16,11 @@ static class SelfCheck
     /// <summary>报告文件的路径；没有时不自检。</summary>
     public static string? Report { get; } = Environment.GetEnvironmentVariable("RUNE_DESKTOP_SELFCHECK") is { Length: > 0 } path ? path : null;
 
+    // RUNE_DESKTOP_SELFCHECK_QUICK=1：每个分类只查第一页（CI 用，全部 110 页要几分钟）
+    static IEnumerable<DocEntry> Pages => Environment.GetEnvironmentVariable("RUNE_DESKTOP_SELFCHECK_QUICK") == "1"
+        ? DocsCatalog.Sections.Select(section => section.Pages[0])
+        : DocsCatalog.All;
+
     static readonly ConcurrentQueue<string> dotnetErrors = new();
 
     // 页面里的错误：未捕获的异常、未处理的 Promise 拒绝、console.error
@@ -73,7 +78,27 @@ static class SelfCheck
         }
         lines.Add($"start\tready after {waited}ms\t{(await StateAsync()).GetRawText()}");
 
-        foreach (var page in DocsCatalog.All)
+        // 标题栏：顶栏是拖动区域、里面的按钮不可拖、结束边三个窗口按钮；点最大化真的最大化（按钮名称变成“还原”），再点还原
+        async Task<string> Eval(string script) => JsonSerializer.Deserialize<string>(await web.ExecuteScriptAsync(script)) ?? "";
+        const string TitleBar = """
+            (() => {
+              const header = document.querySelector('[data-desktop] > header');
+              const region = (el) => el ? getComputedStyle(el).getPropertyValue('app-region') : 'missing';
+              const buttons = [...document.querySelectorAll('[data-window-command]')].map((b) => b.dataset.windowCommand + ':' + b.getAttribute('aria-label') + ':' + region(b));
+              return `header=${region(header)} height=${header?.offsetHeight} firstButton=${region(header?.querySelector('button'))} buttons=${buttons.join(' ')}`;
+            })()
+            """;
+        lines.Add("titlebar\t" + await Eval(TitleBar));
+        const string Maximize = "document.querySelector('[data-window-command=maximize]')?.click(), ''";
+        const string MaximizeLabel = "document.querySelector('[data-window-command=maximize]')?.getAttribute('aria-label') ?? ''";
+        await Eval(Maximize);
+        await Task.Delay(800);
+        var afterMaximize = await Eval(MaximizeLabel);
+        await Eval(Maximize);
+        await Task.Delay(800);
+        lines.Add($"maximize\tafter click={afterMaximize} after second click={await Eval(MaximizeLabel)}");
+
+        foreach (var page in Pages)
         {
             await web.ExecuteScriptAsync($"Blazor.navigateTo({JsonSerializer.Serialize(page.Path)})");
             await Task.Delay(1500);

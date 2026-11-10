@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    .NET MAUI（目前只做 Windows）的桌面适配：实现 Rune.UI 的 IDesktopWindow，去掉系统标题栏，让 AppShell 的顶栏当标题栏，
+    并按桌面应用调好 WebView2（全屏、右键菜单、浏览器快捷键……）。
+    要装 maui-windows 工作负载，所以不在 RuneForBlazor.slnx 里（CI 的 Linux 装不了）：dotnet build src/Rune.Desktop.Maui
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <UseMaui>true</UseMaui>
+    <IsLibrary>true</IsLibrary>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>Rune.Desktop</RootNamespace>
+    <Description>Rune 的 .NET MAUI 桌面适配（Windows）：AppShell 的顶栏就是窗口的标题栏（拖动、双击最大化、窗口按钮），WebView2 按桌面应用设置。</Description>
+    <PackageTags>$(PackageTags);maui;desktop;webview2;titlebar</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" />
+    <!-- 只用它的 API：它的构建步骤（把 blazor.webview.js 作为静态资源加进项目）留给应用，库里也加会和应用的冲突 -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" ExcludeAssets="build;buildTransitive" />
+    <ProjectReference Include="..\Rune.UI\Rune.UI.csproj" />
+  </ItemGroup>
+
+</Project>

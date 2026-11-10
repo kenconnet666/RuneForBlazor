@@ -56,7 +56,7 @@ export DOTNET_ROOT="$HOME/.dotnet" PATH="$HOME/.dotnet:$PATH"
 | 对照 | `MSYS_NO_PATHCONV=1 node tools/parity/parity.mjs <页面> --themes=light --shots --mode=server`；全站 `node tools/parity/all.mjs --shots --mode=server && python tools/parity/shots.py`；整页 `pages.mjs`、排布 `columns.mjs`、状态 `--states`（见 tools/parity/README.md） |
 | 生成器检查 | `node tools/{css,theme,lang,area}-gen/generate.mjs --check --source <vue-tsx-pro>`、`node tools/{icon,vendor}-gen/generate.mjs --check` |
 | 打包 | Release 构建后 `bash tools/pack/pack.sh <输出目录> [版本]`（同时检查包的内容） |
-| 桌面壳（MAUI，Windows） | 要 `dotnet workload install maui-windows`；不在 slnx 里：`dotnet build apps/Rune.Desktop`，运行 `apps/Rune.Desktop/bin/Debug/net10.0-windows10.0.19041.0/win-x64/Rune.Desktop.exe`。自检：环境变量 `RUNE_DESKTOP_SELFCHECK=<报告路径>` 运行，逐页打开文档页与第一个浮层，记下错误后退出（MAUI 的 WebView2 开不出远程调试端口，连不上 Playwright） |
+| 桌面（MAUI，Windows） | 要 `dotnet workload install maui-windows`；适配包 `src/Rune.Desktop.Maui` 与样板 `apps/Rune.Desktop` 不在 slnx 里：`dotnet build apps/Rune.Desktop`，运行 `apps/Rune.Desktop/bin/Debug/net10.0-windows10.0.19041.0/win-x64/Rune.Desktop.exe`（样板就是整个文档站）。自检：`RUNE_DESKTOP_SELFCHECK=<报告路径>` 运行，查标题栏（拖动区域、最大化与还原），再逐页打开文档页与第一个浮层，记下错误后退出；`RUNE_DESKTOP_SELFCHECK_QUICK=1` 每类只查一页（CI 的“桌面”任务）。MAUI 的 WebView2 开不出远程调试端口，连不上 Playwright。发版时适配包由 release.yml 的 Windows 任务打包 |
 | 部署文档站 | `gh workflow run docs.yml --ref master`：导出静态站点，部署到 https://rune-for-blazor.zerodep.dpdns.org（令牌在 `docs` 环境） |
 
 截图基线（`tests/Rune.E2E/Visual`，CI 的“截图基线”任务）：示例画面改了以后基线会报不同。重新截：

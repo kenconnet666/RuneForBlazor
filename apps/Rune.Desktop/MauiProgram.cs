@@ -5,14 +5,17 @@ using Rune.UI;
 
 namespace Rune.Desktop;
 
-/// <summary>桌面壳的启动：一个窗口，整页是 BlazorWebView，根组件是 <see cref="Components.Routes"/>。</summary>
+/// <summary>
+/// 桌面壳的启动：一个窗口，整页是 BlazorWebView，根组件是 <see cref="Components.Routes"/>。
+/// UseRuneDesktop（RuneForBlazor.Desktop.Maui）去掉系统标题栏，AppShell 的顶栏成为窗口的标题栏。
+/// </summary>
 public static class MauiProgram
 {
     /// <summary>建好 MAUI 应用。</summary>
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
-        builder.UseMauiApp<App>();
+        builder.UseMauiApp<App>().UseRuneDesktop();
 
         builder.Services.AddMauiBlazorWebView();
 #if DEBUG

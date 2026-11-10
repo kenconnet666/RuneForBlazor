@@ -1,7 +1,8 @@
 # 发布到 nuget.org：推送 v 开头的 tag（如 v0.12.0、v0.13.0-rc.1）时运行。
 #   1. tag 的版本要与 Directory.Build.props 的 VersionPrefix 一致（预览版 tag 只比较 - 之前的部分），CHANGELOG.md 里要有这个版本的一节；
 #   2. 等这个提交在 master 上的 CI 跑完并全部通过（含端到端测试与截图基线），没通过就不发；
-#   3. 按 tag 的版本打包（tools/pack/pack.sh，与 CI 同一套检查），用 nuget.org 的可信发布（Trusted Publishing）换一次性 API key 推送，不存长期密钥；
+#   3. 按 tag 的版本打包（tools/pack/pack.sh，与 CI 同一套检查；MAUI 的适配包 RuneForBlazor.Desktop.Maui 只能在 Windows 上打，另一个任务打好交过来），
+#      用 nuget.org 的可信发布（Trusted Publishing）换一次性 API key 推送，不存长期密钥；
 #   4. 在 GitHub 建 Release，说明取 CHANGELOG.md 里这个版本的一节，附上包。
 # nuget.org 上的策略锁定了这个仓库、这个文件名（release.yml）与环境 release；环境只允许 v* tag 部署。
 # 版本号发布后不能复用、包也删不掉（只能 unlist）：CI 没过时删掉 tag、修好后重打即可，nuget.org 上不会留下东西。
@@ -23,8 +24,28 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
 
 jobs:
+  # MAUI 的适配包：要 maui-windows 工作负载，只能在 Windows 上打包；它依赖的 RuneForBlazor.UI 同一个版本由下面的任务推送
+  desktop:
+    name: Pack RuneForBlazor.Desktop.Maui
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - run: dotnet workload install maui-windows
+      - name: Pack
+        shell: bash
+        run: dotnet pack src/Rune.Desktop.Maui/Rune.Desktop.Maui.csproj --configuration Release --output artifacts/desktop -p:Version="${GITHUB_REF_NAME#v}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: desktop-package
+          path: artifacts/desktop/*
+
   release:
     name: Publish ${{ github.ref_name }}
+    needs: desktop
     runs-on: ubuntu-latest
     timeout-minutes: 120
     environment: release
@@ -80,6 +101,12 @@ jobs:
 
       - name: Pack
         run: bash tools/pack/pack.sh artifacts/packages "$VERSION"
+
+      - name: 取 Windows 上打好的适配包
+        uses: actions/download-artifact@v7
+        with:
+          name: desktop-package
+          path: artifacts/packages
 
       # 换到的 API key 只有 1 小时有效：放在推送前一步，不在等 CI 之前登录
       - name: NuGet login (Trusted Publishing)

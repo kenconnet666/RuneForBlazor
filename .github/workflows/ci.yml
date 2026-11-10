@@ -160,6 +160,48 @@ jobs:
           name: visual-failures
           path: artifacts/visual
 
+  # 桌面（.NET MAUI，Windows）：MAUI 的项目要装 maui-windows 工作负载，不在 slnx 里，这里单独构建适配包与桌面样板，
+  # 再运行样板的自检（RUNE_DESKTOP_SELFCHECK）：标题栏是拖动区域、窗口按钮能最大化与还原、每个分类第一页打开与展开浮层都没有错误
+  desktop:
+    name: 桌面（MAUI，Windows）
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 安装 .NET SDK（版本取自 global.json）
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: 缓存 NuGet 包
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-maui-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-maui-
+
+      - name: 安装 maui-windows 工作负载
+        run: dotnet workload install maui-windows
+
+      - name: 构建适配包与桌面样板（警告即错误）
+        run: dotnet build apps/Rune.Desktop/Rune.Desktop.csproj --configuration Release
+
+      - name: 自检
+        shell: pwsh
+        env:
+          RUNE_DESKTOP_SELFCHECK: ${{ runner.temp }}\selfcheck.txt
+          RUNE_DESKTOP_SELFCHECK_QUICK: '1'
+        run: |
+          $exe = Get-ChildItem apps/Rune.Desktop/bin/Release -Recurse -Filter Rune.Desktop.exe | Select-Object -First 1
+          $app = Start-Process $exe.FullName -PassThru
+          if (-not $app.WaitForExit(300000)) { $app.Kill(); throw '自检超时' }
+          $report = Get-Content $env:RUNE_DESKTOP_SELFCHECK
+          $report
+          if (-not ($report -match '^titlebar\theader=drag ')) { throw '顶栏不是拖动区域' }
+          if (-not ($report -match '^maximize\tafter click=还原 after second click=最大化$')) { throw '窗口按钮没有最大化、还原窗口' }
+          if ($report -match 'errors=[1-9]') { throw '有页面报错' }
+
   icon-gen:
     name: 图标数据、第三方脚本与上游一致
     runs-on: ubuntu-latest
