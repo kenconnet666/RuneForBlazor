@@ -117,10 +117,12 @@ public class ThreeTests(DemoServer demo) : E2ETest(demo)
         await viewer.FocusAsync();
         await page.Keyboard.PressAsync("ArrowRight");
 
+        // 地址错了：取不到文件就报错。同一排程序生成的两个有透光、清漆材质，CI 的软件渲染下一帧要几秒、占住主线程，
+        // 出错的那个跟着等不到：不让它们的模块加载（也就走出错），只看出错的提示
+        await page.RouteAsync("**/ObjectsExample.razor.js", route => route.AbortAsync());
         var objects = page.Locator("#objects-preview");
         await objects.ScrollIntoViewIfNeededAsync();
         var viewers = objects.Locator("[data-rune-three-host]");
-        // 地址错了：取不到文件就报错，不等渲染（程序生成的两个有透光、清漆材质，软件渲染下很慢，不在这里等）
         await Assertions.Expect(viewers.Nth(2)).ToHaveAttributeAsync("data-status", "error", new() { Timeout = 20_000 });
         await Assertions.Expect(viewers.Nth(2).GetByText("模型加载失败", new() { Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(objects.GetByText("地址错了（OnError 拿到了原因）", new() { Exact = true })).ToBeVisibleAsync();
