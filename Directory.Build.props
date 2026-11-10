@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- 版本要在 props 里定：SDK 在导入 Directory.Build.targets 之前就算好了版本 -->
-    <VersionPrefix>0.16.0</VersionPrefix>
+    <VersionPrefix>0.17.0</VersionPrefix>
     <VersionSuffix>dev</VersionSuffix>
   </PropertyGroup>
 
