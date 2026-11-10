@@ -31,6 +31,17 @@ static class SelfCheck
         addEventListener('unhandledrejection', (e) => __runeErrors.push('rejection: ' + (e.reason?.message ?? e.reason)));
         const consoleError = console.error;
         console.error = (...args) => { __runeErrors.push('console: ' + args.map(String).join(' ')); consoleError(...args); };
+        // 第一屏：内容（顶栏）插进页面的那一刻 Rune 的样式是不是已经在了（样式晚一批到时会闪一帧没有样式的页面）
+        document.addEventListener('DOMContentLoaded', () => {
+          const app = document.getElementById('app');
+          const observer = new MutationObserver(() => {
+            if (!app.querySelector('header')) return;
+            observer.disconnect();
+            const css = [...app.querySelectorAll('style[data-rune]')].reduce((n, s) => n + s.textContent.length, 0);
+            window.__firstPaint = css > 10000 ? 'styled' : `unstyled (css=${css})`;
+          });
+          observer.observe(app, { childList: true, subtree: true });
+        });
         """;
 
     const string State = """
@@ -89,6 +100,7 @@ static class SelfCheck
             })()
             """;
         lines.Add("titlebar\t" + await Eval(TitleBar));
+        lines.Add("first content\t" + await Eval("window.__firstPaint ?? 'missing'"));
         const string Maximize = "document.querySelector('[data-window-command=maximize]')?.click(), ''";
         const string MaximizeLabel = "document.querySelector('[data-window-command=maximize]')?.getAttribute('aria-label') ?? ''";
         await Eval(Maximize);

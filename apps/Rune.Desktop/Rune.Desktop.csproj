@@ -26,6 +26,8 @@
   <ItemGroup>
     <!-- 应用图标（任务栏、窗口）：同文档站的标志 -->
     <MauiIcon Include="..\Rune.Docs.Content\wwwroot\logo.svg" Color="Transparent" />
+    <!-- 启动时窗口中间的标志（页面画出来之前原生地画，和页面里启动画面的标志同一个位置、大小） -->
+    <MauiImage Include="..\Rune.Docs.Content\wwwroot\logo.svg" Link="Resources\Images\startup_logo.svg" BaseSize="56,56" />
   </ItemGroup>
 
   <ItemGroup>

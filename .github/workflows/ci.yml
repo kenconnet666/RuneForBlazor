@@ -161,7 +161,8 @@ jobs:
           path: artifacts/visual
 
   # 桌面（.NET MAUI，Windows）：MAUI 的项目要装 maui-windows 工作负载，不在 slnx 里，这里单独构建适配包与桌面样板，
-  # 再运行样板的自检（RUNE_DESKTOP_SELFCHECK）：标题栏是拖动区域、窗口按钮能最大化与还原、每个分类第一页打开与展开浮层都没有错误
+  # 再运行样板的自检（RUNE_DESKTOP_SELFCHECK）：标题栏是拖动区域、窗口按钮能最大化与还原、第一屏内容出来时样式已经在了、
+  # 每个分类第一页打开与展开浮层都没有错误
   desktop:
     name: 桌面（MAUI，Windows）
     runs-on: windows-latest
@@ -201,6 +202,7 @@ jobs:
           if (-not ($report -match '^titlebar\theader=drag ')) { throw '顶栏不是拖动区域' }
           if (-not ($report -match '^maximize\tafter click=还原 after second click=最大化$')) { throw '窗口按钮没有最大化、还原窗口' }
           if ($report -match 'errors=[1-9]') { throw '有页面报错' }
+          if (-not ($report -match '^first content\tstyled$')) { throw '第一屏先出现了没有样式的内容' }
 
   icon-gen:
     name: 图标数据、第三方脚本与上游一致

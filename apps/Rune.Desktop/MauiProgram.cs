@@ -41,6 +41,11 @@ public sealed class App : Application
             RootComponents = { new RootComponent { Selector = "#app", ComponentType = typeof(Components.Routes) } },
         };
         if (SelfCheck.Report is not null) SelfCheck.Attach(webView);
-        return new Window(new ContentPage { Content = webView }) { Title = "Rune" };
+        // 窗口刚打开、页面还没画出来时（WebView 在那之前是透明的，见 RuneForBlazor.Desktop.Maui）：底色同 Rune 内置亮、暗主题的 Background、
+        // 跟随系统明暗，中间是标志；页面里的启动画面在同一个位置画同一个标志，接着呼吸，内容出来后淡出
+        var logo = new Microsoft.Maui.Controls.Image { Source = "startup_logo.png", WidthRequest = 56, HeightRequest = 56, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center };
+        var page = new ContentPage { Content = new Microsoft.Maui.Controls.Grid { Children = { logo, webView } } };
+        page.SetAppThemeColor(VisualElement.BackgroundColorProperty, Color.FromArgb("#f9f9fb"), Color.FromArgb("#111113"));
+        return new Window(page) { Title = "Rune" };
     }
 }

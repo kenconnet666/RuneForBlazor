@@ -4,16 +4,38 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- 主题应用之前的底色跟随系统明暗：暗色系统里启动时不闪白 -->
-    <meta name="color-scheme" content="light dark" />
     <title>Rune</title>
     <base href="/" />
+    <!-- 底色与启动画面的样式放在最前面：后面的样式表、脚本会挡住第一次绘制，挡住期间浏览器按暗色方案涂默认底色（#202020） -->
+    <style>
+        /* 主题应用之前的底色：同 Rune 内置亮、暗主题的 Background，跟随系统明暗；从窗口打开到页面出来一直是这个颜色（主题应用后由它接管） */
+        html { color-scheme: light dark; background: #f9f9fb; }
+        @media (prefers-color-scheme: dark) { html { background: #111113; } }
+
+        /* 启动画面：Blazor 启动、第一次渲染期间，窗口中间是标志，轻轻呼吸 */
+        .startup { position: fixed; inset: 0; display: grid; place-items: center; transition: opacity 0.25s ease-out; }
+        .startup img { width: 56px; height: 56px; animation: startup-breathe 1.6s ease-in-out infinite; }
+        @keyframes startup-breathe { 50% { opacity: 0.45; transform: scale(0.94); } }
+
+        /* Rune 的样式还没输出时不显示内容：交互渲染时样式比内容晚一批到，不然会闪一下没有样式的页面。
+           样式到了（#app 里有 style[data-rune]）内容淡入、启动画面淡出 */
+        #app:not(:has(style[data-rune])) { visibility: hidden; }
+        #app:has(style[data-rune]) { animation: startup-appear 0.25s ease-out; }
+        body:has(#app style[data-rune]) .startup { opacity: 0; pointer-events: none; }
+        @keyframes startup-appear { from { opacity: 0; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            .startup img, #app { animation: none; }
+            .startup { transition: none; }
+        }
+    </style>
     <!-- 同文档站：页面的基础样式与字体切换（顶栏的字体按钮），在文档内容项目里 -->
     <link rel="stylesheet" href="_content/Rune.Docs.Content/app.css" />
     <script src="_content/Rune.Docs.Content/fonts.js"></script>
 </head>
 
 <body>
+    <div class="startup" aria-hidden="true"><img src="_content/Rune.Docs.Content/logo.svg" alt="" /></div>
     <div id="app"></div>
     <script src="_framework/blazor.webview.js" autostart="false"></script>
 </body>

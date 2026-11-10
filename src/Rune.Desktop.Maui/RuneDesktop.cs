@@ -44,7 +44,8 @@ public static class RuneDesktopExtensions
         var window = new Windows.WindowsDesktopWindow(options);
         builder.Services.AddSingleton<IDesktopWindow>(window);
         builder.ConfigureLifecycleEvents(events => events.AddWindows(w => w.OnWindowCreated(window.Attach)));
-        BlazorWebViewHandler.BlazorWebViewMapper.AppendToMapping("RuneDesktop", (handler, _) => window.ConfigureWebView(handler.PlatformView));
+        // 排在 MAUI 自己的映射前面：它在映射里启动 WebView2 的内核，有的设置要在那之前给
+        BlazorWebViewHandler.BlazorWebViewMapper.PrependToMapping("RuneDesktop", (handler, _) => window.ConfigureWebView(handler.PlatformView));
 #endif
         return builder;
     }

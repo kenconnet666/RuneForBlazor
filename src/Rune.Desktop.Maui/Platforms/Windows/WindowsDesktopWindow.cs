@@ -40,7 +40,12 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
         else presenter?.Maximize();
     });
 
-    public Task CloseAsync() => Run(() => window?.Close());
+    // 先藏起窗口再关：关的时候 WebView 先拆掉，窗口还在屏幕上会露出一帧默认底色（亮色系统是白的）
+    public Task CloseAsync() => Run(() =>
+    {
+        window?.AppWindow.Hide();
+        window?.Close();
+    });
 
     /// <summary>窗口刚建好（MAUI 的根视图还没建）。</summary>
     public void Attach(WinUIWindow created)
@@ -65,9 +70,12 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
             if (e.DidPositionChange || e.DidSizeChange) RememberNormalBounds();
             if (e.DidPresenterChange || e.DidSizeChange) StateChanged?.Invoke();
         };
-        window.AppWindow.Closing += (_, _) =>
+        // 用户关窗口（标题栏的关闭、Alt+F4、任务栏）：记下位置，先藏起窗口再拆（同 CloseAsync）；别处取消了关闭的不藏
+        window.AppWindow.Closing += (sender, e) =>
         {
+            if (e.Cancel) return;
             if (options.RememberWindow) SaveBounds();
+            sender.Hide();
         };
         HideMauiTitleBar(window);
     }
@@ -75,9 +83,27 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
     /// <summary>WebView2 建好后按桌面应用设置（每个 BlazorWebView 一次）。</summary>
     public void ConfigureWebView(WebView2 view)
     {
+        // 页面第一次绘制之前 WebView2 的合成层是它自己的底色（暗色系统是 #202020，DefaultBackgroundColor 管不到这段）：
+        // 先完全透明，页面真的画出来了（导航完成后再过两帧，启动画面已在屏幕上）再显示；这之前透出应用给页面设的背景，启动时颜色不跳
+        view.Opacity = 0;
         view.CoreWebView2Initialized += (_, _) =>
         {
             var core = view.CoreWebView2;
+            async void Reveal(CoreWebView2 sender, CoreWebView2NavigationCompletedEventArgs e)
+            {
+                core.NavigationCompleted -= Reveal;
+                try
+                {
+                    // ExecuteScriptAsync 不等 Promise；开发者工具协议的 Runtime.evaluate 能等
+                    await core.CallDevToolsProtocolMethodAsync("Runtime.evaluate",
+                        """{"expression":"new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r(true))))","awaitPromise":true}""");
+                }
+                finally
+                {
+                    view.Opacity = 1;
+                }
+            }
+            core.NavigationCompleted += Reveal;
             var settings = core.Settings;
             // 页面里 app-region: drag 的区域当标题栏（AppShell 桌面模式的顶栏）
             settings.IsNonClientRegionSupportEnabled = true;
