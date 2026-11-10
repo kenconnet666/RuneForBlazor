@@ -48,6 +48,17 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
         window?.Close();
     });
 
+    DesktopWindowState notified;
+
+    // 只在状态真的变了时通知：拖动边框调整大小时每一步都有 DidSizeChange，通知了 AppShell 就整页重新渲染，跟不上窗口，边缘闪烁
+    void NotifyIfChanged()
+    {
+        var state = State;
+        if (state == notified) return;
+        notified = state;
+        StateChanged?.Invoke();
+    }
+
     /// <summary>窗口刚建好（MAUI 的根视图还没建）。</summary>
     public void Attach(WinUIWindow created)
     {
@@ -60,16 +71,17 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
         window.AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Collapsed;
         if (options.RememberWindow) RestoreBounds();
         RememberNormalBounds();
+        notified = State;
 
         window.Activated += (_, e) =>
         {
             active = e.WindowActivationState != WindowActivationState.Deactivated;
-            StateChanged?.Invoke();
+            NotifyIfChanged();
         };
         window.AppWindow.Changed += (_, e) =>
         {
             if (e.DidPositionChange || e.DidSizeChange) RememberNormalBounds();
-            if (e.DidPresenterChange || e.DidSizeChange) StateChanged?.Invoke();
+            if (e.DidPresenterChange || e.DidSizeChange) NotifyIfChanged();
         };
         // 用户关窗口（标题栏的关闭、Alt+F4、任务栏）：记下位置，先藏起窗口再拆（同 CloseAsync）；别处取消了关闭的不藏
         window.AppWindow.Closing += (sender, e) =>
