@@ -103,7 +103,7 @@ public class ThreeTests(DemoServer demo) : E2ETest(demo)
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
-    public async Task 模型_加载完调用OnLoad_地址错了显示提示_方向键能转(string mode)
+    public async Task 模型_加载完调用OnLoad_方向键能转(string mode)
     {
         var page = await OpenAsync(mode, "model-viewer");
         var product = page.Locator("#product-preview");
@@ -116,10 +116,20 @@ public class ThreeTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(viewer).ToHaveAttributeAsync("role", "img");
         await viewer.FocusAsync();
         await page.Keyboard.PressAsync("ArrowRight");
+    }
 
-        // 地址错了：取不到文件就报错。同一排程序生成的两个有透光、清漆材质，CI 的软件渲染下一帧要几秒、占住主线程，
-        // 出错的那个跟着等不到：不让它们的模块加载（也就走出错），只看出错的提示
-        await page.RouteAsync("**/ObjectsExample.razor.js", route => route.AbortAsync());
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 模型_地址错了显示提示_调用OnError(string mode)
+    {
+        // 这页的模型（奖杯、程序生成的透光与清漆材质）在 CI 的软件渲染下一直在转、占满主线程，出错的那个等不到回调：
+        // 都不让加载（也走出错），页面上没有要画的模型，只看地址错了的那个
+        var page = await OpenAsync(mode, "model-viewer", async context =>
+        {
+            await context.RouteAsync("**/trophy.glb", route => route.AbortAsync());
+            await context.RouteAsync("**/ObjectsExample.razor.js", route => route.AbortAsync());
+        });
         var objects = page.Locator("#objects-preview");
         await objects.ScrollIntoViewIfNeededAsync();
         var viewers = objects.Locator("[data-rune-three-host]");
