@@ -4,6 +4,8 @@
 1.0 之前次版本号的升级可能带破坏性改动，会写在对应版本的“破坏性改动”里。发版见 `.github/workflows/release.yml`：
 推送 `v` 开头的 tag（与 `Directory.Build.props` 的 `VersionPrefix` 一致、这里有对应的一节），CI 通过后推送到 nuget.org。
 
+## [Unreleased]
+
 ## [0.17.0] - 2026-11-10
 
 组件的样式与交互仍对齐 vue-tsx-pro 0.21.0。新增 RuneForBlazor.Three 包（3D 与 WebGL 效果），桌面应用补上窗口底边与抓手光标。
@@ -129,6 +131,7 @@
 - 每个部件带 `data-scope` / `data-part` 标记，都有 `PropsXxx` 部件属性，组合组件把里面每层的部件属性转发出去
 - 组件规格与 vue-tsx-pro 的 `/spec/components.json` 逐项比对（`tests/Rune.Tests/Parity`），差异记在基线里
 
+[Unreleased]: https://github.com/kenconnet666/RuneForBlazor/compare/v0.17.0...HEAD
 [0.17.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.17.0
 [0.16.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.16.0
 [0.15.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.15.0
