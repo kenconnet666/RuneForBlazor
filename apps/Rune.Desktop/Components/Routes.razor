@@ -1,0 +1,17 @@
+@*
+    桌面壳的路由：首页在这里，组件页与指南页在 Rune.Docs.Content。
+    整个窗口一个交互根：新用到的样式由这里的 RuneStyles 输出，应用级主题（RuneProvider）包住所有页面。
+    没有 Razor 的 head：主题的配置（ThemeBootScript）也放在这里，Rune 的脚本看到它后给根元素设好主题与底色。
+*@
+@inherits RuneComponent
+
+<ThemeBootScript />
+<RuneStyles />
+<RuneProvider>
+    <Router AppAssembly="typeof(MauiProgram).Assembly" AdditionalAssemblies="[typeof(DocsCatalog).Assembly]">
+        <Found Context="routeData">
+            <RouteView RouteData="routeData" DefaultLayout="typeof(DesktopLayout)" />
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+    </Router>
+</RuneProvider>

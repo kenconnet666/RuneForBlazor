@@ -6,6 +6,18 @@
 
 ## [Unreleased]
 
+### 新增
+
+- Blazor Hybrid（.NET MAUI、WPF、WinForms 的 BlazorWebView）可用：`ThemeBootScript` 放在根组件（Routes）的开头，
+  交互渲染时只输出主题配置，Rune 的脚本看到配置后给根元素设好主题与底色（没有 Razor 的 head，插入的脚本不执行）。
+  仓库里的 `apps/Rune.Desktop` 是 MAUI（Windows）的样板，窗口里是文档站的全部页面
+
+### 修复
+
+- RadarChart 再次渲染（切换图例、改参数）时整个渲染器出错、之后页面不再更新：网格、轴、系列的 `@key` 在 svg 下的兄弟元素里重复了
+- 随 RuneForBlazor.UI 分发的第三方脚本（浮层定位的 Floating UI、代码高亮的 Shiki）扩展名改为 `.js`：
+  Blazor Hybrid 的静态文件不认 `.mjs`，按 `application/octet-stream` 返回，浏览器拒绝执行，浮层定位不了、代码不高亮
+
 ## [0.14.0] - 2026-11-09
 
 组件的样式与交互仍对齐 vue-tsx-pro 0.21.0。

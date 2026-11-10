@@ -1,0 +1,16 @@
+@*
+    侧栏：按文档目录分组列出所有页面。独立成没有参数的组件：外壳换页时这里不跟着重新渲染。
+*@
+@inherits RuneComponent
+
+<NavList aria-label="文档">
+    @foreach (var section in DocsCatalog.Sections)
+    {
+        <NavSection @key="section.Category" Label="@section.Label">
+            @foreach (var entry in section.Pages)
+            {
+                <NavItem @key="entry.Path" Href="@entry.Path.TrimStart('/')">@entry.Meta.Title</NavItem>
+            }
+        </NavSection>
+    }
+</NavList>

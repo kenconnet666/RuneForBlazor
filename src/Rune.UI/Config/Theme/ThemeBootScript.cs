@@ -9,6 +9,8 @@ namespace Rune.UI;
 /// <code>&lt;head&gt; … &lt;ThemeBootScript /&gt; &lt;/head&gt;</code>
 /// 可选的主题取 <see cref="RuneUIOptions.ThemeChoices"/>。
 /// 配置写在 <c>script#rune-theme-config</c>（JSON）里，之后的切换（<c>js/core/theme.js</c>）也读它。
+/// Blazor Hybrid（MAUI、WPF、WinForms 的 BlazorWebView）没有 Razor 的 head：放在根组件（Routes）的开头，
+/// 由 Blazor 插进页面，插入的脚本不执行，只输出配置，Rune 的脚本看到配置后应用。
 /// </summary>
 public sealed class ThemeBootScript : ComponentBase
 {
@@ -29,7 +31,9 @@ public sealed class ThemeBootScript : ComponentBase
     /// <inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        // 组件里不能直接写 <script>：作为标记内容输出；JSON 里的 < 已被转义，不会提前结束 script
-        builder.AddMarkupContent(0, $"<script type=\"application/json\" id=\"rune-theme-config\">{(Choices ?? Config.ThemeChoices ?? throw new InvalidOperationException("ThemeBootScript 要知道可选的主题：在 AddRuneUI 里设置 ThemeChoices")).ToJson()}</script><script>{Script}</script>");
+        // 组件里不能直接写 <script>：作为标记内容输出；JSON 里的 < 已被转义，不会提前结束 script。
+        // 交互渲染时（Hybrid 的根组件里）由 Blazor 插进页面，脚本不会执行，不输出
+        var config = $"<script type=\"application/json\" id=\"rune-theme-config\">{(Choices ?? Config.ThemeChoices ?? throw new InvalidOperationException("ThemeBootScript 要知道可选的主题：在 AddRuneUI 里设置 ThemeChoices")).ToJson()}</script>";
+        builder.AddMarkupContent(0, RendererInfo.IsInteractive ? config : $"{config}<script>{Script}</script>");
     }
 }

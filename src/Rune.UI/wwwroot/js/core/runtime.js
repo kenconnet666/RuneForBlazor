@@ -184,6 +184,8 @@ const watched = [
   ['dialog[data-rune-close-when]', watchCloseWhen],
   ['[data-rune-fullscreen="true"]', syncFullscreen],
   ['[data-rune-theme-switcher]', watchThemeSwitcher],
+  // 主题配置出现了就按记住的选择应用：Blazor Hybrid 里没有 Razor 的 head，ThemeBootScript 放在根组件里，由 Blazor 插进页面（插入的脚本不执行）
+  ['script#rune-theme-config', () => reapplyTheme()],
   ['[data-rune-token-value]', fillTokenValue],
   ['[data-rune-tween]', watchTween],
   ['[data-rune-viewport-fill]', watchViewportFill],

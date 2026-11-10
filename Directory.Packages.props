@@ -3,7 +3,14 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <AspNetCoreVersion>10.0.14</AspNetCoreVersion>
+    <!-- 与本机、CI 装的 maui-windows 工作负载同一版本（dotnet workload list） -->
+    <MauiPackageVersion>10.0.110</MauiPackageVersion>
   </PropertyGroup>
+
+  <ItemGroup Label=".NET MAUI（桌面壳 Rune.Desktop）">
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="$(MauiPackageVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiPackageVersion)" />
+  </ItemGroup>
 
   <ItemGroup Label="ASP.NET Core / Blazor">
     <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="$(AspNetCoreVersion)" />

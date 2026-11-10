@@ -1,0 +1,13 @@
+@*
+    桌面壳的外壳：AppShell 的顶栏（名称、主题切换）、左侧按文档目录分组的导航，正文是当前页面。
+*@
+@inherits RuneLayoutComponent
+
+<AppShell>
+    <Brand><AppShellBrand Href="" Icon="Lucide.Boxes">Rune Desktop</AppShellBrand></Brand>
+    <Header><ThemeSwitcher /></Header>
+    <Sidebar><DesktopNav /></Sidebar>
+    <ChildContent>@Body</ChildContent>
+</AppShell>
+<Toaster />
+<DialogHost />

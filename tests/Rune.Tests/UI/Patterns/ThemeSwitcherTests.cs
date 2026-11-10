@@ -85,6 +85,20 @@ public class ThemeSwitcherTests : BunitContext
     }
 
     [Fact]
+    public void 开机脚本_静态渲染时带脚本_交互渲染时只输出配置()
+    {
+        // 交互渲染（Blazor Hybrid 的根组件里）由 Blazor 插进页面，插入的脚本不执行：只要配置，Rune 的脚本看到它后应用
+        var interactive = Render<ThemeBootScript>();
+        Assert.Empty(interactive.FindAll("script:not([type])"));
+        Assert.Single(interactive.FindAll("script#rune-theme-config"));
+
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var prerendered = Render<ThemeBootScript>();
+        Assert.Single(prerendered.FindAll("script:not([type])"));
+        Assert.Single(prerendered.FindAll("script#rune-theme-config"));
+    }
+
+    [Fact]
     public void 全部内置主题跟随系统时_系统要求增强对比度用高对比的亮暗两套()
     {
         using var json = JsonDocument.Parse(ThemeChoices.Builtin.ToJson());

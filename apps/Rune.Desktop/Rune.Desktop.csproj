@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!--
+    桌面壳的样板（.NET MAUI，目前只做 Windows）：Blazor Hybrid，组件在本进程里运行，WebView2 只负责显示。
+    窗口里是文档站的全部组件页（Rune.Docs.Content），用来核对 Rune 在 Hybrid 模式下的表现。
+    要装 maui-windows 工作负载，所以不在 RuneForBlazor.slnx 里（CI 的 Linux 装不了）：dotnet build apps/Rune.Desktop
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>Rune.Desktop</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <!-- 样式由 Blazor 处理，不当作 MAUI 的样式表 -->
+    <EnableDefaultCssItems>false</EnableDefaultCssItems>
+    <ApplicationTitle>Rune</ApplicationTitle>
+    <ApplicationId>com.kenconnet666.rune.desktop</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <!-- 不打 MSIX 包，直接运行 exe -->
+    <WindowsPackageType>None</WindowsPackageType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" />
+    <!-- 文档内容与它的数据（示例源码、API 表）：桌面里没有服务器，直接在本进程生成 -->
+    <ProjectReference Include="..\Rune.Docs.Content\Rune.Docs.Content.csproj" />
+    <ProjectReference Include="..\Rune.Docs.Server\Rune.Docs.Server.csproj" />
+    <ProjectReference Include="..\..\src\Rune\Rune.csproj" />
+    <ProjectReference Include="..\..\src\Rune.UI\Rune.UI.csproj" />
+    <ProjectReference Include="..\..\src\Rune.Icons\Rune.Icons.csproj" />
+    <ProjectReference Include="..\..\src\Rune.Generators\Rune.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Rune.CodeFixes\Rune.CodeFixes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>
