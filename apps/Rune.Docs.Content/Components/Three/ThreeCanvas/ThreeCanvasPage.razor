@@ -1,0 +1,37 @@
+@page "/components/three-canvas"
+@attribute [DocMeta("ThreeCanvas 3D 画布", "three.js 场景的底座：渲染器的创建与释放、尺寸跟随、滚出视口暂停、主题色接入、画质档位与降级。本分类的 3D 效果都建在它上面；Rune.Three 随包带着 three.js。", DocCategory.Three, Order = 0)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Three.ThreeCanvas.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="basic" Title="基础用法" Demo="typeof(BasicExample)">
+                场景写在一个 JS 模块里，<Code>Setup</Code> 是它的地址（相对页面的 base）。模块导出 <Code>setup(context)</Code>：往 <Code>scene</Code> 加物体，
+                返回的 <Code>frame</Code> 每帧调用。画布第一次进入视口时才创建渲染器，滚出视口、切到别的标签页时停下；卸载时释放几何体、材质、纹理与渲染器。
+                <Code>themeColors</Code> 把主题 token 转成 three.js 的颜色，直接赋给材质，切换主题时原地过渡到新色。
+                <Code>context.three</Code> 是 three.js 的全部导出（与内置效果同一份），模块里不用算 import 的路径。
+                场景、动画循环都在浏览器里跑，C# 只交参数：Server 模式下每帧不往返。
+            </Example>
+            <Example Id="theme" Title="跟随主题" Demo="typeof(ThemeColorsExample)">
+                颜色在画布所在位置读取，所以包在 <Code>RuneProvider</Code> 里的局部主题同样生效；切换时按主题的时长与缓动过渡，减少动态效果时直接换。
+                小球用图表色板 <Code>series1</Code>–<Code>series8</Code>，中间的球是品牌色。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="quality" Title="画质、分辨率与降级" Demo="typeof(QualityExample)">
+                <Code>Quality</Code> 决定像素比上限、密度系数（这里按它决定粒子数）与抗锯齿；<Code>Auto</Code> 按设备选择（触屏、核数、内存、省流量）；
+                <Code>Off</Code> 不创建 WebGL，直接显示 <Code>Fallback</Code>（用户在设置里关掉特效、省电模式），没有 WebGL 时也显示它。
+                <Code>Resolution</Code> 按比例降低渲染分辨率，模糊、平滑的画面降到一半几乎看不出差别。<Code>Paused</Code> 停在当前画面，
+                <Code>OnStatusChange</Code> 报告渲染状态；场景用 <Code>context.send</Code> 发 rune-command 给外面的 C#（这里报告粒子数与像素比）。
+                <Code>Options</Code> 是交给场景的参数（<Code>context.options</Code>），变了不重建，模块导出的 <Code>keys</Code> 里列出的才重建。
+                页面上同时保持的 WebGL 上下文默认最多 8 个，超出时回收最久没出现在视口里的画布，它滚回来时重建。
+            </Example>
+            <Example Id="pointer" Title="指针跟随" Demo="typeof(PointerExample)">
+                上下文里的 <Code>pointer</Code> 是指针相对画布的位置（-1 到 1）与 <Code>strength</Code>（指针离开时淡出），经过弹簧阻尼；
+                监听整个窗口，画布在内容下面时也能跟随。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ThreeCanvas), typeof(EffectSurface)]" />
+</DocPage>

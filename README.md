@@ -37,6 +37,7 @@ dotnet add package RuneForBlazor.UI
 | `RuneForBlazor.Charts`、`RuneForBlazor.Charts.Maps` | 图表；地图的地理数据 |
 | `RuneForBlazor.Icons` | Lucide 图标全集 |
 | `RuneForBlazor.UI.Area` | 省市区数据 |
+| `RuneForBlazor.Three` | 3D 与 WebGL 效果（ThreeCanvas、着色器背景、粒子场、地球、模型查看器），随包带 three.js |
 
 包名带 RuneForBlazor 前缀（nuget.org 上的 Rune 是别人的包），程序集与命名空间仍是 `Rune`、`Rune.UI`……。
 

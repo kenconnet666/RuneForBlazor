@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+@* 参数都实时生效；Links 与 Palette 变了会重建场景 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="links">连线</Switch>
+        <Switch @bind-Value="interactive">指针排开</Switch>
+    </Flex>
+    <Grid MinItemWidth="@("10rem")" Gap="SpaceScale.Lg">
+        <Field Label="粒子数"><Slider TValue="int" @bind-Value="count" Min="20" Max="400" Step="10" /></Field>
+        <Field Label="大小"><Slider TValue="double" @bind-Value="size" Min="1" Max="8" Step="0.5" /></Field>
+        <Field Label="速度"><Slider TValue="double" @bind-Value="speed" Min="0" Max="4" Step="0.1" /></Field>
+        <Field Label="连线距离" Disabled="!links"><Slider TValue="double" @bind-Value="linkDistance" Min="40" Max="200" Step="5" /></Field>
+        <Field Label="排开半径" Disabled="!interactive"><Slider TValue="double" @bind-Value="repelRadius" Min="40" Max="300" Step="10" /></Field>
+    </Grid>
+    <Card Padding="SpaceScale.None">
+        <ParticleField Sx="Stage" Count="count" Size="size" Links="links" LinkDistance="linkDistance" Speed="speed" Interactive="interactive" RepelRadius="repelRadius" />
+    </Card>
+</Flex>
+
+@code {
+    int count = 160;
+    double size = 3;
+    double linkDistance = 120;
+    double speed = 1;
+    bool links = true;
+    bool interactive = true;
+    double repelRadius = 140;
+
+    static Style Stage => Css.Define(static () => new Style { Height = CssLength.Rem(20) });
+}

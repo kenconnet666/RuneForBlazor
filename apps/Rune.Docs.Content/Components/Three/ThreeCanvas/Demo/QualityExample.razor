@@ -1,0 +1,61 @@
+@inherits RuneComponent
+
+@* 画质档位（Off 不创建 WebGL，显示 Fallback）、渲染分辨率与暂停；OnStatusChange 报告渲染状态，场景经 rune-command 报告粒子数 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Grid MinItemWidth="@("17rem")" Gap="SpaceScale.Lg" Align="ItemAlign.End">
+        <Field Label="画质">
+            <ToggleGroup @bind-Value="quality" Required="true">
+                @foreach (var (value, label) in Qualities)
+                {
+                    <ToggleItem @key="value" Value="@value.ToString()">@label</ToggleItem>
+                }
+            </ToggleGroup>
+        </Field>
+        <Field Label="渲染分辨率">
+            <Slider TValue="double" @bind-Value="resolution" Min="0.25" Max="1" Step="0.05" ValueText="@(v => $"{Math.Round(v * 100)}%")" />
+        </Field>
+        <Switch @bind-Value="paused">暂停</Switch>
+    </Grid>
+    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+        <Badge Tone="@(status == ThreeStatus.Fallback ? Tone.Warning : Tone.Neutral)">@status.ToString().ToLowerInvariant()</Badge>
+        <Small Tone="TextTone.Muted">@(status == ThreeStatus.Fallback ? "没有渲染器，显示降级内容" : info)</Small>
+    </Flex>
+    <div @onrunecommand="OnSceneCommand">
+        <Card Padding="SpaceScale.None">
+            <ThreeCanvas Setup="_content/Rune.Docs.Content/Components/Three/ThreeCanvas/Demo/QualityExample.razor.js" Sx="Stage"
+                         Quality="Enum.Parse<ThreeQuality>(quality!)" Resolution="resolution" Paused="paused" OnStatusChange="next => status = next">
+                <Fallback><div @attributes="Attrs.Merge(FallbackLayer)">特效已关闭</div></Fallback>
+            </ThreeCanvas>
+        </Card>
+    </div>
+</Flex>
+
+@code {
+    static readonly (ThreeQuality Value, string Label)[] Qualities =
+        [(ThreeQuality.Auto, "自动"), (ThreeQuality.Low, "低"), (ThreeQuality.Medium, "中"), (ThreeQuality.High, "高"), (ThreeQuality.Off, "关")];
+
+    static readonly Attrs FallbackLayer = new() { Sx = FallbackStyle };
+
+    string? quality = nameof(ThreeQuality.Auto);
+    double resolution = 1;
+    bool paused;
+    ThreeStatus status = ThreeStatus.Idle;
+    string info = "";
+
+    // 场景建好、尺寸变了时报告：档位 · 粒子数 · 像素比
+    void OnSceneCommand(CommandEventArgs e)
+    {
+        if (e.Name == "scene-info") info = e.Text ?? "";
+    }
+
+    static Style Stage => Css.Define(static () => new Style { Height = CssLength.Rem(18) });
+
+    static Style FallbackStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        Height = CssLength.Percent(100),
+        Color = Colors.TextMuted,
+        BackgroundImage = $"radial-gradient(circle, {Tones.Accent.Soft}, transparent 65%)",
+    });
+}

@@ -88,8 +88,8 @@
 - [ ] 前端存储（vue 的 `@zerodep-dev/storage`）：IndexedDB / localStorage / 内存一个异步接口，上面一层 TTL 与过期后先用旧值再刷新的缓存
 - [ ] CodeEditor（CodeMirror，同 vue 的 code-editor）
 - [ ] Diagram、DiagramControls、DiagramLanes、DiagramMinimap、DiagramNode（同 vue 的 diagram）
-- [ ] three：ThreeCanvas、ModelViewer、Globe、ParticleField、ShaderBackground、MeshGradient、AuroraBackground、WaveGrid、EffectSurface、Confetti（three.js）；
-  之后补图表的“统计看板示例”页（vue 的 charts/Dashboard，用到 Globe）
+- [x] three：ThreeCanvas、ModelViewer、Globe、ParticleField、ShaderBackground、MeshGradient、AuroraBackground、WaveGrid、EffectSurface、Confetti（`Rune.Three`，随包带 three.js，DESIGN 第 16 节）
+- [ ] 图表的“统计看板示例”页（vue 的 charts/Dashboard，用到 Globe）
 - [ ] 流程的前端：流程设计与审批界面（vue ROADMAP 阶段 9、14 的前端部分），接阶段 8 的全栈示例
 - [ ] 移动端组件库 `Rune.Mobile`（vue 的 mobile，约 50 个组件，H5）：触控手势、安全区、下拉刷新、底部弹层等；文档站加移动端一栏
 

@@ -1,0 +1,41 @@
+@inherits RuneComponent
+
+@* 全球节点：各地的机房标注成光圈，上海到各地的专线画成弧线，旁边列出节点与延迟 *@
+<Grid MinItemWidth="@("18rem")" Gap="SpaceScale.Lg" Align="ItemAlign.Center">
+    <Globe Markers="Markers" Arcs="Arcs" Center="new(25, 115)" Sx="GlobeStyle" />
+    <Card Padding="SpaceScale.Md">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <H3 Size="Size.Md">全球节点</H3>
+            @foreach (var node in Nodes)
+            {
+                <Flex @key="node.City" Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md">
+                    <TextSpan>@node.City</TextSpan>
+                    @if (node.Latency == 0)
+                    {
+                        <Badge Tone="Tone.Accent">主节点</Badge>
+                    }
+                    else
+                    {
+                        <Small Tone="TextTone.Muted">@node.Latency ms</Small>
+                    }
+                </Flex>
+            }
+        </Flex>
+    </Card>
+</Grid>
+
+@code {
+    sealed record Node(string City, double Lat, double Lng, int Latency);
+
+    static readonly Node[] Nodes =
+    [
+        new("上海", 31.23, 121.47, 0), new("新加坡", 1.35, 103.82, 38), new("法兰克福", 50.11, 8.68, 186), new("弗吉尼亚", 38.03, -78.48, 212),
+        new("圣保罗", -23.55, -46.63, 318), new("悉尼", -33.87, 151.21, 129), new("东京", 35.68, 139.69, 32),
+    ];
+
+    static readonly GlobeMarker[] Markers = [.. Nodes.Select((node, index) => new GlobeMarker(node.Lat, node.Lng) { Size = index == 0 ? 1.4 : 1 })];
+
+    static readonly GlobeArc[] Arcs = [.. Nodes.Skip(1).Select(node => new GlobeArc(new(Nodes[0].Lat, Nodes[0].Lng), new(node.Lat, node.Lng)))];
+
+    static Style GlobeStyle => Css.Define(static () => new Style { MaxWidth = CssLength.Rem(28), MarginInline = CssLength.Auto });
+}

@@ -1,0 +1,39 @@
+@inherits RuneComponent
+
+@* 多角度展示：Orbit 定起始角度，Controls 关掉拖动与方向键；缩略图用低画质、降分辨率，Paused 停住自转 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Switch @bind-Value="paused">暂停自转</Switch>
+    <Grid MinItemWidth="@("10rem")" Gap="SpaceScale.Md">
+        @foreach (var (label, orbit) in Views)
+        {
+            <Card @key="label" Padding="SpaceScale.Sm">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+                    <ModelViewer Src="_content/Rune.Docs.Content/models/trophy.glb" Alt="@($"奖杯，{label}")" Orbit="orbit" Controls="false" Paused="paused"
+                                 Quality="ThreeQuality.Low" Resolution="0.75" Sx="Viewer">
+                        <Fallback><div @attributes="Attrs.Merge(FallbackLayer)">预览不可用</div></Fallback>
+                    </ModelViewer>
+                    <Small Tone="TextTone.Muted">@label</Small>
+                </Flex>
+            </Card>
+        }
+    </Grid>
+</Flex>
+
+@code {
+    static readonly (string Label, ModelViewerOrbit Orbit)[] Views = [("俯视", new(30, 50)), ("平视", new(0, 0)), ("仰视", new(-30, -25))];
+
+    static readonly Attrs FallbackLayer = new() { Sx = FallbackStyle };
+
+    bool paused;
+
+    static Style Viewer => Css.Define(static () => new Style { MaxWidth = CssLength.Rem(12), MarginInline = CssLength.Auto });
+
+    static Style FallbackStyle => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        Height = CssLength.Percent(100),
+        Color = Colors.TextMuted,
+        FontSize = FontSizes.Sm,
+    });
+}

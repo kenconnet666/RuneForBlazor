@@ -1,0 +1,40 @@
+@inherits RuneComponent
+
+@* 色板、速度、扭曲与颗粒都实时生效；色板用 token 时切换主题会原地过渡到新色，不重建场景 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="色板">
+        <ToggleGroup @bind-Value="palette" Required="true">
+            <ToggleItem Value="default">默认</ToggleItem>
+            <ToggleItem Value="sunset">日落</ToggleItem>
+            <ToggleItem Value="ocean">海洋</ToggleItem>
+            <ToggleItem Value="forest">森林</ToggleItem>
+            <ToggleItem Value="mono">单色</ToggleItem>
+        </ToggleGroup>
+    </Field>
+    <Grid MinItemWidth="@("10rem")" Gap="SpaceScale.Lg" Align="ItemAlign.End">
+        <Field Label="速度"><Slider TValue="double" @bind-Value="speed" Min="0" Max="4" Step="0.1" /></Field>
+        <Field Label="扭曲"><Slider TValue="double" @bind-Value="distortion" Min="0" Max="1.5" Step="0.05" /></Field>
+        <Field Label="颗粒"><Slider TValue="double" @bind-Value="grain" Min="0" Max="0.15" Step="0.005" /></Field>
+        <Switch @bind-Value="paused">暂停</Switch>
+    </Grid>
+    <MeshGradient Sx="Stage" Palette="Palettes[palette!]" Speed="speed" Distortion="distortion" Grain="grain" Paused="paused" />
+</Flex>
+
+@code {
+    static readonly Dictionary<string, IReadOnlyList<CssColor>?> Palettes = new()
+    {
+        ["default"] = null,
+        ["sunset"] = [ChartColors.Series3, ChartColors.Series4, ChartColors.Series8, Tones.Warning.Solid],
+        ["ocean"] = [ChartColors.Series6, ChartColors.Series2, Tones.Accent.Solid],
+        ["forest"] = [ChartColors.Series7, ChartColors.Series2, ChartColors.Series8],
+        ["mono"] = [Tones.Accent.Solid, Tones.Accent.Soft, Colors.Background],
+    };
+
+    string? palette = "default";
+    double speed = 1;
+    double distortion = 0.6;
+    double grain = 0.04;
+    bool paused;
+
+    static Style Stage => Css.Define(static () => new Style { Height = CssLength.Rem(18), BorderRadius = Radii.Lg });
+}

@@ -1,0 +1,40 @@
+@inherits RuneComponent
+
+@* 只在一块区域里放（Fullscreen="false"）：方向、散开角度、数量、初速度与重力实时调整 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Grid MinItemWidth="@("10rem")" Gap="SpaceScale.Lg">
+        <Field Label="方向（度）"><Slider TValue="double" @bind-Value="angle" Min="0" Max="180" Step="5" /></Field>
+        <Field Label="散开（度）"><Slider TValue="double" @bind-Value="spread" Min="10" Max="180" Step="5" /></Field>
+        <Field Label="数量"><Slider TValue="int" @bind-Value="count" Min="20" Max="400" Step="20" /></Field>
+        <Field Label="初速度"><Slider TValue="double" @bind-Value="velocity" Min="0.3" Max="1.5" Step="0.1" /></Field>
+        <Field Label="重力"><Slider TValue="double" @bind-Value="gravity" Min="0.2" Max="2" Step="0.1" /></Field>
+    </Grid>
+    <Card Padding="SpaceScale.None">
+        <div @attributes="Attrs.Merge(StageLayer)">
+            <Confetti Fullscreen="false" Trigger="fired" Origin="new(0.5, 0.85)" Angle="angle" Spread="spread" Count="count" Velocity="velocity" Gravity="gravity" />
+            <Button @onclick="() => fired++">放一次</Button>
+        </div>
+    </Card>
+</Flex>
+
+@code {
+    static readonly Attrs StageLayer = new() { Sx = Stage };
+
+    double angle = 90;
+    double spread = 70;
+    int count = 160;
+    double velocity = 0.8;
+    double gravity = 1;
+    int fired;
+
+    static Style Stage => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        Display = Display.Flex,
+        AlignItems = AlignItems.FlexEnd,
+        JustifyContent = JustifyContent.Center,
+        Height = CssLength.Rem(20),
+        PaddingBottom = Space.Lg,
+        Overflow = Overflow.Hidden,
+    });
+}

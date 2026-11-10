@@ -1,0 +1,10 @@
+{
+  "name": "rune-vendor-three",
+  "private": true,
+  "description": "只给 tools/vendor-gen 打包 three.js 用：版本与 vue-tsx-pro 一致，锁文件保证每次生成的结果相同。不是 Rune 的运行时依赖。",
+  "type": "module",
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.186.1"
+  }
+}

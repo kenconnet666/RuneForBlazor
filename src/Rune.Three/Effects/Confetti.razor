@@ -1,0 +1,93 @@
+@*
+    彩纸（庆祝，同 vue-tsx-pro 的 Confetti）：Trigger 每变一次放一批，彩纸从 Origin 喷出，翻转着飘落后消失。参考 canvas-confetti 的 origin、angle、spread。
+    <Confetti Trigger="paidCount" />                                          铺满视口，从中间偏下向上喷
+    <Confetti Trigger="n" Origin="new(0, 1)" Angle="60" />                    从左下角斜着喷
+    <div style="position: relative"><Confetti Fullscreen="false" Trigger="n" /></div>
+    只在彩纸还在飘的时候才有画布：不放的时候不占 WebGL 上下文。默认铺满视口、放在顶层（原生 popover，盖得住打开着的对话框），
+    指针穿透；Fullscreen 为 false 时铺满最近的定位父元素。颜色取主题的图表色板，换主题时跟着变；系统或主题要求减少动态效果时不放
+    （OnDone 照常调用）。画面是装饰，读屏跳过。要在交互模式下用（Trigger 的变化由 C# 交给 JS）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using System.Text.Json.Nodes
+
+@if (bursts.Count > 0)
+{
+    @* 没有 WebGL 时什么也不显示（不要默认的渐变铺满屏幕），直接收尾 *@
+    <EffectSurface Setup="confetti" Options="OptionsNode" Quality="Quality" Resolution="Resolution ?? 1" Fallback="nothing" PropsCanvas="PropsCanvas" PropsContent="PropsContent"
+                   popover="@(Fullscreen ? "manual" : null)" data-rune-three-layer="@Fullscreen" aria-hidden="true" @onrunecommand="OnCommandAsync"
+                   @attributes="Attrs.MergeProps(Fullscreen ? ConfettiStyles.Fullscreen : ConfettiStyles.Root, Rest)" />
+}
+
+@code {
+    // 还没收到“落完了”的批次：画布建好后 JS 放出还没放过的，落完时报告放到了哪一批
+    static readonly RenderFragment nothing = static _ => { };
+    readonly List<ConfettiBurst> bursts = [];
+    Memo<(int, int, IReadOnlyList<CssColor>), JsonNode> options;
+    int lastId;
+    object? trigger;
+    bool initialized;
+
+    /// <summary>每变一次放一批（一开始的值不放）：写成计数、时间戳或任何会变的值。</summary>
+    [Parameter] public object? Trigger { get; set; }
+
+    /// <summary>喷出的位置，默认 (0.5, 0.6)：中间偏下。</summary>
+    [Parameter] public ConfettiOrigin Origin { get; set; } = new(0.5, 0.6);
+
+    /// <summary>喷出的方向（度），90 是正上方，0 向右。默认 90。</summary>
+    [Parameter] public double Angle { get; set; } = 90;
+
+    /// <summary>散开的角度（度）。默认 70。</summary>
+    [Parameter] public double Spread { get; set; } = 70;
+
+    /// <summary>每批的数量。默认 160。</summary>
+    [Parameter] public int Count { get; set; } = 160;
+
+    /// <summary>初速度的倍数。默认 1。</summary>
+    [Parameter] public double Velocity { get; set; } = 1;
+
+    /// <summary>重力的倍数。默认 1。</summary>
+    [Parameter] public double Gravity { get; set; } = 1;
+
+    /// <summary>色板（token 或 CSS 颜色）；默认图表色板的前六个（<see cref="ThreePalettes.Confetti"/>）；变了下一次放时生效。</summary>
+    [Parameter] public IReadOnlyList<CssColor>? Palette { get; set; }
+
+    /// <summary>铺满视口，放在顶层；false 时铺满最近的定位父元素。默认开。</summary>
+    [Parameter] public bool Fullscreen { get; set; } = true;
+
+    /// <summary>这几批彩纸都落完（或减少动态效果、没有 WebGL 时没有放）后调用。</summary>
+    [Parameter] public EventCallback OnDone { get; set; }
+
+    /// <summary>画质档位，见 ThreeCanvas。默认 Auto。</summary>
+    [Parameter] public ThreeQuality Quality { get; set; }
+
+    /// <summary>渲染分辨率相对像素比的倍数（0.1–1），见 ThreeCanvas。默认 1。</summary>
+    [Parameter] public double? Resolution { get; set; }
+
+    /// <summary>画布（ThreeCanvas）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCanvas { get; set; }
+
+    /// <summary>内容外层的部件属性（彩纸没有内容，留着与别的效果一致）。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (initialized && !Equals(Trigger, trigger))
+            bursts.Add(new ConfettiBurst(++lastId, Origin, Angle, Spread, Count, Velocity, Gravity));
+        trigger = Trigger;
+        initialized = true;
+    }
+
+    // 留着的批次总是 id 连续的一段（最后一批是 lastId）：数量与 lastId 定了，列表就定了
+    JsonNode OptionsNode => options.Get((bursts.Count, lastId, Palette ?? ThreePalettes.Confetti), this, static (k, self) =>
+        ThreeJson.Node(new ConfettiOptions([.. self.bursts], ThreePalettes.Text(k.Item3)), ThreeJson.Default.ConfettiOptions));
+
+    async Task OnCommandAsync(CommandEventArgs e)
+    {
+        if (e.Name == "three-status" && e.Text == "fallback") bursts.Clear();
+        else if (e.Name == "confetti-done" && int.TryParse(e.Text, out var launched)) bursts.RemoveAll(burst => burst.Id <= launched);
+        else return;
+        if (bursts.Count == 0) await OnDone.InvokeAsync();
+    }
+}

@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+<MeshGradient Sx="Hero" Distortion="0.9">
+    @* 粒子场作为渐变的内容，铺满整块 *@
+    <ParticleField Sx="Field" Palette="@([Colors.InverseText])" Size="2.5" Links="true" LinkDistance="90">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+            <H2 Size="Size.Xxl" Sx="Title">两层效果叠在一起</H2>
+            <Paragraph Sx="Lead">网格渐变在底层，粒子场是它的内容，标题又是粒子场的内容。两块画布各占一个 WebGL 上下文。</Paragraph>
+        </Flex>
+    </ParticleField>
+</MeshGradient>
+
+@code {
+    static Style Hero => Css.Define(static () => new Style { BorderRadius = Radii.Lg, Height = CssLength.Rem(20) });
+
+    static Style Field => Css.Define(static () => new Style { Height = CssLength.Rem(20), Display = Display.Grid, PlaceItems = PlaceItems.Center });
+
+    static Style Title => Css.Define(static () => new Style { Color = Colors.InverseText, TextAlign = TextAlign.Center });
+
+    static Style Lead => Css.Define(static () => new Style { Color = Colors.InverseText, Opacity = 0.85, TextAlign = TextAlign.Center, MaxWidth = CssLength.Rem(28) });
+}

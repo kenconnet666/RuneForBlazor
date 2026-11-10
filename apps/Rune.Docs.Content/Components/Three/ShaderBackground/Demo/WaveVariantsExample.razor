@@ -1,0 +1,22 @@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("18rem")" Gap="SpaceScale.Md">
+    <Card Padding="SpaceScale.None">
+        <WaveGrid Sx="Stage" />
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted" Sx="Caption">Grid · 默认色板</TextSpan>
+    </Card>
+    <Card Padding="SpaceScale.None">
+        <WaveGrid Sx="Stage" Type="WaveGridType.Dots" Palette="@([ChartColors.Series2, ChartColors.Series7, Tones.Warning.Solid])" />
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted" Sx="Caption">Dots · 青、绿、黄</TextSpan>
+    </Card>
+    <Card Padding="SpaceScale.None">
+        <WaveGrid Sx="Stage" Amplitude="1.8" Speed="2" Palette="@([ChartColors.Series5, ChartColors.Series4, ChartColors.Series3])" />
+        <TextSpan Size="Size.Sm" Tone="TextTone.Muted" Sx="Caption">Amplitude 1.8 · Speed 2</TextSpan>
+    </Card>
+</Grid>
+
+@code {
+    static Style Stage => Css.Define(static () => new Style { Height = CssLength.Rem(14) });
+
+    static Style Caption => Css.Define(static () => new Style { Display = Display.Block, Padding = $"{Space.Sm} {Space.Md}" });
+}

@@ -6,6 +6,14 @@
 
 ## [Unreleased]
 
+### 新增
+
+- 新包 RuneForBlazor.Three：3D 与 WebGL 效果，同 vue-tsx-pro 的 three 一组——ThreeCanvas（自己的 three.js 场景）、EffectSurface、ShaderBackground、
+  MeshGradient、AuroraBackground、ParticleField、WaveGrid、Confetti、Globe、ModelViewer；随包带 three.js 0.186.1（用到时才下载）。
+  场景与动画循环在 JS，C# 只交参数，Server 模式下每帧不往返；静态 SSR、WebAssembly、桌面（WebView2）都能用。
+  ThreeCanvas 的场景写在 JS 模块里（`Setup` 是模块的地址），与内置效果用同一个约定，以后加新的 3D 组件是一个场景模块加一个 Razor 壳
+- 文档站加“3D · three.js”一组（5 页），按页面懒加载 Rune.Three
+
 ### 改进
 
 - RuneForBlazor.Desktop.Maui：窗口建好后先隐身（DWM 的 cloak：照常能激活、在任务栏），内容第一次画出来再现身，

@@ -9,10 +9,12 @@
 //   wwwroot/vendor/LICENSE-floating-ui.txt
 //   wwwroot/vendor/shiki/                 Shiki（代码高亮）：shiki.js 是核心与 JavaScript 正则引擎，langs/ 下每种语言一个模块，
 //                                         共用的语法在 chunks/ 里；用 tools/vendor-gen/shiki 的锁文件安装、esbuild 打包
+//   Rune.Three 的 wwwroot/vendor/three/   three.js：three.js 是整个 three 的导出，addons.js 是 ModelViewer 用的 GLTFLoader 与 RoomEnvironment，
+//                                         共用的代码在 chunks/ 里；用 tools/vendor-gen/three 的锁文件安装、esbuild 打包
 //
 // 扩展名一律 .js：Blazor Hybrid（MAUI 等）的静态文件不认 .mjs，按 application/octet-stream 返回，浏览器拒绝当模块执行。
 //
-// 依赖：node 内置模块；Floating UI 用 npm pack 与 tar 下载，Shiki 用 npm ci 装到临时目录。来源与许可见 NOTICE.md。
+// 依赖：node 内置模块；Floating UI 用 npm pack 与 tar 下载，Shiki、three.js 用 npm ci 装到临时目录。来源与许可见 NOTICE.md。
 
 import { execFileSync, execSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -25,11 +27,17 @@ import { parseArgs } from 'node:util';
 const FLOATING_UI_VERSION = '1.8.0';
 
 /** Shiki 打包的语言（@shikijs/langs 里的名字）；别名在 js/display/highlight.js 里 */
+/** three.js 的版本：与 vue-tsx-pro 的依赖一致（tools/vendor-gen/three 的锁文件里是同一个版本） */
+const THREE_VERSION = '0.186.1';
+
 const SHIKI_LANGUAGES = ['razor', 'csharp', 'html', 'css', 'javascript', 'typescript', 'json', 'xml', 'shellscript', 'powershell', 'diff', 'sql'];
 
 const { values } = parseArgs({ options: { check: { type: 'boolean', default: false } } });
 const vendorDir = resolve(import.meta.dirname, '../../src/Rune.UI/wwwroot/vendor');
 const shikiDir = join(vendorDir, 'shiki');
+// three.js 随 Rune.Three 包分发（_content/RuneForBlazor.Three/vendor/…）：只用表单、表格的应用不带它
+const threeVendorDir = resolve(import.meta.dirname, '../../src/Rune.Three/wwwroot/vendor');
+const threeDir = join(threeVendorDir, 'three');
 
 const temp = mkdtempSync(join(tmpdir(), 'rune-vendor-'));
 
@@ -59,21 +67,21 @@ function floatingUi() {
   ];
 }
 
-async function shiki() {
-  const work = join(temp, 'shiki');
+/**
+ * 用 tools/vendor-gen/{name} 的锁文件装好依赖（npm ci 到临时目录），把 entries（出口名 → 入口模块的源码）用 esbuild 打包进 outDir：
+ * 每个入口一个模块，共用的代码拆进 chunks/。返回 [生成的文件, 内容] 与打包进去的各个包的许可全文（汇总成一个文件）。
+ */
+async function bundle(name, entries, outDir, banner) {
+  const work = join(temp, name);
   mkdirSync(work);
-  for (const file of ['package.json', 'package-lock.json']) copyFileSync(join(import.meta.dirname, 'shiki', file), join(work, file));
+  for (const file of ['package.json', 'package-lock.json']) copyFileSync(join(import.meta.dirname, name, file), join(work, file));
   execSync('npm ci --no-audit --no-fund --loglevel=error', { cwd: work, stdio: 'inherit' });
 
-  // 入口：核心只导出用到的三个函数；每种语言一个入口，esbuild 把共用的语法（html、css、javascript 被 razor 引用）拆进 chunks
-  writeFileSync(join(work, 'shiki.js'),
-    "export { createHighlighterCore, createCssVariablesTheme } from 'shiki/core';\n" +
-    "export { createJavaScriptRegexEngine } from 'shiki/engine/javascript';\n");
-  const entryPoints = [{ in: join(work, 'shiki.js'), out: 'shiki' }];
-  for (const lang of SHIKI_LANGUAGES) {
-    writeFileSync(join(work, `lang-${lang}.js`), `export { default } from '@shikijs/langs/${lang}';\n`);
-    entryPoints.push({ in: join(work, `lang-${lang}.js`), out: `langs/${lang}` });
-  }
+  const entryPoints = Object.entries(entries).map(([out, source]) => {
+    const file = join(work, `entry-${out.replaceAll('/', '-')}.js`);
+    writeFileSync(file, source);
+    return { in: file, out };
+  });
   const esbuild = createRequire(join(work, 'package.json'))('esbuild');
   // esbuild 的服务进程用着临时目录里的可执行文件：打包完停掉，临时目录才删得掉
   const result = await esbuild.build({
@@ -98,26 +106,48 @@ async function shiki() {
     const match = /node_modules[\\/]((?:@[^\\/]+[\\/])?[^\\/]+)/.exec(input);
     if (match) packages.add(match[1].replace('\\', '/'));
   }
-  const licenses = [...packages].sort().map((name) => {
-    const dir = join(work, 'node_modules', name);
+  const licenses = [...packages].sort().map((dependency) => {
+    const dir = join(work, 'node_modules', dependency);
     const version = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).version;
     const file = readdirSync(dir).find((f) => /^licen[cs]e/i.test(f));
-    if (!file) throw new Error(`${name} 没有许可文件`);
-    return `==== ${name}@${version} ====\n\n${readFileSync(join(dir, file), 'utf8').trim()}\n`;
+    if (!file) throw new Error(`${dependency} 没有许可文件`);
+    return `==== ${dependency}@${version} ====\n\n${readFileSync(join(dir, file), 'utf8').trim()}\n`;
   });
 
-  const banner = '// Shiki 4.5.0 打包（MIT，见 ../LICENSE-shiki.txt）；由 tools/vendor-gen 生成，不要手改\n';
   const outputs = [];
   const walk = (dir) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const path = join(dir, entry.name);
       if (entry.isDirectory()) walk(path);
-      else outputs.push([join(shikiDir, relative(join(work, 'out'), path)), banner + readFileSync(path, 'utf8').trimEnd() + '\n']);
+      else outputs.push([join(outDir, relative(join(work, 'out'), path)), banner + readFileSync(path, 'utf8').trimEnd() + '\n']);
     }
   };
   walk(join(work, 'out'));
-  outputs.push([join(vendorDir, 'LICENSE-shiki.txt'), licenses.join('\n')]);
-  return outputs;
+  return { outputs, licenses: licenses.join('\n') };
+}
+
+async function shiki() {
+  // 核心只导出用到的三个函数；每种语言一个入口，esbuild 把共用的语法（html、css、javascript 被 razor 引用）拆进 chunks
+  const entries = {
+    shiki: "export { createHighlighterCore, createCssVariablesTheme } from 'shiki/core';\n" +
+      "export { createJavaScriptRegexEngine } from 'shiki/engine/javascript';\n",
+  };
+  for (const lang of SHIKI_LANGUAGES) entries[`langs/${lang}`] = `export { default } from '@shikijs/langs/${lang}';\n`;
+  const banner = '// Shiki 4.5.0 打包（MIT，见 ../LICENSE-shiki.txt）；由 tools/vendor-gen 生成，不要手改\n';
+  const { outputs, licenses } = await bundle('shiki', entries, shikiDir, banner);
+  return [...outputs, [join(vendorDir, 'LICENSE-shiki.txt'), licenses]];
+}
+
+async function three() {
+  // three.js 整个导出（自定义场景也从这里 import，与内置效果用同一份）；ModelViewer 用的两个插件另成一个模块，用到才下载
+  const entries = {
+    three: "export * from 'three';\n",
+    addons: "export { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';\n" +
+      "export { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';\n",
+  };
+  const banner = `// three.js ${THREE_VERSION} 打包（MIT，见 ../LICENSE-three.txt）；由 tools/vendor-gen 生成，不要手改\n`;
+  const { outputs, licenses } = await bundle('three', entries, threeDir, banner);
+  return [...outputs, [join(threeVendorDir, 'LICENSE-three.txt'), licenses]];
 }
 
 /** 目录下现有的全部文件 */
@@ -130,15 +160,15 @@ function filesUnder(dir) {
 
 let outputs;
 try {
-  outputs = [...floatingUi(), ...(await shiki())];
+  outputs = [...floatingUi(), ...(await shiki()), ...(await three())];
 } finally {
   rmSync(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }
 
 const normalize = (text) => text.replaceAll('\r\n', '\n');
 const generated = new Set(outputs.map(([path]) => resolve(path)));
-// Shiki 的块名带内容哈希：版本变了旧文件要删掉，--check 时多出的文件也算过期
-const leftovers = filesUnder(shikiDir).map((path) => resolve(path)).filter((path) => !generated.has(path));
+// 打包出的块名带内容哈希：版本变了旧文件要删掉，--check 时多出的文件也算过期
+const leftovers = [shikiDir, threeDir].flatMap(filesUnder).map((path) => resolve(path)).filter((path) => !generated.has(path));
 
 let stale = false;
 for (const [path, content] of outputs) {
@@ -164,4 +194,4 @@ for (const path of leftovers) {
 if (stale) process.exit(1);
 console.log(values.check
   ? '生成文件均为最新'
-  : `已写入 ${outputs.length} 个文件（Floating UI ${FLOATING_UI_VERSION}、Shiki，${SHIKI_LANGUAGES.length} 种语言）${leftovers.length ? `，删除 ${leftovers.length} 个旧文件` : ''}`);
+  : `已写入 ${outputs.length} 个文件（Floating UI ${FLOATING_UI_VERSION}、Shiki ${SHIKI_LANGUAGES.length} 种语言、three.js ${THREE_VERSION}）${leftovers.length ? `，删除 ${leftovers.length} 个旧文件` : ''}`);

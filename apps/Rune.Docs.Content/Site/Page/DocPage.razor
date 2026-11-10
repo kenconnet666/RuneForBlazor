@@ -19,7 +19,7 @@
     /// <summary>宽版面：组件页用，示例在宽屏时分两列。</summary>
     [Parameter] public bool Wide { get; set; }
 
-    /// <summary>组件页要装的 NuGet 包，默认按分类：日期 Rune.UI.Dates、图表 Rune.Charts，其余 Rune.UI；指南页不写。</summary>
+    /// <summary>组件页要装的 NuGet 包，默认按分类：日期 Rune.UI.Dates、图表 Rune.Charts、3D Rune.Three，其余 Rune.UI；指南页不写。</summary>
     [Parameter] public string? Package { get; set; }
 
     /// <summary>正文。</summary>
@@ -30,6 +30,7 @@
         DocCategory.Guide => null,
         DocCategory.Date => "RuneForBlazor.UI.Dates",
         DocCategory.Charts => "RuneForBlazor.Charts",
+        DocCategory.Three => "RuneForBlazor.Three",
         _ => "RuneForBlazor.UI",
     }) is { } package ? @<CodeBlock Code="@($"dotnet add package {package}")" Lang="bash" /> : null;
 }

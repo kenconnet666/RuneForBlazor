@@ -1,0 +1,39 @@
+@*
+    着色器背景（div，同 vue-tsx-pro 的 ShaderBackground）：写一个片段着色器函数，主题色、时间、尺寸、指针自动作为 uniform 传入，画满整块区域。
+    MeshGradient、AuroraBackground 都建在同一个场景上。
+    <ShaderBackground Sx="styles.Hero" FragmentShader="@shader"><h1>内容叠在上面</h1></ShaderBackground>
+    着色器只写 vec4 shade(vec2 uv)（uv 是 0–1，左下角为原点；返回不预乘的颜色与透明度），可以直接用：
+    - uTime（秒，已乘 Speed）、uResolution（CSS 像素）、uPointer（xy 是 -1–1 的指针位置，z 是指针在区域内的程度 0–1）、
+      uDark（暗色主题为 1）、uBackground（主题背景色）；
+    - Palette 的颜色（uColors、uColorCount）与 themePalette(t)、snoise、fbm（Rune.Three 的 js/core/shaders.js）；
+    - Uniforms 里自己加的 uniform（float，改了实时生效）。
+    颜色在线性空间里计算，输出时按渲染器的色彩空间转换。
+*@
+@namespace Rune.UI
+@inherits ThreeEffect
+@using System.Text.Json.Nodes
+
+<EffectSurface Setup="shader-background" Options="OptionsNode" Quality="Quality" Paused="Paused" Resolution="Resolution ?? 1" Fallback="Fallback"
+               PropsCanvas="PropsCanvas" PropsContent="PropsContent" @attributes="Attrs.MergeProps(null, Rest)">@ChildContent</EffectSurface>
+
+@code {
+    Memo<(string, IReadOnlyDictionary<string, double>?, IReadOnlyList<CssColor>, double, bool), JsonNode> options;
+
+    /// <summary>片段着色器：定义 <c>vec4 shade(vec2 uv)</c>，可用的 uniform 见组件说明；变了会重建。</summary>
+    [Parameter, EditorRequired] public string FragmentShader { get; set; } = "";
+
+    /// <summary>额外的 uniform（float，名字 → 值）：着色器里声明 <c>uniform float 名字;</c>，值变了实时生效。</summary>
+    [Parameter] public IReadOnlyDictionary<string, double>? Uniforms { get; set; }
+
+    /// <summary>色板（token 或 CSS 颜色，最多 6 个），传给 uColors 与 themePalette；默认品牌色加图表色板（<see cref="ThreePalettes.Shader"/>）；变了会重建。</summary>
+    [Parameter] public IReadOnlyList<CssColor>? Palette { get; set; }
+
+    /// <summary>时间流速：uTime = 秒数 × Speed。默认 1。</summary>
+    [Parameter] public double Speed { get; set; } = 1;
+
+    /// <summary>跟随指针（uPointer）；关掉时 uPointer.z 始终为 0。默认开。</summary>
+    [Parameter] public bool Interactive { get; set; } = true;
+
+    JsonNode OptionsNode => options.Get((FragmentShader, Uniforms, Palette ?? ThreePalettes.Shader, Speed, Interactive), static k =>
+        ThreeJson.Node(new ShaderOptions(k.Item1, k.Item2, ThreePalettes.Text(k.Item3), k.Item4, k.Item5), ThreeJson.Default.ShaderOptions));
+}

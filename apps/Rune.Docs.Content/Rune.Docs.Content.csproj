@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\src\Rune.UI.Dates\Rune.UI.Dates.csproj" />
     <ProjectReference Include="..\..\src\Rune.Charts\Rune.Charts.csproj" />
     <ProjectReference Include="..\..\src\Rune.Charts.Maps\Rune.Charts.Maps.csproj" />
+    <ProjectReference Include="..\..\src\Rune.Three\Rune.Three.csproj" />
     <ProjectReference Include="..\..\src\Rune.UI.Area\Rune.UI.Area.csproj" />
     <!-- [State] 生成器：以分析器方式引用 -->
     <ProjectReference Include="..\..\src\Rune.Generators\Rune.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

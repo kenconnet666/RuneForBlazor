@@ -1,0 +1,32 @@
+@inherits RuneComponent
+
+<RuneProvider Theme="Themes.Midnight" DarkTheme="Themes.Midnight">
+    <AuroraBackground Sx="Hero" PropsContent="ContentLayer">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <TextSpan Size="Size.Xs" Weight="Weight.Semibold" Sx="Eyebrow">北纬 69°</TextSpan>
+            <H2 Size="Size.Xxl">在夜空下发布</H2>
+            <Paragraph Tone="TextTone.Muted">这一块用了午夜主题：极光的绿、青、紫取自它的图表色板，品牌色在中间那层。背景透明，叠在主题的底色上。</Paragraph>
+            <Flex Gap="SpaceScale.Sm">
+                <Button>预约演示</Button>
+                <Button Variant="ButtonVariant.Ghost">了解更多</Button>
+            </Flex>
+        </Flex>
+    </AuroraBackground>
+</RuneProvider>
+
+@code {
+    static readonly Attrs ContentLayer = new() { Sx = Content };
+
+    static Style Hero => Css.Define(static () => new Style
+    {
+        MinHeight = CssLength.Rem(24),
+        BorderRadius = Radii.Lg,
+        BackgroundColor = Colors.Background,
+        Display = Display.Flex,
+        AlignItems = AlignItems.FlexEnd,
+    });
+
+    static Style Content => Css.Define(static () => new Style { Padding = Space.Xl, MaxWidth = CssLength.Rem(34) });
+
+    static Style Eyebrow => Css.Define(static () => new Style { Color = Tones.Accent.Text, LetterSpacing = CssLength.Em(0.12) });
+}

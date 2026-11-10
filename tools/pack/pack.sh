@@ -9,7 +9,7 @@ set -euo pipefail
 
 out=$1
 version=${2:-}
-projects=(Rune Rune.UI Rune.Icons Rune.UI.Dates Rune.Charts Rune.Charts.Maps Rune.UI.Area)
+projects=(Rune Rune.UI Rune.Icons Rune.UI.Dates Rune.Charts Rune.Charts.Maps Rune.UI.Area Rune.Three)
 
 for project in "${projects[@]}"; do
   dotnet pack "src/$project/$project.csproj" --configuration Release --no-build --output "$out" ${version:+-p:Version="$version"}
@@ -24,4 +24,7 @@ unzip -p "$(package RuneForBlazor.UI)" RuneForBlazor.UI.nuspec | grep '<dependen
 unzip -p "$(package RuneForBlazor.UI)" build/Microsoft.AspNetCore.StaticWebAssets.props | grep "<AssetTraitValue>JSLibraryModule</AssetTraitValue>" >/dev/null
 unzip -l "$(package RuneForBlazor.UI)" | grep "LICENSE-lucide.txt" >/dev/null
 unzip -l "$(package RuneForBlazor.Icons)" | grep "LICENSE-lucide.txt" >/dev/null
+# three.js 随 3D 包（静态资源，用到时才下载），许可在旁边
+unzip -l "$(package RuneForBlazor.Three)" | grep "staticwebassets/vendor/three/three.js" >/dev/null
+unzip -l "$(package RuneForBlazor.Three)" | grep "staticwebassets/vendor/LICENSE-three.txt" >/dev/null
 ls -l "$out"

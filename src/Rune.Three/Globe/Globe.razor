@@ -1,0 +1,52 @@
+@*
+    点阵地球（div，同 vue-tsx-pro 的 Globe）：陆地画成一层细密的点，可以标注地点（Markers，向外扩散的光圈），两地之间画弧线（Arcs，光点沿弧线流动）；
+    缓缓自转，可以拖动转动（松手后带惯性）。参考 GitHub 首页的地球、cobe。
+    <Globe Markers="@([new(31.23, 121.47)])" Arcs="@([new(new(31.23, 121.47), new(37.77, -122.42))])" />
+    <Globe Center="new(30, 110)" RotationSpeed="0" Sx="styles.Globe" />
+    陆地来自 Natural Earth 1:110m 的世界地图（1° 的位图）；点的疏密按画质档位。颜色跟随主题：陆地用次要文字色，标注、弧线与大气光晕用品牌色
+    （可以单独给颜色）。默认是正方形，尺寸由使用方决定。减少动态效果时停在一帧，不自转、弧线不流动。
+    画面是装饰；要让读屏知道内容时给 PropsCanvas 写 aria-label。
+*@
+@namespace Rune.UI
+@inherits ThreeEffect
+@using System.Text.Json.Nodes
+
+<EffectSurface Setup="globe" Options="OptionsNode" Quality="Quality" Paused="Paused" Resolution="Resolution ?? 1" Fallback="Fallback"
+               PropsCanvas="PropsCanvas" PropsContent="PropsContent" @attributes="Attrs.MergeProps(Draggable ? GlobeStyles.Draggable : GlobeStyles.Root, Rest)">@ChildContent</EffectSurface>
+
+@code {
+    Memo<(IReadOnlyList<GlobeMarker>?, IReadOnlyList<GlobeArc>?, GeoPoint, double, bool, double, CssColor, CssColor, bool), JsonNode> options;
+
+    /// <summary>标注的地点。</summary>
+    [Parameter] public IReadOnlyList<GlobeMarker>? Markers { get; set; }
+
+    /// <summary>弧线。</summary>
+    [Parameter] public IReadOnlyList<GlobeArc>? Arcs { get; set; }
+
+    /// <summary>一开始正对着的地方，默认 (20, 100)（亚洲）；之后转到哪里由拖动与自转决定。</summary>
+    [Parameter] public GeoPoint Center { get; set; } = new(20, 100);
+
+    /// <summary>自转速度（度 / 秒，向东为正）；0 时不自转。默认 6。</summary>
+    [Parameter] public double RotationSpeed { get; set; } = 6;
+
+    /// <summary>可以拖动转动。默认开。</summary>
+    [Parameter] public bool Draggable { get; set; } = true;
+
+    /// <summary>陆地的点有多密（1 约一万个点，按画质档位再缩放）。默认 1。</summary>
+    [Parameter] public double Density { get; set; } = 1;
+
+    /// <summary>陆地点的颜色，默认次要文字色。</summary>
+    [Parameter] public CssColor? LandColor { get; set; }
+
+    /// <summary>标注与弧线的颜色，默认品牌色。</summary>
+    [Parameter] public CssColor? MarkerColor { get; set; }
+
+    /// <summary>大气光晕。默认开。</summary>
+    [Parameter] public bool Glow { get; set; } = true;
+
+    JsonNode OptionsNode => options.Get((Markers, Arcs, Center, RotationSpeed, Draggable, Density, LandColor ?? Colors.TextMuted, MarkerColor ?? Tones.Accent.Solid, Glow), static k =>
+        ThreeJson.Node(new GlobeOptions(
+            [.. (k.Item1 ?? []).Select(marker => new GlobeMarkerOptions(marker.Lat, marker.Lng, marker.Size, marker.Color?.ToString()))],
+            [.. (k.Item2 ?? []).Select(arc => new GlobeArcOptions([arc.From.Lat, arc.From.Lng], [arc.To.Lat, arc.To.Lng]))],
+            k.Item3, k.Item4, k.Item5, k.Item6, k.Item7.ToString(), k.Item8.ToString(), k.Item9), ThreeJson.Default.GlobeOptions));
+}

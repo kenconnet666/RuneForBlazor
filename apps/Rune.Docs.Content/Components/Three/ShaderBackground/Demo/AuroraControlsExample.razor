@@ -1,0 +1,36 @@
+@inherits RuneComponent
+
+@* 这一块跟随站点的主题：暗色里是夜空的极光，亮色里是一层彩色的雾 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="色板">
+        <ToggleGroup @bind-Value="palette" Required="true">
+            <ToggleItem Value="default">极光</ToggleItem>
+            <ToggleItem Value="warm">晚霞</ToggleItem>
+            <ToggleItem Value="brand">品牌色</ToggleItem>
+        </ToggleGroup>
+    </Field>
+    <Grid MinItemWidth="@("10rem")" Gap="SpaceScale.Lg">
+        <Field Label="亮度"><Slider TValue="double" @bind-Value="intensity" Min="0" Max="1.5" Step="0.05" /></Field>
+        <Field Label="高度"><Slider TValue="double" @bind-Value="height" Min="0.1" Max="0.9" Step="0.01" /></Field>
+        <Field Label="速度"><Slider TValue="double" @bind-Value="speed" Min="0" Max="4" Step="0.1" /></Field>
+    </Grid>
+    <Card Padding="SpaceScale.None">
+        <AuroraBackground Sx="Stage" Palette="Palettes[palette!]" Intensity="intensity" Height="height" Speed="speed" />
+    </Card>
+</Flex>
+
+@code {
+    static readonly Dictionary<string, IReadOnlyList<CssColor>> Palettes = new()
+    {
+        ["default"] = ThreePalettes.Aurora,
+        ["warm"] = [ChartColors.Series3, ChartColors.Series4, ChartColors.Series8],
+        ["brand"] = [Tones.Accent.Solid, Tones.Accent.Soft, ChartColors.Series5],
+    };
+
+    string? palette = "default";
+    double intensity = 1;
+    double height = 0.55;
+    double speed = 1;
+
+    static Style Stage => Css.Define(static () => new Style { Height = CssLength.Rem(18) });
+}

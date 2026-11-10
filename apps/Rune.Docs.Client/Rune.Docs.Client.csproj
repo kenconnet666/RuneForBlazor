@@ -17,6 +17,7 @@
     <BlazorWebAssemblyLazyLoad Include="Rune.Charts.wasm" />
     <BlazorWebAssemblyLazyLoad Include="Rune.Charts.Maps.wasm" />
     <BlazorWebAssemblyLazyLoad Include="Rune.UI.Area.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="Rune.Three.wasm" />
   </ItemGroup>
 
   <ItemGroup>

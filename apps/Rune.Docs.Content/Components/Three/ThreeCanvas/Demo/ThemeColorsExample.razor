@@ -1,0 +1,32 @@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ToggleGroup @bind-Value="name" Required="true" aria-label="示例的主题">
+        @foreach (var (value, label, _) in Choices)
+        {
+            <ToggleItem @key="value" Value="@value">@label</ToggleItem>
+        }
+    </ToggleGroup>
+    <RuneProvider Theme="Theme" DarkTheme="Theme">
+        <Card Padding="SpaceScale.None" Sx="Surface">
+            <ThreeCanvas Setup="_content/Rune.Docs.Content/Components/Three/ThreeCanvas/Demo/ThemeColorsExample.razor.js" Sx="Stage"
+                         aria-label="八个按图表色板着色的小球绕着品牌色的球体旋转" />
+        </Card>
+    </RuneProvider>
+</Flex>
+
+@code {
+    static readonly (string Value, string Label, Theme Theme)[] Choices =
+    [
+        ("light", "亮色", Themes.Light), ("dark", "暗色", Themes.Dark), ("paper", "纸张", Themes.Paper),
+        ("midnight", "午夜", Themes.Midnight), ("contrast", "高对比", Themes.HighContrast),
+    ];
+
+    string? name = "midnight";
+
+    Theme Theme => Choices.First(choice => choice.Value == name).Theme;
+
+    static Style Stage => Css.Define(static () => new Style { Height = CssLength.Rem(22) });
+
+    static Style Surface => Css.Define(static () => new Style { BackgroundColor = Colors.Background, Overflow = Overflow.Hidden });
+}

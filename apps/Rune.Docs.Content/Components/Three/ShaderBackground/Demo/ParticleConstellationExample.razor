@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+<ParticleField Links="true" Sx="Field">
+    <Grid MinItemWidth="@("10rem")" Gap="SpaceScale.Md">
+        @foreach (var (icon, title, text) in Features)
+        {
+            <Card @key="title" Sx="FeatureCard">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                    <Icon Data="icon" Sx="FeatureIcon" />
+                    <H3 Size="Size.Lg">@title</H3>
+                    <Paragraph Size="Size.Sm" Tone="TextTone.Muted">@text</Paragraph>
+                </Flex>
+            </Card>
+        }
+    </Grid>
+</ParticleField>
+
+@code {
+    static readonly (IconData Icon, string Title, string Text)[] Features =
+    [
+        (Lucide.Zap, "即时", "粒子在独立的动画帧里更新，滚出视口自动停下。"),
+        (Lucide.Sparkles, "跟随主题", "颜色取自主题色板，切换主题时原地过渡。"),
+        (Lucide.Rocket, "可组合", "叠在任何背景上，内容照常排版、交互。"),
+    ];
+
+    static Style Field => Css.Define(static () => new Style { BorderRadius = Radii.Lg, BackgroundColor = Colors.SurfaceMuted, Padding = Space.Xl });
+
+    static Style FeatureCard => Css.Define(static () => new Style { BackgroundColor = Colors.SurfaceTranslucent, BackdropFilter = "blur(6px)" });
+
+    static Style FeatureIcon => Css.Define(static () => new Style { Color = Tones.Accent.Text, FontSize = CssLength.Rem(1.5) });
+}

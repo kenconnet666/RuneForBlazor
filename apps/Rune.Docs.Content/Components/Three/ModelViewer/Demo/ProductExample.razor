@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+@* 商品详情：模型可以拖动环绕、滚轮缩放，旁边是商品信息；加载完成前中间转圈 *@
+<Grid MinItemWidth="@("18rem")" Gap="SpaceScale.Lg" Align="ItemAlign.Center">
+    <ModelViewer Src="_content/Rune.Docs.Content/models/trophy.glb" Alt="金色奖杯，带两只把手，立在深灰色石台上" Zoom="true" Sx="Viewer"
+                 OnLoad="() => loaded = true" />
+    <Card Padding="SpaceScale.Md">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <H3 Size="Size.Md">年度最佳奖杯</H3>
+                <Badge Tone="Tone.Success">现货</Badge>
+            </Flex>
+            <Paragraph Tone="TextTone.Muted" Size="Size.Sm">黄铜镀金杯身，大理石底座，正面铭牌可免费刻字。拖动模型从各个角度看，滚轮或 + / - 键缩放。</Paragraph>
+            <Strong>¥ 1,299</Strong>
+            <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+                <Button Disabled="!loaded">加入购物车</Button>
+                <Small Tone="TextTone.Muted">@(loaded ? "模型已加载" : "模型加载中…")</Small>
+            </Flex>
+        </Flex>
+    </Card>
+</Grid>
+
+@code {
+    bool loaded;
+
+    static Style Viewer => Css.Define(static () => new Style { MaxWidth = CssLength.Rem(26), MarginInline = CssLength.Auto, BorderRadius = Radii.Lg });
+}

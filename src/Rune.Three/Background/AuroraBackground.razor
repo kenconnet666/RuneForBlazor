@@ -1,0 +1,34 @@
+@*
+    极光（div，同 vue-tsx-pro 的 AuroraBackground）：几层半透明的光幕在区域上方缓缓飘动，下缘清晰、向上渐隐，带细密的竖向光丝。
+    背景是透明的，叠在页面底色上：暗色主题里像夜空的极光，亮色主题里是一层淡淡的彩色雾。
+    <AuroraBackground Sx="styles.Hero"><h1>标题</h1></AuroraBackground>
+    默认色板绿、青、品牌色、紫（取自图表色板，跟随主题）；指针左右移动时光幕跟着轻轻偏移。
+*@
+@namespace Rune.UI
+@inherits ThreeEffect
+@using System.Text.Json.Nodes
+
+<EffectSurface Setup="aurora-background" Options="OptionsNode" Quality="Quality" Paused="Paused" Resolution="Resolution ?? 0.5" Fallback="Fallback"
+               PropsCanvas="PropsCanvas" PropsContent="PropsContent" @attributes="Attrs.MergeProps(null, Rest)">@ChildContent</EffectSurface>
+
+@code {
+    Memo<(IReadOnlyList<CssColor>, double, double, double, bool), JsonNode> options;
+
+    /// <summary>色板（token 或 CSS 颜色，2–6 个），默认绿、青、品牌色、紫（<see cref="ThreePalettes.Aurora"/>）。</summary>
+    [Parameter] public IReadOnlyList<CssColor>? Palette { get; set; }
+
+    /// <summary>飘动速度。默认 1。</summary>
+    [Parameter] public double Speed { get; set; } = 1;
+
+    /// <summary>亮度（0–1.5）。默认 1。</summary>
+    [Parameter] public double Intensity { get; set; } = 1;
+
+    /// <summary>光幕下缘在区域里的高度（0 底部，1 顶部）。默认 0.55。</summary>
+    [Parameter] public double Height { get; set; } = 0.55;
+
+    /// <summary>跟随指针。默认开。</summary>
+    [Parameter] public bool Interactive { get; set; } = true;
+
+    JsonNode OptionsNode => options.Get((Palette ?? ThreePalettes.Aurora, Speed, Intensity, Height, Interactive), static k =>
+        ThreeJson.Node(new AuroraOptions(ThreePalettes.Text(k.Item1), k.Item2, k.Item3, k.Item4, k.Item5), ThreeJson.Default.AuroraOptions));
+}

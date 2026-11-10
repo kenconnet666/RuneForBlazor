@@ -4,13 +4,14 @@ namespace Rune.Docs.Client;
 
 /// <summary>
 /// 只有部分页面用到的程序集（项目文件里的 BlazorWebAssemblyLazyLoad）：WebAssembly 启动时不下载，进入用到它们的页面前再加载。
-/// 图表页（分类 Charts）要图表与地图数据，Cascader 页的地区示例要省市区数据。别的页面不能用到这些程序集里的类型
+/// 图表页（分类 Charts）要图表与地图数据，3D 页（分类 Three）要 Rune.Three，Cascader 页的地区示例要省市区数据。别的页面不能用到这些程序集里的类型
 /// （单元测试 LazyAssemblyTests 检查内容项目的源码）。
 /// </summary>
 static class LazyAssemblies
 {
     static readonly string[] Charts = ["Rune.Charts.wasm", "Rune.Charts.Maps.wasm"];
     static readonly string[] Area = ["Rune.UI.Area.wasm"];
+    static readonly string[] Three = ["Rune.Three.wasm"];
 
     /// <summary>打开这个地址（相对站点根，如 components/line-chart、frame/app-shell/admin）前要加载的程序集。</summary>
     public static IReadOnlyList<string> For(string path)
@@ -21,6 +22,7 @@ static class LazyAssemblies
         return page switch
         {
             { Meta.Category: DocCategory.Charts } => Charts,
+            { Meta.Category: DocCategory.Three } => Three,
             { Slug: "cascader" } => Area,
             _ => [],
         };

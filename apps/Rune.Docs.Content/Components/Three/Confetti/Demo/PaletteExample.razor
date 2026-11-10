@@ -1,0 +1,65 @@
+@inherits RuneComponent
+
+@* 色板（下一次放时生效）与收尾：OnDone 在这几批都落完后调用；“关闭特效”时 Quality="ThreeQuality.Off"，不放、直接 OnDone *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Grid MinItemWidth="@("12rem")" Gap="SpaceScale.Lg" Align="ItemAlign.End">
+        <Field Label="色板">
+            <ToggleGroup @bind-Value="palette" Required="true">
+                <ToggleItem Value="default">默认</ToggleItem>
+                <ToggleItem Value="gold">金色</ToggleItem>
+                <ToggleItem Value="brand">品牌色</ToggleItem>
+            </ToggleGroup>
+        </Field>
+        <Switch @bind-Value="effects">动态特效</Switch>
+    </Grid>
+    <Card Padding="SpaceScale.None">
+        <div @attributes="Attrs.Merge(StageLayer)">
+            <Confetti Fullscreen="false" Trigger="fired" Origin="new(0.5, 0.8)" Palette="Palettes[palette!]" Quality="@(effects ? ThreeQuality.Auto : ThreeQuality.Off)"
+                      OnDone="Done" />
+            <Button @onclick="Fire">放一次</Button>
+            <Small Tone="TextTone.Muted">@(flying ? "飘落中…" : $"已落完 {finished} 次")</Small>
+        </div>
+    </Card>
+</Flex>
+
+@code {
+    static readonly Attrs StageLayer = new() { Sx = Stage };
+
+    static readonly Dictionary<string, IReadOnlyList<CssColor>> Palettes = new()
+    {
+        ["default"] = ThreePalettes.Confetti,
+        ["gold"] = [Tones.Warning.Solid, ChartColors.Series3, ChartColors.Series4],
+        ["brand"] = [Tones.Accent.Solid, Tones.Accent.Soft, ChartColors.Series5],
+    };
+
+    string? palette = "default";
+    bool effects = true;
+    int fired;
+    bool flying;
+    int finished;
+
+    void Fire()
+    {
+        fired++;
+        flying = true;
+    }
+
+    void Done()
+    {
+        flying = false;
+        finished++;
+    }
+
+    static Style Stage => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        AlignItems = AlignItems.Center,
+        JustifyContent = JustifyContent.FlexEnd,
+        Gap = Space.Sm,
+        Height = CssLength.Rem(16),
+        PaddingBottom = Space.Lg,
+        Overflow = Overflow.Hidden,
+    });
+}

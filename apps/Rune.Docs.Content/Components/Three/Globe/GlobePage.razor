@@ -1,0 +1,20 @@
+@page "/components/globe"
+@attribute [DocMeta("Globe 地球", "点阵地球：标注地点、画出两地之间流动的弧线，缓缓自转、可以拖动。颜色跟随主题。", DocCategory.Three, Order = 7)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Three.Globe.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="network" Title="标注与弧线" Demo="typeof(NetworkExample)">
+        <Code>Markers</Code> 是经纬度（北纬、东经为正），画成向外扩散的光圈；<Code>Arcs</Code> 沿大圆抬离地面，两地越远抬得越高，光点从起点流向终点。
+        拖动转动地球，松手后带着惯性回到自转；<Code>Center</Code> 决定一开始正对哪里。
+    </Example>
+    <Example Id="styles" Title="外观" Demo="typeof(StylesExample)">
+        陆地来自 Natural Earth 的世界地图，<Code>Density</Code> 调点的疏密（还会按画质档位缩放）；颜色默认是次要文字色与品牌色，换主题时原地过渡。
+        减少动态效果时停在一帧。
+    </Example>
+    <Example Id="performance" Title="画质、降级与叠加内容" Demo="typeof(PerformanceExample)">
+        低画质时陆地的点少一半多。<Code>Paused</Code> 停住自转与弧线的流动；<Code>Quality="ThreeQuality.Off"</Code> 不创建 WebGL，显示 <Code>Fallback</Code>
+        （这里是一个地球图标）。子内容叠在地球上，<Code>PropsContent</Code> 给它定位。
+    </Example>
+    <ApiReference Types="[typeof(Globe), typeof(GlobeMarker), typeof(GlobeArc)]" />
+</DocPage>

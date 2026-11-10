@@ -122,7 +122,8 @@ public abstract class VisualTests(DemoServer demo, VisualServer visual) : IClass
             await canvas.ScrollIntoViewIfNeededAsync();
             if (await canvas.Locator("iframe").CountAsync() > 0)
                 await canvas.Locator("iframe").First.ContentFrame.Locator("html[data-rune-ready]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
-            shots.Add((name, await canvas.ScreenshotAsync(new() { Animations = ScreenshotAnimations.Disabled })));
+            // 3D 画布（Rune.Three）的画面有随机（粒子的位置）、随显卡与驱动不同：盖住，只比外层的排版
+            shots.Add((name, await canvas.ScreenshotAsync(new() { Animations = ScreenshotAnimations.Disabled, Mask = [canvas.Locator("[data-rune-three] > canvas")] })));
         }
         return shots;
     }

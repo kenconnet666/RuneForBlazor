@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+<WaveGrid Sx="Banner" PropsContent="ContentLayer">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+        <Badge Variant="StatusVariant.Soft">实时数据</Badge>
+        <H2 Size="Size.Xxl">起伏的数据地形</H2>
+        <Paragraph Tone="TextTone.Muted" Sx="Lead">网格随噪声缓缓起伏，指针下方隆起；颜色按高度在主题色板里取，远处渐隐。</Paragraph>
+    </Flex>
+</WaveGrid>
+
+@code {
+    static readonly Attrs ContentLayer = new() { Sx = Content };
+
+    static Style Banner => Css.Define(static () => new Style
+    {
+        Height = CssLength.Rem(22),
+        BorderRadius = Radii.Lg,
+        BackgroundImage = $"linear-gradient(to bottom, {Colors.SurfaceMuted}, {Colors.Background})",
+    });
+
+    static Style Content => Css.Define(static () => new Style { Padding = Space.Xl, TextAlign = TextAlign.Center });
+
+    static Style Lead => Css.Define(static () => new Style { MaxWidth = CssLength.Rem(30), MarginInline = CssLength.Auto });
+}

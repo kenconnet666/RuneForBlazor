@@ -37,6 +37,9 @@
 - Cascader 当前项常亮的焦点环用 CSS 条件（`[data-highlighted]:where(:focus *)`），不经状态往返。
 - FileDrop / Upload 的 `Directory`：IBrowserFile 只有文件名，相对路径由 JS 在选到时交给 FileDrop（`PathOf`）。
 - Dialog 的 `Draggable` 拖动在 JS（overlays.js 的 grabDialog）；FloatButton 速拨的展开状态在 C#，Esc 与点到组外由 JS 发 rune-command。
+- 3D（Rune.Three）：场景在 JS 模块里，`Setup` 是模块的地址（vue 是内联的 setup 函数）；ModelViewer 的 `object` 换成 `ObjectModule`（规格比对基线里的
+  ModelViewer.Object）；场景的上下文多了 `three`、`options`、`host`、`dark`、`send`。Globe 在减少动态效果时也能拖动（vue 停在一帧、不响应拖动），与 ModelViewer 一致。
+  文档站 Confetti 的“庆祝”示例从视口中间放（vue 从点的按钮处放：C# 拿不到按钮在视口里的位置）。
 - ImageCropper 导出经隐藏的 InputFile 回到 C#，不受 SignalR 32 KB 限制；SignaturePad 画在 JS 里，静态 SSR 也能签。
 - Listbox、Tree 的虚拟行用 Virtualize，行在文档流里（vue 叠在同一个 grid 格子里）。
 

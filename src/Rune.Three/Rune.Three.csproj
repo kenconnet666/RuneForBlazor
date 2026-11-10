@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!-- 3D 与 WebGL 效果：ThreeCanvas、着色器背景、粒子场、地球、模型查看器……单独成包，随包带 three.js（wwwroot/vendor，用到时才下载）；
+       场景与动画循环在 JS（wwwroot/js），C# 只交参数（DESIGN 第 16 节） -->
+  <PropertyGroup>
+    <IsLibrary>true</IsLibrary>
+    <!-- 公开成员必须写文档注释（CS1591 视为错误）；XML 文档也给文档站的 API 表用 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- 类型与 Rune.UI 同一个命名空间：引用了包就能用，不用另加 @using -->
+    <RootNamespace>Rune.UI</RootNamespace>
+    <Description>Rune.UI 的 3D 与 WebGL 效果：ThreeCanvas（自己的 three.js 场景）、着色器背景、网格渐变、极光、粒子场、线框地形、彩纸、点阵地球、模型查看器；随包带 three.js。</Description>
+    <PackageTags>$(PackageTags);three;threejs;webgl;3d</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+    <InternalsVisibleTo Include="Rune.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rune.UI\Rune.UI.csproj" />
+    <ProjectReference Include="..\Rune.Generators\Rune.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Rune.CodeFixes\Rune.CodeFixes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- 与 Rune.UI 同一套组件库的分析器级别 -->
+    <GlobalAnalyzerConfigFiles Include="..\Rune.UI\components.globalconfig" />
+  </ItemGroup>
+
+</Project>

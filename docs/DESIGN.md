@@ -523,3 +523,32 @@
   标注、区间的位置按类目的值相等（`Equals`）匹配。
 - **样式**：同 vue 的 chartStyles / chartSvgStyles，颜色、字号走主题 tokens；系列颜色是 CSS 变量，换主题不用重画。
   进场动画（淡入、柱子长出来）用 `@starting-style`，“减少动态效果”时时长为 0。
+
+## 16. 3D 与 WebGL（`src/Rune.Three`，阶段 7）
+
+同 vue 的 `src/three`（ThreeCanvas、EffectSurface、ShaderBackground、MeshGradient、AuroraBackground、ParticleField、WaveGrid、Confetti、Globe、ModelViewer）。
+单独成包，随包带 three.js（`tools/vendor-gen` 用 esbuild 打成 `wwwroot/vendor/three/`：`three.js` 是整个 three 的导出，`addons.js` 是 GLTFLoader 与
+RoomEnvironment），只在用到的页面下载；文档站按页面懒加载 `Rune.Three.wasm`。
+
+- **分工**：C# 不能每帧经互操作驱动 three 的对象（Server 模式下每帧一次 SignalR 往返），所以场景、动画循环、canvas 都在 JS
+  （`js/three-canvas.js`，`[data-rune-three]` 的初始化器）。C# 只输出外层、canvas 的属性模板（`<template data-part=canvas>`，JS 把它的属性复制到自己建的每块 canvas 上）
+  与降级内容（根元素的 data-state 是 fallback 时才显示）；参数写在属性上（`data-options` 的 JSON、`data-quality`、`data-paused`、`data-resolution`），变了 JS 接着用，不往返。
+  JS 要告诉 C# 的经 rune-command：`three-status`（OnStatusChange）、`model-load` / `model-error`、`confetti-done`；没人要的回调不挂处理，Server 下不为状态往返。
+  静态 SSR 也照样渲染（只是没有回调）。canvas 由 JS 建、可以随时换新的一块（上下文丢失、换画质要重建上下文），C# 不碰它。
+- **场景模块**：vue 的 `setup` 是内联的函数，这里是 JS 模块的地址（`Setup`；内置效果写名字，对应 `js/scenes/{名字}.js`），模块导出 `setup(context)`，
+  可选的 `keys` 列出 `data-options` 里变了要重建场景的参数（着色器、色板）；其余参数变了调 `update(options, previous, context)`。
+  context 同 vue 的 ThreeContext，另有 `three`（three 的全部导出，自己的模块不用算 import 的路径）、`options`（始终是最新的）、`host`（外层效果元素，
+  拖动、键盘、加载状态挂在这一层）、`dark`、`send(name, text)`。内置效果与使用方自己的场景用同一个约定：新的 3D 组件是一个场景模块加一个薄的 Razor 壳
+  （参数整理成 `ThreeJson` 里的记录、源生成序列化，交给 EffectSurface）。
+- **生命周期**（同 vue 的 useThree）：进入视口才创建渲染器；所有画布共用一个 requestAnimationFrame；滚出视口、标签页隐藏、暂停时停下；
+  减少动态效果或主题的时长为 0 时只画一帧；WebGL 上下文最多 8 个，超出时回收最久没出现在视口里的（`core/quality.js`）；上下文连续丢失三次改显示降级内容。
+  外层被移除时释放：Blazor 不会通知，JS 监听文档的子节点变化，下一帧检查各画布还在不在页面上。
+- **主题色**：vue 用 culori 解析浏览器给出的计算值；这里把计算值画到 1×1 的 canvas 上读出 sRGB（浏览器负责 oklch、display-p3 等的换算），不另带库。
+  换主题时重新读、按主题的 lg 时长与 standard 缓动过渡：JS 观察祖先的 `data-theme`、`class`、`style` 变化（根元素的主题、局部 RuneProvider 的主题类、主题定制写的变量）。
+- **指针**：同 vue 的 usePointer（监听整个窗口、弹簧阻尼），弹簧的积分与 Rune.UI 的 `core/pointer.js` 共用 `stepSpring`；主题过渡的缓动共用 `core/tween.js` 的 `easing`。
+- **Confetti**：同 vue，只在彩纸还在飘的时候才有画布。C# 记着还没落完的批次（递增的 id），每触发一次加一批交给 JS；JS 放出还没放过的，
+  落完后发 `confetti-done`（文字是放过的最大 id），C# 去掉这些、都去掉了就收起画布并调用 OnDone。顶层显示是原生 popover（`data-rune-three-layer`，JS 打开）。
+- **ModelViewer** 的加载状态由 JS 写在外层的 `data-status`（与 aria-busy）上，C# 输出的转圈与出错提示按它显示，不用往返。`ObjectModule` 代替 vue 的 `object`
+  （C# 拿不到 three 的对象）：模块导出函数，参数是 three 的全部导出，返回 Object3D；`地址#名字` 选导出。
+- **测试**：bUnit 只测 C# 一侧（属性、参数 JSON、回调）；端到端用 Playwright 的无头 Chromium（有软件 WebGL），截图基线把 3D 画布盖住（粒子位置随机、随显卡不同），只比外层的排版。
+  文档站的自定义场景示例是示例旁边的 `XxxExample.razor.js`（Blazor 的 JS 并置文件，地址 `_content/Rune.Docs.Content/…`），示例源码后面接着显示它。

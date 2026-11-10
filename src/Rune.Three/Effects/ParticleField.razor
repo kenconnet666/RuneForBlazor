@@ -1,0 +1,44 @@
+@*
+    粒子场（div，同 vue-tsx-pro 的 ParticleField）：柔和的光点在区域里缓缓漂移，指针靠近时向四周排开、离开后回到原来的漂移；
+    Links 打开时相近的粒子连成星座般的细线，越近越清楚。
+    <ParticleField Links Sx="styles.Hero"><h1>标题</h1></ParticleField>
+    粒子数默认按面积与画质档位决定（连线时更稀疏），尺寸变化时增减；颜色从色板里随机分配，连线用色板的第一个颜色，
+    都跟随主题原地过渡。背景透明，叠在页面底色或别的效果（MeshGradient）上。
+*@
+@namespace Rune.UI
+@inherits ThreeEffect
+@using System.Text.Json.Nodes
+
+<EffectSurface Setup="particle-field" Options="OptionsNode" Quality="Quality" Paused="Paused" Resolution="Resolution ?? 1" Fallback="Fallback"
+               PropsCanvas="PropsCanvas" PropsContent="PropsContent" @attributes="Attrs.MergeProps(null, Rest)">@ChildContent</EffectSurface>
+
+@code {
+    Memo<(int?, IReadOnlyList<CssColor>, double, double, bool, double, bool, double), JsonNode> options;
+
+    /// <summary>粒子数；不写时按面积与画质档位决定。</summary>
+    [Parameter] public int? Count { get; set; }
+
+    /// <summary>色板（token 或 CSS 颜色，最多 6 个）：粒子随机取色，连线用第一个；默认品牌色、紫、青（<see cref="ThreePalettes.Particle"/>）；变了会重建。</summary>
+    [Parameter] public IReadOnlyList<CssColor>? Palette { get; set; }
+
+    /// <summary>粒子的直径（CSS 像素，各粒子在它的 0.6–1.4 倍之间）。默认 3。</summary>
+    [Parameter] public double Size { get; set; } = 3;
+
+    /// <summary>漂移速度。默认 1。</summary>
+    [Parameter] public double Speed { get; set; } = 1;
+
+    /// <summary>相近的粒子连线（星座）；变了会重建。</summary>
+    [Parameter] public bool Links { get; set; }
+
+    /// <summary>连线的最大距离（CSS 像素）。默认 120。</summary>
+    [Parameter] public double LinkDistance { get; set; } = 120;
+
+    /// <summary>指针靠近时排开粒子。默认开。</summary>
+    [Parameter] public bool Interactive { get; set; } = true;
+
+    /// <summary>排开的范围（CSS 像素）。默认 140。</summary>
+    [Parameter] public double RepelRadius { get; set; } = 140;
+
+    JsonNode OptionsNode => options.Get((Count, Palette ?? ThreePalettes.Particle, Size, Speed, Links, LinkDistance, Interactive, RepelRadius), static k =>
+        ThreeJson.Node(new ParticleOptions(k.Item1, ThreePalettes.Text(k.Item2), k.Item3, k.Item4, k.Item5, k.Item6, k.Item7, k.Item8), ThreeJson.Default.ParticleOptions));
+}

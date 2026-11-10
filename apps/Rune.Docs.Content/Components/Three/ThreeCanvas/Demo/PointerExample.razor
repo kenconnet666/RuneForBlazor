@@ -1,0 +1,7 @@
+@inherits RuneComponent
+
+<ThreeCanvas Setup="_content/Rune.Docs.Content/Components/Three/ThreeCanvas/Demo/PointerExample.razor.js" Sx="Stage" />
+
+@code {
+    static Style Stage => Css.Define(static () => new Style { Height = CssLength.Rem(20), Cursor = Cursor.Crosshair });
+}

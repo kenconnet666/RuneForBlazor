@@ -1,0 +1,8 @@
+@inherits RuneComponent
+
+<ThreeCanvas Setup="_content/Rune.Docs.Content/Components/Three/ThreeCanvas/Demo/BasicExample.razor.js" Sx="Stage"
+             aria-label="缓慢旋转的环面结，颜色取主题的品牌色" />
+
+@code {
+    static Style Stage => Css.Define(static () => new Style { Height = CssLength.Rem(20) });
+}

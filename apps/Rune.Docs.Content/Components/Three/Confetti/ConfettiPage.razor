@@ -1,0 +1,21 @@
+@page "/components/confetti"
+@attribute [DocMeta("Confetti 彩纸", "庆祝的彩纸：Trigger 变一次放一批，翻转着飘落；只在飘的时候占用画布，颜色跟随主题。", DocCategory.Three, Order = 6)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Three.Confetti.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="celebrate" Title="庆祝" Demo="typeof(CelebrateExample)">
+        <Code>Trigger</Code> 每变一次放一批（写成计数就行），一开始的值不放。默认铺满视口、放在顶层，盖得住打开着的对话框，指针穿透；
+        <Code>Origin</Code> 是相对视口的比例。同一个 Trigger 给几个 Confetti，就能从不同的位置一起放。减少动态效果时不放。
+        Trigger 的变化由 C# 交给 JS，要在交互模式下用。
+    </Example>
+    <Example Id="controls" Title="在一块区域里放" Demo="typeof(ControlsExample)">
+        <Code>Fullscreen="false"</Code> 时铺满最近的定位父元素。<Code>Angle</Code> 是喷出的方向（90 是正上方），<Code>Spread</Code> 是散开的角度；
+        初速度按区域大小算，小区域里不会冲出去。
+    </Example>
+    <Example Id="palette" Title="色板与收尾" Demo="typeof(PaletteExample)">
+        <Code>Palette</Code> 换颜色，下一次放时生效；<Code>OnDone</Code> 在这几批都落完、画布卸载后调用。用户关掉动态特效时给 <Code>Quality="ThreeQuality.Off"</Code>：
+        不放，直接调用 OnDone（减少动态效果、没有 WebGL 时也一样），流程照常往下走。
+    </Example>
+    <ApiReference Types="[typeof(Confetti)]" />
+</DocPage>

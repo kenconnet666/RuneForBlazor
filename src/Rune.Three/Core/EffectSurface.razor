@@ -1,0 +1,53 @@
+@*
+    效果的外层结构（div，同 vue-tsx-pro 的 EffectSurface；ShaderBackground、ParticleField、WaveGrid 等共用）：画布铺在底层，内容叠在上面。
+    <MeshGradient Sx="styles.Hero"><h1>标题</h1></MeshGradient>      内容照常排版、可以交互；画布在它下面，不接收指针
+    <EffectSurface Setup="js/stars.js" Sx="styles.Hero">…</EffectSurface>
+    根元素建立层叠上下文（isolation），画布层在内容下面、在根元素的背景上面；没有内容时只是一块效果。
+    尺寸由使用方决定（Sx 给高度，或由内容撑开）。画布是装饰，读屏跳过；要描述画面时给 PropsCanvas 写 aria-label。
+    根元素带 data-rune-three-host：场景的 context.host 是它（拖动、键盘、加载状态挂在这一层）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using System.Text.Json.Nodes
+@{ var parts = ThreeStyles.Surface(Config.Styles); }
+
+<div data-rune-three-host @attributes="Attrs.Merge(parts[EffectSurfacePart.Root], Rest)">
+    <ThreeCanvas @key="SceneKey" Setup="@Setup" Options="Options" Quality="Quality" Paused="Paused" Resolution="Resolution" Fallback="Fallback"
+                 @attributes="Attrs.MergeProps(Part.Unmarked(parts[EffectSurfacePart.Canvas]), PropsCanvas)" />
+    @if (ChildContent is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[EffectSurfacePart.Content], PropsContent)">@ChildContent</div>
+    }
+</div>
+
+@code {
+    /// <summary>搭场景的 JS 模块（见 ThreeCanvas 的 Setup）；内置效果写名字。</summary>
+    [Parameter, EditorRequired] public string Setup { get; set; } = "";
+
+    /// <summary>交给场景的参数（见 ThreeCanvas 的 Options）。</summary>
+    [Parameter] public JsonNode? Options { get; set; }
+
+    /// <summary>变了就重建场景（换一块画布从头建）：着色器、色板这类建好后不再改的配置也可以由模块的 keys 决定。</summary>
+    [Parameter] public string? SceneKey { get; set; }
+
+    /// <summary>画质档位：像素比上限、粒子密度、抗锯齿；Off 不渲染，显示 Fallback。默认 Auto。</summary>
+    [Parameter] public ThreeQuality Quality { get; set; }
+
+    /// <summary>暂停动画，停在当前画面。</summary>
+    [Parameter] public bool Paused { get; set; }
+
+    /// <summary>渲染分辨率相对像素比的倍数（0.1–1），见 ThreeCanvas。默认 1。</summary>
+    [Parameter] public double Resolution { get; set; } = 1;
+
+    /// <summary>没有 WebGL（或 Quality 是 Off）时显示的内容，默认是主题色的柔和渐变。</summary>
+    [Parameter] public RenderFragment? Fallback { get; set; }
+
+    /// <summary>画布（ThreeCanvas）的部件属性：它的参数（OnStatusChange、PropsCanvas……）与根元素的属性。</summary>
+    [Parameter] public Attrs? PropsCanvas { get; set; }
+
+    /// <summary>内容外层的部件属性。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>叠在效果上面的内容。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

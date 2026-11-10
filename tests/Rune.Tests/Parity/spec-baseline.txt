@@ -5,7 +5,6 @@ AreaChart.Index
 AreaChart.IndexFormat
 AreaChart.Stacked
 AreaChart.ValueDomain
-AuroraBackground（组件）
 AuthLayout（组件）
 Autocomplete.OnOpenChange
 BackTop.Type
@@ -54,7 +53,6 @@ CommandPalette.OptionContent
 CommentComposer（组件）
 CommentThread（组件）
 ConditionBuilder（组件）
-Confetti（组件）
 ConfigScope（组件）
 ContextMenu.Menu
 ContextMenu.OnOpenChange
@@ -88,7 +86,6 @@ DiagramNode（组件）
 Diagram（组件）
 DonutChart.Data
 DonutChart.Index
-EffectSurface（组件）
 ErrorBoundary（组件）
 Field.Name
 Field.ValueProp
@@ -99,7 +96,6 @@ FloatButton.Type
 Form.Controller
 FormDialog（组件）
 Gauge.ValueLabel
-Globe（组件）
 HoverCard.OnOpenChange
 HoverCard.Open
 Icon.Icon
@@ -134,9 +130,8 @@ Menu.Point
 Menu.Ripple
 MenuItem.OnAction
 MenuSub.OnOpenChange
-MeshGradient（组件）
 ModalCore（组件）
-ModelViewer（组件）
+ModelViewer.Object
 NotificationCenter（组件）
 NotificationList（组件）
 NumberField.ValueType
@@ -148,7 +143,6 @@ PageScrollbar.Type
 PageSizeSelect.OnOpenChange
 PageSizeSelect.OnSizeChange
 PageSizeSelect.ValueContent
-ParticleField（组件）
 PeoplePickerPanel（组件）
 PeoplePicker（组件）
 PivotTable.Empty
@@ -178,7 +172,6 @@ ScrollArea.Type
 SegmentedField（组件）
 Select.OnOpenChange
 Select.ValueContent
-ShaderBackground（组件）
 SignaturePad.Handle
 SkipLink.Href
 SlideCaptcha（组件）
@@ -201,7 +194,6 @@ ThemeSwitcher.Preference
 ThemeSwitcher.Ripple
 ThemeSwitcher.Size
 ThemeThumbnail（组件）
-ThreeCanvas（组件）
 TimeField.ValueType
 TimePicker.OnOpenChange
 TimePicker.Open
@@ -247,5 +239,4 @@ WaterfallChart.HiddenSeries
 WaterfallChart.ValueDomain
 Watermark.Content
 Watermark.Gap
-WaveGrid（组件）
 XYChart（组件）

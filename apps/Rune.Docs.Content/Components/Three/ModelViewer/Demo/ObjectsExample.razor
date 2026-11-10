@@ -1,0 +1,31 @@
+@inherits RuneComponent
+
+@* 程序生成的对象：ObjectModule 指向生成它的 JS 模块（#名字 选导出）；金属度、粗糙度不同的材质在同一间摄影棚里；地址错了时显示提示 *@
+<Grid MinItemWidth="@("14rem")" Gap="SpaceScale.Md">
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+            <ModelViewer ObjectModule="@($"{Module}#knot")" Sx="Viewer" />
+            <Small Tone="TextTone.Muted">清漆的环面结</Small>
+        </Flex>
+    </Card>
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+            <ModelViewer ObjectModule="@($"{Module}#gem")" Exposure="0.7" RotationSpeed="-30" Sx="Viewer" />
+            <Small Tone="TextTone.Muted">透光的二十面体，暗一些</Small>
+        </Flex>
+    </Card>
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+            <ModelViewer Src="_content/Rune.Docs.Content/models/missing.glb" Sx="Viewer" OnError="reason => error = reason" />
+            <Small Tone="TextTone.Muted">@(error is null ? "地址错了" : "地址错了（OnError 拿到了原因）")</Small>
+        </Flex>
+    </Card>
+</Grid>
+
+@code {
+    const string Module = "_content/Rune.Docs.Content/Components/Three/ModelViewer/Demo/ObjectsExample.razor.js";
+
+    string? error;
+
+    static Style Viewer => Css.Define(static () => new Style { MaxWidth = CssLength.Rem(16), MarginInline = CssLength.Auto });
+}

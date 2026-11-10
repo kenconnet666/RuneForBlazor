@@ -1,0 +1,35 @@
+@*
+    流动的网格渐变（div，同 vue-tsx-pro 的 MeshGradient）：色板里的每个颜色是一团缓慢游走的光斑，彼此柔和地融合，再加一层噪声扭曲与细颗粒。
+    适合首页标题区、登录页、卡片的封面。
+    <MeshGradient Sx="styles.Hero"><h1>标题</h1></MeshGradient>
+    默认色板是品牌色加图表色板里的几个颜色，切换主题、改品牌色时原地过渡；指针靠近时品牌色那一团被轻轻吸过去。
+    画面是不透明的：上面的文字自己保证对比度（如加一层半透明的底）。
+*@
+@namespace Rune.UI
+@inherits ThreeEffect
+@using System.Text.Json.Nodes
+
+<EffectSurface Setup="mesh-gradient" Options="OptionsNode" Quality="Quality" Paused="Paused" Resolution="Resolution ?? 0.5" Fallback="Fallback"
+               PropsCanvas="PropsCanvas" PropsContent="PropsContent" @attributes="Attrs.MergeProps(null, Rest)">@ChildContent</EffectSurface>
+
+@code {
+    Memo<(IReadOnlyList<CssColor>, double, double, double, bool), JsonNode> options;
+
+    /// <summary>色板（token 或 CSS 颜色，2–6 个），默认品牌色加图表色板（<see cref="ThreePalettes.Shader"/>）。</summary>
+    [Parameter] public IReadOnlyList<CssColor>? Palette { get; set; }
+
+    /// <summary>流动速度。默认 1。</summary>
+    [Parameter] public double Speed { get; set; } = 1;
+
+    /// <summary>噪声扭曲的程度（0 是圆润的光斑，1 起伏明显）。默认 0.6。</summary>
+    [Parameter] public double Distortion { get; set; } = 0.6;
+
+    /// <summary>颗粒感（0 没有颗粒）。默认 0.04。</summary>
+    [Parameter] public double Grain { get; set; } = 0.04;
+
+    /// <summary>指针靠近时品牌色被吸过去。默认开。</summary>
+    [Parameter] public bool Interactive { get; set; } = true;
+
+    JsonNode OptionsNode => options.Get((Palette ?? ThreePalettes.Shader, Speed, Distortion, Grain, Interactive), static k =>
+        ThreeJson.Node(new MeshGradientOptions(ThreePalettes.Text(k.Item1), k.Item2, k.Item3, k.Item4, k.Item5), ThreeJson.Default.MeshGradientOptions));
+}

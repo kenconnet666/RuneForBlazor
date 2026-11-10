@@ -1,0 +1,73 @@
+@*
+    模型查看器（div，同 vue-tsx-pro 的 ModelViewer）：加载 glTF / GLB（或一个 JS 模块生成的 three 对象），自动居中、缩放到合适的大小，
+    拖动环绕查看（松手带惯性），方向键也能转；没在拖时缓缓自转。参考 Google 的 <model-viewer>。
+    <ModelViewer Src="models/chair.glb" Alt="扶手椅，胡桃木与灰色布面" />
+    <ModelViewer ObjectModule="js/knot-model.js" RotationSpeed="0" Zoom Sx="styles.Viewer" />
+    ObjectModule 是 JS 模块的地址（相对页面的 base），默认导出一个函数：参数是 three.js 的全部导出，返回 Object3D（或它的 Promise）；
+    地址后面写 #名字 时用那个导出（js/models.js#gem）。
+    vue 的 object 直接给 three 的对象；C# 里拿不到 three 的对象，改成模块。
+    光照是一间柔和的摄影棚（RoomEnvironment 的环境光），金属、粗糙度材质都能正确地反光；Exposure 调整体亮度。
+    加载时中间显示转圈，失败时显示语言包里的提示（OnError 拿到原因）。写了 Alt 时整块是带名称的图像（role="img"）。
+    默认正方形，尺寸由使用方决定。减少动态效果时不自转，拖动仍可用。加载状态由 JS 写在根元素的 data-status 上，静态 SSR 也一样显示。
+*@
+@namespace Rune.UI
+@inherits ThreeEffect
+@using System.Text.Json.Nodes
+
+<EffectSurface Setup="model-viewer" Options="OptionsNode" Quality="Quality" Paused="Paused" Resolution="Resolution ?? 1" Fallback="Fallback"
+               PropsCanvas="PropsCanvas" PropsContent="Attrs.Layer(ModelViewerStyles.Content, PropsContent)"
+               role="@(Alt is null ? null : "img")" aria-label="@Alt" tabindex="@(Controls ? 0 : (int?)null)" data-status="loading" aria-busy="true"
+               @onrunecommand="Commands"
+               @attributes="Attrs.MergeProps(Controls ? ModelViewerStyles.Interactive : ModelViewerStyles.Root, Rest)">
+    <div @attributes="ModelViewerStyles.Loading"><Spinner Label="@Config.Lang.ModelViewerLoading" /></div>
+    <div @attributes="ModelViewerStyles.Error"><Small Tone="TextTone.Muted">@Config.Lang.ModelViewerError</Small></div>
+</EffectSurface>
+
+@code {
+    Memo<(string?, string?, double, bool, bool, ModelViewerOrbit, double), JsonNode> options;
+
+    /// <summary>模型的地址（glTF / GLB）；和 ObjectModule 二选一；变了会重建。</summary>
+    [Parameter] public string? Src { get; set; }
+
+    /// <summary>
+    /// 生成模型的 JS 模块的地址：默认导出一个函数，参数是 three.js 的全部导出，返回 Object3D 或它的 Promise；地址后面写 #名字 时用那个导出。
+    /// 和 Src 二选一；变了会重建。
+    /// </summary>
+    [Parameter] public string? ObjectModule { get; set; }
+
+    /// <summary>模型的文字描述：写了时整块是 role="img"、以它为名称。</summary>
+    [Parameter] public string? Alt { get; set; }
+
+    /// <summary>自转速度（度 / 秒）；0 时不自转。默认 20。</summary>
+    [Parameter] public double RotationSpeed { get; set; } = 20;
+
+    /// <summary>可以拖动、用方向键环绕查看。默认开。</summary>
+    [Parameter] public bool Controls { get; set; } = true;
+
+    /// <summary>滚轮、+ / - 键缩放。</summary>
+    [Parameter] public bool Zoom { get; set; }
+
+    /// <summary>一开始的角度（度），默认 (30, 15)。</summary>
+    [Parameter] public ModelViewerOrbit Orbit { get; set; } = new(30, 15);
+
+    /// <summary>曝光：整体亮度。默认 1。</summary>
+    [Parameter] public double Exposure { get; set; } = 1;
+
+    /// <summary>加载完成。</summary>
+    [Parameter] public EventCallback OnLoad { get; set; }
+
+    /// <summary>加载失败：参数是原因。</summary>
+    [Parameter] public EventCallback<string> OnError { get; set; }
+
+    JsonNode OptionsNode => options.Get((Src, ObjectModule, RotationSpeed, Controls, Zoom, Orbit, Exposure), static k =>
+        ThreeJson.Node(new ModelViewerOptions(k.Item1, k.Item2, k.Item3, k.Item4, k.Item5, k.Item6, k.Item7), ThreeJson.Default.ModelViewerOptions));
+
+    async Task OnCommandAsync(CommandEventArgs e)
+    {
+        if (e.Name == "model-load") await OnLoad.InvokeAsync();
+        else if (e.Name == "model-error") await OnError.InvokeAsync(e.Text ?? "");
+    }
+
+    // 没人要的时候不挂处理：Server 模式下不为了状态变化往返
+    EventCallback<CommandEventArgs> Commands => OnLoad.HasDelegate || OnError.HasDelegate ? EventCallback.Factory.Create<CommandEventArgs>(this, OnCommandAsync) : default;
+}

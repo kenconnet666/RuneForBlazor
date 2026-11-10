@@ -146,7 +146,7 @@ export function install(blazor, on) {
   Promise.allSettled([...loading]).then(() => document.documentElement.setAttribute('data-rune-ready', ''));
 }
 
-// 别的包（RuneForBlazor.UI.Dates、RuneForBlazor.Charts，路径是 _content/{包 ID}）的模块：第一次遇到它的元素时才加载，只用表格、表单的页面不下载。加载中的记在 loading 里（见 install）
+// 别的包（RuneForBlazor.UI.Dates、RuneForBlazor.Charts、RuneForBlazor.Three，路径是 _content/{包 ID}）的模块：第一次遇到它的元素时才加载，只用表格、表单的页面不下载。加载中的记在 loading 里（见 install）
 const loading = new Set();
 const lazy = (load, name) => (element) => {
   const pending = load().then((module) => module[name](element));
@@ -206,6 +206,7 @@ const watched = [
   ['[data-rune-date-segments]', lazy(() => import('../../../RuneForBlazor.UI.Dates/js/date-segments.js'), 'watchDateSegments')],
   ['[data-rune-calendar]', lazy(() => import('../../../RuneForBlazor.UI.Dates/js/calendar.js'), 'watchCalendar')],
   ['[data-rune-chart]', lazy(() => import('../../../RuneForBlazor.Charts/js/charts.js'), 'watchChart')],
+  ['[data-rune-three]', lazy(() => import('../../../RuneForBlazor.Three/js/three-canvas.js'), 'watchThree')],
 ];
 const anyWatched = watched.map(([selector]) => selector).join(', ');
 

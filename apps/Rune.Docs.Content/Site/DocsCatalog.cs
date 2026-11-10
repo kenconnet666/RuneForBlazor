@@ -45,6 +45,9 @@ public enum DocCategory
     /// <summary>图表（Rune.Charts）。</summary>
     Charts,
 
+    /// <summary>3D 与 WebGL 效果（Rune.Three）。</summary>
+    Three,
+
     /// <summary>配置。</summary>
     Config,
 
@@ -132,6 +135,7 @@ public static class DocsCatalog
         DocCategory.Table => "表格",
         DocCategory.Patterns => "页面组合",
         DocCategory.Charts => "图表",
+        DocCategory.Three => "3D · three.js",
         DocCategory.Config => "配置",
         DocCategory.DocsKit => "文档工具",
         _ => category.ToString(),

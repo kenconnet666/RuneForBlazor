@@ -1,0 +1,35 @@
+@inherits RuneComponent
+
+@* 外观：点的疏密、颜色、光晕与自转速度；不拖动、不自转时就是一张静止的地球 *@
+<Grid MinItemWidth="@("14rem")" Gap="SpaceScale.Md">
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+            <Globe Markers="Beijing" Sx="GlobeStyle" />
+            <Small Tone="TextTone.Muted">默认</Small>
+        </Flex>
+    </Card>
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+            <Globe Markers="Beijing" Density="1.8" RotationSpeed="-10" Sx="GlobeStyle" />
+            <Small Tone="TextTone.Muted">更密的点，反转自转</Small>
+        </Flex>
+    </Card>
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+            <Globe Markers="Beijing" LandColor="Tones.Warning.Solid" MarkerColor="Tones.Danger.Solid" Glow="false" Sx="GlobeStyle" />
+            <Small Tone="TextTone.Muted">暖色，不要光晕</Small>
+        </Flex>
+    </Card>
+    <Card Padding="SpaceScale.Sm">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+            <Globe Markers="Beijing" RotationSpeed="0" Draggable="false" Center="new(0, -30)" Sx="GlobeStyle" />
+            <Small Tone="TextTone.Muted">静止，不能拖动</Small>
+        </Flex>
+    </Card>
+</Grid>
+
+@code {
+    static readonly GlobeMarker[] Beijing = [new(39.9, 116.4)];
+
+    static Style GlobeStyle => Css.Define(static () => new Style { MaxWidth = CssLength.Rem(16), MarginInline = CssLength.Auto });
+}

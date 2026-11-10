@@ -1,0 +1,98 @@
+@page "/components/shader-background"
+@attribute [DocMeta("ShaderBackground 背景特效", "标题区、登录页、封面的动态背景：网格渐变（MeshGradient）、极光（AuroraBackground）、粒子场（ParticleField）、线框地形（WaveGrid），都跟随主题色；也可以用 ShaderBackground 自己写一个片段着色器。", DocCategory.Three, Order = 1)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Three.ShaderBackground.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="mesh-gradient" Title="网格渐变：标题区" Demo="typeof(MeshHeroExample)">
+                <Code>MeshGradient</Code> 是品牌色板的光斑缓慢游走、柔和融合，带噪声扭曲与细颗粒。子内容叠在渐变上面，照常排版与交互；
+                画布在底层，不接收指针，指针跟随监听的是整个窗口。画面不透明，文字放在半透明的面板上保证对比度。尺寸由 <Code>Sx</Code> 或内容决定。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="mesh-gradient-controls" Title="网格渐变：色板与参数" Demo="typeof(MeshControlsExample)">
+                <Code>Palette</Code> 接受 2–6 个 token 或 CSS 颜色，默认是品牌色加图表色板的紫、粉、青。用 token 时切换主题会原地过渡到新色，不重建场景。
+                <Code>Speed</Code>、<Code>Distortion</Code>、<Code>Grain</Code> 实时生效。渲染分辨率默认 <Code>0.5</Code>：平滑的渐变降到一半看不出差别，填充开销省下四分之三。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <Examples>
+        <ExampleColumn>
+            <Example Id="aurora" Title="极光：夜空" Demo="typeof(AuroraNightExample)">
+                <Code>AuroraBackground</Code> 是几层半透明的光幕缓缓飘动，下缘清晰、向上渐隐，背景透明。这里包在 <Code>RuneProvider</Code> 里用午夜主题，
+                光幕叠在主题的底色上；暗色主题里光更亮（着色器里有 <Code>uDark</Code>），亮色主题里收敛成雾，不抢文字。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="aurora-controls" Title="极光：色板、亮度与高度" Demo="typeof(AuroraControlsExample)">
+                这一块跟随站点的主题，切换右上角的主题看看。<Code>Height</Code> 是光幕下缘的位置（0 底部、1 顶部），<Code>Intensity</Code> 是亮度；
+                指针左右移动时光幕跟着偏移。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <Examples>
+        <ExampleColumn>
+            <Example Id="particle-field" Title="粒子场：星座连线" Demo="typeof(ParticleConstellationExample)">
+                <Code>ParticleField</Code> 是柔和的光点缓缓漂移，指针靠近时向四周排开，背景透明。<Code>Links</Code> 把距离在 <Code>LinkDistance</Code> 以内的粒子连起来，
+                越近越清楚。粒子颜色从色板里随机分配，连线用第一个颜色（默认品牌色）。在卡片之间移动指针试试。
+            </Example>
+            <Example Id="particle-layered" Title="粒子场：叠在渐变上" Demo="typeof(ParticleLayeredExample)">
+                效果可以互相嵌套：粒子场作为 <Code>MeshGradient</Code> 的内容铺满整块，用反色的文字色作粒子与连线的颜色。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="particle-controls" Title="粒子场：数量、大小与速度" Demo="typeof(ParticleControlsExample)">
+                不写 <Code>Count</Code> 时按面积与画质档位决定粒子数（连线时更稀疏，低画质不到高画质的一半），尺寸变化时增减。参数都实时生效；
+                <Code>Links</Code> 与 <Code>Palette</Code> 变了会重建场景。<Code>RepelRadius</Code> 是指针排开粒子的半径（px）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <Examples>
+        <ExampleColumn>
+            <Example Id="wave-grid" Title="线框地形：横幅" Demo="typeof(WaveBannerExample)">
+                <Code>WaveGrid</Code> 是一张向远处延伸的网格随噪声起伏，指针所在处隆起，远处渐隐。背景透明，这里根元素用了一层从 <Code>SurfaceMuted</Code>
+                到 <Code>Background</Code> 的渐变；网格在底层，子内容叠在上面。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="wave-grid-variants" Title="线框地形：画法与色板" Demo="typeof(WaveVariantsExample)">
+                <Code>Type</Code> 是网格线（Grid）或只画交点（Dots）；<Code>Palette</Code> 的第一个颜色在低处、最后一个在高处。<Code>Amplitude</Code>、
+                <Code>Speed</Code> 调起伏的高度与快慢；细分程度随画质档位变化，低画质时网格更粗、不抗锯齿。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <Examples>
+        <ExampleColumn>
+            <Example Id="content" Title="叠加内容与关闭特效" Demo="typeof(OverlayExample)">
+                所有效果共有：子内容叠在画布上面，照常排版、可以交互；外层要给高度或让内容撑开，<Code>PropsContent</Code> 给内容外层加样式。
+                <Code>Interactive</Code> 关掉时不随指针变化，<Code>Paused</Code> 停在当前画面；用户在设置里关掉动态背景时给 <Code>Quality="ThreeQuality.Off"</Code>：
+                不创建 WebGL，显示 <Code>Fallback</Code>（这里是一抹静态渐变，不写时是主题色的柔和渐变）。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="performance" Title="画质、分辨率与降级" Demo="typeof(PerformanceExample)">
+                所有效果共有：<Code>Quality</Code> 是画质档位（像素比上限、粒子密度、抗锯齿），<Code>Off</Code> 不创建 WebGL、直接显示 <Code>Fallback</Code>
+                （没有 WebGL 时也显示它）；<Code>Resolution</Code> 按比例降低渲染分辨率。滚出视口、切到别的标签页时自动停下；系统要求减少动态效果时只画一帧静止画面。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <Examples>
+        <ExampleColumn>
+            <Example Id="shader" Title="自己写着色器" Demo="typeof(BasicExample)">
+                上面几种都建在 <Code>ShaderBackground</Code> 的场景上。<Code>FragmentShader</Code> 只写 <Code>vec4 shade(vec2 uv)</Code>（uv 是 0–1，左下角为原点）。
+                可以直接用 <Code>uTime</Code>、<Code>uResolution</Code>、<Code>uPointer</Code>、<Code>uDark</Code>、<Code>uBackground</Code>，以及
+                <Code>themePalette(t)</Code>、<Code>snoise</Code>、<Code>fbm</Code>。颜色在线性空间里计算，输出时自动转换；<Code>Palette</Code> 换色板，
+                <Code>Speed</Code> 是时间流速。着色器写在 C# 的字符串里，交给浏览器编译。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="uniforms" Title="自定义 uniform 与指针" Demo="typeof(UniformsExample)">
+                <Code>Uniforms</Code> 是自己加的 float uniform（名字 → 值），值变了实时生效，不重建；返回值的透明度让页面底色透出来。
+                指针的位置在 <Code>uPointer.xy</Code>（-1 到 1），<Code>uPointer.z</Code> 是指针在区域内的程度，<Code>Interactive</Code> 关掉时始终为 0。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(MeshGradient), typeof(AuroraBackground), typeof(ParticleField), typeof(WaveGrid), typeof(ShaderBackground)]" />
+</DocPage>

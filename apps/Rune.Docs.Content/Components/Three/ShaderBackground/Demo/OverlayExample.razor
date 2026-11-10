@@ -1,0 +1,48 @@
+@inherits RuneComponent
+
+@* 内容叠在极光上（子内容）；跟随指针、暂停；“关闭特效”用 Quality="ThreeQuality.Off"，显示自己给的 Fallback *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Flex Gap="SpaceScale.Lg" Wrap="true">
+        <Switch @bind-Value="effects">动态背景</Switch>
+        <Switch @bind-Value="interactive" Disabled="!effects">跟随指针</Switch>
+        <Switch @bind-Value="paused" Disabled="!effects">暂停</Switch>
+    </Flex>
+    <AuroraBackground Sx="Stage" Quality="@(effects ? ThreeQuality.Auto : ThreeQuality.Off)" Interactive="interactive" Paused="paused">
+        <Fallback><div @attributes="Attrs.Merge(FallbackLayer)"></div></Fallback>
+        <ChildContent>
+            <Card Padding="SpaceScale.Lg" Variant="CardVariant.Elevated" Sx="Welcome">
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Align="ItemAlign.Center">
+                    <H3 Size="Size.Lg">欢迎回来</H3>
+                    <Paragraph Tone="TextTone.Muted" Size="Size.Sm">上次登录在 3 天前。你有 2 条新的评论和 1 个待审核的合同。</Paragraph>
+                    <Button>进入工作台</Button>
+                </Flex>
+            </Card>
+        </ChildContent>
+    </AuroraBackground>
+</Flex>
+
+@code {
+    static readonly Attrs FallbackLayer = new() { Sx = FallbackStyle };
+
+    bool interactive = true;
+    bool paused;
+    bool effects = true;
+
+    static Style Stage => Css.Define(static () => new Style
+    {
+        MinHeight = CssLength.Rem(20),
+        BorderRadius = Radii.Lg,
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        BackgroundColor = Colors.SurfaceMuted,
+    });
+
+    static Style Welcome => Css.Define(static () => new Style { MaxWidth = CssLength.Rem(22), TextAlign = TextAlign.Center });
+
+    // 关闭特效时的静态画面：顶部一抹同色调的渐变
+    static Style FallbackStyle => Css.Define(static () => new Style
+    {
+        Height = CssLength.Percent(100),
+        BackgroundImage = $"linear-gradient(to bottom, color-mix(in oklab, {ChartColors.Series2} 35%, transparent), transparent 60%)",
+    });
+}

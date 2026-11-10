@@ -1,0 +1,93 @@
+@*
+    three.js 画布（div，同 vue-tsx-pro 的 ThreeCanvas）：渲染器的生命周期、降级与无障碍，场景写在一个 JS 模块里。
+    <ThreeCanvas Setup="js/knot.js" Options="@(new JsonObject { ["speed"] = speed })" Sx="styles.Hero" />
+    js/knot.js（相对页面的 base）：
+        export function setup(context) {
+          const { three, scene } = context;
+          const mesh = new three.Mesh(new three.IcosahedronGeometry(1, 4), new three.MeshNormalMaterial());
+          scene.add(mesh);
+          // 参数变了 context.options 换成新的对象：每帧从 context 上取，不要在 setup 里解构
+          return { frame: ({ time }) => (mesh.rotation.y = time * context.options.speed) };
+        }
+    - 场景、动画循环都在 JS（data-rune-three，见 Rune.Three 的 js/three-canvas.js 开头的约定），C# 只交参数：Server 模式下每帧不往返；
+      vue 的 setup 是内联的函数，这里是模块的地址（C# 不能每帧驱动 three 的对象）；
+    - 第一次进入视口时才创建渲染器，滚出视口、切到别的标签页时停下；卸载时释放几何体、材质、纹理与渲染器；
+    - 尺寸由外层 div 决定（默认占满父元素），canvas 铺满它，背景透明；
+    - 没有 WebGL、或 Quality 是 Off 时显示 Fallback，默认是一层主题色的柔和渐变；
+    - 默认是装饰（aria-hidden）；给了 aria-label 时是一张图（role="img"）；
+    - 渲染状态写在根元素的 data-state 上（idle / running / paused / still / fallback），OnStatusChange 拿到它。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using System.Text.Json.Nodes
+@{ var parts = ThreeStyles.Canvas(Config.Styles); }
+
+<div data-rune-three="@Setup" data-options="@OptionsJson" data-quality="@QualityName" data-paused="@(Paused ? "" : null)" data-resolution="@ResolutionText"
+     @onrunecommand="Commands"
+     @attributes="Attrs.Merge(parts[ThreeCanvasPart.Root], Rest, Managed)">
+    <template @attributes="Attrs.Merge(parts[ThreeCanvasPart.Canvas], PropsCanvas)"></template>
+    <div @attributes="Attrs.Merge(Fallback is null ? Attrs.Layer(parts[ThreeCanvasPart.Fallback], ThreeStyles.FallbackGradient) : parts[ThreeCanvasPart.Fallback], PropsFallback, hiddenFromReaders)">@Fallback</div>
+</div>
+
+@code {
+    static readonly Attrs hiddenFromReaders = new() { AriaHidden = true };
+    static readonly Attrs decorative = new() { AriaHidden = true };
+    static readonly Attrs image = new() { Role = "img" };
+
+    Memo<JsonNode, string> optionsJson;
+
+    /// <summary>
+    /// 搭场景的 JS 模块：地址相对页面的 base（js/my-scene.js），模块导出 <c>setup(context)</c>，返回每帧、尺寸变化、参数变化、释放的回调；
+    /// 内置效果写名字（globe、particle-field……）。每次创建渲染器时调用一次 setup（被回收、上下文丢失后会重新调用）。
+    /// </summary>
+    [Parameter, EditorRequired] public string Setup { get; set; } = "";
+
+    /// <summary>交给场景的参数（<c>context.options</c>）：变了不重建，场景在 update 里接着用；模块导出的 keys 里列出的参数变了才重建。</summary>
+    [Parameter] public JsonNode? Options { get; set; }
+
+    /// <summary>画质档位：像素比上限、粒子密度、抗锯齿；变了会重建。Off 不创建 WebGL，显示 Fallback。默认 Auto。</summary>
+    [Parameter] public ThreeQuality Quality { get; set; }
+
+    /// <summary>暂停动画，停在当前画面。</summary>
+    [Parameter] public bool Paused { get; set; }
+
+    /// <summary>渲染分辨率相对像素比的倍数（0.1–1）：平滑的渐变、模糊的效果降低它能大幅省下 GPU 开销。默认 1。</summary>
+    [Parameter] public double Resolution { get; set; } = 1;
+
+    /// <summary>没有 WebGL（或 Quality 是 Off）时显示的内容，默认是主题色的柔和渐变。</summary>
+    [Parameter] public RenderFragment? Fallback { get; set; }
+
+    /// <summary>渲染状态变了（同根元素的 data-state），一开始也报告一次：比如降级时改放一张静态图，或一次性的效果直接收尾。</summary>
+    [Parameter] public EventCallback<ThreeStatus> OnStatusChange { get; set; }
+
+    /// <summary>画布（canvas）的部件属性：复制到 JS 建的每一块 canvas 上。</summary>
+    [Parameter] public Attrs? PropsCanvas { get; set; }
+
+    /// <summary>降级内容外层的部件属性。</summary>
+    [Parameter] public Attrs? PropsFallback { get; set; }
+
+    string? OptionsJson => Options is null ? null : optionsJson.Get(Options, static node => node.ToJsonString());
+
+    string QualityName => Quality switch
+    {
+        ThreeQuality.Low => "low",
+        ThreeQuality.Medium => "medium",
+        ThreeQuality.High => "high",
+        ThreeQuality.Off => "off",
+        _ => "auto",
+    };
+
+    string? ResolutionText => Resolution == 1 ? null : Math.Clamp(Resolution, 0.1, 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    // 给了名称（aria-label、aria-labelledby）时是一张图，否则是装饰
+    Attrs Managed => AdditionalAttributes is { } attributes && (attributes.ContainsKey("aria-label") || attributes.ContainsKey("aria-labelledby")) ? image : decorative;
+
+    async Task OnCommandAsync(CommandEventArgs e)
+    {
+        if (e.Name != "three-status" || !Enum.TryParse<ThreeStatus>(e.Text, ignoreCase: true, out var status)) return;
+        await OnStatusChange.InvokeAsync(status);
+    }
+
+    // 没人要的时候不挂处理：Server 模式下不为了状态变化往返
+    EventCallback<CommandEventArgs> Commands => OnStatusChange.HasDelegate ? EventCallback.Factory.Create<CommandEventArgs>(this, OnCommandAsync) : default;
+}

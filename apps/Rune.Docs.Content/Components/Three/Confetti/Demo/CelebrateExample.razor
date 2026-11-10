@@ -1,0 +1,27 @@
+@inherits RuneComponent
+
+@* 庆祝：从视口中间偏下向上喷；支付成功的对话框打开时从两个下角斜着喷，彩纸在顶层，盖得住对话框 *@
+<Flex Gap="SpaceScale.Md" Wrap="true">
+    <Button Icon="Lucide.PartyPopper" @onclick="() => done++">完成任务</Button>
+    <Button Variant="ButtonVariant.Soft" @onclick="Pay">支付 ¥ 99</Button>
+    <Confetti Trigger="done" />
+    @* 两个下角各放一批：同一个 Trigger，方向相反 *@
+    <Confetti Trigger="corners" Origin="new(0, 1)" Angle="60" Spread="50" Count="120" />
+    <Confetti Trigger="corners" Origin="new(1, 1)" Angle="120" Spread="50" Count="120" />
+    <Dialog @bind-Open="paid" Size="DialogSize.Xs" Title="支付成功">
+        <ChildContent><Paragraph>订单 #20261021 已支付，预计明天送达。</Paragraph></ChildContent>
+        <Footer><Button @onclick="() => paid = false">好的</Button></Footer>
+    </Dialog>
+</Flex>
+
+@code {
+    int done;
+    int corners;
+    bool paid;
+
+    void Pay()
+    {
+        paid = true;
+        corners++;
+    }
+}

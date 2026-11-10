@@ -31,12 +31,12 @@
 
 - 阶段 6：13 个页面组合组件的页面（ActionBar、AuthLayout、CommentThread、ConditionBuilder、DataImport、FilterBar、FormDialog、KanbanBoard、NotificationCenter、
   PeoplePicker、QueryTable、SlideCaptcha、StepsForm）；ThemeCustomizer 之后的主题定制页与 theme-switcher 的 thumbnail、customizer 示例。
-- 阶段 7：3D 与画布（three 一组、Diagram）、图表的统计看板；全栈、移动端两组随阶段 8、7。
+- 阶段 7：Diagram、图表的统计看板；全栈、移动端两组随阶段 8、7（3D 一组已有，分类“3D · three.js”）。
 - 逐页示例调整（vue P2.2 / P2.3），见 STYLE-ALIGNMENT 的待跟进。
 
 ## 上线前
 
-- [x] 程序集懒加载：Charts、Charts.Maps、Rune.UI.Area 只在用到的页面下载，下载时顶栏显示 LoadingBar；Dates 有五个别的页面用到、只有 159 KB，照常启动时下载。
+- [x] 程序集懒加载：Charts、Charts.Maps、Rune.UI.Area、Rune.Three 只在用到的页面下载，下载时顶栏显示 LoadingBar；Dates 有五个别的页面用到、只有 159 KB，照常启动时下载。
   首次加载的体积与改法见 PERFORMANCE.md 第 3 节。
 - [ ] 每页的 title、description 检查一遍（预渲染全部地址 docs-export 已有）。
 - [ ] SEO：sitemap.xml、canonical、Open Graph；不加第三方统计。

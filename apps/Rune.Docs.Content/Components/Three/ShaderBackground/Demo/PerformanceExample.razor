@@ -1,0 +1,64 @@
+@inherits RuneComponent
+
+@* 所有 3D 效果共有：画质档位、渲染分辨率、暂停；Off 时不创建 WebGL，显示 Fallback（没有 WebGL 时也是它） *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="效果">
+        <ToggleGroup @bind-Value="effect" Required="true">
+            <ToggleItem Value="mesh">网格渐变</ToggleItem>
+            <ToggleItem Value="aurora">极光</ToggleItem>
+            <ToggleItem Value="particles">粒子场</ToggleItem>
+            <ToggleItem Value="wave">线框地形</ToggleItem>
+        </ToggleGroup>
+    </Field>
+    <Grid MinItemWidth="@("12rem")" Gap="SpaceScale.Lg" Align="ItemAlign.End">
+        <Field Label="画质">
+            <ToggleGroup @bind-Value="quality" Required="true">
+                <ToggleItem Value="Auto">自动</ToggleItem>
+                <ToggleItem Value="Low">低</ToggleItem>
+                <ToggleItem Value="High">高</ToggleItem>
+                <ToggleItem Value="Off">关</ToggleItem>
+            </ToggleGroup>
+        </Field>
+        <Field Label="渲染分辨率">
+            <Slider TValue="double" @bind-Value="resolution" Min="0.1" Max="1" Step="0.05" ValueText="@(v => $"{Math.Round(v * 100)}%")" />
+        </Field>
+        <Switch @bind-Value="paused">暂停</Switch>
+    </Grid>
+    @switch (effect)
+    {
+        case "mesh":
+            <MeshGradient Sx="Stage" Quality="Quality" Resolution="resolution" Paused="paused" Fallback="StaticFallback" />
+            break;
+        case "aurora":
+            <AuroraBackground Sx="Stage" Quality="Quality" Resolution="resolution" Paused="paused" Fallback="StaticFallback" />
+            break;
+        case "particles":
+            <ParticleField Sx="Stage" Quality="Quality" Resolution="resolution" Paused="paused" Fallback="StaticFallback" Links="true" />
+            break;
+        default:
+            <WaveGrid Sx="Stage" Quality="Quality" Resolution="resolution" Paused="paused" Fallback="StaticFallback" />
+            break;
+    }
+</Flex>
+
+@code {
+    static readonly Attrs FallbackLayer = new() { Sx = FallbackStyle };
+    static readonly RenderFragment StaticFallback = @<div @attributes="Attrs.Merge(FallbackLayer)"></div>;
+
+    string? effect = "mesh";
+    string? quality = nameof(ThreeQuality.Auto);
+    double resolution = 0.5;
+    bool paused;
+
+    ThreeQuality Quality => Enum.Parse<ThreeQuality>(quality!);
+
+    static Style Stage => Css.Define(static () => new Style { Height = CssLength.Rem(16), BorderRadius = Radii.Lg, BackgroundColor = Colors.SurfaceMuted });
+
+    // 静态的替代画面：同样的色调，一层 CSS 渐变
+    static Style FallbackStyle => Css.Define(static () => new Style
+    {
+        Height = CssLength.Percent(100),
+        BackgroundImage = $"linear-gradient(120deg, {Tones.Accent.Solid}, {ChartColors.Series5} 55%, {ChartColors.Series6})",
+        Opacity = 0.6,
+    });
+}

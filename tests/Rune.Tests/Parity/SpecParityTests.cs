@@ -15,7 +15,7 @@ namespace Rune.Tests.Parity;
 /// </summary>
 public class SpecParityTests
 {
-    static readonly Assembly[] Libraries = [typeof(Button).Assembly, typeof(DatePicker<>).Assembly, typeof(MapChart).Assembly];
+    static readonly Assembly[] Libraries = [typeof(Button).Assembly, typeof(DatePicker<>).Assembly, typeof(MapChart).Assembly, typeof(ThreeCanvas).Assembly];
 
     // 改了名的组件：vue 的名字 → Rune 的名字（Blazor 里 Link、Text 这类名字与常用类型冲突）
     static readonly Dictionary<string, string> Renamed = new(StringComparer.Ordinal)

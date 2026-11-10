@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+<MeshGradient Sx="Hero" PropsContent="PanelLayer">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Center">
+        <Badge Variant="StatusVariant.Soft">新版本 2.0</Badge>
+        <H2 Size="Size.Xxl">把想法变成产品</H2>
+        <Paragraph Tone="TextTone.Muted">背景的光斑取自主题的品牌色与图表色板，切换主题、在主题编辑器里改品牌色都会实时过渡。移动指针试试。</Paragraph>
+        <Flex Gap="SpaceScale.Sm" Justify="ContentJustify.Center">
+            <Button>开始使用</Button>
+            <Button Variant="ButtonVariant.Outline">查看文档</Button>
+        </Flex>
+    </Flex>
+</MeshGradient>
+
+@code {
+    static readonly Attrs PanelLayer = new() { Sx = Panel };
+
+    static Style Hero => Css.Define(static () => new Style { BorderRadius = Radii.Lg, MinHeight = CssLength.Rem(24), Display = Display.Grid, PlaceItems = PlaceItems.Center });
+
+    static Style Panel => Css.Define(static () => new Style
+    {
+        MaxWidth = CssLength.Rem(30),
+        Padding = Space.Xl,
+        BorderRadius = Radii.Lg,
+        BackgroundColor = Colors.SurfaceTranslucent,
+        BackdropFilter = "blur(12px)",
+        BoxShadow = Shadows.Lg,
+        TextAlign = TextAlign.Center,
+    });
+}

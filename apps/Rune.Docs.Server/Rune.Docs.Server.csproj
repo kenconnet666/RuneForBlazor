@@ -22,13 +22,15 @@
   <ItemGroup>
     <!-- 示例的源码：按示例组件的类型取出原文（examples/ 后面是内容项目里的路径） -->
     <EmbeddedResource Include="..\Rune.Docs.Content\Components\**\*.razor" LogicalName="examples/Components/%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+    <!-- 示例旁边的 JS 模块（ThreeCanvas 的场景）：跟在示例的源码后面一起显示 -->
+    <EmbeddedResource Include="..\Rune.Docs.Content\Components\**\*.razor.js" LogicalName="examples/Components/%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
     <EmbeddedResource Include="..\Rune.Docs.Content\Guide\Demo\**\*.razor" LogicalName="examples/Guide/Demo/%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
   </ItemGroup>
 
   <!-- 组件库的 XML 文档注释：API 表的说明从这里读（引用解析后它在 ReferenceCopyLocalPaths 里） -->
   <Target Name="EmbedComponentDocs" AfterTargets="ResolveAssemblyReferences">
     <ItemGroup>
-      <EmbeddedResource Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.xml' and ('%(Filename)' == 'Rune.UI' or '%(Filename)' == 'Rune.UI.Dates' or '%(Filename)' == 'Rune.Charts' or '%(Filename)' == 'Rune.Charts.Maps' or '%(Filename)' == 'Rune.UI.Area')" LogicalName="api/%(Filename)%(Extension)" />
+      <EmbeddedResource Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.xml' and ('%(Filename)' == 'Rune.UI' or '%(Filename)' == 'Rune.UI.Dates' or '%(Filename)' == 'Rune.Charts' or '%(Filename)' == 'Rune.Charts.Maps' or '%(Filename)' == 'Rune.UI.Area' or '%(Filename)' == 'Rune.Three')" LogicalName="api/%(Filename)%(Extension)" />
     </ItemGroup>
   </Target>
 

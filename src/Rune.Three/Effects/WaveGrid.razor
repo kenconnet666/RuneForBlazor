@@ -1,0 +1,35 @@
+@*
+    线框地形（div，同 vue-tsx-pro 的 WaveGrid）：一张向远处延伸的网格随噪声起伏，像缓慢呼吸的山丘；指针所在的位置隆起。
+    颜色按高度在色板里取（低处第一个颜色、高处最后一个），远处渐隐到透明。
+    <WaveGrid Sx="styles.Banner" />
+    <WaveGrid Type="WaveGridType.Dots" Palette="@([ChartColors.Series2, Tones.Accent.Solid])" />
+    背景透明；细分程度随画质档位变化。
+*@
+@namespace Rune.UI
+@inherits ThreeEffect
+@using System.Text.Json.Nodes
+
+<EffectSurface Setup="wave-grid" Options="OptionsNode" Quality="Quality" Paused="Paused" Resolution="Resolution ?? 1" Fallback="Fallback"
+               PropsCanvas="PropsCanvas" PropsContent="PropsContent" @attributes="Attrs.MergeProps(null, Rest)">@ChildContent</EffectSurface>
+
+@code {
+    Memo<(WaveGridType, IReadOnlyList<CssColor>, double, double, bool), JsonNode> options;
+
+    /// <summary>画法：网格线或只画交点；变了会重建。默认 Grid。</summary>
+    [Parameter] public WaveGridType Type { get; set; }
+
+    /// <summary>色板（token 或 CSS 颜色，2–6 个），按高度取色；默认青、品牌色、紫（<see cref="ThreePalettes.WaveGrid"/>）；变了会重建。</summary>
+    [Parameter] public IReadOnlyList<CssColor>? Palette { get; set; }
+
+    /// <summary>起伏的速度。默认 1。</summary>
+    [Parameter] public double Speed { get; set; } = 1;
+
+    /// <summary>起伏的高度。默认 1。</summary>
+    [Parameter] public double Amplitude { get; set; } = 1;
+
+    /// <summary>指针所在的位置隆起。默认开。</summary>
+    [Parameter] public bool Interactive { get; set; } = true;
+
+    JsonNode OptionsNode => options.Get((Type, Palette ?? ThreePalettes.WaveGrid, Speed, Amplitude, Interactive), static k =>
+        ThreeJson.Node(new WaveGridOptions(k.Item1 == WaveGridType.Dots ? "dots" : "grid", ThreePalettes.Text(k.Item2), k.Item3, k.Item4, k.Item5), ThreeJson.Default.WaveGridOptions));
+}
