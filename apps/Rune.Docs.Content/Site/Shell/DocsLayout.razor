@@ -4,6 +4,7 @@
     换页时路由交来新的 Body，外壳重新渲染一次；侧栏、顶栏工具、本页目录是各自独立、没有参数的组件，不跟着重来。
     主题与配置的 RuneProvider 在 Routes 里（顶部的加载条也要取主题的变量）。
 *@
+@namespace Rune.Docs.Site
 @inherits RuneLayoutComponent
 @inject NavigationManager Navigation
 @* 启动时就建好：它要记下打开站点时的那一页（那一页的示例不排队） *@

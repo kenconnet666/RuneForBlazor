@@ -1,0 +1,201 @@
+@*
+    首页的内容（同 vue-tsx-pro 文档站的 Home）：文档站与桌面样板的 "/" 页面都放它（路由不在这里：渲染模式测试台也扫这个程序集，有自己的首页）。一句话介绍与两个入口；从这里开始（指南）；组件目录（按分类、带数量）；
+    最后是几个特点和一段能直接运行的代码。目录与侧栏、搜索同一份数据（DocsCatalog），新增页面自动出现。
+*@
+@namespace Rune.Docs.Site
+@inherits RuneComponent
+
+<PageTitle>Rune · Blazor 组件库</PageTitle>
+<Container Size="ContainerSize.Xl" Padding="SpaceScale.None">
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xl" Sx="PageStyle">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg" Align="ItemAlign.Center" Sx="Hero">
+            <H1 Sx="Title">更顺手的 Blazor 组件</H1>
+            <Paragraph Tone="TextTone.Muted" Sx="Lead">
+                按无障碍规范写的 Blazor 组件库（@componentCount 个组件页）：样式写在 C# 里，主题、语言、组件默认值都能整体定制；
+                静态 SSR、Server、WebAssembly 同一套代码。
+            </Paragraph>
+            <Flex Gap="SpaceScale.Sm" Wrap="true" Justify="ContentJustify.Center">
+                <LinkButton Href="@(guide.FirstOrDefault()?.Path.TrimStart('/') ?? "")" IconEnd="Lucide.ArrowRight">快速开始</LinkButton>
+                <LinkButton Href="components/button" Variant="ButtonVariant.Soft" Icon="Lucide.Shapes">看组件</LinkButton>
+            </Flex>
+        </Flex>
+
+        <section aria-labelledby="home-start" @attributes="Attrs.Merge(SectionLayer)">
+            <H2 id="home-start" Size="Size.Lg">从这里开始</H2>
+            <Grid MinItemWidth="CssLength.Rem(18)" Gap="SpaceScale.Md">
+                @foreach (var entry in guide)
+                {
+                    <Card @key="entry.Path" Variant="CardVariant.Outline" Sx="Entry">
+                        <Flex Gap="SpaceScale.Md" Align="ItemAlign.Start">
+                            <span @attributes="Attrs.Merge(IconLayer)"><Icon Data="GuideIcon(entry)" Size="Size.Lg" /></span>
+                            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                                <H3 Size="Size.Md"><a href="@entry.Path.TrimStart('/')" @attributes="Attrs.Merge(EntryLinkLayer)">@entry.Meta.Title</a></H3>
+                                <Small Tone="TextTone.Muted">@entry.Meta.Description</Small>
+                            </Flex>
+                        </Flex>
+                    </Card>
+                }
+            </Grid>
+        </section>
+
+        <section aria-labelledby="home-components" @attributes="Attrs.Merge(SectionLayer)">
+            <div @attributes="Attrs.Merge(SectionHeadLayer)">
+                <H2 id="home-components" Size="Size.Lg">组件目录</H2>
+                <Small Tone="TextTone.Muted">@components.Count 类、@componentCount 个组件页；顶栏的搜索（Ctrl + K）可以直接跳</Small>
+            </div>
+            <div @attributes="Attrs.Merge(DirectoryLayer)">
+                @foreach (var section in components)
+                {
+                    <Card @key="section.Category" Variant="CardVariant.Outline" Sx="Category">
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                                <TextSpan Weight="Weight.Semibold">@section.Label</TextSpan>
+                                <Badge Radius="Radius.Full">@section.Pages.Count</Badge>
+                            </Flex>
+                            <ul @attributes="Attrs.Merge(PageListLayer)">
+                                @foreach (var entry in section.Pages)
+                                {
+                                    var (name, label) = SplitTitle(entry.Meta.Title);
+                                    <li @key="entry.Path">
+                                        <TextLink Href="@entry.Path.TrimStart('/')" title="@entry.Meta.Description" Sx="PageLink">@name <Small Tone="TextTone.Muted">@label</Small></TextLink>
+                                    </li>
+                                }
+                            </ul>
+                        </Flex>
+                    </Card>
+                }
+            </div>
+        </section>
+
+        <Grid MinItemWidth="CssLength.Rem(16)" Gap="SpaceScale.Md">
+            @foreach (var feature in features)
+            {
+                <Card @key="feature.Title" Variant="CardVariant.Outline">
+                    <Flex Gap="SpaceScale.Md" Align="ItemAlign.Start">
+                        <span @attributes="Attrs.Merge(IconLayer)"><Icon Data="feature.Icon" Size="Size.Lg" /></span>
+                        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                            <H3 Size="Size.Md">@feature.Title</H3>
+                            <Small Tone="TextTone.Muted">@feature.Text</Small>
+                        </Flex>
+                    </Flex>
+                </Card>
+            }
+        </Grid>
+        <ExamplePreview id="counter" Demo="typeof(Rune.Docs.Components.Home.Demo.CounterExample)" ShowCode="true" Align="CodePreviewAlign.Center" />
+    </Flex>
+</Container>
+
+@code {
+    sealed record Feature(IconData Icon, string Title, string Text);
+
+    static readonly Attrs SectionLayer = new() { Sx = SectionStyle };
+    static readonly Attrs SectionHeadLayer = new() { Sx = SectionHead };
+    static readonly Attrs IconLayer = new() { Sx = IconBox };
+    static readonly Attrs EntryLinkLayer = new() { Sx = EntryLink };
+    static readonly Attrs DirectoryLayer = new() { Sx = Directory };
+    static readonly Attrs PageListLayer = new() { Sx = PageList };
+
+    static readonly IReadOnlyList<DocEntry> guide = DocsCatalog.All.Where(p => p.Meta.Category == DocCategory.Guide).ToList();
+    static readonly IReadOnlyList<DocSectionEntry> components = DocsCatalog.Sections.Where(s => s.Category != DocCategory.Guide).ToList();
+    static readonly int componentCount = components.Sum(s => s.Pages.Count);
+
+    static readonly Feature[] features =
+    [
+        new(Lucide.Sparkles, "信号与 [State]", "共享状态只重新渲染读了它的组件；组件里的 [State] 属性直接 @bind，不用手写 StateHasChanged。"),
+        new(Lucide.Zap, "四种渲染模式一样", "静态 SSR、Server、WebAssembly、Auto 同一套组件；浮层、键盘、滚动这类交互在浏览器里完成，没有往返。"),
+        new(Lucide.Palette, "C# 里写样式与多套主题", "原子化 CSS、类型安全的 token；亮色、暗色、纸张等 16 套主题，对比度逐对检查。"),
+    ];
+
+    // 指南页的图标（同 vue）：主题定制是色卡，其余是书
+    static IconData GuideIcon(DocEntry entry) => entry.Slug == "theming" ? Lucide.SwatchBook : Lucide.BookOpen;
+
+    // “Button 按钮” → 英文名与中文名
+    static (string Name, string Label) SplitTitle(string title) =>
+        title.IndexOf(' ') is var space and >= 0 ? (title[..space], title[(space + 1)..]) : (title, "");
+
+    // 标题后面一团很淡的品牌色光晕：亮色、暗色、纸张都取各自的浅品牌色
+    static Style Hero => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        Isolation = Isolation.Isolate,
+        PaddingBlock = CssLength.Rem(2),
+        TextAlign = TextAlign.Center,
+        [Pseudo.Before] = new()
+        {
+            Content = "\"\"",
+            Position = Position.Absolute,
+            ZIndex = -1,
+            InsetInline = CssLength.Percent(10),
+            InsetBlock = 0,
+            BackgroundImage = $"radial-gradient(closest-side, {Tones.Accent.Soft}, transparent)",
+            Filter = "blur(24px)",
+        },
+    });
+
+    // 标题从正文色渐变到品牌色；不支持 background-clip: text 的浏览器退回正文色
+    static Style Title => Css.Define(static () => new Style
+    {
+        FontSize = "clamp(2.25rem, 5vw, 3.25rem)",
+        LetterSpacing = LetterSpacings.Tighter,
+        BackgroundImage = $"linear-gradient(120deg, {Colors.Text} 30%, {Tones.Accent.Text})",
+        BackgroundClip = BackgroundClip.Text,
+        Color = CssColors.Transparent,
+    });
+
+    static Style Lead => Css.Define(static () => new Style { MaxWidth = CssLength.Rem(40), MarginInline = CssLength.Auto, FontSize = FontSizes.Lg, LineHeight = LineHeights.Relaxed });
+
+    // 各块之间比块里松一档：一眼分得出几块
+    static Style PageStyle => Css.Define(static () => new Style { RowGap = CssLength.Rem(2.5) });
+
+    static Style SectionStyle => Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Md });
+
+    static Style SectionHead => Css.Define(static () => new Style { Display = Display.Flex, AlignItems = AlignItems.Baseline, JustifyContent = JustifyContent.SpaceBetween, Gap = Space.Md });
+
+    // 入口卡片：整张可点（标题链接盖住卡片），悬停时轻轻浮起
+    static Style Entry => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        Height = Sizes.Full,
+        Transition = $"transform {Durations.Md} {Easings.Standard}, box-shadow {Durations.Md} {Easings.Standard}, border-color {Durations.Md} {Easings.Standard}",
+        [When.Hover] = new() { Transform = "translateY(-2px)", BoxShadow = Shadows.Md, BorderColor = Colors.BorderStrong },
+    });
+
+    static Style EntryLink => Css.Define(static () => new Style
+    {
+        Color = Colors.Text,
+        TextDecorationLine = TextDecorationLine.None,
+        [Pseudo.After] = new() { Content = "\"\"", Position = Position.Absolute, Inset = 0 },
+    });
+
+    // 图标放在浅品牌色的圆角方块里
+    static Style IconBox => Css.Define(static () => new Style
+    {
+        Display = Display.InlineFlex,
+        AlignItems = AlignItems.Center,
+        JustifyContent = JustifyContent.Center,
+        FlexShrink = 0,
+        Width = CssLength.Rem(2.25),
+        Height = CssLength.Rem(2.25),
+        BorderRadius = Radii.Lg,
+        BackgroundColor = Tones.Accent.Soft,
+        Color = Tones.Accent.Text,
+    });
+
+    // 组件目录：多列流式排布，每类一张卡按自己的高度往下排；组件名两列排，英文名在前、中文名淡一些
+    static Style Directory => Css.Define(static () => new Style { ColumnWidth = CssLength.Rem(20), ColumnGap = Space.Md });
+
+    static Style Category => Css.Define(static () => new Style { BreakInside = BreakInside.Avoid, MarginBlockEnd = Space.Md });
+
+    static Style PageList => Css.Define(static () => new Style
+    {
+        Display = Display.Grid,
+        GridTemplateColumns = "repeat(auto-fill, minmax(9rem, 1fr))",
+        ColumnGap = Space.Md,
+        RowGap = Space.Xs,
+        Margin = 0,
+        Padding = 0,
+        ListStyle = ListStyle.None,
+    });
+
+    static Style PageLink => Css.Define(static () => new Style { Display = Display.InlineFlex, AlignItems = AlignItems.Baseline, Gap = Space.Xs, MinWidth = 0 });
+}
