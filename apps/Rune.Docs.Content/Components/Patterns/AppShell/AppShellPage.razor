@@ -12,5 +12,8 @@
     <Example Id="mixed" Title="混合布局" Demo="typeof(Frames.Mixed)" Frame="40rem">
         顶栏放一级导航（<Code>Nav</Code>），侧栏放当前模块的二级导航，正文下面是页脚（<Code>Footer</Code>）。只要顶部导航时不写 <Code>Sidebar</Code> 即可。<Code>SidebarCollapsible</Code> 在品牌格的结束边加“收起侧栏”按钮（只在宽屏），把侧栏收成只有图标的窄栏（<Code>NavList</Code> 自动换成紧凑样式，分组悬停弹出子项），品牌格只放展开按钮；<Code>@@bind-SidebarCollapsed</Code> 可以双向绑定，存起来记住各人的设置。
     </Example>
-    <ApiReference Types="[typeof(AppShell), typeof(AppShellBrand)]" />
+    <Example Id="desktop" Title="桌面模式" Demo="typeof(Frames.Desktop)" Frame="28rem">
+        桌面应用（.NET MAUI 的 BlazorWebView）里，顶栏就是窗口的标题栏：空白处按住拖动窗口、双击最大化、拖到屏幕边缘贴靠，结束边是窗口按钮（<Code>WindowControls</Code>：最小化、最大化 / 还原、关闭）。顶栏不透明，窗口失去焦点时变淡；整页滚动条从顶栏下面开始；侧栏的文字不会被拖动选中；全屏时窗口本身全屏。注册了 <Code>IDesktopWindow</Code> 就是桌面模式：应用里用 <Code>RuneForBlazor.Desktop.Maui</Code> 的 <Code>builder.UseRuneDesktop()</Code>，页面代码不用改，在浏览器里打开时一切照旧。示例在浏览器里，给了一个演示用的窗口（<Code>Window</Code>），按钮只改它的状态。Windows 11 悬停最大化按钮弹出的贴靠布局菜单暂时没有（拖到屏幕顶端的贴靠栏、Win+Z 照常）。
+    </Example>
+    <ApiReference Types="[typeof(AppShell), typeof(AppShellBrand), typeof(WindowControls)]" />
 </DocPage>

@@ -69,6 +69,9 @@ public static class AppShellStyles
     // 顶栏高度：也是两侧栏粘住的位置、标题跳转时让开的距离（LayoutVars.StickyOffset）
     static readonly CssLength HeaderHeight = CssLength.Rem(3);
 
+    // 桌面模式的顶栏（窗口的标题栏）矮一些：桌面应用的标题栏一般 32–40px，48px 显得占地方
+    static readonly CssLength TitleBarHeight = CssLength.Rem(2.5);
+
     // 左侧栏的宽度：顶栏的品牌格与它同宽
     static readonly CssLength SidebarWidth = CssLength.Rem(16);
 
@@ -89,14 +92,15 @@ public static class AppShellStyles
     /// <param name="Nav">顶栏里有导航。</param>
     /// <param name="Collapsed">侧栏收起成了图标栏。</param>
     /// <param name="Fullscreen">全屏中：不显示顶栏和左侧栏。</param>
-    public readonly record struct ShellState(bool Brand, bool ButtonOnly, bool Sidebar, bool Aside, bool Nav, bool Collapsed, bool Fullscreen);
+    /// <param name="Desktop">桌面应用（注册了 <see cref="IDesktopWindow"/>）：顶栏就是窗口的标题栏。</param>
+    public readonly record struct ShellState(bool Brand, bool ButtonOnly, bool Sidebar, bool Aside, bool Nav, bool Collapsed, bool Fullscreen, bool Desktop = false);
 
     /// <summary>某种布局状态、某套定制下各部件的默认层。</summary>
     public static PartLayers<AppShellPart> Of(ShellState state, ComponentStyles styles) =>
         Recipe.Of("app-shell", state, styles, static (ShellState s, AppShellPart part) => part switch
         {
-            AppShellPart.Root => Sx.Of(Root, s.Fullscreen ? FullscreenOffset : HeaderOffset),
-            AppShellPart.Header => Sx.Of(Header, s.Brand && s.Sidebar ? HeaderWithBrand : null, s.Fullscreen ? Hidden : null),
+            AppShellPart.Root => Sx.Of(Root, s.Fullscreen ? FullscreenOffset : s.Desktop ? TitleBarOffset : HeaderOffset),
+            AppShellPart.Header => Sx.Of(Header, s.Brand && s.Sidebar ? HeaderWithBrand : null, s.Desktop ? TitleBar : null, s.Fullscreen ? Hidden : null),
             AppShellPart.MenuButton => MenuButton,
             AppShellPart.Brand => Sx.Of(Brand, s.Sidebar ? BrandRail : null, s.Collapsed ? BrandRailCollapsed : null, s.Brand && s.ButtonOnly ? BrandOnlyWide : null),
             AppShellPart.Nav => Nav,
@@ -105,7 +109,7 @@ public static class AppShellStyles
             AppShellPart.FullscreenButton => FullscreenButton,
             AppShellPart.FullscreenExit => FullscreenExit,
             AppShellPart.Body => Sx.Of(Body, Columns(s.Sidebar && !s.Fullscreen, s.Aside, s.Collapsed)),
-            AppShellPart.Sidebar => Sx.Of(Rail, Sidebar, s.Fullscreen ? SidebarHidden : null),
+            AppShellPart.Sidebar => Sx.Of(Rail, Sidebar, s.Desktop ? NoSelect : null, s.Fullscreen ? SidebarHidden : null),
             AppShellPart.SidebarScroll => RailScroll,
             AppShellPart.CollapseButton => Sx.Of(CollapseButton, s.Collapsed ? CollapseButtonCentered : null),
             AppShellPart.Column => Column,
@@ -148,6 +152,8 @@ public static class AppShellStyles
     // 外壳把顶栏高度交给里面的标题与粘性侧栏；全屏时没有顶栏，贴着窗口顶端
     static Style HeaderOffset => Css.Define(static () => new Style { [LayoutVars.StickyOffset.Name] = HeaderHeight.ToString() });
 
+    static Style TitleBarOffset => Css.Define(static () => new Style { [LayoutVars.StickyOffset.Name] = TitleBarHeight.ToString() });
+
     static Style FullscreenOffset => Css.Define(static () => new Style { [LayoutVars.StickyOffset.Name] = "0px" });
 
     static Style Header => Css.Define(static () => new Style
@@ -170,6 +176,29 @@ public static class AppShellStyles
         BackgroundColor = Colors.SurfaceTranslucent,
         BackdropFilter = "blur(12px) saturate(1.5)",
     });
+
+    /// <summary>桌面模式下整页滚动条的轨道：从顶栏（标题栏）下面开始，不挨着窗口按钮。</summary>
+    internal static Style DesktopPageTrack => Css.Define(static () => new Style { InsetBlockStart = LayoutVars.StickyOffset });
+
+    // 桌面模式：顶栏就是窗口的标题栏。空白处是拖动区域（WebView2 把它当标题栏：拖动、双击最大化、右键系统菜单、拖到屏幕边缘贴靠），
+    // 里面能操作的不可拖；窗口按钮贴着结束边，不留内边距；窗口失去焦点时变淡
+    static Style TitleBar => Css.Define(static () => new Style
+    {
+        Height = TitleBarHeight,
+        // 字号小一档：控件的高度按字号算（2.25em），搜索框、图标按钮跟着矮一些，在矮的标题栏里上下留出一样的空
+        FontSize = FontSizes.Sm,
+        PaddingInlineEnd = 0,
+        // 不透明、和页面同色（是窗口的一部分，不是浮在正文上的一层）
+        BackgroundColor = Colors.Background,
+        BackdropFilter = "none",
+        UserSelect = UserSelect.None,
+        ["app-region"] = "drag",
+        [new Condition(" :is(a, button, input, select, textarea, label, summary, [tabindex], [role], [contenteditable], [popover], dialog)")] = new() { ["app-region"] = "no-drag" },
+        [When.Parent(When.Attribute("[data-window-active=\"false\"]"))] = new() { Color = Colors.TextMuted },
+    });
+
+    // 桌面模式的侧栏：拖动、连点时不选中一片导航文字（正文照常能选）
+    static Style NoSelect => Css.Define(static () => new Style { UserSelect = UserSelect.None });
 
     static Style MenuButton => Css.Define(static () => new Style
     {

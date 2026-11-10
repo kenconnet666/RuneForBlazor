@@ -19,10 +19,13 @@
     全屏（Fullscreenable，默认开，手机宽度不显示）：进入后不显示顶栏和左侧栏，正文占满窗口，同时请求浏览器全屏；右上角留一个退出按钮，Esc 也退出。
     @bind-Fullscreen 双向绑定；浏览器不让全屏时（iframe 没有 allow="fullscreen"）照样隐藏这两块。收起与全屏要交互模式，静态 SSR 时不显示这两个按钮。
     自带 SkipLink（跳到正文）；顶栏的高度经 LayoutVars.StickyOffset 交给里面的标题，锚点跳转后不被顶栏挡住。
+    桌面模式（注册了 IDesktopWindow，见桌面适配包；或给了 Window）：顶栏就是窗口的标题栏，空白处拖动窗口、双击最大化，结束边是窗口按钮（WindowControls）；
+    顶栏不透明、窗口失去焦点时变淡，整页滚动条从顶栏下面开始，侧栏的文字不被选中。全屏时窗口本身全屏（适配包接管浏览器的全屏请求）。
     未声明的属性落到外层 div 上。
 *@
 @namespace Rune.UI
 @inherits UIComponent
+@inject IServiceProvider Services
 @{
     var parts = AppShellStyles.Of(State, Config.Styles);
     var lang = Config.Lang.Patterns;
@@ -35,7 +38,7 @@
     }
     @if (PageScrollbar)
     {
-        <PageScrollbar />
+        <PageScrollbar PropsScrollbar="@(desktop is null ? null : DesktopTrackLayer)" />
     }
     <header @attributes="Attrs.Merge(parts[AppShellPart.Header], PropsHeader)">
         @if (Sidebar is not null)
@@ -70,6 +73,10 @@
                             @attributes="Attrs.MergeProps(parts[AppShellPart.FullscreenButton], PropsFullscreenButton)" />
             }
         </div>
+        @if (desktop is not null)
+        {
+            <WindowControls Window="desktop" />
+        }
     </header>
     @if (fullscreen.Value)
     {
@@ -115,6 +122,7 @@
     static readonly Attrs RailViewportLayer = new() { Sx = AppShellStyles.RailViewport };
     static readonly Attrs AsideContentLayer = new() { Sx = AppShellStyles.AsideContent };
     static readonly Attrs FlipLayer = new() { [nameof(UI.Icon.FlipInRtl)] = true };
+    static readonly Attrs DesktopTrackLayer = new() { Sx = AppShellStyles.DesktopPageTrack };
     static readonly Attrs DrawerManaged = new()
     {
         ["data-rune-close-on-link"] = true,
@@ -124,6 +132,7 @@
     readonly string mainId = UniqueId.Next("app-shell-main");
     readonly string drawerId = UniqueId.Next("app-shell-drawer");
     Attrs? menuManaged, mainManaged;
+    IDesktopWindow? desktop;
 
     /// <summary>顶栏起始边的品牌（标志与产品名，一般是 AppShellBrand）：有侧栏时这一格与侧栏同宽，侧栏的竖线延伸到顶。</summary>
     [Parameter] public RenderFragment? Brand { get; set; }
@@ -169,6 +178,9 @@
 
     /// <summary>进入或退出了全屏。</summary>
     [Parameter] public EventCallback<bool> FullscreenChanged { get; set; }
+
+    /// <summary>桌面模式控制的窗口；不写时取注册的 <see cref="IDesktopWindow"/>，没有注册时不是桌面模式。</summary>
+    [Parameter] public IDesktopWindow? Window { get; set; }
 
     /// <summary>页面最前面的“跳到正文”链接，默认 true。</summary>
     [Parameter] public bool SkipLink { get; set; } = true;
@@ -242,9 +254,14 @@
     // 收起、全屏的状态在 C#：交互模式（含即将接管的预渲染）才有用
     bool CanInteract => RendererInfo.IsInteractive || AssignedRenderMode is not null;
 
-    AppShellStyles.ShellState State => new(BrandCell, Brand is null, Sidebar is not null, Aside is not null, Nav is not null, Collapsed, fullscreen.Value);
+    AppShellStyles.ShellState State => new(BrandCell, Brand is null, Sidebar is not null, Aside is not null, Nav is not null, Collapsed, fullscreen.Value, desktop is not null);
 
-    Attrs RootManaged => new() { ["data-rune-fullscreen"] = Fullscreenable || fullscreen.Value ? (fullscreen.Value ? "true" : "false") : null };
+    Attrs RootManaged => new()
+    {
+        ["data-rune-fullscreen"] = Fullscreenable || fullscreen.Value ? (fullscreen.Value ? "true" : "false") : null,
+        ["data-desktop"] = desktop is null ? null : true,
+        ["data-window-active"] = desktop is { State.Active: false } ? "false" : null,
+    };
 
     // 菜单按钮由 JS 直接打开抽屉（静态 SSR 也能用）
     Attrs MenuManaged => menuManaged ??= new() { ["data-rune-open"] = drawerId, ["aria-haspopup"] = "dialog", ["aria-controls"] = drawerId };
@@ -253,6 +270,25 @@
     Attrs MainManaged => mainManaged ??= new() { Id = mainId, ["tabindex"] = -1 };
 
     Attrs SidebarContentLayer => new() { Sx = AppShellStyles.SidebarContent(Collapsed) };
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        var current = Window ?? (IDesktopWindow?)Services.GetService(typeof(IDesktopWindow));
+        if (ReferenceEquals(current, desktop)) return;
+        if (desktop is not null) desktop.StateChanged -= OnWindowStateChanged;
+        desktop = current;
+        if (desktop is not null) desktop.StateChanged += OnWindowStateChanged;
+    }
+
+    // 窗口获得、失去焦点：顶栏变淡（写在外层的 data-window-active 上）
+    void OnWindowStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        if (desktop is not null) desktop.StateChanged -= OnWindowStateChanged;
+    }
 
     // 用户自己离开了浏览器全屏，或没进浏览器全屏时按了 Esc
     Task OnCommandAsync(CommandEventArgs e) => e.Name == "fullscreen-exit" ? fullscreen.SetAsync(false) : Task.CompletedTask;

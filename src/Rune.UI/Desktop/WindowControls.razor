@@ -1,0 +1,58 @@
+@*
+    窗口按钮（桌面应用）：最小化、最大化（最大化后是还原）、关闭，Windows 的样式：宽 46px、占满所在的高度、没有圆角，悬停变底色，关闭悬停变红。
+    只有注册了 IDesktopWindow（桌面适配包）或给了 Window 时才出现；浏览器里什么也不渲染，同一套页面在网站与桌面都能用。
+    AppShell 在桌面模式下自己把它放在顶栏的结束边，平时不用直接写；自己画标题栏时：<WindowControls />。
+    窗口的状态（最大化、失去焦点）由窗口通知，这里跟着重新渲染。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@inject IServiceProvider Services
+@if (window is not null)
+{
+    var parts = WindowControlsStyles.Of(Config.Styles);
+    var lang = Config.Lang.Desktop;
+    var state = window.State;
+    <div role="group" aria-label="@lang.Controls" data-active="@(state.Active ? null : "false")" @attributes="Attrs.Merge(parts[WindowControlsPart.Root], Rest)">
+        <button type="button" aria-label="@lang.Minimize" title="@lang.Minimize" data-window-command="minimize" @onclick="window.MinimizeAsync"
+                @attributes="Attrs.Merge(parts[WindowControlsPart.Button])">@MinimizeGlyph</button>
+        <button type="button" aria-label="@(state.Maximized ? lang.Restore : lang.Maximize)" title="@(state.Maximized ? lang.Restore : lang.Maximize)"
+                data-window-command="maximize" @onclick="window.ToggleMaximizeAsync"
+                @attributes="Attrs.Merge(parts[WindowControlsPart.Button])">@(state.Maximized ? RestoreGlyph : MaximizeGlyph)</button>
+        <button type="button" aria-label="@lang.Close" title="@lang.Close" data-window-command="close" @onclick="window.CloseAsync"
+                @attributes="Attrs.Merge(parts[WindowControlsPart.Button], parts[WindowControlsPart.Close])">@CloseGlyph</button>
+    </div>
+}
+
+@code {
+    // 同 Windows 的标题栏按钮：10px 的细线图形，按像素对齐
+    static readonly MarkupString MinimizeGlyph = Glyph("<path d=\"M0 5.5h10\"/>");
+    static readonly MarkupString MaximizeGlyph = Glyph("<rect x=\"0.5\" y=\"0.5\" width=\"9\" height=\"9\"/>");
+    static readonly MarkupString RestoreGlyph = Glyph("<rect x=\"0.5\" y=\"2.5\" width=\"7\" height=\"7\"/><path d=\"M2.5 2.5v-2h7v7h-2\"/>");
+    static readonly MarkupString CloseGlyph = Glyph("<path d=\"M0.5 0.5l9 9M9.5 0.5l-9 9\"/>");
+
+    IDesktopWindow? window;
+
+    /// <summary>控制哪个窗口；不写时取注册的 <see cref="IDesktopWindow"/>（多窗口的应用给每个窗口自己的）。</summary>
+    [Parameter] public IDesktopWindow? Window { get; set; }
+
+    static MarkupString Glyph(string shapes) => new(
+        $"<svg aria-hidden=\"true\" width=\"10\" height=\"10\" viewBox=\"0 0 10 10\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1\" shape-rendering=\"crispEdges\">{shapes}</svg>");
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        var current = Window ?? (IDesktopWindow?)Services.GetService(typeof(IDesktopWindow));
+        if (ReferenceEquals(current, window)) return;
+        if (window is not null) window.StateChanged -= OnStateChanged;
+        window = current;
+        if (window is not null) window.StateChanged += OnStateChanged;
+    }
+
+    void OnStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc/>
+    protected override void OnDispose()
+    {
+        if (window is not null) window.StateChanged -= OnStateChanged;
+    }
+}

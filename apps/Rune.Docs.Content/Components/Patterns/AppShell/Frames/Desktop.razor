@@ -1,0 +1,57 @@
+@*
+    AppShell 的桌面模式示例（整页，在 iframe 里打开）：顶栏就是窗口的标题栏，结束边是窗口按钮。
+    浏览器里没有真的窗口：给一个演示用的窗口（Window），按钮改的是它的状态，下面的文字跟着变。
+    桌面应用里不写 Window，注册 RuneForBlazor.Desktop.Maui 的 UseRuneDesktop() 即可。
+*@
+@attribute [DocFrame("app-shell", "desktop")]
+@inherits RuneComponent
+
+<AppShell Window="window">
+    <Brand><AppShellBrand Href="#home" Icon="Lucide.Box">采购协同</AppShellBrand></Brand>
+    <Header><Small Tone="TextTone.Muted" data-testid="state">@window.Status</Small></Header>
+    <Sidebar>
+        <NavList aria-label="导航">
+            <NavItem Href="#home" Icon="Lucide.House" Active="true">工作台</NavItem>
+            <NavItem Href="#contracts" Icon="Lucide.FileText">合同</NavItem>
+            <NavItem Href="#suppliers" Icon="Lucide.Users">供应商</NavItem>
+        </NavList>
+    </Sidebar>
+    <ChildContent>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <H1>工作台</H1>
+            <Card>
+                <Paragraph>桌面应用没有系统的标题栏：顶栏的空白处按住拖动窗口、双击最大化，窗口按钮在最右边。顶栏不透明，滚动条从顶栏下面开始。</Paragraph>
+                <Button Variant="ButtonVariant.Soft" @onclick="window.ToggleActive">@(window.State.Active ? "模拟窗口失去焦点" : "模拟窗口回到前台")</Button>
+            </Card>
+        </Flex>
+    </ChildContent>
+</AppShell>
+
+@code {
+    readonly DemoWindow window = new();
+
+    // 演示用的窗口：按钮只改状态（浏览器里关不了、也最小化不了这个页面）
+    sealed class DemoWindow : IDesktopWindow
+    {
+        public DesktopWindowState State { get; private set; } = new(Maximized: false, Active: true, FullScreen: false);
+
+        public string Status { get; private set; } = "点右边的窗口按钮试试";
+
+        public event Action? StateChanged;
+
+        public Task MinimizeAsync() => Set(State, "最小化了（桌面应用里窗口收进任务栏）");
+
+        public Task ToggleMaximizeAsync() => Set(State with { Maximized = !State.Maximized }, State.Maximized ? "还原了" : "最大化了（按钮变成“还原”）");
+
+        public Task CloseAsync() => Set(State, "关闭（桌面应用里窗口关掉）");
+
+        public Task ToggleActive() => Set(State with { Active = !State.Active }, State.Active ? "窗口失去焦点：标题栏变淡" : "窗口回到前台");
+
+        Task Set(DesktopWindowState state, string status)
+        {
+            (State, Status) = (state, status);
+            StateChanged?.Invoke();
+            return Task.CompletedTask;
+        }
+    }
+}

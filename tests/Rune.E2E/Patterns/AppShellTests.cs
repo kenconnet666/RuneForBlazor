@@ -78,4 +78,34 @@ public class AppShellTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(nav).Not.ToHaveAttributeAsync("data-compact", "");
         await Assertions.Expect(page.GetByRole(AriaRole.Button, new() { Name = "收起侧栏" })).ToBeVisibleAsync();
     }
+
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 桌面模式_顶栏是拖动区域_窗口按钮控制窗口_失去焦点变淡_滚动条在顶栏下面(string mode)
+    {
+        var page = await OpenAsync(mode, "frame/app-shell/desktop");
+        var header = page.Locator("[data-desktop] > header");
+        var state = page.GetByTestId("state");
+
+        // 顶栏的空白处当标题栏拖动；里面能点的（全屏、窗口按钮）不可拖
+        Assert.Equal("drag", await header.EvaluateAsync<string>("el => getComputedStyle(el).getPropertyValue('app-region')"));
+        Assert.Equal("no-drag", await page.GetByRole(AriaRole.Button, new() { Name = "全屏", Exact = true }).EvaluateAsync<string>("el => getComputedStyle(el).getPropertyValue('app-region')"));
+        // 窗口按钮贴着顶栏的结束边
+        var (headerBox, closeBox) = (await header.BoundingBoxAsync(), await page.GetByRole(AriaRole.Button, new() { Name = "关闭" }).BoundingBoxAsync());
+        Assert.Equal(headerBox!.X + headerBox.Width, closeBox!.X + closeBox.Width, 1);
+
+        await page.GetByRole(AriaRole.Button, new() { Name = "最大化" }).ClickAsync();
+        await Assertions.Expect(state).ToContainTextAsync("最大化了");
+        await page.GetByRole(AriaRole.Button, new() { Name = "还原" }).ClickAsync();
+        await Assertions.Expect(state).ToHaveTextAsync("还原了");
+
+        await page.GetByRole(AriaRole.Button, new() { Name = "模拟窗口失去焦点" }).ClickAsync();
+        await Assertions.Expect(page.Locator("[data-desktop]")).ToHaveAttributeAsync("data-window-active", "false");
+        await Assertions.Expect(page.GetByRole(AriaRole.Group, new() { Name = "窗口" })).ToHaveAttributeAsync("data-active", "false");
+
+        // 整页滚动条从顶栏下面开始
+        var trackTop = await page.Locator("[data-rune-page-scrollbar]").EvaluateAsync<double>("el => el.getBoundingClientRect().top");
+        Assert.Equal(headerBox.Height, trackTop, 1);
+    }
 }
