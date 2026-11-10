@@ -1,5 +1,7 @@
 # Rune for Blazor
 
+**文档与在线示例：<https://rune-for-blazor.zerodep.dpdns.org/>** · NuGet：[RuneForBlazor.UI](https://www.nuget.org/packages/RuneForBlazor.UI)
+
 基于 .NET 10 Blazor 的组件库底座：容易理解的响应式状态、可以逐层覆盖的属性合并，以及与属性一起管理的强类型运行时样式。
 设计思路来自姊妹项目 [vue-tsx-pro](https://github.com/kenconnet666/vue-tsx-pro)，按 Blazor 与 C# 的特点重新设计，取舍见 [docs/DESIGN.md](https://github.com/kenconnet666/RuneForBlazor/blob/master/docs/DESIGN.md)，
 接下来的计划见 [docs/ROADMAP.md](https://github.com/kenconnet666/RuneForBlazor/blob/master/docs/ROADMAP.md)。

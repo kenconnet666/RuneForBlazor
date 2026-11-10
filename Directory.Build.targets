@@ -17,7 +17,8 @@
     <Authors>kenconnet666</Authors>
     <Copyright>Copyright (c) 2026 kenconnet666</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/kenconnet666/RuneForBlazor</PackageProjectUrl>
+    <!-- 包页面的“项目网站”是文档站；源码仓库在 RepositoryUrl -->
+    <PackageProjectUrl>https://rune-for-blazor.zerodep.dpdns.org/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kenconnet666/RuneForBlazor</RepositoryUrl>
     <PackageTags>blazor;components;signals;css-in-csharp</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
