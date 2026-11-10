@@ -119,17 +119,18 @@
         var top = Max ?? AxisTicks.NiceStep(Math.Max(values.DefaultIfEmpty(0).Max(), 1) / Levels) * Levels;
         double RatioOf(double value) => Math.Max(0, Math.Min(value / top, 1));
         string Ring(double ratio) => string.Join(' ', Enumerable.Range(0, count).Select(position => Polar(position, count, ratio)).Select(p => $"{N(p.X)},{N(p.Y)}"));
+        @* 网格、轴、刻度、系列、扇区是 svg 下的兄弟元素：@key 带上各自的前缀，不能重复（重复时再次渲染的对比出错，整个渲染器跟着坏掉） *@
         <svg viewBox="0 0 360 300" @attributes="Attrs.Merge(CanvasLayer)">
             @for (var level = 0; level < Levels; level++)
             {
                 var ratio = (level + 1.0) / Levels;
                 if (CircleGrid)
                 {
-                    <circle @key="level" cx="@N(Cx)" cy="@N(Cy)" r="@N(Radius * ratio)" @attributes="Attrs.Merge(GridLayer)" />
+                    <circle @key="@($"level-{level}")" cx="@N(Cx)" cy="@N(Cy)" r="@N(Radius * ratio)" @attributes="Attrs.Merge(GridLayer)" />
                 }
                 else
                 {
-                    <polygon @key="level" points="@Ring(ratio)" @attributes="Attrs.Merge(GridLayer)" />
+                    <polygon @key="@($"level-{level}")" points="@Ring(ratio)" @attributes="Attrs.Merge(GridLayer)" />
                 }
             }
             @for (var position = 0; position < count; position++)
@@ -137,7 +138,7 @@
                 var end = Polar(position, count, 1);
                 var label = Polar(position, count, LabelRadius / Radius);
                 var cos = Math.Cos(label.Angle);
-                <g @key="position">
+                <g @key="@($"axis-{position}")">
                     <line x1="@N(Cx)" y1="@N(Cy)" x2="@N(end.X)" y2="@N(end.Y)" data-index="@position" @attributes="Attrs.Merge(SpokeLayer)" />
                     @ChartSvg.Text(Dimension(Items[position]), label.X, label.Y, Attrs.Merge(LabelLayer, new Attrs { ["data-index"] = position }),
                         Math.Abs(cos) < 0.2 ? "middle" : cos > 0 ? "start" : "end", "middle")
@@ -151,7 +152,7 @@
             @foreach (var item in visible)
             {
                 var points = Items.Select((row, position) => Polar(position, count, RatioOf((double)(item.ValueOf(row) ?? 0)))).ToList();
-                <g @key="item.Key">
+                <g @key="@($"series-{item.Key}")">
                     <polygon points="@string.Join(' ', points.Select(p => $"{N(p.X)},{N(p.Y)}"))" @attributes="Attrs.Merge(AreaLayer, item.ColorLayer)" />
                     @for (var position = 0; position < count; position++)
                     {
