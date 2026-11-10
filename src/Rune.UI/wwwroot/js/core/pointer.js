@@ -68,23 +68,8 @@ function advance(element, dt) {
     if (instant) {
       spring.value = spring.target;
       spring.velocity = 0;
-    } else {
-      // 阻尼弹簧：固有频率按感知时长（2π / T），阻尼比 1 - bounce；分几小步积分，大步长时也稳定
-      const omega = (2 * Math.PI) / state.period;
-      const zeta = 1 - state.bounce;
-      const steps = 4;
-      const h = dt / steps;
-      for (let i = 0; i < steps; i++) {
-        const acceleration = -omega * omega * (spring.value - spring.target) - 2 * zeta * omega * spring.velocity;
-        spring.velocity += acceleration * h;
-        spring.value += spring.velocity * h;
-      }
-      if (Math.abs(spring.value - spring.target) < 0.001 && Math.abs(spring.velocity) < 0.001) {
-        spring.value = spring.target;
-        spring.velocity = 0;
-      } else {
-        moving = true;
-      }
+    } else if (stepSpring(spring, dt, state.period, state.bounce)) {
+      moving = true;
     }
   }
   element.style.setProperty('--rune-pointer-x', state.x.value.toFixed(4));
@@ -113,4 +98,26 @@ function aim(element, state) {
   if (!inside) return;
   state.x.target = ((pointer.x - rect.left) / rect.width) * 2 - 1;
   state.y.target = 1 - ((pointer.y - rect.top) / rect.height) * 2;
+}
+
+/**
+ * 推进一个阻尼弹簧（{ value, velocity, target }）dt 秒：固有频率按感知时长 period（秒，2π / T），阻尼比 1 - bounce；
+ * 分几小步积分，大步长时也稳定。到位后吸附到目标，返回 false；还在动时返回 true。Rune.Three 的指针跟随也用它
+ */
+export function stepSpring(spring, dt, period, bounce) {
+  const omega = (2 * Math.PI) / period;
+  const zeta = 1 - bounce;
+  const steps = 4;
+  const h = dt / steps;
+  for (let i = 0; i < steps; i++) {
+    const acceleration = -omega * omega * (spring.value - spring.target) - 2 * zeta * omega * spring.velocity;
+    spring.velocity += acceleration * h;
+    spring.value += spring.velocity * h;
+  }
+  if (Math.abs(spring.value - spring.target) < 0.001 && Math.abs(spring.velocity) < 0.001) {
+    spring.value = spring.target;
+    spring.velocity = 0;
+    return false;
+  }
+  return true;
 }

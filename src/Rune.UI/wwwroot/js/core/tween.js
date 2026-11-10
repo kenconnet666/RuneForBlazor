@@ -67,8 +67,8 @@ function formatterOf(element) {
   };
 }
 
-/** 主题的缓动（cubic-bezier(…)）换成进度函数；认不出时用线性 */
-function easing(value) {
+/** 主题的缓动（cubic-bezier(…)）换成进度函数；认不出时用线性。Rune.Three 的主题色过渡也用它 */
+export function easing(value) {
   const match = /cubic-bezier\(([^)]+)\)/.exec(value);
   const points = match?.[1].split(',').map(Number);
   if (!points || points.length !== 4 || points.some(Number.isNaN)) return (t) => t;
