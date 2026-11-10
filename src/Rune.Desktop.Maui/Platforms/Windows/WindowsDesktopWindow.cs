@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Microsoft.Maui.Storage;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -78,6 +79,52 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
             sender.Hide();
         };
         HideMauiTitleBar(window);
+        CloakUntilFirstFrame(window);
+    }
+
+    // 显示窗口之前保底的等待：内容迟迟没画出来也不能让窗口一直看不见
+    static readonly TimeSpan RevealTimeout = TimeSpan.FromSeconds(2);
+    Microsoft.UI.Dispatching.DispatcherQueueTimer? revealTimer;
+
+    /// <summary>
+    /// 窗口刚建好时 MAUI 的内容还没放进去，WinUI 先画一段黑（约 0.3 秒）：先用 DWM 把窗口隐身（cloak：窗口照常存在、能激活、在任务栏，
+    /// 只是屏幕上看不见），MAUI 的内容加载后再过两帧（底色与内容已经画出来）现身。保底 <see cref="RevealTimeout"/> 后一定现身。
+    /// </summary>
+    void CloakUntilFirstFrame(WinUIWindow target)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(target);
+        SetCloak(hwnd, true);
+        var frames = 0;
+        var shown = false;
+        void Show()
+        {
+            if (shown) return;
+            shown = true;
+            CompositionTarget.Rendering -= OnRendering;
+            revealTimer?.Stop();
+            SetCloak(hwnd, false);
+        }
+        void OnRendering(object? sender, object e)
+        {
+            if (target.Content is FrameworkElement { IsLoaded: true } && ++frames >= 2) Show();
+        }
+        CompositionTarget.Rendering += OnRendering;
+        revealTimer = target.DispatcherQueue.CreateTimer();
+        revealTimer.Interval = RevealTimeout;
+        revealTimer.IsRepeating = false;
+        revealTimer.Tick += (_, _) => Show();
+        revealTimer.Start();
+    }
+
+    const int DwmwaCloak = 13;
+
+    [DllImport("dwmapi.dll")]
+    static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
+    static void SetCloak(IntPtr hwnd, bool cloaked)
+    {
+        var value = cloaked ? 1 : 0;
+        DwmSetWindowAttribute(hwnd, DwmwaCloak, ref value, sizeof(int));
     }
 
     /// <summary>WebView2 建好后按桌面应用设置（每个 BlazorWebView 一次）。</summary>
