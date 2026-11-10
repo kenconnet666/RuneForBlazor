@@ -19,6 +19,8 @@
 @code {
     readonly List<(int Start, string Css)> chunks = [];
     int collected;
+    // 渲染器的同步上下文（初始化时就在它上面）：登记规则时还在它上面，就是在渲染器的线程上
+    SynchronizationContext? rendererContext;
     // 已经排了一次渲染、还没执行：第一次渲染一页会登记几百条规则，只排一次
     int queued;
 
@@ -27,6 +29,7 @@
     {
         // 在渲染器的线程上：把登记表绑定到这个渲染器，之后任何组件（含非 Rune 组件执行的内容片段）都能找到它
         Registry.BindToRenderer();
+        rendererContext = SynchronizationContext.Current;
         Registry.Changed += OnRulesChanged;
     }
 
@@ -40,15 +43,24 @@
     }
 
     // 规则多半在别的组件渲染时登记，这时可能在渲染器的线程上，也可能不在；渲染排着队时不重复排。
-    // 先清标记再渲染：渲染时（Collect）取走的是到那一刻为止的全部规则，之后登记的会再排一次
+    // 先清标记再渲染：渲染时（Collect）取走的是到那一刻为止的全部规则，之后登记的会再排一次。
+    // 在渲染器的线程上时直接排进正在进行的这一批：样式与用到它的内容一起到达页面。经 InvokeAsync 的话，有的调度器
+    // （MAUI 的 BlazorWebView）总是排到下一轮，交互模式的第一屏会先出现一帧没有样式的内容（图标铺满整个窗口）
     void OnRulesChanged()
     {
         if (Interlocked.Exchange(ref queued, 1) == 1) return;
-        _ = InvokeAsync(() =>
+        if (SynchronizationContext.Current == rendererContext)
         {
-            Volatile.Write(ref queued, 0);
-            StateHasChanged();
-        });
+            Render();
+            return;
+        }
+        _ = InvokeAsync(Render);
+    }
+
+    void Render()
+    {
+        Volatile.Write(ref queued, 0);
+        StateHasChanged();
     }
 
     /// <inheritdoc/>
