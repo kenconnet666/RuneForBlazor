@@ -81,9 +81,9 @@ internal static class LightboxStyles
         MinHeight = 0,
         Overflow = Overflow.Hidden,
         TouchAction = TouchAction.None,
-        Cursor = Cursor.Grab,
+        Cursor = Cursors.Grab,
         Outline = OutlineStyle.None,
-        [When.Active] = new() { Cursor = Cursor.Grabbing },
+        [When.Active] = new() { Cursor = Cursors.Grabbing },
     });
 
     // 平移与缩放作用在它上面（transform-origin 左上角）；它的大小是旋转之后图片占的框

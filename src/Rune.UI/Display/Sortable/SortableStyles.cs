@@ -68,11 +68,11 @@ internal static class SortableStyles
         BorderRadius = Radii.Sm,
         BackgroundColor = CssColors.Transparent,
         Color = Colors.TextMuted,
-        Cursor = Cursor.Grab,
+        Cursor = Cursors.Grab,
         // 触摸拖动时不滚动页面
         TouchAction = TouchAction.None,
         [When.Hover] = new() { BackgroundColor = Colors.FillHover },
-        [When.Active] = new() { Cursor = Cursor.Grabbing },
+        [When.Active] = new() { Cursor = Cursors.Grabbing },
     });
 
     static Style ContentStyle => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0 });

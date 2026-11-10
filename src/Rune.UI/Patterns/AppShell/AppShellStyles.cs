@@ -72,6 +72,12 @@ public static class AppShellStyles
     // 桌面模式的顶栏（窗口的标题栏）矮一些：桌面应用的标题栏一般 32–40px，48px 显得占地方
     static readonly CssLength TitleBarHeight = CssLength.Rem(2.5);
 
+    // 桌面模式窗口底边留出的一条（同页面底色）：常见的桌面应用（QQ、浏览器）内容不贴着任务栏，到底边前有一点过渡
+    static readonly CssLength WindowEdgeHeight = CssLength.Rem(0.375);
+
+    // 底边留出的高度：两侧栏、整页滚动条的轨道让开它；只在桌面模式（且不是全屏）时不为 0
+    static readonly CssVar<CssLength> BottomInset = CssVar.Length("rune-app-shell-bottom-inset", "0px");
+
     // 左侧栏的宽度：顶栏的品牌格与它同宽
     static readonly CssLength SidebarWidth = CssLength.Rem(16);
 
@@ -99,7 +105,7 @@ public static class AppShellStyles
     public static PartLayers<AppShellPart> Of(ShellState state, ComponentStyles styles) =>
         Recipe.Of("app-shell", state, styles, static (ShellState s, AppShellPart part) => part switch
         {
-            AppShellPart.Root => Sx.Of(Root, s.Fullscreen ? FullscreenOffset : s.Desktop ? TitleBarOffset : HeaderOffset),
+            AppShellPart.Root => Sx.Of(Root, s.Fullscreen ? FullscreenOffset : s.Desktop ? TitleBarOffset : HeaderOffset, s.Desktop && !s.Fullscreen ? WindowEdge : null),
             AppShellPart.Header => Sx.Of(Header, s.Brand && s.Sidebar ? HeaderWithBrand : null, s.Desktop ? TitleBar : null, s.Fullscreen ? Hidden : null),
             AppShellPart.MenuButton => MenuButton,
             AppShellPart.Brand => Sx.Of(Brand, s.Sidebar ? BrandRail : null, s.Collapsed ? BrandRailCollapsed : null, s.Brand && s.ButtonOnly ? BrandOnlyWide : null),
@@ -156,6 +162,26 @@ public static class AppShellStyles
 
     static Style FullscreenOffset => Css.Define(static () => new Style { [LayoutVars.StickyOffset.Name] = "0px" });
 
+    // 桌面模式的底边：一条固定在窗口底部、和页面同色的边，滚动的正文在它上面结束；整页多出同样高的底边距，最后的内容不被它盖住
+    static Style WindowEdge => Css.Define(static () => new Style
+    {
+        [BottomInset.Name] = WindowEdgeHeight.ToString(),
+        BoxSizing = BoxSizing.BorderBox,
+        PaddingBlockEnd = WindowEdgeHeight,
+        [Pseudo.After] = new()
+        {
+            Content = "\"\"",
+            Position = Position.Fixed,
+            InsetInline = 0,
+            InsetBlockEnd = 0,
+            Height = WindowEdgeHeight,
+            // 与顶栏同一层：盖住滚动的正文与粘性侧栏，低于浮层
+            ZIndex = 10,
+            BackgroundColor = Colors.Background,
+            PointerEvents = PointerEvents.None,
+        },
+    });
+
     static Style Header => Css.Define(static () => new Style
     {
         Position = Position.Sticky,
@@ -177,8 +203,8 @@ public static class AppShellStyles
         BackdropFilter = "blur(12px) saturate(1.5)",
     });
 
-    /// <summary>桌面模式下整页滚动条的轨道：从顶栏（标题栏）下面开始，不挨着窗口按钮。</summary>
-    internal static Style DesktopPageTrack => Css.Define(static () => new Style { InsetBlockStart = LayoutVars.StickyOffset });
+    /// <summary>桌面模式下整页滚动条的轨道：从顶栏（标题栏）下面开始，不挨着窗口按钮；到底边留出的一条为止。</summary>
+    internal static Style DesktopPageTrack => Css.Define(static () => new Style { InsetBlockStart = LayoutVars.StickyOffset, InsetBlockEnd = BottomInset });
 
     // 桌面模式：顶栏就是窗口的标题栏。空白处是拖动区域（WebView2 把它当标题栏：拖动、双击最大化、右键系统菜单、拖到屏幕边缘贴靠），
     // 里面能操作的不可拖；窗口按钮贴着结束边，不留内边距；窗口失去焦点时变淡
@@ -330,7 +356,7 @@ public static class AppShellStyles
         Position = Position.Sticky,
         Top = LayoutVars.StickyOffset,
         BoxSizing = BoxSizing.BorderBox,
-        Height = $"calc(100dvh - {LayoutVars.StickyOffset})",
+        Height = $"calc(100dvh - {LayoutVars.StickyOffset} - {BottomInset})",
     });
 
     // 侧栏里的滚动区域：浮层滚动条；内边距放在内容层上，滚动条贴着侧栏边缘

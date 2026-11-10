@@ -155,7 +155,7 @@ public static class SliderStyles
         BorderRadius = Radii.Full,
         BackgroundColor = Colors.Surface,
         BoxShadow = Shadows.Sm,
-        Cursor = Cursor.Grab,
+        Cursor = Cursors.Grab,
     });
 
     // 用逻辑方向的外边距把滑块的中心对准取值位置：从右到左排版时也对

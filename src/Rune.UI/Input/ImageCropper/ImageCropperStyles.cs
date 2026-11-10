@@ -66,10 +66,10 @@ public static class ImageCropperStyles
         Overflow = Overflow.Hidden,
         BorderRadius = Radii.Md,
         BackgroundColor = Colors.SurfaceMuted,
-        Cursor = Cursor.Grab,
+        Cursor = Cursors.Grab,
         UserSelect = UserSelect.None,
         TouchAction = TouchAction.None,
-        [When.Dragging] = new() { Cursor = Cursor.Grabbing },
+        [When.Dragging] = new() { Cursor = Cursors.Grabbing },
     });
 
     static Style Image => Css.Define(static () => new Style

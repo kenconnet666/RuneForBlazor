@@ -82,7 +82,7 @@ public class AppShellTests(DemoServer demo) : E2ETest(demo)
     [Theory]
     [InlineData("server")]
     [InlineData("wasm")]
-    public async Task 桌面模式_顶栏是拖动区域_窗口按钮控制窗口_失去焦点变淡_滚动条在顶栏下面(string mode)
+    public async Task 桌面模式_顶栏是拖动区域_窗口按钮控制窗口_失去焦点变淡_滚动条在顶栏下面_底边留一条(string mode)
     {
         var page = await OpenAsync(mode, "frame/app-shell/desktop");
         var header = page.Locator("[data-desktop] > header");
@@ -104,8 +104,12 @@ public class AppShellTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(page.Locator("[data-desktop]")).ToHaveAttributeAsync("data-window-active", "false");
         await Assertions.Expect(page.GetByRole(AriaRole.Group, new() { Name = "窗口" })).ToHaveAttributeAsync("data-active", "false");
 
-        // 整页滚动条从顶栏下面开始
-        var trackTop = await page.Locator("[data-rune-page-scrollbar]").EvaluateAsync<double>("el => el.getBoundingClientRect().top");
-        Assert.Equal(headerBox.Height, trackTop, 1);
+        // 整页滚动条从顶栏下面开始，到底边留出的一条为止
+        var track = await page.Locator("[data-rune-page-scrollbar]").EvaluateAsync<double[]>("el => { const r = el.getBoundingClientRect(); return [r.top, innerHeight - r.bottom]; }");
+        Assert.Equal(headerBox.Height, track[0], 1);
+        // 窗口底边：一条和页面同色的边（6px），滚动的正文在它上面结束
+        var edge = await page.Locator("[data-desktop]").EvaluateAsync<double>("el => parseFloat(getComputedStyle(el, '::after').height)");
+        Assert.Equal(6, edge, 1);
+        Assert.Equal(edge, track[1], 1);
     }
 }

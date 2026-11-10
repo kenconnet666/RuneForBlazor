@@ -42,9 +42,9 @@ internal static class ModelViewerStyles
 
     static Style InteractiveStyle => Css.Define(static () => new Style
     {
-        Cursor = Cursor.Grab,
+        Cursor = Cursors.Grab,
         TouchAction = TouchAction.PanY,
-        [When.Attribute("[data-dragging]")] = new() { Cursor = Cursor.Grabbing },
+        [When.Attribute("[data-dragging]")] = new() { Cursor = Cursors.Grabbing },
     });
 
     // 内容层不定位：提示按外层（整块）铺满、居中

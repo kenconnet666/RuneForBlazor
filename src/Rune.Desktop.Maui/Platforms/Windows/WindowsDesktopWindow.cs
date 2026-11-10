@@ -163,6 +163,8 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
                 }
             }
             core.NavigationCompleted += Reveal;
+            // WinUI 托管的 WebView2 只认能对应到系统光标的 CSS 光标：grab、grabbing 会退回成箭头，换成系统的手形（Rune.UI 的 Cursors）
+            _ = core.AddScriptToExecuteOnDocumentCreatedAsync(CursorOverrides);
             var settings = core.Settings;
             // 页面里 app-region: drag 的区域当标题栏（AppShell 桌面模式的顶栏）
             settings.IsNonClientRegionSupportEnabled = true;
@@ -179,6 +181,14 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
             core.ContainsFullScreenElementChanged += (_, _) => SetFullScreen(core.ContainsFullScreenElement);
         };
     }
+
+    const string CursorOverrides = """
+        document.addEventListener('DOMContentLoaded', () => {
+          const style = document.createElement('style');
+          style.textContent = ':root { --rune-cursor-grab: pointer; --rune-cursor-grabbing: pointer; }';
+          document.head.append(style);
+        });
+        """;
 
     // 网页的右键菜单：只在输入框、选中的文字上给（剪切、复制、粘贴、全选），去掉后退、刷新、另存为、打印、检查这些浏览器的项
     static readonly HashSet<string> BrowserItems = ["back", "forward", "reload", "saveAs", "print", "createQrCode", "inspectElement", "share", "webCapture", "other"];

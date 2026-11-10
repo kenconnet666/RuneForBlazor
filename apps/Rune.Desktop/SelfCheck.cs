@@ -101,6 +101,8 @@ static class SelfCheck
             """;
         lines.Add("titlebar\t" + await Eval(TitleBar));
         lines.Add("first content\t" + await Eval("window.__firstPaint ?? 'missing'"));
+        // 抓手光标：WinUI 托管的 WebView2 不认 grab，适配包把 Rune 的光标变量换成系统的手形
+        lines.Add("cursors\t" + await Eval("['grab', 'grabbing'].map(n => n + '=' + getComputedStyle(document.documentElement).getPropertyValue('--rune-cursor-' + n).trim()).join(' ')"));
         const string Maximize = "document.querySelector('[data-window-command=maximize]')?.click(), ''";
         const string MaximizeLabel = "document.querySelector('[data-window-command=maximize]')?.getAttribute('aria-label') ?? ''";
         await Eval(Maximize);

@@ -34,8 +34,8 @@ internal static class GlobeStyles
 
     static Style DraggableStyle => Css.Define(static () => new Style
     {
-        Cursor = Cursor.Grab,
+        Cursor = Cursors.Grab,
         TouchAction = TouchAction.PanY,
-        [When.Attribute("[data-dragging]")] = new() { Cursor = Cursor.Grabbing },
+        [When.Attribute("[data-dragging]")] = new() { Cursor = Cursors.Grabbing },
     });
 }

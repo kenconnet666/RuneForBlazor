@@ -265,9 +265,9 @@ public static class UploadStyles
         Height = CssLength.Em(1.75),
         BorderRadius = Radii.Sm,
         Color = Colors.Text,
-        Cursor = Cursor.Grab,
+        Cursor = Cursors.Grab,
         TouchAction = TouchAction.None,
-        [When.Active] = new() { Cursor = Cursor.Grabbing },
+        [When.Active] = new() { Cursor = Cursors.Grabbing },
     });
 
     // 选文件的那一格：同样大小，图标与文字居中

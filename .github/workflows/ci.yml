@@ -203,6 +203,7 @@ jobs:
           if (-not ($report -match '^maximize\tafter click=还原 after second click=最大化$')) { throw '窗口按钮没有最大化、还原窗口' }
           if ($report -match 'errors=[1-9]') { throw '有页面报错' }
           if (-not ($report -match '^first content\tstyled$')) { throw '第一屏先出现了没有样式的内容' }
+          if (-not ($report -match '^cursors\tgrab=pointer grabbing=pointer$')) { throw '抓手光标没有换成系统的手形（WinUI 的 WebView2 不认 grab）' }
 
   icon-gen:
     name: 图标数据、第三方脚本与上游一致
