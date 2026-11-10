@@ -5,10 +5,10 @@
 
 | 文件 | 来源 | 版本 | 许可 |
 | ---- | ---- | ---- | ---- |
-| `floating-ui.core.mjs`、`floating-ui.dom.mjs` | [Floating UI](https://github.com/floating-ui/floating-ui)（`@floating-ui/core`、`@floating-ui/dom` 的 `dist/*.browser.min.mjs`） | 1.8.0 | MIT |
-| `shiki/`（shiki.mjs、langs/*.mjs、chunks/*.mjs） | [Shiki](https://github.com/shikijs/shiki)（`shiki/core`、`shiki/engine/javascript`、`@shikijs/langs` 的语法，含其依赖） | 4.5.0 | MIT（各包许可汇总在 `LICENSE-shiki.txt`） |
+| `floating-ui.core.js`、`floating-ui.dom.js` | [Floating UI](https://github.com/floating-ui/floating-ui)（`@floating-ui/core`、`@floating-ui/dom` 的 `dist/*.browser.min.mjs`） | 1.8.0 | MIT |
+| `shiki/`（shiki.js、langs/*.js、chunks/*.js） | [Shiki](https://github.com/shikijs/shiki)（`shiki/core`、`shiki/engine/javascript`、`@shikijs/langs` 的语法，含其依赖） | 4.5.0 | MIT（各包许可汇总在 `LICENSE-shiki.txt`） |
 
-dom 的构建 import `"@floating-ui/core"`，生成时改指同目录的 `./floating-ui.core.mjs`，内容不做别的改动。
+dom 的构建 import `"@floating-ui/core"`，生成时改指同目录的 `./floating-ui.core.js`，内容不做别的改动。
 许可全文见 `src/Rune.UI/wwwroot/vendor/LICENSE-floating-ui.txt`。
 
 版本与 vue-tsx-pro 的依赖保持一致（两边浮层的位置算法相同）。升级：改 `FLOATING_UI_VERSION`，运行 `node tools/vendor-gen/generate.mjs`；`--check` 校验（CI 会跑）。

@@ -8,7 +8,7 @@ import { caretRect } from '../input/caret.js';
 let floatingUi = null;
 
 /** Floating UI（computePosition、autoUpdate、中间件），第一次用到时加载 */
-export const loadFloatingUi = () => (floatingUi ??= import('../../vendor/floating-ui.dom.mjs'));
+export const loadFloatingUi = () => (floatingUi ??= import('../../vendor/floating-ui.dom.js'));
 
 // 正在跟随触发元素的浮层 → 停止跟随
 const floatingCleanups = new WeakMap();

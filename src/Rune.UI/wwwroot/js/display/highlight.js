@@ -51,7 +51,7 @@ const loading = new Map();
 const highlighted = new WeakSet();
 
 function loadCore() {
-  return (core ??= import(`${SHIKI}shiki.mjs`).then(({ createHighlighterCore, createCssVariablesTheme, createJavaScriptRegexEngine }) => {
+  return (core ??= import(`${SHIKI}shiki.js`).then(({ createHighlighterCore, createCssVariablesTheme, createJavaScriptRegexEngine }) => {
     const base = createCssVariablesTheme({ name: THEME, variableDefaults: TOKEN_VARIABLES });
     return createHighlighterCore({
       themes: [{ ...base, tokenColors: [...(base.tokenColors ?? []), ...EXTRA_TOKEN_COLORS] }],
@@ -68,7 +68,7 @@ async function ensureLanguage(highlighter, lang) {
   if (highlighter.getLoadedLanguages().includes(name)) return name;
   let pending = loading.get(name);
   if (!pending) {
-    pending = import(`${SHIKI}langs/${name}.mjs`).then(
+    pending = import(`${SHIKI}langs/${name}.js`).then(
       async (module) => {
         await highlighter.loadLanguage(module.default);
         return name;

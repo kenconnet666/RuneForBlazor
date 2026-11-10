@@ -4,11 +4,13 @@
 //   --check   只比较不写入；任一生成文件与现有内容不一致（或多出、缺少文件）时以非零状态退出（CI 用）
 //
 // 生成的内容：
-//   wwwroot/vendor/floating-ui.core.mjs   @floating-ui/core 的浏览器构建（已内联 @floating-ui/utils，没有 import）
-//   wwwroot/vendor/floating-ui.dom.mjs    @floating-ui/dom 的浏览器构建，import 改指同目录的 core
+//   wwwroot/vendor/floating-ui.core.js    @floating-ui/core 的浏览器构建（已内联 @floating-ui/utils，没有 import）
+//   wwwroot/vendor/floating-ui.dom.js     @floating-ui/dom 的浏览器构建，import 改指同目录的 core
 //   wwwroot/vendor/LICENSE-floating-ui.txt
-//   wwwroot/vendor/shiki/                 Shiki（代码高亮）：shiki.mjs 是核心与 JavaScript 正则引擎，langs/ 下每种语言一个模块，
+//   wwwroot/vendor/shiki/                 Shiki（代码高亮）：shiki.js 是核心与 JavaScript 正则引擎，langs/ 下每种语言一个模块，
 //                                         共用的语法在 chunks/ 里；用 tools/vendor-gen/shiki 的锁文件安装、esbuild 打包
+//
+// 扩展名一律 .js：Blazor Hybrid（MAUI 等）的静态文件不认 .mjs，按 application/octet-stream 返回，浏览器拒绝当模块执行。
 //
 // 依赖：node 内置模块；Floating UI 用 npm pack 与 tar 下载，Shiki 用 npm ci 装到临时目录。来源与许可见 NOTICE.md。
 
@@ -51,8 +53,8 @@ function floatingUi() {
   if (!domSource.includes('from"@floating-ui/core"')) throw new Error('@floating-ui/dom 的浏览器构建不再 import "@floating-ui/core"，检查生成方式');
   const banner = (name) => `// ${name}@${FLOATING_UI_VERSION}（MIT，见 LICENSE-floating-ui.txt）；由 tools/vendor-gen 生成，不要手改\n`;
   return [
-    [join(vendorDir, 'floating-ui.core.mjs'), banner('@floating-ui/core') + coreSource.trimEnd() + '\n'],
-    [join(vendorDir, 'floating-ui.dom.mjs'), banner('@floating-ui/dom') + domSource.replace('from"@floating-ui/core"', 'from"./floating-ui.core.mjs"').trimEnd() + '\n'],
+    [join(vendorDir, 'floating-ui.core.js'), banner('@floating-ui/core') + coreSource.trimEnd() + '\n'],
+    [join(vendorDir, 'floating-ui.dom.js'), banner('@floating-ui/dom') + domSource.replace('from"@floating-ui/core"', 'from"./floating-ui.core.js"').trimEnd() + '\n'],
     [join(vendorDir, 'LICENSE-floating-ui.txt'), readFileSync(join(dom, 'LICENSE'), 'utf8')],
   ];
 }
@@ -84,7 +86,6 @@ async function shiki() {
     minify: true,
     legalComments: 'none',
     outdir: join(work, 'out'),
-    outExtension: { '.js': '.mjs' },
     chunkNames: 'chunks/[name]-[hash]',
     metafile: true,
     write: true,
