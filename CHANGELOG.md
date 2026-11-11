@@ -6,6 +6,16 @@
 
 ## [Unreleased]
 
+## [0.17.1] - 2026-11-11
+
+只修一个桌面适配包的问题，组件的样式与交互不变（仍对齐 vue-tsx-pro 0.21.0）。
+
+### 修复
+
+- RuneForBlazor.Desktop.Maui：运行一段时间后窗口顶上出现两条标题栏（系统的一条加页面自己画的一条）。MAUI 在换主题、改标题时会重建自己的标题栏，
+  或换掉窗口的根视图，原来只在第一个根视图上挂一次布局事件、并缓存找到的元素，之后新建的那条没人收起。
+  现在缓存的元素不在视觉树里就重新找，激活时与每秒一次核对根视图有没有换，换了就重新挂接并立刻检查
+
 ## [0.17.0] - 2026-11-10
 
 组件的样式与交互仍对齐 vue-tsx-pro 0.21.0。新增 RuneForBlazor.Three 包（3D 与 WebGL 效果），桌面应用补上窗口底边与抓手光标。
@@ -131,7 +141,8 @@
 - 每个部件带 `data-scope` / `data-part` 标记，都有 `PropsXxx` 部件属性，组合组件把里面每层的部件属性转发出去
 - 组件规格与 vue-tsx-pro 的 `/spec/components.json` 逐项比对（`tests/Rune.Tests/Parity`），差异记在基线里
 
-[Unreleased]: https://github.com/kenconnet666/RuneForBlazor/compare/v0.17.0...HEAD
+[Unreleased]: https://github.com/kenconnet666/RuneForBlazor/compare/v0.17.1...HEAD
+[0.17.1]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.17.1
 [0.17.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.17.0
 [0.16.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.16.0
 [0.15.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.15.0

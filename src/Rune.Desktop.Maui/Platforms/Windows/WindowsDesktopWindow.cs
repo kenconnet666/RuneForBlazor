@@ -254,7 +254,7 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
     /// MAUI 自己画的那条标题栏（AppTitleBarContainer）与给它让出的上边距：MAUI 本该在窗口去掉标题栏时收起，
     /// 但它比较 WM_STYLECHANGING 的 wParam 时把无符号的 GWL_STYLE 当成 -16，永远不成立；而且改标题、换主题时还会恢复，
     /// 还会按它那条的高度改系统标题栏的高度。
-    /// 每次布局后检查一遍（元素找到后缓存，检查很便宜）。
+    /// 每次布局后检查一遍（元素找到后缓存，检查很便宜），另有每秒一次的核对，防止根视图被换掉后检查失效。
     /// </summary>
     static void HideMauiTitleBar(WinUIWindow window)
     {
@@ -263,9 +263,11 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
         void Check(object? sender, object e)
         {
             if (window.Content is not FrameworkElement root) return;
-            container ??= Find(root, "AppTitleBarContainer");
-            content ??= Find(root, "AppTitleBarContentControl");
-            grid ??= Find(root, "ContentGrid");
+            // MAUI 换主题、改标题时会重建这几个元素：缓存的已经不在视觉树里（XamlRoot 为空）就重新找，
+            // 否则新建的那条标题栏没人收起，和页面自己画的标题栏叠成两条
+            if (container is not { XamlRoot: not null }) container = Find(root, "AppTitleBarContainer");
+            if (content is not { XamlRoot: not null }) content = Find(root, "AppTitleBarContentControl");
+            if (grid is not { XamlRoot: not null }) grid = Find(root, "ContentGrid");
             if (container is { Visibility: Visibility.Visible }) container.Visibility = Visibility.Collapsed;
             if (content is { Visibility: Visibility.Visible }) content.Visibility = Visibility.Collapsed;
             if (grid is not null && grid.Margin != none) grid.Margin = none;
@@ -273,14 +275,27 @@ sealed class WindowsDesktopWindow(RuneDesktopOptions options) : IDesktopWindow
             if (window.AppWindow.TitleBar.PreferredHeightOption != TitleBarHeightOption.Collapsed)
                 window.AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Collapsed;
         }
-        // 窗口刚建好时 MAUI 还没放进根视图：第一次激活时挂上
-        void Hook(object sender, WindowActivatedEventArgs e)
+        // 根视图要等 MAUI 放进来，之后也可能被换掉（换主题、改标题）：挂在旧根上的布局事件不再触发，新建的标题栏就没人收了。
+        // 所以激活时、以及每秒一次，都核对根视图换了没有，换了就挂到新的上并立刻检查一遍
+        FrameworkElement? hooked = null;
+        void Rehook()
         {
             if (window.Content is not FrameworkElement root) return;
-            window.Activated -= Hook;
-            root.LayoutUpdated += Check;
+            if (!ReferenceEquals(root, hooked))
+            {
+                if (hooked is not null) hooked.LayoutUpdated -= Check;
+                hooked = root;
+                root.LayoutUpdated += Check;
+                container = content = grid = null;
+            }
+            Check(null, null!);
         }
-        window.Activated += Hook;
+        window.Activated += (_, _) => Rehook();
+        var timer = window.DispatcherQueue.CreateTimer();
+        timer.Interval = TimeSpan.FromSeconds(1);
+        timer.Tick += (_, _) => Rehook();
+        timer.Start();
+        window.Closed += (_, _) => timer.Stop();
     }
 
     static FrameworkElement? Find(DependencyObject node, string name)
