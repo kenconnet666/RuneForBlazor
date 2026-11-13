@@ -1,23 +1,23 @@
-@page "/components/qr-code"
+@page "/components/qrcode"
 @attribute [DocMeta("QRCode 二维码", "把链接、口令画成二维码：中间可以放 logo，扫码登录有加载中、已过期（可刷新）、已扫描的状态；编码在服务端完成，静态页面也能显示。", DocCategory.Display, Order = 9)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Display.QRCode.Demo
 
 <DocPage Meta="Meta" Wide="true">
+    <Example Id="share" Title="分享链接" Demo="typeof(ShareExample)">
+        <Code>Value</Code> 按 UTF-8 编码，自动选最小的版本与罚分最低的掩码；整个码是一条 path 的 SVG（role="img"，名称默认“二维码”）。
+        <Code>ErrorCorrection</Code> 的 L、M、Q、H 依次能恢复约 7%、15%、25%、30% 的损坏，越高码越密；默认 M。四周留 <Code>Margin</Code> 个模块的静区（默认 2）。
+        编码器 <Code>QrEncoder.Encode</Code> 也可以单独用：示例按它的结果拼出下载用的 SVG。
+    </Example>
     <Examples>
         <ExampleColumn>
-            <Example Id="share" Title="分享链接" Demo="typeof(ShareExample)">
-                <Code>Value</Code> 按 UTF-8 编码，自动选最小的版本与罚分最低的掩码；整个码是一条 path 的 SVG（role="img"，名称默认“二维码”）。
-                <Code>ErrorCorrection</Code> 的 L、M、Q、H 依次能恢复约 7%、15%、25%、30% 的损坏，越高码越密；默认 M。四周留 <Code>Margin</Code> 个模块的静区（默认 2）。
-                编码器 <Code>QrEncoder.Encode</Code> 也可以单独用：示例按它的结果拼出下载用的 SVG。
-            </Example>
-            <Example Id="branded" Title="logo 与颜色" Demo="typeof(BrandedExample)">
+            <Example Id="logo" Title="中间放 logo 与换颜色" Demo="typeof(BrandedExample)">
                 <Code>LogoSrc</Code>（图片地址）或 <Code>Logo</Code>（任意内容）放在中间，这时纠错默认 H；<Code>LogoSize</Code> 是占边长的比例（默认 0.22），太大会扫不出来。
                 颜色默认是“纸面”：浅色主题下跟着主题，深色主题下仍是白底深色（反色的码很多扫码器认不出）；<Code>Color</Code>、<Code>BgColor</Code> 可以改。
             </Example>
         </ExampleColumn>
         <ExampleColumn>
-            <Example Id="login" Title="扫码登录" Demo="typeof(LoginExample)">
+            <Example Id="status" Title="扫码登录的状态" Demo="typeof(LoginExample)">
                 <Code>Status</Code>：<Code>Loading</Code> 加载中、<Code>Expired</Code> 已过期（写了 <Code>OnRefresh</Code> 时有“刷新”按钮）、<Code>Scanned</Code> 已扫描。
                 状态层一直在、是 role="status"，换状态时读屏播报；配合 <TextLink Href="components/date-time">Countdown</TextLink> 显示还有多久过期。
             </Example>

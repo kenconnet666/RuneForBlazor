@@ -1,0 +1,122 @@
+@page "/guide/accessibility"
+@attribute [DocMeta("Accessibility 无障碍", "键盘、读屏、对比度、减少动态效果、从右到左：组件库默认做到的，怎样在浏览器里检查，以及使用方要补上的名称与说明。", DocCategory.Guide, Order = 5)]
+@inherits DocPageBase
+
+@* 同 vue-tsx-pro 文档站的 Accessibility 指南；只写本库做到了的：没有的（公开的播报方法、示例卡片上的示例工具）不写 *@
+<DocPage Meta="Meta">
+    <Paragraph>
+        无障碍不是最后补上的一层：组件按 WAI-ARIA 的设计模式做，键盘与读屏的行为写在每个组件页底部。下面是组件库默认做到的，以及使用方要补上的部分。
+    </Paragraph>
+    @foreach (var section in Sections)
+    {
+        <GuideSection @key="section.Id" Id="@section.Id" Title="@section.Title">
+            <Paragraph>@section.Intro</Paragraph>
+            <List>
+                @foreach (var item in section.Items)
+                {
+                    <ListItem @key="item">@item</ListItem>
+                }
+            </List>
+        </GuideSection>
+    }
+
+    <GuideSection Id="your-part" Title="使用方要做的">
+        <Paragraph>
+            组件不知道一个只有图标的按钮是做什么的、一张表格装的是什么：名称要由使用方给。有可见的标签时用 <Code>Field</Code>，没有时写 <Code>aria-label</Code>；
+            图片写 <Code>Alt</Code>，纯装饰的写空的。
+        </Paragraph>
+        <CodeBlock Code="@Naming" Lang="razor" Title="名称" />
+        <Paragraph>
+            页面上看得见、读屏却不知道的变化（批量操作的结果、后台完成的任务）放进一个 <Code>aria-live</Code> 的区域：<Code>polite</Code> 等读屏说完当前的话，
+            <Code>assertive</Code> 立即打断。区域要一直在页面上，变的只是里面的文字；操作的结果用 <TextLink Href="/components/toast">Toast</TextLink> 时它自己会播报。
+        </Paragraph>
+        <CodeBlock Code="@Announcing" Lang="razor" Title="播报" />
+    </GuideSection>
+
+    <GuideSection Id="testing" Title="怎样检查">
+        <List>
+            <ListItem>只用键盘走一遍：Tab 到每个能操作的地方、看得见焦点、能打开也能关上、关上后焦点回到原处。</ListItem>
+            <ListItem>打开读屏（Windows 的讲述人或 NVDA、macOS 的 VoiceOver）听一遍：每个控件有名称、状态说得清楚、变化有播报。</ListItem>
+            <ListItem>用 axe-core 的浏览器扩展扫一遍页面，亮、暗两套主题都扫。</ListItem>
+            <ListItem>
+                组件测试按角色与名称找元素（bUnit 里 <Code>cut.Find("[role=dialog]")</Code>、查 <Code>aria-label</Code>；Playwright 里 <Code>GetByRole</Code>），
+                而不是按类名：找不到时多半是名称或角色漏了。
+            </ListItem>
+        </List>
+    </GuideSection>
+</DocPage>
+
+@code {
+    sealed record Section(string Id, string Title, string Intro, string[] Items);
+
+    static readonly Section[] Sections =
+    [
+        new("keyboard", "键盘", "鼠标能做的，键盘都能做；每个组件页底部的“键盘”一节列出了全部按键。",
+        [
+            "能操作的元素都在 Tab 顺序里，焦点环只在键盘操作时出现（:focus-visible），按 Tab 时看得见焦点在哪。",
+            "一组同类的项（Tabs、ToggleGroup、Toolbar、菜单、列表框）整组一个 Tab 位置，组内用方向键移动（漫游焦点）；表格的单元格导航、日历是二维的网格。",
+            "浮层（Dialog、Drawer、Popover、Menu）打开时焦点移进去，Esc 关闭后焦点回到打开它的按钮。",
+            "拖动的操作（排序、分栏、滑块）都有键盘替代：聚焦后用空格拿起、方向键移动，或直接方向键调整。",
+            "输入法组合中的 Enter、方向键、退格归输入法：不提交、不移动高亮、不删已选项。",
+        ]),
+        new("screen-reader", "读屏", "原生元素优先，原生没有的按 WAI-ARIA 的设计模式做。",
+        [
+            "按钮就是 button、链接就是 a、对话框是原生 dialog、浮层用 popover 属性：读屏、浏览器的焦点管理都按原生的来。",
+            "Select、Combobox 是 combobox + listbox，Tree 是 tree，单元格导航的表格是 grid，滑块是 slider……状态写在 aria-expanded、aria-selected、aria-checked、aria-current 上。",
+            "虚拟滚动只渲染看得见的几十项，但总数与位置照样告诉读屏（aria-setsize / aria-posinset、aria-rowcount / aria-rowindex、aria-colcount）。",
+            "看得见、读屏却不知道的变化（搜索结果的条数、复制成功、拖动后的位置）由组件播报。",
+            "控件放进 Field：标签、说明、错误、必填自动关联到里面的控件；自己再写的 aria-describedby 与它们拼在一起，都念得到。",
+        ]),
+        new("visual", "视觉", "颜色、尺寸都来自主题 token。",
+        [
+            "内置主题与 vue-tsx-pro 是同一套 token：正文文字对比度不低于 4.5:1、图形与界面部件（边框、焦点环）不低于 3:1（WCAG 2.2 AA），上游构建时逐对检查；高对比主题更高。",
+            "Windows 的高对比模式（forced-colors）下，状态改用系统颜色表示（选中、焦点、当前项），不靠背景色。",
+            "尺寸都用 em：放大浏览器字号、或给一块区域设更大的字号，组件跟着缩放；可以点的区域不小于 24 × 24 px。",
+            "状态不只靠颜色：出错有图标与文字，选中有对勾，必填有星号、控件带 aria-required。",
+        ]),
+        new("motion", "动效", "动效帮助理解变化，不是装饰。",
+        [
+            "偏好减少动态效果（prefers-reduced-motion）时，过渡与动画的时长 token 变成 0，平滑滚动改成直接跳过去；轮播一开始就是暂停的，3D 效果停在一帧。",
+            "会动的内容（轮播、跑马灯）都能暂停，指针停留、焦点进入时也会自己停下。",
+        ]),
+        new("rtl", "从右到左", "阿拉伯语、希伯来语这类从右到左的语言：在页面或容器上写 dir=\"rtl\"。",
+        [
+            "样式用逻辑方向（起始边、结束边：InsetInlineStart、PaddingInlineEnd），换方向时整套镜像。",
+            "左右方向键的含义跟着换（“下一个”永远朝阅读方向），表示方向的图标（箭头、展开的三角）镜像，时钟、播放这类不镜像。",
+        ]),
+        new("touch", "触屏与窄屏", "手机上组件照样能用，不用另外的移动端版本。",
+        [
+            "点击区域不小于 24px（Sizes.MinTarget）：框里的小按钮、勾选框也是。",
+            "自己的响应式样式用 Breakpoints（移动优先），与组件（AppShell 的侧栏、抽屉）的断点一致。",
+        ]),
+    ];
+
+    const string Naming = """
+        @* 没有可见标签的控件：写 aria-label *@
+        <IconButton Icon="Lucide.Trash2" Label="删除这一行" />
+        <TextField type="search" aria-label="搜索订单" />
+
+        @* 有标签时放进 Field：标签、说明、错误、必填自动关联到里面的控件 *@
+        <Field Label="交付日期" Description="工作日" Required="true">
+            <DatePicker @bind-Value="date" />
+        </Field>
+
+        @* 表格、列表、树、图表都要有名称 *@
+        <DataTable Items="orders" GetKey="o => o.Id" aria-label="待发货订单">…</DataTable>
+        <LineChart Items="sales" Category="s => s.Month" Series="series" aria-label="近 12 个月销售额" />
+        """;
+
+    const string Announcing = """
+        <VisuallyHidden aria-live="polite">@message</VisuallyHidden>
+
+        @code {
+            string? message;
+
+            async Task ArchiveAsync()
+            {
+                var count = await Orders.ArchiveAsync(selected);
+                message = $"已归档 {count} 条订单";
+            }
+        }
+        """;
+}

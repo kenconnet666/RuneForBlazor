@@ -6,7 +6,7 @@
 
 ## [Unreleased]
 
-跟进 vue-tsx-pro 的一批审查修复（`9afdc156..578d397a`，vue 的版本号仍是 0.21.0）：它审查出的问题逐项在 Rune 里对照，同样有的一并修掉。
+跟进 vue-tsx-pro 的一批审查修复（`9afdc156..95ceb0d8`，vue 的版本号仍是 0.21.0）：它审查出的问题逐项在 Rune 里对照，同样有的一并修掉。
 
 ### 破坏性改动
 
@@ -26,11 +26,12 @@
 - NumberRangeField 两个框的名称与占位在默认层：`PropsStart` / `PropsEnd` 的 `aria-label`、`placeholder` 生效
 - Field：控件自己写了 `id` 时，标签的 `for` 与错误汇总的链接跟着指过去
 - Rating 只读时名称里总有分数：自己的 `aria-label` 或 Field 的标签后面接上“4 星，满分 5 星”（之前在 Field 里只念标签，写了 `aria-label` 又被分数盖掉）
-- UserButton 非紧凑时名称只取名字与说明的文字（`aria-labelledby`），头像不再把名字多念一遍
 - Checklist 勾选按钮的可点区域不小于 24px（WCAG 2.5.8）
 - Textarea 自适应高度：宽度变了也重新算（容器变窄多换了行；一开始在没显示的标签页、弹层里）
 - PaginationBar 的 `Size` 也作用于每页条数的下拉（PageSizeSelect 新增 `Size`）
 - 输入法组合中不改写输入框：验证码（OtpField）与分组显示的输入框（TextField 的 `Format`）等组合结束才过滤、重排
+- 文档站与 vue 文档站核对了一遍：新增指南“Choosing 选组件”“Accessibility 无障碍”；10 页示例的排布、7 页在侧栏里的顺序、若干示例的 id 与标题、
+  9 页的简介改成一致；二维码页的地址改成 `/components/qrcode`（同 vue，旧地址 `/components/qr-code` 永久跳转）
 
 ### 新增
 

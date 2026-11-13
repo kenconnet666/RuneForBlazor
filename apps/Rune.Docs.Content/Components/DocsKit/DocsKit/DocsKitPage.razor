@@ -4,15 +4,10 @@
 @using Rune.Docs.Components.DocsKit.DocsKit.Demo
 
 <DocPage Meta="Meta" Wide="true">
+    <Example Id="article" Title="一篇文档" Demo="typeof(ArticleExample)">
+        正文比界面文字大一号、行距宽松；页面多宽由外面的 <Code>Container</Code> 决定。<Code>Lead</Code> 放在简介下面，引用语句之类。<Code>DocSection</Code> 的 <Code>Id</Code> 是锚点，也进 <Code>TableOfContents</Code>。<Code>TextTable</Code> 的表头和单元格都是文字，反引号里的是行内代码（<Code>CodeText</Code>），第一列默认不折行；要排序、合并单元格用 DataTable。
+    </Example>
     <Examples>
-        <ExampleColumn>
-            <Example Id="article" Title="一篇文档" Demo="typeof(ArticleExample)">
-                正文比界面文字大一号、行距宽松；页面多宽由外面的 <Code>Container</Code> 决定。<Code>Lead</Code> 放在简介下面，引用语句之类。<Code>DocSection</Code> 的 <Code>Id</Code> 是锚点，也进 <Code>TableOfContents</Code>。<Code>TextTable</Code> 的表头和单元格都是文字，反引号里的是行内代码（<Code>CodeText</Code>），第一列默认不折行；要排序、合并单元格用 DataTable。
-            </Example>
-            <Example Id="props-table" Title="给自己的组件写 API 表" Demo="typeof(HandwrittenExample)">
-                数据类型是 <Code>ApiProp</Code>：名称、种类（参数、事件、内容、部件属性）、类型、必填、默认值、能否 <Code>@@bind</Code>、说明，档位类的 <Code>Values</Code> 列出每个可选值的含义。必填、可绑定的标记文案取语言包；外层是静态表格，窄屏时横向滚动。文档站的 API 表从类型与 XML 文档注释自动生成同样的数据。外观参数同 Table：<Code>Density</Code> 默认 Compact，<Code>Variant</Code>、<Code>Striped</Code> 照常可用。
-            </Example>
-        </ExampleColumn>
         <ExampleColumn>
             <Example Id="preview" Title="示例卡片" Demo="typeof(PreviewExample)">
                 <Code>CodePreview</Code> 上面是运行中的效果、下面是源码（默认收起，可复制），文档站的每个示例都是一张；<Code>@@bind-ShowCode</Code> 可以双向绑定源码的展开状态，<Code>Actions</Code> 往工具栏最前面加按钮。源码由使用方给出：文档站从示例文件里读，两者永远一致。
@@ -20,10 +15,15 @@
             <Example Id="code-group" Title="一组代码" Demo="typeof(GroupExample)">
                 <Code>CodeGroup</Code> 用标签页切换几段代码，标签栏就是代码块的标题栏；几组绑同一个 <Code>@@bind-Value</Code> 就一起切换。
             </Example>
-            <Example Id="color-swatch" Title="ColorSwatch" Demo="typeof(SwatchExample)">
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="color-swatch" Title="色块" Demo="typeof(SwatchExample)">
                 <Code>Color</Code> 是颜色值或主题 token：token 的取值按当前主题读出，换主题时跟着变（左上角切换主题试试）。半透明的颜色下面垫棋盘格。
             </Example>
         </ExampleColumn>
     </Examples>
+    <Example Id="props-table" Title="属性表" Demo="typeof(HandwrittenExample)">
+        数据类型是 <Code>ApiProp</Code>：名称、种类（参数、事件、内容、部件属性）、类型、必填、默认值、能否 <Code>@@bind</Code>、说明，档位类的 <Code>Values</Code> 列出每个可选值的含义。必填、可绑定的标记文案取语言包；外层是静态表格，窄屏时横向滚动。文档站的 API 表从类型与 XML 文档注释自动生成同样的数据。外观参数同 Table：<Code>Density</Code> 默认 Compact，<Code>Variant</Code>、<Code>Striped</Code> 照常可用。
+    </Example>
     <ApiReference Types="[typeof(DocArticle), typeof(DocSection), typeof(TextTable), typeof(CodePreview), typeof(PropsTable), typeof(CodeGroup), typeof(ColorSwatch)]" />
 </DocPage>

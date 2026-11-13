@@ -1,12 +1,12 @@
 @page "/components/image-cropper"
-@attribute [DocMeta("ImageCropper 裁剪图片", "头像、封面上传前裁一块：裁剪框固定在中间，图片在底下拖动、缩放，框里永远是图；裁好的按指定的像素大小、类型导出。", DocCategory.Input, Order = 14)]
+@attribute [DocMeta("ImageCropper 裁剪图片", "头像、封面上传前裁一块：裁剪框固定在中间，图片在底下拖动、缩放，框里永远是图；裁好的按指定的像素大小、类型导出。", DocCategory.Input, Order = 20)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Input.ImageCropper.Demo
 
 <DocPage Meta="Meta" Wide="true">
     <Examples>
         <ExampleColumn>
-            <Example Id="avatar" Title="上传头像" Demo="typeof(AvatarExample)">
+            <Example Id="avatar" Title="上传头像时先裁剪" Demo="typeof(AvatarExample)">
                 Upload 的 <Code>Transform</Code> 在文件加进列表前依次过一遍（返回 null 不加）：这里打开对话框裁剪，确定后交回 <Code>CropAsync</Code> 裁好的 256 × 256 圆形 PNG。
                 <Code>Shape="ImageCropShape.Round"</Code> 时裁剪框是圆的，输出的图四角透明。
             </Example>

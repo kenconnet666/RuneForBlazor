@@ -24,6 +24,8 @@ public static class DocRedirects
         ["/components/proportion-bar"] = "/components/sparkline#proportion-bar",
         ["/components/doc-article"] = "/components/docs-kit#article",
         ["/components/props-table"] = "/components/docs-kit#props-table",
+        // 地址同 vue 文档站（QRCode → qrcode）；0.18.0 之前这一页在 qr-code
+        ["/components/qr-code"] = "/components/qrcode",
     };
 
     /// <summary>Cloudflare Pages 的 _redirects 文件：一行一条，永久跳转。</summary>

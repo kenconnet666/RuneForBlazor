@@ -12,6 +12,12 @@
             <Example Id="compact" Title="窄侧栏：只显示图标" Demo="typeof(CompactExample)">
                 <Code>Compact</Code> 时各项只剩图标，名称留给读屏、悬停或聚焦时用提示显示；NavSection 的 <Code>Icon</Code> 是小节标题前的标记（不能点），紧凑时代替标题。紧凑时 NavGroup 只剩图标，悬停、聚焦时子项从右边弹出来（完整的文字，Tab 进入），组里有当前页时图标高亮；NavItem 的 <Code>Badge</Code> 是计数角标，展开时在文字后面，紧凑时叠在图标上。
             </Example>
+            <Example Id="menu" Title="按菜单数据渲染：NavMenu" Demo="typeof(MenuExample)">
+                <Code>Items</Code> 的字段同 <TextLink Href="components/nav-list#nav-bar">NavBar</TextLink> 的项（<Code>NavMenuItem</Code>：Label、Href、Icon、Badge、Disabled、Children），
+                同一份菜单数据可以同时给顶部的 NavBar 和侧栏的 NavMenu。有 <Code>Children</Code> 的项是一组：顶层的默认是带小标题、一直展开的小节，
+                <Code>TopLevel="NavMenuTopLevel.Group"</Code> 改成可收起的分组；更深的层级都是分组，含当前页的组自动展开。没有 <Code>Href</Code> 又没有可显示子项的目录不画，
+                后端返回的目录下没有该用户能看的页面时，目录自然消失。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="sections" Title="文档站导航" Demo="typeof(SectionsExample)">
@@ -20,13 +26,7 @@
             <Example Id="toc" Title="本页目录" Demo="typeof(TocExample)">
                 TableOfContents 列出各节标题，滚动时高亮正在读的一节，指示条滑过去；当前节带 aria-current="location"。目录项写成 <Code>HeadingEntry</Code>（id、文字、级别）。正文在自己的滚动区域里时给 <Code>ScrollRoot</Code>（滚动容器的 id）。
             </Example>
-            <Example Id="menu" Title="按菜单数据渲染（NavMenu）" Demo="typeof(MenuExample)">
-                <Code>Items</Code> 的字段同 <TextLink Href="components/nav-list#nav-bar">NavBar</TextLink> 的项（<Code>NavMenuItem</Code>：Label、Href、Icon、Badge、Disabled、Children），
-                同一份菜单数据可以同时给顶部的 NavBar 和侧栏的 NavMenu。有 <Code>Children</Code> 的项是一组：顶层的默认是带小标题、一直展开的小节，
-                <Code>TopLevel="NavMenuTopLevel.Group"</Code> 改成可收起的分组；更深的层级都是分组，含当前页的组自动展开。没有 <Code>Href</Code> 又没有可显示子项的目录不画，
-                后端返回的目录下没有该用户能看的页面时，目录自然消失。
-            </Example>
-            <Example Id="nav-bar" Title="顶栏导航（NavBar）" Demo="typeof(NavBarExample)">
+            <Example Id="nav-bar" Title="顶栏一行：NavBar" Demo="typeof(NavBarExample)">
                 <Code>Items</Code> 里有 <Code>Href</Code> 的是链接，有 <Code>Children</Code> 的是下拉菜单（Menu，菜单项是链接）。当前页按地址判断（同 <TextLink Href="components/nav-list">NavList</TextLink>），
                 链接带 aria-current 与下划线，子项是当前页时它的下拉按钮也高亮；<Code>Badge</Code> 是计数角标。放不下时后面的项收进“更多”菜单（有子项的按分组列出），
                 藏起来的项不占位、读屏与 Tab 都跳过。菜单数据同 <TextLink Href="components/nav-list#menu">NavMenu</TextLink>（<Code>NavMenuItem</Code>）。

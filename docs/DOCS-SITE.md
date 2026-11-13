@@ -9,7 +9,8 @@
 工具的用法见 `tools/parity/README.md`；本地先开 vue 文档站（5174）与 bench / docs（`.claude/launch.json`，固定了“现在”）。
 
 1. **外壳**（`pages.mjs`）：同一地址两边打开，比较顶栏、侧栏、正文、本页目录、标题的盒子（允许 0.5px）与第一屏画面；宽 1440、390，亮、暗。
-2. **页面骨架**（`columns.mjs`）：每页示例的分列与顺序，缺的示例列出来；`--apply` 照 vue 重排。
+2. **页面骨架**（`columns.mjs`，读源码）：每页示例的分列与顺序，缺的示例列出来；`--apply` 照 vue 重排。
+   `titles.mjs` 列出页面的标题、侧栏里的顺序、示例的 id 与标题不同的地方（vue 改了示例的 id、挪了页面顺序时在这里看得出来）。
 3. **示例画布**（`parity.mjs`）：按 `(示例, data-scope, data-part, 第几个)` 配对比较计算后的样式，`--shots` 截图、`shots.py` 汇总像素差异，`--states` 比悬停、聚焦、按下。
 
 完成标准：每页在 1440 / 390、亮 / 暗下外壳盒子一致；每个示例画布不同的像素 < 1%，超过的写明原因。
@@ -29,9 +30,18 @@
 
 ## 还缺的页面与示例
 
+2026-11-13 按 vue `95ceb0d8` 用 `columns.mjs`、`titles.mjs` 核对过一遍：两边都有的 110 页，排布、侧栏顺序、示例的 id 一致；标题只剩下面“有意不同”的几条。
+
 - 阶段 6：13 个页面组合组件的页面（ActionBar、AuthLayout、CommentThread、ConditionBuilder、DataImport、FilterBar、FormDialog、KanbanBoard、NotificationCenter、
-  PeoplePicker、QueryTable、SlideCaptcha、StepsForm）；ThemeCustomizer 之后的主题定制页与 theme-switcher 的 thumbnail、customizer 示例。
-- 阶段 7：Diagram、图表的统计看板；全栈、移动端两组随阶段 8、7（3D 一组已有，分类“3D · three.js”）。
+  PeoplePicker、QueryTable、SlideCaptcha、StepsForm）与 PageTemplates；ThemeCustomizer 之后的主题定制页与 theme-switcher 的 thumbnail、customizer 示例；
+  form 的 generated、conditional、sources、read-view 四个示例（随 SchemaForm）。
+- 阶段 7：Diagram、Workflow、CodeEditor、图表的统计看板（Dashboard）；全栈、移动端两组随阶段 8、7（3D 一组已有，分类“3D · three.js”）。
+- 不做的页面：ClientOnly、ErrorBoundary（Blazor 自带对应的做法）；指南的 Testing（vue 的 `/testing` 驱动没有对应物，bUnit 的写法以后另写）、Playground。
+- signature-pad 的 export 示例（导出 SVG 的 handle）：本库的 SignaturePad 没有这个方法，那一格是自己的 pens 示例。
+- 本库多出来的示例（vue 没有、有意留着）：app-shell 的 desktop、button 的 icon-states 与 icon-links、code 的 text、date-picker 的 offset、image 的 attachments、
+  timeline 的 contract、upload 的 existing。
+- 标题有意不同：提到参数名、API 的（`LangFormat` / `useFormat`、`decimal` / `Decimal`、`Id` / `id`、`OnPick` / `onPick`）与示例内容不同的
+  （form 的 admission 与 sections、date-field 的 rules、range-calendar 的 display、time-picker 的 states、tabs 的 workspace、timeline 的 releases、date-range-picker 的 report）。
 - 逐页示例调整（vue P2.2 / P2.3），见 STYLE-ALIGNMENT 的待跟进。
 
 ## 上线前

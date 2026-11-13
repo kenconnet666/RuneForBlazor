@@ -1,5 +1,5 @@
 @page "/components/date-range-picker"
-@attribute [DocMeta("DateRangePicker 日期区间选择器", "一个输入框里开始、结束两组分段，弹出区间日历与快捷区间；报表的统计区间、入住与离店。", DocCategory.Date, Order = 6)]
+@attribute [DocMeta("DateRangePicker 区间选择器", "一个输入框里开始、结束两组分段，弹出区间日历与快捷区间；报表的统计区间、入住与离店。", DocCategory.Date, Order = 6)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Date.DateRangePicker.Demo
 
@@ -12,7 +12,7 @@
                 同一套算法也可以单独用 <Code>DateRange.Preset</Code>），超出范围的不可用。默认区间里不能夹着不可选的日期（订满的那晚）。
                 <Code>StartName</Code>、<Code>EndName</Code> 让原生表单提交两端的 ISO 文字。
             </Example>
-            <Example Id="states" Title="跨过不可选的日子与状态" Demo="typeof(StatesExample)">
+            <Example Id="states" Title="跨过不可选的日期与状态" Demo="typeof(StatesExample)">
                 <Code>AllowsUnavailableInRange</Code> 允许区间跨过不可选的日子；结束早于开始、超出范围时外壳显示出错，值照样写回。外观与只读、不可用同其他输入框。
             </Example>
         </ExampleColumn>

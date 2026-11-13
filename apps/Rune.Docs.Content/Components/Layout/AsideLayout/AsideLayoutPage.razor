@@ -4,12 +4,12 @@
 @using Rune.Docs.Components.Layout.AsideLayout.Demo
 
 <DocPage Meta="Meta" Wide="true">
-    <Example Id="detail" Title="详情页" Demo="typeof(DetailExample)">
+    <Example Id="detail" Title="详情页：主栏与侧栏" Demo="typeof(DetailExample)">
         子内容是主栏，<Code>Aside</Code> 是侧栏（<Code>AsideWidth</Code> 定宽，默认 26rem），两栏里的块按 <Code>Gap</Code> 竖排。
         按容器宽度决定叠不叠（不到 56rem 叠成一列、侧栏在后），放在抽屉、分栏里也对。<Code>Sticky</Code>（默认开）让侧栏粘在 AppShell
         的顶栏下面，滚动主栏时不动；示例在文档的卡片里，关掉了。
     </Example>
-    <Example Id="viewport-fill" Title="列表页占满到窗口底边（ViewportFill）" Demo="typeof(Frames.ListPage)" Frame="32rem">
+    <Example Id="viewport-fill" Title="列表页：占满到窗口底边" Demo="typeof(Frames.ListPage)" Frame="32rem">
         顶边的位置是量出来的（JS 写成 CSS 变量，没有往返）：上面的页头、页签、查询栏换行变高都跟着变，不用手算“视口高度减顶栏减内边距”。
         <Code>Bottom</Code> 是离窗口底边留的间距（与外壳正文的内边距一致），窗口太矮时不小于 <Code>MinHeight</Code>、整页滚动。
         里面要撑满剩下高度的一块写 <Code>flex: 1</Code> 与 <Code>min-height: 0</Code>，在它里面滚动。外壳是页面组合里的 AppShell。

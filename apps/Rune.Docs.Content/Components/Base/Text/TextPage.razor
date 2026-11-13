@@ -15,6 +15,14 @@
             <Example Id="overflow" Title="截断与换行" Demo="typeof(OverflowExample)">
                 Truncate 单行省略，LineClamp 限制行数；Wrap 的 Pretty 避免最后一行只剩一个字（Paragraph 默认），Balance 让标题各行长度均衡。
             </Example>
+            <Example Id="lists" Title="列表：无序、有序与嵌套" Demo="typeof(ListsExample)">
+                <Code>List</Code> 是圆点，<Code>OrderedList</Code> 是编号，<Code>start</Code>、<Code>reversed</Code> 这些原生属性照常可用；嵌套的列表紧贴上一项。
+                <Code>Gap</Code> 改项与项之间的间距。
+            </Example>
+            <Example Id="list-icons" Title="图标代替圆点" Demo="typeof(ListIconsExample)">
+                <Code>Icon</Code> 让每项前面画一个图标（功能清单的对勾），<Code>PropsIcon</Code> 改颜色；<Code>ListItem</Code> 的 <Code>Icon</Code> 逐项覆盖。
+                图标是装饰，读屏照常念“列表，几项”。<Code>Size</Code> 是字号档位。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="inline" Title="行内语义" Demo="typeof(InlineExample)">
@@ -28,14 +36,6 @@
             </Example>
             <Example Id="numeric" Title="编号与数字" Demo="typeof(NumericExample)">
                 Mono 用等宽字体（编号、件号），Numeric 用等宽数字（金额、计数）：上下对齐、变化时不跳动。
-            </Example>
-            <Example Id="lists" Title="列表" Demo="typeof(ListsExample)">
-                <Code>List</Code> 是圆点，<Code>OrderedList</Code> 是编号，<Code>start</Code>、<Code>reversed</Code> 这些原生属性照常可用；嵌套的列表紧贴上一项。
-                <Code>Gap</Code> 改项与项之间的间距。
-            </Example>
-            <Example Id="list-icons" Title="带图标的列表" Demo="typeof(ListIconsExample)">
-                <Code>Icon</Code> 让每项前面画一个图标（功能清单的对勾），<Code>PropsIcon</Code> 改颜色；<Code>ListItem</Code> 的 <Code>Icon</Code> 逐项覆盖。
-                图标是装饰，读屏照常念“列表，几项”。<Code>Size</Code> 是字号档位。
             </Example>
         </ExampleColumn>
     </Examples>

@@ -1,0 +1,92 @@
+@page "/guide/choosing"
+@attribute [DocMeta("Choosing 选组件", "按要做的事找组件：从选项里选、输入、浮层、反馈、展示数据、布局与导航，每一行写清楚和相近的组件差在哪。", DocCategory.Guide, Order = 2)]
+@inherits DocPageBase
+
+@* 同 vue-tsx-pro 文档站的 Choosing 指南：按要做的事分组，每一行是“想要什么 → 用哪个 → 和相近的组件差在哪”。本库还没有的组件不列 *@
+<DocPage Meta="Meta">
+    <Paragraph>
+        相近的组件常常都能用，差别在交互的轻重、数据量、要不要一眼看见。下面按要做的事分组，每一行写清楚和相近的组件差在哪；拿不准时先选更轻的那个。
+    </Paragraph>
+    @foreach (var section in Sections)
+    {
+        <GuideSection @key="section.Id" Id="@section.Id" Title="@section.Title">
+            <Paragraph>@section.Intro</Paragraph>
+            <ColumnTable Items="section.Rows" GetKey="row => row.Need" aria-label="@section.Title">
+                <PropertyColumn Property="row => row.Need" Title="想要" Width="220" Wrap="true" />
+                <TemplateColumn Key="use" Title="用" Width="200" Context="row">
+                    <Flex Gap="SpaceScale.Xs" Wrap="true">
+                        @foreach (var (name, path) in row.Use)
+                        {
+                            <TextLink @key="name" Href="@($"/components/{path}")">@name</TextLink>
+                        }
+                    </Flex>
+                </TemplateColumn>
+                <PropertyColumn Property="row => row.Note" Title="怎么区分" Wrap="true" />
+            </ColumnTable>
+        </GuideSection>
+    }
+</DocPage>
+
+@code {
+    /// <summary>一行：想要什么、用哪个（名称 → 页面地址的最后一段）、怎么区分。</summary>
+    sealed record Choice(string Need, (string Name, string Path)[] Use, string Note);
+
+    sealed record Section(string Id, string Title, string Intro, Choice[] Rows);
+
+    static readonly Section[] Sections =
+    [
+        new("pick", "从选项里选", "先看选项有多少、要不要一眼都看见、能不能自己输入。",
+        [
+            new("几个选项都要一眼看见（5 个以内）", [("RadioGroup、CheckboxGroup", "checkbox")], "单选用 RadioGroup，多选用 CheckboxGroup；要整块可点、带说明时用卡片外观（Card）。"),
+            new("点开一列选一个或几个", [("Select", "select")], "同原生 select；选项多时写 Searchable，远程的给 Load（分页用 LoadPage）。"),
+            new("边输入边筛选，也能输入列表里没有的", [("Combobox", "combobox")], "Select 只能选列表里有的；Combobox 的值就是输入框里的文字。"),
+            new("输入为主，顺带给几条建议", [("Autocomplete", "autocomplete")], "建议只是帮着补全，不要求选中其中一项。"),
+            new("选项平铺在页面上（不弹出）", [("Listbox", "listbox")], "Select、Combobox 弹出的就是它；放在侧栏、对话框里一直显示时直接用。"),
+            new("切换视图、对齐方式这类分段按钮", [("ToggleGroup", "toggle-group")], "值立刻生效、不是表单里的选择时用它；表单里的单选用 RadioGroup。"),
+            new("在一棵树里选（部门、分类）", [("TreeSelect", "tree-select"), ("Cascader", "cascader")], "TreeSelect 一次看到整棵树、可以多选；Cascader 一列一列往下（省市区），只选一条路径。"),
+            new("从一大批里挑出一部分", [("Transfer", "transfer")], "两栏对着看“候选”和“已选”，适合几十上千项。"),
+            new("输入多个标签、@ 提到人", [("TagsInput", "tags-input"), ("Mentions", "mentions")], "TagsInput 的值是文字；Mentions 在一段文字里插入提及。"),
+            new("筛选条件的一排可选标签", [("Tag（Selected）", "badge")], "每个标签是按下 / 抬起的按钮（aria-pressed），比一排复选框紧凑。"),
+        ]),
+        new("input", "输入", "按值的类型挑输入框；整张表单用 Form。",
+        [
+            new("文字、多行文字", [("TextField、Textarea", "text-field")], "字数限制用 CharacterCount；只读展示用文字组件，不要用禁用的输入框。"),
+            new("数字、金额、区间", [("NumberField", "number-field")], "步进、千分位、decimal 精确计算；区间用 NumberRangeField。"),
+            new("日期、时间", [("DatePicker", "date-picker"), ("DateField", "date-field"), ("TimePicker", "time-picker")], "DatePicker 带日历弹层；DateField 是一段一段键盘输入；范围用 DateRangePicker。"),
+            new("验证码、颜色、评分、滑块", [("OtpField", "otp-field"), ("ColorField", "color-field"), ("Rating", "rating"), ("Slider", "slider")], "颜色要平铺的面板（主题编辑器）时用 ColorPicker；ColorField 点色块弹出的就是它。"),
+            new("文件、图片、签名", [("Upload", "upload"), ("ImageCropper", "image-cropper"), ("SignaturePad", "signature-pad")], "Upload 管列表与上传；只要选文件的拖放区用 FileDrop；上传前裁剪在 Upload 的 Transform 里弹出 ImageCropper。"),
+            new("整张表单", [("Form", "form")], "Field 给每个输入框标签、说明与错误；Form 包一层 EditForm，管校验、提交与错误汇总；长表单用 FormSection 分组。"),
+        ]),
+        new("overlay", "浮层", "浮层越重，打断越多：能放在页面里的就别弹出来。",
+        [
+            new("必须先处理完的任务、要确认的操作", [("Dialog", "dialog"), ("Popconfirm", "popconfirm")], "Dialog 模态、挡住页面；删除一行这类轻的确认用 Popconfirm，贴在按钮旁边。"),
+            new("不离开页面看详情、填一张表", [("Drawer", "drawer")], "从一侧滑出，页面还看得见；内容很多、要并排对照时比 Dialog 合适。"),
+            new("按钮旁边的小表单、筛选、悬停说明", [("Popover、Tooltip、HoverCard", "popover")], "Popover 点开、里面能操作；Tooltip 只是一句说明；HoverCard 悬停预览（人员卡片、链接）。"),
+            new("一列操作、右键菜单、命令面板", [("Menu、ContextMenu", "menu"), ("CommandPalette", "command-palette")], "Menu 里是操作，不是导航；Ctrl + K 搜功能、搜页面用 CommandPalette。"),
+            new("新功能的分步引导", [("Tour", "tour")], "一步一步高亮页面上的元素；只有一句话的提示用 Tooltip 或 Alert。"),
+        ]),
+        new("feedback", "反馈", "操作的结果、页面的状态、等待。",
+        [
+            new("操作的结果（已保存、已删除）", [("Toast", "toast")], "几秒后自己消失，可以带“撤销”；必须看到的错误别只用 Toast。"),
+            new("页面里一直留着的提示", [("Alert", "alert")], "说明、警告、表单整体的错误；跟着内容放，不浮在上面。"),
+            new("加载中", [("Skeleton", "skeleton"), ("Progress、Spinner", "progress")], "内容的形状已知时用骨架；知道进度用 Progress；按钮里的等待用 Button 的 Loading。"),
+            new("没有数据、滚动加载的结尾", [("Empty", "empty"), ("VirtualList（InfiniteListStatus）", "virtual-list")], "列表、表格自带空状态；滚动加载的“没有更多了”与重试用 InfiniteListStatus；只换掉出错的那一块用 Blazor 自带的 ErrorBoundary。"),
+        ]),
+        new("data", "展示数据", "先看数据量与要不要交互。",
+        [
+            new("大量数据：排序、筛选、勾选、编辑", [("DataTable", "data-table")], "行（必要时列）都虚拟滚动；有层级的用 TreeDataTable；交叉汇总用 PivotTable。"),
+            new("小表、打印、合并单元格", [("Table、ColumnTable", "table")], "静态渲染、列宽按内容、单元格可以换行；ColumnTable 按列定义生成。"),
+            new("一条记录的各个字段、改了哪些", [("Descriptions", "descriptions"), ("FieldCompare", "field-compare")], "Descriptions 是详情页的“标签：值”；审批、变更记录里对照新旧用 FieldCompare。"),
+            new("一列条目（头像、标题、操作）、很长的列表", [("ItemList", "item-list"), ("VirtualList", "virtual-list")], "ItemList 的行整条可点、带开头与结尾；上万条、行的样子自己画时用 VirtualList。"),
+            new("层级、原始 JSON", [("Tree", "tree"), ("JsonViewer", "json-viewer")], "Tree 可选、可勾、可拖；看接口返回、配置原样的数据用 JsonViewer。"),
+            new("指标、过程、清单", [("Stat", "stat"), ("Timeline", "timeline"), ("Checklist", "checklist")], "一组数字用 Stat（可带趋势小图）；审批、物流记录用 Timeline；待办与完成情况用 Checklist。"),
+        ]),
+        new("layout", "布局与导航", "页面骨架、分栏、切换与跳转。",
+        [
+            new("排一排、排成网格", [("Flex、Grid", "flex")], "Grid 的 MinItemWidth 按宽度自动分列，Balanced 时最后一行不落单。"),
+            new("整个应用的框架、侧栏加内容、可拖动的分栏", [("AppShell", "app-shell"), ("AsideLayout", "aside-layout"), ("Splitter", "splitter")], "AppShell 是顶栏、侧边导航与内容区；页面里的侧栏用 AsideLayout；能拖动宽度的用 Splitter。"),
+            new("分块、折叠、标签页", [("Card", "card"), ("Accordion", "accordion"), ("Tabs", "tabs")], "Tabs 切的是同一层级的几块内容；一次能展开好几块、可以都收起时用 Accordion。"),
+            new("侧边导航、面包屑、分页、工具栏", [("NavList", "nav-list"), ("Breadcrumbs", "breadcrumbs"), ("Pagination", "pagination"), ("Toolbar", "toolbar")], "顶栏的一行导航用 NavBar（在 NavList 页）；页面角落的常驻操作用 FloatButton。"),
+        ]),
+    ];
+}
