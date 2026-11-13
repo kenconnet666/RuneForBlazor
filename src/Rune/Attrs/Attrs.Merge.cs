@@ -11,7 +11,9 @@ public sealed partial class Attrs
     /// 每段一个类、各进一层级联层，结果与合成一个类相同；只有一层有样式（最常见）时一个类；</description></item>
     /// <item><description>class、style：依次拼接；</description></item>
     /// <item><description>事件（on 开头）：都执行，按层的顺序；每个处理器由写它的组件执行，执行后那个组件照常重新渲染；</description></item>
-    /// <item><description>其他属性：后面的层覆盖前面的。</description></item>
+    /// <item><description>aria-describedby：各层的 id 拼在一起、去掉重复的；</description></item>
+    /// <item><description>嵌套的部件属性（值是 <see cref="Attrs"/> 的 PropsXxx）：按这里的规则再合并一次，不整个替换；</description></item>
+    /// <item><description>其他属性：后面的层覆盖前面的；值是 null 的不表态，留着前面几层的。</description></item>
     /// </list>
     /// </summary>
     /// <remarks>
@@ -148,6 +150,8 @@ public sealed partial class Attrs
         if (layer?.values is not { } values) return;
         foreach (var (name, value) in values)
         {
+            // 值是 null 的属性不表态（使用方写了 title="@error"、error 是 null 时），留着前面几层的
+            if (value is null) continue;
             if (!merged.TryGetValue(name, out var earlier))
             {
                 merged[name] = value;
@@ -157,11 +161,27 @@ public sealed partial class Attrs
             {
                 "class" => $"{earlier} {value}",
                 "style" => $"{earlier};{value}",
+                "aria-describedby" => JoinIds(earlier, value),
                 var key when IsEventHandler(key) => EventHandlerMerger.Combine(earlier, value),
+                // 嵌套的部件属性（PropsIcon……）按同样的规则再合并，不整个替换：组件给子部件的默认不因为使用方也写了这个部件就丢掉
+                _ when earlier is Attrs inner && value is Attrs outer && IsPartProps(name) => Layer(inner, outer),
                 _ => value,
             };
         }
     }
+
+    /// <summary>几层都写了 aria-describedby 时 id 拼在一起、去掉重复的：Field 的说明、错误与使用方自己写的提示都念得到。</summary>
+    static object JoinIds(object earlier, object value)
+    {
+        if (earlier is not string first || value is not string second) return value;
+        var ids = new List<string>();
+        foreach (var id in $"{first} {second}".Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            if (!ids.Contains(id)) ids.Add(id);
+        return string.Join(' ', ids);
+    }
+
+    // PropsIcon、PropsRemove：Props 后面跟大写字母，值是另一个部件的属性
+    static bool IsPartProps(string name) => name.Length > 5 && name.StartsWith("Props", StringComparison.Ordinal) && char.IsAsciiLetterUpper(name[5]);
 
     // onclick、onkeydown……；“on”开头但不是事件的属性（如 one-time）不会以处理器为值
     static bool IsEventHandler(string name) => name.Length > 2 && name.StartsWith("on", StringComparison.Ordinal);

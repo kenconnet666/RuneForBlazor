@@ -44,6 +44,12 @@
 
 - 样式（`Sx`）按层叠加：只有一层带样式时（最常见）合成一个类；几层各有样式时按层分段，每段一个类、各进一层级联层（见第 5 节的“分段与级联层”）。
   class、style 依次拼接；其他属性后面的层覆盖前面的。`MergeProps`、`Layer` 交下去的 `Sx` 保留着分段。
+- 三条例外（同 vue-tsx-pro 的 mergeProps，COMPONENTS.md §2.4）：值是 `null` 的属性不表态，留着前面几层的（使用方的 `title="@error"` 值是 null 时，
+  组件收到的属性表里有这个键，不能让它盖掉默认值；vue 是 `undefined` 不表态、`null` 去掉，C# 只有 null，要去掉用 `Without`）；
+  `aria-describedby` 各层的 id 拼在一起、去重（Field 的说明、错误在受管层，使用方自己写的提示不被抹掉）；
+  嵌套的部件属性（值是 `Attrs` 的 `PropsXxx`）用 `Layer` 再合并一次，不整个替换。
+- **由组件管理、又不值得建一层 Attrs 的属性**（`role`、`href`、`aria-selected`）直接写在 `@attributes` **后面**：Blazor 里同名属性后写的生效，
+  写在前面的会被使用方的部件属性盖掉。写在前面的只该是默认值（名称 `aria-label` 这类使用方可以改的）。
 - 三种合并的去处：`Merge` 合并到**元素**上（合成类）；`MergeProps` 展开到**组件**上（样式成了 Sx 参数）；`Layer` 交给子组件的
   **Props 参数**、由子组件再合并到它的元素上（样式留在 Attrs.Sx）。把 MergeProps 的结果交给 Props 参数时样式会变成一个叫 Sx 的属性、整个丢掉
   （列表框改成 ScrollArea 的视口时 E2E 发现虚拟滚动失效）。

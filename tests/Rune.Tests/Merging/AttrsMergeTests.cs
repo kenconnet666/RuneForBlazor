@@ -30,6 +30,51 @@ public class AttrsMergeTests : IDisposable
     }
 
     [Fact]
+    public void 值是null的属性不表态_留着前面几层的()
+    {
+        // 使用方写了 title="@error"、aria-label="@label"，值是 null：组件收到的属性表里有这个键、值是 null
+        var user = Attrs.From(new Dictionary<string, object> { ["title"] = null!, ["aria-label"] = null!, ["onclick"] = null! }, sx: null);
+        var merged = ToDictionary(Attrs.Merge(
+            new() { Title = "默认", AriaLabel = "关闭", OnClick = _ => Task.CompletedTask },
+            user,
+            new() { Role = "button" }));
+
+        Assert.Equal(("默认", "关闭", "button"), (merged["title"], merged["aria-label"], merged["role"]));
+        Assert.IsType<Func<MouseEventArgs, Task>>(merged["onclick"]);
+    }
+
+    [Fact]
+    public void aria_describedby各层的id拼在一起_去掉重复的()
+    {
+        // Field 的说明、错误（受管层）与使用方自己写的提示都念得到
+        var merged = ToDictionary(Attrs.Merge(
+            new() { AriaDescribedBy = "hint" },
+            new() { AriaDescribedBy = "mine  hint" },
+            new() { AriaDescribedBy = "description error mine" }));
+        Assert.Equal("hint mine description error", merged["aria-describedby"]);
+
+        // 只有一层写了：原样
+        Assert.Equal("a  b", ToDictionary(Attrs.Merge(null, new() { AriaDescribedBy = "a  b" }))["aria-describedby"]);
+    }
+
+    [Fact]
+    public void 嵌套的部件属性按同样的规则再合并_不整个替换()
+    {
+        var flip = new Style { Color = "red" };
+        var merged = Attrs.MergeProps(
+            new() { ["PropsIcon"] = new Attrs { Sx = flip, ["FlipInRtl"] = true, Title = "默认" } },
+            new() { ["PropsIcon"] = new Attrs { Title = "使用方", ["Size"] = 20 } });
+
+        var icon = Assert.IsType<Attrs>(merged["PropsIcon"]);
+        Assert.Equal((true, "使用方", 20), (icon["FlipInRtl"], icon["title"], icon["Size"]));
+        Assert.Equal([flip], icon.Sx!);
+
+        // 不是部件属性的同名对象照旧后面的层盖过前面的
+        var other = new Attrs { Title = "后" };
+        Assert.Same(other, Attrs.MergeProps(new() { ["Options"] = new Attrs { Title = "前" } }, new() { ["Options"] = other })["Options"]);
+    }
+
+    [Fact]
     public void Layer把几层合成一层_样式留在Sx上_再合并到元素上时照常生效()
     {
         var red = new Style { Color = "red" };
