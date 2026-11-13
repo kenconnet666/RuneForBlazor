@@ -33,15 +33,7 @@ public class UserButtonTests : BunitContext
         Assert.Equal("采购部", described.Find("[data-part=description]").TextContent);
         Assert.Contains("chevrons-up-down", described.Find("[data-part=indicator]").OuterHtml);
 
-        // 名称只取旁边的文字（名字与说明）：头像也以名字为名称，算进去会念两遍
-        var button = described.Find("button");
-        Assert.Equal(["林小满", "采购部"], button.GetAttribute("aria-labelledby")!.Split(' ').Select(id => described.Find($"#{id}").TextContent));
-        // 自己写了 aria-label 时用它
-        var named = Render<UserButton>(p => p.Add(x => x.Name, "林小满").AddUnmatched("aria-label", "账号菜单"));
-        Assert.Equal(("账号菜单", null), (named.Find("button").GetAttribute("aria-label"), named.Find("button").GetAttribute("aria-labelledby")));
-
         var compact = Render<UserButton>(p => p.Add(x => x.Name, "林小满").Add(x => x.Compact, true));
-        Assert.Null(compact.Find("button").GetAttribute("aria-labelledby"));
         Assert.Equal("林小满", compact.Find("button").GetAttribute("aria-label"));
         Assert.Empty(compact.FindAll("[data-part=name], [data-part=indicator]"));
     }

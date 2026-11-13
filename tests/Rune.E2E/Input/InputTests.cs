@@ -50,6 +50,20 @@ public class InputTests(DemoServer demo) : E2ETest(demo)
     }
 
     [Fact]
+    public async Task 多行文本框_宽度变了重新算高度()
+    {
+        // 两行的文字：外框变窄后多换了行，高度跟着长（之前只在内容变了时重算，变窄后文字被裁掉一截）
+        var page = await OpenAsync("static", "text-field");
+        var comment = page.GetByTestId("comment");
+        await comment.FillAsync("这批货的外箱有两处压痕，内件没有问题，签收时已经拍照留底。");
+        var before = (await comment.BoundingBoxAsync())!.Height;
+
+        await comment.EvaluateAsync("element => { element.closest('[data-rune-control]').style.width = '9em'; }");
+        await Assertions.Expect(comment).Not.ToHaveJSPropertyAsync("offsetHeight", (int)before);
+        Assert.True((await comment.BoundingBoxAsync())!.Height > before);
+    }
+
+    [Fact]
     public async Task 输入法组合中的方向键不加减()
     {
         var page = await OpenAsync("server", "number-field");

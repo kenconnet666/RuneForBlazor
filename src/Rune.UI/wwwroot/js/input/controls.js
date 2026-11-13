@@ -211,7 +211,8 @@ const autosizeObserver = new ResizeObserver((entries) => {
     const width = target.clientWidth;
     if (autosizedWidths.get(target) === width) continue;
     autosizedWidths.set(target, width);
-    if (target.hasAttribute('data-rune-autosize')) fitHeight(target);
+    // 下一帧再改高度：在观察回调里直接改被观察元素的尺寸，浏览器会报 ResizeObserver loop
+    if (target.hasAttribute('data-rune-autosize')) requestAnimationFrame(() => fitHeight(target));
   }
 });
 

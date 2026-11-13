@@ -1,6 +1,6 @@
 # 跟进 vue-tsx-pro
 
-当前对齐 **vue-tsx-pro 0.21.0 之后的 `578d397a`**（CI 的 `VUE_TSX_PRO_REF`；vue 还没为这批审查修复发新版，规格 JSON 仍是 0.21.0 的，发版后重新取）。跟进的步骤见 rune-dev skill 的“跟进 vue-tsx-pro”；
+当前对齐 **vue-tsx-pro 0.21.0 之后的 `95ceb0d8`**（CI 的 `VUE_TSX_PRO_REF`；vue 还没为这批审查修复发新版，规格 JSON 仍是 0.21.0 的，发版后重新取）。跟进的步骤见 rune-dev skill 的“跟进 vue-tsx-pro”；
 本文只记两样：**与 vue 有意不同的地方**（以后对照时不用再查一遍），和**还没跟的改动**。逐批跟进的过程在提交说明里，
 2026-11-09 之前的逐批记录见 git `46db83f:docs/STYLE-ALIGNMENT.md`。
 
