@@ -43,6 +43,15 @@ public class BreadcrumbsStepsTests : BunitContext
     }
 
     [Fact]
+    public void 面包屑_MaxItems比3小时_没有可折的就不折()
+    {
+        // 第一项与最后两项总是留着：3 项、MaxItems 2 时没有东西可折（之前折出一个空菜单）
+        var cut = Render<Breadcrumbs>(p => p.Add(x => x.Items, Deep.Take(3).ToList()).Add(x => x.MaxItems, 2));
+        Assert.Equal(3, cut.FindAll("ol > li").Count);
+        Assert.Empty(cut.FindAll("[role=menu]"));
+    }
+
+    [Fact]
     public void 面包屑_应用内的层级_没有地址的各级是按钮_当前一级是location()
     {
         var picked = -1;

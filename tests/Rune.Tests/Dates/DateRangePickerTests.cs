@@ -18,6 +18,24 @@ public class DateRangePickerTests : BunitContext
         [.. cut.FindAll("[data-rune-date-segments]").Select(group => group.GetAttribute("data-value") ?? "")];
 
     [Fact]
+    public void 季度面板_父级从外面改了值_翻到它那一年_部件属性落到各部件上()
+    {
+        var cut = Render<QuarterCalendar>(p => p
+            .Add(x => x.Value, new DateOnly(2026, 4, 1))
+            .Add(x => x.PropsGrid, new Attrs { ["data-test"] = "grid", Role = "table" })
+            .Add(x => x.PropsCellButtonFor, quarter => quarter.Month == 10 ? new Attrs { ["data-peak"] = true } : null));
+        Assert.Equal("2026年", cut.Find("[data-static]").TextContent);
+        // 角色由组件管理，改不掉；按季度给的属性只落在那一格
+        Assert.Equal(("grid", "grid"), (cut.Find("table").GetAttribute("data-test"), cut.Find("table").GetAttribute("role")));
+        Assert.Equal(["2026-10-01"], cut.FindAll("button[data-peak]").Select(b => b.GetAttribute("data-date")));
+
+        // 快捷按钮、重置把值改到了别的年份：翻过去，焦点也在那个季度上
+        cut.Render(p => p.Add(x => x.Value, new DateOnly(2024, 7, 1)));
+        Assert.Equal("2024年", cut.Find("[data-static]").TextContent);
+        Assert.Equal("2024-07-01", cut.Find("button[tabindex='0']").GetAttribute("data-date"));
+    }
+
+    [Fact]
     public void 按天_两组是日期_改了结束那组写回()
     {
         DateRange<DateOnly>? value = new(new(2026, 10, 1), new(2026, 10, 7));

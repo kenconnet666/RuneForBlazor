@@ -62,7 +62,7 @@
     /// <summary>确认：执行期间确认按钮加载中，完成后关闭；参数的 KeepOpen 设为 true 时保持打开。</summary>
     [Parameter] public EventCallback<ConfirmEventArgs> OnConfirm { get; set; }
 
-    /// <summary>取消（取消按钮、Esc、点外面）。</summary>
+    /// <summary>取消（取消按钮、Esc、点外面）。确认还在进行时关掉的不算，没确认成（KeepOpen）才算。</summary>
     [Parameter] public EventCallback OnCancel { get; set; }
 
     /// <summary>确认按钮的文字；不写时取语言包的“确定”。</summary>
@@ -128,7 +128,8 @@
     {
         open = now;
         if (now) confirmed = false;
-        else if (!confirmed) await OnCancel.InvokeAsync();
+        // 等确认的时候被 Esc、点外面关掉：操作还在进行，结果出来之前不算取消
+        else if (!confirmed && !pending) await OnCancel.InvokeAsync();
         await OpenChanged.InvokeAsync(now);
     }
 
@@ -145,7 +146,12 @@
         {
             pending = false;
         }
-        if (args.KeepOpen) return;
+        if (args.KeepOpen)
+        {
+            // 没确认成，弹层又已经在等的时候关掉了：这时才算取消
+            if (!open) await OnCancel.InvokeAsync();
+            return;
+        }
         confirmed = true;
         // 受控的 Open 变成 false，JS 初始化器把浮层关上（随后的 rune-toggle 不再算取消）
         open = false;

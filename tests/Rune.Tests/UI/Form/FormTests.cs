@@ -94,6 +94,17 @@ public class FormTests : BunitContext
     }
 
     [Fact]
+    public void 控件自己写了id时_标签的for跟着指向它()
+    {
+        var cut = Render<Field>(p => p.Add(x => x.Label, "邮箱").AddChildContent<TextField>(text => text.AddUnmatched("id", "email")));
+        Assert.Equal(("email", "email"), (cut.Find("input").Id, cut.Find("label").GetAttribute("for")));
+
+        // 没写 id 的照旧用 Field 生成的
+        var plain = Render<Field>(p => p.Add(x => x.Label, "邮箱").AddChildContent<TextField>());
+        Assert.Equal(plain.Find("input").Id, plain.Find("label").GetAttribute("for"));
+    }
+
+    [Fact]
     public void 字段不写Required时看绑定字段的Required标注_写了以它为准()
     {
         var model = new Model();

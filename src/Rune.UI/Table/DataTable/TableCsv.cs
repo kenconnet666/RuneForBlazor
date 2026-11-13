@@ -19,7 +19,7 @@ public sealed record CsvOptions
 
 /// <summary>
 /// 按列把行写成 CSV（RFC 4180，同 vue-tsx-pro 的 tableToCsv）：表头是列的标题（分组表头写成“组标题 / 列标题”），
-/// 单元格是表格里看到的文字（状态写名字，数字、金额、日期按列的类型与格式）；文字以 = + - @ 开头时前面加 '，打开时不会被当成公式执行（CSV 注入）。
+/// 单元格是表格里看到的文字（状态写名字，数字、金额、日期按列的类型与格式）；文字（含状态名、数字与日期列里的字符串）以 = + - @ 开头时前面加 '，打开时不会被当成公式执行（CSV 注入）。
 /// </summary>
 static partial class TableCsv
 {
@@ -40,7 +40,8 @@ static partial class TableCsv
     {
         var value = view.Column.ValueOf(item);
         if (value is null) return "";
-        if (view.Column.HasStatuses) return view.Column.StatusLabel(value) ?? DataTableColumn<TItem>.FilterText(value);
+        // 状态名、没登记的状态值都是文字：同样防公式
+        if (view.Column.HasStatuses) return GuardFormula(view.Column.StatusLabel(value) ?? DataTableColumn<TItem>.FilterText(value));
         if (raw)
         {
             return value switch
@@ -53,8 +54,8 @@ static partial class TableCsv
             };
         }
         var shown = ColumnDisplay.Format(value, view.Type, view.Column.Format, lang);
-        // 数字、金额、日期是格式化出来的，不会是公式（负数照常）
-        return view.Type == ColumnType.Text ? GuardFormula(shown) : shown;
+        // 真正的数值、日期是格式化出来的，不会是公式（负数照常）；数字、日期列里混进来的字符串照样要防
+        return view.Type == ColumnType.Text || value is string ? GuardFormula(shown) : shown;
     }
 
     static void Line(StringBuilder text, IEnumerable<string> fields) => text.AppendJoin(',', fields.Select(Field));

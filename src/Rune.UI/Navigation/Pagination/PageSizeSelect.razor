@@ -8,7 +8,7 @@
 @inherits UIComponent
 @using System.Globalization
 
-<Select Items="Items" Value="@Value.ToString(CultureInfo.InvariantCulture)" ValueChanged="SelectAsync" Size="UI.Size.Sm"
+<Select Items="Items" Value="@Value.ToString(CultureInfo.InvariantCulture)" ValueChanged="SelectAsync" Size="Size"
         aria-label="@Config.Lang.PageSizeLabel" RenderValue="RenderValue" @attributes="Attrs.MergeProps(null, Rest)" />
 
 @code {
@@ -24,6 +24,9 @@
 
     /// <summary>用户换了条数（PaginationBar 随后回到第 1 页；自己并排时在这里把页码回到 1）。</summary>
     [Parameter] public EventCallback<int> ValueChanged { get; set; }
+
+    /// <summary>尺寸，默认 Sm（PaginationBar 把自己的 Size 交过来）。</summary>
+    [Parameter] public Size Size { get; set; } = Size.Sm;
 
     /// <summary>可选的条数，默认 10、20、50、100。</summary>
     [Parameter] public IReadOnlyList<int>? Options { get; set; }

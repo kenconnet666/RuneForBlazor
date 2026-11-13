@@ -29,6 +29,26 @@ public class InputTests(DemoServer demo) : E2ETest(demo)
         await Assertions.Expect(quantity).ToHaveValueAsync("99");
     }
 
+    [Theory]
+    [InlineData("server")]
+    [InlineData("wasm")]
+    public async Task 数字框_百分比按百分数加减与输入(string mode)
+    {
+        // 值是 0.85、步长 0.05：显示 85%，↑ 到 90%（之前按值本身算，85 + 0.05 被夹成 100%）
+        var page = await OpenAsync(mode, "number-field");
+        var discount = page.GetByTestId("discount");
+        await Assertions.Expect(discount).ToHaveValueAsync("85%");
+
+        await discount.FocusAsync();
+        await page.Keyboard.PressAsync("ArrowUp");
+        await page.Keyboard.PressAsync("Tab");
+        await Assertions.Expect(discount).ToHaveValueAsync("90%");
+
+        await discount.FillAsync("45");
+        await page.Keyboard.PressAsync("Enter");
+        await Assertions.Expect(discount).ToHaveValueAsync("45%");
+    }
+
     [Fact]
     public async Task 输入法组合中的方向键不加减()
     {

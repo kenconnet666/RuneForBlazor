@@ -113,6 +113,12 @@ public class TypographyTests : BunitContext
         Assert.Equal("noopener noreferrer", a.GetAttribute("rel"));
         Assert.Contains("（在新窗口打开）", a.TextContent);
         Assert.NotNull(cut.Find("svg"));
+
+        // target、rel 是默认值：可以改（加 nofollow）；LinkButton 同
+        cut.Render(p => p.AddUnmatched("rel", "noopener noreferrer nofollow").AddUnmatched("target", "docs"));
+        Assert.Equal(("noopener noreferrer nofollow", "docs"), (cut.Find("a").GetAttribute("rel"), cut.Find("a").GetAttribute("target")));
+        var button = Render<LinkButton>(p => p.Add(x => x.Href, "https://example.com").Add(x => x.External, true).AddUnmatched("rel", "nofollow").AddChildContent("官网"));
+        Assert.Equal(("nofollow", "_blank"), (button.Find("a").GetAttribute("rel"), button.Find("a").GetAttribute("target")));
     }
 
     [Fact]

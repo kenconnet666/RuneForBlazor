@@ -34,7 +34,7 @@
                     @attributes="Attrs.MergeProps(null, PropsPagination)" />
         @if (ShowSizeSelect)
         {
-            <PageSizeSelect Value="size" ValueChanged="SetSizeAsync" Options="PageSizeOptions" @attributes="Attrs.MergeProps(null, PropsSizeSelect)" />
+            <PageSizeSelect Value="size" ValueChanged="SetSizeAsync" Options="PageSizeOptions" Size="Size" @attributes="Attrs.MergeProps(null, PropsSizeSelect)" />
         }
         @if (ShowJump && pageCount > 1)
         {

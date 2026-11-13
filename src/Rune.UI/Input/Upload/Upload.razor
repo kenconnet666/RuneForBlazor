@@ -67,7 +67,7 @@
                                 }
                                 @if (failed && UploadAsync is not null && !item.Rejected)
                                 {
-                                    <IconButton Icon="BuiltInIcons.RotateCw" Variant="ButtonVariant.Ghost" Size="UI.Size.Xs" Label="@Config.Lang.UploadRetry(item.Name)"
+                                    <IconButton Icon="BuiltInIcons.RotateCw" Variant="ButtonVariant.Ghost" Size="UI.Size.Xs" Label="@Config.Lang.UploadRetry(item.Name)" Disabled="IsDisabled"
                                                 @onclick="() => StartAsync(item)" @attributes="Attrs.MergeProps(parts[UploadPart.Retry], PropsRetry)" />
                                 }
                                 <IconButton Icon="BuiltInIcons.X" Variant="ButtonVariant.Ghost" Size="UI.Size.Xs" Label="@Config.Lang.UploadRemove(item.Name)" Disabled="IsDisabled"
@@ -129,7 +129,7 @@ else
                         </div>
                         @if (failed && UploadAsync is not null && !item.Rejected && !IsReadOnly)
                         {
-                            <IconButton Icon="BuiltInIcons.RotateCw" Variant="ButtonVariant.Ghost" Size="UI.Size.Sm" Label="@Config.Lang.UploadRetry(item.Name)"
+                            <IconButton Icon="BuiltInIcons.RotateCw" Variant="ButtonVariant.Ghost" Size="UI.Size.Sm" Label="@Config.Lang.UploadRetry(item.Name)" Disabled="IsDisabled"
                                         @onclick="() => StartAsync(item)" @attributes="Attrs.MergeProps(parts[UploadPart.Retry], PropsRetry)" />
                         }
                         @if (!IsReadOnly)

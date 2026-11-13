@@ -17,12 +17,13 @@
 }
 
 <div @attributes="Attrs.Merge(parts[CalendarPart.Root], Rest, RootManaged)" @onrunecommand="OnCommandAsync">
-    <div @attributes="Attrs.Merge(parts[CalendarPart.Header])">
+    <div @attributes="Attrs.Merge(parts[CalendarPart.Header], PropsHeader)">
         <IconButton Icon="BuiltInIcons.ChevronLeft" Label="@lang.CalendarPreviousYear" PropsIcon="FlipIcon" Disabled="Disabled" @onclick="() => year--" @attributes="Attrs.MergeProps(null, PropsPrevious)" />
-        <span data-static @attributes="Attrs.Merge(parts[CalendarPart.Heading])">@lang.CalendarYear(year)</span>
+        <span data-static @attributes="Attrs.Merge(parts[CalendarPart.Heading], PropsHeading)">@lang.CalendarYear(year)</span>
         <IconButton Icon="BuiltInIcons.ChevronRight" Label="@lang.CalendarNextYear" PropsIcon="FlipIcon" Disabled="Disabled" @onclick="() => year++" @attributes="Attrs.MergeProps(null, PropsNext)" />
     </div>
-    <table role="grid" aria-label="@lang.CalendarYear(year)" aria-multiselectable="@(IsRange ? "true" : null)" data-view="month" @attributes="Attrs.Merge(parts[CalendarPart.Grid])">
+    @* 角色、名称由组件管理：写在展开的属性后面，使用方的部件属性改不掉 *@
+    <table @attributes="Attrs.Merge(parts[CalendarPart.Grid], PropsGrid)" role="grid" aria-label="@lang.CalendarYear(year)" aria-multiselectable="@(IsRange ? "true" : null)" data-view="month">
         <tbody>
             <tr>
                 @for (var quarter = 1; quarter <= 4; quarter++)
@@ -33,14 +34,15 @@
                     var ends = range is { } e && (start == e.Start || DateSegments.PeriodEnd(start, DateGranularity.Quarter) == e.End);
                     var selected = IsRange ? inRange : Value is { } v && Start(v) == start;
                     var focusable = Start(focused) == start || (focused.Year != year && quarter == 1);
-                    <td @key="start" role="gridcell" aria-selected="@(selected ? "true" : "false")" aria-disabled="@(off ? "true" : null)"
+                    <td @key="start" @attributes="Attrs.Merge(parts[CalendarPart.Cell], PropsCellFor is null ? PropsCell : Attrs.Layer(PropsCell, PropsCellFor(start)))"
+                        role="gridcell" aria-selected="@(selected ? "true" : "false")" aria-disabled="@(off ? "true" : null)"
                         data-in-range="@(inRange ? true : null)" data-range-start="@(range is { } s && s.Start == start ? true : null)"
-                        data-range-end="@(range is { } t && DateSegments.PeriodEnd(start, DateGranularity.Quarter) == t.End ? true : null)"
-                        @attributes="Attrs.Merge(parts[CalendarPart.Cell])">
-                        <button type="button" tabindex="@(focusable ? "0" : "-1")" aria-disabled="@(off ? "true" : null)" aria-describedby="@(anchor is null ? null : HintId)"
+                        data-range-end="@(range is { } t && DateSegments.PeriodEnd(start, DateGranularity.Quarter) == t.End ? true : null)">
+                        @* 选区间选到一半时的提示（受管层）与使用方自己写的说明拼在一起 *@
+                        <button @attributes="Attrs.Merge(parts[CalendarPart.CellButton], PropsCellButtonFor is null ? PropsCellButton : Attrs.Layer(PropsCellButton, PropsCellButtonFor(start)), anchor is null ? null : HintLayer)"
+                                type="button" tabindex="@(focusable ? "0" : "-1")" aria-disabled="@(off ? "true" : null)"
                                 data-date="@DateValues.Iso(start)" data-focused="@(focusable ? true : null)" data-selected="@((IsRange ? ends : selected) ? true : null)"
-                                data-today="@(Start(Today) == start ? true : null)" data-anchor="@(anchor == start ? true : null)" data-in-range="@(inRange ? true : null)" data-period
-                                @attributes="Attrs.Merge(parts[CalendarPart.CellButton])">
+                                data-today="@(Start(Today) == start ? true : null)" data-anchor="@(anchor == start ? true : null)" data-in-range="@(inRange ? true : null)" data-period>
                             <span @attributes="Attrs.Merge(HiddenLayer)">@QuarterLabel(year, quarter)</span>
                             <span aria-hidden="true">@lang.CalendarQuarter(quarter)</span>
                         </button>
@@ -66,6 +68,9 @@
     // 区间选到一半：已经点了的开始季度
     DateOnly? anchor;
     bool started;
+    // 上一次父级给的选择：变了（快捷按钮、重置）就翻到它那一年
+    DateOnly? revealed;
+    Attrs HintLayer => field ??= new() { AriaDescribedBy = HintId };
 
     /// <summary>选中的季度（<c>@bind-Value</c>）：那个季度的第一天；没有时 null。</summary>
     [Parameter] public DateOnly? Value { get; set; }
@@ -100,6 +105,27 @@
     /// <summary>下一年按钮的部件属性（交给 IconButton）。</summary>
     [Parameter] public Attrs? PropsNext { get; set; }
 
+    /// <summary>页头（翻页按钮与年份那一行）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>年份标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeading { get; set; }
+
+    /// <summary>网格（table）的部件属性；角色、名称与键盘由组件管理。</summary>
+    [Parameter] public Attrs? PropsGrid { get; set; }
+
+    /// <summary>每一格（td）的部件属性；角色、选中与不可用由组件管理。</summary>
+    [Parameter] public Attrs? PropsCell { get; set; }
+
+    /// <summary>按季度（它的第一天）给那一格的部件属性，叠在 <see cref="PropsCell"/> 之后。</summary>
+    [Parameter] public Func<DateOnly, Attrs?>? PropsCellFor { get; set; }
+
+    /// <summary>每一格里的按钮的部件属性；焦点顺序与不可用由组件管理。</summary>
+    [Parameter] public Attrs? PropsCellButton { get; set; }
+
+    /// <summary>按季度（它的第一天）给那一格里按钮的部件属性，叠在 <see cref="PropsCellButton"/> 之后。</summary>
+    [Parameter] public Func<DateOnly, Attrs?>? PropsCellButtonFor { get; set; }
+
     bool IsRange => RangeChanged.HasDelegate || Range is not null;
 
     DateOnly Today => LocalToday();
@@ -121,11 +147,21 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        if (started) return;
-        // 一开始显示已选（没有时是本季度）那一年，焦点也在它上面
-        started = true;
-        focused = Start(Value ?? Range?.Start ?? Today);
-        year = focused.Year;
+        var chosen = Value ?? Range?.Start;
+        if (!started)
+        {
+            // 一开始显示已选（没有时是本季度）那一年，焦点也在它上面
+            started = true;
+            focused = Start(chosen ?? Today);
+            year = focused.Year;
+        }
+        else if (chosen != revealed && chosen is { } day)
+        {
+            // 父级从外面改了值（快捷按钮、重置）：翻到它那一年，焦点也过去（同 Calendar）
+            focused = Start(day);
+            year = focused.Year;
+        }
+        revealed = chosen;
     }
 
     Attrs RootManaged => new()

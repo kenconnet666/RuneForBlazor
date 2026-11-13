@@ -10,8 +10,8 @@
 @inherits UIComponent
 @{
     var parts = BreadcrumbsStyles.Of(Config.Styles);
-    var collapse = MaxItems is { } max && Items.Count > max;
-    // 折叠时保留第一项与最后两项，中间换成展开按钮
+    // 折叠时保留第一项与最后两项，中间换成展开按钮：再多出来的才有东西可折（MaxItems 写得比 3 小也一样）
+    var collapse = MaxItems is { } max && Items.Count > Math.Max(max, 3);
     var shown = collapse ? [0, -1, Items.Count - 2, Items.Count - 1] : Enumerable.Range(0, Items.Count).ToArray();
     var last = Items.Count - 1;
 }

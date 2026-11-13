@@ -69,6 +69,19 @@ public class CalendarTests
     }
 
     [Fact]
+    public void 选的单位换了_视图回到新的单位()
+    {
+        // 按日改成按月：停在月份网格（比“月”更细）上时再点一格没有下一级可进
+        var state = State(new(2026, 5, 20));
+        state.Unit = DateUnit.Month;
+        Assert.Equal((DateUnit.Month, new DateOnly(2026, 1, 1)), (state.View, state.Page));
+        // 单位没变时不动视图（每次渲染前都会写一遍）
+        state.SetView(DateUnit.Year);
+        state.Unit = DateUnit.Month;
+        Assert.Equal(DateUnit.Year, state.View);
+    }
+
+    [Fact]
     public void 区间选到一半_越过不可选日期的一侧不能选()
     {
         var booked = new DateOnly(2026, 10, 10);

@@ -7,7 +7,7 @@
 @inherits UIComponent
 @{ var parts = LinkStyles.Of(ShownTone, ShownUnderline, Config.Styles); }
 
-<a @attributes="Attrs.Merge(parts[LinkPart.Root], Rest, Managed)">
+<a @attributes="Attrs.Merge(ExternalLink.Defaults(parts[LinkPart.Root], External), Rest, Managed)">
     @ChildContent
     @if (External)
     {
@@ -17,7 +17,7 @@
 </a>
 
 @code {
-    Memo<(string Href, bool External), Attrs> managed;
+    Memo<string, Attrs> managed;
 
     /// <summary>链接地址；必填：没有地址的“链接”应该用按钮。</summary>
     [Parameter, EditorRequired] public string Href { get; set; } = "";
@@ -28,7 +28,7 @@
     /// <summary>下划线，默认一直显示。</summary>
     [Parameter] public LinkUnderline? Underline { get; set; }
 
-    /// <summary>外部链接：新窗口打开，加 rel="noopener noreferrer"、外链图标与读屏提示。</summary>
+    /// <summary>外部链接：新窗口打开，默认 rel="noopener noreferrer"（可以自己写 target、rel 改掉），带外链图标与读屏提示。</summary>
     [Parameter] public bool External { get; set; }
 
     /// <summary>外部链接给读屏的提示。；不写时取语言包（UIConfig.Lang）的“（在新窗口打开）”。</summary>
@@ -47,11 +47,6 @@
     // 所在容器给的默认下划线（LinkUnderlineScope、条目列表、卡片页头）
     [CascadingParameter] LinkUnderlineContext? Scoped { get; set; }
 
-    // a 上由组件管理的属性：地址与外链的打开方式；地址不变时复用同一个对象
-    Attrs Managed => managed.Get((Href, External), static k => new Attrs
-    {
-        ["href"] = k.Href,
-        ["target"] = k.External ? "_blank" : null,
-        ["rel"] = k.External ? "noopener noreferrer" : null,
-    });
+    // a 上由组件管理的属性：地址；不变时复用同一个对象。外链的 target、rel 在默认层（ExternalLink），使用方可以改
+    Attrs Managed => managed.Get(Href, static href => new Attrs { ["href"] = href });
 }

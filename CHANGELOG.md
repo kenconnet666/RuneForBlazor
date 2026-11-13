@@ -6,6 +6,52 @@
 
 ## [Unreleased]
 
+跟进 vue-tsx-pro 的一批审查修复（`9afdc156..578d397a`，vue 的版本号仍是 0.21.0）：它审查出的问题逐项在 Rune 里对照，同样有的一并修掉。
+
+### 破坏性改动
+
+- **NumberField** 的百分比格式（`Format="P0"`、自定义格式里带 `%`）编辑时输入的是百分数：显示 `85%`，输入 `90` 得到 `0.9`
+  （之前输入 `90` 被夹成 `100%`，方向键也按值本身加减）。带着百分号输入（`45 %`）也认。原来按小数输入的用法（输入 `0.9`）改成输入 `90`
+- **TableHeaderCell** 在表体、表尾里默认 `scope="row"`（之前都是 `col`）；要列标题时写 `Scope="col"`
+- **ImageCropper** 的图片默认带 `crossorigin="anonymous"`（别的域名的图不按跨域取的话 canvas 导不出来）：对方不允许跨域的图不再显示，
+  要照旧显示（不导出）用 `PropsImage` 改掉
+
+### 改进
+
+- 属性合并（`Attrs.Merge` / `MergeProps` / `Layer`，所有组件的 Rest 与 `PropsXxx` 都经过它）：
+  - 值是 `null` 的属性不表态：`title="@error"`、`aria-label="@label"` 的值是 `null` 时不再盖掉组件的默认值
+  - `aria-describedby` 各层的 id 拼在一起、去掉重复的：控件在 Field 里时，自己写的提示与 Field 的说明、错误都念得到
+  - 嵌套的部件属性（值是 `Attrs` 的 `PropsXxx`，如 `PropsPrevious` 里的 `PropsIcon`）与组件给这个子部件的默认合并，不再整个替换
+- TextLink、LinkButton、IconLinkButton 的 `External`：`target`、`rel` 是默认值，可以改（`rel="noopener noreferrer nofollow"`）
+- NumberRangeField 两个框的名称与占位在默认层：`PropsStart` / `PropsEnd` 的 `aria-label`、`placeholder` 生效
+- Field：控件自己写了 `id` 时，标签的 `for` 与错误汇总的链接跟着指过去
+- Rating 只读时名称里总有分数：自己的 `aria-label` 或 Field 的标签后面接上“4 星，满分 5 星”（之前在 Field 里只念标签，写了 `aria-label` 又被分数盖掉）
+- UserButton 非紧凑时名称只取名字与说明的文字（`aria-labelledby`），头像不再把名字多念一遍
+- Checklist 勾选按钮的可点区域不小于 24px（WCAG 2.5.8）
+- Textarea 自适应高度：宽度变了也重新算（容器变窄多换了行；一开始在没显示的标签页、弹层里）
+- PaginationBar 的 `Size` 也作用于每页条数的下拉（PageSizeSelect 新增 `Size`）
+- 输入法组合中不改写输入框：验证码（OtpField）与分组显示的输入框（TextField 的 `Format`）等组合结束才过滤、重排
+
+### 新增
+
+- 部件属性：NavBar 的 `PropsItem` / `PropsLink` / `PropsTrigger`（各有按项给的 `PropsItemFor` / `PropsLinkFor` / `PropsTriggerFor`）与 `PropsMore`；
+  QuarterCalendar 的 `PropsHeader` / `PropsHeading` / `PropsGrid` / `PropsCell` / `PropsCellButton`（后两个有按季度给的 `PropsCellFor` / `PropsCellButtonFor`）；
+  DataTable 的 `PropsFilterButton` / `PropsColumnMenuButton`；ImageCropper 的 `PropsImage`
+- ColumnSettings 的 `Changed`：显示与顺序之外还有别的列设置改过（固定、列宽）时“重置”也可用
+- TreeDataTable 的 `MultiSort` / `Sorts` / `SortsChanged`：同级之间按几列依次排（之前交给里面的 DataTable，表头能点、行不动）
+
+### 修复
+
+- Popconfirm：`OnConfirm` 还在进行时被 Esc、点外面关掉，不再触发 `OnCancel`；没确认成（`KeepOpen`）才触发
+- 不可用的日期分段输入按 Enter 不再提交所在的表单
+- 日历（Calendar、RangeCalendar）的 `Granularity` 变了（按日改成按月）视图跟着回到新的单位；QuarterCalendar 跟随外面改的值（快捷按钮、重置）翻到那一年
+- TagsInput 只读、不可用时粘贴、输入分隔符都不加标签
+- Upload 不可用时“重试”也不可用
+- 导出 CSV：状态列的名称与没登记的状态值、数字与日期列里混进来的字符串同样防公式（之前只防文字列）
+- Breadcrumbs 的 `MaxItems` 小于 3 时不再折出空菜单（3 项、`MaxItems="2"`）
+- LoadingBar 走满、正在淡出时再开始：从头走，不再从 100% 退回 90%
+- Marquee 的 `role` 由组件管理，不被未声明的属性改掉
+
 ## [0.17.1] - 2026-11-11
 
 只修一个桌面适配包的问题，组件的样式与交互不变（仍对齐 vue-tsx-pro 0.21.0）。

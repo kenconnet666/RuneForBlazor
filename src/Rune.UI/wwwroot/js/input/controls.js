@@ -201,10 +201,32 @@ function repeatWhileHeld(button) {
   for (const type of ['pointerup', 'pointercancel', 'pointerleave']) button.addEventListener(type, stop);
 }
 
-/** 多行文本框随内容增高：先让高度回到 auto 才量得出变矮后的 scrollHeight；上下限由 CSS 夹住 */
-export function autosize(textarea) {
+// 随内容增高的多行文本框上次量到的宽度
+const autosizedWidths = new WeakMap();
+
+// 宽度变了也要重设高度：容器变窄文字多换了行；一开始在没显示的标签页、弹层里（量到的高度是 0），显示出来时宽度从 0 变成有。
+// 只看宽度：自己改高度不再触发
+const autosizeObserver = new ResizeObserver((entries) => {
+  for (const { target } of entries) {
+    const width = target.clientWidth;
+    if (autosizedWidths.get(target) === width) continue;
+    autosizedWidths.set(target, width);
+    if (target.hasAttribute('data-rune-autosize')) fitHeight(target);
+  }
+});
+
+function fitHeight(textarea) {
   textarea.style.height = 'auto';
   textarea.style.height = `${textarea.scrollHeight}px`;
+}
+
+/** 多行文本框随内容增高：先让高度回到 auto 才量得出变矮后的 scrollHeight；上下限由 CSS 夹住。内容、宽度变了都重新量 */
+export function autosize(textarea) {
+  if (!autosizedWidths.has(textarea)) {
+    autosizedWidths.set(textarea, textarea.clientWidth);
+    autosizeObserver.observe(textarea);
+  }
+  fitHeight(textarea);
 }
 
 /**

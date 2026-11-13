@@ -202,7 +202,12 @@ public abstract class FormControl<TValue> : UIComponent
             if (subscribedContext is not null) subscribedContext.OnValidationStateChanged += OnValidationStateChanged;
         }
         if (FieldIdentifier is { } identifier) Field?.Registration.Register(identifier);
+        // 控件上写的 id 以使用方为准：Field 的标签要跟着指向它
+        var written = AdditionalAttributes?.TryGetValue("id", out var id) == true ? id as string : null;
+        if (written != reportedId) Field?.Registration.ReportControlId(reportedId = written);
     }
+
+    string? reportedId;
 
     /// <inheritdoc/>
     protected override void OnDispose()

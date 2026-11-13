@@ -62,6 +62,21 @@ public class RatingTests : BunitContext
     }
 
     [Fact]
+    public void 只读时名称里总有分数_自己的名称或Field的标签后面接上分数()
+    {
+        // 自己写了 aria-label：名称后面接上分数（之前被分数盖掉）
+        var labelled = Render<Rating>(p => p.Add(x => x.Value, 4).Add(x => x.ReadOnly, true).AddUnmatched("aria-label", "服务态度"));
+        Assert.Equal("服务态度 4 星，满分 5 星", labelled.Find("[role=img]").GetAttribute("aria-label"));
+
+        // 在 Field 里：名称指向标签与一个隐藏的分数文字（之前只念标签，听不到分数）
+        var cut = Render<Field>(p => p.Add(x => x.Label, "交期").AddChildContent<Rating>(r => r.Add(x => x.Value, 2).Add(x => x.ReadOnly, true)));
+        var image = cut.Find("[role=img]");
+        Assert.Null(image.GetAttribute("aria-label"));
+        var ids = image.GetAttribute("aria-labelledby")!.Split(' ');
+        Assert.Equal(["交期", "2 星，满分 5 星"], ids.Select(id => cut.Find($"#{id}").TextContent.Trim()));
+    }
+
+    [Fact]
     public void 在Field里以标签为名称_不可用时radio不可用_点了不变()
     {
         var cut = Render<Field>(p => p.Add(x => x.Label, "交期").Add(x => x.Disabled, true).AddChildContent<Rating>(r => r.Add(x => x.Value, 2)));

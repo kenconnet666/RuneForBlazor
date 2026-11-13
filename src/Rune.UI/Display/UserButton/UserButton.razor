@@ -15,15 +15,16 @@
     var parts = UserButtonStyles.Of(compact, described, Config.Styles);
     var icon = Indicator ?? (described && !compact ? BuiltInIcons.ChevronsUpDown : BuiltInIcons.ChevronDown);
 }
-<ButtonBase aria-label="@(compact ? Name : null)" @attributes="Attrs.MergeProps(parts[UserButtonPart.Root], Rest)">
+@* 非紧凑时名称只取旁边的文字：头像（role="img"，名称也是名字）算进去的话名字会念两遍 *@
+<ButtonBase aria-label="@(compact ? Name : null)" aria-labelledby="@(compact || AdditionalAttributes?.ContainsKey("aria-label") == true ? null : described ? $"{id}-name {id}-description" : $"{id}-name")" @attributes="Attrs.MergeProps(parts[UserButtonPart.Root], Rest)">
     <Avatar Name="@Name" Src="@Src" Size="UI.Size.Sm" @attributes="Attrs.MergeProps(parts[UserButtonPart.Avatar], PropsAvatar)" />
     @if (!compact)
     {
         <span @attributes="parts[UserButtonPart.Text]">
-            <span @attributes="Attrs.Merge(parts[UserButtonPart.Name], PropsName)">@Name</span>
+            <span @attributes="Attrs.Merge(parts[UserButtonPart.Name], PropsName)" id="@($"{id}-name")">@Name</span>
             @if (described)
             {
-                <span @attributes="Attrs.Merge(parts[UserButtonPart.Description], PropsDescription)">@Description</span>
+                <span @attributes="Attrs.Merge(parts[UserButtonPart.Description], PropsDescription)" id="@($"{id}-description")">@Description</span>
             }
         </span>
         @if (!HideIndicator)
@@ -34,6 +35,8 @@
 </ButtonBase>
 
 @code {
+    readonly string id = UniqueId.Next("user-button");
+
     /// <summary>名字：显示在头像旁边；只剩头像时是按钮的名称。</summary>
     [Parameter, EditorRequired] public string Name { get; set; } = "";
 
@@ -55,10 +58,10 @@
     /// <summary>头像（Avatar）的部件属性。</summary>
     [Parameter] public Attrs? PropsAvatar { get; set; }
 
-    /// <summary>名字的部件属性。</summary>
+    /// <summary>名字的部件属性（id 由组件管理：按钮的名称指向它）。</summary>
     [Parameter] public Attrs? PropsName { get; set; }
 
-    /// <summary>说明的部件属性。</summary>
+    /// <summary>说明的部件属性（id 由组件管理）。</summary>
     [Parameter] public Attrs? PropsDescription { get; set; }
 
     /// <summary>箭头（Icon）的部件属性。</summary>

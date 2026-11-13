@@ -2,6 +2,18 @@ using Rune.Styles;
 
 namespace Rune.UI;
 
+/// <summary>
+/// 外链的打开方式（同 vue-tsx-pro 的 externalLinkAttrs）：新窗口打开、不把来源交给对方。在默认层：使用方可以改（rel 加 nofollow、target 换成别的）。
+/// TextLink、LinkButton、IconLinkButton 共用。
+/// </summary>
+internal static class ExternalLink
+{
+    static readonly Attrs attrs = new() { ["target"] = "_blank", ["rel"] = "noopener noreferrer" };
+
+    /// <summary>部件的默认层；是外链时加上 target、rel。</summary>
+    internal static Attrs Defaults(Attrs root, bool external) => external ? Attrs.Layer(attrs, root) : root;
+}
+
 /// <summary>链接的下划线。</summary>
 public enum LinkUnderline
 {

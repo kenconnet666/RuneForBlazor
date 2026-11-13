@@ -325,14 +325,18 @@ export function syncTriggerExpanded(panel, opened) {
   listTriggerOf(panel)?.closest('[data-rune-control]')?.setAttribute('data-state', opened ? 'open' : 'closed');
 }
 
-const COMPOSING_HOST = 'input[data-rune-list~="text"]';
+// 搜索框（data-rune-list 含 text）、分组显示的输入框（TextField 的 Format）、验证码
+const COMPOSING_HOST = 'input[data-rune-list~="text"], input[data-rune-format], [data-rune-otp] > input';
 
-/** 输入法组合期间搜索框（data-rune-list 含 text）的 input 不交给 C#：不拿拼音字母去过滤（捕获阶段，赶在 Blazor 之前） */
+/**
+ * 输入法组合期间这些输入框的 input 不往下传（捕获阶段，赶在 Blazor 与改写输入框的处理之前）：
+ * 不拿拼音字母去过滤，也不在组合中改写输入框（会打断组合）；组合结束时补发一次
+ */
 export function holdComposingInput(event) {
   if (event.isComposing && event.target instanceof Element && event.target.matches(COMPOSING_HOST)) event.stopImmediatePropagation();
 }
 
-/** 组合结束：补发一次 input，C# 按最终的文字过滤 */
+/** 组合结束：补发一次 input，按最终的文字过滤、重排（验证码、分组显示的输入框这时才改写） */
 export function releaseComposedInput(event) {
   if (event.target instanceof Element && event.target.matches(COMPOSING_HOST)) event.target.dispatchEvent(new Event('input', { bubbles: true }));
 }

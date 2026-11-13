@@ -25,7 +25,7 @@ public sealed record FieldContext(
     FieldRegistration Registration);
 
 /// <summary>
-/// 控件向所在的 <see cref="Field"/> 报告它绑定的表单字段（<c>@bind-Value</c> 的表达式）。
+/// 控件向所在的 <see cref="Field"/> 报告它绑定的表单字段（<c>@bind-Value</c> 的表达式），以及它自己写的 id。
 /// 放在信号里：Field 渲染时读过它，控件报上来后 Field 自动重新渲染，显示这个字段的错误信息。
 /// </summary>
 public sealed class FieldRegistration
@@ -37,4 +37,12 @@ public sealed class FieldRegistration
 
     /// <summary>控件报告自己绑定的字段。</summary>
     public void Register(FieldIdentifier field) => identifier.Value = field;
+
+    readonly State<string?> controlId = new(null);
+
+    /// <summary>控件自己写的 id；没写时为 null（用 Field 生成的）。</summary>
+    public string? ControlId => controlId.Value;
+
+    /// <summary>控件自己写了 id：告诉 Field，标签的 for 与错误汇总的链接跟着指过去；null 是改回 Field 生成的。</summary>
+    public void ReportControlId(string? id) => controlId.Value = id;
 }

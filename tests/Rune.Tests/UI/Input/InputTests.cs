@@ -99,6 +99,36 @@ public class InputTests : BunitContext
     }
 
     [Fact]
+    public void 数字输入框_百分比的格式按百分数编辑()
+    {
+        var discount = 0.85m;
+        var cut = Render<NumberField<decimal>>(p => p
+            .Add(x => x.Value, discount)
+            .Add(x => x.ValueChanged, EventCallback.Factory.Create<decimal>(this, v => discount = v))
+            .Add(x => x.Min, 0)
+            .Add(x => x.Max, 1)
+            .Add(x => x.Step, 0.05m)
+            .Add(x => x.Format, "P0"));
+
+        // 显示 85%；给键盘加减（JS）的范围与步长都按百分数
+        var input = cut.Find("input");
+        Assert.Equal(0.85m.ToString("P0", CultureInfo.CurrentCulture), input.GetAttribute("value"));
+        Assert.Equal(("85", "0", "100", "5"), (input.GetAttribute("aria-valuenow"), input.GetAttribute("aria-valuemin"), input.GetAttribute("aria-valuemax"), input.GetAttribute("data-step")));
+
+        // 输入 90 得 0.9（之前被夹成 1）；带着百分号改也认
+        input.Change("90");
+        Assert.Equal(0.9m, discount);
+        cut.Render(p => p.Add(x => x.Value, discount));
+        cut.Find("input").Change("45 %");
+        Assert.Equal(0.45m, discount);
+
+        Assert.True(NumberText.IsPercent("p2") && NumberText.IsPercent("0.#%"));
+        Assert.False(NumberText.IsPercent("C2") || NumberText.IsPercent(null) || NumberText.IsPercent("0.00"));
+        // 引号里的、转义的 % 是原样的文字，值不乘 100
+        Assert.False(NumberText.IsPercent("0'%'") || NumberText.IsPercent(@"0\%") || NumberText.IsPercent("0.0 \"% 浓度\""));
+    }
+
+    [Fact]
     public void 数字输入框_解析不了时恢复原来的显示()
     {
         var cut = Render<NumberField<decimal>>(p => p.Add(x => x.Value, 2.5m).Add(x => x.Format, "0.00"));

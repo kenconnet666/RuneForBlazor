@@ -371,5 +371,14 @@ public class DataTableTests : BunitContext
 
         Assert.Equal("\uFEFFId,客户信息 / 客户,Amount,状态\r\n'=1+1,\"启航, \"\"北\"\"\",\"¥1,200.50\",已付款", cut.Instance.ToCsv());
         Assert.Equal("Amount\r\n1200.5", cut.Instance.ToCsv(new() { Bom = false, Raw = true, Columns = ["amount"] }));
+
+        // 没登记的状态值、数字列里混进来的字符串同样防公式（接口给的数据不一定是列声明的类型）
+        var loose = Render<DataTable<Order>>(p =>
+        {
+            p.Add(x => x.Items, orders).Add(x => x.GetKey, o => o.Id);
+            p.AddChildContent<PropertyColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Id).Add(x => x.Type, ColumnType.Number).Add(x => x.Title, "数量"));
+            p.AddChildContent<StatusColumn<Order, string>>(c => c.Add(x => x.Property, o => o.Id).Add(x => x.Statuses, new StatusMap<string>()).Add(x => x.Title, "状态"));
+        });
+        Assert.Equal("数量,状态\r\n'=1+1,'=1+1", loose.Instance.ToCsv(new() { Bom = false }));
     }
 }

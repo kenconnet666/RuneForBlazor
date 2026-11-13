@@ -43,7 +43,8 @@ function start(bar) {
   const state = stateOf(bar);
   stop(state);
   state.failed = false;
-  if (!state.visible) state.progress = 0;
+  // 还在显示时接着走；但上一次已经走完（100%，正在淡出）就从头来，不然下一拍会从 100% 退回 90%
+  if (!state.visible || state.progress >= 100) state.progress = 0;
   render(bar, state);
   state.timers.push(setTimeout(() => {
     state.visible = true;

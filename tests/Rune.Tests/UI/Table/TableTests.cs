@@ -25,7 +25,7 @@ public class TableTests : BunitContext
             builder.AddAttribute(1, "ChildContent", (RenderFragment)(b => { b.OpenComponent<TableHeaderCell>(0); b.AddAttribute(1, "Width", (CssLength?)"8rem"); b.CloseComponent(); }));
             builder.CloseComponent();
             builder.OpenComponent<TableBody>(2);
-            builder.AddAttribute(3, "ChildContent", (RenderFragment)(b => { b.OpenComponent<TableHeaderCell>(0); b.AddAttribute(1, "Scope", "row"); b.CloseComponent(); }));
+            builder.AddAttribute(3, "ChildContent", (RenderFragment)(b => { b.OpenComponent<TableHeaderCell>(0); b.CloseComponent(); }));
             builder.CloseComponent();
             builder.OpenComponent<TableFoot>(4);
             builder.AddAttribute(5, "ChildContent", (RenderFragment)(b => { b.OpenComponent<TableCell>(0); b.CloseComponent(); }));

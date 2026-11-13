@@ -56,6 +56,12 @@ public class TagsInputTests : BunitContext
 
         Input(cut).TriggerEvent("onrunecommand", new CommandEventArgs { Name = "remove-last" });
         Assert.Equal(["a", "b", "c"], Values(cut));
+
+        // 只读时哪条路都不加：粘贴、输入分隔符
+        cut.Render(p => p.Add(x => x.ReadOnly, true));
+        Input(cut).TriggerEvent("onrunecommand", new CommandEventArgs { Name = "paste", Text = "x,y" });
+        Input(cut).Input("z,");
+        Assert.Equal(["a", "b", "c"], Values(cut));
     }
 
     [Fact]

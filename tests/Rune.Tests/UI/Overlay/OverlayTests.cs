@@ -250,6 +250,38 @@ public class OverlayTests : BunitContext
     }
 
     [Fact]
+    public async Task 气泡确认_确认还在进行时关掉不算取消_没确认成才算()
+    {
+        var cancelled = 0;
+        var keepOpen = false;
+        var running = new TaskCompletionSource();
+        var cut = Render<Popconfirm>(p => p
+            .Add(x => x.Title, "删除？")
+            .Add(x => x.Trigger, TriggerButton("删除"))
+            .Add(x => x.OnConfirm, EventCallback.Factory.Create<ConfirmEventArgs>(this, async e => { await running.Task; e.KeepOpen = keepOpen; }))
+            .Add(x => x.OnCancel, EventCallback.Factory.Create(this, () => cancelled++)));
+        Task Toggle(bool open) => cut.InvokeAsync(() => cut.Find("[popover]").TriggerEvent("onrunetoggle", new OverlayToggleEventArgs { Open = open }));
+
+        // 等确认的时候按了 Esc：操作还在进行，不算取消；确认成了也不算
+        await Toggle(true);
+        cut.FindAll("[popover] button")[1].Click();
+        await Toggle(false);
+        Assert.Equal(0, cancelled);
+        running.SetResult();
+        cut.WaitForAssertion(() => Assert.False(cut.FindAll("[popover] button")[1].HasAttribute("data-loading") && cancelled > 0));
+        Assert.Equal(0, cancelled);
+
+        // 没确认成（KeepOpen），弹层又已经关掉了：这时才算取消
+        (running, keepOpen) = (new TaskCompletionSource(), true);
+        await Toggle(true);
+        cut.FindAll("[popover] button")[1].Click();
+        await Toggle(false);
+        Assert.Equal(0, cancelled);
+        running.SetResult();
+        cut.WaitForAssertion(() => Assert.Equal(1, cancelled));
+    }
+
+    [Fact]
     public void 对话框_关闭时不渲染内容_打开后由JS同步原生状态()
     {
         var cut = Render<Dialog>(p => p.Add(x => x.Title, "编辑订单").AddChildContent("<p>表单</p>"));

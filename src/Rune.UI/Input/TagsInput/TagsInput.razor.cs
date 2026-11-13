@@ -161,9 +161,10 @@ public partial class TagsInput<TItem>
         return AllowCustomValue ? trimmed : null;
     }
 
-    /// <summary>加入几段文字；重复的、超出上限的不加；返回是否加入了。</summary>
+    /// <summary>加入几段文字；重复的、超出上限的不加，只读与不可用时都不加（粘贴、失焦、回车哪条路都一样）；返回是否加入了。</summary>
     async Task<bool> AddAsync(IEnumerable<string> texts)
     {
+        if (!Editable) return false;
         var next = Tags.ToList();
         foreach (var text in texts)
         {

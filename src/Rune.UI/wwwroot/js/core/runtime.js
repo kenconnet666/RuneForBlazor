@@ -98,7 +98,7 @@ export function install(blazor, on) {
     showLightboxImage(event.target);
   }, true);
   on('error', (event) => markImage(event.target), true);
-  // 输入法组合期间的 input 不交给 C#（不拿拼音字母去过滤），组合结束补发一次
+  // 输入法组合期间的 input 不交给 C#（不拿拼音字母去过滤，验证码与分组显示的输入框也不在组合中改写），组合结束补发一次
   on('input', holdComposingInput, true);
   // 验证码：赶在 Blazor 读值之前过滤
   on('input', onOtpInput, true);

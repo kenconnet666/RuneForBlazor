@@ -7,8 +7,8 @@
     <Field Label="重量" Description="步长 0.1，提交时对齐，没有浮点误差">
         <NumberField @bind-Value="weight" Min="0" Step="0.1m" Format="0.0## 'kg'" />
     </Field>
-    <Field Label="折扣" Description="存 0–1 的小数，显示成百分比">
-        <NumberField @bind-Value="discount" Min="0" Max="1" Step="0.05m" Format="P0" />
+    <Field Label="折扣" Description="存 0–1 的小数，显示与输入都是百分数">
+        <NumberField @bind-Value="discount" Min="0" Max="1" Step="0.05m" Format="P0" data-testid="discount" />
     </Field>
     <Field Label="室外温度" Description="可以是负数，Home / End 到两端">
         <NumberField @bind-Value="temperature" Min="-40" Max="60" Format="0'°C'" />

@@ -118,6 +118,11 @@ public static class ChecklistStyles
     static Style ToggleStyle => Css.Define(static () => new Style
     {
         Display = Display.InlineFlex,
+        AlignItems = AlignItems.Center,
+        JustifyContent = JustifyContent.Center,
+        // 图标只有 1em：可点的区域不小于 24px（WCAG 2.5.8）
+        MinWidth = Sizes.MinTarget,
+        MinHeight = Sizes.MinTarget,
         Padding = 0,
         Margin = 0,
         BorderWidth = 0,

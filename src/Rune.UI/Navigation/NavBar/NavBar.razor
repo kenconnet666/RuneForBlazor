@@ -18,12 +18,12 @@
         {
             var current = HasCurrent(item);
             var parts = NavBarStyles.Of(new(current, item.Disabled), Config.Styles);
-            <li @key="item.KeyOrDefault" data-rune-overflow-item @attributes="Attrs.Merge(list[NavBarPart.Item])">
+            <li @key="item.KeyOrDefault" data-rune-overflow-item @attributes="Attrs.Merge(list[NavBarPart.Item], PartOf(PropsItem, PropsItemFor, item))">
                 @if (item.Children is { Count: > 0 } children)
                 {
                     <Menu>
                         <Trigger Context="t">
-                            <ButtonBase Disabled="item.Disabled" data-state="@(current ? "active" : "inactive")" @attributes="Attrs.MergeProps(parts[NavBarPart.Link], null, t)">
+                            <ButtonBase Disabled="item.Disabled" data-state="@(current ? "active" : "inactive")" @attributes="Attrs.MergeProps(parts[NavBarPart.Link], PartOf(PropsTrigger, PropsTriggerFor, item), t)">
                                 @Content(item)
                                 <Icon Data="BuiltInIcons.ChevronDown" />
                             </ButtonBase>
@@ -33,8 +33,10 @@
                 }
                 else
                 {
-                    <a href="@(item.Disabled || item.Href is null ? null : NavLinks.Resolve(Navigation, item.Href))" aria-current="@(current ? "page" : null)"
-                       aria-disabled="@(item.Disabled ? "true" : null)" data-state="@(current ? "active" : "inactive")" @attributes="Attrs.Merge(parts[NavBarPart.Link])">@Content(item)</a>
+                    @* 地址、当前页与不可用由组件管理：写在展开的属性后面 *@
+                    <a @attributes="Attrs.Merge(parts[NavBarPart.Link], PartOf(PropsLink, PropsLinkFor, item))"
+                       href="@(item.Disabled || item.Href is null ? null : NavLinks.Resolve(Navigation, item.Href))" aria-current="@(current ? "page" : null)"
+                       aria-disabled="@(item.Disabled ? "true" : null)" data-state="@(current ? "active" : "inactive")">@Content(item)</a>
                 }
             </li>
         }
@@ -45,7 +47,7 @@
         <li data-rune-overflow-rest data-overflow-hidden @attributes="Attrs.Merge(list[NavBarPart.Item])">
             <Menu Placement="Placement.BottomEnd">
                 <Trigger Context="t">
-                    <ButtonBase aria-label="@Config.Lang.NavBarMore" @attributes="Attrs.MergeProps(more[NavBarPart.Link], null, t)"><Icon Data="BuiltInIcons.Ellipsis" /></ButtonBase>
+                    <ButtonBase aria-label="@Config.Lang.NavBarMore" @attributes="Attrs.MergeProps(more[NavBarPart.Link], PropsMore, t)"><Icon Data="BuiltInIcons.Ellipsis" /></ButtonBase>
                 </Trigger>
                 <ChildContent>
                     @foreach (var item in hidden)
@@ -74,6 +76,30 @@
 
     /// <summary>列表（ul）的部件属性。</summary>
     [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>每一项外层（li）的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    /// <summary>按项给外层（li）的部件属性，叠在 <see cref="PropsItem"/> 之后。</summary>
+    [Parameter] public Func<NavMenuItem, Attrs?>? PropsItemFor { get; set; }
+
+    /// <summary>链接（a）的部件属性；地址、当前页与不可用由组件管理。</summary>
+    [Parameter] public Attrs? PropsLink { get; set; }
+
+    /// <summary>按项给链接的部件属性，叠在 <see cref="PropsLink"/> 之后。</summary>
+    [Parameter] public Func<NavMenuItem, Attrs?>? PropsLinkFor { get; set; }
+
+    /// <summary>有子项时的菜单按钮（交给 ButtonBase）的部件属性；展开状态与不可用由组件管理。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    /// <summary>按项给菜单按钮的部件属性，叠在 <see cref="PropsTrigger"/> 之后。</summary>
+    [Parameter] public Func<NavMenuItem, Attrs?>? PropsTriggerFor { get; set; }
+
+    /// <summary>“更多”按钮（交给 ButtonBase）的部件属性：名称默认取语言包，可以用 aria-label 改。</summary>
+    [Parameter] public Attrs? PropsMore { get; set; }
+
+    // 部件属性可以按项给：有按项的函数时叠在共用的那层之后
+    static Attrs? PartOf(Attrs? shared, Func<NavMenuItem, Attrs?>? each, NavMenuItem item) => each is null ? shared : Attrs.Layer(shared, each(item));
 
     /// <inheritdoc/>
     protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;

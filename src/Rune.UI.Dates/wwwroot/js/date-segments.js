@@ -315,6 +315,8 @@ class SegmentState {
       }
       return;
     }
+    // 不可用的段点一下仍能拿到焦点（tabindex=-1）：什么键都不处理，Enter 也不提交表单
+    if (this.root.getAttribute('aria-disabled') === 'true') return;
     // Enter 同原生的输入框：交出没打满的年份，再提交所在的表单。不在表单里时不拦：外面的表格编辑器按 Enter 提交
     // （段里插入换行的默认行为由 beforeinput 拦掉）
     if (event.key === 'Enter') {
@@ -326,7 +328,6 @@ class SegmentState {
       return;
     }
     if (event.altKey || event.ctrlKey || event.metaKey || !this.focused) return;
-    if (this.root.getAttribute('aria-disabled') === 'true') return;
     const forward = isRtl(this.root) ? -1 : 1;
     const moves = { ArrowRight: forward, ArrowLeft: -forward };
     if (event.key in moves) {

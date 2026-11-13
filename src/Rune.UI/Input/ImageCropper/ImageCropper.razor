@@ -21,7 +21,7 @@
      @attributes="Attrs.Merge(Attrs.Layer(parts[ImageCropperPart.Root], ImageCropperStyles.RootMarker.Attrs, HeightVars), RootAttrs)">
     <div data-crop-viewport role="group" tabindex="0" aria-label="@(AriaLabel ?? lang.CropLabel)" aria-describedby="@hintId"
          @attributes="Attrs.Merge(parts[ImageCropperPart.Viewport], PropsViewport)">
-        <img src="@Src" alt="" draggable="false" @attributes="parts[ImageCropperPart.Image]" />
+        <img @attributes="Attrs.Merge(Attrs.Layer(ImageDefaults, parts[ImageCropperPart.Image]), PropsImage)" src="@Src" alt="" draggable="false" />
         <div data-crop-frame aria-hidden="true" @attributes="parts[ImageCropperPart.Frame]"></div>
     </div>
     <span id="@hintId" hidden>@lang.CropHint</span>
@@ -40,6 +40,8 @@
 </div>
 
 @code {
+    static readonly Attrs ImageDefaults = new() { ["crossorigin"] = "anonymous" };
+
     readonly string hintId = UniqueId.Next("crop-hint");
     double zoom = 1;
     string? request;
@@ -67,6 +69,9 @@
 
     /// <summary>区域的部件属性。</summary>
     [Parameter] public Attrs? PropsViewport { get; set; }
+
+    /// <summary>图片的部件属性；默认带 crossorigin="anonymous"（别的域名的图不按跨域取的话，canvas 导不出来）。src、alt、draggable 由组件管理。</summary>
+    [Parameter] public Attrs? PropsImage { get; set; }
 
     /// <summary>工具条的部件属性。</summary>
     [Parameter] public Attrs? PropsToolbar { get; set; }

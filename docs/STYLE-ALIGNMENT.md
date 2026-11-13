@@ -1,6 +1,6 @@
 # 跟进 vue-tsx-pro
 
-当前对齐 **vue-tsx-pro 0.21.0**（`9afdc156`，CI 的 `VUE_TSX_PRO_REF`）。跟进的步骤见 rune-dev skill 的“跟进 vue-tsx-pro”；
+当前对齐 **vue-tsx-pro 0.21.0 之后的 `578d397a`**（CI 的 `VUE_TSX_PRO_REF`；vue 还没为这批审查修复发新版，规格 JSON 仍是 0.21.0 的，发版后重新取）。跟进的步骤见 rune-dev skill 的“跟进 vue-tsx-pro”；
 本文只记两样：**与 vue 有意不同的地方**（以后对照时不用再查一遍），和**还没跟的改动**。逐批跟进的过程在提交说明里，
 2026-11-09 之前的逐批记录见 git `46db83f:docs/STYLE-ALIGNMENT.md`。
 
@@ -30,6 +30,14 @@
 - InfiniteList 的 params 换成 `ParamsChangedAsync()`（组件自己知道搜索词何时变）；Select、Combobox、Mentions 的分页另设 `LoadPage`（一个参数不能既收数组又收分页结果）；失败文案一律取语言包。
 - Grid / GridList 的 `Balanced`：最小宽度只认 px、rem、em。
 - Tree 没有 `PropsRow`：Virtualize 没有行包装（规格比对基线里唯一的部件属性差异）。
+- 按项给的部件属性：vue 的 `propsCell` 可以是对象或函数，Rune 分成两个参数——`PropsCell`（共用）与 `PropsCellFor`（按项，叠在共用的之后）；
+  NavBar、QuarterCalendar、DataTable 都是这个约定。
+- 属性合并里“不表态”的值：vue 是 `undefined`（`null` 表示去掉），Rune 是 `null`（要去掉用 `Attrs.Without`）。
+- 事件的合并没有“使用方 preventDefault 就跳过组件自己的处理”（Server 模式下处理器在服务端执行）：Pagination 页码的 `onClick` 拦换页这类用受控参数。
+- NumberField 的百分比看 `Format` 是不是百分比格式（`P0`、带 `%` 的自定义格式），对应 vue 的 `format.style: 'percent'`。
+- vue 的类型收紧（组件管理的属性从部件属性的类型里去掉，`check:managed`）在 Rune 没有对应：`Attrs` 不按部件分类型，受管属性靠合并顺序保证。
+- 没有对应物、不用跟的：`useForm` 的异步单字段校验（Rune 用 EditForm）、表单重置时清半截输入（Blazor 没有重置事件，换模型即可）、
+  `mergeJsxProps` 的同名事件、Splitter 收起时的两轨模板（Rune 收起的一栏是 0 宽 + inert，不是 hidden）、FloatButton 的 `badge={false}`（`Badge` 是 `int?`）。
 
 ### 交互的实现位置
 

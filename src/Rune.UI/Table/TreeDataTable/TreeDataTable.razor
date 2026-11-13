@@ -16,7 +16,7 @@
 @implements IDataTableColumnsListener<TItem>
 
 <CascadingValue TValue="IDataTableColumnsListener<TItem>" Value="this" IsFixed="true">
-<DataTable TItem="TItem" Items="Nodes" GetKey="GetKey" ManualSort="true" Sort="sort.Value" SortChanged="SortChangedAsync"
+<DataTable TItem="TItem" Items="Nodes" GetKey="GetKey" ManualSort="true" Sort="sort.Value" SortChanged="SortChangedAsync" MultiSort="MultiSort" Sorts="sorts.Value" SortsChanged="SortsChangedAsync"
            SelectionMode="SelectionMode" Selected="CheckedKeys" SelectedChanged="WriteSelectedAsync" PartialKeys="PartialKeys"
            Leading="LeadingContent" Loading="Loading" Density="Density" Variant="Variant" Striped="Striped" PropsRoot="PropsRoot"
            @attributes="Attrs.MergeProps(null, Rest)">
@@ -29,9 +29,11 @@
 
     Bindable<IReadOnlyList<string>> expanded { get => field ??= new(this, () => Expanded ?? [], () => ExpandedChanged); }
     Bindable<ColumnSort?> sort { get => field ??= new(this, () => Sort, () => SortChanged); }
+    Bindable<IReadOnlyList<ColumnSort>> sorts { get => field ??= new(this, () => Sorts ?? [], () => SortsChanged); }
     Bindable<IReadOnlyList<string>> selected { get => field ??= new(this, () => Selected ?? [], () => SelectedChanged); }
 
-    Memo<(IReadOnlyList<TItem>, IReadOnlyList<string>, ColumnSort?, bool, IReadOnlyList<DataTableColumn<TItem>>), FlatTreeNode<TItem>[]> flat;
+    Memo<(IReadOnlyList<TItem>, IReadOnlyList<string>, IReadOnlyList<ColumnSort>, bool, IReadOnlyList<DataTableColumn<TItem>>), FlatTreeNode<TItem>[]> flat;
+    Memo<ColumnSort?, IReadOnlyList<ColumnSort>> singleSort;
     Memo<IReadOnlyList<TItem>, TreeIndex> index;
     Memo<(TreeIndex, IReadOnlyList<string>), IReadOnlyDictionary<string, CheckState>> states;
 
@@ -67,6 +69,15 @@
 
     /// <summary>排序变了。</summary>
     [Parameter] public EventCallback<ColumnSort?> SortChanged { get; set; }
+
+    /// <summary>多列排序：同级之间按 <see cref="Sorts"/> 依次排（按住 Shift 点列标题追加一列）。</summary>
+    [Parameter] public bool MultiSort { get; set; }
+
+    /// <summary>当前排序（多列，<see cref="MultiSort"/> 时用）。</summary>
+    [Parameter] public IReadOnlyList<ColumnSort>? Sorts { get; set; }
+
+    /// <summary>多列排序变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<ColumnSort>> SortsChanged { get; set; }
 
     /// <summary>不在本地排序：同级之间按数据里的顺序，只写回排序。</summary>
     [Parameter] public bool ManualSort { get; set; }
@@ -121,11 +132,11 @@
         StateHasChanged();
     }
 
-    /// <summary>按展开状态深度优先展开成一列；同级之间按当前排序（ManualSort 时按数据里的顺序）。</summary>
-    FlatTreeNode<TItem>[] Flat => flat.Get((Items, expanded.Value, sort.Value, ManualSort, Columns), this, static (k, owner) =>
+    /// <summary>按展开状态深度优先展开成一列；同级之间按当前排序（MultiSort 时按几列依次排；ManualSort 时按数据里的顺序）。</summary>
+    FlatTreeNode<TItem>[] Flat => flat.Get((Items, expanded.Value, ActiveSorts, ManualSort, Columns), this, static (k, owner) =>
     {
         var culture = owner.Config.Lang.Code;
-        IReadOnlyList<ColumnSort> sorts = k.Item3 is { } single ? [single] : [];
+        var sorts = k.Item3;
         Func<IReadOnlyList<TItem>, IReadOnlyList<TItem>>? order = k.Item4 || sorts.Count == 0 ? null : level => ColumnDisplay.Sort(level, k.Item5, sorts, culture);
         return [.. TreeData.Flatten(k.Item1, owner.Accessors, k.Item2.ToHashSet(), order: order)];
     });
@@ -143,7 +154,12 @@
 
     IReadOnlyList<string>? PartialKeys => States is { } map ? [.. map.Where(static pair => pair.Value == CheckState.Indeterminate).Select(static pair => pair.Key)] : null;
 
+    // 同一个排序是同一个列表：Flat 按它缓存
+    IReadOnlyList<ColumnSort> ActiveSorts => MultiSort ? sorts.Value : singleSort.Get(sort.Value, static single => single is { } value ? [value] : []);
+
     Task SortChangedAsync(ColumnSort? value) => sort.SetAsync(value);
+
+    Task SortsChangedAsync(IReadOnlyList<ColumnSort> value) => sorts.SetAsync(value);
 
     /// <summary>DataTable 写回的勾选：只变了一行时按它联动子孙与祖先；全选、取消全选原样写回。</summary>
     Task WriteSelectedAsync(IReadOnlyList<string> next)

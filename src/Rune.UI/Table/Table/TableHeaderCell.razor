@@ -1,5 +1,5 @@
 @*
-    表头单元格（th）：表头里是列标题，表体与表尾里是行标题（写 Scope="row"）。<TableHeaderCell Align="TableAlign.End" Width="@("8rem")">金额</TableHeaderCell>
+    表头单元格（th）：表头里是列标题，表体与表尾里是行标题（scope 跟着所在的区，也可以写 Scope 指定）。<TableHeaderCell Align="TableAlign.End" Width="@("8rem")">金额</TableHeaderCell>
     读屏念单元格时会带上行名与列名。未声明的属性（colspan 等）落到 th 上。
 *@
 @namespace Rune.UI
@@ -12,7 +12,7 @@
         : Attrs.Layer(parts[TablePart.Cell], Attrs.Layer(parts[TablePart.RowHeader], Section == TableSection.Foot ? Part.Unmarked(parts[TablePart.FootCell]) : null, CellLayer));
 }
 
-<th scope="@Scope" @attributes="Attrs.Merge(layer, Rest)">@ChildContent</th>
+<th scope="@(Scope ?? (head ? "col" : "row"))" @attributes="Attrs.Merge(layer, Rest)">@ChildContent</th>
 
 @code {
     /// <summary>对齐，默认起始边；数字、金额用 End。</summary>
@@ -24,8 +24,8 @@
     /// <summary>固定在起始边（第一列，常是行标题）：横向滚动时一直看得到。</summary>
     [Parameter] public bool Sticky { get; set; }
 
-    /// <summary>对应的方向，默认 col（列标题）；行标题写 row。</summary>
-    [Parameter] public string Scope { get; set; } = "col";
+    /// <summary>对应的方向：不写时表头里是 col（列标题），表体与表尾里是 row（行标题）。</summary>
+    [Parameter] public string? Scope { get; set; }
 
     /// <summary>列宽：日期、数字、操作这类按内容定宽的列；不写的列分剩下的。</summary>
     [Parameter] public CssLength? Width { get; set; }

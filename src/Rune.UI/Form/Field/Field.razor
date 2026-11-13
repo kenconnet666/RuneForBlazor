@@ -21,7 +21,7 @@
      @attributes="Attrs.Merge(parts[FieldPart.Root], Rest, LayoutAttrs(startLayout))">
     @if (ShownLabel is { } label)
     {
-        <label id="@labelId" for="@controlId" @attributes="Attrs.Merge(parts[FieldPart.Label], PropsLabel)">@label@if (IsRequired)
+        <label id="@labelId" for="@(registration.ControlId ?? controlId)" @attributes="Attrs.Merge(parts[FieldPart.Label], PropsLabel)">@label@if (IsRequired)
             {
                 <Icon Data="BuiltInIcons.Asterisk" @attributes="Attrs.MergeProps(parts[FieldPart.RequiredMark])" />
             }</label>
@@ -183,7 +183,7 @@
         // 控件渲染后才报上它绑定的字段，所以在渲染之后登记
         if (Form is null || registration.Field is not { } field) return;
         if (registered is { } old && !old.Equals(field)) Form.Unregister(old);
-        Form.Register(field, ShownLabel, controlId, order);
+        Form.Register(field, ShownLabel, registration.ControlId ?? controlId, order);
         registered = field;
     }
 

@@ -10,8 +10,8 @@
 @namespace Rune.UI
 @inherits UIComponent
 
-<div role="marquee" data-rune-marquee="@Speed" data-direction="@Direction.ToString().ToLowerInvariant()" data-paused="@(Paused ? "" : null)"
-     @attributes="Attrs.Merge(MarqueeStyles.Root(vertical, Fade), Rest)">
+<div data-rune-marquee="@Speed" data-direction="@Direction.ToString().ToLowerInvariant()" data-paused="@(Paused ? "" : null)"
+     @attributes="Attrs.Merge(MarqueeStyles.Root(vertical, Fade), Rest)" role="marquee">
     <div @attributes="Attrs.Merge(MarqueeStyles.Track(Direction, PauseOnHover, Paused), PropsTrack)">
         <div data-rune-marquee-group @attributes="Attrs.Merge(MarqueeStyles.Group(vertical, Gap, copy: false), PropsGroup)">@ChildContent</div>
         <div aria-hidden="true" inert @attributes="Attrs.Merge(MarqueeStyles.Group(vertical, Gap, copy: true), PropsGroup)">@ChildContent</div>

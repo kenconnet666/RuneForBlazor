@@ -92,6 +92,11 @@ public class UploadTests : BunitContext
         cut.WaitForAssertion(() => Assert.Equal("error", cut.Find("li").GetAttribute("data-state")));
         Assert.Contains("网络中断", cut.Find("li").TextContent);
 
+        // 不可用时“重试”也不可用
+        cut.Render(p => p.Add(x => x.Disabled, true));
+        Assert.True(cut.Find("button[aria-label='重新上传 a.txt']").HasAttribute("disabled"));
+        cut.Render(p => p.Add(x => x.Disabled, false));
+
         cut.Find("button[aria-label='重新上传 a.txt']").Click();
         cut.WaitForAssertion(() => Assert.Equal("uploading", cut.Find("li").GetAttribute("data-state")));
         Assert.Equal(2, uploads.Calls.Count);

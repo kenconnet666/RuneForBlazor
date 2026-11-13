@@ -8,6 +8,7 @@
     ↑ / ↓ 加减 Step，Page Up / Page Down 加减 BigStep，Home / End 到 Min / Max（JS 初始化器处理，没有往返）。
     值以元保存、按万元输入时写 Scale="10000" 配 Suffix 万元：显示与编辑都按缩放后的单位，写回时乘回去（decimal，不丢精度）；
     Min、Max、Step 仍按值本身的单位（同 vue-tsx-pro 的 format.scale）。
+    百分比的格式（Format="P0"）同理：值是 0.85，显示 85%，输入的也是百分数（输入 90 得 0.9）。
     写了 name 时原生表单提交的是十进制文本（不带千分位与货币符号）：name 落在一个隐藏的 input 上，不是显示格式的输入框。
 *@
 @namespace Rune.UI
@@ -118,6 +119,9 @@
 
     bool ShowStepper => Stepper && !IsReadOnly;
 
+    // 编辑时的单位：写了 Scale 按它；百分比的格式按百分数输入（显示 85%，输入的也是 85，相当于 Scale 0.01）
+    decimal EditScale => Scale == 1 && NumberText.IsPercent(Format) ? 0.01m : Scale;
+
     Memo<string, Attrs> refocusInput;
 
     // 清空后焦点回到输入框
@@ -129,12 +133,13 @@
 
     // input 上由组件管理的属性：表单状态、显示的文字、spinbutton 的 aria 值，以及给 JS 处理方向键的范围与步长（不变量格式）。
     // 有缩放时这些都按显示的单位：JS 按输入框里的文字加减、夹取，C# 写回时再乘回去
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Min, Max, Step, BigStep, Format, Scale, LangFormat.CultureOf(Config.Lang.Code)), this,
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Min, Max, Step, BigStep, Format, EditScale, LangFormat.CultureOf(Config.Lang.Code)), this,
         static (k, owner) =>
         {
             var invariant = CultureInfo.InvariantCulture;
             var shown = NumberText.ToDecimal(k.Value) / k.Scale;
-            var text = k.Scale == 1 ? NumberText.Format(k.Value, k.Format, k.Culture) : NumberText.Format(shown, k.Format, k.Culture);
+            // 百分比的格式自己乘 100：按值本身格式化
+            var text = k.Scale == 1 || NumberText.IsPercent(k.Format) ? NumberText.Format(k.Value, k.Format, k.Culture) : NumberText.Format(shown, k.Format, k.Culture);
             return Attrs.Merge(k.Control, new Attrs
             {
                 Role = "spinbutton",
@@ -159,7 +164,7 @@
             version++;
             return;
         }
-        await ApplyAsync(parsed * Scale);
+        await ApplyAsync(parsed * EditScale);
     }
 
     // 空着时从 Min（没有就是 0）开始

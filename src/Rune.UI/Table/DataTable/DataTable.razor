@@ -429,14 +429,14 @@
                     @if (column.Filter is { } kind)
                     {
                         <ColumnFilterButton Label="@column.Label" Options="@(kind == ColumnFilterKind.Keyword ? null : FilterOptionsOf(column))"
-                                            Values="@filters.Value.GetValueOrDefault(view.Key, [])" ValuesChanged="@(values => SetFilterAsync(view.Key, values))" />
+                                            Values="@filters.Value.GetValueOrDefault(view.Key, [])" ValuesChanged="@(values => SetFilterAsync(view.Key, values))" PropsTrigger="PropsFilterButton" />
                     }
                     @if (ColumnMenu)
                     {
                         <ColumnMenuButton Label="@column.Label" Sortable="column.Sortable" Sorted="direction" Pinned="view.Sticky"
                                           CanMoveBackward="@(position > 0 && shown[position - 1].Sticky == view.Sticky)"
                                           CanMoveForward="@(position < shown.Count - 1 && shown[position + 1].Sticky == view.Sticky)"
-                                          CanHide="@(shown.Count > 1)" OnAction="@(action => OnColumnActionAsync(view, shown, action))" />
+                                          CanHide="@(shown.Count > 1)" OnAction="@(action => OnColumnActionAsync(view, shown, action))" PropsTrigger="PropsColumnMenuButton" />
                     }
                 </div>
             }

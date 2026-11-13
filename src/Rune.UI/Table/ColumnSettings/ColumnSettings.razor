@@ -17,7 +17,7 @@
         <div @attributes="Attrs.Merge(PanelLayer)">
             <div @attributes="Attrs.Merge(HeaderLayer)">
                 <span @attributes="Attrs.Merge(TitleLayer)">@Config.Lang.TableColumnSettings</span>
-                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Disabled="@(hidden.Value.Count == 0 && order.Value.Count == 0)" @onclick="ResetAsync"
+                <Button Size="Size.Sm" Variant="ButtonVariant.Ghost" Disabled="@(hidden.Value.Count == 0 && order.Value.Count == 0 && !Changed)" @onclick="ResetAsync"
                         @attributes="Attrs.MergeProps(null, PropsReset)">@Config.Lang.TableColumnSettingsReset</Button>
             </div>
             <ScrollArea Sx="ListScroll">
@@ -60,6 +60,9 @@
 
     /// <summary>点了“重置”：显示与顺序回到列定义；要连列宽、固定一起还原时在这里清掉。</summary>
     [Parameter] public EventCallback OnReset { get; set; }
+
+    /// <summary>显示与顺序之外还有别的列设置改过（固定、列宽，由 OnReset 还原）：这时“重置”也可用。</summary>
+    [Parameter] public bool Changed { get; set; }
 
     /// <summary>触发按钮（交给 IconButton）的部件属性。</summary>
     [Parameter] public Attrs? PropsTrigger { get; set; }

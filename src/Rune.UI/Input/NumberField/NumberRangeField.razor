@@ -14,11 +14,11 @@
 <div @attributes="Attrs.Merge(parts[NumberRangeFieldPart.Root], Rest, RootManaged)">
     @* 两个框不拿 Field 的 id 与说明（组拿）：第一个框的 id 由这里给，点标签聚焦它 *@
     <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
-        <NumberField @ref="start" TValue="TValue" Value="CurrentValue.Low" ValueChanged="SetLowAsync" @attributes="Attrs.MergeProps(parts[NumberRangeFieldPart.Field], PropsStart, EndManaged(0))"
+        <NumberField @ref="start" TValue="TValue" Value="CurrentValue.Low" ValueChanged="SetLowAsync" @attributes="Attrs.MergeProps(EndDefaults(parts[NumberRangeFieldPart.Field], 0), PropsStart, EndManaged(0))"
                      Min="Min" Max="Max" Step="Step" Format="@Format" Scale="Scale" Prefix="Prefix" Suffix="Suffix" Stepper="false"
                      Variant="Variant" Size="Size" Radius="Radius" Disabled="IsDisabled" ReadOnly="IsReadOnly" Invalid="IsInvalid" Required="IsRequired" />
         <span aria-hidden="true" @attributes="Attrs.Merge(parts[NumberRangeFieldPart.Separator], PropsSeparator)">@(Separator ?? DefaultSeparator)</span>
-        <NumberField TValue="TValue" Value="CurrentValue.High" ValueChanged="SetHighAsync" @attributes="Attrs.MergeProps(parts[NumberRangeFieldPart.Field], PropsEnd, EndManaged(1))"
+        <NumberField TValue="TValue" Value="CurrentValue.High" ValueChanged="SetHighAsync" @attributes="Attrs.MergeProps(EndDefaults(parts[NumberRangeFieldPart.Field], 1), PropsEnd, EndManaged(1))"
                      Min="Min" Max="Max" Step="Step" Format="@Format" Scale="Scale" Prefix="Prefix" Suffix="Suffix" Stepper="false"
                      Variant="Variant" Size="Size" Radius="Radius" Disabled="IsDisabled" ReadOnly="IsReadOnly" Invalid="IsInvalid" />
     </CascadingValue>
@@ -85,18 +85,23 @@
             ["data-invalid"] = k.Invalid ? true : null,
         });
 
-    // 一端的框：id（第一个拿 Field 的，点标签聚焦它）、名称、占位、提交的 name
-    Attrs EndManaged(int index)
+    // 一端的框默认的名称与占位（“最小值”“最大值”）：在默认层，PropsStart、PropsEnd 可以改
+    Attrs EndDefaults(Attrs part, int index)
     {
         var label = index == 0 ? Config.Lang.SliderMin : Config.Lang.SliderMax;
-        return new Attrs
+        return Attrs.Layer(part, new Attrs
         {
-            Id = index == 0 ? ControlId : $"{ControlId}-end",
-            ["aria-label"] = label,
+            AriaLabel = label,
             ["placeholder"] = Placeholder is { Count: 2 } placeholders ? placeholders[index] : label,
-            ["name"] = Names is { Count: 2 } names ? names[index] : null,
-        };
+        });
     }
+
+    // 一端的框：id（第一个拿 Field 的，点标签聚焦它）、提交的 name
+    Attrs EndManaged(int index) => new()
+    {
+        Id = index == 0 ? ControlId : $"{ControlId}-end",
+        ["name"] = Names is { Count: 2 } names ? names[index] : null,
+    };
 
     Task SetLowAsync(TValue value) => SetAsync(CurrentValue with { Low = value });
 

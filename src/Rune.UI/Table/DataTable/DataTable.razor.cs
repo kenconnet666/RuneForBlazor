@@ -277,6 +277,12 @@ public partial class DataTable<TItem>
     /// <summary>排序按钮的部件属性（交给 ButtonBase）。</summary>
     [Parameter] public Attrs? PropsSortButton { get; set; }
 
+    /// <summary>表头筛选按钮（漏斗）的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsFilterButton { get; set; }
+
+    /// <summary>列菜单按钮（⋮）的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsColumnMenuButton { get; set; }
+
     /// <summary>排序按钮里文字的部件属性。</summary>
     [Parameter] public Attrs? PropsSortLabel { get; set; }
 

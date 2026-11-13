@@ -14,6 +14,7 @@ sealed class CalendarState
 {
     public CalendarState(DateOnly initial, DateUnit unit, Func<DateOnly, DateOnly> clamp)
     {
+        this.unit = unit;
         View = unit;
         Focused = clamp(initial);
         Page = PageOf(Focused, View);
@@ -25,7 +26,22 @@ sealed class CalendarState
 
     public bool Multiple { get; set; }
 
-    public DateUnit Unit { get; set; }
+    /// <summary>
+    /// 选择的粒度。换了（按日改成按月）时视图回到新的单位：停在原来的视图上时，它可能比新单位更细，再点一格就没有下一级可进。
+    /// </summary>
+    public DateUnit Unit
+    {
+        get => unit;
+        set
+        {
+            if (unit == value) return;
+            unit = value;
+            View = value;
+            Page = PageOf(Focused, value);
+        }
+    }
+
+    DateUnit unit;
 
     public int VisibleMonths { get; set; } = 1;
 

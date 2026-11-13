@@ -13,7 +13,9 @@ public static class NumberText
     {
         value = null;
         if (string.IsNullOrWhiteSpace(text)) return true;
-        if (!decimal.TryParse(Normalize(text), NumberStyles.Number | NumberStyles.AllowCurrencySymbol, culture, out var parsed)) return false;
+        // 百分号（连同它前面的空白）去掉：百分比的输入框里显示的是 85%，照着改成 90% 也认
+        var plain = Normalize(text).Replace(culture.NumberFormat.PercentSymbol, "").Replace("％", "").Trim();
+        if (!decimal.TryParse(plain, NumberStyles.Number | NumberStyles.AllowCurrencySymbol, culture, out var parsed)) return false;
         value = parsed;
         return true;
     }
@@ -86,6 +88,27 @@ public static class NumberText
         IFormattable formattable => formattable.ToString(format ?? DefaultFormat, culture),
         _ => value.ToString() ?? "",
     };
+
+    /// <summary>
+    /// 格式是不是百分比（值乘 100 后显示）：标准格式 P / P2，或自定义格式里有 %（"0.#%"；引号里的、反斜杠转义的 % 是原样的文字，不算）。
+    /// </summary>
+    public static bool IsPercent(string? format)
+    {
+        if (string.IsNullOrEmpty(format)) return false;
+        if (format[0] is 'P' or 'p' && format.AsSpan(1).IndexOfAnyExceptInRange('0', '9') < 0) return true;
+        // 一个字母（加位数）是标准格式；其余按自定义格式找不在引号里的 %
+        if (char.IsAsciiLetter(format[0]) && format.AsSpan(1).IndexOfAnyExceptInRange('0', '9') < 0) return false;
+        char? quote = null;
+        for (var i = 0; i < format.Length; i++)
+        {
+            var c = format[i];
+            if (quote is not null) quote = c == quote ? null : quote;
+            else if (c is '\'' or '"') quote = c;
+            else if (c == '\\') i++;
+            else if (c == '%') return true;
+        }
+        return false;
+    }
 
     // 全角数字、全角句点与逗号、全角负号 → 半角
     static string Normalize(string text)

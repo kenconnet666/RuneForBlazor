@@ -1,7 +1,7 @@
 @*
     评分（同 vue-tsx-pro 的 Rating）：几颗星（或别的图标）里选一个分数，供应商评价、满意度、优先级。可以半星，可以只读显示。
     <Field Label="交付质量"><Rating @bind-Value="score" /></Field>
-    <Rating Value="4.5" ReadOnly="true" />                                 只读：一个 role="img"，读“4.5 星，满分 5 星”
+    <Rating Value="4.5" ReadOnly="true" />                                 只读：一个 role="img"，读“4.5 星，满分 5 星”（有名称时接在名称后面）
     <Rating @bind-Value="score" AllowHalf="true" Count="10" Icon="Lucide.Heart" Tone="Tone.Danger" />
     可编辑时是单选组（role="radiogroup"）：每颗星是一个原生 radio（视觉上隐藏），方向键、表单提交、读屏都是原生的；名称是“3 星”这样的文字。
     已选的填充按勾上的 radio 用 CSS 算，悬停预览由 JS 初始化器写（data-rune-rating），都没有往返，静态 SSR 也一样；
@@ -22,6 +22,10 @@
             <span aria-hidden="true" @attributes="Attrs.Merge(parts[RatingPart.Star], PropsStar, FillOf(Filled(CurrentValue, index)))">
                 @StarIcon(parts, icon)
             </span>
+        }
+        @if (ReadOnlyLabelledBy is not null)
+        {
+            <span id="@SummaryId" @attributes="Attrs.Merge(SharedStyles.VisuallyHidden)">@Config.Lang.RatingSummary(CurrentValue, Count)</span>
         }
     </div>
 }
@@ -48,7 +52,7 @@ else
 
     readonly string autoName = UniqueId.Next("rating");
     Memo<(string Id, string? LabelledBy, string? DescribedBy, bool Disabled), Attrs> rootManaged;
-    Memo<(string Id, string? LabelledBy, double? Value, int Count), Attrs> readOnlyManaged;
+    Memo<(string Id, string? LabelledBy, string? Label, double? Value, int Count), Attrs> readOnlyManaged;
 
     /// <summary>一共几颗星，默认 5。</summary>
     [Parameter] public int Count { get; set; } = 5;
@@ -86,13 +90,23 @@ else
         ["data-disabled"] = k.Disabled ? true : null,
     });
 
-    // 只读：整排是一张图，读“4.5 星，满分 5 星”
-    Attrs ReadOnlyManaged => readOnlyManaged.Get((ControlId, LabelledBy, CurrentValue, Count), this, static (k, owner) => new Attrs
+    string SummaryId => $"{ControlId}-summary";
+
+    // 只读时名称来自别的元素（使用方写的 aria-labelledby，或 Field 的标签）；自己写了 aria-label 时不用
+    string? ReadOnlyLabelledBy => AdditionalAttributes?.GetValueOrDefault("aria-labelledby") as string ?? LabelledBy;
+
+    // 只读：整排是一张图，名称里总有分数：使用方的名称（aria-label，或 Field 的标签、aria-labelledby）后面接上“4.5 星，满分 5 星”
+    Attrs ReadOnlyManaged => readOnlyManaged.Get((ControlId, ReadOnlyLabelledBy, AdditionalAttributes?.GetValueOrDefault("aria-label") as string, CurrentValue, Count), this, static (k, owner) =>
     {
-        Id = k.Id,
-        Role = "img",
-        AriaLabelledBy = k.LabelledBy,
-        ["aria-label"] = owner.Config.Lang.RatingSummary(k.Value, k.Count),
+        var summary = owner.Config.Lang.RatingSummary(k.Value, k.Count);
+        return new Attrs
+        {
+            Id = k.Id,
+            Role = "img",
+            // 名称指向标签时分数在一个隐藏的文字里（SummaryId），一起念
+            AriaLabelledBy = k.LabelledBy is null ? null : $"{k.LabelledBy} {k.Id}-summary",
+            AriaLabel = k.LabelledBy is not null ? null : k.Label is null ? summary : $"{k.Label} {summary}",
+        };
     });
 
     /// <summary>第 index 颗星（从 1 开始）填了多少：0、50、100。</summary>

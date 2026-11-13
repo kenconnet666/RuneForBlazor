@@ -7,7 +7,7 @@
 @inherits ButtonCore
 @{ var parts = Parts(FullWidth ? ButtonShape.FullWidth : ButtonShape.Normal); }
 
-<a @ref="Element" @attributes="Attrs.Merge(parts[ButtonPart.Root], UserAttrs(!Disabled && !IsLoading), Managed)">
+<a @ref="Element" @attributes="Attrs.Merge(ExternalLink.Defaults(parts[ButtonPart.Root], External), UserAttrs(!Disabled && !IsLoading), Managed)">
     @RenderInner(parts, External ? ExternalText : ChildContent)
 </a>
 
@@ -24,7 +24,7 @@
     /// <summary>占满容器宽度。</summary>
     [Parameter] public bool FullWidth { get; set; }
 
-    /// <summary>外部链接：新窗口打开，加 rel="noopener noreferrer"；没写 IconEnd 时文字后是外链箭头。</summary>
+    /// <summary>外部链接：新窗口打开，默认 rel="noopener noreferrer"（可以自己写 target、rel 改掉）；没写 IconEnd 时文字后是外链箭头。</summary>
     [Parameter] public bool External { get; set; }
 
     /// <summary>外部链接给读屏的提示。；不写时取语言包（UIConfig.Lang）的“（在新窗口打开）”。</summary>
@@ -47,16 +47,14 @@
 
     RenderFragment Hint => @<VisuallyHidden>@(ExternalHint ?? Config.Lang.LinkNewWindow)</VisuallyHidden>;
 
-    Memo<(string Href, bool External, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
+    Memo<(string Href, bool Disabled, bool Loading, bool Ripple), Attrs> managed;
 
-    /// <summary>a 上由组件管理的属性：地址（不可用时去掉）、外链的打开方式与状态；不变时复用同一个对象。</summary>
-    Attrs Managed => managed.Get((Href, External, Disabled, IsLoading, RippleEnabled), static k => Attrs.Merge(
+    /// <summary>a 上由组件管理的属性：地址（不可用时去掉）与状态；不变时复用同一个对象。外链的 target、rel 在默认层（ExternalLink）。</summary>
+    Attrs Managed => managed.Get((Href, Disabled, IsLoading, RippleEnabled), static k => Attrs.Merge(
         // 链接没有原生 disabled：不可用总是 aria-disabled
         StateAttrs(k.Disabled, focusable: true, k.Loading, k.Ripple),
         new Attrs
         {
             ["href"] = k.Disabled || k.Loading ? null : k.Href,
-            ["target"] = k.External ? "_blank" : null,
-            ["rel"] = k.External ? "noopener noreferrer" : null,
         }));
 }

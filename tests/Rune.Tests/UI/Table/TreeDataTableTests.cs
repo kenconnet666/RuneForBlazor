@@ -50,6 +50,23 @@ public class TreeDataTableTests : BunitContext
     }
 
     [Fact]
+    public void 多列排序时同级按几列依次排()
+    {
+        Unit[] org = [new("a", "甲", 10, [new("a1", "乙", 5), new("a2", "乙", 9), new("a3", "丙", 1)])];
+        var cut = Render<TreeDataTable<Unit>>(p =>
+        {
+            p.Add(x => x.Items, org).Add(x => x.GetKey, u => u.Id).Add(x => x.GetChildren, u => u.Children)
+                .Add(x => x.Expanded, ["a"]).Add(x => x.MultiSort, true)
+                .Add(x => x.Sorts, [new ColumnSort("name", SortDirection.Descending), new ColumnSort("headcount", SortDirection.Descending)]);
+            p.AddChildContent<PropertyColumn<Unit, string>>(c => c.Add(x => x.Property, u => u.Name).Add(x => x.Sortable, true));
+            p.AddChildContent<PropertyColumn<Unit, int>>(c => c.Add(x => x.Property, u => u.Headcount).Add(x => x.Sortable, true));
+        });
+
+        // 先按名称倒序（乙在丙前），同名的按人数倒序（之前写了 MultiSort 也不排）
+        Assert.Equal(["a", "a2", "a1", "a3"], Keys(cut));
+    }
+
+    [Fact]
     public async Task 展开还没有子项的行时懒加载()
     {
         var loaded = new TaskCompletionSource();
