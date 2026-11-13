@@ -1,0 +1,50 @@
+@*
+    Rune.UI 启动时要用的 JS 模块（入口、js/core/runtime.js 与它静态导入的几十个模块）的 modulepreload。
+    不写的话这些模块是一层层发现的：页面解析完 → blazor.web.js → 初始化器（入口）→ runtime.js → 它导入的模块 → 再下一层，
+    每层一个来回，线上要到 3 秒左右才开始下载最后一层，那时 .NET 正在启动、占着主线程，装好（data-rune-ready）要等到 7–10 秒。
+    写了以后浏览器解析到 head 就并行下载，页面一显示交互就能用（浮层、主题切换、复制、展开代码都不依赖 .NET）。
+    放在 ImportMap 之后：地址是带内容哈希的那个（同 import map 映射到的），与之后的 import 是同一个模块。
+    integrity 要写：import map 里给这些模块都记了完整性校验值，预加载时没带的话浏览器不认这份预加载、导入时再下载一遍。
+    按需加载的模块（浮层定位、代码高亮、日期、图表）不在里面。
+*@
+@using System.Text.RegularExpressions
+@inject IWebHostEnvironment Environment
+
+@foreach (var (url, integrity) in Modules)
+{
+    <link rel="modulepreload" href="@url" integrity="@integrity" />
+}
+
+@code {
+    const string Root = "_content/RuneForBlazor.UI/";
+
+    static IReadOnlyList<(string Url, string? Integrity)>? modules;
+
+    // 静态导入：import … from './x.js'、import './x.js'、export … from './x.js'；动态的 import('…') 是按需加载，不算
+    static readonly Regex StaticImport = new("""^\s*(?:import|export)\s+(?:[^'"()]*?\s+from\s+)?['"](\.{1,2}/[^'"]+)['"]""", RegexOptions.Multiline | RegexOptions.Compiled);
+
+    IReadOnlyList<(string Url, string? Integrity)> Modules => modules ??= Collect();
+
+    // 从入口与 runtime.js 出发，沿静态导入走一遍（读发布目录或开发时静态资源里的文件，只在第一次请求时算）
+    IReadOnlyList<(string Url, string? Integrity)> Collect()
+    {
+        var integrity = new Dictionary<string, string?>();
+        foreach (var asset in Assets)
+            integrity[asset.Url] = asset.Properties?.FirstOrDefault(static property => property.Name == "integrity")?.Value;
+        var found = new List<string>();
+        var pending = new Queue<string>([Root + "RuneForBlazor.UI.lib.module.js", Root + "js/core/runtime.js"]);
+        while (pending.TryDequeue(out var path))
+        {
+            if (found.Contains(path)) continue;
+            // 发布后有的文件（初始化器的入口）磁盘上只有带哈希的名字
+            var file = Environment.WebRootFileProvider.GetFileInfo(path);
+            if (!file.Exists) file = Environment.WebRootFileProvider.GetFileInfo(Assets[path]);
+            if (!file.Exists) continue;
+            found.Add(path);
+            using var reader = new StreamReader(file.CreateReadStream());
+            foreach (Match match in StaticImport.Matches(reader.ReadToEnd()))
+                pending.Enqueue(new Uri(new Uri("http://x/" + path), match.Groups[1].Value).AbsolutePath.TrimStart('/'));
+        }
+        return [.. found.Select(path => (Assets[path], integrity.GetValueOrDefault(Assets[path])))];
+    }
+}

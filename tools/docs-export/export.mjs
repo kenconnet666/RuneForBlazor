@@ -11,7 +11,8 @@
 //    （app.abc123.css、import map 里的 JS），磁盘上只有原名，清单写着每个地址对应哪个文件。压缩版本（.br、.gz）不要：Cloudflare 自己压缩。
 // 3. 启动发布好的服务端，从首页开始按站内链接与 iframe 的地址爬完全部页面，每页存成 路径.html（Cloudflare Pages 对 /components/button
 //    直接取 components/button.html，不跳转），首页是 index.html，找不到页面存成 404.html。
-// 4. 合并、挪走了的旧页面地址（DocRedirects）写成 _redirects，由 Cloudflare Pages 永久跳转到新页的小节。
+// 4. 合并、挪走了的旧页面地址（DocRedirects）写成 _redirects，由 Cloudflare Pages 永久跳转到新页的小节；
+//    静态资源的原名也在里面，临时跳到带哈希的地址（只导出带哈希的文件，见下面的 hashed）。
 // 5. 文档数据（示例的源码、API 表、图标库）：爬页面时用到过的地址取 /_docs/files，逐个写出（浏览器站内换页时下载）。
 // 6. 运行时生成的模块与样式表（主题变量）从服务端取下来；_headers 给带哈希的文件长期缓存、让 Cloudflare 压缩 ICU 数据。
 import { spawn, spawnSync } from 'node:child_process';
@@ -49,10 +50,20 @@ async function exportSite() {
 
   // ───────── 静态资源 ─────────
   const manifest = JSON.parse(readFileSync(join(publishDir, 'Rune.Docs.staticwebassets.endpoints.json'), 'utf8'));
+  // 每个文件有两个地址：原名（app.css）与带内容哈希的（app.abc123.css，清单里它的 label 是原名）。只导出带哈希的那个，
+  // 原名写成 302 跳过去（下面的 _redirects）：这样目录里只有内容变了名字就变的文件，可以整个目录长期缓存；
+  // 页面都按带哈希的地址引用，按原名取的（示例里的模型文件）多一次跳转，照样取得到
+  const hashed = new Map();
+  for (const endpoint of manifest.Endpoints) {
+    if (/\.(br|gz)$/.test(endpoint.Route)) continue;
+    const label = endpoint.EndpointProperties?.find((property) => property.Name === 'label')?.Value;
+    if (label && label !== endpoint.Route) hashed.set(label, endpoint.Route);
+  }
   let assets = 0;
   for (const endpoint of manifest.Endpoints) {
     if (endpoint.Selectors?.length) continue;
     if (/\.(br|gz)$/.test(endpoint.AssetFile)) continue;
+    if (hashed.has(endpoint.Route)) continue;
     const target = join(out, endpoint.Route);
     if (existsSync(target)) continue;
     mkdirSync(dirname(target), { recursive: true });
@@ -85,7 +96,17 @@ async function exportSite() {
     writeFileSync(join(out, '404.html'), await notFound.text());
     const redirects = await fetch(`${origin}/_redirects`);
     if (!redirects.ok) throw new Error(`/_redirects 取不到：${redirects.status}`);
-    writeFileSync(join(out, '_redirects'), await redirects.text());
+    // 文档页的跳转（永久），加上静态资源的原名 → 带哈希的地址（临时：下次部署哈希会变）
+    const aliases = [...hashed].map(([label, route]) => `/${label} /${route} 302\n`).join('');
+    // 页面里写了 <link rel="icon">，仍有浏览器与爬虫直接要 /favicon.ico：给它标志，不回三百多 KB 的 404 页
+    const logo = hashed.get('_content/Rune.Docs.Content/logo.svg');
+    writeFileSync(join(out, '_redirects'), (await redirects.text()) + aliases + (logo ? `/favicon.ico /${logo} 302\n` : ''));
+    // sitemap.xml：站点地址取自 wrangler.jsonc 的自定义域名；整页示例（frame/…，嵌在别的页面里的）不列
+    const domain = /"pattern":\s*"([^"]+)"/.exec(readFileSync(join(repoRoot, 'apps/Rune.Docs/wrangler.jsonc'), 'utf8'))?.[1];
+    if (domain) {
+      const urls = [...pages.keys()].filter((path) => !path.startsWith('/frame/')).sort().map((path) => `  <url><loc>https://${domain}${path === '/' ? '/' : path}</loc></url>\n`);
+      writeFileSync(join(out, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('')}</urlset>\n`);
+    }
     // 文档数据（示例的源码、API 表、图标库，Rune.Docs.Server）：爬页面时用到过的都在 /_docs/files 里，浏览器站内换页时下载它们
     const docsFiles = (await (await fetch(`${origin}/_docs/files`)).text()).split('\n').filter(Boolean);
     for (const path of docsFiles) {
@@ -109,14 +130,17 @@ async function exportSite() {
     }
     if (generated) console.log(`取下了 ${generated} 个运行时生成的文件`);
     // 响应头（Cloudflare 的 _headers）：
-    // - _framework 下的文件页面都按带内容哈希的名字引用（import map、resource-collection），主题变量的样式表也按内容命名：
-    //   内容变了名字就变，可以长期缓存、不用每次回源确认（默认 max-age=0，再次打开时六十多个文件逐个确认）
+    // - _framework、_content 下只有带内容哈希的文件（原名的见上面的 hashed），主题变量的样式表也按内容命名：
+    //   内容变了名字就变，可以长期缓存、不用每次回源确认（默认 max-age=0，再次打开时一百多个文件逐个确认）
+    // - 文档数据（_docs，示例的源码与 API 表）不带哈希、只在部署时变：缓存十分钟，站内来回换页不重复取
     // - Cloudflare 不压缩 application/octet-stream：ICU 数据（_framework/icudt*.dat，1.5 MB，压缩后约 0.45 MB）标成 application/wasm 让它压缩
     //   （运行时按字节读取，不看类型）
     const immutable = '  Cache-Control: public, max-age=31536000, immutable';
     writeFileSync(join(out, '_headers'), [
       '/_framework/*', immutable,
+      '/_content/*', immutable,
       '/rune-theme.*', immutable,
+      '/_docs/*', '  Cache-Control: public, max-age=600',
       '/_framework/*.dat', '  Content-Type: application/wasm',
       '',
     ].join('\n'));
@@ -215,7 +239,7 @@ function preview(root) {
   const redirectsFile = join(root, '_redirects');
   const redirects = new Map(
     existsSync(redirectsFile)
-      ? readFileSync(redirectsFile, 'utf8').split(/\r?\n/).filter(Boolean).map((line) => line.split(' ').slice(0, 2))
+      ? readFileSync(redirectsFile, 'utf8').split(/\r?\n/).filter(Boolean).map((line) => line.split(' ')).map(([from, to, status]) => [from, { to, status: Number(status ?? 301) }])
       : [],
   );
   const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.wasm': 'application/wasm', '.svg': 'image/svg+xml', '.dat': 'application/octet-stream', '.txt': 'text/plain' };
@@ -223,7 +247,7 @@ function preview(root) {
   createServer((request, response) => {
     const path = decodeURIComponent(new URL(request.url, 'http://x').pathname);
     if (redirects.has(path)) {
-      response.writeHead(301, { location: redirects.get(path) });
+      response.writeHead(redirects.get(path).status, { location: redirects.get(path).to });
       response.end();
       return;
     }

@@ -32,6 +32,8 @@
 - 输入法组合中不改写输入框：验证码（OtpField）与分组显示的输入框（TextField 的 `Format`）等组合结束才过滤、重排
 - 文档站与 vue 文档站核对了一遍：新增指南“Choosing 选组件”“Accessibility 无障碍”；10 页示例的排布、7 页在侧栏里的顺序、若干示例的 id 与标题、
   9 页的简介改成一致；二维码页的地址改成 `/components/qrcode`（同 vue，旧地址 `/components/qr-code` 永久跳转）
+- 文档站的加载（数字见 PERFORMANCE.md 第 3 节）：Rune 的 JS 模块在页面头里预加载，页面一显示交互就能用，不再等 .NET 启动；
+  带哈希的静态文件整个目录长期缓存，再次打开不逐个回源确认；地图数据只在 MapChart 页下载；导出时生成 sitemap.xml
 
 ### 新增
 

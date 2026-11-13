@@ -64,11 +64,27 @@
 没采用的：文档数据随页面带给浏览器（PersistentComponentState）。框架的 JSON 把中文转义成 \uXXXX、再套两层 base64，Button 页要多 143 KB（gzip 31 KB），
 而接管后源码区是收着的、API 表在页底，直接下载几 KB 的文件看不出空白。
 
+### 再量一遍（2026-11-13，线上 Button 页，无头 Chromium）
+
+加载过程：HTML（预渲染，857 KB，压缩后 66 KB）约 1.1 秒显示 → blazor.web.js → dotnet.js → 58 个 .wasm 与 ICU 数据（压缩后 5.3 MB）约 4 秒下完
+→ .NET 启动、加载程序集（约 1.3 秒）→ 第一次交互渲染（一个约 3.5 秒的长任务，整页的节点换一遍）→ 取这一页的文档数据（22 个小文件）、渲染 API 表。
+再次打开时 .wasm 全部来自缓存，但 .NET 启动与第一次渲染的 5 秒左右不变：这是解释执行的固定开销（AOT 能缩短，下载会大两三倍，没做）。
+
+| 项 | 之前 | 之后 | 改法 |
+| -- | ---- | ---- | ---- |
+| Rune 的 JS 装好（`data-rune-ready`） | 首次约 10 秒、再次约 7.4 秒 | 本地导出约 0.8 秒，在 WebAssembly 开始编译之前 | 模块原来是一层层发现的（页面 → blazor.web.js → 初始化器 → runtime.js → 它导入的 40 个模块），最后一层开始下载时 .NET 已经占着主线程。文档站的页面头加 `ModulePreloads`：入口、runtime.js 与它静态导入的模块都写成 `modulepreload`（带 import map 里同样的 integrity，不带的话浏览器不认预加载、再下载一遍） |
+| 带哈希的 `_content` 文件（Rune 的 JS、样式、图片，55 个请求） | `max-age=0`，再次打开逐个回源确认 | 长期缓存（immutable），再次打开不发请求 | 导出时只留带哈希的文件，原名写成 302 跳到带哈希的地址（`_redirects`），整个 `_content` 目录就能长期缓存；`_framework` 同样处理 |
+| 文档数据（`_docs`，每页二十来个小文件） | `max-age=0` | 缓存十分钟 | `_headers` |
+| 地图数据（Rune.Charts.Maps，压缩后 171 KB） | 任何图表页都下载 | 只有 MapChart 页下载 | `LazyAssemblies` 按页面分，`LazyAssemblyTests` 检查别的图表页没用到 |
+
+复测用的脚本思路：CDP 的 Network 事件数请求与字节（冷、热各开一次），页面里记 `WebAssembly.compileStreaming` / `instantiate` 的起止、长任务、DOM 的大批变动与 `data-rune-ready` 的时刻。
+
 ## 4. 待议项（结构性的，先不动）
 
 | 项 | 现状与数字 | 方向 | 取舍 |
 | -- | ---------- | ---- | ---- |
 | 选项弹出层关着也渲染选项 | Select、Combobox 的列表一直在 DOM 里（多时虚拟滚动） | 交互模式下第一次打开才渲染（同 Dialog 的 Lazy） | 关着时按字母选中、原生 popover 打开不往返都依赖列表在 DOM 里，改了要另想办法；静态 SSR 仍要一开始就渲染 |
 | 参数比较的装箱 | 每个值类型参数一次装箱、按名字查一次属性（6 个参数约 0.5 µs） | 由源代码生成器为组件生成按类型比较的代码（Rune.Generators 已有） | 收益看父级重渲染的频率；生成器要覆盖继承的参数 |
+| 库的使用方也有“JS 装好得晚”的问题 | 文档站用 `ModulePreloads`（读发布目录算出要预加载的模块）解决了，这个组件在 apps/Rune.Docs 里，库里没有 | Rune.UI 提供一个放在 head 里的组件，模块清单在构建时生成 | 要多一个生成步骤（或运行时读静态资源），先看有没有使用方需要 |
 | JS 不压缩、不打包 | 约 270 KB（一半是注释），开发时未压缩；发布时 MapStaticAssets 有 br / gzip | 构建时去注释或打包成一个文件 | 打包要引入构建步骤（node），与“浏览器原生 ES 模块、不打包”的现有约定冲突；入口拆分后模块已不在启动的关键路径上 |
 | 快捷键查找 | 每次按键在整个文档里找 `[data-rune-hotkey]` | 插入时登记 | 要保持文档顺序的匹配语义，开销小，暂不改 |

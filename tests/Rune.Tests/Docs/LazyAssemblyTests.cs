@@ -6,7 +6,7 @@ using Rune.UI;
 namespace Rune.Tests.Docs;
 
 /// <summary>
-/// 文档站按页面懒加载的程序集（Rune.Docs.Client 的 LazyAssemblies）：图表与地图数据只在图表页、3D 效果只在 3D 页、省市区只在 Cascader 页用到。
+/// 文档站按页面懒加载的程序集（Rune.Docs.Client 的 LazyAssemblies）：图表只在图表页（地图数据只在 MapChart 页）、3D 效果只在 3D 页、省市区只在 Cascader 页用到。
 /// 别的页面的代码碰到这些程序集里的类型时，WebAssembly 里还没加载它们，执行到就会失败：这里检查编译出的代码
 /// （基类、字段、方法签名、方法体里引用的类型与成员），按名字扫源码分不清参数名与同名的类型。
 /// </summary>
@@ -15,8 +15,12 @@ public class LazyAssemblyTests
     static readonly Assembly Content = typeof(DocsCatalog).Assembly;
 
     [Fact]
-    public void 图表与地图的类型只在图表页里用() =>
-        Assert.Empty(Usages([typeof(LineChart<>).Assembly, typeof(ChartMaps).Assembly], allowed: "Rune.Docs.Components.Charts."));
+    public void 图表的类型只在图表页里用() =>
+        Assert.Empty(Usages([typeof(LineChart<>).Assembly], allowed: "Rune.Docs.Components.Charts."));
+
+    [Fact]
+    public void 地图数据只在MapChart页里用() =>
+        Assert.Empty(Usages([typeof(ChartMaps).Assembly], allowed: "Rune.Docs.Components.Charts.MapChart."));
 
     [Fact]
     public void 三维效果的类型只在3D页里用() =>
