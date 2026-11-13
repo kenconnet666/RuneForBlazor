@@ -72,10 +72,13 @@
 
 | 项 | 之前 | 之后 | 改法 |
 | -- | ---- | ---- | ---- |
-| Rune 的 JS 装好（`data-rune-ready`） | 首次约 10 秒、再次约 7.4 秒 | 本地导出约 0.8 秒，在 WebAssembly 开始编译之前 | 模块原来是一层层发现的（页面 → blazor.web.js → 初始化器 → runtime.js → 它导入的 40 个模块），最后一层开始下载时 .NET 已经占着主线程。文档站的页面头加 `ModulePreloads`：入口、runtime.js 与它静态导入的模块都写成 `modulepreload`（带 import map 里同样的 integrity，不带的话浏览器不认预加载、再下载一遍） |
-| 带哈希的 `_content` 文件（Rune 的 JS、样式、图片，55 个请求） | `max-age=0`，再次打开逐个回源确认 | 长期缓存（immutable），再次打开不发请求 | 导出时只留带哈希的文件，原名写成 302 跳到带哈希的地址（`_redirects`），整个 `_content` 目录就能长期缓存；`_framework` 同样处理 |
+| Rune 的 JS 装好（`data-rune-ready`） | 首次约 10 秒、再次约 7.4 秒 | 首次约 1.5 秒、再次约 1 秒，在 WebAssembly 开始编译之前 | 模块原来是一层层发现的（页面 → blazor.web.js → 初始化器 → runtime.js → 它导入的 40 个模块），最后一层开始下载时 .NET 已经占着主线程。文档站的页面头加 `ModulePreloads`：入口、runtime.js 与它静态导入的模块都写成 `modulepreload`（带 import map 里同样的 integrity，不带的话浏览器不认预加载、再下载一遍） |
+| 带哈希的 `_content` 文件（Rune 的 JS、样式、图片，55 个请求） | `max-age=0`，再次打开逐个回源确认 | 长期缓存（immutable），再次打开只有 HTML（压缩后 67 KB）走网络 | 导出时只留带哈希的文件，原名写成 302 跳到带哈希的地址（`_redirects`），整个 `_content` 目录就能长期缓存；`_framework` 同样处理 |
 | 文档数据（`_docs`，每页二十来个小文件） | `max-age=0` | 缓存十分钟 | `_headers` |
 | 地图数据（Rune.Charts.Maps，压缩后 171 KB） | 任何图表页都下载 | 只有 MapChart 页下载 | `LazyAssemblies` 按页面分，`LazyAssemblyTests` 检查别的图表页没用到 |
+
+部署后在线上复测（同一页）：.NET 接管（整页节点换成交互的）首次约 9.7 秒、再次约 5.4 秒，与之前相当（首次 10.4 秒、再次 7.1 秒；每次测有一两秒的出入），
+这一段没有动。逐页打开全部 118 页，没有控制台错误（avatar、image 两页的 404 是示例故意的）。
 
 复测用的脚本思路：CDP 的 Network 事件数请求与字节（冷、热各开一次），页面里记 `WebAssembly.compileStreaming` / `instantiate` 的起止、长任务、DOM 的大批变动与 `data-rune-ready` 的时刻。
 
