@@ -46,12 +46,14 @@ export function setup(context) {
 
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = options.exposure ?? 1;
-  const environment = new PMREMGenerator(renderer);
   let disposed = false;
-  import('../../vendor/three/addons.js').then(({ RoomEnvironment }) => {
+  // 摄影棚的环境光：把一间屋子渲染一遍再逐级模糊。没有显卡（软件渲染）时这一步要几秒、占住主线程，一页几个查看器排着做，
+  // 后面的连“地址错了”都迟迟报不出来。等模型到了再做：加载失败的不做，加载中的不挡着别人
+  let environment = null;
+  const lightStudio = () => import('../../vendor/three/addons.js').then(({ RoomEnvironment }) => {
     if (disposed) return;
+    environment = new PMREMGenerator(renderer);
     scene.environment = environment.fromScene(new RoomEnvironment(), 0.04).texture;
-    invalidate();
   });
 
   const camera = new PerspectiveCamera(FOV, 1, 0.01, 100);
@@ -67,7 +69,9 @@ export function setup(context) {
   };
   setStatus('loading');
   loadModel(options).then(
-    (model) => {
+    async (model) => {
+      if (disposed) return;
+      await lightStudio();
       if (disposed) return;
       // 居中，缩放到外接球半径为 1
       const sphere = new Box3().setFromObject(model).getBoundingSphere(new Sphere());
@@ -151,7 +155,7 @@ export function setup(context) {
       host.removeEventListener('wheel', onWheel);
       detach?.();
       scene.environment?.dispose();
-      environment.dispose();
+      environment?.dispose();
     },
   };
 }

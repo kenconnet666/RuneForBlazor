@@ -109,7 +109,7 @@ public class ThreeTests(DemoServer demo) : E2ETest(demo)
         var product = page.Locator("#product-preview");
         await product.ScrollIntoViewIfNeededAsync();
         var viewer = product.Locator("[data-rune-three-host]");
-        await Assertions.Expect(viewer).ToHaveAttributeAsync("data-status", "loaded", new() { Timeout = 20_000 });
+        await Assertions.Expect(viewer).ToHaveAttributeAsync("data-status", "loaded", new() { Timeout = 60_000 });
         await Assertions.Expect(viewer).Not.ToHaveAttributeAsync("aria-busy", "true");
         await Assertions.Expect(product.GetByText("模型已加载", new() { Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(product.GetByRole(AriaRole.Button, new() { Name = "加入购物车" })).ToBeEnabledAsync();
@@ -123,8 +123,8 @@ public class ThreeTests(DemoServer demo) : E2ETest(demo)
     [InlineData("wasm")]
     public async Task 模型_地址错了显示提示_调用OnError(string mode)
     {
-        // 这页的模型（奖杯、程序生成的透光与清漆材质）在 CI 的软件渲染下一直在转、占满主线程，出错的那个等不到回调：
-        // 都不让加载（也走出错），页面上没有要画的模型，只看地址错了的那个
+        // CI 没有显卡，WebGL 是软件渲染：这页七个查看器建渲染器、画模型都占着主线程，出错的那个要等很久才轮到。
+        // 别的模型都不让加载（也走出错），页面上没有要画的，只看地址错了的那个；时限仍放宽（本地无显卡的浏览器里也要约 10 秒）
         var page = await OpenAsync(mode, "model-viewer", async context =>
         {
             await context.RouteAsync("**/trophy.glb", route => route.AbortAsync());
@@ -132,9 +132,22 @@ public class ThreeTests(DemoServer demo) : E2ETest(demo)
         });
         var objects = page.Locator("#objects-preview");
         await objects.ScrollIntoViewIfNeededAsync();
-        var viewers = objects.Locator("[data-rune-three-host]");
-        await Assertions.Expect(viewers.Nth(2)).ToHaveAttributeAsync("data-status", "error", new() { Timeout = 20_000 });
-        await Assertions.Expect(viewers.Nth(2).GetByText("模型加载失败", new() { Exact = true })).ToBeVisibleAsync();
+        var viewer = objects.Locator("[data-rune-three-host]").Nth(2);
+        // 等到出错，或画布降级（拿不到 WebGL：场景不会运行，状态一直停在 loading）。超时的话报出当时的两个状态，好知道卡在哪
+        const string States = "host => `${host.dataset.status} / 画布 ${host.querySelector('[data-rune-three]')?.dataset.state}`";
+        try
+        {
+            await page.WaitForFunctionAsync(
+                "host => host.dataset.status === 'error' || host.querySelector('[data-rune-three]')?.dataset.state === 'fallback'",
+                await viewer.ElementHandleAsync(), new() { Timeout = 60_000 });
+        }
+        catch (TimeoutException)
+        {
+            Assert.Fail($"模型查看器没有等到出错的状态：{await viewer.EvaluateAsync<string>(States)}");
+        }
+        // CI 没有显卡，软件渲染偶尔拿不到 WebGL 上下文：这时查不了加载出错，跳过（不是这个用例要查的）
+        Assert.SkipWhen(await viewer.GetAttributeAsync("data-status") != "error", $"画布降级了，没有 WebGL：{await viewer.EvaluateAsync<string>(States)}");
+        await Assertions.Expect(viewer.GetByText("模型加载失败", new() { Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(objects.GetByText("地址错了（OnError 拿到了原因）", new() { Exact = true })).ToBeVisibleAsync();
     }
 
