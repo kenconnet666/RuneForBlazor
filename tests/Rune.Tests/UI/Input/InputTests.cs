@@ -112,7 +112,8 @@ public class InputTests : BunitContext
 
         // 显示 85%；给键盘加减（JS）的范围与步长都按百分数
         var input = cut.Find("input");
-        Assert.Equal(0.85m.ToString("P0", CultureInfo.CurrentCulture), input.GetAttribute("value"));
+        // 按语言包的文化（zh-CN）格式化，不跟运行测试的机器的文化走
+        Assert.Equal("85%", input.GetAttribute("value"));
         Assert.Equal(("85", "0", "100", "5"), (input.GetAttribute("aria-valuenow"), input.GetAttribute("aria-valuemin"), input.GetAttribute("aria-valuemax"), input.GetAttribute("data-step")));
 
         // 输入 90 得 0.9（之前被夹成 1）；带着百分号改也认
