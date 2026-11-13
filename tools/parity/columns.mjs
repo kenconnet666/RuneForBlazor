@@ -50,7 +50,8 @@ function only(layout, keep) {
   });
 }
 
-const kebab = (name) => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/([A-Z])([A-Z][a-z])/g, '$1-$2').toLowerCase();
+// 同 vue 文档站 nav.ts 的 kebab：Button → button，IconButton → icon-button，QRCode → qrcode
+const kebab = (name) => name.replace(/(?<=[a-z0-9])([A-Z])/g, '-$1').toLowerCase();
 const vue = new Map();
 for (const path of files(join(options.vue, 'apps/docs/src/components'), (name) => name === 'docs.tsx'))
   vue.set(kebab(path.split(/[\\/]/).at(-2)), layoutOf(readFileSync(path, 'utf8')));

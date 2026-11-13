@@ -43,6 +43,15 @@ MSYS_NO_PATHCONV=1 node tools/parity/pages.mjs --pages=/,/components/button --th
 
 报告写到 `artifacts/parity/_pages/report.md`。正式文档站的对照计划见 `docs/DOCS-SITE.md`。
 
+## 页面骨架（读源码，不用开站点）
+
+```bash
+node tools/parity/columns.mjs           # 每页示例的分列与顺序，缺的示例；--apply 照 vue 重排
+node tools/parity/titles.mjs            # 页面的标题、侧栏里的顺序、示例的 id 与标题
+```
+
+两个脚本都读 vue-tsx-pro 文档站的 `docs.tsx` 与本库的 `XxxPage.razor`；有意不同的（参数名、本库多出来的示例）记在 `docs/DOCS-SITE.md`。
+
 ## 文档页怎么写才能对上
 
 - 页面在 `apps/Rune.Docs.Content`（测试台按 `/static/button` 打开 `/components/button` 那一页），示例用 `Example`，`Id` 同 vue-tsx-pro 文档站示例的 id，
