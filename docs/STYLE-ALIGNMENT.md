@@ -88,3 +88,12 @@
      TagsInput 允许自己输入时打字不自动高亮第一条建议；触屏：NavList 紧凑分组点图标弹出子项、ContextMenu 按住 700ms 打开、Splitter 与 ResizeHandle 在粗指针下扩大命中区；
      只读 / 不可用的表单里 Autocomplete 不可用时隐藏 input 不提交；NavBar 收进下拉与“更多”的项也带徽标。ConditionBuilder、CodeEditor、NotificationList、Diagram 的几条随对应组件。
    - 0.24.0 新属性：Switch 的 description / propsDescription；ColumnTable 的 empty（没有行时表体里一行占满，默认“暂无数据”）。
+7. vue 0.25.0（`6e7b07b7..fffc0c7f`），2026-11-14 收到通知，还没跟（细节以 vue 的 CHANGELOG.md 的 0.25.0 一节为准）：服务端渲染后的时区与日历的“今天”。
+   - 时区（语言没配置 timeZone 时）：服务端固定按 UTC 渲染时刻，不取服务器所在的时区；水合时先按 UTC，挂载后换成浏览器的时区，文字与悬停提示都改过来。
+     涉及 useFormat 的 date / relative（DateTime、RelativeTime、表格的日期列）、Countdown、日历的“今天”、TimelineChart。语言配置了 timeZone 的不变。
+   - 日历的“今天”（Calendar、RangeCalendar、QuarterCalendar、CalendarBoard）：服务端渲染时把渲染的时刻记在根元素上（data-now），水合时先按它算今天，
+     挂载后换成真实的今天；没有值、没指定默认日期时显示的月份（季度）也跟到真实的今天。静态生成的页面隔几天再打开，今天的标记不再停在构建那天。
+   - 新增：useTimeZone()、isServerRendering()；useDateLocale() 的返回值多了 rootAttrs()。
+   - 对 Rune 要核对的：预渲染（服务器）与交互接管（浏览器）之间有同样三样只有浏览器知道的东西——时区、今天、存在浏览器里的状态（同上一条的 0.24.0）。
+     预渲染时用确定的值（时区 UTC、渲染那一刻的今天），交互就绪后换成浏览器的；不在预渲染时取服务器本地时区。文档站是静态导出的，“今天停在构建那天”
+     在 Rune 的日历页上多半也有。核对办法：浏览器时区设成和服务器不同、把系统日期往后拨几天再打开预渲染的页面，看相对时间的 title、日历的今天标记。
