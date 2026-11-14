@@ -17,6 +17,17 @@ const IDLE = 2500;
 const watched = new WeakSet();
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
+/**
+ * 总时长（秒）。直播、边录边播的片段没有时长（Infinity）：取能跳到的最远处；也没有时是 0——
+ * 进度条不可用，时间只显示已经播了多久（同 vue 的 lengthOf）
+ */
+function lengthOf(video) {
+  if (Number.isFinite(video.duration)) return video.duration;
+  const { seekable } = video;
+  const end = seekable?.length ? seekable.end(seekable.length - 1) : 0;
+  return Number.isFinite(end) ? end : 0;
+}
+
 /** 自绘控制条的播放器出现时（交互接管后）调用。 */
 export function watchVideo(root) {
   if (watched.has(root)) return;
@@ -30,7 +41,8 @@ export function watchVideo(root) {
     const video = media();
     if (!video || !root.isConnected) return;
     const showing = [...video.textTracks].findIndex((track) => track.mode === 'showing');
-    const duration = Number.isFinite(video.duration) ? video.duration : 0;
+    // 直播能跳到的范围边播边变：每次 timeupdate 都重算
+    const duration = lengthOf(video);
     const state = [
       !video.paused && !video.ended ? 1 : 0,
       video.currentTime.toFixed(1),
@@ -72,7 +84,9 @@ export function watchVideo(root) {
   };
   const seekBy = (seconds) => {
     const video = media();
-    if (video && Number.isFinite(video.duration)) video.currentTime = clamp(video.currentTime + seconds, 0, video.duration);
+    // 不知道时长（直播）时没有可以跳的范围
+    const duration = video ? lengthOf(video) : 0;
+    if (duration > 0) video.currentTime = clamp(video.currentTime + seconds, 0, duration);
   };
   const setVolume = (value) => {
     const video = media();

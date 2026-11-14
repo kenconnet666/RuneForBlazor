@@ -1,0 +1,48 @@
+@* RenderValue 自己画触发框里的内容：前面几级淡一些、最后一级正常——一眼先看到选的是什么；
+   Filter 换搜索的匹配方式：这里路径上任何一级的名称或编号对得上都算。外观与状态同其他输入框 *@
+@inherits RuneComponent
+
+<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Lg">
+    <Field Label="所属部门" Description="搜索认名称也认编号：试试“焊装”“RD”">
+        <Cascader Items="orgs" GetKey="(o, _) => o.Code" GetLabel="o => o.Name" GetChildren="o => o.Children" @bind-Value="dept"
+                  Searchable="true" Clearable="true" Filter="Matches">
+            <RenderValue Context="value">
+                @if (value.Labels.Count > 1)
+                {
+                    <TextSpan Tone="TextTone.Muted">@(string.Join(" / ", value.Labels.Take(value.Labels.Count - 1))) / </TextSpan>
+                }
+                @value.Labels[^1]
+            </RenderValue>
+        </Cascader>
+    </Field>
+    <Field Label="成本中心" Required="true" Error="@(cost is null ? "请选择成本中心" : null)">
+        <Cascader Items="orgs" GetKey="(o, _) => o.Code" GetLabel="o => o.Name" GetChildren="o => o.Children" @bind-Value="cost"
+                  Variant="InputVariant.Soft" Radius="Radius.Full" />
+    </Field>
+    <Field Label="只读" ReadOnly="true">
+        <Cascader Items="orgs" GetKey="(o, _) => o.Code" GetLabel="o => o.Name" GetChildren="o => o.Children" Value="@(["RD", "RD-SW"])" />
+    </Field>
+    <Field Label="不可用" Disabled="true">
+        <Cascader Items="orgs" GetKey="(o, _) => o.Code" GetLabel="o => o.Name" GetChildren="o => o.Children" Value="@(["RD", "RD-HW"])" />
+    </Field>
+</Grid>
+
+@code {
+    sealed record Org(string Code, string Name, Org[]? Children = null);
+
+    static readonly Org[] orgs =
+    [
+        new("MFG", "制造中心",
+        [
+            new("MFG-1", "一工厂", [new("MFG-1-ST", "冲压车间"), new("MFG-1-WD", "焊装车间")]),
+            new("MFG-2", "二工厂", [new("MFG-2-AS", "总装车间")]),
+        ]),
+        new("RD", "研发中心", [new("RD-HW", "硬件部"), new("RD-SW", "软件部")]),
+    ];
+
+    static bool Matches(IReadOnlyList<Org> path, string query) =>
+        path.Any(org => org.Name.Contains(query, StringComparison.Ordinal) || org.Code.Contains(query.ToUpperInvariant(), StringComparison.Ordinal));
+
+    IReadOnlyList<string>? dept = ["MFG", "MFG-1", "MFG-1-WD"];
+    IReadOnlyList<string>? cost;
+}

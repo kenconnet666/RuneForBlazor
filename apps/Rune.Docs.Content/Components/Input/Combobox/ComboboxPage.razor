@@ -14,6 +14,10 @@
             <Example Id="freeform" Title="自由输入、图标与状态" Demo="typeof(FreeformExample)">
                 <Code>AllowCustomValue</Code> 允许输入选项里没有的文字：失焦时保留，<Code>Value</Code> 为 null、文字在 <Code>InputValue</Code> 里。<Code>Icon</Code>、<Code>Variant</Code>、<Code>Radius</Code> 与只读、不可用同其他输入框。
             </Example>
+            <Example Id="submit" Title="表单提交与自定义匹配" Demo="typeof(SubmitExample)">
+                写了 <Code>Name</Code> 就随原生表单提交：提交的是选中项的值（隐藏的 input），不是输入框里显示的文字。<Code>Filter</Code> 给函数时自己决定哪些项匹配（按编号、拼音、别名）；
+                选项可以是任意数据，<Code>ToOption</Code> 映射成值、文字与说明。<Code>ShowToggle="false"</Code> 去掉展开按钮；必填没选时把错误交给外面的 Field。
+            </Example>
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="@([

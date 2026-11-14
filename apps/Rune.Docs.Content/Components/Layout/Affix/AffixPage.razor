@@ -12,5 +12,9 @@
         <Code>BackTop</Code> 在整页（或 <Code>Target</Code> 给的容器）滚过 <Code>Threshold</Code> 后出现在右下角，点了平滑滚回顶部（减少动态效果时直接跳回），
         焦点也回到开头；出现与滚回都在浏览器里，滚动时没有往返。它是一个 FloatButton，可以和客服、反馈按钮一起放进 FloatButtonGroup。
     </Example>
+    <Example Id="bottom" Title="贴在底部的提交栏" Demo="typeof(SubmitBarExample)">
+        <Code>OffsetBottom</Code> 把它贴在底边：长表单的保存、提交一直够得着，滚到表单末尾时回到原来的位置。还压着下面的内容时有阴影（<Code>Shadow="false"</Code> 关掉）、
+        写 data-stuck，<Code>OnChange</Code> 报告贴住与离开——这里用它提示下面还有没有内容。
+    </Example>
     <ApiReference Types="[typeof(Affix), typeof(BackTop)]" />
 </DocPage>

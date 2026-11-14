@@ -18,6 +18,10 @@
                 <Code>Load</Code> 按 @@ 后面的文字搜索（停下 300 ms 后请求，只采用最后一次，被顶掉的请求经 CancellationToken 取消），
                 选项用 <Code>ToOption</Code> 映射、<Code>ChildContent</Code> 自己渲染。搜索换掉选项之后，提及过的人仍按见过的选项认出来。
             </Example>
+            <Example Id="prefix" Title="换触发字符、字数与显示" Demo="typeof(TopicsExample)">
+                <Code>Prefix</Code> 换成别的触发字符（# 引用单据、话题），<Code>MentionText</Code> 与 <Code>MentionSegments</Code> 要写同一个。<Code>Empty</Code> 是没有匹配时列表里的一句话；
+                <Code>ShowCount</Code>、<Code>Clearable</Code>、<Code>Variant</Code>、只读与不可用同 Textarea。显示时 MentionText 的 <Code>ChildContent</Code> 自己渲染一个提及：做成链接、悬停卡片。
+            </Example>
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="@([

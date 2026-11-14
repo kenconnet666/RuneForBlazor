@@ -96,7 +96,8 @@ public class MediaTests : BunitContext
         Assert.Equal(("/demo.mp4", "/cover.jpg"), (video.GetAttribute("src"), video.GetAttribute("poster")));
         Assert.Equal(("-1", "paused"), (root.GetAttribute("tabindex"), root.GetAttribute("data-state")));
         Assert.Equal("播放", cut.Find("[data-rune-video-action=play]").GetAttribute("aria-label"));
-        Assert.Equal("0:00 / 0:00", cut.Find("""[data-part="time"]""").TextContent);
+        // 还不知道时长：只显示已经播了多久
+        Assert.Equal("0:00", cut.Find("""[data-part="time"]""").TextContent);
         // 没有时长之前进度不能拖
         Assert.Equal("true", cut.Find("[data-rune-video-seek] [role=slider]").GetAttribute("aria-disabled"));
         Assert.Equal(["关闭", "中文", "English"], cut.FindAll("[data-rune-video-caption]").Select(item => item.TextContent.Trim()));
@@ -122,6 +123,11 @@ public class MediaTests : BunitContext
         // 浏览器不支持全屏：没有全屏按钮
         root.TriggerEvent("onrunecommand", new CommandEventArgs { Name = "video-state", Text = "0 0.0 200.0 1.00 0 1 -1 0 0" });
         Assert.Empty(cut.FindAll("[data-rune-video-action=fullscreen]"));
+
+        // 直播（没有时长、也没有能跳的范围，JS 报 0）：时间只显示播了多久，进度条不可用
+        cut.Find("[data-rune-video]").TriggerEvent("onrunecommand", new CommandEventArgs { Name = "video-state", Text = "1 65.0 0.0 1.00 0 1 -1 0 1" });
+        Assert.Equal("1:05", cut.Find("""[data-part="time"]""").TextContent);
+        Assert.Equal("true", cut.Find("[data-rune-video-seek] [role=slider]").GetAttribute("aria-disabled"));
     }
 
     [Fact]

@@ -25,7 +25,7 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   # css-gen、theme-gen、lang-gen 的数据来源：生成 Style.Properties.g.cs、Themes.g.cs 时 vue-tsx-pro 的版本。重新生成时一起更新这里
-  VUE_TSX_PRO_REF: c2be555043fe877b17b20e9a5d3e3fe3d808c9b5
+  VUE_TSX_PRO_REF: 0de173eb1847d9ff0175248f7b3fe76624606298
 
 jobs:
   build-test:

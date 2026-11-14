@@ -1,0 +1,37 @@
+@* 换一个触发字符：# 引用单据。Prefix 两边要一致（输入框与显示）；没有匹配时列表里给一句提示（Empty）；
+   字数、清空、外观同 Textarea。显示时用 MentionText 的 ChildContent 把引用做成链接 *@
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Field Label="处理说明" Description="输入 # 引用单据：按单号过滤，引用过的单据会挂在这条说明下面">
+            <Mentions TItem="ListboxOption" Items="orders" @bind-Value="note" @bind-Mentioned="cited" Prefix="#" Rows="3" maxlength="200"
+                      ShowCount="true" Clearable="true" Variant="InputVariant.Soft">
+                <Empty>没有这个单号；只能引用近 30 天的单据</Empty>
+            </Mentions>
+        </Field>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <Small Tone="TextTone.Muted">显示出来（引用是链接）</Small>
+            <MentionText Text="@note" Options="orders" Prefix="#" Context="segment">
+                <TextLink Href="@($"#{segment.Mention!.Value}")">@segment.Text</TextLink>
+            </MentionText>
+        </Flex>
+        <Small Tone="TextTone.Muted">引用了 @cited.Count 张单据</Small>
+        <Field Label="只读（已提交的说明）">
+            <Mentions TItem="ListboxOption" Items="orders" Value="#PO-2024-0318 已到货，按 #QC-2024-0102 复检" Prefix="#" ReadOnly="true" />
+        </Field>
+    </Flex>
+</Card>
+
+@code {
+    static readonly ListboxOption[] orders =
+    [
+        new("PO-2024-0318", "PO-2024-0318", Description: "液压阀组 · 华辰精密"),
+        new("PO-2024-0325", "PO-2024-0325", Description: "密封件 · 恒通密封"),
+        new("QC-2024-0102", "QC-2024-0102", Description: "来料检验 · 不合格 3 件"),
+        new("RT-2024-0044", "RT-2024-0044", Description: "退货申请 · 待审批"),
+    ];
+
+    string? note = "#QC-2024-0102 的不合格品走退货，关联 ";
+    IReadOnlyList<string> cited = [];
+}

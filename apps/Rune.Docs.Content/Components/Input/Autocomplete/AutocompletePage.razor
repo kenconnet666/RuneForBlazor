@@ -9,6 +9,10 @@
             <Example Id="email" Title="邮箱后缀" Demo="typeof(EmailExample)">
                 <Code>Value</Code> 就是输入框里的文字，不选建议也行；要从固定的选项里选一个（值是选项的 value）时用 Combobox。建议可以随输入算出来，配 <Code>LocalFilter="false"</Code> 不再本地过滤；没有可选的建议时不弹出列表。写了 <Code>Name</Code> 时表单提交的是文字。
             </Example>
+            <Example Id="options" Title="对象数据、外观与状态" Demo="typeof(OptionsExample)">
+                建议可以是任意数据，<Code>ToOption</Code> 把它映射成选项：<Code>Label</Code> 是填进输入框的文字，<Code>Description</Code>、<Code>Icon</Code>、<Code>Group</Code> 照常显示在列表里。
+                <Code>Variant</Code>、<Code>Size</Code>、<Code>Radius</Code> 与其他输入框同一套；必填、出错、只读、不可用可以写在外面的 Field 上，也可以直接写在组件上。
+            </Example>
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="remote" Title="远程建议" Demo="typeof(RemoteExample)">

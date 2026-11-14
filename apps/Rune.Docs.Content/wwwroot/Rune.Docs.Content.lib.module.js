@@ -76,8 +76,30 @@ globalThis.runeDocsNearHolds = (names, onlyNear) => new Promise((resolve) => {
 function start() {
   if (started) return;
   started = true;
+  watchDemos();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', collect, { once: true });
   else collect();
+}
+
+// 有自己 JS 的示例（用到时才下载）：交互渲染出来的元素出现了就交给对应的模块（占位里留着的预渲染那一份马上要被换掉，不管它）
+const DEMOS = [['[data-docs-compute]', () => import('./compute.js'), 'watchCompute']];
+
+function watchDemos() {
+  const seen = new WeakSet();
+  const scan = (root) => {
+    for (const [selector, load, name] of DEMOS) {
+      const found = root.matches(selector) ? [root] : [...root.querySelectorAll(selector)];
+      for (const element of found) {
+        if (seen.has(element) || element.closest('[data-docs-hold]')) continue;
+        seen.add(element);
+        void load().then((module) => module[name](element));
+      }
+    }
+  };
+  new MutationObserver((records) => {
+    for (const { addedNodes } of records) for (const node of addedNodes) if (node instanceof Element) scan(node);
+  }).observe(document.documentElement, { childList: true, subtree: true });
+  scan(document.documentElement);
 }
 
 /** 记下每一段：两个注释之间的兄弟节点 */

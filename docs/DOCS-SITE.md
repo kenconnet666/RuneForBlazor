@@ -34,8 +34,10 @@
 2026-11-15 跟到 vue 0.26.0（`c42b2f39`）：新增 figure（插图、视频与嵌入）、page-header 两页，text 的行内语义、text-field 的搜索框、image 的备选源、
 progress 的量表照着补了。这一批没有再跑 `columns.mjs` / `titles.mjs`。
 2026-11-14 跟到 vue 0.28.0（`c2be5550`）：figure 页加“自绘的控制条”与键盘一节，视频示例改用 vue 文档站同一份片段（`wwwroot/media`，不再在浏览器里现录）；
-select 页加“原生下拉框”，选组件指南加原生下拉框、搜索框、图片与视频三行。没跟的：popover 页的“自己算位置”（拖动锚点看 computePlacement 的结果，
-要一段文档站自己的 JS）、autocomplete 页的“对象数据、外观与状态”、mentions 页的“换触发字符、字数与显示”。
+select 页加“原生下拉框”，选组件指南加原生下拉框、搜索框、图片与视频三行。
+2026-11-15 跟到 vue 0.29.0（`0de173eb`）：combobox、cascader、affix 各加一个示例，tags-input 的状态示例补齐；0.27/0.28 留下的 autocomplete、mentions 示例
+与 popover 的“自己算位置”也补上了。后者的拖动与计算在文档站自己的 `wwwroot/compute.js`（导入组件库的 `js/overlay/floating.js`），
+初始化器按 `data-docs-compute` 在示例出现时加载它。
 
 - 阶段 6：13 个页面组合组件的页面（ActionBar、AuthLayout、CommentThread、ConditionBuilder、DataImport、FilterBar、FormDialog、KanbanBoard、NotificationCenter、
   PeoplePicker、QueryTable、SlideCaptcha、StepsForm）与 PageTemplates；ThemeCustomizer 之后的主题定制页与 theme-switcher 的 thumbnail、customizer 示例；

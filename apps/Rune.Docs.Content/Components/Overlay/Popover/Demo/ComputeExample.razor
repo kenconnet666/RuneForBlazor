@@ -1,0 +1,89 @@
+@* computePlacement 是定位规则的纯函数：给锚点的矩形、浮层的大小和边界，算出浮层的左上角、最后落在哪一侧、箭头的位置。
+   拖动锚点（或聚焦后按方向键）看它翻面、贴边；这里的“视口”就是虚线框，坐标全是框里的坐标。
+   拖动与计算在浏览器里（wwwroot/compute.js 导入组件库的 js/overlay/floating.js），这里只给想要的位置与选项 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <Flex Gap="SpaceScale.Md" Align="ItemAlign.Center" Wrap="true">
+        <Select Items="placements" @bind-Value="placement" Size="Size.Sm" aria-label="想要的位置" />
+        <Switch @bind-Value="crossAxisFallback" Size="Size.Sm">上下都放不下时试左右（crossAxisFallback）</Switch>
+    </Flex>
+    <div data-docs-compute data-placement="@(placement ?? "bottom-start")" data-fallback="@(crossAxisFallback ? "true" : "false")"
+         @attributes="Attrs.Merge(StageLayer)">
+        <ButtonBase Ripple="false" data-docs-compute-anchor aria-label="锚点：拖动，或用方向键移动" @attributes="Attrs.MergeProps(AnchorLayer)">锚点</ButtonBase>
+        <div data-docs-compute-panel @attributes="Attrs.Merge(PanelLayer)">
+            <span data-docs-compute-label></span>
+            <span data-docs-compute-arrow aria-hidden="true" @attributes="Attrs.Merge(ArrowLayer)"></span>
+        </div>
+    </div>
+    <Small Tone="TextTone.Muted" data-docs-compute-result></Small>
+</Flex>
+
+@code {
+    static readonly string[] placements =
+        ["top-start", "top", "top-end", "right-start", "right", "right-end", "bottom-start", "bottom", "bottom-end", "left-start", "left", "left-end"];
+
+    static readonly Attrs StageLayer = new() { Sx = Stage };
+    static readonly Attrs AnchorLayer = new() { Sx = Anchor };
+    static readonly Attrs PanelLayer = new() { Sx = Panel };
+    static readonly Attrs ArrowLayer = new() { Sx = Arrow };
+
+    string? placement = "bottom-start";
+    bool crossAxisFallback;
+
+    static Style Stage => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        Height = CssLength.Rem(17),
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Dashed,
+        BorderColor = Colors.Border,
+        BorderRadius = Radii.Md,
+        Overflow = Overflow.Hidden,
+        // 在框里拖动锚点时不滚动页面
+        TouchAction = TouchAction.None,
+    });
+
+    // 位置由 JS 写；大小与 compute.js 里的一致（锚点 64 × 32，浮层 148 × 72）
+    static Style Anchor => Css.Define(static () => new Style
+    {
+        Position = Position.Absolute,
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        Width = 64,
+        Height = 32,
+        BorderRadius = Radii.Sm,
+        BackgroundColor = Tones.Accent.Soft,
+        Color = Tones.Accent.Text,
+        FontSize = FontSizes.Xs,
+        Cursor = Cursor.Grab,
+        UserSelect = UserSelect.None,
+    });
+
+    static Style Panel => Css.Define(static () => new Style
+    {
+        Position = Position.Absolute,
+        BoxSizing = BoxSizing.BorderBox,
+        Display = Display.Grid,
+        PlaceItems = PlaceItems.Center,
+        Width = 148,
+        Height = 72,
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = Colors.Border,
+        BorderRadius = Radii.Md,
+        BackgroundColor = Colors.SurfaceRaised,
+        BoxShadow = Shadows.Lg,
+        FontSize = FontSizes.Sm,
+        PointerEvents = PointerEvents.None,
+    });
+
+    static Style Arrow => Css.Define(static () => new Style
+    {
+        Position = Position.Absolute,
+        Width = 10,
+        Height = 10,
+        BorderRadius = Radii.Full,
+        BackgroundColor = Tones.Accent.Text,
+    });
+}

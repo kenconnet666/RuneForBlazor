@@ -1,7 +1,7 @@
 @*
     固钉（div，同 vue-tsx-pro 的 Affix）：滚动到某个位置后贴住视口（或滚动容器）的顶部、底部不走，如表单的提交栏、长表格上方的筛选条、文章的目录。
     <Affix OffsetTop="CssLength.Rem(4)"><FilterBar /></Affix>
-    <Affix OffsetBottom="CssLength.Zero" OnChange="stuck => …"><ActionBar /></Affix>
+    <Affix OffsetBottom="0" OnChange="stuck => …"><ActionBar /></Affix>
     用 CSS position: sticky：在所在的滚动容器里贴住，不脱离文档流（不用占位、不用量宽度），容器滚出去时跟着走。
     是否贴住由 JS 的 IntersectionObserver 看一个零高度的哨兵（data-rune-affix）：贴住时写 data-stuck、加阴影；给了 OnChange 才把变化报给 C#。
     sticky 只在父元素的范围里生效，祖先里有 overflow 不是 visible 的元素时相对的是它：这时把它的 id 写进 Target。

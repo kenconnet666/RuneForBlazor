@@ -18,6 +18,10 @@
                 <Code>ChangeOnSelect</Code> 时点任何一级都选中它（弹出层不关，可以继续往下选），
                 <Code>IsNodeDisabled</Code> 的项不能选也不能进入，<Code>Separator</Code> 换路径分隔。
             </Example>
+            <Example Id="display" Title="显示、搜索的匹配与状态" Demo="typeof(DisplayExample)">
+                <Code>RenderValue</Code> 自己画触发框里的内容，参数是路径上各级的文字与节点（只显示最后一级、加图标、把前几级淡化）。
+                <Code>Filter</Code> 决定搜索时一条路径算不算匹配，参数是路径上的节点与输入。<Code>Variant</Code>、<Code>Radius</Code> 与必填、只读、不可用同其他输入框，可以写在外面的 Field 上。
+            </Example>
             <Example Id="lazy" Title="按级取回" Demo="typeof(LazyExample)">
                 <Code>HasChildren</Code> 声明有下一级，进入时 <Code>LoadChildren</Code> 取回来放进数据里，期间那一列显示转圈、带 aria-busy。
                 编辑页把已选的那一枝放进初始数据（随表单返回），触发框一开始就显示得出文字；没放的级按 key 显示，打开时沿着已选的路径逐级取回来。

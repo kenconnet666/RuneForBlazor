@@ -1,0 +1,43 @@
+@* 任意数据做建议（ToOption）：选一项填进来的是它的文字，说明照常显示在下面一行；外观与状态同其他输入框 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <Field Label="收货地址" Description="常用地址作建议：输入“杭州”“路”试试，也可以自己写一个新的">
+        <Autocomplete Items="addresses" @bind-Value="address" ToOption="ToOption" Icon="Lucide.MapPin" Clearable="true" placeholder="省市区、街道、门牌号" />
+    </Field>
+    <Grid MinItemWidth="@("11rem")" Gap="SpaceScale.Md">
+        <Field Label="Variant=&quot;Soft&quot; Radius=&quot;Full&quot;">
+            <Autocomplete Items="cities" @bind-Value="city" Variant="InputVariant.Soft" Radius="Radius.Full" placeholder="城市" />
+        </Field>
+        <Field Label="Size=&quot;Sm&quot;">
+            <Autocomplete Items="cities" @bind-Value="city" Size="Size.Sm" placeholder="城市" />
+        </Field>
+        <Field Label="必填" Required="true" Error="@(string.IsNullOrEmpty(city) ? "请填写城市" : null)">
+            <Autocomplete Items="cities" @bind-Value="city" placeholder="城市" />
+        </Field>
+        <Field Label="只读">
+            <Autocomplete Items="cities" Value="杭州" ReadOnly="true" />
+        </Field>
+        <Field Label="不可用">
+            <Autocomplete Items="cities" Value="杭州" Disabled="true" />
+        </Field>
+    </Grid>
+</Flex>
+
+@code {
+    sealed record Address(string Id, string Text, string Note);
+
+    static readonly Address[] addresses =
+    [
+        new("hz", "杭州市余杭区文一西路 969 号", "总部 · 工作日 9:00–18:00 收货"),
+        new("nb", "宁波市北仑区明州西路 88 号", "一号仓 · 全天收货"),
+        new("sz", "苏州市工业园区星湖街 328 号", "研发中心 · 前台代收"),
+    ];
+
+    static readonly string[] cities = ["杭州", "宁波", "苏州", "无锡", "成都"];
+
+    static ListboxOption ToOption(Address item) => new(item.Id, item.Text, Description: item.Note);
+
+    string? address;
+    string? city;
+}

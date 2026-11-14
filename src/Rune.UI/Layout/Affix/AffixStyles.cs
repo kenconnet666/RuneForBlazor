@@ -22,13 +22,16 @@ internal static class AffixStyles
     /// <summary>在 FloatButtonGroup 里的回到顶部：没出现时不占位。</summary>
     internal static readonly Attrs BackTopInGroup = new() { Sx = BackTopCollapsed };
 
+    // 带部件标记（data-scope="affix"、data-part="root"），同别的组件，使用方的样式表能选中它
     static readonly Attrs[] Roots =
     [
-        new() { Sx = Sx.Of(RootStyle, TopStyle) },
-        new() { Sx = Sx.Of(RootStyle, TopStyle, ShadowStyle) },
-        new() { Sx = Sx.Of(RootStyle, BottomStyle) },
-        new() { Sx = Sx.Of(RootStyle, BottomStyle, ShadowStyle) },
+        RootOf(Sx.Of(RootStyle, TopStyle)),
+        RootOf(Sx.Of(RootStyle, TopStyle, ShadowStyle)),
+        RootOf(Sx.Of(RootStyle, BottomStyle)),
+        RootOf(Sx.Of(RootStyle, BottomStyle, ShadowStyle)),
     ];
+
+    static Attrs RootOf(Sx sx) => new() { Sx = sx, ["data-scope"] = "affix", ["data-part"] = "root" };
 
     /// <summary>sticky 的那层：贴顶或贴底，贴住时要不要阴影。</summary>
     internal static Attrs Root(bool bottom, bool shadow) => Roots[(bottom ? 2 : 0) + (shadow ? 1 : 0)];

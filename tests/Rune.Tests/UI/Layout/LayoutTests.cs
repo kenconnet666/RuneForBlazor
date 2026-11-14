@@ -167,6 +167,7 @@ public class LayoutTests : BunitContext
         var top = Render<Affix>(p => p.Add(x => x.OffsetTop, CssLength.Rem(4)).Add(x => x.Target, "panel").AddChildContent("<p>操作条</p>"));
         var sticky = top.Find("[data-rune-affix]");
         Assert.Equal("top", sticky.GetAttribute("data-rune-affix"));
+        Assert.Equal(("affix", "root"), (sticky.GetAttribute("data-scope"), sticky.GetAttribute("data-part")));
         Assert.Equal("panel", sticky.GetAttribute("data-target"));
         Assert.True(sticky.PreviousElementSibling!.HasAttribute("data-rune-affix-sentinel"));
         Assert.False(sticky.HasAttribute("data-rune-affix-report"));

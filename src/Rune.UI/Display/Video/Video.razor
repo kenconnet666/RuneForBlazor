@@ -192,7 +192,8 @@ else
         var lang = Config.Lang;
         return @<div @attributes="Attrs.Merge(parts[VideoPart.Controls], PropsControls, ControlsManaged)">
             @ControlButton(parts, playing ? BuiltInIcons.Pause : BuiltInIcons.Play, playing ? lang.VideoPause : lang.VideoPlay, "play")
-            <span @attributes="Attrs.Merge(parts[VideoPart.Time])">@Clock(current) / @Clock(duration)</span>
+            @* 不知道时长（直播、边录边播）时只显示已经播了多久 *@
+            <span @attributes="Attrs.Merge(parts[VideoPart.Time])">@(duration > 0 ? $"{Clock(current)} / {Clock(duration)}" : Clock(current))</span>
             @* 拖动进度、音量由 JS 直接改 video（rune-slide），这里只跟着 video 的状态显示 *@
             <Slider TValue="double" Value="current" ValueChanged="v => current = v" Min="0" Max="@(duration > 0 ? duration : 1)" Step="1" BigStep="10"
                     Size="Size.Xs" Disabled="duration == 0" aria-label="@lang.VideoSeek" ValueText="@(v => lang.VideoTime(Clock(v), Clock(duration)))"

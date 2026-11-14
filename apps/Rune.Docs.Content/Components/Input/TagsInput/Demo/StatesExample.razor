@@ -1,11 +1,17 @@
 @inherits RuneComponent
 
+@* 前置图标、个数上限、外观与状态；Field 的 Required、ReadOnly、Disabled 交给里面的输入框。
+   AcceptOnBlur 关掉后，失焦时没确认的文字留在框里，不自动变成标签（收件人这类要确认的输入） *@
+
 <Grid MinItemWidth="@CssLength.Rem(16)" Gap="SpaceScale.Lg">
     <Field Label="话题" Description="@($"最多 3 个，已有 {hashTags.Count} 个")">
         <TagsInput TItem="string" @bind-Value="hashTags" Max="3" Icon="Lucide.Hash" Clearable="true" placeholder="输入后回车" />
     </Field>
     <Field Label="关键词" Required="true" Error="@(requiredTags.Count > 0 ? null : "至少填一个关键词")">
         <TagsInput TItem="string" @bind-Value="requiredTags" Variant="InputVariant.Soft" placeholder="逗号或分号分隔" />
+    </Field>
+    <Field Label="收件人" Description="回车才算一个；失焦时没确认的文字留在框里">
+        <TagsInput TItem="string" @bind-Value="recipients" AcceptOnBlur="false" Radius="Radius.Full" Name="to" placeholder="邮箱，回车确认" />
     </Field>
     <Field Label="只读" ReadOnly="true">
         <TagsInput TItem="string" Value="fixedTags" />
@@ -21,4 +27,6 @@
     IReadOnlyList<string> hashTags = ["vue", "tsx"];
 
     IReadOnlyList<string> requiredTags = [];
+
+    IReadOnlyList<string> recipients = ["lin@company.cn"];
 }

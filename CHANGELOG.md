@@ -4,7 +4,22 @@
 1.0 之前次版本号的升级可能带破坏性改动，会写在对应版本的“破坏性改动”里。发版见 `.github/workflows/release.yml`：
 推送 `v` 开头的 tag（与 `Directory.Build.props` 的 `VersionPrefix` 一致、这里有对应的一节），CI 通过后推送到 nuget.org。
 
-## [Unreleased]
+## [0.19.0] - 2026-11-15
+
+对齐 vue-tsx-pro 0.29.0（`c2be5550..0de173eb`）。
+
+### 改进
+
+- Video 的自绘控制条认不知道时长的视频（直播、边录边播）：时间只显示已经播了多久，进度条不可用，方向键不把进度跳回开头；
+  有可以回看的范围时取范围的末尾当时长
+- Affix 的根元素带部件标记（`data-scope="affix"`、`data-part="root"`），同别的组件
+- Mentions 新增 `Clearable`（交给里面的 Textarea，与字数计数叠在同一列）
+
+### 文档站
+
+- Combobox“表单提交与自定义匹配”、Cascader“显示、搜索的匹配与状态”、Affix“贴在底部的提交栏”、Autocomplete“对象数据、外观与状态”、
+  Mentions“换触发字符、字数与显示”、Popover“自己算位置”（拖动锚点看 `js/overlay/floating.js` 的 computePlacement 怎么翻面、贴边）；
+  TagsInput 的状态示例补了 `AcceptOnBlur`、`Radius`、`Name`
 
 ## [0.18.0] - 2026-11-14
 
@@ -236,7 +251,8 @@
 - 每个部件带 `data-scope` / `data-part` 标记，都有 `PropsXxx` 部件属性，组合组件把里面每层的部件属性转发出去
 - 组件规格与 vue-tsx-pro 的 `/spec/components.json` 逐项比对（`tests/Rune.Tests/Parity`），差异记在基线里
 
-[Unreleased]: https://github.com/kenconnet666/RuneForBlazor/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/kenconnet666/RuneForBlazor/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.19.0
 [0.18.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.18.0
 [0.17.1]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.17.1
 [0.17.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.17.0

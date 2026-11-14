@@ -13,7 +13,7 @@
 @typeparam TItem
 @inherits UIComponent
 
-<Textarea @ref="textarea" Value="@Value" ValueChanged="SetTextAsync" ValueExpression="ValueExpression" Rows="Rows" MaxRows="MaxRows" Fixed="Fixed" ShowCount="ShowCount"
+<Textarea @ref="textarea" Value="@Value" ValueChanged="SetTextAsync" ValueExpression="ValueExpression" Rows="Rows" MaxRows="MaxRows" Fixed="Fixed" ShowCount="ShowCount" Clearable="Clearable"
           Variant="Variant" Size="Size" Radius="Radius" Disabled="Disabled" ReadOnly="ReadOnly" Required="Required" Invalid="Invalid"
           @attributes="Attrs.MergeProps(null, Rest, TextareaManaged)" />
 <ListPopover TItem="TItem" Id="@PopoverId" AnchorId="@TextareaId" ListId="@ListId" OnToggle="Toggled" Size="Size" Label="@Config.Lang.MentionsList"
@@ -60,6 +60,9 @@
 
     /// <summary>显示字数计数，上限取 maxlength（同 Textarea）。</summary>
     [Parameter] public bool ShowCount { get; set; }
+
+    /// <summary>有内容时显示清空按钮（同 Textarea；与字数计数叠在结束边的同一列）。</summary>
+    [Parameter] public bool Clearable { get; set; }
 
     /// <summary>外壳的样式（同 Textarea）。</summary>
     [Parameter] public InputVariant? Variant { get; set; }

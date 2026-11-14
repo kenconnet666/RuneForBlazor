@@ -1,0 +1,60 @@
+@inherits RuneComponent
+
+@* 放进原生表单：Name 用隐藏的 input 提交选中的值（编号，不是显示的名称）；Filter 换匹配方式——按编号或名称；
+   ShowToggle="false" 去掉展开按钮（选项少、主要靠输入时） *@
+<form @onsubmit="Submit" @onsubmit:preventDefault data-enhance="false" novalidate>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        <Field Label="物料" Required="true" Description="按编号或名称搜：输入 6204、螺栓 都行" Error="@(tried && material is null ? "请选择物料" : null)">
+            <Combobox Items="materials" @bind-Value="material" ToOption="ToOption" Filter="Matches" Name="material" Clearable="true" placeholder="编号或名称" />
+        </Field>
+        <Field Label="单位">
+            <Combobox Items="units" @bind-Value="unit" Name="unit" ShowToggle="false" />
+        </Field>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm" Wrap="true">
+            <Button Type="submit" Size="Size.Sm">提交</Button>
+            <Small Tone="TextTone.Muted" aria-live="polite">
+                @if (submitted is not null)
+                {
+                    <text>表单提交的是值：<Code>@submitted</Code></text>
+                }
+                else
+                {
+                    <text>还没提交</text>
+                }
+            </Small>
+        </Flex>
+    </Flex>
+</form>
+
+@code {
+    sealed record Material(string Code, string Name, string Spec);
+
+    static readonly Material[] materials =
+    [
+        new("B-6204", "深沟球轴承", "20 × 47 × 14"),
+        new("B-6205", "深沟球轴承", "25 × 52 × 15"),
+        new("F-M8-30", "六角螺栓", "M8 × 30，8.8 级"),
+        new("S-OR-25", "O 形密封圈", "内径 25，线径 2.65"),
+        new("H-V-10", "液压阀组", "10 通径，24 V"),
+    ];
+
+    static readonly string[] units = ["件", "套", "箱", "千克"];
+
+    static ListboxOption ToOption(Material item) => new(item.Code, $"{item.Name} {item.Spec}", Description: item.Code);
+
+    static bool Matches(Material item, string query) =>
+        item.Code.Contains(query, StringComparison.OrdinalIgnoreCase) || item.Name.Contains(query, StringComparison.Ordinal);
+
+    string? material;
+    string? unit = "件";
+    bool tried;
+    string? submitted;
+
+    // 和原生表单提交的一样：隐藏 input 里是选中项的值
+    void Submit()
+    {
+        tried = true;
+        if (material is null) return;
+        submitted = $"material={material}, unit={unit}";
+    }
+}
