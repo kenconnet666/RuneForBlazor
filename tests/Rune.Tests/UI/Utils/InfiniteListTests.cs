@@ -78,7 +78,9 @@ public class InfiniteListTests : BunitContext
 
         var first = list.ParamsChangedAsync();
         var second = list.ParamsChangedAsync();
-        await Task.WhenAll(first, Task.Delay(120, Xunit.TestContext.Current.CancellationToken));
+        // 第一次被第二次顶掉；第二次停手 50ms 后请求。不按固定时长等：CI 的机器忙时计时器会晚到，等到有请求为止
+        await first;
+        await WaitUntil(() => pages.Calls.Count > 0);
         Assert.Single(pages.Calls);
         pages.Calls[0].Result.SetResult(new([1], default, false));
         await second;
