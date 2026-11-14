@@ -4,9 +4,9 @@
 1.0 之前次版本号的升级可能带破坏性改动，会写在对应版本的“破坏性改动”里。发版见 `.github/workflows/release.yml`：
 推送 `v` 开头的 tag（与 `Directory.Build.props` 的 `VersionPrefix` 一致、这里有对应的一节），CI 通过后推送到 nuget.org。
 
-## [Unreleased]
+## [0.18.0] - 2026-11-14
 
-对齐 vue-tsx-pro 0.26.0（`9afdc156..c42b2f39`，0.22.0–0.26.0）：它审查出的问题逐项在 Rune 里对照，同样有的一并修掉；新增的组件、参数照着补上。
+对齐 vue-tsx-pro 0.28.0（`9afdc156..c2be5550`，0.22.0–0.28.0）：它审查出的问题逐项在 Rune 里对照，同样有的一并修掉；新增的组件、参数照着补上。
 
 ### 破坏性改动
 
@@ -20,6 +20,7 @@
 - **NumberField** 的百分比格式（`Format="P0"`、自定义格式里带 `%`）编辑时输入的是百分数：显示 `85%`，输入 `90` 得到 `0.9`
   （之前输入 `90` 被夹成 `100%`，方向键也按值本身加减）。带着百分号输入（`45 %`）也认。原来按小数输入的用法（输入 `0.9`）改成输入 `90`
 - **TableHeaderCell** 在表体、表尾里默认 `scope="row"`（之前都是 `col`）；要列标题时写 `Scope="col"`
+- **NativeSelect** 的 `Placeholder` 是选不了、不出现在列表里的占位项（同 vue）：选过以后不能再选回“没选”（之前不必填时可以）
 - **ImageCropper** 的图片默认带 `crossorigin="anonymous"`（别的域名的图不按跨域取的话 canvas 导不出来）：对方不允许跨域的图不再显示，
   要照旧显示（不导出）用 `PropsImage` 改掉
 
@@ -47,16 +48,23 @@
   （DataTable 页最长的卡顿 7.4 秒 → 1.6 秒，外壳可以操作的时刻 7.8 秒 → 2.9 秒；全部换完因为多排几遍版慢约两成）
   只换视口附近的小节，其余的滚到附近才换；带 #锚点打开时先换眼前的那一节，页面不再在接管后被拉回顶部
 
+- 浮层定位不再用 Floating UI（同 vue-tsx-pro 0.27.0）：位置由组件库自己的纯函数算，想要的一侧放不下换对侧，两侧都放不下时选空间大的一侧
+  （之前选溢出最少的），坐标对齐到设备像素（文字、细边框不发虚），箭头对准锚点中间；`_content/RuneForBlazor.UI/vendor/floating-ui.*` 已删除
+- Textarea（连带 Mentions）同时可清空、显示字数时，清空按钮与计数叠在结束边的同一列（清空在上、计数在下），不再各占一列
+- 错误汇总（FormErrorSummary）的链接是危险色；日历的标题按钮换成 ButtonBase（悬停、按下、焦点环与别的按钮一致）
+
 ### 新增
 
 - **新组件**：文字 `Sub`、`Sup`（上下标，不撑高所在的行）、`Del`、`Ins`（文档的增删）、`Strike`（不再有效的内容）；`Abbr`（缩写，全称在提示里，
   悬停、键盘聚焦、触屏点按都看得到）；`Figure`（带说明的插图）；`AspectRatio`（定比例的框）；`Embed`（iframe：定比例、延迟加载、加载完之前是骨架）；
-  `Video`（原生控制条、封面、多种格式、字幕，减少动态效果时不自动播放）；`SearchField`（搜索框：`OnSearch` 只在停手、回车、清空时调用）；
+  `Video`（原生控制条、封面、多种格式、字幕，减少动态效果时不自动播放；`Controls="VideoControls.Custom"` 换成跟主题走的控制条：
+  播放、进度、音量、字幕与倍速菜单、全屏，播放中自动收起，键盘 Space / K、← →、↑ ↓、M、F）；`SearchField`（搜索框：`OnSearch` 只在停手、回车、清空时调用）；
   页面组合 `PageHeader`（面包屑、返回、标题与标记、说明、操作）
+- **NativeSelect**：`ItemGroup`（排进 optgroup）、`ItemDisabled`；只读时别的选项选不了、带 `aria-readonly`；没选时占位文字用占位色；点外壳的空白处打开系统的列表
 - **新参数**：Image 的 `Sources`（渲染成 picture）；Progress 的 `Bands`（量表，`role="meter"`，值落在哪一段用哪一段的色调）；Blockquote 的 `Source` /
   `SourceContent` / `PropsSource`；Switch 的 `Description` / `PropsDescription`；ColumnTable 的 `Empty`（没有行时表体里一行，默认“暂无数据”）；
   Avatar 的 `Decorative`（名字已经写在旁边时对读屏隐藏，UserButton 展开时自动带上）；Pagination、PaginationBar、PageSizeSelect、PageJump 的 `Disabled`
-- 语言包新增 `CopyFailed`、`FloatButtonMore`，页面组合的文案新增 `PageHeaderBack`、`NotificationsNoMatch`、`DataImportFailed`：自己写了完整语言包的要补上
+- 语言包新增 `CopyFailed`、`FloatButtonMore`、视频控制条的 12 条（`VideoPlay` … `VideoExitFullscreen`），页面组合的文案新增 `PageHeaderBack`、`NotificationsNoMatch`、`DataImportFailed`：自己写了完整语言包的要补上
 - ModelViewer 的状态多了 fallback（没有 WebGL、显示的是 Fallback 内容时：不转圈、不标忙碌）
 - 触屏：ContextMenu 按住 700ms 打开（iOS 的 Safari 长按不发 contextmenu）；紧凑的 NavGroup 点图标弹出子项；Splitter、ResizeHandle 能按到的范围扩到 24px 以上
 - 部件属性：NavBar 的 `PropsItem` / `PropsLink` / `PropsTrigger`（各有按项给的 `PropsItemFor` / `PropsLinkFor` / `PropsTriggerFor`）与 `PropsMore`；
@@ -226,7 +234,8 @@
 - 每个部件带 `data-scope` / `data-part` 标记，都有 `PropsXxx` 部件属性，组合组件把里面每层的部件属性转发出去
 - 组件规格与 vue-tsx-pro 的 `/spec/components.json` 逐项比对（`tests/Rune.Tests/Parity`），差异记在基线里
 
-[Unreleased]: https://github.com/kenconnet666/RuneForBlazor/compare/v0.17.1...HEAD
+[Unreleased]: https://github.com/kenconnet666/RuneForBlazor/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.18.0
 [0.17.1]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.17.1
 [0.17.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.17.0
 [0.16.0]: https://github.com/kenconnet666/RuneForBlazor/releases/tag/v0.16.0

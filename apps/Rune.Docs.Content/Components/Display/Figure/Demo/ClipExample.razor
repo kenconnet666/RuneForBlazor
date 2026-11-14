@@ -1,7 +1,6 @@
 @inherits RuneComponent
 
-@* 视频：原生控制条、定比例的外框、封面。示例里的片段是在浏览器里现录的（一段两秒的动画，data-docs-clip，见 wwwroot/clip.js），不依赖外部文件；
-   实际使用时写 Src="/media/demo.mp4"（几种格式用 Sources），封面写 Poster *@
+@* 视频：原生控制条、定比例的外框、封面；两种格式，浏览器取第一个能播的 *@
 <Figure Caption="原生的控制条；宽高比 16 / 9，加载前就占好位置">
-    <Video aria-label="小球移动的动画" loop data-docs-clip />
+    <Video Sources="ClipMedia.Sources" Poster="@ClipMedia.Poster" aria-label="小球沿波浪线移动的动画" loop />
 </Figure>

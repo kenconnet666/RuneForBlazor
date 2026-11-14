@@ -1,18 +1,26 @@
 @*
-    视频（video，同 vue-tsx-pro 的 Video）：浏览器自己的控制条，加上固定的宽高比（加载前就占好位置）、封面、多种格式、字幕轨道。
+    视频（video，同 vue-tsx-pro 的 Video）：固定的宽高比（加载前就占好位置）、封面、多种格式、字幕轨道；控制条用浏览器自己的，或跟主题走的自绘控制条。
     <Video Src="@demo" Poster="@cover" aria-label="产品演示" />
+    <Video Src="@demo" Controls="VideoControls.Custom" aria-label="产品演示" />      自绘的控制条：倍速、字幕、全屏
     <Video Sources="@([new(clip.Av1, "video/mp4; codecs=av01.0.05M.08"), new(clip.H264, "video/mp4")])"
            Tracks="@([new(zh, "zh", "中文", Default: true)])" aria-label="安装步骤" />
-    <Video Src="@loop" Autoplay="true" loop Controls="false" aria-label="背景动画" />
+    <Video Src="@loop" Autoplay="true" loop Controls="VideoControls.None" aria-label="背景动画" />
     - 自动播放（Autoplay）：默认静音（浏览器不允许带声音的自动播放）、行内播放；系统要求减少动态效果时不自动播放，
       并显示控制条，让人自己决定要不要播（由 JS 判断，data-rune-autoplay）。
     - 画面按 contain 放进框里（不裁切），四周是黑底；不要固定比例时把 Ratio 写成 null，按视频自己的尺寸。
     - 默认只预加载元数据（preload="metadata"）；其余原生属性（loop、muted、crossorigin……）照常落到 video 上。
-    - 自绘的控制条不在这里：要倍速、清晰度、弹幕这些，用专门的播放器。
+    - Controls="VideoControls.Custom"：播放 / 暂停、进度、时间、静音与音量、字幕（有 Tracks 时）、倍速、全屏，样式跟主题；
+      播放中鼠标离开画面、或几秒不动就收起；暂停、移动鼠标、键盘聚焦、菜单开着时留着。点画面切换播放。
+      键盘（焦点在播放器里）：空格 / K 播放暂停，← → 快退快进 5 秒，↑ ↓ 音量，M 静音，F 全屏。
+      操作 video 在 JS（data-rune-video），video 的状态经 rune-command 回到这里渲染；要交互渲染，静态渲染（含接管前的预渲染）时用浏览器自己的控制条。
+      各家浏览器的原生控制条长得不一样、也不跟主题：要统一外观时用它；只要能播，用默认的原生控制条更稳。
 *@
 @namespace Rune.UI
 @inherits UIComponent
-@{ var parts = VideoStyles.Of(Ratio is null, Config.Styles); }
+@{
+    var parts = VideoStyles.Of(Ratio is null, Config.Styles);
+    var custom = IsCustom;
+}
 
 @if (Ratio is null)
 {
@@ -20,16 +28,46 @@
 }
 else
 {
-    <AspectRatio Ratio="@Ratio" @attributes="Attrs.MergeProps(parts[VideoPart.Root], PropsRoot)">@Media(parts)</AspectRatio>
+    <AspectRatio Ratio="@Ratio" @attributes="Attrs.MergeProps(custom ? customRoot.Get(parts[VideoPart.Root], static part => Attrs.Layer(part, CustomRootLayer)) : parts[VideoPart.Root], PropsRoot, custom ? CustomRootManaged : null)">
+        @Media(parts)
+        @if (custom)
+        {
+            @CustomControls(parts)
+        }
+    </AspectRatio>
 }
 
 @code {
     static readonly Attrs Defaults = new() { ["preload"] = "metadata", ["playsinline"] = true };
     // 自动播放要静音才被浏览器允许
     static readonly Attrs AutoplayDefaults = new() { ["preload"] = "metadata", ["playsinline"] = true, ["muted"] = true };
+    static readonly IReadOnlyList<double> DefaultSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
+    static readonly Attrs CustomRootLayer = new() { Sx = VideoStyles.Custom };
+    static readonly Attrs ControlsManaged = new() { ["data-rune-video-controls"] = true };
+    static readonly Attrs SliderTrack = new() { Sx = VideoStyles.SliderTrack };
+    static readonly Attrs SliderRange = new() { Sx = VideoStyles.SliderRange };
+    // 两个滑块的外框带上标记：JS 按它分辨拖的是进度还是音量
+    static readonly Attrs SeekMarker = new() { ["data-rune-video-seek"] = true };
+    static readonly Attrs VolumeMarker = new() { ["data-rune-video-volume"] = true };
 
     Memo<(Attrs Part, bool Autoplay), Attrs> mediaLayer;
     Memo<(string? Src, string? Poster, bool Controls, bool Autoplay), Attrs> managed;
+    Memo<Attrs, Attrs> customRoot;
+    Memo<bool, Attrs> customRootManaged;
+    Memo<Attrs, Attrs> seekRoot;
+    Memo<Attrs, Attrs> volumeRoot;
+    Func<CommandEventArgs, Task>? onCommand;
+
+    // 自绘控制条跟着 video 的状态（JS 发来的 video-state）
+    bool playing;
+    double current;
+    double duration;
+    double volume = 1;
+    bool muted;
+    double speed = 1;
+    int caption = -1;
+    bool fullscreen;
+    bool fullscreenSupported = true;
 
     /// <summary>视频地址；有几种格式时用 <see cref="Sources"/>。</summary>
     [Parameter] public string? Src { get; set; }
@@ -43,27 +81,88 @@ else
     /// <summary>文本轨道：字幕、说明。</summary>
     [Parameter] public IReadOnlyList<VideoTrack>? Tracks { get; set; }
 
-    /// <summary>宽高比（CSS 的写法），默认 16 / 9；null 时不定比例，按视频自己的尺寸。</summary>
+    /// <summary>宽高比（CSS 的写法），默认 16 / 9；null 时不定比例，按视频自己的尺寸（自绘的控制条需要外框，这时仍用浏览器的）。</summary>
     [Parameter] public string? Ratio { get; set; } = "16 / 9";
 
-    /// <summary>显示浏览器的控制条，默认显示；自动播放的装饰视频可以关掉（减少动态效果时仍会显示）。</summary>
-    [Parameter] public bool Controls { get; set; } = true;
+    /// <summary>控制条：浏览器自己的（默认）、自绘的（跟主题、带倍速与字幕），或不要（减少动态效果时仍会显示浏览器的）。</summary>
+    [Parameter] public VideoControls Controls { get; set; }
 
     /// <summary>自动播放：默认静音、行内播放；减少动态效果时不自动播放。</summary>
     [Parameter] public bool Autoplay { get; set; }
 
+    /// <summary>倍速菜单里的选项（自绘控制条），默认 0.5、0.75、1、1.25、1.5、2。</summary>
+    [Parameter] public IReadOnlyList<double>? Speeds { get; set; }
+
     /// <summary>外层（AspectRatio）的部件属性。</summary>
     [Parameter] public Attrs? PropsRoot { get; set; }
 
+    /// <summary>自绘控制条的部件属性。</summary>
+    [Parameter] public Attrs? PropsControls { get; set; }
+
+    /// <summary>控制条里各个按钮（IconButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsButton { get; set; }
+
+    /// <summary>进度滑块（Slider，范围是视频的时长）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSeek { get; set; }
+
+    /// <summary>音量滑块（Slider，范围是 0–1）的部件属性。</summary>
+    [Parameter] public Attrs? PropsVolume { get; set; }
+
     bool HasSources => Sources is { Count: > 0 };
 
-    Attrs Managed => managed.Get((HasSources ? null : Src, Poster, Controls, Autoplay), static k => new Attrs
+    // 自绘的控制条要画在外框里、要有 C# 跟着 video 的状态渲染：不定比例或静态渲染时用浏览器自己的
+    bool IsCustom => Controls == VideoControls.Custom && Ratio is not null && RendererInfo.IsInteractive;
+
+    // 自绘的控制条不在（不定比例、静态渲染）时 Custom 也用浏览器的
+    Attrs Managed => managed.Get((HasSources ? null : Src, Poster, Controls != VideoControls.None && !IsCustom, Autoplay), static k => new Attrs
     {
         ["src"] = k.Src,
         ["poster"] = k.Poster,
         ["controls"] = k.Controls ? true : null,
         ["data-rune-autoplay"] = k.Autoplay ? true : null,
     });
+
+    // 点画面后焦点落在播放器上（键盘才有地方接），但不多占一个 Tab 停靠点；video 的状态经 rune-command 回来
+    Attrs CustomRootManaged => customRootManaged.Get(playing, this, static (playing, owner) => new Attrs
+    {
+        ["tabindex"] = "-1",
+        ["data-rune-video"] = true,
+        ["data-state"] = playing ? "playing" : "paused",
+        ["onrunecommand"] = owner.onCommand ??= owner.OnCommandAsync,
+    });
+
+    Task OnCommandAsync(CommandEventArgs e)
+    {
+        if (e.Name != "video-state" || e.Text is null) return Task.CompletedTask;
+        // playing current duration volume muted rate caption fullscreen supported（见 video.js 的 send）
+        var values = e.Text.Split(' ');
+        if (values.Length < 9) return Task.CompletedTask;
+        double Number(int i) => double.TryParse(values[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : 0;
+        playing = values[0] == "1";
+        current = Number(1);
+        duration = Number(2);
+        volume = Number(3);
+        muted = values[4] == "1";
+        speed = Number(5);
+        caption = (int)Number(6);
+        fullscreen = values[7] == "1";
+        fullscreenSupported = values[8] == "1";
+        return Task.CompletedTask;
+    }
+
+    // 秒 → 1:05、1:02:03
+    static string Clock(double seconds)
+    {
+        if (!double.IsFinite(seconds)) return "0:00";
+        var time = TimeSpan.FromSeconds(Math.Max(0, Math.Floor(seconds)));
+        return time.TotalHours >= 1 ? time.ToString(@"h\:mm\:ss") : time.ToString(@"m\:ss");
+    }
+
+    Attrs SeekRoot(PartLayers<VideoPart> parts) => seekRoot.Get(parts[VideoPart.Seek], static part => Attrs.Layer(part, SeekMarker));
+
+    Attrs VolumeRoot(PartLayers<VideoPart> parts) => volumeRoot.Get(parts[VideoPart.Volume], static part => Attrs.Layer(part, VolumeMarker));
+
+    static string SpeedValue(double value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     RenderFragment Media(PartLayers<VideoPart> parts) =>
         @<video @attributes="Attrs.Merge(mediaLayer.Get((parts[VideoPart.Media], Autoplay), static k => Attrs.Layer(k.Part, k.Autoplay ? AutoplayDefaults : Defaults)), Rest, Managed)">
@@ -82,4 +181,66 @@ else
                 }
             }
         </video>;
+
+    // 按钮都交给 JS 操作 video（data-rune-video-action），状态回来后这里重新渲染
+    RenderFragment ControlButton(PartLayers<VideoPart> parts, IconData icon, string label, string action, bool? pressed = null) =>
+        @<IconButton Icon="icon" Label="@label" Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" data-rune-video-action="@action"
+                     aria-pressed="@(pressed is { } p ? (p ? "true" : "false") : null)" @attributes="Attrs.MergeProps(parts[VideoPart.Button], PropsButton)" />;
+
+    RenderFragment CustomControls(PartLayers<VideoPart> parts)
+    {
+        var lang = Config.Lang;
+        return @<div @attributes="Attrs.Merge(parts[VideoPart.Controls], PropsControls, ControlsManaged)">
+            @ControlButton(parts, playing ? BuiltInIcons.Pause : BuiltInIcons.Play, playing ? lang.VideoPause : lang.VideoPlay, "play")
+            <span @attributes="Attrs.Merge(parts[VideoPart.Time])">@Clock(current) / @Clock(duration)</span>
+            @* 拖动进度、音量由 JS 直接改 video（rune-slide），这里只跟着 video 的状态显示 *@
+            <Slider TValue="double" Value="current" ValueChanged="v => current = v" Min="0" Max="@(duration > 0 ? duration : 1)" Step="1" BigStep="10"
+                    Size="Size.Xs" Disabled="duration == 0" aria-label="@lang.VideoSeek" ValueText="@(v => lang.VideoTime(Clock(v), Clock(duration)))"
+                    PropsRoot="SeekRoot(parts)"
+                    PropsTrack="SliderTrack" PropsRange="SliderRange" @attributes="Attrs.MergeProps(null, PropsSeek)" />
+            @ControlButton(parts, muted || volume == 0 ? BuiltInIcons.VolumeX : BuiltInIcons.Volume2, muted ? lang.VideoUnmute : lang.VideoMute, "mute", muted)
+            <Slider TValue="double" Value="@(muted ? 0 : volume)" ValueChanged="v => volume = v" Min="0" Max="1" Step="0.05" BigStep="0.2"
+                    Size="Size.Xs" aria-label="@lang.VideoVolume" ValueText="@(v => $"{Math.Round(v * 100)}%")"
+                    PropsRoot="VolumeRoot(parts)"
+                    PropsTrack="SliderTrack" PropsRange="SliderRange" @attributes="Attrs.MergeProps(null, PropsVolume)" />
+            @if (Tracks is { Count: > 0 })
+            {
+                <Menu Placement="Placement.TopEnd">
+                    <Trigger Context="t">
+                        <IconButton Icon="BuiltInIcons.Captions" Label="@lang.VideoCaptions" Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral"
+                                    @attributes="Attrs.MergeProps(parts[VideoPart.Button], PropsButton, t)" />
+                    </Trigger>
+                    <ChildContent>
+                        <MenuRadioGroup Label="@lang.VideoCaptions" Value="@caption.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                            <MenuRadioItem Value="-1" data-rune-video-caption="-1">@lang.VideoCaptionsOff</MenuRadioItem>
+                            @for (var i = 0; i < Tracks.Count; i++)
+                            {
+                                var index = i.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                                var label = Tracks[i].Label;
+                                <MenuRadioItem @key="index" Value="@index" data-rune-video-caption="@index">@label</MenuRadioItem>
+                            }
+                        </MenuRadioGroup>
+                    </ChildContent>
+                </Menu>
+            }
+            <Menu Placement="Placement.TopEnd">
+                <Trigger Context="t">
+                    <IconButton Icon="BuiltInIcons.Gauge" Label="@lang.VideoSpeed" Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral"
+                                @attributes="Attrs.MergeProps(parts[VideoPart.Button], PropsButton, t)" />
+                </Trigger>
+                <ChildContent>
+                    <MenuRadioGroup Label="@lang.VideoSpeed" Value="@SpeedValue(speed)">
+                        @foreach (var value in Speeds ?? DefaultSpeeds)
+                        {
+                            <MenuRadioItem @key="value" Value="@SpeedValue(value)" data-rune-video-speed="@SpeedValue(value)">@SpeedValue(value)×</MenuRadioItem>
+                        }
+                    </MenuRadioGroup>
+                </ChildContent>
+            </Menu>
+            @if (fullscreenSupported)
+            {
+                @ControlButton(parts, fullscreen ? BuiltInIcons.Minimize : BuiltInIcons.Maximize, fullscreen ? lang.VideoExitFullscreen : lang.VideoFullscreen, "fullscreen")
+            }
+        </div>;
+    }
 }

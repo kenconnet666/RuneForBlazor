@@ -21,7 +21,13 @@
             <Example Id="video" Title="视频" Demo="typeof(ClipExample)">
                 <Code>Video</Code> 用浏览器自己的控制条，外面是定比例的框（<Code>Ratio</Code>），画面完整放进去、四周黑底；<Code>Poster</Code> 是封面，
                 <Code>Sources</Code> 给几种格式，<Code>Tracks</Code> 是字幕。<Code>Autoplay</Code> 默认静音、行内播放，系统要求减少动态效果时不自动播放并显示控制条。
-                倍速、清晰度这类自绘的控制条不在这里。
+                要倍速、跟主题走的控制条见下一个示例。
+            </Example>
+            <Example Id="player" Title="自绘的控制条" Demo="typeof(PlayerExample)">
+                <Code>Controls="VideoControls.Custom"</Code> 换成跟主题走的控制条：播放 / 暂停、时间与进度、静音与音量、字幕（有 <Code>Tracks</Code> 时）、
+                倍速（<Code>Speeds</Code>）、全屏。播放中鼠标离开画面、或几秒不动就收起，暂停、移动鼠标、键盘聚焦、菜单开着时留着；点画面切换播放。
+                各家浏览器的原生控制条长得不一样，要统一外观时用它；只要能播，默认的原生控制条更稳。控制条跟着 video 的状态由 C# 渲染，
+                静态渲染（以及交互接管前的预渲染）时是浏览器自己的。
             </Example>
             <Example Id="ratio" Title="固定宽高比" Demo="typeof(RatioExample)">
                 <Code>AspectRatio</Code> 的宽度跟着容器，高度按比例算，里面的元素铺满它（图片、视频按 cover 裁切）。封面、地图、播放器在加载前就占好位置，
@@ -29,5 +35,14 @@
             </Example>
         </ExampleColumn>
     </Examples>
+    <KeyboardReference Keys="@([
+        ("Space / K", "自绘控制条的视频：播放、暂停"),
+        ("← / →", "快退、快进 5 秒（焦点在进度滑块上时按滑块的步长）"),
+        ("↑ / ↓", "音量加、减"),
+        ("M", "静音、取消静音"),
+        ("F", "全屏、退出全屏"),
+    ])">
+        焦点在播放器里（画面或任何一个按钮上）时生效；控制条里的按钮、滑块、菜单都能用 Tab 走到。
+    </KeyboardReference>
     <ApiReference Types="[typeof(Figure), typeof(AspectRatio), typeof(Video), typeof(Embed)]" />
 </DocPage>

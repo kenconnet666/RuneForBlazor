@@ -22,6 +22,20 @@ internal static class TextareaStyles
     /// <summary>清空按钮贴在第一行。</summary>
     internal static Style Clear => Css.Define(static () => new Style { AlignSelf = AlignSelf.FlexStart, MarginBlockStart = Space.Xs });
 
+    /// <summary>清空与计数都有时叠成的一列：贴结束边，与文字区一样高。</summary>
+    internal static Style Trailing => Css.Define(static () => new Style
+    {
+        Display = Display.Flex,
+        FlexDirection = FlexDirection.Column,
+        AlignItems = AlignItems.FlexEnd,
+        AlignSelf = AlignSelf.Stretch,
+        FlexShrink = 0,
+    });
+
+    internal static Style StackedClear => Css.Define(static () => new Style { AlignSelf = AlignSelf.FlexEnd });
+
+    internal static Style StackedCount => Css.Define(static () => new Style { MarginBlockStart = CssLength.Auto });
+
     internal static Style Resizable => Css.Define(static () => new Style { Resize = Resize.Vertical });
 
     internal static Style MinRows(int rows) => Css.Define(rows, static rows => new Style { MinHeight = $"{rows.ToString(CultureInfo.InvariantCulture)}lh" });

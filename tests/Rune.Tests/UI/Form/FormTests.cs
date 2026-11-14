@@ -349,6 +349,30 @@ public class FormTests : BunitContext
     }
 
     [Fact]
+    public async Task 多行文本框清空与计数都有时叠在同一列_清空后计数还是原来的节点()
+    {
+        var value = "abc";
+        var cut = Render<Textarea>(p => p.Add(x => x.Value, value).Add(x => x.Clearable, true).Add(x => x.ShowCount, true)
+            .Add(x => x.ValueChanged, v => value = v ?? ""));
+
+        // 外壳里是文本框与叠起来的那一列；那一列里清空在上、计数在下
+        var column = cut.Find("textarea").NextElementSibling!;
+        Assert.Equal(["BUTTON", "SPAN"], column.Children.Select(c => c.TagName));
+        Assert.Equal("character-count", column.Children[1].GetAttribute("data-scope"));
+
+        await cut.InvokeAsync(() => cut.Find("button").Click());
+        cut.Render(p => p.Add(x => x.Value, value));
+        Assert.Equal("", value);
+        Assert.Empty(cut.FindAll("button"));
+        // 计数仍在那一列里（不随清空按钮的有无换位置）
+        Assert.Equal("character-count", cut.Find("textarea").NextElementSibling!.Children.Single().GetAttribute("data-scope"));
+
+        // 只有计数时不多包一层
+        var plain = Render<Textarea>(p => p.Add(x => x.Value, "abc").Add(x => x.ShowCount, true));
+        Assert.Equal("character-count", plain.Find("textarea").NextElementSibling!.GetAttribute("data-scope"));
+    }
+
+    [Fact]
     public void 文本框的字数计数_清空与显示密码()
     {
         var cut = Render<TextField>(p => p.Add(x => x.Value, "abc").Add(x => x.ShowCount, true).Add(x => x.Clearable, true)

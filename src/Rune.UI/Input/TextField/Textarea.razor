@@ -9,23 +9,30 @@
 
 <div @attributes="Attrs.Merge(parts[InputPart.Root], RootUserAttrs, ShellAttrs)">
     <textarea rows="@Rows" @ref="Element" @attributes="Attrs.Merge(parts[InputPart.Input], NamedInputUserAttrs, InputManaged)"></textarea>
-    @if (Clearable && !IsDisabled && !IsReadOnly && !string.IsNullOrEmpty(CurrentValue))
+    @* 清空与计数都有时叠在结束边的同一列（清空在上、计数在下），不各占一列把清空按钮挤到计数左边；
+       按参数定（不按此刻有没有清空按钮），输入、清空时计数的节点不重建 *@
+    @if (Clearable && ShowCount)
     {
-        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="() => SetValueAsync(string.Empty)"
-                     @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsClear, ClearManaged)" />
+        <span @attributes="Attrs.Merge(TrailingLayer)">
+            @Clear(parts)
+            @Count
+        </span>
     }
-    @if (ShowCount)
+    else
     {
-        <CharacterCount Count="@(CurrentValue?.Length ?? 0)" Max="MaxLength" id="@CountId" @attributes="Attrs.MergeProps(null, PropsCount, countPlacement)" />
+        @Clear(parts)
+        @Count
     }
 </div>
 
 @code {
-    // 计数贴在右下角，清空按钮贴在第一行（多行时不随内容居中）
+    // 计数贴在右下角，清空按钮贴在第一行（多行时不随内容居中）；叠在一列时清空靠结束边、计数沉到底
     static readonly Attrs countPlacement = new() { Sx = TextareaStyles.Count };
+    static readonly Attrs stackedCountPlacement = new() { Sx = Sx.Of(TextareaStyles.Count, TextareaStyles.StackedCount) };
+    static readonly Attrs TrailingLayer = new() { Sx = TextareaStyles.Trailing };
 
     Memo<(Attrs Control, string? Value, bool Fixed, string? CountId), Attrs> inputManaged;
-    Memo<string, Attrs> clearManaged;
+    Memo<(string Id, bool Stacked), Attrs> clearManaged;
     string? countId;
 
     /// <summary>有内容时显示清空按钮（右上角）。</summary>
@@ -48,7 +55,21 @@
     int? MaxLength => CharacterCounting.MaxLengthOf(AdditionalAttributes);
 
     // 清空后焦点回到文本框
-    Attrs ClearManaged => clearManaged.Get(ControlId, static id => new Attrs { Sx = TextareaStyles.Clear, ["data-rune-refocus"] = id });
+    Attrs ClearManaged => clearManaged.Get((ControlId, Clearable && ShowCount), static k => new Attrs
+    {
+        Sx = k.Stacked ? Sx.Of(TextareaStyles.Clear, TextareaStyles.StackedClear) : TextareaStyles.Clear,
+        ["data-rune-refocus"] = k.Id,
+    });
+
+    RenderFragment? Clear(PartLayers<InputPart> parts) => Clearable && !IsDisabled && !IsReadOnly && !string.IsNullOrEmpty(CurrentValue)
+        ? @<ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="() => SetValueAsync(string.Empty)"
+                        @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsClear, ClearManaged)" />
+        : null;
+
+    RenderFragment? Count => ShowCount
+        ? @<CharacterCount Count="@(CurrentValue?.Length ?? 0)" Max="MaxLength" id="@CountId"
+                           @attributes="Attrs.MergeProps(null, PropsCount, Clearable ? stackedCountPlacement : countPlacement)" />
+        : null;
 
     /// <summary>最少几行高，默认 3。</summary>
     [Parameter] public int Rows { get; set; } = 3;

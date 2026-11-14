@@ -27,5 +27,7 @@ public static class NativeSelectStyles
         PaddingInlineEnd = CssLength.Em(1.5),
         MarginInlineEnd = CssLength.Em(-1.5),
         TextOverflow = TextOverflow.Ellipsis,
+        // 没选时显示的占位项用占位色（浏览器不支持给 select 写 ::placeholder）
+        [When.Has("> option[value=\"\"]:checked")] = new() { Color = Colors.TextPlaceholder },
     });
 }

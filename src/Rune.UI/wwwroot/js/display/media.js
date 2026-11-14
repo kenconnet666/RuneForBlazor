@@ -36,7 +36,8 @@ export function markEmbed(frame) {
  */
 export function startVideo(video) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    video.controls = true;
+    // 自绘控制条一直都在
+    if (!video.parentElement?.hasAttribute('data-rune-video')) video.controls = true;
     return;
   }
   // 没静音的自动播放会被浏览器拒绝：不报错，留给人自己点

@@ -1,8 +1,13 @@
 @*
-    原生下拉选择（select）：<NativeSelect @bind-Value="city" Items="cities" Placeholder="选择城市" />
-    <NativeSelect @bind-Value="userId" Items="users.Select(u => u.Id).ToList()" ItemText="id => names[id]" />
-    选项少、不需要搜索时用它：手机上是系统自己的选择器，键盘、读屏都是原生的。需要搜索、多选、自定义选项内容时用 Select（之后提供）。
-    值可以是任何类型：选项按位置对应，ItemText 给出显示的文字（默认 ToString）。
+    原生下拉框（select）：外观同其他输入框（外壳、尺寸、出错、相连），弹出的选项列表是浏览器、系统自己的——手机上是系统的滚轮或底部列表，
+    读屏、键盘、自动填充都是原生的行为。
+    <NativeSelect @bind-Value="city" Items="cities" Placeholder="选择城市" />
+    <NativeSelect @bind-Value="userId" Items="users.Select(u => u.Id).ToList()" ItemText="id => names[id]" ItemGroup="id => teams[id]" />
+    和 Select 怎么选：选项要图标、说明、搜索、多选、远程加载，或者要和设计稿一样的弹出层，用 Select；选项只是一串文字、主要在手机上用、
+    想要最稳的原生行为，用它。
+    值可以是任何类型：选项按位置对应，ItemText 给出显示的文字（默认 ToString）；ItemGroup 给出组名的排进 optgroup（没有组的在前，各组按第一次出现的顺序）。
+    Placeholder 是第一条选不了、不出现在列表里的占位项，没选时显示它。只读：原生 select 没有只读，这里让别的选项选不了、读屏念“只读”。
+    点外壳的空白处（图标、箭头）也打开列表（浏览器支持 showPicker 时）。
 *@
 @namespace Rune.UI
 @typeparam TValue
@@ -10,26 +15,44 @@
 @{
     var shell = InputStyles.Of(Appearance with { Picker = true }, Config.Styles);
     var parts = NativeSelectStyles.Of(Config.Styles);
+    var selected = SelectedIndex;
+    var readOnly = IsReadOnly;
 }
 
 <div @attributes="Attrs.Merge(shell[InputPart.Root], RootUserAttrs, ShellAttrs)">
+    @if (Icon is not null)
+    {
+        <Icon Data="Icon" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsIcon)" />
+    }
     <select @ref="Element" @attributes="Attrs.Merge(parts[NativeSelectPart.Select], InputUserAttrs, SelectManaged)">
         @if (Placeholder is not null)
         {
-            <option value="" disabled="@IsRequired">@Placeholder</option>
+            @* 占位项：选不了、不出现在列表里（hidden），没选时显示它。selected 要写出来：静态渲染不按 select 的 value 标选项，
+               浏览器会跳过不可用的这一项、显示第一个选项 *@
+            <option value="" disabled hidden selected="@(selected < 0)">@Placeholder</option>
         }
-        @for (var i = 0; i < Items.Count; i++)
+        @foreach (var (group, indexes) in Grouped)
         {
-            <option value="@i">@TextOf(Items[i])</option>
+            if (group is null)
+            {
+                foreach (var i in indexes) { @Option(i, selected, readOnly) }
+            }
+            else
+            {
+                <optgroup @key="group" label="@group">
+                    @foreach (var i in indexes) { @Option(i, selected, readOnly) }
+                </optgroup>
+            }
         }
     </select>
-    <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(shell[InputPart.Icon], null, ChevronLayer)" />
+    <Icon Data="BuiltInIcons.ChevronDown" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsChevron, ChevronLayer)" />
 </div>
 
 @code {
     static readonly Attrs ChevronLayer = new() { Sx = NativeSelectStyles.Chevron };
 
-    Memo<(Attrs Control, int Index, string? Name), Attrs> selectManaged;
+    Memo<(Attrs Control, int Index, string? Name, bool ReadOnly), Attrs> selectManaged;
+    Memo<(IReadOnlyList<TValue> Items, Func<TValue, string?>? Group), IReadOnlyList<(string? Group, List<int> Indexes)>> grouped;
 
     /// <summary>选项。</summary>
     [Parameter, EditorRequired] public IReadOnlyList<TValue> Items { get; set; } = [];
@@ -37,10 +60,44 @@
     /// <summary>选项显示的文字；不写时用 ToString。</summary>
     [Parameter] public Func<TValue, string>? ItemText { get; set; }
 
-    /// <summary>没有选择时显示的文字（第一个空选项）；必填时这个选项不能选回去。</summary>
+    /// <summary>选项所在的组（optgroup 的标题）；null 时不在组里。</summary>
+    [Parameter] public Func<TValue, string?>? ItemGroup { get; set; }
+
+    /// <summary>选项不可用。</summary>
+    [Parameter] public Func<TValue, bool>? ItemDisabled { get; set; }
+
+    /// <summary>前置图标（同 TextField）。</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>前置图标的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>箭头的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsChevron { get; set; }
+
+    /// <summary>没有选择时显示的文字（第一条选不了的占位项）；不写时没选的话浏览器显示第一项。</summary>
     [Parameter] public string? Placeholder { get; set; }
 
     string TextOf(TValue item) => ItemText?.Invoke(item) ?? item?.ToString() ?? "";
+
+    // 按组排好的选项序号：没有组的在前，各组按第一次出现的顺序
+    IReadOnlyList<(string? Group, List<int> Indexes)> Grouped => grouped.Get((Items, ItemGroup), static k =>
+    {
+        if (k.Group is null) return [(null, Enumerable.Range(0, k.Items.Count).ToList())];
+        var groups = new List<(string? Group, List<int> Indexes)> { (null, []) };
+        for (var i = 0; i < k.Items.Count; i++)
+        {
+            var name = k.Group(k.Items[i]);
+            var at = groups.FindIndex(g => g.Group == name);
+            if (at < 0) groups.Add((name, [i]));
+            else groups[at].Indexes.Add(i);
+        }
+        return groups;
+    });
+
+    // 只读：别的选项选不了，当前的值照常显示、照常提交
+    RenderFragment Option(int index, int selected, bool readOnly) =>
+        @<option value="@index" selected="@(index == selected)" disabled="@(ItemDisabled?.Invoke(Items[index]) == true || (readOnly && index != selected))">@TextOf(Items[index])</option>;
 
     // 当前值在选项里的位置；没有选择（或值不在选项里）时是 -1，选中空选项
     int SelectedIndex
@@ -54,10 +111,12 @@
         }
     }
 
-    // 提交的是选项的序号，绑不回模型的值：只用使用方写的 Name，不按字段生成
-    Attrs SelectManaged => selectManaged.Get((ControlAttrs, SelectedIndex, Name), this, static (k, owner) => Attrs.Merge(k.Control, new Attrs
+    // 提交的是选项的序号，绑不回模型的值：只用使用方写的 Name，不按字段生成。原生 select 没有 readonly，读屏靠 aria-readonly
+    Attrs SelectManaged => selectManaged.Get((ControlAttrs, SelectedIndex, Name, IsReadOnly), this, static (k, owner) => Attrs.Merge(k.Control, new Attrs
     {
         ["name"] = k.Name,
+        ["readonly"] = false,
+        ["aria-readonly"] = k.ReadOnly ? "true" : null,
         ["value"] = k.Index < 0 ? "" : k.Index.ToString(System.Globalization.CultureInfo.InvariantCulture),
         ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync(
             int.TryParse(e.Value as string, out var index) && index >= 0 && index < owner.Items.Count ? owner.Items[index] : default!)),

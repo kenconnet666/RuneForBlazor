@@ -1,5 +1,5 @@
 {
- "version": "0.26.0",
+ "version": "0.28.0",
  "components": {
   "Abbr": [
    {
@@ -828,10 +828,6 @@
    {
     "name": "children",
     "kind": "content"
-   },
-   {
-    "name": "empty",
-    "kind": "prop"
    },
    {
     "name": "propsRoot",
@@ -9523,6 +9519,65 @@
     "kind": "part"
    }
   ],
+  "NativeSelect": [
+   {
+    "name": "items",
+    "kind": "prop"
+   },
+   {
+    "name": "_value",
+    "kind": "prop",
+    "default": "null"
+   },
+   {
+    "name": "placeholder",
+    "kind": "prop"
+   },
+   {
+    "name": "disabled",
+    "kind": "prop"
+   },
+   {
+    "name": "readonly",
+    "kind": "prop"
+   },
+   {
+    "name": "required",
+    "kind": "prop"
+   },
+   {
+    "name": "invalid",
+    "kind": "prop"
+   },
+   {
+    "name": "propsRoot",
+    "kind": "part"
+   },
+   {
+    "name": "propsChevron",
+    "kind": "part"
+   },
+   {
+    "name": "variant",
+    "kind": "prop"
+   },
+   {
+    "name": "size",
+    "kind": "prop"
+   },
+   {
+    "name": "radius",
+    "kind": "prop"
+   },
+   {
+    "name": "icon",
+    "kind": "prop"
+   },
+   {
+    "name": "propsIcon",
+    "kind": "part"
+   }
+  ],
   "NavBar": [
    {
     "name": "items",
@@ -13533,11 +13588,13 @@
    },
    {
     "name": "disabled",
-    "kind": "prop"
+    "kind": "prop",
+    "default": "false"
    },
    {
     "name": "readonly",
-    "kind": "prop"
+    "kind": "prop",
+    "default": "false"
    }
   ],
   "Switch": [
@@ -16178,7 +16235,28 @@
     "default": "false"
    },
    {
+    "name": "speeds",
+    "kind": "prop",
+    "default": "[0.5, 0.75, 1, 1.25, 1.5, 2]"
+   },
+   {
     "name": "propsRoot",
+    "kind": "part"
+   },
+   {
+    "name": "propsControls",
+    "kind": "part"
+   },
+   {
+    "name": "propsButton",
+    "kind": "part"
+   },
+   {
+    "name": "propsSeek",
+    "kind": "part"
+   },
+   {
+    "name": "propsVolume",
     "kind": "part"
    }
   ],

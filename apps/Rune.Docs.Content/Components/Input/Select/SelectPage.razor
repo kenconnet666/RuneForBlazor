@@ -27,6 +27,9 @@
             <Example Id="appearance" Title="图标、外观与状态" Demo="typeof(AppearanceExample)">
                 <Code>Icon</Code>、<Code>Variant</Code>、<Code>Size</Code>、<Code>Radius</Code> 与其他输入框同一套。只读时能聚焦、能看到已选的内容，不能打开、不能清空；Field 上的 <Code>Required</Code>、<Code>ReadOnly</Code>、<Code>Disabled</Code>、<Code>Error</Code> 都交给里面的 Select。
             </Example>
+            <Example Id="native" Title="原生下拉框" Demo="typeof(NativeExample)">
+                <Code>NativeSelect</Code> 是原生的 select 放进输入框的外壳：外观、尺寸、出错同别的输入框，弹出的列表是浏览器、系统自己的——手机上是滚轮或底部列表，自动填充、读屏、键盘都是原生的行为。选项只是一串文字、主要在手机上用时选它；要图标、说明、搜索、多选、远程加载，用 <Code>Select</Code>。<Code>ItemGroup</Code> 给出组名的选项排进 optgroup；<Code>Placeholder</Code> 是第一条选不了的占位项；只读时别的选项选不了，读屏念“只读”。点外壳的空白处也打开列表。
+            </Example>
         </ExampleColumn>
     </Examples>
     <KeyboardReference Keys="@([
@@ -42,5 +45,5 @@
     ])">
         焦点一直留在触发按钮上，高亮项经 aria-activedescendant 告诉读屏。写了 <Code>Name</Code> 时用隐藏的 input 随表单提交（多选每个值一个）。数据层与 <TextLink Href="components/listbox">Listbox</TextLink> 相同，选项多时虚拟滚动。
     </KeyboardReference>
-    <ApiReference Types="[typeof(Select<>), typeof(ListPopover<>)]" />
+    <ApiReference Types="[typeof(Select<>), typeof(NativeSelect<>), typeof(ListPopover<>)]" />
 </DocPage>

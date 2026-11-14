@@ -132,6 +132,11 @@ const BUILT_IN = [
   // 图表的导出菜单（Rune.Charts）
   'image-down',
   'file-spreadsheet',
+  // Video 的自绘控制条：静音、字幕、倍速（播放、暂停、全屏在上面）
+  'volume-2',
+  'volume-x',
+  'captions',
+  'gauge',
 ];
 
 /** 文档注释里最多列几个关键词 */

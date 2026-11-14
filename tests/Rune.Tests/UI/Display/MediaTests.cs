@@ -69,7 +69,7 @@ public class MediaTests : BunitContext
     [Fact]
     public void 视频_自动播放交给JS_默认静音_不定比例时没有外层()
     {
-        var cut = Render<Video>(p => p.Add(x => x.Src, "/loop.mp4").Add(x => x.Autoplay, true).Add(x => x.Controls, false).Add(x => x.Ratio, null));
+        var cut = Render<Video>(p => p.Add(x => x.Src, "/loop.mp4").Add(x => x.Autoplay, true).Add(x => x.Controls, VideoControls.None).Add(x => x.Ratio, null));
 
         var video = cut.Find("video");
         // 标记里不写 autoplay：减少动态效果时不该自动播放，由 JS 判断后再播
@@ -80,6 +80,61 @@ public class MediaTests : BunitContext
         Assert.False(video.HasAttribute("controls"));
         Assert.Equal("/loop.mp4", video.GetAttribute("src"));
         Assert.Empty(cut.FindAll("""[data-scope="video"][data-part="root"]"""));
+    }
+
+    [Fact]
+    public void 视频的自绘控制条_JS发来的状态决定按钮_时间与滑块()
+    {
+        var cut = Render<Video>(p => p.Add(x => x.Src, "/demo.mp4").Add(x => x.Poster, "/cover.jpg").Add(x => x.Controls, VideoControls.Custom)
+            .Add(x => x.Tracks, [new VideoTrack("/zh.vtt", "zh", "中文"), new VideoTrack("/en.vtt", "en", "English")])
+            .Add(x => x.Speeds, [1, 2]));
+
+        var root = cut.Find("[data-rune-video]");
+        var video = cut.Find("video");
+        // 自绘的控制条在：video 上不要浏览器的；地址、封面照常
+        Assert.False(video.HasAttribute("controls"));
+        Assert.Equal(("/demo.mp4", "/cover.jpg"), (video.GetAttribute("src"), video.GetAttribute("poster")));
+        Assert.Equal(("-1", "paused"), (root.GetAttribute("tabindex"), root.GetAttribute("data-state")));
+        Assert.Equal("播放", cut.Find("[data-rune-video-action=play]").GetAttribute("aria-label"));
+        Assert.Equal("0:00 / 0:00", cut.Find("""[data-part="time"]""").TextContent);
+        // 没有时长之前进度不能拖
+        Assert.Equal("true", cut.Find("[data-rune-video-seek] [role=slider]").GetAttribute("aria-disabled"));
+        Assert.Equal(["关闭", "中文", "English"], cut.FindAll("[data-rune-video-caption]").Select(item => item.TextContent.Trim()));
+        Assert.Equal(["1", "2"], cut.FindAll("[data-rune-video-speed]").Select(item => item.GetAttribute("data-rune-video-speed")));
+
+        // playing current duration volume muted rate caption fullscreen supported
+        root.TriggerEvent("onrunecommand", new CommandEventArgs { Name = "video-state", Text = "1 65.4 200.0 0.50 1 2 1 0 1" });
+
+        root = cut.Find("[data-rune-video]");
+        Assert.Equal("playing", root.GetAttribute("data-state"));
+        Assert.Equal("暂停", cut.Find("[data-rune-video-action=play]").GetAttribute("aria-label"));
+        Assert.Equal("1:05 / 3:20", cut.Find("""[data-part="time"]""").TextContent);
+        var seek = cut.Find("[data-rune-video-seek] [role=slider]");
+        Assert.Equal(("65.4", "200", "1:05，共 3:20"), (seek.GetAttribute("aria-valuenow"), seek.GetAttribute("aria-valuemax"), seek.GetAttribute("aria-valuetext")));
+        var mute = cut.Find("[data-rune-video-action=mute]");
+        Assert.Equal(("取消静音", "true"), (mute.GetAttribute("aria-label"), mute.GetAttribute("aria-pressed")));
+        // 静音时音量滑块在 0
+        Assert.Equal("0", cut.Find("[data-rune-video-volume] [role=slider]").GetAttribute("aria-valuenow"));
+        Assert.Equal("true", cut.Find("[data-rune-video-caption='1']").GetAttribute("aria-checked"));
+        Assert.Equal("true", cut.Find("[data-rune-video-speed='2']").GetAttribute("aria-checked"));
+        Assert.Equal("全屏", cut.Find("[data-rune-video-action=fullscreen]").GetAttribute("aria-label"));
+
+        // 浏览器不支持全屏：没有全屏按钮
+        root.TriggerEvent("onrunecommand", new CommandEventArgs { Name = "video-state", Text = "0 0.0 200.0 1.00 0 1 -1 0 0" });
+        Assert.Empty(cut.FindAll("[data-rune-video-action=fullscreen]"));
+    }
+
+    [Fact]
+    public void 视频的自绘控制条_静态渲染或不定比例时用浏览器的()
+    {
+        var unbounded = Render<Video>(p => p.Add(x => x.Src, "/demo.mp4").Add(x => x.Controls, VideoControls.Custom).Add(x => x.Ratio, null));
+        Assert.True(unbounded.Find("video").HasAttribute("controls"));
+        Assert.Empty(unbounded.FindAll("[data-rune-video]"));
+
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var prerendered = Render<Video>(p => p.Add(x => x.Src, "/demo.mp4").Add(x => x.Controls, VideoControls.Custom));
+        Assert.True(prerendered.Find("video").HasAttribute("controls"));
+        Assert.Empty(prerendered.FindAll("[data-rune-video-controls]"));
     }
 
     [Fact]

@@ -76,27 +76,8 @@ globalThis.runeDocsNearHolds = (names, onlyNear) => new Promise((resolve) => {
 function start() {
   if (started) return;
   started = true;
-  watchClips();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', collect, { once: true });
   else collect();
-}
-
-// “视频”示例的片段是在浏览器里现录的（clip.js，用到时才下载）：交互渲染出来的 video[data-docs-clip] 出现了就录一段给它（预渲染的那一份不录）
-function watchClips() {
-  const record = (video) => import('./clip.js').then(({ recordClip }) => recordClip(video));
-  const seen = new WeakSet();
-  const scan = (root) => {
-    for (const video of root.querySelectorAll('video[data-docs-clip]')) {
-      // 占位里留着的是预渲染的那一份（马上要被换掉）：不给它录
-      if (seen.has(video) || video.closest('[data-docs-hold]')) continue;
-      seen.add(video);
-      void record(video);
-    }
-  };
-  new MutationObserver((records) => {
-    for (const { addedNodes } of records)
-      for (const node of addedNodes) if (node instanceof Element) scan(node.matches('video[data-docs-clip]') ? node.parentElement ?? node : node);
-  }).observe(document.documentElement, { childList: true, subtree: true });
 }
 
 /** 记下每一段：两个注释之间的兄弟节点 */

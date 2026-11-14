@@ -1,0 +1,30 @@
+@inherits RuneComponent
+
+@* 原生下拉框：外壳、尺寸、出错同别的输入框，弹出的列表是系统的（手机上是滚轮或底部列表） *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="收货城市" Required="true">
+        <NativeSelect Items="cities" @bind-Value="city" ItemText="c => c!.Label" ItemGroup="c => c!.Region" ItemDisabled="c => c!.Paused" Icon="Lucide.MapPin"
+                      Placeholder="选择城市" />
+    </Field>
+    <Flex Gap="SpaceScale.Md" Wrap="true">
+        <NativeSelect Items="densities" @bind-Value="density" Size="Size.Sm" aria-label="行高" />
+        <NativeSelect Items="@(["只读的值"])" Value="@("只读的值")" ReadOnly="true" aria-label="只读" />
+        <NativeSelect Items="@(["不可用"])" Value="@("不可用")" Disabled="true" aria-label="不可用" />
+    </Flex>
+    <Small Tone="TextTone.Muted">选中的值：@(city?.Label ?? "（还没选）")</Small>
+</Flex>
+
+@code {
+    sealed record City(string Label, string Region, bool Paused = false);
+
+    static readonly City[] cities =
+    [
+        new("上海", "华东"), new("杭州", "华东"), new("南京", "华东"),
+        new("广州", "华南"), new("深圳", "华南"), new("香港（暂不配送）", "华南", Paused: true),
+    ];
+
+    static readonly string[] densities = ["紧凑", "标准", "宽松"];
+
+    City? city;
+    string density = "标准";
+}

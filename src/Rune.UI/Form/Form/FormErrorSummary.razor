@@ -19,7 +19,7 @@
                 <li>
                     @if (controlId is not null)
                     {
-                        <TextLink Href="@($"#{controlId}")" data-rune-focus="@controlId" @attributes="Attrs.MergeProps(null, PropsLink)">@text</TextLink>
+                        <TextLink Href="@($"#{controlId}")" Tone="TextTone.Danger" data-rune-focus="@controlId" @attributes="Attrs.MergeProps(null, PropsLink)">@text</TextLink>
                     }
                     else
                     {

@@ -32,7 +32,10 @@
 
 2026-11-13 按 vue `95ceb0d8` 用 `columns.mjs`、`titles.mjs` 核对过一遍：两边都有的 110 页，排布、侧栏顺序、示例的 id 一致；标题只剩下面“有意不同”的几条。
 2026-11-15 跟到 vue 0.26.0（`c42b2f39`）：新增 figure（插图、视频与嵌入）、page-header 两页，text 的行内语义、text-field 的搜索框、image 的备选源、
-progress 的量表照着补了；视频示例的片段同 vue 在浏览器里现录（`wwwroot/clip.js`）。这一批没有再跑 `columns.mjs` / `titles.mjs`。
+progress 的量表照着补了。这一批没有再跑 `columns.mjs` / `titles.mjs`。
+2026-11-14 跟到 vue 0.28.0（`c2be5550`）：figure 页加“自绘的控制条”与键盘一节，视频示例改用 vue 文档站同一份片段（`wwwroot/media`，不再在浏览器里现录）；
+select 页加“原生下拉框”，选组件指南加原生下拉框、搜索框、图片与视频三行。没跟的：popover 页的“自己算位置”（拖动锚点看 computePlacement 的结果，
+要一段文档站自己的 JS）、autocomplete 页的“对象数据、外观与状态”、mentions 页的“换触发字符、字数与显示”。
 
 - 阶段 6：13 个页面组合组件的页面（ActionBar、AuthLayout、CommentThread、ConditionBuilder、DataImport、FilterBar、FormDialog、KanbanBoard、NotificationCenter、
   PeoplePicker、QueryTable、SlideCaptcha、StepsForm）与 PageTemplates；ThemeCustomizer 之后的主题定制页与 theme-switcher 的 thumbnail、customizer 示例；

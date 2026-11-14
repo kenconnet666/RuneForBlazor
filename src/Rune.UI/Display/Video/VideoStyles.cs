@@ -43,6 +43,37 @@ public enum VideoPart
 
     /// <summary>video 元素。</summary>
     Media,
+
+    /// <summary>自绘的控制条（Controls="VideoControls.Custom"）。</summary>
+    Controls,
+
+    /// <summary>控制条里的按钮（播放、静音、字幕、倍速、全屏；IconButton）。</summary>
+    Button,
+
+    /// <summary>当前时间与时长。</summary>
+    Time,
+
+    /// <summary>进度滑块的外框。</summary>
+    Seek,
+
+    /// <summary>音量滑块的外框。</summary>
+    Volume,
+}
+
+/// <summary>视频的控制条。</summary>
+public enum VideoControls
+{
+    /// <summary>浏览器自己的控制条（默认）。</summary>
+    Native,
+
+    /// <summary>
+    /// 自绘的控制条：跟主题，带倍速与字幕菜单、全屏，播放中自动收起。要有外框（Ratio 不为 null）、要交互渲染：
+    /// 不定比例或静态渲染（含交互接管前的预渲染）时用浏览器自己的。
+    /// </summary>
+    Custom,
+
+    /// <summary>不要控制条（自动播放的装饰视频；减少动态效果时仍会显示浏览器的）。</summary>
+    None,
 }
 
 /// <summary>视频的样式（同 vue-tsx-pro 的 videoStyles）。</summary>
@@ -50,7 +81,76 @@ public static class VideoStyles
 {
     /// <summary>各部件的默认层；<paramref name="natural"/>：不定比例，按视频自己的尺寸。</summary>
     public static PartLayers<VideoPart> Of(bool natural, ComponentStyles styles) =>
-        Recipe.Of("video", natural, styles, static (bool natural, VideoPart part) => part == VideoPart.Root ? Root : natural ? Natural : Media);
+        Recipe.Of("video", natural, styles, static (bool natural, VideoPart part) => part switch
+        {
+            VideoPart.Root => Root,
+            VideoPart.Media => natural ? Natural : Media,
+            VideoPart.Controls => Controls,
+            VideoPart.Button => Button,
+            VideoPart.Time => Time,
+            VideoPart.Seek => Seek,
+            _ => Volume,
+        });
+
+    /// <summary>自绘控制条的外框：点画面后焦点在它上面（不画焦点环）；控制条收起时连鼠标指针一起藏起来（JS 写的 data-idle）。</summary>
+    internal static Style Custom => Css.Define(static () => new Style
+    {
+        OutlineStyle = OutlineStyle.None,
+        [When.Attribute("[data-idle]")] = new() { Cursor = Cursor.None },
+    });
+
+    /// <summary>深色画面上的滑块：轨道是半透明的白，走过的一段是白。</summary>
+    internal static Style SliderTrack => Css.Define(static () => new Style { BackgroundColor = $"color-mix(in srgb, {Colors.OnScrim} 30%, transparent)" });
+
+    /// <inheritdoc cref="SliderTrack"/>
+    internal static Style SliderRange => Css.Define(static () => new Style { BackgroundColor = Colors.OnScrim });
+
+    // 控制条：贴在底边，下面压一层由透明到深色的渐变，白字在任何画面上都读得清。
+    // 收起（JS 写的 data-state=hidden）：看不见、点不到；键盘聚焦到里面、菜单开着时 JS 不收起
+    static Style Controls => Css.Define(static () => new Style
+    {
+        Position = Position.Absolute,
+        InsetInline = 0,
+        Top = CssLength.Auto,
+        Bottom = 0,
+        Height = Height.Auto,
+        Display = Display.Flex,
+        AlignItems = AlignItems.Center,
+        Gap = Space.Xs,
+        PaddingBlock = Space.Xs,
+        PaddingInline = Space.Sm,
+        Color = Colors.OnScrim,
+        BackgroundImage = $"linear-gradient(to top, {Colors.ScrimStrong}, transparent)",
+        Transition = $"opacity {Durations.Md} {Easings.Standard}",
+        [When.Attribute("[data-state=hidden]")] = new() { Opacity = 0, PointerEvents = PointerEvents.None },
+    });
+
+    // 深色画面上的白色图标，悬停是一层浅白（同 Lightbox 的工具栏）
+    static Style Button => Css.Define(static () => new Style
+    {
+        FlexShrink = 0,
+        Color = Colors.OnScrim,
+        BackgroundColor = CssColors.Transparent,
+        [When.Hover] = new() { BackgroundColor = $"color-mix(in srgb, {Colors.OnScrim} 16%, transparent)" },
+    });
+
+    static Style Time => Css.Define(static () => new Style
+    {
+        FlexShrink = 0,
+        FontSize = FontSizes.Xs,
+        FontVariantNumeric = FontVariantNumeric.TabularNums,
+        WhiteSpace = WhiteSpace.Nowrap,
+    });
+
+    static Style Seek => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = CssLength.Em(4) });
+
+    // 音量滑块只给鼠标：手机上用机身的音量键（iOS 也不让网页改音量）
+    static Style Volume => Css.Define(static () => new Style
+    {
+        Width = CssLength.Em(4.5),
+        FlexShrink = 0,
+        [Rune.Styles.Media.CoarsePointer] = new() { Display = Display.None },
+    });
 
     static Style Root => Css.Define(static () => new Style { BorderRadius = Radii.Md, BackgroundColor = "black" });
 

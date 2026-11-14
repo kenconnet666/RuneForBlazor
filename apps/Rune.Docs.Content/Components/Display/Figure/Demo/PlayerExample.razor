@@ -1,0 +1,7 @@
+@inherits RuneComponent
+
+@* 自绘的控制条（VideoControls.Custom）：跟主题走，播放 / 暂停、进度、音量、字幕、倍速、全屏；播放中鼠标不动几秒后收起 *@
+<Figure Caption="点画面播放 / 暂停；焦点在播放器里时可以用键盘操作">
+    <Video Sources="ClipMedia.Sources" Tracks="ClipMedia.Tracks" Poster="@ClipMedia.Poster" Controls="VideoControls.Custom"
+           aria-label="小球沿波浪线移动的动画" loop />
+</Figure>

@@ -39,6 +39,7 @@
         [
             new("几个选项都要一眼看见（5 个以内）", [("RadioGroup、CheckboxGroup", "checkbox")], "单选用 RadioGroup，多选用 CheckboxGroup；要整块可点、带说明时用卡片外观（Card）。"),
             new("点开一列选一个或几个", [("Select", "select")], "同原生 select；选项多时写 Searchable，远程的给 Load（分页用 LoadPage）。"),
+            new("主要在手机上用、选项只是几行文字", [("NativeSelect", "select")], "原生 select 套上输入框的外壳：弹出的是系统的滚轮或列表；要图标、搜索、多选用 Select。"),
             new("边输入边筛选，也能输入列表里没有的", [("Combobox", "combobox")], "Select 只能选列表里有的；Combobox 的值就是输入框里的文字。"),
             new("输入为主，顺带给几条建议", [("Autocomplete", "autocomplete")], "建议只是帮着补全，不要求选中其中一项。"),
             new("选项平铺在页面上（不弹出）", [("Listbox", "listbox")], "Select、Combobox 弹出的就是它；放在侧栏、对话框里一直显示时直接用。"),
@@ -51,6 +52,7 @@
         new("input", "输入", "按值的类型挑输入框；整张表单用 Form。",
         [
             new("文字、多行文字", [("TextField、Textarea", "text-field")], "字数限制用 CharacterCount；只读展示用文字组件，不要用禁用的输入框。"),
+            new("搜索框", [("SearchField", "text-field")], "带搜索图标与清空按钮；OnSearch 只在停手、回车、清空时调用，直接拿去发请求。"),
             new("数字、金额、区间", [("NumberField", "number-field")], "步进、千分位、decimal 精确计算；区间用 NumberRangeField。"),
             new("日期、时间", [("DatePicker", "date-picker"), ("DateField", "date-field"), ("TimePicker", "time-picker")], "DatePicker 带日历弹层；DateField 是一段一段键盘输入；范围用 DateRangePicker。"),
             new("验证码、颜色、评分、滑块", [("OtpField", "otp-field"), ("ColorField", "color-field"), ("Rating", "rating"), ("Slider", "slider")], "颜色要平铺的面板（主题编辑器）时用 ColorPicker；ColorField 点色块弹出的就是它。"),
@@ -80,6 +82,7 @@
             new("一列条目（头像、标题、操作）、很长的列表", [("ItemList", "item-list"), ("VirtualList", "virtual-list")], "ItemList 的行整条可点、带开头与结尾；上万条、行的样子自己画时用 VirtualList。"),
             new("层级、原始 JSON", [("Tree", "tree"), ("JsonViewer", "json-viewer")], "Tree 可选、可勾、可拖；看接口返回、配置原样的数据用 JsonViewer。"),
             new("指标、过程、清单", [("Stat", "stat"), ("Timeline", "timeline"), ("Checklist", "checklist")], "一组数字用 Stat（可带趋势小图）；审批、物流记录用 Timeline；待办与完成情况用 Checklist。"),
+            new("图片、视频、嵌入的页面", [("Image", "image"), ("Figure、Video、Embed", "figure")], "Image 带加载态、预览与多种格式；Video、Embed 定好宽高比先占位；要图题、表题时外面套 Figure。"),
         ]),
         new("layout", "布局与导航", "页面骨架、分栏、切换与跳转。",
         [

@@ -51,7 +51,7 @@
 - ImageCropper 导出经隐藏的 InputFile 回到 C#，不受 SignalR 32 KB 限制；SignaturePad 画在 JS 里，静态 SSR 也能签。
 - Listbox、Tree 的虚拟行用 Virtualize，行在文档流里（vue 叠在同一个 grid 格子里）。
 
-### 0.23.0–0.26.0 跟进时与 vue 不同的写法
+### 0.23.0–0.28.0 跟进时与 vue 不同的写法
 
 - SearchField 继承 TextField（参数全部沿用），回车用输入框的 change 接（不用 keydown：那样每次按键都要交给 C#），所以失去焦点时还在等停手的那次也会立即触发。
 - Embed 的地址由 JS 在接上 load 之后写到 iframe 上（`data-rune-embed`），加载完没有写在外层的 `data-state`、样式跟着它，没有往返；
@@ -64,6 +64,14 @@
 - RuneProvider 的 lang、dir：语言是配置出来的才写（AddRuneUI 写了 `Lang` / `Languages`，或某一层写了 `Lang`），最外层也一样；vue 是只看这一层有没有配置。
 - AnimatedNumber 交给浏览器的 `signDisplay` 默认是 `negative`（取整后是 0 的负数不带负号），与 C# 这边的格式化一致。
 - 表格里“没写色调的行”与“已选的行”拆成两个样式：高对比下只有已选、正在看的行画系统的高亮色。
+- 浮层定位（`js/overlay/floating.js`）与 vue 的 `utils/dom/floating.ts` 逐行对应；`computePlacement` 的 9 组用例在 E2E 的 FloatingPlacementTests 里（没有 JS 单元测试工具，
+  在浏览器里导入模块跑）。Rune 定位好之前用透明加不接指针（vue 是 visibility: hidden，见 DESIGN.md 的浮层一节），新手引导的卡片也走同一个 followElement。
+- Video 的 `Controls` 是枚举 `VideoControls`（Native、Custom、None），对应 vue 的 `true` / `'custom'` / `false`。自绘控制条：操作 video 在 JS（`js/display/video.js`，
+  按钮的 `data-rune-video-action`、滑块的 rune-slide、菜单项的 `data-rune-video-caption` / `-speed`），video 的状态经 rune-command（video-state）回到 C# 渲染；
+  接管时 JS 先按 video 现在的状态发一次（vue 0.28.0 修的“预渲染页面上时长是 0:00”Rune 一开始就没有）。要 C# 跟着状态渲染，
+  所以静态渲染与交互接管前的预渲染用浏览器自己的控制条。收起只在 JS（控制条的 `data-state`、外层的 `data-idle`），键盘聚焦在里面时 JS 不收起（vue 用 `:has(:focus-visible)` 的样式）；
+  菜单里的按键全交给菜单（vue 在菜单里按 M、F、K 也会执行）。
+- NativeSelect 的值是任意类型、按位置对应选项（之前就是这样），分组与不可用用 `ItemGroup`、`ItemDisabled` 给（vue 是选项对象的 group、disabled）。
 
 ### 外观与文档站
 
@@ -92,3 +100,7 @@
    - 交互模式是 Server 时拿不到浏览器的时区：时刻按 `Lang.TimeZone`，没配置时是服务器的时区（WebAssembly 里是浏览器的）。
      预渲染的页面里时刻、日历的“今天”同样按服务器当时的；交互接管是重新渲染一遍，不会像 vue 水合那样留着旧的属性（0.25.0 修的那个问题 Rune 没有），
      但永远不交互的静态页会停在渲染那一刻。要准的话配置 `Lang.TimeZone`，或者传 `Now` / `Today`。
+7. vue 0.27.0、0.28.0（`c42b2f39..c2be5550`）已跟（2026-11-14，CI 的 `VUE_TSX_PRO_REF` 在 `c2be5550`），与 0.23.0–0.26.0 一起进 Rune 0.18.0。没有对应、留到以后的：
+   - StepsForm 的只读回看（Rune 还没有 StepsForm）。
+   - Autocomplete 去掉 `empty`：Rune 的 Autocomplete 继承 Combobox，`Empty` 参数还在（没有建议时本来就不弹出，写了也显示不出来）。
+   - 文档站 Popover 页的“自己算位置”（拖动锚点看 computePlacement 的结果）、Autocomplete 与 Mentions 新加的示例，见 DOCS-SITE.md。

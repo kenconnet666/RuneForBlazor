@@ -42,8 +42,8 @@
                     }
                     @if (coarser is { } up && !Disabled)
                     {
-                        <button type="button" aria-label="@(up == DateUnit.Month ? lang.CalendarChooseMonth(title) : lang.CalendarChooseYear(title))"
-                                @onclick="() => state.SetView(up)" @attributes="Attrs.Merge(parts[CalendarPart.Heading], PropsHeading)">@title</button>
+                        <ButtonBase aria-label="@(up == DateUnit.Month ? lang.CalendarChooseMonth(title) : lang.CalendarChooseYear(title))"
+                                    @onclick="() => state.SetView(up)" @attributes="Attrs.MergeProps(parts[CalendarPart.Heading], PropsHeading)">@title</ButtonBase>
                     }
                     else
                     {

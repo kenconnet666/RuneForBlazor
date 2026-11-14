@@ -387,13 +387,25 @@ export function closeAfterPick(target) {
   if (panel?.matches(':popover-open')) panel.hidePopover();
 }
 
-/** 点在下拉外壳的空白处（含已选标签的文字）：与点触发按钮一样切换打开。 */
+/** 点在下拉外壳的空白处（含已选标签的文字）：与点触发按钮一样切换打开；原生下拉框打开系统的选项列表。 */
 export function toggleFromShell(target) {
   const shell = target.closest('[data-rune-control]');
-  const trigger = shell?.querySelector(':scope > button[role="combobox"][popovertarget]');
-  if (!trigger || trigger.disabled || target.closest('button, a, input')) return;
-  if (pressedWhileOpen.has(shell)) return;
+  if (!shell || target.closest('button, a, input, select')) return;
+  const select = shell.querySelector(':scope > select');
+  if (select) return showNativePicker(select);
+  const trigger = shell.querySelector(':scope > button[role="combobox"][popovertarget]');
+  if (!trigger || trigger.disabled || pressedWhileOpen.has(shell)) return;
   trigger.click();
+}
+
+// 原生下拉框（NativeSelect）：点外壳的空白处（图标、箭头）打开系统的选项列表；不支持 showPicker 的浏览器只聚焦（外壳按下时已经聚焦）
+function showNativePicker(select) {
+  if (select.disabled || select.getAttribute('aria-readonly') === 'true') return;
+  try {
+    select.showPicker?.();
+  } catch {
+    // 跨域的 iframe 里浏览器不让打开：留在聚焦的状态
+  }
 }
 
 // 搜索词变了（C# 渲染了过滤后的选项）：有词时高亮第一个匹配项，清空时回到默认项；停顿后播报结果数

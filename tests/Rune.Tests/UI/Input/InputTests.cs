@@ -232,6 +232,43 @@ public class InputTests : BunitContext
         Assert.Equal(["选择城市", "北京", "上海"], cut.FindAll("option").Select(o => o.TextContent));
         select.Change("1");
         Assert.Equal("上海", city);
+        // 占位项选不了、不出现在列表里；没选时它带 selected（静态渲染不按 select 的 value 标选项，否则浏览器显示第一个城市）
+        var placeholder = cut.Find("option[value='']");
+        Assert.True(placeholder.HasAttribute("disabled"));
+        Assert.True(placeholder.HasAttribute("hidden"));
+        Assert.True(placeholder.HasAttribute("selected"));
+    }
+
+    [Fact]
+    public void 原生下拉_分组排进optgroup_没有组的在前()
+    {
+        string[] items = ["草稿", "进行中", "已完成", "已取消", "待定"];
+        var groups = new Dictionary<string, string?> { ["草稿"] = null, ["进行中"] = "处理中", ["已完成"] = "结束", ["已取消"] = "结束", ["待定"] = null };
+        var cut = Render<NativeSelect<string>>(p => p
+            .Add(x => x.Items, items)
+            .Add(x => x.ItemGroup, s => groups[s])
+            .Add(x => x.ItemDisabled, s => s == "已取消"));
+
+        var select = cut.Find("select");
+        Assert.Equal(["草稿", "待定"], select.Children.Where(c => c.TagName == "OPTION").Select(o => o.TextContent));
+        Assert.Equal(["处理中", "结束"], cut.FindAll("optgroup").Select(g => g.GetAttribute("label")));
+        Assert.Equal(["已完成", "已取消"], cut.FindAll("optgroup[label=结束] option").Select(o => o.TextContent));
+        // 选项的 value 仍是它在 Items 里的位置
+        Assert.Equal("3", cut.Find("optgroup[label=结束] option[disabled]").GetAttribute("value"));
+    }
+
+    [Fact]
+    public void 原生下拉_只读时别的选项选不了_读屏念只读()
+    {
+        var cut = Render<NativeSelect<string>>(p => p.Add(x => x.Items, ["北京", "上海"]).Add(x => x.Value, "上海").Add(x => x.ReadOnly, true));
+
+        var select = cut.Find("select");
+        Assert.Equal("true", select.GetAttribute("aria-readonly"));
+        // select 没有原生的只读
+        Assert.False(select.HasAttribute("readonly"));
+        Assert.True(cut.Find("option[value='0']").HasAttribute("disabled"));
+        Assert.False(cut.Find("option[value='1']").HasAttribute("disabled"));
+        Assert.True(cut.Find("option[value='1']").HasAttribute("selected"));
     }
 
     sealed class Signup
