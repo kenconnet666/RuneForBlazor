@@ -7,9 +7,19 @@
 @inherits RuneComponent
 @inject DocHeadings Headings
 @inject DocsData Docs
+@inject RenderQueue Queue
 
 <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
     <H2 id="api" Size="Size.Xl" Anchor="true">API</H2>
+    @* 预渲染时整段 API 两头留标记；第一页交互接管后数据（浏览器里要下载）还没到时，占位里先留着预渲染的那段 *@
+    @if (!RendererInfo.IsInteractive)
+    {
+        @((MarkupString)"<!--docs-hold:api-->")
+    }
+    else if (apis.Count == 0 && !Queue.Deferring)
+    {
+        <div data-docs-hold="api" style="display:contents"></div>
+    }
     @foreach (var api in apis)
     {
         <Flex @key="api.Component" Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
@@ -21,8 +31,8 @@
             {
                 <Paragraph Tone="TextTone.Muted">@api.Description</Paragraph>
             }
-            @* 表格多（上百个单元格）：站内换页后排在示例后面渲染 *@
-            <Queued>
+            @* 表格多（上百个单元格）：排在示例后面渲染 *@
+            <Queued Hold="@($"api-{Slug(api.Component)}")">
                 @foreach (var (kind, label) in Kinds)
                 {
                     var props = api.Props.Where(p => p.Kind == kind).ToList();
@@ -33,6 +43,10 @@
                 }
             </Queued>
         </Flex>
+    }
+    @if (!RendererInfo.IsInteractive)
+    {
+        @((MarkupString)"<!--/docs-hold:api-->")
     }
 </Flex>
 

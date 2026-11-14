@@ -4,6 +4,7 @@
     写了 Frame 时只渲染那个整页示例。
 *@
 @inherits RuneComponent
+@inject RenderQueue Queue
 
 <RuneStyles />
 @* 消息提示的宿主：示例里的 ToastService.Show 显示在这里（交互根里，与示例同一个服务作用域） *@
@@ -26,7 +27,8 @@
 }
 else
 {
-    @* data-demo-interactive：端到端测试等它变成 true 再操作（交互模式接管之前点击不会触发 C# 的处理） *@
+    @* data-demo-interactive：端到端测试等它变成 true 再操作（交互模式接管之前点击不会触发 C# 的处理；
+       示例是排队渲染的，排完之前占位里还是预渲染的静态内容，同样点不动） *@
     <p data-demo-interactive="@Interactive" @attributes="Attrs.Merge(DemoStyles.RenderInfo)">
         运行在 @RendererInfo.Name · @(RendererInfo.IsInteractive ? "已交互" : "未交互（静态渲染或预渲染）")
     </p>
@@ -48,5 +50,14 @@ else
     /// <summary>整页示例的名字：写了时只渲染这个示例（<see cref="DocFrameAttribute"/>）。</summary>
     [Parameter] public string? Frame { get; set; }
 
-    string Interactive => RendererInfo.IsInteractive ? "true" : "false";
+    string Interactive => RendererInfo.IsInteractive && !Queue.Busy ? "true" : "false";
+
+    /// <inheritdoc/>
+    protected override void OnInitialized() => Queue.BusyChanged += OnBusyChanged;
+
+    // 排队的示例开始、排完：交互标记跟着变
+    void OnBusyChanged() => InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc/>
+    protected override void OnDispose() => Queue.BusyChanged -= OnBusyChanged;
 }

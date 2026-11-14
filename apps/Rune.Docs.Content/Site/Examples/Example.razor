@@ -8,27 +8,52 @@
 @inherits RuneComponent
 @inject NavigationManager Navigation
 @inject DocHeadings Headings
+@inject RenderQueue Queue
 
 <section @attributes="Attrs.Merge(SectionLayer)">
-    <H2 id="@Id" Size="Size.Xl" Anchor="true">@Title</H2>
-    @if (ChildContent is not null)
+    @if (whole)
     {
-        <Paragraph Sx="DescriptionStyle">@ChildContent</Paragraph>
+        @* 打开站点的第一页：整节（标题、说明、卡片与效果）一起排队，交互接管时预渲染的这一节先留着（Hold）。
+           示例的效果多半很轻，重的是每一节的标题、说明与卡片外框：只留效果的话第一批省不下多少 *@
+        <Queued Hold="@Id">@Body(false)</Queued>
     }
-    <ExamplePreview id="@($"{Id}-preview")" Demo="Demo" Align="Align" PropsPreview="PreviewLayer" PropsLayout="@(Frame is null ? CanvasLayer : FramedCanvasLayer)">
-        @if (Frame is not null)
-        {
-            <iframe src="@FrameSrc" title="@Title" loading="lazy" allow="fullscreen" style="height:@Frame" @attributes="Attrs.Merge(FrameLayer)"></iframe>
-        }
-        else
-        {
-            @* 站内换页后排队渲染：卡片外框先出来 *@
-            <Queued><DynamicComponent Type="Demo" /></Queued>
-        }
-    </ExamplePreview>
+    else
+    {
+        @Body(true)
+    }
 </section>
 
 @code {
+    // 整节排队：预渲染、第一页交互接管时。整页示例（iframe）不排：挪动 iframe 会让它重新加载
+    bool whole;
+
+    /// <inheritdoc/>
+    protected override void OnInitialized() => whole = Frame is null && (!RendererInfo.IsInteractive || !Queue.Deferring);
+
+    // queueDemo：站内换页后标题、说明、卡片外框先出来，效果排队渲染
+    RenderFragment Body(bool queueDemo) =>
+        @<text>
+            <H2 id="@Id" Size="Size.Xl" Anchor="true">@Title</H2>
+            @if (ChildContent is not null)
+            {
+                <Paragraph Sx="DescriptionStyle">@ChildContent</Paragraph>
+            }
+            <ExamplePreview id="@($"{Id}-preview")" Demo="Demo" Align="Align" PropsPreview="PreviewLayer" PropsLayout="@(Frame is null ? CanvasLayer : FramedCanvasLayer)">
+                @if (Frame is not null)
+                {
+                    <iframe src="@FrameSrc" title="@Title" loading="lazy" allow="fullscreen" style="height:@Frame" @attributes="Attrs.Merge(FrameLayer)"></iframe>
+                }
+                else if (queueDemo)
+                {
+                    <Queued><DynamicComponent Type="Demo" /></Queued>
+                }
+                else
+                {
+                    <DynamicComponent Type="Demo" />
+                }
+            </ExamplePreview>
+        </text>;
+
     static readonly Attrs SectionLayer = new() { Sx = Section };
     // 示例的“画布”：表面色衬底，字号、行高改回界面默认值，示例显示的就是组件的默认大小
     static readonly Attrs PreviewLayer = new() { Sx = Canvas, ["data-demo"] = true };
