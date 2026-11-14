@@ -81,6 +81,38 @@ public class SegmentTests
         Assert.Contains("margin-top:10px", compiled[^1].Css);
     }
 
+    [Fact]
+    public void 同一组样式实例同样的分段_直接复用上一次的结果()
+    {
+        var a = new Style { Color = "rgb(5, 0, 0)" };
+        var b = new Style { MarginTop = 5 };
+        var c = new Style { OutlineColor = "red" };
+
+        var first = Compile([a], [b, c]);
+
+        Assert.Same(first, Compile([a], [b, c]));
+        // 段从哪里开始也算在内：样式一样、分法不同是另一组结果
+        var regrouped = Compile([a, b], [c]);
+        Assert.NotSame(first, regrouped);
+        Assert.NotEqual(first.Select(s => s.Css), regrouped.Select(s => s.Css));
+        Assert.Same(regrouped, Compile([a, b], [c]));
+    }
+
+    [Fact]
+    public void 样式太多或有空段时不走实例缓存_结果不变()
+    {
+        var many = Enumerable.Range(1, 9).Select(i => new Style { MarginTop = 20 + i }).ToArray();
+        var gap = new Style { Color = "rgb(6, 0, 0)" };
+        var after = new Style { MarginTop = 6 };
+
+        // 9 个样式分两段：超过缓存认的个数，每次重算，类名（按内容）相同
+        Assert.Equal(Compile(many[..4], many[4..]).Select(s => s.ClassName), Compile(many[..4], many[4..]).Select(s => s.ClassName));
+        // 空段占着它的序号：后面那段还在第 2 层
+        var compiled = Compile([gap], [], [after]);
+        Assert.Equal(2, compiled.Count);
+        Assert.StartsWith("@layer rune.s2{", compiled[1].Css);
+    }
+
     // ───────── 随机比对：任意分段、任意状态下，按层叠选出的值与合成一个类时相同 ─────────
 
     static readonly string[] Properties = ["color", "margin", "margin-top", "outline", "outline-color"];

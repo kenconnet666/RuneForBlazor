@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Rune.Styles;
@@ -36,7 +37,7 @@ internal sealed class CompiledStyle(string className, string css)
 /// <para>
 /// 缓存分两层：
 /// <list type="number">
-/// <item><description>按样式实例：结果挂在第一段样式上，按“后面跟着哪几段”区分。渲染时用的都是 <see cref="Css.Define{T}(Func{T})"/> 定义的同一批实例，
+/// <item><description>按样式实例：结果挂在第一段样式上，按“后面跟着哪几段”区分（分段时还按“每段从哪里开始”）。渲染时用的都是 <see cref="Css.Define{T}(Func{T})"/> 定义的同一批实例，
 /// 命中时不做任何计算；实例被回收（渲染里临时 new 的样式），缓存跟着回收，不会越积越多。</description></item>
 /// <item><description>按内容：实例缓存没命中时，展开声明、拼出规范文本再查。同样的内容只生成一次规则。</description></item>
 /// </list>
@@ -73,10 +74,21 @@ internal static class StyleCompiler
 
         /// <summary>后面还跟着别的样式时的结果。</summary>
         public ConcurrentDictionary<Followers, CompiledStyle>? WithFollowers;
+
+        /// <summary>这个样式打头、分成几段时各段的结果（<see cref="CompileSegments"/>）。</summary>
+        public ConcurrentDictionary<SegmentsKey, IReadOnlyList<CompiledStyle>>? Segmented;
     }
 
     /// <summary>跟在第一段后面的样式，按引用比较（Style 没有重写 Equals）。</summary>
     internal readonly record struct Followers(Style? A, Style? B, Style? C, Style? D, Style? E);
+
+    /// <summary>分段的实例缓存最多认几个样式（各段合起来，含打头的那个）；更多的每次重算。</summary>
+    const int MaxSegmented = 8;
+
+    /// <summary>
+    /// 分成几段的一组样式里打头那个之后的样式（按引用比较），与每段从第几个样式开始（<paramref name="Starts"/> 的第 i 位：第 i 个样式是一段的开头）。
+    /// </summary>
+    internal readonly record struct SegmentsKey(Style? A, Style? B, Style? C, Style? D, Style? E, Style? F, Style? G, int Starts);
 
     /// <summary>
     /// 按合并来源分段编译：每段一个类（没有声明的段不出类），第 k 段在层 <c>rune.s{k}</c>。只有一段时同 <see cref="Compile"/>。
@@ -87,6 +99,37 @@ internal static class StyleCompiler
             segments = [.. segments.Take(MaxSegments - 1), [.. segments.Skip(MaxSegments - 1).SelectMany(segment => segment)]];
         if (segments.Count == 1) return Compile(segments[0]) is { } single ? [single] : [];
 
+        // 几层各有样式的元素（部件的默认样式 + 使用方或组件管理的样式）每次合并都走到这里：整组结果按样式实例缓存，同 Compile。
+        // 不缓存的话每次都要把各段展开、按属性族重算一遍（DataTable 的文档页一次渲染 7800 次，占掉 1.4 秒）
+        if (!TryKeyOf(segments, out var first, out var key)) return CompileSegmentsByContent(segments);
+        var cache = first.Compiled.Segmented ??= new ConcurrentDictionary<SegmentsKey, IReadOnlyList<CompiledStyle>>();
+        if (cache.TryGetValue(key, out var hit)) return hit;
+        var compiled = CompileSegmentsByContent(segments);
+        cache.TryAdd(key, compiled);
+        return compiled;
+    }
+
+    // 有空段的、样式太多的不缓存：段的序号决定它在哪一层，空段不能略过
+    static bool TryKeyOf(IReadOnlyList<IReadOnlyList<Style>> segments, [NotNullWhen(true)] out Style? first, out SegmentsKey key)
+    {
+        first = null;
+        key = default;
+        var flat = new Style?[MaxSegmented];
+        var count = 0;
+        var starts = 0;
+        foreach (var segment in segments)
+        {
+            if (segment.Count == 0 || count + segment.Count > MaxSegmented) return false;
+            starts |= 1 << count;
+            foreach (var style in segment) flat[count++] = style;
+        }
+        first = flat[0]!;
+        key = new SegmentsKey(flat[1], flat[2], flat[3], flat[4], flat[5], flat[6], flat[7], starts);
+        return true;
+    }
+
+    static IReadOnlyList<CompiledStyle> CompileSegmentsByContent(IReadOnlyList<IReadOnlyList<Style>> segments)
+    {
         var result = new List<CompiledStyle>(segments.Count);
         for (var index = 0; index < segments.Count; index++)
         {
