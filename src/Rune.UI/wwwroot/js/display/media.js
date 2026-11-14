@@ -15,6 +15,10 @@ export function startEmbed(frame) {
   const root = rootOf(frame);
   if (root) root.dataset.state = 'loading';
   frame.src = src;
+  // 内联的页面（srcdoc）不等 src：标记里就有，静态页面上在脚本接管之前已经加载完，之后写 src 也不会重新加载（有 srcdoc 时 src 不起作用）。
+  // 重写一次让它在 load 接上之后再加载一遍
+  const inline = frame.getAttribute('srcdoc');
+  if (inline !== null) frame.setAttribute('srcdoc', inline);
 }
 
 /** iframe 加载完了（load 不冒泡，在捕获阶段接住）。 */
