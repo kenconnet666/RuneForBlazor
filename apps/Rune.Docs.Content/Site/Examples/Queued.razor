@@ -1,6 +1,7 @@
 @*
     排队渲染的内容（见 RenderQueue）：交互模式下先不渲染，轮到时才渲染；静态渲染、预渲染时直接渲染。
     <Queued Hold="@Id"><DynamicComponent Type="Demo" /></Queued>
+    第一页的占位按离视口的远近轮（带着 #锚点打开时先换眼前的那一节）；文档站里视口外的滚到附近才渲染（RenderQueueOptions.NearViewportOnly）。
     Hold 是这段内容在本页里的名字：预渲染时在内容两头各留一个注释标记；打开站点的第一页交互接管时先渲染一个空的占位
     （data-docs-hold，不占排版的格子），文档站的 JS 初始化器把预渲染的那段节点放回占位里，画面不变；轮到时占位换成真正渲染的内容。
     没写 Hold 的在第一页直接渲染（同以前）。站内换页后没有预渲染的内容可留，轮到之前什么都不渲染。
@@ -61,7 +62,7 @@ else if (holding)
             return;
         }
         if (!firstRender || shown) return;
-        release = await Queue.WaitTurnAsync();
+        release = await Queue.WaitTurnAsync(holding ? Hold : null);
         // 等的时候页面换走了：直接放下一个
         if (disposed)
         {
@@ -86,6 +87,8 @@ else if (holding)
     protected override void OnDispose()
     {
         disposed = true;
+        // 还没轮到（视口外、没滚到过）页面就换走了：不用再等它
+        if (holding && !shown) Queue.Forget(Hold!);
         Release();
     }
 }

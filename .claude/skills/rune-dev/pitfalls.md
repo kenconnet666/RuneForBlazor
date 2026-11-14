@@ -9,6 +9,8 @@
 - JS 改 C# 渲染的内容时只改属性与文字节点本身（`nodeValue`），不换节点：Blazor 只在自己的输出变了时写 DOM（date-segments.js）。
 - 受控浮层（data-open）的开关回响：只在 C# 的状态会变时排队；收到回响只消费、不照着开关。C# 自己关上也会触发原生 toggle，那次没有回响可等，排进去会让队列错位、浮层来回振荡。
 - 偶发的端到端失败先用 Playwright 脚本在并发负载下复现（4 个上下文并行、重复 24 次），记下属性与事件的先后再改，不要只改测试。
+- runtime.js 里 `on('事件', …)` 挂的每种事件（含是否捕获）都要在入口 `RuneForBlazor.UI.lib.module.js` 的 `SLOTS` 里占位：漏了的话浏览器里整套 JS 装不上、所有交互失效，
+  单元测试不跑 JS 看不出来（`EventSlotTests` 按源码核对；改完 JS 仍要在浏览器里开一页看控制台）。
 - 包 ID 改了，静态资源路径、初始化器文件名、跨包的 import 都要跟着改（见 SKILL.md 的“发版”）。
 - 文档站的图表、地图数据、3D、省市区程序集按页面懒加载（`apps/Rune.Docs.Client/LazyAssemblies.cs`）：图表页以外不能用到 Rune.Charts / Rune.Charts.Maps 的类型，3D 页以外不能用到 Rune.Three 的，
   Cascader 页以外不能用到 Rune.UI.Area 的（`LazyAssemblyTests` 检查编译出的代码）。新页面要用它们时先改 LazyAssemblies。
@@ -35,6 +37,8 @@
 
 - bUnit：`InvokeAsync(() => x = SomeTaskReturningCall())` 会等那个 Task，要写成语句体 `{ x = ...; }`。
 - 期望值别心算：总数、合计按示例的数据算清楚再写。
+- bUnit 的 JSInterop 对“登记了但还没给结果”的调用直接抛异常（JSRuntimeInvocationNotSetException），模拟不了“JS 还没回答”：要测挂起的调用就注册自己的 `IJSRuntime`（`QueuedTests` 的 HoldsJs）。
+- bUnit 的 `WaitForAssertion` 只在组件重新渲染后重查：等的条件不带来渲染（JS 被调用了几次）时自己轮询。
 - 端到端点不到的元素先 `ScrollIntoViewIfNeededAsync`：文档页合并后示例可能在视口外。
 
 ## 工具

@@ -7,6 +7,7 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Services
 @inherits RuneComponent
 @inject LazyAssemblyLoader Loader
+@inject RenderQueue Queue
 
 <RuneStyles />
 @* 应用级主题在最外层：加载条与各页面都在里面（主题的变量只在这个类下面有定义） *@
@@ -16,7 +17,12 @@
             OnNavigateAsync="LoadAssembliesAsync">
         <Found Context="routeData">
             <RouteView RouteData="routeData" DefaultLayout="typeof(DocsLayout)" />
-            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+            @* 站内换页后把焦点移到标题上。打开站点的第一页不做：页面是浏览器自己加载的，它已经滚到 #锚点（或刷新前的位置），
+               交互接管时再聚焦标题会把页面拉回顶部 *@
+            @if (Queue.Deferring)
+            {
+                <FocusOnNavigate RouteData="routeData" Selector="h1" />
+            }
         </Found>
     </Router>
 </RuneProvider>
