@@ -72,3 +72,19 @@
    - SchemaForm 一族（visibleWhen / requiredWhen / readonlyWhen、access、明细表与合计、formSources、页签、SchemaView、focusControl 发 beforematch）：先出方案
    - KanbanBoard 把手的悬停；NotificationList / NotificationCenter、CommentThread 的 RelativeTime
 5. 不跟：vue 的流程引擎（与组件无关）；CSP nonce 等阶段计划时再定。
+6. vue 0.23.0（`6e6f831d..b7b09011`）与 0.24.0（`b7b09011..6e7b07b7`），2026-11-14 收到通知，还没跟（细节以 vue 的 CHANGELOG.md 两节为准）：
+   - ModelViewer：环境贴图等模型加载完才生成（Rune 已经是这样）；没有 WebGL 时新增状态 fallback（OnStatusChange 收到、根上 data-status="fallback"、
+     不转圈、不标 aria-busy）——Rune 现在会一直停在 loading，要跟。
+   - 0.23.0 行为：Provider / ConfigScope 只在这一层配置了语言时才写 lang、dir；取整后是 0 的负数不带负号，fileSize 遇到非数返回占位符、999,999 B 显示 1 MB；
+     主题、语言包、组件默认值里值是 undefined 的键不盖掉外层，主题里不认识的 token 报错；表头关键字筛选停手 300ms 生效、回车与清空立即生效；
+     Steps navigable 时出错的步骤可点回；LoadingOverlay 一开始加载就拦点击；没有箭头的 Popover 内容过高在面板里滚；嵌套 ContextMenu 只弹里层；
+     模态快速关了再开不被迟到的 close 关掉；图表（柱子夹在数值轴范围里、折线与面积触屏点得动下钻、全负数的对齐轴、svg 固定 direction: ltr、
+     雷达轴按数据最大值、zoomRange 夹到数据长度、MapChart 全空时显示 empty）；强制颜色模式下日历选中与区间用 Highlight、今天加下划线，表格选中与正在看的行画一圈 Highlight。
+     StepsForm、KanbanBoard、CodeEditor 的几条随对应组件（Rune 还没有）。
+   - 0.23.0 新属性与文案：Avatar 的 decorative；Listbox 的 readonly（Transfer、TreeTransfer 在只读的 Field / Form 里不能移动）；ControlGroup 把 Field 的不可用、只读交给组里的控件；
+     Pagination、PaginationBar 的 disabled；themeSettingsCode 第四个参数 base；语言包新键 floatButtonMore、copyFailed，页面组合文案 dataImportFailed；英文 paginationTotal 1 条时是 “1 item”。
+   - 0.24.0 行为：usePersistentState、useMediaQuery 水合时先按服务端的值渲染、挂载后换成真实的（Blazor 的预渲染 + 交互接管有同样的问题时照此：
+     先渲染默认值，交互就绪后再读存的值、媒体查询）；sameValue 对 Map 逐项比、Set 比成员；tableToXlsx 的日期按 timeZone（新选项）的墙上时间写；
+     TagsInput 允许自己输入时打字不自动高亮第一条建议；触屏：NavList 紧凑分组点图标弹出子项、ContextMenu 按住 700ms 打开、Splitter 与 ResizeHandle 在粗指针下扩大命中区；
+     只读 / 不可用的表单里 Autocomplete 不可用时隐藏 input 不提交；NavBar 收进下拉与“更多”的项也带徽标。ConditionBuilder、CodeEditor、NotificationList、Diagram 的几条随对应组件。
+   - 0.24.0 新属性：Switch 的 description / propsDescription；ColumnTable 的 empty（没有行时表体里一行占满，默认“暂无数据”）。
