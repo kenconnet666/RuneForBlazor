@@ -109,6 +109,8 @@
     {
         ["data-state"] = state.HasCurrent ? "active" : "inactive",
         ["data-rune-ripple"] = Config.Ripple ? true : null,
+        // 触屏没有悬停：点图标弹出子项，再点收起（JS）
+        ["data-rune-hover-toggle"] = true,
     };
 
     /// <inheritdoc/>

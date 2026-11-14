@@ -14,7 +14,7 @@
 
 <div role="group" aria-labelledby="@(Field?.LabelId)" aria-describedby="@ControlAttrs.AriaDescribedBy" @attributes="Attrs.Merge(parts[TransferPart.Root], RootRest)">
     @Panel(parts, 0)
-    <TransferActions Titles="(TitleOf(0), TitleOf(1))" CanMoveRight="@(!IsDisabled && checkedKeys[0].Count > 0)" CanMoveLeft="@(!IsDisabled && checkedKeys[1].Count > 0)"
+    <TransferActions Titles="(TitleOf(0), TitleOf(1))" CanMoveRight="@(!IsDisabled && !IsReadOnly && checkedKeys[0].Count > 0)" CanMoveLeft="@(!IsDisabled && !IsReadOnly && checkedKeys[1].Count > 0)"
                      OnMoveRight="() => MoveAsync(0, checkedKeys[0])" OnMoveLeft="() => MoveAsync(1, checkedKeys[1])" PropsAction="PropsAction" />
     @Panel(parts, 1)
     @* 移动后的播报：一直在 DOM 里的礼貌播报区 *@

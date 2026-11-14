@@ -1,5 +1,5 @@
 @*
-    右键菜单（div，同 vue-tsx-pro 的 ContextMenu）：在一块区域里右键（或键盘的 Shift+F10、菜单键）时，从指针位置弹出菜单。
+    右键菜单（div，同 vue-tsx-pro 的 ContextMenu）：在一块区域里右键（或键盘的 Shift+F10、菜单键、触屏上按住 700ms）时，从指针位置弹出菜单。
     <ContextMenu>
         <ChildContent><FileCard File="file" /></ChildContent>
         <MenuContent>
@@ -14,12 +14,15 @@
 @namespace Rune.UI
 @inherits UIComponent
 
-<div data-rune-context-menu data-disabled="@(Disabled ? "true" : null)" @attributes="Attrs.Merge(null, Rest)">
+<div data-rune-context-menu data-disabled="@(Disabled ? "true" : null)" @attributes="Attrs.Merge(RegionDefaults, Rest)">
     @ChildContent
     <Menu Open="Open" OpenChanged="OpenChanged" aria-label="@(Label ?? Config.Lang.ContextMenuLabel)" @attributes="Attrs.MergeProps(null, PropsMenu)">@MenuContent</Menu>
 </div>
 
 @code {
+    // 长按时 iOS 不弹出自己的预览、拷贝菜单（样式引擎没有这个带厂商前缀的属性，写成行内样式）
+    static readonly Attrs RegionDefaults = new() { ["style"] = "-webkit-touch-callout:none" };
+
     /// <summary>区域里的内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 

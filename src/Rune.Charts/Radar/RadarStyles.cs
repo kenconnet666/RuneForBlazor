@@ -14,6 +14,7 @@ internal static class RadarStyles
         Height = CssLength.Percent(100),
         Overflow = Overflow.Visible,
         UserSelect = UserSelect.None,
+        Direction = Direction.Ltr,
     });
 
     internal static Style Grid => Css.Define(static () => new Style { Fill = Fill.None, Stroke = Colors.BorderMuted, StrokeWidth = 1 });

@@ -1,0 +1,37 @@
+@*
+    带说明的插图（figure + figcaption，同 vue-tsx-pro 的 Figure）：图片、图表、代码、表格下面（或上面）配一行说明，读屏把说明当作这块内容的名称。
+    <Figure Caption="图 1：近 12 个月的采购额"><Image Src="…" Alt="…" /></Figure>
+    <Figure Caption="表 2：各供应商的交付周期" CaptionSide="FigureCaptionSide.Top"><Table>…</Table></Figure>
+    说明默认在下面、次要色、小一号；表格的说明习惯放上面。内容与说明都跟着 Align 对齐。说明里要放链接等内容时用 CaptionContent。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = FigureStyles.Of(CaptionSide, Align, Config.Styles); }
+
+<figure @attributes="Attrs.Merge(parts[FigurePart.Root], Rest)">
+    @ChildContent
+    @if (CaptionContent is not null || !string.IsNullOrEmpty(Caption))
+    {
+        <figcaption @attributes="Attrs.Merge(parts[FigurePart.Caption], PropsCaption)">@if (CaptionContent is not null) { @CaptionContent } else { @Caption }</figcaption>
+    }
+</figure>
+
+@code {
+    /// <summary>说明文字；没有时就是一个没有外边距的 figure。</summary>
+    [Parameter] public string? Caption { get; set; }
+
+    /// <summary>说明的内容（要放链接、强调时用），优先于 <see cref="Caption"/>。</summary>
+    [Parameter] public RenderFragment? CaptionContent { get; set; }
+
+    /// <summary>说明在内容的上面还是下面，默认下面。</summary>
+    [Parameter] public FigureCaptionSide CaptionSide { get; set; }
+
+    /// <summary>内容与说明的对齐，默认靠起始边。</summary>
+    [Parameter] public FigureAlign Align { get; set; }
+
+    /// <summary>说明（figcaption）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCaption { get; set; }
+
+    /// <summary>插图：图片、图表、代码、表格。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

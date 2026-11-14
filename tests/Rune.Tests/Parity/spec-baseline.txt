@@ -1,5 +1,4 @@
 ActionBar（组件）
-AlertDialog.Draggable
 AreaChart.Data
 AreaChart.Index
 AreaChart.IndexFormat
@@ -59,12 +58,9 @@ ContextMenu.OnOpenChange
 DataImport（组件）
 DataTable.ColumnGroups
 DataTable.Columns
-DataTable.Editing
-DataTable.EditorContent
 DataTable.Handle
 DataTable.OnEditKeydown
 DataTable.OnEditStart
-DataTable.RowErrors
 DataTable.Rows
 DataTableDetailRow（组件）
 DataTableRow（组件）
@@ -145,7 +141,6 @@ PageSizeSelect.OnSizeChange
 PageSizeSelect.ValueContent
 PeoplePickerPanel（组件）
 PeoplePicker（组件）
-PivotTable.Empty
 Popconfirm.OnOpenChange
 Popover.OnOpenChange
 Provider.FormSources
@@ -207,12 +202,9 @@ Tree.ItemContent
 Tree.PropsRow
 TreeDataTable.ColumnGroups
 TreeDataTable.Columns
-TreeDataTable.Editing
-TreeDataTable.EditorContent
 TreeDataTable.Handle
 TreeDataTable.OnEditKeydown
 TreeDataTable.OnEditStart
-TreeDataTable.RowErrors
 TreeDataTable.Rows
 TreeSelect.CheckedStrategy
 TreeSelect.IsDisabled
@@ -235,7 +227,6 @@ ViewportFill.Justify
 ViewportFill.RowGap
 ViewportFill.Wrap
 VirtualList.Handle
-WaterfallChart.HiddenSeries
 WaterfallChart.ValueDomain
 Watermark.Content
 Watermark.Gap

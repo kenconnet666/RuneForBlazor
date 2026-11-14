@@ -12,7 +12,8 @@
 <div @attributes="Attrs.Merge(Attrs.Layer(parts[DescriptionsPart.Item], SpanLayer), Owner.PropsItem, Rest)">
     <dt @attributes="Attrs.Merge(parts[DescriptionsPart.Label], Owner.PropsLabel)">@(LabelContent ?? (RenderFragment)(b => b.AddContent(0, Label)))</dt>
     <dd @attributes="Attrs.Merge(parts[DescriptionsPart.Value], Owner.PropsValue, Copyable ? CopyableValue : null)">
-        @(ChildContent ?? (RenderFragment)(b => b.AddContent(0, Value)))
+        @* 没有值的项显示占位符，不留一个空的 dd *@
+        @(ChildContent ?? (RenderFragment)(b => b.AddContent(0, string.IsNullOrEmpty(Value) ? Config.Lang.EmptyValue : Value)))
         @if (Copyable)
         {
             <CopyButton Value="@(CopyText ?? Value ?? "")" Size="UI.Size.Xs" Label="@Config.Lang.DescriptionsCopy(Label ?? Config.Lang.Copy)"

@@ -3,14 +3,18 @@
 
 export const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
-/** 让读屏念出一句话：共用一个礼貌的播报区；先清空、稍后再写入，同一句话连说两次也会念 */
-export function speak(message) {
+/**
+ * 让读屏念出一句话：共用一个礼貌的播报区；先清空、稍后再写入，同一句话连说两次也会念。
+ * assertive：要紧的（操作失败）打断正在念的，用另一个播报区
+ */
+export function speak(message, assertive = false) {
   if (!message) return;
-  let region = document.querySelector('[data-rune-announcer]');
+  const kind = assertive ? 'assertive' : 'polite';
+  let region = document.querySelector(`[data-rune-announcer="${kind}"]`);
   if (!region) {
     region = document.createElement('div');
-    region.setAttribute('data-rune-announcer', '');
-    region.setAttribute('aria-live', 'polite');
+    region.setAttribute('data-rune-announcer', kind);
+    region.setAttribute('aria-live', kind);
     region.setAttribute('aria-atomic', 'true');
     Object.assign(region.style, {
       position: 'absolute', width: '1px', height: '1px', margin: '-1px', padding: '0',

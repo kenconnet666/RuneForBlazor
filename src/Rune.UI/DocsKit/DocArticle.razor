@@ -11,7 +11,7 @@
 <article @attributes="Attrs.Merge(RootLayer, Rest)">
     <div @attributes="Attrs.Merge(HeaderLayer, PropsHeader)">
         <H1 @attributes="Attrs.MergeProps(null, PropsTitle)">@(TitleContent ?? (RenderFragment)(b => b.AddContent(0, Title)))</H1>
-        @if (Description is not null || DescriptionContent is not null)
+        @if (!string.IsNullOrEmpty(Description) || DescriptionContent is not null)
         {
             <Paragraph Size="UI.Size.Lg" Tone="TextTone.Muted" @attributes="Attrs.MergeProps(DescriptionLayer, PropsDescription)">@(DescriptionContent ?? (RenderFragment)(b => b.AddContent(0, Description)))</Paragraph>
         }

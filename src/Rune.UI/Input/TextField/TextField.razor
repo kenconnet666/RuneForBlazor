@@ -21,14 +21,14 @@
     {
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsPrefix)">@Prefix</label>
     }
-    @ValueElement.Input(Type, Attrs.Merge(parts[InputPart.Input], NamedInputUserAttrs, InputManaged), CaptureElement)
+    @ValueElement.Input(Type, Attrs.Merge(InputDefaultsOver(parts[InputPart.Input]), NamedInputUserAttrs, InputManagedWithExtra), CaptureElement)
     @if (Suffix is not null)
     {
         <label for="@ControlId" @attributes="Attrs.Merge(parts[InputPart.Affix], PropsSuffix)">@Suffix</label>
     }
     @if (Clearable && editable && !string.IsNullOrEmpty(CurrentValue))
     {
-        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="() => SetValueAsync(string.Empty)"
+        <ClearButton Label="@ClearLabel" Radius="UI.Radius.Full" @onclick="() => InputAsync(string.Empty)"
                      @attributes="Attrs.MergeProps(parts[InputPart.Button], PropsClear, RefocusInput)" />
     }
     @if (Type == "password")
@@ -49,6 +49,8 @@
     Memo<(Attrs Control, string? Value, bool Immediate, string? CountId, TextFormat? Format), Attrs> inputManaged;
     string? countId;
     Memo<string, Attrs> refocusInput, revealTarget;
+    Memo<(Attrs Part, Attrs Extra), Attrs> inputDefaults;
+    Memo<(Attrs Extra, Attrs Managed), Attrs> inputManagedWithExtra;
 
     /// <summary>input 的 type：text（默认）、email、password、search、url、tel。</summary>
     [Parameter] public string Type { get; set; } = "text";
@@ -116,6 +118,23 @@
 
     int? MaxLength => CharacterCounting.MaxLengthOf(AdditionalAttributes);
 
+    /// <summary>派生的预设（SearchField）给 input 加的默认属性（占位文字、名称）：排在使用方的属性之前，可以被盖掉。</summary>
+    protected virtual Attrs? InputDefaultAttrs => null;
+
+    /// <summary>派生的预设给 input 加的受管属性（事件）：与组件自己管理的合在一起，同名事件都执行。</summary>
+    protected virtual Attrs? InputExtraManaged => null;
+
+    /// <summary>输入框里的文字变了（打字、点清空）：默认就是更新值；派生的预设在这里接上自己的时机。</summary>
+    protected virtual Task InputAsync(string? text) => SetValueAsync(text);
+
+    Attrs InputDefaultsOver(Attrs part) => InputDefaultAttrs is { } extra
+        ? inputDefaults.Get((part, extra), static k => Attrs.Layer(k.Part, k.Extra))
+        : part;
+
+    Attrs InputManagedWithExtra => InputExtraManaged is { } extra
+        ? inputManagedWithExtra.Get((extra, InputManaged), static k => Attrs.Layer(k.Extra, k.Managed))
+        : InputManaged;
+
     // input 上由组件管理的属性：表单状态（ControlAttrs）、值与更新值的事件、字数计数的关联；输入不变时是同一个对象
     // 有 Format 时：显示分好组的文字，写回去掉分隔的原文
     Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Immediate ?? Defaults?.Immediate ?? false, ShowCount ? CountId : null, Format), this,
@@ -123,7 +142,7 @@
         {
             ["value"] = k.Format is { } format ? format.Apply(k.Value) : k.Value,
             [k.Immediate ? "oninput" : "onchange"] = (Func<ChangeEventArgs, Task>)(e =>
-                owner.SetValueAsync(k.Format is { } format ? format.Parse((string?)e.Value) : (string?)e.Value)),
+                owner.InputAsync(k.Format is { } format ? format.Parse((string?)e.Value) : (string?)e.Value)),
             AriaDescribedBy = CharacterCounting.DescribedBy(k.Control.AriaDescribedBy, k.CountId),
             ["data-rune-count"] = k.CountId,
         }));

@@ -12,6 +12,11 @@
 @{ var parts = LoadingOverlayStyles.Of(Blur, Config.Styles); }
 <div @attributes="Attrs.Merge(parts[LoadingOverlayPart.Root], Rest, Loading ? Busy : null)">
     @ChildContent
+    @* 遮罩的外观延迟出现（防闪烁），拦指针不能等：加载一开始先盖一层看不见的 *@
+    @if (Loading && !indicator.Shown)
+    {
+        <div aria-hidden="true" @attributes="Attrs.Merge(LoadingOverlayStyles.Blocker)"></div>
+    }
     @* 一直在页面上，不显示时用 hidden：进场、离场的淡入淡出都要有元素可过渡 *@
     <div @attributes="Attrs.Merge(parts[LoadingOverlayPart.Overlay], PropsOverlay)" hidden="@(!indicator.Shown)">
         <Spinner Label="@(Label ?? Config.Lang.Loading)" @attributes="Attrs.MergeProps(parts[LoadingOverlayPart.Spinner], PropsSpinner)" />

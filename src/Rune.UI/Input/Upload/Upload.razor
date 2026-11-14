@@ -46,7 +46,7 @@
                                 <Progress Size="UI.Size.Xs" Value="@PercentOf(item)" aria-label="@item.Name" @attributes="Attrs.MergeProps(parts[UploadPart.Progress], PropsProgress)" />
                             </div>
                         }
-                        else if (failed && src is not null)
+                        else if (failed)
                         {
                             <div title="@item.Error" @attributes="parts[UploadPart.Overlay]">@item.Error</div>
                         }

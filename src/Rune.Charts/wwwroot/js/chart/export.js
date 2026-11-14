@@ -8,7 +8,7 @@ document.addEventListener('click', (event) => {
   const name = item.dataset.name || 'chart';
   if (item.dataset.runeChartExport === 'image') {
     const svg = figure.querySelector('[data-rune-chart] svg');
-    if (svg) void exportImage(svg, name);
+    if (svg) exportImage(svg, name).catch((error) => console.error('图表导出图片失败', error));
   } else {
     const table = figure.querySelector(':scope > table');
     if (table) download(`${name}.csv`, new Blob(['\uFEFF', tableToCsv(table)], { type: 'text/csv;charset=utf-8' }));
@@ -17,7 +17,9 @@ document.addEventListener('click', (event) => {
 
 // 写回到复制品上的样式：画图要用到的这些（主题的 CSS 变量在算出来的样式里已经解析）
 const INLINED = ['fill', 'fill-opacity', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 'stroke-linejoin',
-  'opacity', 'visibility', 'display', 'font-family', 'font-size', 'font-weight', 'text-anchor', 'dominant-baseline', 'paint-order'];
+  'opacity', 'visibility', 'display', 'font-family', 'font-size', 'font-weight', 'text-anchor', 'dominant-baseline', 'paint-order',
+  // 镂空（环形、地图的洞）与像素对齐的线：不带上的话导出的图把洞填实、细线发虚
+  'fill-rule', 'shape-rendering'];
 
 /** SVG → 带内联样式的 SVG 文字（宽高写成像素）；悬停的十字线、浅底不在图里 */
 function serializeSvg(svg) {

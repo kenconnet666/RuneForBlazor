@@ -25,13 +25,15 @@ public sealed record AxisTicks((double Start, double End) Domain, IReadOnlyList<
     public static AlignedAxes Aligned(IEnumerable<double> primary, IEnumerable<double> secondary, int count = 5)
     {
         var p = primary.Where(double.IsFinite).Append(0).ToList();
-        var (p0, p1) = ChartScale.Nice((p.Min(), p.Max() is var max && max != 0 ? max : 1), count);
+        // 只有一个值（全是 0）时才补范围：全是负数时上端就是 0，不能被当成“没有范围”改成 1
+        var (pLow, pHigh) = (p.Min(), p.Max());
+        var (p0, p1) = ChartScale.Nice((pLow, pHigh == pLow ? pLow + 1 : pHigh), count);
         var ticks = ChartScale.Ticks(p0, p1, count).Select(Tidy).ToList();
         var intervals = Math.Max(ticks.Count - 1, 1);
 
         var s = secondary.Where(double.IsFinite).Append(0).ToList();
         var low = s.Min();
-        var high = s.Max() is var top && top != 0 ? top : 1;
+        var high = s.Max() is var top && top == low ? low + 1 : top;
         var step = NiceStep((high - low) / intervals);
         var start = Math.Floor(low / step) * step;
         // 起点向下取整后可能盖不住最大值：换下一档步长

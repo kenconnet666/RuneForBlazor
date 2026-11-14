@@ -23,6 +23,8 @@ export function watchCarousel(root) {
     if (!target || !root.contains(target)) return;
     if (target.hasAttribute('data-carousel-pause')) {
       root.toggleAttribute('data-paused');
+      // 点了“播放”一定恢复：焦点还在这个按钮上，不能因为“焦点在里面”又停着
+      if (!root.hasAttribute('data-paused')) state.focused = false;
       sync(state);
     } else if (target.hasAttribute('data-carousel-dot')) go(state, Number(target.getAttribute('data-carousel-dot')));
     else go(state, state.index + Number(target.getAttribute('data-carousel-step')));
@@ -40,7 +42,9 @@ export function watchCarousel(root) {
     state.hovering = false;
     sync(state);
   });
-  root.addEventListener('focusin', () => {
+  root.addEventListener('focusin', (event) => {
+    // 只有键盘聚焦才停：用指针点翻页按钮得到的焦点不算，不然点一下自动播放就一直停着
+    if (!(event.target instanceof Element) || !event.target.matches(':focus-visible')) return;
     state.focused = true;
     sync(state);
   });

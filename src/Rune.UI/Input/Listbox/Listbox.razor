@@ -21,7 +21,7 @@
     public const int VirtualThreshold = ListboxView<TItem>.VirtualThreshold;
 
     Memo<(IEnumerable<TItem> Items, Func<TItem, ListboxOption>? ToOption), IReadOnlyList<ListEntry<TItem>>> entries;
-    Memo<(Attrs Control, string? LabelledBy, bool Disabled), Attrs> rootManaged;
+    Memo<(Attrs Control, string? LabelledBy, bool Disabled, bool ReadOnly), Attrs> rootManaged;
 
     /// <summary>数据：ListboxOption、字符串，或任意数据加 ToOption。</summary>
     [Parameter, EditorRequired] public IEnumerable<TItem> Items { get; set; } = [];
@@ -73,13 +73,14 @@
 
     // 列表上由组件管理的属性：可聚焦、表单状态（Field 的标签经 aria-labelledby 命名）、交给 JS 的键盘约定
     Attrs RootManaged => rootManaged.Get(
-        (ControlAttrs, AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId, IsDisabled),
+        (ControlAttrs, AdditionalAttributes?.ContainsKey("aria-label") == true ? null : Field?.LabelId, IsDisabled, IsReadOnly),
         static k => new Attrs
         {
             ["tabindex"] = k.Disabled ? "-1" : "0",
             AriaLabelledBy = k.LabelledBy,
             AriaDescribedBy = k.Control.AriaDescribedBy,
             AriaDisabled = k.Disabled ? true : null,
+            ["aria-readonly"] = k.ReadOnly ? "true" : null,
             ["aria-required"] = k.Control["aria-required"],
             ["aria-invalid"] = k.Control["aria-invalid"],
             // 列表自己有焦点：空格选中、字母类型搜索

@@ -42,6 +42,11 @@ public enum ProgressPart
     CircleTarget,
 }
 
+/// <summary>量表的一段区间：从上一段的终点（第一段从 0）到 <paramref name="To"/>。</summary>
+/// <param name="To">终点（与 Value 同一单位）。</param>
+/// <param name="Tone">值落在这一段时的色调。</param>
+public readonly record struct ProgressBand(decimal To, Tone Tone);
+
 /// <summary>进度的形状。</summary>
 public enum ProgressShape
 {

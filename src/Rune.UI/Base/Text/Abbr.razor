@@ -1,0 +1,33 @@
+@*
+    缩写（abbr，同 vue-tsx-pro 的 Abbr）：点状下划线，悬停、键盘聚焦、触屏点按时显示全称。
+    <Abbr Title="服务等级协议">SLA</Abbr> 承诺 99.9% 可用
+    原生的 title 只有鼠标悬停才看得到（键盘、触屏、不少读屏都拿不到），所以全称放在 Tooltip 里：
+    元素可以聚焦（Tab 能到）、触屏点一下就显示（data-rune-tooltip-press），读屏把全称作为描述念出来。第一次出现时最好仍把全称写在正文里。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<Tooltip @attributes="Attrs.MergeProps(TooltipDefaults, PropsTooltip)">
+    <Trigger Context="tip">
+        <abbr @attributes="Attrs.Merge(TypographyStyles.Abbr(Config.Styles)[InlinePart.Root], Rest, Managed(tip))">@ChildContent</abbr>
+    </Trigger>
+    <ChildContent>@Title</ChildContent>
+</Tooltip>
+
+@code {
+    static readonly Attrs TooltipDefaults = new() { [nameof(Tooltip.Delay)] = 200 };
+
+    Memo<Attrs, Attrs> managed;
+
+    /// <summary>全称：显示在提示里。</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>提示（Tooltip）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTooltip { get; set; }
+
+    /// <summary>缩写。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 提示给触发元素的属性（aria-describedby、交给 JS 的标记）加上可聚焦、点按显示
+    Attrs Managed(Attrs tip) => managed.Get(tip, static tip => Attrs.Layer(tip, new Attrs { ["tabindex"] = 0, ["data-rune-tooltip-press"] = true }));
+}

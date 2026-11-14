@@ -124,7 +124,8 @@ public sealed record NumberFormat
                 SignDisplay.ExceptZero => "exceptZero",
                 SignDisplay.Always => "always",
                 SignDisplay.Never => "never",
-                _ => "auto",
+                // negative：同 auto，但取整后是 0 的负数不带负号（-0.4 保留整数显示 0，不是 -0），与 C# 这边的格式化一致
+                _ => "negative",
             });
             json.WriteBoolean("useGrouping", UseGrouping);
             if (Notation == NumberNotation.Compact) json.WriteString("notation", "compact");

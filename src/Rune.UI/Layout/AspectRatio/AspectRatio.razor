@@ -1,0 +1,20 @@
+@*
+    固定宽高比的框（div，同 vue-tsx-pro 的 AspectRatio）：宽度跟着容器，高度按比例算，里面的内容铺满它。
+    图片、视频、地图、嵌入的页面加载前就占好位置，加载完不把下面的内容顶开。
+    <AspectRatio><img src="…" alt="" /></AspectRatio>
+    <AspectRatio Ratio="4 / 3">…</AspectRatio>
+    内容是一个元素：它被拉成和框一样大（img、video 按 object-fit: cover 裁切，要完整显示时在它上面写 contain）。
+    Embed、Video 用它定比例；Image 自己有 Width / Height，不需要它。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+<div @attributes="Attrs.Merge(AspectRatioStyles.Of(Ratio, Config.Styles)[AspectRatioPart.Root], Rest)">@ChildContent</div>
+
+@code {
+    /// <summary>宽高比（CSS 的写法：<c>16 / 9</c>、<c>1</c>），默认 16 / 9。</summary>
+    [Parameter] public string Ratio { get; set; } = "16 / 9";
+
+    /// <summary>铺满的内容（一个元素）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

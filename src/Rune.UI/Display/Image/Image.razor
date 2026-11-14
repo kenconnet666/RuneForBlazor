@@ -35,8 +35,16 @@ else
     Memo<string, Attrs> triggerAttrs;
     Attrs? clickTrigger;
 
-    /// <summary>图片地址。</summary>
+    /// <summary>图片地址；写了 <see cref="Sources"/> 时是都不符合、都不认得时的后备。</summary>
     [Parameter, EditorRequired] public string Src { get; set; } = "";
+
+    /// <summary>
+    /// 备选的图片源：有它时渲染成 picture。新格式回退（avif → webp → Src）、窄屏换一张裁切不同的图、暗色换一张图。
+    /// 只是同一张图的不同尺寸时，直接在 img 上写 srcset、sizes 就够了（未声明的属性落到 img 上）。
+    /// </summary>
+    [Parameter] public IReadOnlyList<ImageSource>? Sources { get; set; }
+
+    string SourcesKey => string.Join(" | ", [Src, .. Sources!.Select(source => source.SrcSet)]);
 
     /// <summary>图片的说明：读屏念它，加载失败时也显示。</summary>
     [Parameter, EditorRequired] public string Alt { get; set; } = "";
@@ -111,7 +119,21 @@ else
     RenderFragment Content => __builder =>
     {
         <span @attributes="ImageStyles.Placeholder"></span>
-        <img @key="Src" src="@Src" @attributes="Attrs.Merge(Attrs.Layer(ImageStyles.Image(Fit), ImageDefaults), Rest, ImageManaged)" />
+        @if (Sources is { Count: > 0 })
+        {
+            @* 换了任何一个源都按新的重建（加载状态跟着重置） *@
+            <picture @key="SourcesKey" @attributes="Attrs.Merge(ImageStyles.Picture)">
+                @foreach (var source in Sources)
+                {
+                    <source srcset="@source.SrcSet" type="@source.Type" media="@source.Media" sizes="@source.Sizes" />
+                }
+                <img src="@Src" @attributes="Attrs.Merge(Attrs.Layer(ImageStyles.Image(Fit), ImageDefaults), Rest, ImageManaged)" />
+            </picture>
+        }
+        else
+        {
+            <img @key="Src" src="@Src" @attributes="Attrs.Merge(Attrs.Layer(ImageStyles.Image(Fit), ImageDefaults), Rest, ImageManaged)" />
+        }
         <span role="img" aria-label="@Alt" aria-description="@Config.Lang.ImageError" @attributes="Attrs.Merge(ImageStyles.Fallback, PropsFallback)">
             @if (Fallback is not null)
             {

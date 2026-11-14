@@ -51,6 +51,19 @@
 - ImageCropper 导出经隐藏的 InputFile 回到 C#，不受 SignalR 32 KB 限制；SignaturePad 画在 JS 里，静态 SSR 也能签。
 - Listbox、Tree 的虚拟行用 Virtualize，行在文档流里（vue 叠在同一个 grid 格子里）。
 
+### 0.23.0–0.26.0 跟进时与 vue 不同的写法
+
+- SearchField 继承 TextField（参数全部沿用），回车用输入框的 change 接（不用 keydown：那样每次按键都要交给 C#），所以失去焦点时还在等停手的那次也会立即触发。
+- Embed 的地址由 JS 在接上 load 之后写到 iframe 上（`data-rune-embed`），加载完没有写在外层的 `data-state`、样式跟着它，没有往返；
+  vue 是挂载后才渲染 iframe。Embed、Video 自己给 iframe / video 写了宽高 100%：外层的 `data-scope` 是 embed / video，AspectRatio 那条“里面的元素铺满”的规则选不中它。
+- Video 的自动播放由 JS 判断（`data-rune-autoplay`）：标记里不写 autoplay，减少动态效果时不播、显示控制条。
+- Abbr 的点按显示、紧凑导航分组的触屏点开都在悬停层的 JS 里（`data-rune-tooltip-press`、`data-rune-hover-toggle`），状态不经过 C#。
+- 内容参数：Blockquote 的 `Source`、Figure 的 `Caption` 是文字，要放链接时用 `SourceContent` / `CaptionContent`；PageHeader 的标题是文字，`Meta`、`Description`、`Actions` 是内容片段。
+- AspectRatio、Embed、Video 的 `Ratio` 是 CSS 的写法（`"16 / 9"`），不收数字。
+- RuneProvider 的 lang、dir：语言是配置出来的才写（AddRuneUI 写了 `Lang` / `Languages`，或某一层写了 `Lang`），最外层也一样；vue 是只看这一层有没有配置。
+- AnimatedNumber 交给浏览器的 `signDisplay` 默认是 `negative`（取整后是 0 的负数不带负号），与 C# 这边的格式化一致。
+- 表格里“没写色调的行”与“已选的行”拆成两个样式：高对比下只有已选、正在看的行画系统的高亮色。
+
 ### 外观与文档站
 
 - 界面文字的字重是 500（标题、数字、Result 的页面级标题仍是 600）；以后做的组件照此。组件库只用系统字体栈。
@@ -72,50 +85,9 @@
    - SchemaForm 一族（visibleWhen / requiredWhen / readonlyWhen、access、明细表与合计、formSources、页签、SchemaView、focusControl 发 beforematch）：先出方案
    - KanbanBoard 把手的悬停；NotificationList / NotificationCenter、CommentThread 的 RelativeTime
 5. 不跟：vue 的流程引擎（与组件无关）；CSP nonce 等阶段计划时再定。
-6. vue 0.23.0（`6e6f831d..b7b09011`）与 0.24.0（`b7b09011..6e7b07b7`），2026-11-14 收到通知，还没跟（细节以 vue 的 CHANGELOG.md 两节为准）：
-   - ModelViewer：环境贴图等模型加载完才生成（Rune 已经是这样）；没有 WebGL 时新增状态 fallback（OnStatusChange 收到、根上 data-status="fallback"、
-     不转圈、不标 aria-busy）——Rune 现在会一直停在 loading，要跟。
-   - 0.23.0 行为：Provider / ConfigScope 只在这一层配置了语言时才写 lang、dir；取整后是 0 的负数不带负号，fileSize 遇到非数返回占位符、999,999 B 显示 1 MB；
-     主题、语言包、组件默认值里值是 undefined 的键不盖掉外层，主题里不认识的 token 报错；表头关键字筛选停手 300ms 生效、回车与清空立即生效；
-     Steps navigable 时出错的步骤可点回；LoadingOverlay 一开始加载就拦点击；没有箭头的 Popover 内容过高在面板里滚；嵌套 ContextMenu 只弹里层；
-     模态快速关了再开不被迟到的 close 关掉；图表（柱子夹在数值轴范围里、折线与面积触屏点得动下钻、全负数的对齐轴、svg 固定 direction: ltr、
-     雷达轴按数据最大值、zoomRange 夹到数据长度、MapChart 全空时显示 empty）；强制颜色模式下日历选中与区间用 Highlight、今天加下划线，表格选中与正在看的行画一圈 Highlight。
-     StepsForm、KanbanBoard、CodeEditor 的几条随对应组件（Rune 还没有）。
-   - 0.23.0 新属性与文案：Avatar 的 decorative；Listbox 的 readonly（Transfer、TreeTransfer 在只读的 Field / Form 里不能移动）；ControlGroup 把 Field 的不可用、只读交给组里的控件；
-     Pagination、PaginationBar 的 disabled；themeSettingsCode 第四个参数 base；语言包新键 floatButtonMore、copyFailed，页面组合文案 dataImportFailed；英文 paginationTotal 1 条时是 “1 item”。
-   - 0.24.0 行为：usePersistentState、useMediaQuery 水合时先按服务端的值渲染、挂载后换成真实的（Blazor 的预渲染 + 交互接管有同样的问题时照此：
-     先渲染默认值，交互就绪后再读存的值、媒体查询）；sameValue 对 Map 逐项比、Set 比成员；tableToXlsx 的日期按 timeZone（新选项）的墙上时间写；
-     TagsInput 允许自己输入时打字不自动高亮第一条建议；触屏：NavList 紧凑分组点图标弹出子项、ContextMenu 按住 700ms 打开、Splitter 与 ResizeHandle 在粗指针下扩大命中区；
-     只读 / 不可用的表单里 Autocomplete 不可用时隐藏 input 不提交；NavBar 收进下拉与“更多”的项也带徽标。ConditionBuilder、CodeEditor、NotificationList、Diagram 的几条随对应组件。
-   - 0.24.0 新属性：Switch 的 description / propsDescription；ColumnTable 的 empty（没有行时表体里一行占满，默认“暂无数据”）。
-7. vue 0.25.0（`6e7b07b7..fffc0c7f`），2026-11-14 收到通知，还没跟（细节以 vue 的 CHANGELOG.md 的 0.25.0 一节为准）：服务端渲染后的时区与日历的“今天”。
-   - 时区（语言没配置 timeZone 时）：服务端固定按 UTC 渲染时刻，不取服务器所在的时区；水合时先按 UTC，挂载后换成浏览器的时区，文字与悬停提示都改过来。
-     涉及 useFormat 的 date / relative（DateTime、RelativeTime、表格的日期列）、Countdown、日历的“今天”、TimelineChart。语言配置了 timeZone 的不变。
-   - 日历的“今天”（Calendar、RangeCalendar、QuarterCalendar、CalendarBoard）：服务端渲染时把渲染的时刻记在根元素上（data-now），水合时先按它算今天，
-     挂载后换成真实的今天；没有值、没指定默认日期时显示的月份（季度）也跟到真实的今天。静态生成的页面隔几天再打开，今天的标记不再停在构建那天。
-   - 新增：useTimeZone()、isServerRendering()；useDateLocale() 的返回值多了 rootAttrs()。
-   - 对 Rune 要核对的：预渲染（服务器）与交互接管（浏览器）之间有同样三样只有浏览器知道的东西——时区、今天、存在浏览器里的状态（同上一条的 0.24.0）。
-     预渲染时用确定的值（时区 UTC、渲染那一刻的今天），交互就绪后换成浏览器的；不在预渲染时取服务器本地时区。文档站是静态导出的，“今天停在构建那天”
-     在 Rune 的日历页上多半也有。核对办法：浏览器时区设成和服务器不同、把系统日期往后拨几天再打开预渲染的页面，看相对时间的 title、日历的今天标记。
-8. vue 0.26.0（`fffc0c7f..c42b2f39`），2026-11-14 收到通知，还没跟（细节以 vue 的 CHANGELOG.md 的 0.26.0 一节为准）：新增 8 个组件、统一搜索框、Collapse 不被内容撑宽。
-   - 新组件，文字（Text 家族，属性同 Text）：Sub、Sup（position: relative、font-size 0.75em、line-height 0、vertical-align baseline，sub 用 bottom -0.25em、sup 用 top -0.5em）；
-     Del（划线 + 次要色）、Ins（浅绿底 successSoft、不用下划线、padding-inline 0.15em、圆角 xs）；Strike（s 元素，只是划线）。
-   - 新组件 Abbr（abbr）：点状下划线、cursor: help、tabindex=0；全称放在 Tooltip 里（不写原生 title），悬停、聚焦、点按都打开，aria-describedby 指向提示。属性 title（必填）、propsTooltip。
-   - 新组件 Figure（figure + figcaption）：caption、captionSide（bottom 默认 / top，用 column-reverse）、align（start / center / end）、propsCaption；去掉 figure 的默认外边距。
-   - 新组件 AspectRatio（div）：ratio（数或 CSS 写法，默认 16 / 9）；里面的元素铺满，img、video 默认 object-fit: cover。
-   - 新组件 Embed（iframe）：src、title（必填）、ratio（默认 16 / 9，null 不定比例）、onLoad、propsRoot、propsPlaceholder；默认 loading=lazy、
-     referrerpolicy=strict-origin-when-cross-origin；加载完之前显示骨架、iframe 透明；data-state=loading / loaded。
-   - 新组件 Video（video）：src 或 sources、poster、tracks、ratio（默认 16 / 9）、controls（默认 true）、autoplay（默认静音 + playsinline；系统要求减少动态效果时不自动播放并显示控制条）；
-     preload 默认 metadata；画面 object-fit: contain、黑底。
-   - 新组件 SearchField（input type=search）：TextField 的预设——搜索图标、clearable 默认开、名称与占位文字默认 selectSearch、enterkeyhint=search；
-     onSearch（停手 delay 毫秒、回车、清空时调用，同一个词不重复，回车与清空立即）、delay（默认 300，0 是每次输入都触发）；父级从外面改值不触发 onSearch。
-   - 新组件 PageHeader（patterns）：header 里依次是面包屑、标题行（返回按钮、hgroup［标题 + 标记一行、说明］、结束边的操作）、children。
-     属性 title、description、headingLevel（1 默认 / 2 / 3，标题字号固定 xxl）、breadcrumbs、meta、actions、onBack、backHref（给了是链接）、各部件的 propsXxx。
-   - Collapse（连带 Collapsible、Accordion、FormSection 的折叠、CodePreview 的源码区）：网格列是 minmax(0, 1fr)、内容层 min-width: 0，内容区不再被里面最宽的内容撑开
-     （展开后长代码行把整块撑宽，手机上看不全也滚不了）——Rune 文档站的源码区要核对有没有同样的问题。
-   - Select、Cascader、TreeSelect、Transfer、PeoplePicker、JsonViewer、表头筛选里的搜索框都换成 SearchField（有了清空按钮）；propsSearch 的类型跟着变。
-     表头关键字筛选的“停手 300ms 生效”（第 6 条里的 0.23.0）就是 SearchField 的 onSearch。
-   - 新属性：Blockquote 的 source（引用下面一行出处：footer 里“— ”加 cite，小一号，cite 不用斜体）、propsSource；Image 的 sources（渲染成 picture；每项 srcset、type、media、sizes）；
-     Progress 的 bands（[{ to, tone }]，值落在哪一段用哪一段的色调、盖过 tone，超过最后一段算最后一段；有 bands 时 role="meter"）。
-   - 文案：页面组合的文案新增 pageHeaderBack（“返回” / “Back”）；语言包主体没有新键，主题 token 没有变。
-   - 文档站：新增页面 Figure 插图、视频与嵌入（display）、PageHeader 页头（patterns）；Text 页补行内组件，TextField 页加搜索框，页面模板里的页头换成 PageHeader。
+6. vue 0.23.0–0.26.0（`6e6f831d..c42b2f39`）已跟（2026-11-15，CI 的 `VUE_TSX_PRO_REF` 在 `c42b2f39`）。没有对应、留到以后的：
+   - 随组件一起做（Rune 还没有）：StepsForm、KanbanBoard、CodeEditor、Diagram、DataImport、SchemaForm、SlideCaptcha、ActionBar、QueryTable、
+     ConditionBuilder、NotificationList / NotificationCenter、ThemeCustomizer、ErrorBoundary、表格导出 xlsx 的那几条。
+   - 交互模式是 Server 时拿不到浏览器的时区：时刻按 `Lang.TimeZone`，没配置时是服务器的时区（WebAssembly 里是浏览器的）。
+     预渲染的页面里时刻、日历的“今天”同样按服务器当时的；交互接管是重新渲染一遍，不会像 vue 水合那样留着旧的属性（0.25.0 修的那个问题 Rune 没有），
+     但永远不交互的静态页会停在渲染那一刻。要准的话配置 `Lang.TimeZone`，或者传 `Now` / `Today`。

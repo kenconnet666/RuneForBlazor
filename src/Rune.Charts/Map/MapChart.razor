@@ -103,7 +103,8 @@
     }
 
     private protected override CssLength? FrameHeight => Height ?? 400;
-    private protected override bool IsEmpty => false;
+    // 只有底图也是一张图：写了 Empty 才在没有任何数据时换成它
+    private protected override bool IsEmpty => Empty is not null && Areas.Count + Points.Count + Links.Count == 0;
     private protected override bool Clickable => OnAreaClick.HasDelegate || OnPointClick.HasDelegate;
 
     // 混色：基色占 percent，其余透明（落在底色上）

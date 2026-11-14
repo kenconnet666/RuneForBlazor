@@ -181,8 +181,22 @@ public static class DataTableStyles
     /// <summary>放在竖排的弹性容器里：按行数自己的高度，最多占到剩下的高度，再多在表格里滚动。</summary>
     internal static Style Flexible => Css.Define(static () => new Style { FlexGrow = 0, FlexShrink = 1, FlexBasis = CssLength.Auto, MaxHeight = MaxHeight.None, MinHeight = 0 });
 
-    /// <summary>已选的行。</summary>
+    /// <summary>已选的行。高对比下底色、起始边的竖线（阴影）都被系统去掉：画一圈系统的高亮色。</summary>
     internal static Style Selected => Css.Define(static () => new Style
+    {
+        BackgroundColor = Tones.Accent.Soft,
+        [When.Hover] = new() { BackgroundColor = Tones.Accent.SoftHover },
+        [Media.ForcedColors] = new()
+        {
+            OutlineStyle = OutlineStyle.Solid,
+            OutlineWidth = BorderWidths.Md,
+            OutlineColor = CssColors.Highlight,
+            OutlineOffset = $"calc(-1 * {BorderWidths.Md})",
+        },
+    });
+
+    // 没写色调的行（中性）：同已选的底色，但不是“已选”，高对比下不画那一圈
+    static Style NeutralRow => Css.Define(static () => new Style
     {
         BackgroundColor = Tones.Accent.Soft,
         [When.Hover] = new() { BackgroundColor = Tones.Accent.SoftHover },
@@ -208,7 +222,7 @@ public static class DataTableStyles
         Tone.Success => SuccessRow,
         Tone.Warning => WarningRow,
         Tone.Danger => DangerRow,
-        _ => Selected,
+        _ => NeutralRow,
     };
 
     /// <summary>固定列（偏移写在 inset-inline-start / end 上）：在普通单元格之上，表头在它之上。</summary>

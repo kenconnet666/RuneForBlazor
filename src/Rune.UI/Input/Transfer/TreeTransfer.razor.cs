@@ -115,7 +115,7 @@ public partial class TreeTransfer<TItem>
     {
         var chosen = Chosen.ToHashSet();
         var movable = keys.Where(key => Nodes.ContainsKey(key) && chosen.Contains(key) == (from == 1)).ToList();
-        if (IsDisabled || movable.Count == 0) return;
+        if (IsDisabled || IsReadOnly || movable.Count == 0) return;
         var moving = movable.ToHashSet();
         checkedKeys[from] = [.. checkedKeys[from].Where(key => !moving.Contains(key))];
         // 同一句话连着说两次也要念：交替加一个看不见的字符，让文字变一变

@@ -144,7 +144,6 @@ public static class CodeBlockStyles
         PaddingInlineEnd = $"calc({Space.Md} + max({Sizes.Control}, {Sizes.MinTarget}))",
     });
 
-    // 不透明的底色：横向滚动的长行从按钮下面经过时，字不和图标叠在一起
     // 复制按钮贴着圆角外框的角（或在标题栏里）：焦点环画在里面，不被外框裁掉
     static Style CopyRing => Css.Define(static () => new Style { [When.FocusVisible] = new() { OutlineOffset = $"calc(-1 * {BorderWidths.Sm})" } });
 
@@ -153,7 +152,9 @@ public static class CodeBlockStyles
         Position = Position.Absolute,
         Top = Space.Xs,
         InsetInlineEnd = Space.Xs,
+        // 不透明的底色，外面再晕开一圈同色：横向滚动的长行从按钮下面经过时，字不和图标叠在一起、也不从按钮与边之间的缝里露出来
         BackgroundColor = Colors.Surface,
+        BoxShadow = $"0 0 0 {Space.Xs} {Colors.Surface}",
         [When.Hover] = new() { BackgroundColor = Colors.Fill },
     });
 

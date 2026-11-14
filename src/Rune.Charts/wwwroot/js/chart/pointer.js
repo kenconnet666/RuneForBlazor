@@ -7,19 +7,25 @@ import { dataOf, round } from './state.js';
 
 /** 指针移动：找出悬停的行（散点图是最近的点） */
 export function onPointerMove(plot, state, event) {
+  const found = locate(plot, state, event);
+  if (found !== undefined) hover(plot, state, found);
+}
+
+/** 指针所在的行（散点图是最近的点）；不在绘图区里、离得太远时是 null，图还没画好时是 undefined */
+function locate(plot, state, event) {
   const data = dataOf(plot, state);
   const svg = plot.querySelector('svg');
-  if (!data || !svg) return;
+  if (!data || !svg) return undefined;
   const box = svg.getBoundingClientRect();
   const x = event.clientX - box.left;
   const y = event.clientY - box.top;
   if (data.mode === 'item') {
     const target = event.target instanceof Element ? event.target.closest('[data-index]') : null;
-    return hover(plot, state, target && svg.contains(target) ? { index: Number(target.getAttribute('data-index')), kind: target.getAttribute('data-kind'), x, y } : null);
+    return target && svg.contains(target) ? { index: Number(target.getAttribute('data-index')), kind: target.getAttribute('data-kind'), x, y } : null;
   }
   const [left, top, width, height] = data.plot;
   const inside = x >= left - 4 && x <= left + width + 4 && y >= top - 4 && y <= top + height + 4;
-  if (!inside) return hover(plot, state, null);
+  if (!inside) return null;
   if (data.mode === 'point') {
     let best = null;
     let distance = data.pointReach;
@@ -30,18 +36,18 @@ export function onPointerMove(plot, state, event) {
         best = { index, x: px, y: py };
       }
     }
-    return hover(plot, state, best);
+    return best;
   }
   const centers = data.centers;
-  if (!centers.length) return hover(plot, state, null);
+  if (!centers.length) return null;
   const along = data.horizontal ? y : x;
   let nearest = 0;
   centers.forEach((center, index) => {
     if (Math.abs(center - along) < Math.abs(centers[nearest] - along)) nearest = index;
   });
   const center = centers[nearest];
-  if (Math.abs(center - along) > data.reach) return hover(plot, state, null);
-  hover(plot, state, data.horizontal ? { index: nearest, x, y: center } : { index: nearest, x: center, y });
+  if (Math.abs(center - along) > data.reach) return null;
+  return data.horizontal ? { index: nearest, x, y: center } : { index: nearest, x: center, y };
 }
 
 /** 悬停到一行（null 时离开）：十字线、圆点、浅底、提示框 */
@@ -168,7 +174,8 @@ export function onClick(plot, state, event) {
   const select = dataOf(plot, state)?.select;
   if (!plot.hasAttribute('data-clickable') && !select) return;
   const target = event.target instanceof Element ? event.target.closest('[data-index]') : null;
-  const index = target ? Number(target.getAttribute('data-index')) : select ? undefined : state.hovered?.index;
+  // 不在柱上的按点的位置找行：触屏点一下时指针已经离开，悬停的行清掉了
+  const index = target ? Number(target.getAttribute('data-index')) : select ? undefined : (state.hovered ?? locate(plot, state, event))?.index;
   if (index === undefined || Number.isNaN(index)) {
     if (select) sendCommand(plot, 'deselect');
     return;

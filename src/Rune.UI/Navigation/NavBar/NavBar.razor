@@ -124,11 +124,13 @@
             <Icon Data="item.Icon" />
         }
         @item.Label
-        @if (item.Badge > 0)
-        {
-            <Badge Size="Size.Xs" Variant="StatusVariant.Solid" Tone="Tone.Danger" Radius="Radius.Full">@(item.Badge > 99 ? "99+" : item.Badge.ToString(System.Globalization.CultureInfo.InvariantCulture))</Badge>
-        }
+        @BadgeOf(item)
     </text>;
+
+    // 徽标：顶栏里的项、收进下拉与“更多”菜单的项都带
+    RenderFragment? BadgeOf(NavMenuItem item) => item.Badge > 0
+        ? @<Badge Size="Size.Xs" Variant="StatusVariant.Solid" Tone="Tone.Danger" Radius="Radius.Full">@(item.Badge > 99 ? "99+" : item.Badge.ToString(System.Globalization.CultureInfo.InvariantCulture))</Badge>
+        : null;
 
     // 菜单里的链接（下拉菜单、“更多”菜单共用）
     RenderFragment MenuLinks(IReadOnlyList<NavMenuItem> children) => __builder =>
@@ -136,7 +138,7 @@
         foreach (var child in children)
         {
             <MenuLinkItem @key="child.KeyOrDefault" Href="@NavLinks.Resolve(Navigation, child.Href ?? "")" Icon="child.Icon" Disabled="child.Disabled"
-                          aria-current="@(IsCurrent(child) ? "page" : null)">@child.Label</MenuLinkItem>
+                          aria-current="@(IsCurrent(child) ? "page" : null)">@child.Label @BadgeOf(child)</MenuLinkItem>
         }
     };
 }

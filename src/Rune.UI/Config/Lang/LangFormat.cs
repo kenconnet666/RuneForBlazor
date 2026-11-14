@@ -108,6 +108,12 @@ public static class LangFormat
     {
         var exponent = Math.Clamp((int)Math.Floor(Math.Log10(Math.Max(bytes, 1)) / 3), 0, FileSizeUnits.Length - 1);
         var value = bytes / Math.Pow(1000, exponent);
+        // 取一位小数后进到 1000 的换下一个单位：999,999 B 是 1 MB，不是 1,000 kB
+        if (exponent < FileSizeUnits.Length - 1 && Math.Round(value, exponent == 0 ? 0 : 1) >= 1000)
+        {
+            exponent++;
+            value = bytes / Math.Pow(1000, exponent);
+        }
         return $"{value.ToString(exponent == 0 ? "#,0" : "#,0.#", CultureOf(culture))} {FileSizeUnits[exponent]}";
     }
 

@@ -83,8 +83,11 @@
         var files = e.FileCount == 0 ? [] : e.GetMultipleFiles(int.MaxValue);
         var accepted = files.Where(file => FileAccept.Matches(file, Accept)).ToList();
         var rejected = files.Where(file => !FileAccept.Matches(file, Accept)).ToList();
-        if (accepted.Count > 0) await SetValueAsync(Multiple || Directory ? accepted : [accepted[0]]);
-        if (rejected.Count > 0) await OnReject.InvokeAsync(rejected);
+        // 只收一个文件时先报不合格的：使用方（Upload）每次都用新来的顶掉原来的，后报的话同一批里的坏文件会把好文件顶掉
+        var many = Multiple || Directory;
+        if (!many && rejected.Count > 0) await OnReject.InvokeAsync(rejected);
+        if (accepted.Count > 0) await SetValueAsync(many ? accepted : [accepted[0]]);
+        if (many && rejected.Count > 0) await OnReject.InvokeAsync(rejected);
     }
 
     /// <summary>选文件夹时文件的相对路径（“报告/附图/图 1.png”）；不是从文件夹里选的、或还没收到时是文件名。</summary>

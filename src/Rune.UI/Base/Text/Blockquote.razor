@@ -1,12 +1,35 @@
 @*
-    引用（blockquote）：引文出处写在 cite 属性里，署名放在里面的 Small。
+    引用（blockquote，同 vue-tsx-pro 的 Blockquote）：可以带出处。
+    <Blockquote Source="《设计心理学》，唐纳德·诺曼">好的设计让人看得出该怎么用。</Blockquote>
+    Source 是给人看的出处（引用下面一行，前面带破折号，里面是 cite 元素）；cite 属性是给机器读的来源地址。
+    出处要带链接时用 SourceContent。
 *@
 @namespace Rune.UI
 @inherits UIComponent
+@{ var parts = TypographyStyles.Blockquote(Config.Styles); }
 
-<blockquote @attributes="Attrs.Merge(TypographyStyles.Blockquote(Config.Styles)[InlinePart.Root], Rest)">@ChildContent</blockquote>
+<blockquote @attributes="Attrs.Merge(parts[BlockquotePart.Root], Rest)">
+    @ChildContent
+    @if (SourceContent is not null || !string.IsNullOrEmpty(Source))
+    {
+        <footer @attributes="Attrs.Merge(parts[BlockquotePart.Source], PropsSource)">
+            — <cite @attributes="Attrs.Merge(CiteLayer)">@if (SourceContent is not null) { @SourceContent } else { @Source }</cite>
+        </footer>
+    }
+</blockquote>
 
 @code {
+    static readonly Attrs CiteLayer = new() { Sx = TypographyStyles.BlockquoteCite };
+
     /// <summary>内容。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>出处：作者、书名、来源的名字，显示在引用下面一行。</summary>
+    [Parameter] public string? Source { get; set; }
+
+    /// <summary>出处的内容（要放链接时用），优先于 <see cref="Source"/>。</summary>
+    [Parameter] public RenderFragment? SourceContent { get; set; }
+
+    /// <summary>出处那一行（footer）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSource { get; set; }
 }

@@ -24,12 +24,16 @@
     Memo<(IReadOnlyList<TItem>, IReadOnlyList<DataTableColumn<TItem>>, IReadOnlyList<string>?), Dictionary<string, int[]>> merged;
 
     static readonly Attrs MergedLayer = new() { Sx = Css.Define(static () => new Style { VerticalAlign = VerticalAlign.Middle }) };
+    static readonly Attrs EmptyLayer = new() { Sx = Css.Define(static () => new Style { TextAlign = TextAlign.Center, Color = Colors.TextMuted }) };
 
     /// <summary>数据。</summary>
     [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
 
     /// <summary>列：PropertyColumn、StatusColumn、TemplateColumn。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>没有行时表体里显示的内容（占满一行），默认取语言包（暂无数据）；列定义里的 Empty 是单个格子没有值时的占位。</summary>
+    [Parameter] public RenderFragment? Empty { get; set; }
 
     /// <summary>行的 key；不写时用序号。</summary>
     [Parameter] public Func<TItem, string>? GetKey { get; set; }
@@ -101,6 +105,14 @@
                 </TableRow>
             </TableHead>
             <TableBody>
+                @if (Items.Count == 0)
+                {
+                    <TableRow>
+                        <TableCell colspan="@shown.Count" @attributes="Attrs.MergeProps(EmptyLayer, null)">
+                            @if (Empty is not null) { @Empty } else { @Config.Lang.TableEmpty }
+                        </TableCell>
+                    </TableRow>
+                }
                 @for (var index = 0; index < Items.Count; index++)
                 {
                     var item = Items[index];

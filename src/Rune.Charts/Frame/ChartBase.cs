@@ -79,6 +79,9 @@ public abstract class ChartBase : UIComponent
     /// <summary>没有数据：绘图区显示空状态，没有数据表。</summary>
     private protected abstract bool IsEmpty { get; }
 
+    /// <summary>能导出图片（绘图区是 svg）。</summary>
+    private protected virtual bool ExportsImage => true;
+
     /// <summary>给读屏的数据表（也是导出 CSV 的内容）。</summary>
     private protected abstract ChartTable BuildTable();
 
@@ -312,6 +315,7 @@ public abstract class ChartBase : UIComponent
         builder.AddComponentParameter(23, nameof(ChartFrame.PropsLegendItem), PropsLegendItem);
         builder.AddComponentParameter(24, nameof(ChartFrame.PropsPlot), PropsPlot);
         builder.AddComponentParameter(25, nameof(ChartFrame.PropsTable), PropsTable);
+        builder.AddComponentParameter(26, nameof(ChartFrame.ExportsImage), ExportsImage);
         builder.AddMultipleAttributes(26, Attrs.MergeProps(null, Rest));
         builder.CloseComponent();
     };

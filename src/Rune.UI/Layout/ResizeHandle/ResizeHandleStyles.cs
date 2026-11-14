@@ -44,6 +44,14 @@ public static class ResizeHandleStyles
         [When.Hover] = new() { BackgroundColor = Colors.BorderStrong },
         [When.Dragging] = new() { BackgroundColor = Colors.BorderStrong },
         [When.FocusVisible] = new() { BackgroundColor = Tones.Accent.Solid },
+        // 触屏上能按到的范围向四周扩一截（不小于 24px），只扩命中区、不改布局
+        [Pseudo.After] = new()
+        {
+            Content = "\"\"",
+            Position = Position.Absolute,
+            Inset = 0,
+            [Media.CoarsePointer] = new() { Inset = $"calc(-1 * {Space.Sm})" },
+        },
     });
 
     static Style Start => Css.Define(static () => new Style { InsetInlineEnd = CssLength.Auto, InsetInlineStart = 0 });

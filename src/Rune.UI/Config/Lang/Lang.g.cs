@@ -190,6 +190,9 @@ public sealed partial record Lang
     /// <summary>复制成功后读屏播报的提示，默认“已复制”</summary>
     public required string Copied { get; init; }
 
+    /// <summary>复制失败（没有剪贴板权限、不是安全上下文）时读屏播报的提示，默认“复制失败”</summary>
+    public required string CopyFailed { get; init; }
+
     /// <summary>没有值时显示的占位（表格单元格、图表提示、描述列表），默认“—”</summary>
     public required string EmptyValue { get; init; }
 
@@ -700,6 +703,9 @@ public sealed partial record Lang
     /// <summary>横向导航里收起来的项的菜单按钮，默认“更多”</summary>
     public required string NavBarMore { get; init; }
 
+    /// <summary>浮动按钮组（速拨）的主按钮没写名称时的名称，默认“更多操作”</summary>
+    public required string FloatButtonMore { get; init; }
+
     /// <summary>树搜索没有匹配时的提示，默认“没有匹配的节点”</summary>
     public required string TreeNoMatch { get; init; }
 
@@ -1101,6 +1107,7 @@ public sealed partial record Lang
         Remove = "移除",
         Copy = "复制",
         Copied = "已复制",
+        CopyFailed = "复制失败",
         EmptyValue = "—",
         FormRequired = "必填",
         FormErrorSummary = count => string.Concat("有 ", count.ToString(CultureInfo.CurrentCulture), " 项需要修改"),
@@ -1271,6 +1278,7 @@ public sealed partial record Lang
         TabScrollNext = "往后滚",
         TabMoved = (label, position, total) => string.Concat(label, "移到第 ", position.ToString(CultureInfo.CurrentCulture), " 个，共 ", total.ToString(CultureInfo.CurrentCulture), " 个"),
         NavBarMore = "更多",
+        FloatButtonMore = "更多操作",
         TreeNoMatch = "没有匹配的节点",
         TreeMoved = (item, parent, position) => (!string.IsNullOrEmpty(parent) ? string.Concat(item, "移到", parent, "下第 ", position.ToString(CultureInfo.CurrentCulture), " 位") : string.Concat(item, "移到第一层第 ", position.ToString(CultureInfo.CurrentCulture), " 位")),
         TransferSource = "可选",
@@ -1446,6 +1454,7 @@ public sealed partial record Lang
         Remove = "Remove",
         Copy = "Copy",
         Copied = "Copied",
+        CopyFailed = "Copy failed",
         EmptyValue = "—",
         FormRequired = "Required",
         FormErrorSummary = count => ((count == 1) ? "There is 1 problem" : string.Concat("There are ", count.ToString(CultureInfo.CurrentCulture), " problems")),
@@ -1596,7 +1605,7 @@ public sealed partial record Lang
         SelectCreate = text => string.Concat("Create “", text, "”"),
         SelectSummary = labels => string.Join(", ", labels),
         SelectMoreTags = count => string.Concat("+", count.ToString(CultureInfo.CurrentCulture)),
-        PaginationTotal = total => string.Concat(LangFormat.Number(total, "en-US"), " items"),
+        PaginationTotal = total => string.Concat(LangFormat.Number(total, "en-US"), " ", ((total == 1) ? "item" : "items")),
         PaginationRange = (from, to, total) => string.Concat(LangFormat.Number(from, "en-US"), "–", LangFormat.Number(to, "en-US"), " of ", LangFormat.Number(total, "en-US"), " items"),
         Pagination = "Pagination",
         PageSizeOption = size => string.Concat(size.ToString(CultureInfo.CurrentCulture), " / page"),
@@ -1616,6 +1625,7 @@ public sealed partial record Lang
         TabScrollNext = "Scroll forward",
         TabMoved = (label, position, total) => string.Concat("Moved ", label, " to position ", position.ToString(CultureInfo.CurrentCulture), " of ", total.ToString(CultureInfo.CurrentCulture)),
         NavBarMore = "More",
+        FloatButtonMore = "More actions",
         TreeNoMatch = "No matching items",
         TreeMoved = (item, parent, position) => (!string.IsNullOrEmpty(parent) ? string.Concat("Moved ", item, " into ", parent, " at position ", position.ToString(CultureInfo.CurrentCulture)) : string.Concat("Moved ", item, " to the top level at position ", position.ToString(CultureInfo.CurrentCulture))),
         TransferSource = "Available",
@@ -1792,6 +1802,9 @@ public sealed partial record PatternsMessages
     /// <summary>通知中心：没有通知，默认“没有通知”</summary>
     public required string NotificationsEmpty { get; init; }
 
+    /// <summary>通知：有通知，但按类型、只看未读筛选后一条都没有，默认“没有符合条件的通知”</summary>
+    public required string NotificationsNoMatch { get; init; }
+
     /// <summary>通知中心：一条未读的标记（读屏），默认“未读”</summary>
     public required string NotificationUnreadMark { get; init; }
 
@@ -1833,6 +1846,9 @@ public sealed partial record PatternsMessages
 
     /// <summary>页签的右键菜单：关闭右边的，默认“关闭右侧”</summary>
     public required string PageTabsCloseRight { get; init; }
+
+    /// <summary>页头：返回按钮的名称，默认“返回”</summary>
+    public required string PageHeaderBack { get; init; }
 
     /// <summary>查询表格：刷新，默认“刷新”</summary>
     public required string QueryTableRefresh { get; init; }
@@ -1933,6 +1949,9 @@ public sealed partial record PatternsMessages
     /// <summary>导入：完成：(118) → “已导入 118 行”</summary>
     public required Func<double, string> DataImportDone { get; init; }
 
+    /// <summary>导入：onImport 失败时提示的标题（下面是错误的说明），默认“导入失败”</summary>
+    public required string DataImportFailed { get; init; }
+
     /// <summary>导入：再导入一份，默认“再导入一份”</summary>
     public required string DataImportAgain { get; init; }
 
@@ -2029,6 +2048,7 @@ public sealed partial record PatternsMessages
         NotificationsAll = "全部",
         NotificationsUnreadOnly = "只看未读",
         NotificationsEmpty = "没有通知",
+        NotificationsNoMatch = "没有符合条件的通知",
         NotificationUnreadMark = "未读",
         KanbanInstructions = "按空格拿起，左右方向键换列、上下方向键调整位置，再按空格放下，Esc 取消",
         KanbanEmpty = "没有",
@@ -2043,6 +2063,7 @@ public sealed partial record PatternsMessages
         PageTabsClose = "关闭",
         PageTabsCloseOthers = "关闭其他",
         PageTabsCloseRight = "关闭右侧",
+        PageHeaderBack = "返回",
         QueryTableRefresh = "刷新",
         QueryTableRetry = "重试",
         QueryTableDensity = "行高",
@@ -2076,6 +2097,7 @@ public sealed partial record PatternsMessages
         DataImportEditHint = "有错的格子可以直接改，改完重新校验",
         DataImportSubmit = count => string.Concat("导入 ", count.ToString(CultureInfo.CurrentCulture), " 行"),
         DataImportDone = count => string.Concat("已导入 ", count.ToString(CultureInfo.CurrentCulture), " 行"),
+        DataImportFailed = "导入失败",
         DataImportAgain = "再导入一份",
         DataImportNotNumber = "不是数字",
         DataImportPreview = "导入预览",
@@ -2124,6 +2146,7 @@ public sealed partial record PatternsMessages
         NotificationsAll = "All",
         NotificationsUnreadOnly = "Unread only",
         NotificationsEmpty = "No notifications",
+        NotificationsNoMatch = "No matching notifications",
         NotificationUnreadMark = "Unread",
         KanbanInstructions = "Press space to pick up, use the left and right arrow keys to change column and the up and down arrow keys to change position, press space again to drop, Escape to cancel",
         KanbanEmpty = "None",
@@ -2138,6 +2161,7 @@ public sealed partial record PatternsMessages
         PageTabsClose = "Close",
         PageTabsCloseOthers = "Close others",
         PageTabsCloseRight = "Close tabs to the right",
+        PageHeaderBack = "Back",
         QueryTableRefresh = "Refresh",
         QueryTableRetry = "Retry",
         QueryTableDensity = "Row height",
@@ -2171,6 +2195,7 @@ public sealed partial record PatternsMessages
         DataImportEditHint = "Fix cells in place; they are checked again",
         DataImportSubmit = count => string.Concat("Import ", count.ToString(CultureInfo.CurrentCulture), " rows"),
         DataImportDone = count => string.Concat("Imported ", count.ToString(CultureInfo.CurrentCulture), " rows"),
+        DataImportFailed = "Import failed",
         DataImportAgain = "Import another file",
         DataImportNotNumber = "Not a number",
         DataImportPreview = "Import preview",

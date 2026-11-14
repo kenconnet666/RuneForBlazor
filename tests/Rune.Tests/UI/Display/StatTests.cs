@@ -54,7 +54,7 @@ public class StatTests : BunitContext
     public void 浏览器里逐帧格式化用的选项()
     {
         var cut = Render<AnimatedNumber>(p => p.Add(x => x.Value, 1m).Add(x => x.Format, new NumberFormat { Style = NumberStyle.Currency, Scale = 10_000, Suffix = "万" }));
-        Assert.Equal("""{"style":"currency","currency":"CNY","minimumFractionDigits":2,"maximumFractionDigits":2,"signDisplay":"auto","useGrouping":true,"scale":10000,"suffix":"万"}""",
+        Assert.Equal("""{"style":"currency","currency":"CNY","minimumFractionDigits":2,"maximumFractionDigits":2,"signDisplay":"negative","useGrouping":true,"scale":10000,"suffix":"万"}""",
             cut.Find("[data-rune-tween]").GetAttribute("data-format"));
         Assert.Equal("zh-CN", cut.Find("[data-rune-tween]").GetAttribute("data-locale"));
     }

@@ -20,7 +20,7 @@
               Checked="@([.. Chosen, .. checkedKeys[0]])" CheckedChanged="SetSourceChecked" Filter="@searches[0]" @bind-Expanded="expanded"
               PropsScrollArea="Attrs.Layer(parts[TransferPart.List])" aria-labelledby="@TitleId(0)" @attributes="Attrs.MergeProps(null, PropsTree)" />
     </TransferPanel>
-    <TransferActions Titles="(TitleOf(0), TitleOf(1))" CanMoveRight="@(!IsDisabled && checkedKeys[0].Count > 0)" CanMoveLeft="@(!IsDisabled && checkedKeys[1].Count > 0)"
+    <TransferActions Titles="(TitleOf(0), TitleOf(1))" CanMoveRight="@(!IsDisabled && !IsReadOnly && checkedKeys[0].Count > 0)" CanMoveLeft="@(!IsDisabled && !IsReadOnly && checkedKeys[1].Count > 0)"
                      OnMoveRight="() => MoveAsync(0, checkedKeys[0])" OnMoveLeft="() => MoveAsync(1, checkedKeys[1])" PropsAction="PropsAction" />
     <TransferPanel Title="@TitleOf(1)" TitleId="@TitleId(1)" Selectable="@([.. Chosen.Where(key => Matches(key, 1))])" Checked="checkedKeys[1]"
                    CheckedChanged="keys => checkedKeys[1] = keys" Total="Targets.Count" Searchable="Searchable" Search="@searches[1]"

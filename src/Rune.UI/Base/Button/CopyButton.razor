@@ -55,14 +55,14 @@
     string? fetched;
     int request;
 
-    Memo<(string Label, string? Text, int Request, int Timeout, string Copied, bool Disabled, bool Loading, bool Ripple, bool Click), Attrs> managed;
+    Memo<(string Label, string? Text, int Request, int Timeout, string Copied, bool Disabled, bool Loading, bool Ripple, bool Click, string Failed), Attrs> managed;
 
     /// <summary>
     /// button 上由组件管理的属性：要复制的文字、对勾停留的时长、播报的话与状态；不变时复用同一个对象。
     /// 同步的值点击时由 JS 写入（data-rune-copy）；异步取到的值随一个递增的请求号交给 JS（data-rune-copy-request 变了就写入）。
     /// </summary>
     Attrs Managed => managed.Get(
-        (Label ?? Config.Lang.Copy, GetValue is null ? Value : fetched, request, Timeout, CopiedText ?? Config.Lang.Copied, Disabled, IsLoading, RippleEnabled, GetValue is not null),
+        (Label ?? Config.Lang.Copy, GetValue is null ? Value : fetched, request, Timeout, CopiedText ?? Config.Lang.Copied, Disabled, IsLoading, RippleEnabled, GetValue is not null, Config.Lang.CopyFailed),
         this,
         static (k, self) => Attrs.Merge(
             StateAttrs(k.Disabled, focusable: false, k.Loading, k.Ripple),
@@ -75,6 +75,7 @@
                 ["data-rune-copy-request"] = k.Request > 0 ? k.Request.ToString(System.Globalization.CultureInfo.InvariantCulture) : null,
                 ["data-rune-copy-timeout"] = k.Timeout.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 ["data-rune-copied-text"] = k.Copied,
+                ["data-rune-copy-failed-text"] = k.Failed,
                 OnClick = k.Click ? self.FetchAndCopyAsync : null,
             }));
 

@@ -73,6 +73,7 @@ internal static class SortableStyles
         TouchAction = TouchAction.None,
         [When.Hover] = new() { BackgroundColor = Colors.FillHover },
         [When.Active] = new() { Cursor = Cursors.Grabbing },
+        [When.Disabled] = new() { Opacity = Opacities.Disabled, Cursor = Cursor.NotAllowed },
     });
 
     static Style ContentStyle => Css.Define(static () => new Style { FlexGrow = 1, MinWidth = 0 });

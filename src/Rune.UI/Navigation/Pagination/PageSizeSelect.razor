@@ -8,7 +8,7 @@
 @inherits UIComponent
 @using System.Globalization
 
-<Select Items="Items" Value="@Value.ToString(CultureInfo.InvariantCulture)" ValueChanged="SelectAsync" Size="Size"
+<Select Items="Items" Value="@Value.ToString(CultureInfo.InvariantCulture)" ValueChanged="SelectAsync" Size="Size" Disabled="Disabled"
         aria-label="@Config.Lang.PageSizeLabel" RenderValue="RenderValue" @attributes="Attrs.MergeProps(null, Rest)" />
 
 @code {
@@ -27,6 +27,9 @@
 
     /// <summary>尺寸，默认 Sm（PaginationBar 把自己的 Size 交过来）。</summary>
     [Parameter] public Size Size { get; set; } = Size.Sm;
+
+    /// <summary>不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
 
     /// <summary>可选的条数，默认 10、20、50、100。</summary>
     [Parameter] public IReadOnlyList<int>? Options { get; set; }

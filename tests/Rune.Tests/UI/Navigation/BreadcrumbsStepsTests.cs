@@ -78,15 +78,18 @@ public class BreadcrumbsStepsTests : BunitContext
     }
 
     [Fact]
-    public void 步骤_Navigable时已完成的步骤可以点回去_出错与不可用的不能点()
+    public void 步骤_Navigable时已完成与出错的步骤可以点回去_不可用的不能点()
     {
         var current = 2;
         StepItem[] items = [new("拉取"), new("测试", Status: StepState.Error), new("构建"), new("发布", Disabled: true)];
         var cut = Render<Steps>(p => p.Add(x => x.Items, items).Add(x => x.Current, current).Add(x => x.CurrentChanged, v => current = v).Add(x => x.Navigable, true));
 
+        // 拉取（已完成）、测试（出错）可以点；构建是当前步骤、发布不可用
         var buttons = cut.FindAll("ol > li button");
-        Assert.Single(buttons);
-        buttons[0].Click();
+        Assert.Equal(2, buttons.Count);
+        buttons[1].Click();
+        Assert.Equal(1, current);
+        cut.FindAll("ol > li button")[0].Click();
         Assert.Equal(0, current);
         Assert.Equal("error", cut.FindAll("ol > li")[1].GetAttribute("data-state"));
     }

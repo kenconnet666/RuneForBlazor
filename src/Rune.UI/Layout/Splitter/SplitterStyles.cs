@@ -110,9 +110,32 @@ internal static class SplitterStyles
         [When.FocusVisible] = new() { Color = Tones.Accent.Solid, [LineWidth.Name] = BorderWidths.Md.ToString() },
     });
 
-    static Style ColResize => Css.Define(static () => new Style { Cursor = Cursor.ColResize });
+    // 触屏上手指按不准这么窄的一条：能按到的范围向两边各扩一截（不小于 24px，WCAG 2.5.8），只扩命中区、不改布局
+    static Style ColResize => Css.Define(static () => new Style
+    {
+        Cursor = Cursor.ColResize,
+        [Pseudo.After] = new()
+        {
+            Content = "\"\"",
+            Position = Position.Absolute,
+            InsetBlock = 0,
+            InsetInline = 0,
+            [Media.CoarsePointer] = new() { InsetInline = $"calc(-1 * {Space.Sm})" },
+        },
+    });
 
-    static Style RowResize => Css.Define(static () => new Style { Cursor = Cursor.RowResize });
+    static Style RowResize => Css.Define(static () => new Style
+    {
+        Cursor = Cursor.RowResize,
+        [Pseudo.After] = new()
+        {
+            Content = "\"\"",
+            Position = Position.Absolute,
+            InsetInline = 0,
+            InsetBlock = 0,
+            [Media.CoarsePointer] = new() { InsetBlock = $"calc(-1 * {Space.Sm})" },
+        },
+    });
 
     static Style LineStyle => Css.Define(static () => new Style
     {

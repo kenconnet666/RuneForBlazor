@@ -39,6 +39,8 @@
         {
             case QRCodeStatus.Loading:
                 <Spinner Size="UI.Size.Lg" />
+                @* 读屏念得到“加载中”（不用 Spinner 的 Label：它自己又是一个 status） *@
+                <VisuallyHidden>@Config.Lang.Loading</VisuallyHidden>
                 break;
             case QRCodeStatus.Scanned:
                 <Icon Data="BuiltInIcons.Check" Size="UI.Size.Lg" />

@@ -282,6 +282,8 @@ export function watchLightbox(viewport) {
   });
   // 关上：下次打开时重新放进视口、方向回正
   dialog.addEventListener('close', () => {
+    // 很快关了再开时迟到的 close：已经又开着了，不动
+    if (dialog.open) return;
     const state = stateOf(viewport);
     state.rotation = 0;
     state.fitted = true;

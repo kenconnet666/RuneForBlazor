@@ -48,6 +48,8 @@
     private protected override bool FixedCanvas => true;
     private protected override CssLength? FrameHeight => CssLength.Auto;
     private protected override bool IsEmpty => Stages.Count == 0;
+    // 每一段是 HTML 画的，没有 svg
+    private protected override bool ExportsImage => false;
     private protected override bool Clickable => OnItemClick.HasDelegate;
 
     private protected override Task ActivateAsync(int index) =>

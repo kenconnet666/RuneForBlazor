@@ -13,7 +13,7 @@
         <span aria-hidden="true" @attributes="Attrs.Merge(TextLayer, PropsBefore)">@before</span>
     }
     @* 只在跳之前暂存页码：@key 换一个新的输入框，跳完就是空的 *@
-    <NumberField @key="version" TValue="int?" Value="null" ValueChanged="JumpAsync" Min="1" Max="Math.Max(1, PageCount)" Stepper="false"
+    <NumberField @key="version" TValue="int?" Value="null" ValueChanged="JumpAsync" Min="1" Max="Math.Max(1, PageCount)" Stepper="false" Disabled="Disabled"
                  aria-label="@Config.Lang.PageJumpLabel" Sx="PaginationStyles.JumpInput" @attributes="Attrs.MergeProps(null, PropsInput)" />
     @if (Config.Lang.PageJumpAfter is { Length: > 0 } after)
     {
@@ -35,6 +35,9 @@
 
     /// <summary>总页数：输入的页码夹在 1–PageCount。</summary>
     [Parameter, EditorRequired] public int PageCount { get; set; }
+
+    /// <summary>不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
 
     /// <summary>字号档位，默认 Sm（同 Pagination）。</summary>
     [Parameter] public Size Size { get; set; } = Size.Sm;

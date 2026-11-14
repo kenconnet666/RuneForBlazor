@@ -167,6 +167,12 @@ function createController(root) {
     if (status === next) return;
     status = next;
     root.dataset.state = next;
+    // 显示的是 fallback 内容（没有 WebGL、画质关了）：场景不会跑，宿主上的“加载中”（ModelViewer 的 data-status、aria-busy）没人来改，
+    // 转圈会一直盖在 fallback 上、读屏一直以为在忙
+    if (next === 'fallback' && host.dataset.status === 'loading') {
+      host.dataset.status = 'fallback';
+      host.removeAttribute('aria-busy');
+    }
     sendCommand(root, 'three-status', next);
   }
 

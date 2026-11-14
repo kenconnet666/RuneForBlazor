@@ -10,7 +10,7 @@ public partial class TagsInput<TItem>
     /// <summary>默认的分隔符：英文、中文的逗号与分号。</summary>
     public static readonly IReadOnlyList<string> DefaultDelimiters = [",", "，", ";", "；"];
 
-    Memo<(Attrs Control, string ListId, string PopoverId, bool Open, bool Editable, bool Suggestions, string Text, string Delimiters), Attrs> inputManaged;
+    Memo<(Attrs Control, string ListId, string PopoverId, bool Open, bool Editable, bool Suggestions, string Text, string Delimiters, bool Custom), Attrs> inputManaged;
     Memo<(string Id, bool Open, bool Disabled), Attrs> shellManaged;
     Memo<string, Attrs> refocusInput;
     bool open;
@@ -127,7 +127,7 @@ public partial class TagsInput<TItem>
 
     // 输入框：有建议时是 combobox 与列表的宿主；Enter、Backspace、粘贴转成命令（见 JS 初始化器的 data-rune-enter 等）
     Attrs InputManaged => inputManaged.Get(
-        (ControlAttrs, ListId, PopoverId, open, Editable, HasSuggestions, Text, string.Concat(Delimiters)),
+        (ControlAttrs, ListId, PopoverId, open, Editable, HasSuggestions, Text, string.Concat(Delimiters), AllowCustomValue),
         this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
         {
@@ -137,7 +137,9 @@ public partial class TagsInput<TItem>
             ["aria-autocomplete"] = k.Suggestions ? "list" : null,
             ["aria-expanded"] = k.Suggestions ? (k.Open ? "true" : "false") : null,
             ["aria-controls"] = k.Suggestions ? k.ListId : null,
-            ["data-rune-list"] = k.Suggestions && k.Editable ? "text" : null,
+            // 允许自己输入时打字不自动高亮第一条建议（manual）：回车加的是打的字（“java”不该变成建议里的“javascript”），要选建议按 ↓。
+            // 只能从建议里选时照常高亮第一条，回车就选它
+            ["data-rune-list"] = k.Suggestions && k.Editable ? (k.Custom ? "text manual" : "text") : null,
             ["data-rune-popover"] = k.Suggestions && k.Editable ? k.PopoverId : null,
             ["data-rune-enter"] = k.Editable ? "add" : null,
             ["data-rune-backspace"] = k.Editable ? "remove-last" : null,

@@ -77,9 +77,12 @@ public static partial class AvatarStyles
     {
         var trimmed = name.Trim();
         if (trimmed.Length == 0) return "";
-        if (CjkPattern().IsMatch(trimmed)) return trimmed[^1..];
+        // 按码点取：表情、扩展区的汉字是两个码元，取半个会显示成乱码
+        if (CjkPattern().IsMatch(trimmed)) return trimmed.EnumerateRunes().Last().ToString();
         var words = trimmed.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-        return (words.Length > 1 ? $"{words[0][0]}{words[^1][0]}" : $"{words[0][0]}").ToUpperInvariant();
+        return (words.Length > 1 ? $"{First(words[0])}{First(words[^1])}" : First(words[0])).ToUpperInvariant();
+
+        static string First(string word) => System.Text.Rune.GetRuneAt(word, 0).ToString();
     }
 
     [GeneratedRegex("[㐀-鿿]")]

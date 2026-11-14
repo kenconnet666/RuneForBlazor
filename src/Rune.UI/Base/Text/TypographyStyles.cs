@@ -53,7 +53,7 @@ public enum TextWrapping
     Pretty,
 }
 
-/// <summary>TextSpan、Paragraph、Strong、Em、Small 的部件。</summary>
+/// <summary>TextSpan、Paragraph、Strong、Em、Small、Sub、Sup、Del、Ins、Strike 的部件。</summary>
 public enum TextPart
 {
     /// <summary>文字元素本身。</summary>
@@ -77,11 +77,21 @@ public enum KbdPart
     Root,
 }
 
-/// <summary>高亮（Mark）、行内代码（Code）、引用（Blockquote）的部件：都只有元素本身。</summary>
+/// <summary>高亮（Mark）、行内代码（Code）、缩写（Abbr）的部件：都只有元素本身。</summary>
 public enum InlinePart
 {
     /// <summary>元素本身。</summary>
     Root,
+}
+
+/// <summary>引用（Blockquote）的部件。</summary>
+public enum BlockquotePart
+{
+    /// <summary>blockquote 元素。</summary>
+    Root,
+
+    /// <summary>出处那一行（footer，写了 Source 时有）。</summary>
+    Source,
 }
 
 /// <summary>视觉隐藏的部件。</summary>
@@ -102,6 +112,21 @@ public enum TypographyKind
 
     /// <summary>标题（h1–h6）。</summary>
     Heading,
+
+    /// <summary>下标（sub）。</summary>
+    Sub,
+
+    /// <summary>上标（sup）。</summary>
+    Sup,
+
+    /// <summary>删掉的内容（del）。</summary>
+    Del,
+
+    /// <summary>加进来的内容（ins）。</summary>
+    Ins,
+
+    /// <summary>不再有效的内容（s）。</summary>
+    Strike,
 }
 
 /// <summary>文字的外观：交给 <see cref="TypographyStyles"/> 的档位组合，没写的项继承上下文。</summary>
@@ -130,10 +155,10 @@ public readonly record struct TypographyAppearance(
     IEnumerable<Enum?> IAppearance.Variants => [Kind, Size, Weight, Tone, Align, Wrap];
 }
 
-/// <summary>文字类组件（TextSpan、Paragraph、Strong、Em、Small、H1–H6、Kbd、VisuallyHidden）的样式（配方）：每个选项一段样式，按外观组合缓存。</summary>
+/// <summary>文字类组件（TextSpan、Paragraph、Strong、Em、Small、Sub、Sup、Del、Ins、Strike、H1–H6、Kbd、VisuallyHidden）的样式（配方）：每个选项一段样式，按外观组合缓存。</summary>
 public static class TypographyStyles
 {
-    /// <summary>TextSpan、Paragraph、Strong、Em、Small 的部件默认层。</summary>
+    /// <summary>TextSpan、Paragraph、Strong、Em、Small、Sub、Sup、Del、Ins、Strike 的部件默认层。</summary>
     public static PartLayers<TextPart> Text(TypographyAppearance appearance, ComponentStyles styles) =>
         Recipe.Of("text", appearance, styles, static (TypographyAppearance a, TextPart _) => Compose(a));
 
@@ -155,8 +180,12 @@ public static class TypographyStyles
         Recipe.Of("code", styles, static (InlinePart _) => CodeRoot);
 
     /// <summary>引用（Blockquote）的部件默认层。</summary>
-    public static PartLayers<InlinePart> Blockquote(ComponentStyles styles) =>
-        Recipe.Of("blockquote", styles, static (InlinePart _) => BlockquoteRoot);
+    public static PartLayers<BlockquotePart> Blockquote(ComponentStyles styles) =>
+        Recipe.Of("blockquote", styles, static (BlockquotePart part) => part == BlockquotePart.Source ? BlockquoteSource : BlockquoteRoot);
+
+    /// <summary>缩写（Abbr）的部件默认层。</summary>
+    public static PartLayers<InlinePart> Abbr(ComponentStyles styles) =>
+        Recipe.Of("abbr", styles, static (InlinePart _) => Sx.Of(AbbrRoot, SharedStyles.FocusRing));
 
     /// <summary>视觉隐藏（VisuallyHidden）的部件默认层。</summary>
     public static PartLayers<VisuallyHiddenPart> VisuallyHidden(ComponentStyles styles) =>
@@ -168,6 +197,11 @@ public static class TypographyStyles
         {
             TypographyKind.Paragraph => Paragraph,
             TypographyKind.Heading => HeadingRoot,
+            TypographyKind.Sub => Sub,
+            TypographyKind.Sup => Sup,
+            TypographyKind.Del => Del,
+            TypographyKind.Ins => Ins,
+            TypographyKind.Strike => Strike,
             _ => null,
         },
         a.Size is { } size ? ScaleStyles.FontSize(size) : null,
@@ -182,6 +216,39 @@ public static class TypographyStyles
         a.Mono ? Mono : null);
 
     static Style Paragraph => Css.Define(static () => new Style { Margin = 0, TextWrap = TextWrap.Pretty });
+
+    // 上下标：浏览器默认的 vertical-align: sub / super 会把所在的行撑高，行距忽大忽小。改成不占行高、相对基线挪位置（normalize.css 的做法）
+    static Style Sub => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        Bottom = CssLength.Em(-0.25),
+        FontSize = CssLength.Em(0.75),
+        LineHeight = 0,
+        VerticalAlign = VerticalAlign.Baseline,
+    });
+
+    static Style Sup => Css.Define(static () => new Style
+    {
+        Position = Position.Relative,
+        Top = CssLength.Em(-0.5),
+        FontSize = CssLength.Em(0.75),
+        LineHeight = 0,
+        VerticalAlign = VerticalAlign.Baseline,
+    });
+
+    // 删掉的内容：划线、次要色
+    static Style Del => Css.Define(static () => new Style { Color = Colors.TextMuted, TextDecorationLine = TextDecorationLine.LineThrough });
+
+    // 加进来的内容：浅绿底（浏览器默认的下划线和链接分不清）
+    static Style Ins => Css.Define(static () => new Style
+    {
+        PaddingInline = CssLength.Em(0.15),
+        BorderRadius = Radii.Xs,
+        BackgroundColor = Tones.Success.Soft,
+        TextDecorationLine = TextDecorationLine.None,
+    });
+
+    static Style Strike => Css.Define(static () => new Style { TextDecorationLine = TextDecorationLine.LineThrough });
 
     // 平时透明，悬停标题或键盘聚焦时出现
     static Style HeadingAnchor => Css.Define(static () => new Style
@@ -311,6 +378,23 @@ public static class TypographyStyles
         BorderInlineStartStyle = BorderStyle.Solid,
         BorderInlineStartColor = Colors.BorderStrong,
         Color = Colors.TextMuted,
+    });
+
+    // 出处：小一号，和引用隔开一点
+    static Style BlockquoteSource => Css.Define(static () => new Style { Display = Display.Block, MarginBlockStart = Space.Xs, FontSize = FontSizes.Sm });
+
+    /// <summary>出处里的 cite：书名、作者不用斜体（浏览器给 cite 的默认样式，中文里没有这个习惯）。</summary>
+    internal static Style BlockquoteCite => Css.Define(static () => new Style { FontStyle = FontStyle.Normal });
+
+    // 缩写：点状下划线、帮助的光标
+    static Style AbbrRoot => Css.Define(static () => new Style
+    {
+        TextDecorationLine = TextDecorationLine.Underline,
+        TextDecorationStyle = TextDecorationStyle.Dotted,
+        TextDecorationThickness = TextDecorationThickness.FromFont,
+        TextUnderlineOffset = CssLength.Em(0.2),
+        Cursor = Cursor.Help,
+        BorderRadius = Radii.Xs,
     });
 
     // 键帽：底边加厚，像一个按下去的键

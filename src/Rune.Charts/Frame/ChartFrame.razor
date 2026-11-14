@@ -52,7 +52,11 @@
                             <IconButton Icon="BuiltInIcons.Download" Label="@lang.ChartExport" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="UI.Size.Sm" @attributes="Attrs.MergeProps(null, null, t)" />
                         </Trigger>
                         <ChildContent>
-                            <MenuItem Icon="BuiltInIcons.ImageDown" data-rune-chart-export="image" data-name="@FileName">@lang.ChartExportImage</MenuItem>
+                            @* 绘图区不是 svg 的图（漏斗图）导不出图片：不放一个点了没反应的菜单项 *@
+                            @if (ExportsImage)
+                            {
+                                <MenuItem Icon="BuiltInIcons.ImageDown" data-rune-chart-export="image" data-name="@FileName">@lang.ChartExportImage</MenuItem>
+                            }
                             <MenuItem Icon="BuiltInIcons.FileSpreadsheet" data-rune-chart-export="data" data-name="@FileName">@lang.ChartExportData</MenuItem>
                         </ChildContent>
                     </Menu>
@@ -174,6 +178,9 @@
 
     /// <summary>导出的文件名（不含扩展名）；不写时用图表的名称（aria-label），再没有时是语言包的“图表”。</summary>
     [Parameter] public string? ExportName { get; set; }
+
+    /// <summary>能导出图片（绘图区是 svg），默认能；漏斗图是 HTML 画的，不能。</summary>
+    [Parameter] public bool ExportsImage { get; set; } = true;
 
     /// <summary>上方一行（单位与图例）的部件属性。</summary>
     [Parameter] public Attrs? PropsHeader { get; set; }

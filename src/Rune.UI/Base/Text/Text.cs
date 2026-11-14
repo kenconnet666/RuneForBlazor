@@ -1,6 +1,6 @@
 namespace Rune.UI;
 
-/// <summary>TextSpan、Paragraph、Strong、Em、Small 的基类：用文字的配方。</summary>
+/// <summary>TextSpan、Paragraph、Strong、Em、Small、Sub、Sup、Del、Ins、Strike 的基类：用文字的配方。</summary>
 public abstract class TextBase : TypographyBase
 {
     /// <inheritdoc/>
@@ -65,4 +65,54 @@ public sealed class Small : TextBase
 
     /// <inheritdoc/>
     protected override Size? DefaultSize => UI.Size.Xs;
+}
+
+/// <summary>下标（sub）：化学式、变量的下标，不撑高所在的行。<c>H&lt;Sub&gt;2&lt;/Sub&gt;O</c></summary>
+public sealed class Sub : TextBase
+{
+    /// <inheritdoc/>
+    protected override string Tag => "sub";
+
+    /// <inheritdoc/>
+    protected override TypographyKind Kind => TypographyKind.Sub;
+}
+
+/// <summary>上标（sup）：单位的幂、脚注的编号，不撑高所在的行。<c>86 m&lt;Sup&gt;2&lt;/Sup&gt;</c></summary>
+public sealed class Sup : TextBase
+{
+    /// <inheritdoc/>
+    protected override string Tag => "sup";
+
+    /// <inheritdoc/>
+    protected override TypographyKind Kind => TypographyKind.Sup;
+}
+
+/// <summary>文档里删掉的内容（del）：划线、次要色；cite、datetime 这些原生属性照常可用。</summary>
+public sealed class Del : TextBase
+{
+    /// <inheritdoc/>
+    protected override string Tag => "del";
+
+    /// <inheritdoc/>
+    protected override TypographyKind Kind => TypographyKind.Del;
+}
+
+/// <summary>文档里加进来的内容（ins）：浅绿底，不用下划线（和链接分不清）。</summary>
+public sealed class Ins : TextBase
+{
+    /// <inheritdoc/>
+    protected override string Tag => "ins";
+
+    /// <inheritdoc/>
+    protected override TypographyKind Kind => TypographyKind.Ins;
+}
+
+/// <summary>不再准确、不再有效的内容（s）：原价、过期的说明；文档的增删用 <see cref="Del"/>、<see cref="Ins"/>。<c>&lt;Strike&gt;¥199&lt;/Strike&gt; ¥149</c></summary>
+public sealed class Strike : TextBase
+{
+    /// <inheritdoc/>
+    protected override string Tag => "s";
+
+    /// <inheritdoc/>
+    protected override TypographyKind Kind => TypographyKind.Strike;
 }

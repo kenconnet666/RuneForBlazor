@@ -116,7 +116,8 @@
         var count = Items.Count;
         var values = Items.SelectMany(row => visible.Select(item => (double)(item.ValueOf(row) ?? 0))).ToList();
         // 轴的最大值：给了用它，否则取 Levels 格整齐步长的整数倍
-        var top = Max ?? AxisTicks.NiceStep(Math.Max(values.DefaultIfEmpty(0).Max(), 1) / Levels) * Levels;
+        // 全是 0 时才取 1：0–0.3 的比率不该被撑到 1（多边形只占三成半径）
+        var top = Max ?? AxisTicks.NiceStep((Math.Max(values.DefaultIfEmpty(0).Max(), 0) is > 0 and var most ? most : 1) / Levels) * Levels;
         double RatioOf(double value) => Math.Max(0, Math.Min(value / top, 1));
         string Ring(double ratio) => string.Join(' ', Enumerable.Range(0, count).Select(position => Polar(position, count, ratio)).Select(p => $"{N(p.X)},{N(p.Y)}"));
         @* 网格、轴、刻度、系列、扇区是 svg 下的兄弟元素：@key 带上各自的前缀，不能重复（重复时再次渲染的对比出错，整个渲染器跟着坏掉） *@

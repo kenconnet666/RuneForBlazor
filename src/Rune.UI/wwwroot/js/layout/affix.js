@@ -78,6 +78,10 @@ export function clickBackTop(target) {
   if (!scroller) return;
   scroller.scrollTo({ top: 0, behavior: reducedMotion.matches ? 'instant' : 'smooth' });
   const focusTarget = button.dataset.target ? scroller : document.body;
-  if (!focusTarget.hasAttribute('tabindex')) focusTarget.setAttribute('tabindex', '-1');
+  // 临时加的 tabindex 用完就去掉：不然 body、滚动容器一直能被点中聚焦
+  if (!focusTarget.hasAttribute('tabindex')) {
+    focusTarget.setAttribute('tabindex', '-1');
+    focusTarget.addEventListener('blur', () => focusTarget.removeAttribute('tabindex'), { once: true });
+  }
   focusTarget.focus({ preventScroll: true });
 }

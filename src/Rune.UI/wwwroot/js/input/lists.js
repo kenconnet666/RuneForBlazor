@@ -411,6 +411,8 @@ export function onOptionsChanged(list) {
   const host = hostOf(list);
   // 有搜索词，或宿主要一直高亮第一项（命令面板）：还没有高亮项时高亮第一项
   if (!host || (!list.getAttribute('data-rune-query') && !flagsOf(host).includes('first'))) return;
+  // 宿主说了不自动高亮（manual：允许自己输入的标签输入框）
+  if (flagsOf(host).includes('manual')) return;
   if (activeIndex(host, list) < 0) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
 }
 
@@ -435,7 +437,9 @@ export function onQueryChanged(list) {
   const host = hostOf(list);
   const query = list.getAttribute('data-rune-query') ?? '';
   if (host) {
-    if (query || flagsOf(host).includes('first')) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
+    // manual：打了字也不高亮第一项（回车交给宿主自己，加的是打的字），上一次的高亮清掉
+    if (query && flagsOf(host).includes('manual')) highlight(host, list, -1, false);
+    else if (query || flagsOf(host).includes('first')) highlight(host, list, optionTable(list).findIndex((option) => !option.disabled), true);
     else highlightDefault(host, list);
   }
   clearTimeout(resultTimers.get(list));

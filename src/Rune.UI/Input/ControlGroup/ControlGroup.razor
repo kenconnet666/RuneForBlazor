@@ -13,7 +13,10 @@
 
 <div @attributes="Attrs.Merge(ControlGroupStyles.Of(Orientation, Inline, Config.Styles)[ControlGroupPart.Root], Rest, Managed)">
     <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
-        <CascadingValue Value="AttachedGroup.Of(Orientation)">@ChildContent</CascadingValue>
+        @* Field 的不可用、只读照常交给组里的控件（它们拿不到 Field 了）：叠在外层表单的设置上 *@
+        <CascadingValue TValue="FieldLayout" Value="GroupLayout">
+            <CascadingValue Value="AttachedGroup.Of(Orientation)">@ChildContent</CascadingValue>
+        </CascadingValue>
     </CascadingValue>
 </div>
 
@@ -31,6 +34,15 @@
 
     /// <summary>所在的 Field：组是它的控件（id、标签、说明）。</summary>
     [CascadingParameter] FieldContext? Field { get; set; }
+
+    /// <summary>外层表单的设置。</summary>
+    [CascadingParameter] FieldLayout? Layout { get; set; }
+
+    Memo<(bool Disabled, bool ReadOnly, FieldLayout? Outer), FieldLayout> groupLayout;
+
+    FieldLayout? GroupLayout => Field is null
+        ? Layout
+        : groupLayout.Get((Field.Disabled, Field.ReadOnly, Layout), static k => new FieldLayout(Disabled: k.Disabled, ReadOnly: k.ReadOnly).Over(k.Outer));
 
 
     Attrs Managed => managed.Get(

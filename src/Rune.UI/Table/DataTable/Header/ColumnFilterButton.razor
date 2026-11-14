@@ -15,15 +15,16 @@
         <div @attributes="Attrs.Merge(Panel)">
             @if (Options is null)
             {
-                <TextField Value="@(Values.FirstOrDefault() ?? "")" ValueChanged="@((string? text) => SetAsync(string.IsNullOrEmpty(text) ? [] : [text]))" Immediate="true"
-                           Size="Size.Sm" Clearable="true" autofocus aria-label="@Config.Lang.TableFilterSearch" placeholder="@Config.Lang.TableFilterSearch" />
+                @* 输入框里的是草稿，停手一会儿才生效（SearchField 的 OnSearch）：服务端筛选时不是每敲一个字发一次请求；回车、清空立即生效 *@
+                <SearchField @bind-Value="keyword" OnSearch="ApplyKeywordAsync" Delay="KeywordDelay"
+                             Size="Size.Sm" autofocus aria-label="@Config.Lang.TableFilterSearch" placeholder="@Config.Lang.TableFilterSearch" />
             }
             else
             {
                 @if (Options.Count > SearchThreshold)
                 {
-                    <TextField @bind-Value="search" Immediate="true" Size="Size.Sm" Clearable="true"
-                               aria-label="@Config.Lang.TableFilterSearch" placeholder="@Config.Lang.TableFilterSearch" />
+                    <SearchField @bind-Value="search" Size="Size.Sm"
+                                 aria-label="@Config.Lang.TableFilterSearch" placeholder="@Config.Lang.TableFilterSearch" />
                 }
                 <ScrollArea Sx="OptionsScroll" PropsViewport="@(new Attrs { Role = "group", AriaLabel = Label })" PropsContent="OptionsLayer">
                     @foreach (var option in Shown)
@@ -48,7 +49,13 @@
     static readonly Attrs OptionsLayer = new() { Sx = Css.Define(static () => new Style { Display = Display.Flex, FlexDirection = FlexDirection.Column, Gap = Space.Xs, FontWeight = FontWeights.Normal, Color = Colors.Text }) };
     static readonly Attrs Footer = new() { Sx = Css.Define(static () => new Style { Display = Display.Flex, JustifyContent = JustifyContent.FlexEnd }) };
 
+    // 关键字停手多久生效（毫秒）
+    const int KeywordDelay = 300;
+
     string? search;
+    // 关键字筛选的草稿，与它上一次看到的已生效的关键字
+    string? keyword;
+    string? applied;
 
     /// <summary>列标题的文字：按钮的名称（筛选“列名”）。</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
@@ -75,6 +82,22 @@
     bool Active => Values.Count > 0;
 
     IEnumerable<ListboxOption> Shown => string.IsNullOrEmpty(search) ? Options ?? [] : (Options ?? []).Where(option => Config.Matches(option.Label, search));
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (Options is not null) return;
+        // 外面改了筛选（清除、恢复保存的视图）：草稿跟上；自己刚生效的那次已经记过，不动正在输入的草稿
+        var current = Values.FirstOrDefault() ?? "";
+        if (current == applied) return;
+        applied = keyword = current;
+    }
+
+    Task ApplyKeywordAsync(string text)
+    {
+        applied = text;
+        return SetAsync(text.Length == 0 ? [] : [text]);
+    }
 
     Task SetAsync(IReadOnlyList<string> values) => ValuesChanged.InvokeAsync(values);
 

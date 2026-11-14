@@ -23,6 +23,9 @@ public static class CollapseStyles
     static Style Root => Css.Define(static () => new Style
     {
         Display = Display.Grid,
+        // 这一列就是容器的宽度，不随内容：不写的话列宽按内容算，展开后（不再裁溢出）里面最长的一行代码、一张宽表格
+        // 会把整块撑到比容器还宽，外层一裁就既看不全也滚不了
+        GridTemplateColumns = "minmax(0, 1fr)",
         GridTemplateRows = "0fr",
         Transition = $"grid-template-rows {Durations.Md} {Easings.Standard}",
         [When.Attribute("[data-state=\"open\"]")] = new() { GridTemplateRows = "1fr" },

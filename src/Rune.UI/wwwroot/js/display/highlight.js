@@ -51,7 +51,11 @@ const loading = new Map();
 const highlighted = new WeakSet();
 
 function loadCore() {
-  return (core ??= import(`${SHIKI}shiki.js`).then(({ createHighlighterCore, createCssVariablesTheme, createJavaScriptRegexEngine }) => {
+  // 下载失败（断网、部署中）不记住：下次再试，不然这一页的高亮到刷新之前都不会有
+  return (core ??= import(`${SHIKI}shiki.js`).catch((error) => {
+    core = undefined;
+    throw error;
+  }).then(({ createHighlighterCore, createCssVariablesTheme, createJavaScriptRegexEngine }) => {
     const base = createCssVariablesTheme({ name: THEME, variableDefaults: TOKEN_VARIABLES });
     return createHighlighterCore({
       themes: [{ ...base, tokenColors: [...(base.tokenColors ?? []), ...EXTRA_TOKEN_COLORS] }],

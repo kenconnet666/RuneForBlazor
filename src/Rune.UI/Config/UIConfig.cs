@@ -25,6 +25,12 @@ public sealed record UIConfig(Theme Theme, Theme? DarkTheme, ColorScheme ColorSc
     public Lang Lang { get; init; } = Lang.ZhCn;
 
     /// <summary>
+    /// 语言是配置出来的（AddRuneUI 写了 Lang / Languages，或某一层 RuneProvider 写了 Lang），不是默认值：
+    /// 这时 RuneProvider 才往包裹元素上写 lang、dir；没配置时沿用宿主页面自己的。
+    /// </summary>
+    public bool LangConfigured { get; init; }
+
+    /// <summary>
     /// 另配的文字匹配（如拼音：“bj”搜到“北京”）：选项过滤时与内置匹配（按语言忽略大小写与重音）任一命中都算；null 时只用内置的。
     /// </summary>
     public TextMatcher? TextMatcher { get; init; }
@@ -62,7 +68,18 @@ public sealed class RuneUIOptions
     public bool Ripple { get; set; } = true;
 
     /// <summary>语言，默认简体中文（<see cref="Lang.ZhCn"/>）；英文界面用 <see cref="Lang.EnUs"/>。</summary>
-    public Lang Lang { get; set; } = Lang.ZhCn;
+    public Lang Lang
+    {
+        get;
+        set
+        {
+            field = value;
+            LangConfigured = true;
+        }
+    } = Lang.ZhCn;
+
+    // 写过 Lang（或给了 Languages）：语言是配置出来的，最外层的 RuneProvider 把 lang、dir 写到包裹元素上
+    internal bool LangConfigured { get; private set; }
 
     /// <summary>
     /// 按界面文化选语言：每个请求（Server 是每个电路）按当时的 <see cref="System.Globalization.CultureInfo.CurrentUICulture"/>
@@ -119,7 +136,7 @@ public static class RuneUIServiceCollectionExtensions
         var options = new RuneUIOptions();
         configure?.Invoke(options);
         services.AddRune();
-        var config = new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Components, options.Ripple) { Lang = options.Lang, TextMatcher = options.TextMatcher, ThemeChoices = options.ThemeChoices, WorkCalendar = options.WorkCalendar, Highlighter = options.Highlighter };
+        var config = new UIConfig(options.Theme, options.DarkTheme, options.ColorScheme, options.Components, options.Ripple) { Lang = options.Lang, LangConfigured = options.LangConfigured || options.Languages is { Count: > 0 }, TextMatcher = options.TextMatcher, ThemeChoices = options.ThemeChoices, WorkCalendar = options.WorkCalendar, Highlighter = options.Highlighter };
         if (options.Languages is { Count: > 0 } languages)
         {
             // 文化随请求变：每个作用域（请求、电路）第一次用到时按当时的界面文化选一次，同一作用域里一直是同一个对象
@@ -136,6 +153,8 @@ public static class RuneUIServiceCollectionExtensions
                 : ThemeStyles.Stylesheet(options.Theme, options.DarkTheme, options.ColorScheme));
         // 部件一律 border-box：使用方给部件写的宽高就是整个部件的宽高（同 vue-tsx-pro 313f0e23）
         services.AddSingleton(PartBoxSizing);
+        services.AddSingleton(AspectRatioStyles.Fill);
+        services.AddSingleton(AspectRatioStyles.Cover);
         services.AddScoped<ToastService>();
         services.AddScoped<DialogService>();
         services.AddScoped<RecentColors>();

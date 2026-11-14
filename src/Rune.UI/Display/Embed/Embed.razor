@@ -1,0 +1,46 @@
+@*
+    嵌入的页面（iframe，同 vue-tsx-pro 的 Embed）：地图、视频网站的播放器、在线文档、报表。固定的宽高比（加载前就占好位置）、
+    滚到附近才加载、加载完之前是骨架；Title 必填（读屏靠它知道这一块是什么）。
+    <Embed Src="https://player.example.com/embed/42" Title="产品演示视频" allow="fullscreen; picture-in-picture" />
+    <Embed Src="@reportUrl" Title="月度报表" Ratio="4 / 3" sandbox="allow-scripts allow-same-origin" />
+    - 没写 sandbox 时不加限制（同原生）；嵌入不受信任的页面时自己写 sandbox，只放开需要的权限。
+    - referrerpolicy 默认 strict-origin-when-cross-origin，loading 默认 lazy，都可以改。
+    - 外层的边框、圆角跟随主题；不要比例、要固定高度时把 Ratio 写成 null，自己在 PropsRoot 的 Sx 里给高度。
+    地址由 JS 写到 iframe 上（data-rune-embed）：预渲染出来的 iframe 在脚本接管之前就可能加载完了，load 事件听不到，骨架会一直留着。
+    加载完没有写在外层的 data-state（loading / loaded）上，样式跟着它；换了地址 iframe 重建，重新显示骨架。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = EmbedStyles.Of(Config.Styles); }
+
+<AspectRatio Ratio="@(Ratio ?? "auto")" data-state="loading" @attributes="Attrs.MergeProps(parts[EmbedPart.Root], PropsRoot)">
+    <Skeleton @attributes="Attrs.MergeProps(parts[EmbedPart.Placeholder], PropsPlaceholder)" />
+    <iframe @key="Src" @onload="OnLoad" @attributes="Attrs.Merge(frameLayer.Get(parts[EmbedPart.Frame], static part => Attrs.Layer(part, FrameDefaults)), Rest, Managed)"></iframe>
+</AspectRatio>
+
+@code {
+    static readonly Attrs FrameDefaults = new() { ["loading"] = "lazy", ["referrerpolicy"] = "strict-origin-when-cross-origin" };
+
+    Memo<Attrs, Attrs> frameLayer;
+    Memo<(string Src, string Title), Attrs> managed;
+
+    /// <summary>嵌入页面的地址。</summary>
+    [Parameter, EditorRequired] public string Src { get; set; } = "";
+
+    /// <summary>这一块是什么：读屏念它（iframe 没有名称时只会念“框架”）。</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>宽高比（CSS 的写法），默认 16 / 9；null 时不定比例，高度由 <see cref="PropsRoot"/> 的 Sx 给。</summary>
+    [Parameter] public string? Ratio { get; set; } = "16 / 9";
+
+    /// <summary>页面加载完了。</summary>
+    [Parameter] public EventCallback<ProgressEventArgs> OnLoad { get; set; }
+
+    /// <summary>外层（AspectRatio）的部件属性。</summary>
+    [Parameter] public Attrs? PropsRoot { get; set; }
+
+    /// <summary>加载中占位的骨架的部件属性。</summary>
+    [Parameter] public Attrs? PropsPlaceholder { get; set; }
+
+    Attrs Managed => managed.Get((Src, Title), static k => new Attrs { ["title"] = k.Title, ["data-rune-embed"] = k.Src });
+}

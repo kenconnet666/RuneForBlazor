@@ -1,5 +1,5 @@
 @*
-    开关：<Switch @bind-Value="notify">接收通知</Switch>
+    开关：<Switch @bind-Value="notify">接收通知</Switch>、<Switch @bind-Value="notify" Description="有新的审批时发邮件">接收通知</Switch>
     立即生效的设置用开关；要和其他字段一起提交的用 Checkbox。原生 input（role="switch"），读屏读作“开 / 关”。
     - 轨道里的文字：CheckedContent / UncheckedContent（“开 / 关”或图标），轨道随文字加宽；文字对读屏隐藏（开关状态由 role="switch" 读出）。
     - Loading：切换中（保存设置）点击无效、带 aria-busy，滑块里转圈（推迟 200ms 才出现，很快完成的切换不闪）。
@@ -28,7 +28,13 @@
     </span>
     @if (ChildContent is not null)
     {
-        <span @attributes="Attrs.Merge(parts[ChoicePart.Label], PropsLabel)">@ChildContent</span>
+        <span @attributes="Attrs.Merge(parts[ChoicePart.Label], PropsLabel)">
+            @ChildContent
+            @if (Description is not null)
+            {
+                <span id="@descriptionId" @attributes="Attrs.Merge(parts[ChoicePart.Description], PropsDescription)">@Description</span>
+            }
+        </span>
     }
 </label>
 
@@ -38,7 +44,8 @@
     static readonly Attrs ContentTextLayer = new() { Sx = ChoiceStyles.SwitchContentText };
     static readonly Attrs SpinnerManaged = new() { ["PropsIcon"] = new Attrs { Sx = ChoiceStyles.SwitchSpinner } };
 
-    Memo<(Attrs Control, bool Checked, bool Wide, bool Loading), Attrs> inputManaged;
+    readonly string descriptionId = UniqueId.Next("switch-description");
+    Memo<(Attrs Control, bool Checked, bool Wide, bool Loading, string? DescribedBy), Attrs> inputManaged;
     DelayedLoading? delayedSpinner;
 
     /// <summary>打开时的色调，默认品牌色。</summary>
@@ -59,8 +66,14 @@
     /// <summary>文字。</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>文字下面的说明（次要色、小一号），读屏在名称之后读出。</summary>
+    [Parameter] public string? Description { get; set; }
+
     /// <summary>文字的部件属性。</summary>
     [Parameter] public Attrs? PropsLabel { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
 
     /// <summary>控件格子的部件属性。</summary>
     [Parameter] public Attrs? PropsControl { get; set; }
@@ -81,10 +94,14 @@
 
     DelayedLoading spinner => delayedSpinner ??= new(() => InvokeAsync(StateHasChanged));
 
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Wide, Loading), this,
+    // 自己的说明与所在 Field 的说明、错误一起关联
+    string? DescribedBy => Description is null || ChildContent is null ? Field?.DescribedBy : Field?.DescribedBy is { } fromField ? $"{descriptionId} {fromField}" : descriptionId;
+
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Wide, Loading, DescribedBy), this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
         {
             Sx = k.Wide ? ChoiceStyles.SwitchTrackWide : (Sx?)null,
+            AriaDescribedBy = k.DescribedBy,
             ["checked"] = k.Checked,
             ["aria-busy"] = k.Loading ? "true" : null,
             // 勾上时提交 true（同 Blazor 的 InputCheckbox），绑得回 bool

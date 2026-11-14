@@ -16,7 +16,8 @@
     var icon = Indicator ?? (described && !compact ? BuiltInIcons.ChevronsUpDown : BuiltInIcons.ChevronDown);
 }
 <ButtonBase aria-label="@(compact ? Name : null)" @attributes="Attrs.MergeProps(parts[UserButtonPart.Root], Rest)">
-    <Avatar Name="@Name" Src="@Src" Size="UI.Size.Sm" @attributes="Attrs.MergeProps(parts[UserButtonPart.Avatar], PropsAvatar)" />
+    @* 名字就写在旁边时头像只是装饰：不然按钮的名称里名字出现两遍 *@
+    <Avatar Name="@Name" Src="@Src" Size="UI.Size.Sm" Decorative="!compact" @attributes="Attrs.MergeProps(parts[UserButtonPart.Avatar], PropsAvatar)" />
     @if (!compact)
     {
         <span @attributes="parts[UserButtonPart.Text]">

@@ -13,6 +13,9 @@ public enum ModelViewerStatus
 
     /// <summary>加载失败。</summary>
     Error,
+
+    /// <summary>没有 WebGL（或画质关了），显示的是 Fallback 内容：不转圈、不标忙碌。</summary>
+    Fallback,
 }
 
 /// <summary>模型查看器一开始的角度（度）。</summary>

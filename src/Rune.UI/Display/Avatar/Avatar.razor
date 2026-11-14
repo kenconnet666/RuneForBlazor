@@ -40,7 +40,7 @@
 </span>
 
 @code {
-    static readonly Attrs Decorative = new() { AriaHidden = true };
+    static readonly Attrs HiddenFromReaders = new() { AriaHidden = true };
 
     Memo<string?, Attrs> rootManaged;
 
@@ -49,6 +49,9 @@
 
     /// <summary>名字：无障碍名称，也用来生成首字母；不写时头像是装饰性的。</summary>
     [Parameter] public string? Name { get; set; }
+
+    /// <summary>只是装饰：名字已经写在旁边（用户按钮、成员列表的一行）时对读屏隐藏，<see cref="Name"/> 仍用来生成首字母。</summary>
+    [Parameter] public bool Decorative { get; set; }
 
     /// <summary>后备内容，默认是名字的首字母，没有名字时是人像图标。</summary>
     [Parameter] public RenderFragment? Fallback { get; set; }
@@ -74,8 +77,8 @@
     /// <summary>所在的头像组：叠放。</summary>
     [CascadingParameter] AvatarGroupContext? Group { get; set; }
 
-    // 有名字时是一张图（名字作为名称），没有时对读屏隐藏
-    Attrs RootManaged => Name is null ? Decorative : rootManaged.Get(Name, static name => new Attrs
+    // 有名字时是一张图（名字作为名称），没有、或只是装饰时对读屏隐藏
+    Attrs RootManaged => Name is null || Decorative ? HiddenFromReaders : rootManaged.Get(Name, static name => new Attrs
     {
         Role = "img",
         ["aria-label"] = name,

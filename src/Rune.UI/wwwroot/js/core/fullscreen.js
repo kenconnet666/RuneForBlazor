@@ -20,6 +20,18 @@ export function syncFullscreen(shell) {
   }
 }
 
+/**
+ * 进入、退出全屏后焦点跟到对应的按钮上：原来聚焦的按钮随顶栏隐藏（或被移除），焦点会掉到页面开头。
+ * 焦点还在看得见的地方（正文里的控件、用 Esc 退出时）不动
+ */
+export function followFullscreenFocus(shell) {
+  const focused = document.activeElement;
+  const lost = !focused || focused === document.body || focused.checkVisibility?.() === false;
+  if (!lost) return;
+  const on = shell.getAttribute('data-rune-fullscreen') === 'true';
+  shell.querySelector(on ? '[data-part="fullscreenExit"]' : '[data-part="fullscreenButton"]')?.focus();
+}
+
 export function onFullscreenChange() {
   if (document.fullscreenElement || !active) return;
   const shell = active;

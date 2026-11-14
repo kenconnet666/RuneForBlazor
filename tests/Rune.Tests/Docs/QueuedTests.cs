@@ -12,6 +12,9 @@ namespace Rune.Tests.Docs;
 /// </summary>
 public class QueuedTests : BunitContext
 {
+    // 整套测试并行跑、机器忙的时候，让出主线程后的那一段可能排上一秒多
+    static readonly TimeSpan Patient = TimeSpan.FromSeconds(10);
+
     public QueuedTests()
     {
         Services.AddRuneUI();
@@ -51,9 +54,9 @@ public class QueuedTests : BunitContext
         Assert.True(queue.Busy);
 
         previous();
-        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("button")));
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("button")), Patient);
         Assert.Empty(cut.FindAll("[data-docs-hold]"));
-        cut.WaitForAssertion(() => Assert.False(queue.Busy));
+        cut.WaitForAssertion(() => Assert.False(queue.Busy), Patient);
         Assert.Equal([true, false], busy);
     }
 
@@ -83,7 +86,7 @@ public class QueuedTests : BunitContext
             }
         });
 
-        cut.WaitForAssertion(() => Assert.Equal(["first", "second"], cut.FindAll("p").Select(p => p.TextContent)));
+        cut.WaitForAssertion(() => Assert.Equal(["first", "second"], cut.FindAll("p").Select(p => p.TextContent)), Patient);
         Assert.Empty(cut.FindAll("[data-docs-hold]"));
     }
 }

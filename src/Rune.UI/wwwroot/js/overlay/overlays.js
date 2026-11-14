@@ -216,6 +216,8 @@ export function onDialogClose(event) {
   const dialog = event.target;
   if (!(dialog instanceof HTMLDialogElement) || !dialog.matches('[data-rune-overlay]')) return;
   updateScrollLock();
+  // close 是异步发的：很快关了再开时，上一次迟到的 close 到的时候对话框已经又开着了，不能把它报成关上
+  if (dialog.open) return;
   announce(dialog, false);
 }
 

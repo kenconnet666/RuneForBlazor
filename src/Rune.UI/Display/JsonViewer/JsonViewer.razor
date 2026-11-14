@@ -21,7 +21,7 @@
     @if (Toolbar)
     {
         <div @attributes="parts[JsonViewerPart.Toolbar]">
-            <TextField @bind-Value="query" Icon="BuiltInIcons.Search" Size="UI.Size.Sm" Type="search" placeholder="@lang.JsonSearch" aria-label="@lang.JsonSearch"
+            <SearchField @bind-Value="query" Size="UI.Size.Sm" placeholder="@lang.JsonSearch" aria-label="@lang.JsonSearch"
                        @attributes="Attrs.MergeProps(JsonViewerStyles.Search, PropsSearch)" />
             <Button Size="UI.Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Icon="BuiltInIcons.ChevronsUpDown" @onclick="ExpandAll"
                     @attributes="Attrs.MergeProps(null, PropsExpandAll)">@lang.JsonExpandAll</Button>

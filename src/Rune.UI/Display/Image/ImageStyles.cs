@@ -2,6 +2,13 @@ using Rune.Styles;
 
 namespace Rune.UI;
 
+/// <summary>一个备选的图片源（picture 里的 source）：浏览器从上到下取第一个符合条件、认得格式的。</summary>
+/// <param name="SrcSet">图片地址，可以带宽度、像素比的描述（<c>cover-800.avif 800w, cover-1600.avif 1600w</c>）。</param>
+/// <param name="Type">格式：浏览器不认的格式跳过（<c>image/avif</c>、<c>image/webp</c>）。</param>
+/// <param name="Media">媒体条件：按屏幕宽度、明暗换一张图（<c>(max-width: 40rem)</c>、<c>(prefers-color-scheme: dark)</c>）。</param>
+/// <param name="Sizes">各种宽度下图片显示多宽（配合带 w 描述的 srcset）。</param>
+public sealed record ImageSource(string SrcSet, string? Type = null, string? Media = null, string? Sizes = null);
+
 /// <summary>图片在框里怎么放（object-fit）。</summary>
 public enum ImageFit
 {
@@ -32,8 +39,8 @@ internal static class ImageStyles
     internal static readonly CssVar<CssLength> HeightVar = CssVar.Length("rune-image-height", "auto");
     static readonly Condition Loaded = When.Attribute("""[data-state="loaded"]""");
     static readonly Condition Failed = When.Attribute("""[data-state="error"]""");
-    static readonly Condition Settled = When.Parent(When.Has("""> img[data-state]"""));
-    static readonly Condition ImageFailed = When.Parent(When.Has("""> img[data-state="error"]"""));
+    static readonly Condition Settled = When.Parent(When.Has("""img[data-state]"""));
+    static readonly Condition ImageFailed = When.Parent(When.Has("""img[data-state="error"]"""));
 
     internal static readonly Attrs Placeholder = new() { Sx = Sx.Of(ShimmerStyles.Wave, PlaceholderStyle), AriaHidden = true };
     internal static readonly Attrs Fallback = new() { Sx = FallbackStyle };
@@ -44,6 +51,9 @@ internal static class ImageStyles
 
     /// <summary>图片：object-fit。</summary>
     internal static Attrs Image(ImageFit fit) => Images[(int)fit];
+
+    /// <summary>picture 不参与布局：img 照常按外层的宽高铺满。</summary>
+    internal static readonly Attrs Picture = new() { Sx = Css.Define(static () => new Style { Display = Display.Contents }) };
 
     static readonly Attrs[] Roots = [.. Enum.GetValues<Radius>().SelectMany(radius => new[]
     {

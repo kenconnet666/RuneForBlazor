@@ -205,7 +205,16 @@ public abstract partial class XYChartBase<TItem>
     NumberRange<int>? zoomState;
 
     // 缩放的区间（散点图的横轴是连续的数值，不按类目缩放）
-    NumberRange<int>? Range => Zoom && Continuous is null ? ZoomRange ?? zoomState : null;
+    // 数据变少后夹到现有的范围里，整段都在外面时当作没缩放
+    NumberRange<int>? Range
+    {
+        get
+        {
+            if (!Zoom || Continuous is not null || (ZoomRange ?? zoomState) is not { } range) return null;
+            var last = Data.Count - 1;
+            return range.Low > last ? null : range with { High = Math.Min(range.High, last) };
+        }
+    }
 
     int ZoomStart => Range?.Low ?? 0;
 

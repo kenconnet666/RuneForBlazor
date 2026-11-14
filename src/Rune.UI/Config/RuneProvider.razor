@@ -25,7 +25,7 @@
 
 @code {
     UIConfig config = default!;
-    Memo<(string? Class, string? Label, string Code, string Direction), Attrs> themeAttrs;
+    Memo<(string? Class, string? Label, string? Code, string? Direction), Attrs> themeAttrs;
     Memo<(UIConfig Outer, Theme? Theme, Theme? Dark, ColorScheme? Scheme, ComponentConfigs? Components, bool? Ripple, Lang? Lang, ThemeChoices? Choices, WorkCalendar? Work, CodeHighlighter? Highlighter), UIConfig> built;
 
     /// <summary>主题（亮色）。</summary>
@@ -70,7 +70,8 @@
 
     // 主题的类（只设变量）与名字、语言的 lang 与 dir；不变时是同一个对象
     Attrs ThemeAttrs => themeAttrs.Get(
-        (AppliesTheme ? ThemeClass : null, AppliesTheme ? ThemeLabel : null, config.Lang.Code, config.Lang.Direction),
+        // lang、dir 只在语言是配置出来的时候写：没配置时沿用宿主页面自己的，不盖成默认的中文、从左到右
+        (AppliesTheme ? ThemeClass : null, AppliesTheme ? ThemeLabel : null, config.LangConfigured ? config.Lang.Code : null, config.LangConfigured ? config.Lang.Direction : null),
         static k => new Attrs { Class = k.Class, ["data-rune-theme"] = k.Label, ["lang"] = k.Code, ["dir"] = k.Direction });
 
     // 有可选主题时跟随系统的几套取它的，另输出每套主题按 data-theme 取用的变量。应用级的可选主题只用在最外层、且没有显式写主题时：
@@ -108,6 +109,7 @@
         {
             ThemeChoices = k.Choices ?? k.Outer.ThemeChoices,
             Lang = k.Lang ?? k.Outer.Lang,
+            LangConfigured = k.Lang is not null || k.Outer.LangConfigured,
             Theme = k.Theme ?? k.Outer.Theme,
             DarkTheme = k.Dark ?? k.Outer.DarkTheme,
             ColorScheme = k.Scheme ?? k.Outer.ColorScheme,

@@ -49,6 +49,9 @@ public static class LoadingOverlayStyles
         },
     });
 
+    /// <summary>遮罩出现之前先拦住指针的那一层（看不见）。</summary>
+    internal static readonly Attrs Blocker = new() { Sx = Css.Define(static () => new Style { Position = Position.Absolute, Inset = 0, ZIndex = 1 }) };
+
     static Style Blur => Css.Define(static () => new Style { BackdropFilter = "blur(2px)" });
 
     static Style Spinner => Css.Define(static () => new Style { FontSize = FontSizes.Xl, Color = Tones.Accent.Solid });

@@ -6,10 +6,17 @@
 
 ## [Unreleased]
 
-跟进 vue-tsx-pro 的一批审查修复（`9afdc156..95ceb0d8`，vue 的版本号仍是 0.21.0）：它审查出的问题逐项在 Rune 里对照，同样有的一并修掉。
+对齐 vue-tsx-pro 0.26.0（`9afdc156..c42b2f39`，0.22.0–0.26.0）：它审查出的问题逐项在 Rune 里对照，同样有的一并修掉；新增的组件、参数照着补上。
 
 ### 破坏性改动
 
+- **Select、Cascader、TreeSelect、Transfer、JsonViewer 与表头筛选里的搜索框**换成了 SearchField：现在有清空按钮；JsonViewer 的搜索改成边输边过滤。
+  表头的关键字筛选停手 300ms 才生效（回车、清空立即生效），服务端筛选时不再每敲一个字发一次请求
+- **RuneProvider** 只在语言是配置出来的时候才往包裹元素上写 `lang`、`dir`（AddRuneUI 写了 `Lang` / `Languages`，或某一层写了 `Lang`）；
+  没配置时沿用宿主页面自己的，不再盖成默认的中文、从左到右
+- **Steps** `Navigable` 时出错的步骤也能点回去；**TagsInput** 允许自己输入（默认）时打字不再自动高亮第一条建议：回车加的是打的字，
+  要选建议按 ↓ 再回车（`AllowCustomValue="false"` 时照旧）
+- **Blockquote** 的部件类型从 `InlinePart` 换成 `BlockquotePart`（多了出处那一行）；**Descriptions** 没有值的项显示占位符（`—`）
 - **NumberField** 的百分比格式（`Format="P0"`、自定义格式里带 `%`）编辑时输入的是百分数：显示 `85%`，输入 `90` 得到 `0.9`
   （之前输入 `90` 被夹成 `100%`，方向键也按值本身加减）。带着百分号输入（`45 %`）也认。原来按小数输入的用法（输入 `0.9`）改成输入 `90`
 - **TableHeaderCell** 在表体、表尾里默认 `scope="row"`（之前都是 `col`）；要列标题时写 `Scope="col"`
@@ -41,6 +48,16 @@
 
 ### 新增
 
+- **新组件**：文字 `Sub`、`Sup`（上下标，不撑高所在的行）、`Del`、`Ins`（文档的增删）、`Strike`（不再有效的内容）；`Abbr`（缩写，全称在提示里，
+  悬停、键盘聚焦、触屏点按都看得到）；`Figure`（带说明的插图）；`AspectRatio`（定比例的框）；`Embed`（iframe：定比例、延迟加载、加载完之前是骨架）；
+  `Video`（原生控制条、封面、多种格式、字幕，减少动态效果时不自动播放）；`SearchField`（搜索框：`OnSearch` 只在停手、回车、清空时调用）；
+  页面组合 `PageHeader`（面包屑、返回、标题与标记、说明、操作）
+- **新参数**：Image 的 `Sources`（渲染成 picture）；Progress 的 `Bands`（量表，`role="meter"`，值落在哪一段用哪一段的色调）；Blockquote 的 `Source` /
+  `SourceContent` / `PropsSource`；Switch 的 `Description` / `PropsDescription`；ColumnTable 的 `Empty`（没有行时表体里一行，默认“暂无数据”）；
+  Avatar 的 `Decorative`（名字已经写在旁边时对读屏隐藏，UserButton 展开时自动带上）；Pagination、PaginationBar、PageSizeSelect、PageJump 的 `Disabled`
+- 语言包新增 `CopyFailed`、`FloatButtonMore`，页面组合的文案新增 `PageHeaderBack`、`NotificationsNoMatch`、`DataImportFailed`：自己写了完整语言包的要补上
+- ModelViewer 的状态多了 fallback（没有 WebGL、显示的是 Fallback 内容时：不转圈、不标忙碌）
+- 触屏：ContextMenu 按住 700ms 打开（iOS 的 Safari 长按不发 contextmenu）；紧凑的 NavGroup 点图标弹出子项；Splitter、ResizeHandle 能按到的范围扩到 24px 以上
 - 部件属性：NavBar 的 `PropsItem` / `PropsLink` / `PropsTrigger`（各有按项给的 `PropsItemFor` / `PropsLinkFor` / `PropsTriggerFor`）与 `PropsMore`；
   QuarterCalendar 的 `PropsHeader` / `PropsHeading` / `PropsGrid` / `PropsCell` / `PropsCellButton`（后两个有按季度给的 `PropsCellFor` / `PropsCellButtonFor`）；
   DataTable 的 `PropsFilterButton` / `PropsColumnMenuButton`；ImageCropper 的 `PropsImage`
@@ -49,6 +66,18 @@
 
 ### 修复
 
+- Collapse（连带 Collapsible、Accordion、示例的源码区）的内容区不再被里面最宽的内容撑开
+- 浮层：没有箭头的 Popover 内容过高时在面板里滚；LoadingOverlay 一开始加载就拦住点击（遮罩的外观仍然延迟出现）；模态、Lightbox 很快关了再开时
+  不会被上一次迟到的关闭事件关掉；ContextMenu 不抢里面已经处理过的右键
+- 输入：Transfer、TreeTransfer 在只读的 Field、Form 里不能移动；ControlGroup 把 Field 的不可用、只读交给组里的控件；Upload 图片墙里失败的非图片文件
+  也显示原因，只收一个文件时同一批里的坏文件不再把好文件顶掉；Listbox 只读时带 `aria-readonly`
+- 展示与反馈：头像的首字母按码点取（表情不被切成半个）；CopyButton 复制失败会播报；QRCode 加载中读屏念得到；FloatButtonGroup 的主按钮默认有名称；
+  CodeBlock 的复制按钮不再让长行从缝里露出来；Carousel 用指针点了翻页按钮后自动播放照常，点“播放”一定恢复；Sortable 不可用的把手变淡；
+  回到顶部用完去掉临时的 tabindex；代码高亮下载失败后下次再试；AppShell 进入、退出全屏后焦点跟到对应的按钮上
+- 格式化：`999,999 B` 显示 `1 MB`；AnimatedNumber 取整后是 0 的负数不带负号
+- 图表：柱子、瀑布图不再冲出数值轴的范围；折线、面积图在触屏上点得动下钻；对齐的双轴全是负数时上端不再被改成 1；漏斗图不再显示“导出图片”，
+  导出的图片保留镂空；从右到左的语言里坐标不再镜像；雷达图的轴按数据的最大值（不再至少是 1）；缩放的区间超出数据时夹回去；MapChart 没有任何数据时显示 `Empty`
+- 无障碍：Windows 高对比（强制颜色）下日历选中的日期、区间与表格选中、正在看的行看得出来
 - Popconfirm：`OnConfirm` 还在进行时被 Esc、点外面关掉，不再触发 `OnCancel`；没确认成（`KeepOpen`）才触发
 - 不可用的日期分段输入按 Enter 不再提交所在的表单
 - 日历（Calendar、RangeCalendar）的 `Granularity` 变了（按日改成按月）视图跟着回到新的单位；QuarterCalendar 跟随外面改的值（快捷按钮、重置）翻到那一年

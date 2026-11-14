@@ -63,7 +63,7 @@
     {
         <div @attributes="Attrs.Merge(popover[ListPopoverPart.Header])">
             <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
-                <TextField Type="search" Icon="BuiltInIcons.Search" Variant="InputVariant.Soft" Immediate="true" Value="@SearchText" ValueChanged="SetSearchAsync"
+                <SearchField Variant="InputVariant.Soft" Value="@SearchText" ValueChanged="SetSearchAsync"
                            @attributes="Attrs.MergeProps(SearchDefaults, PropsSearch, SearchManaged)" />
             </CascadingValue>
         </div>

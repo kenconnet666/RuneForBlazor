@@ -79,7 +79,7 @@
     // 搜索框：占满头部、浅色底；不归外面的 Field 管（它的 id、标签、错误属于 Select 本身）。
     // 每次现建：它读搜索词，缓存同一个实例会让列表跳过渲染、显示旧的搜索词
     RenderFragment SearchHeader => @<CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
-        <TextField Type="search" Icon="BuiltInIcons.Search" Variant="InputVariant.Soft" Immediate="true" Value="@SearchText" ValueChanged="SetSearchAsync"
+        <SearchField Variant="InputVariant.Soft" Value="@SearchText" ValueChanged="SetSearchAsync"
                    @attributes="Attrs.MergeProps(SearchDefaults, PropsSearch, SearchManaged)" />
     </CascadingValue>;
 

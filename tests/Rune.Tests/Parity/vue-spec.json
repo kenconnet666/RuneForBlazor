@@ -1,6 +1,20 @@
 {
- "version": "0.21.0",
+ "version": "0.26.0",
  "components": {
+  "Abbr": [
+   {
+    "name": "title",
+    "kind": "prop"
+   },
+   {
+    "name": "propsTooltip",
+    "kind": "part"
+   },
+   {
+    "name": "children",
+    "kind": "content"
+   }
+  ],
   "Accordion": [
    {
     "name": "collapsible",
@@ -207,10 +221,6 @@
    }
   ],
   "AlertDialog": [
-   {
-    "name": "draggable",
-    "kind": "prop"
-   },
    {
     "name": "_open",
     "kind": "prop",
@@ -667,6 +677,17 @@
     "kind": "content"
    }
   ],
+  "AspectRatio": [
+   {
+    "name": "ratio",
+    "kind": "prop",
+    "default": "16 / 9"
+   },
+   {
+    "name": "children",
+    "kind": "content"
+   }
+  ],
   "AuroraBackground": [
    {
     "name": "palette",
@@ -897,6 +918,11 @@
    {
     "name": "tone",
     "kind": "prop"
+   },
+   {
+    "name": "decorative",
+    "kind": "prop",
+    "default": "false"
    }
   ],
   "AvatarGroup": [
@@ -1238,6 +1264,14 @@
    }
   ],
   "Blockquote": [
+   {
+    "name": "source",
+    "kind": "prop"
+   },
+   {
+    "name": "propsSource",
+    "kind": "part"
+   },
    {
     "name": "children",
     "kind": "content"
@@ -3015,6 +3049,11 @@
     "kind": "event"
    },
    {
+    "name": "changed",
+    "kind": "prop",
+    "default": "false"
+   },
+   {
     "name": "propsTrigger",
     "kind": "part"
    },
@@ -3058,6 +3097,10 @@
    },
    {
     "name": "summaryLabel",
+    "kind": "prop"
+   },
+   {
+    "name": "empty",
     "kind": "prop"
    },
    {
@@ -4118,18 +4161,6 @@
     "kind": "prop"
    },
    {
-    "name": "editing",
-    "kind": "prop"
-   },
-   {
-    "name": "renderEditor",
-    "kind": "content"
-   },
-   {
-    "name": "rowErrors",
-    "kind": "prop"
-   },
-   {
     "name": "editTrigger",
     "kind": "prop",
     "default": "'doubleClick'"
@@ -4252,6 +4283,14 @@
    },
    {
     "name": "propsResizer",
+    "kind": "part"
+   },
+   {
+    "name": "propsFilterButton",
+    "kind": "part"
+   },
+   {
+    "name": "propsColumnMenuButton",
     "kind": "part"
    },
    {
@@ -4785,6 +4824,14 @@
    },
    {
     "name": "propsResizer",
+    "kind": "part"
+   },
+   {
+    "name": "propsFilterButton",
+    "kind": "part"
+   },
+   {
+    "name": "propsColumnMenuButton",
     "kind": "part"
    },
    {
@@ -6209,6 +6256,33 @@
     "kind": "content"
    }
   ],
+  "Embed": [
+   {
+    "name": "src",
+    "kind": "prop"
+   },
+   {
+    "name": "title",
+    "kind": "prop"
+   },
+   {
+    "name": "ratio",
+    "kind": "prop",
+    "default": "16 / 9"
+   },
+   {
+    "name": "onLoad",
+    "kind": "event"
+   },
+   {
+    "name": "propsRoot",
+    "kind": "part"
+   },
+   {
+    "name": "propsPlaceholder",
+    "kind": "part"
+   }
+  ],
   "Empty": [
    {
     "name": "icon",
@@ -6393,6 +6467,30 @@
    {
     "name": "propsValue",
     "kind": "part"
+   }
+  ],
+  "Figure": [
+   {
+    "name": "caption",
+    "kind": "prop"
+   },
+   {
+    "name": "captionSide",
+    "kind": "prop",
+    "default": "'bottom'"
+   },
+   {
+    "name": "align",
+    "kind": "prop",
+    "default": "'start'"
+   },
+   {
+    "name": "propsCaption",
+    "kind": "part"
+   },
+   {
+    "name": "children",
+    "kind": "content"
    }
   ],
   "FileDrop": [
@@ -7545,6 +7643,10 @@
     "kind": "prop"
    },
    {
+    "name": "sources",
+    "kind": "prop"
+   },
+   {
     "name": "alt",
     "kind": "prop"
    },
@@ -7620,6 +7722,10 @@
    },
    {
     "name": "propsViewport",
+    "kind": "part"
+   },
+   {
+    "name": "propsImage",
     "kind": "part"
    },
    {
@@ -8274,6 +8380,10 @@
    },
    {
     "name": "disabled",
+    "kind": "prop"
+   },
+   {
+    "name": "readonly",
     "kind": "prop"
    },
    {
@@ -9421,6 +9531,22 @@
    {
     "name": "propsList",
     "kind": "part"
+   },
+   {
+    "name": "propsItem",
+    "kind": "part"
+   },
+   {
+    "name": "propsLink",
+    "kind": "part"
+   },
+   {
+    "name": "propsTrigger",
+    "kind": "part"
+   },
+   {
+    "name": "propsMore",
+    "kind": "part"
    }
   ],
   "NavGroup": [
@@ -10065,6 +10191,81 @@
     "kind": "event"
    }
   ],
+  "PageHeader": [
+   {
+    "name": "title",
+    "kind": "prop"
+   },
+   {
+    "name": "description",
+    "kind": "prop"
+   },
+   {
+    "name": "headingLevel",
+    "kind": "prop",
+    "default": "1"
+   },
+   {
+    "name": "breadcrumbs",
+    "kind": "prop"
+   },
+   {
+    "name": "meta",
+    "kind": "prop"
+   },
+   {
+    "name": "actions",
+    "kind": "prop"
+   },
+   {
+    "name": "onBack",
+    "kind": "event"
+   },
+   {
+    "name": "backHref",
+    "kind": "prop"
+   },
+   {
+    "name": "propsBreadcrumbs",
+    "kind": "part"
+   },
+   {
+    "name": "propsMain",
+    "kind": "part"
+   },
+   {
+    "name": "propsBack",
+    "kind": "part"
+   },
+   {
+    "name": "propsHeading",
+    "kind": "part"
+   },
+   {
+    "name": "propsTitleRow",
+    "kind": "part"
+   },
+   {
+    "name": "propsTitle",
+    "kind": "part"
+   },
+   {
+    "name": "propsMeta",
+    "kind": "part"
+   },
+   {
+    "name": "propsDescription",
+    "kind": "part"
+   },
+   {
+    "name": "propsActions",
+    "kind": "part"
+   },
+   {
+    "name": "children",
+    "kind": "content"
+   }
+  ],
   "PageJump": [
    {
     "name": "_page",
@@ -10331,6 +10532,11 @@
     "default": "'sm'"
    },
    {
+    "name": "disabled",
+    "kind": "prop",
+    "default": "false"
+   },
+   {
     "name": "propsList",
     "kind": "part"
    },
@@ -10378,6 +10584,11 @@
     "name": "showTotal",
     "kind": "prop",
     "default": "true"
+   },
+   {
+    "name": "disabled",
+    "kind": "prop",
+    "default": "false"
    },
    {
     "name": "showSizeSelect",
@@ -10867,6 +11078,10 @@
     "kind": "prop"
    },
    {
+    "name": "bands",
+    "kind": "prop"
+   },
+   {
     "name": "valueText",
     "kind": "prop"
    },
@@ -11147,6 +11362,26 @@
    {
     "name": "propsNext",
     "kind": "part"
+   },
+   {
+    "name": "propsHeader",
+    "kind": "part"
+   },
+   {
+    "name": "propsHeading",
+    "kind": "part"
+   },
+   {
+    "name": "propsGrid",
+    "kind": "part"
+   },
+   {
+    "name": "propsCell",
+    "kind": "part"
+   },
+   {
+    "name": "propsCellButton",
+    "kind": "part"
    }
   ],
   "QueryTable": [
@@ -11223,6 +11458,10 @@
    },
    {
     "name": "propsTable",
+    "kind": "part"
+   },
+   {
+    "name": "propsColumnSettings",
     "kind": "part"
    },
    {
@@ -12138,6 +12377,110 @@
    {
     "name": "children",
     "kind": "content"
+   }
+  ],
+  "SearchField": [
+   {
+    "name": "_value",
+    "kind": "prop",
+    "default": "''"
+   },
+   {
+    "name": "onSearch",
+    "kind": "event"
+   },
+   {
+    "name": "delay",
+    "kind": "prop",
+    "default": "300"
+   },
+   {
+    "name": "format",
+    "kind": "prop"
+   },
+   {
+    "name": "disabled",
+    "kind": "prop"
+   },
+   {
+    "name": "readonly",
+    "kind": "prop"
+   },
+   {
+    "name": "required",
+    "kind": "prop"
+   },
+   {
+    "name": "invalid",
+    "kind": "prop"
+   },
+   {
+    "name": "clearable",
+    "kind": "prop"
+   },
+   {
+    "name": "iconEnd",
+    "kind": "prop"
+   },
+   {
+    "name": "prefix",
+    "kind": "prop"
+   },
+   {
+    "name": "suffix",
+    "kind": "prop"
+   },
+   {
+    "name": "showCount",
+    "kind": "prop"
+   },
+   {
+    "name": "propsRoot",
+    "kind": "part"
+   },
+   {
+    "name": "propsIconEnd",
+    "kind": "part"
+   },
+   {
+    "name": "propsPrefix",
+    "kind": "part"
+   },
+   {
+    "name": "propsSuffix",
+    "kind": "part"
+   },
+   {
+    "name": "propsCount",
+    "kind": "part"
+   },
+   {
+    "name": "propsClear",
+    "kind": "part"
+   },
+   {
+    "name": "propsReveal",
+    "kind": "part"
+   },
+   {
+    "name": "variant",
+    "kind": "prop"
+   },
+   {
+    "name": "size",
+    "kind": "prop"
+   },
+   {
+    "name": "radius",
+    "kind": "prop"
+   },
+   {
+    "name": "icon",
+    "kind": "prop"
+   },
+   {
+    "name": "propsIcon",
+    "kind": "part"
    }
   ],
   "SegmentedField": [
@@ -13269,6 +13612,14 @@
     "kind": "part"
    },
    {
+    "name": "propsDescription",
+    "kind": "part"
+   },
+   {
+    "name": "description",
+    "kind": "prop"
+   },
+   {
     "name": "children",
     "kind": "content"
    }
@@ -13347,8 +13698,7 @@
   "TableHeaderCell": [
    {
     "name": "scope",
-    "kind": "prop",
-    "default": "'col'"
+    "kind": "prop"
    },
    {
     "name": "width",
@@ -14992,11 +15342,13 @@
    },
    {
     "name": "multiSort",
-    "kind": "prop"
+    "kind": "prop",
+    "default": "false"
    },
    {
     "name": "_sorts",
-    "kind": "prop"
+    "kind": "prop",
+    "default": "[]"
    },
    {
     "name": "_filters",
@@ -15054,18 +15406,6 @@
    },
    {
     "name": "cellNavigation",
-    "kind": "prop"
-   },
-   {
-    "name": "editing",
-    "kind": "prop"
-   },
-   {
-    "name": "renderEditor",
-    "kind": "content"
-   },
-   {
-    "name": "rowErrors",
     "kind": "prop"
    },
    {
@@ -15187,6 +15527,14 @@
    },
    {
     "name": "propsResizer",
+    "kind": "part"
+   },
+   {
+    "name": "propsFilterButton",
+    "kind": "part"
+   },
+   {
+    "name": "propsColumnMenuButton",
     "kind": "part"
    },
    {
@@ -15797,6 +16145,43 @@
     "kind": "part"
    }
   ],
+  "Video": [
+   {
+    "name": "src",
+    "kind": "prop"
+   },
+   {
+    "name": "sources",
+    "kind": "prop"
+   },
+   {
+    "name": "poster",
+    "kind": "prop"
+   },
+   {
+    "name": "tracks",
+    "kind": "prop"
+   },
+   {
+    "name": "ratio",
+    "kind": "prop",
+    "default": "16 / 9"
+   },
+   {
+    "name": "controls",
+    "kind": "prop",
+    "default": "true"
+   },
+   {
+    "name": "autoplay",
+    "kind": "prop",
+    "default": "false"
+   },
+   {
+    "name": "propsRoot",
+    "kind": "part"
+   }
+  ],
   "ViewportFill": [
    {
     "name": "bottom",
@@ -15976,10 +16361,6 @@
     "name": "loading",
     "kind": "prop",
     "default": "false"
-   },
-   {
-    "name": "_hiddenSeries",
-    "kind": "prop"
    },
    {
     "name": "empty",

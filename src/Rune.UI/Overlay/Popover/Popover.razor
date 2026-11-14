@@ -13,7 +13,7 @@
 @{ var parts = PopoverStyles.Of(Arrow, Config.Styles); }
 
 @Trigger?.Invoke(TriggerAttrs)
-<div @attributes="Attrs.Merge(parts[PopoverPart.Root], Rest, OverlayAttrs(Role, LabelledBy))" @onrunetoggle="HandleToggle">
+<div @attributes="Attrs.Merge(parts[PopoverPart.Root], Rest, OverlayAttrs(Role, LabelledBy, fitHeight: !Arrow))" @onrunetoggle="HandleToggle">
     @if (ShouldRenderContent)
     {
         @ChildContent

@@ -1,0 +1,85 @@
+@*
+    视频（video，同 vue-tsx-pro 的 Video）：浏览器自己的控制条，加上固定的宽高比（加载前就占好位置）、封面、多种格式、字幕轨道。
+    <Video Src="@demo" Poster="@cover" aria-label="产品演示" />
+    <Video Sources="@([new(clip.Av1, "video/mp4; codecs=av01.0.05M.08"), new(clip.H264, "video/mp4")])"
+           Tracks="@([new(zh, "zh", "中文", Default: true)])" aria-label="安装步骤" />
+    <Video Src="@loop" Autoplay="true" loop Controls="false" aria-label="背景动画" />
+    - 自动播放（Autoplay）：默认静音（浏览器不允许带声音的自动播放）、行内播放；系统要求减少动态效果时不自动播放，
+      并显示控制条，让人自己决定要不要播（由 JS 判断，data-rune-autoplay）。
+    - 画面按 contain 放进框里（不裁切），四周是黑底；不要固定比例时把 Ratio 写成 null，按视频自己的尺寸。
+    - 默认只预加载元数据（preload="metadata"）；其余原生属性（loop、muted、crossorigin……）照常落到 video 上。
+    - 自绘的控制条不在这里：要倍速、清晰度、弹幕这些，用专门的播放器。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = VideoStyles.Of(Ratio is null, Config.Styles); }
+
+@if (Ratio is null)
+{
+    @Media(parts)
+}
+else
+{
+    <AspectRatio Ratio="@Ratio" @attributes="Attrs.MergeProps(parts[VideoPart.Root], PropsRoot)">@Media(parts)</AspectRatio>
+}
+
+@code {
+    static readonly Attrs Defaults = new() { ["preload"] = "metadata", ["playsinline"] = true };
+    // 自动播放要静音才被浏览器允许
+    static readonly Attrs AutoplayDefaults = new() { ["preload"] = "metadata", ["playsinline"] = true, ["muted"] = true };
+
+    Memo<(Attrs Part, bool Autoplay), Attrs> mediaLayer;
+    Memo<(string? Src, string? Poster, bool Controls, bool Autoplay), Attrs> managed;
+
+    /// <summary>视频地址；有几种格式时用 <see cref="Sources"/>。</summary>
+    [Parameter] public string? Src { get; set; }
+
+    /// <summary>几种格式的视频源（写了它就不用 <see cref="Src"/>）。</summary>
+    [Parameter] public IReadOnlyList<VideoSource>? Sources { get; set; }
+
+    /// <summary>封面：开始播放前显示。</summary>
+    [Parameter] public string? Poster { get; set; }
+
+    /// <summary>文本轨道：字幕、说明。</summary>
+    [Parameter] public IReadOnlyList<VideoTrack>? Tracks { get; set; }
+
+    /// <summary>宽高比（CSS 的写法），默认 16 / 9；null 时不定比例，按视频自己的尺寸。</summary>
+    [Parameter] public string? Ratio { get; set; } = "16 / 9";
+
+    /// <summary>显示浏览器的控制条，默认显示；自动播放的装饰视频可以关掉（减少动态效果时仍会显示）。</summary>
+    [Parameter] public bool Controls { get; set; } = true;
+
+    /// <summary>自动播放：默认静音、行内播放；减少动态效果时不自动播放。</summary>
+    [Parameter] public bool Autoplay { get; set; }
+
+    /// <summary>外层（AspectRatio）的部件属性。</summary>
+    [Parameter] public Attrs? PropsRoot { get; set; }
+
+    bool HasSources => Sources is { Count: > 0 };
+
+    Attrs Managed => managed.Get((HasSources ? null : Src, Poster, Controls, Autoplay), static k => new Attrs
+    {
+        ["src"] = k.Src,
+        ["poster"] = k.Poster,
+        ["controls"] = k.Controls ? true : null,
+        ["data-rune-autoplay"] = k.Autoplay ? true : null,
+    });
+
+    RenderFragment Media(PartLayers<VideoPart> parts) =>
+        @<video @attributes="Attrs.Merge(mediaLayer.Get((parts[VideoPart.Media], Autoplay), static k => Attrs.Layer(k.Part, k.Autoplay ? AutoplayDefaults : Defaults)), Rest, Managed)">
+            @if (HasSources)
+            {
+                foreach (var source in Sources!)
+                {
+                    <source @key="source" src="@source.Src" type="@source.Type" media="@source.Media" />
+                }
+            }
+            @if (Tracks is not null)
+            {
+                foreach (var track in Tracks)
+                {
+                    <track @key="track" kind="@track.Kind.ToString().ToLowerInvariant()" src="@track.Src" srclang="@track.SrcLang" label="@track.Label" default="@track.Default" />
+                }
+            }
+        </video>;
+}

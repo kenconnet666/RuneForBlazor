@@ -30,21 +30,24 @@
         </span>
     }
     <div @attributes="Attrs.Merge(parts[PaginationBarPart.Controls], PropsControls)">
-        <Pagination Size="Size" Page="page.Value" PageChanged="page.SetAsync" Total="Total" PageSize="size"
+        <Pagination Size="Size" Disabled="Disabled" Page="page.Value" PageChanged="page.SetAsync" Total="Total" PageSize="size"
                     @attributes="Attrs.MergeProps(null, PropsPagination)" />
         @if (ShowSizeSelect)
         {
-            <PageSizeSelect Value="size" ValueChanged="SetSizeAsync" Options="PageSizeOptions" Size="Size" @attributes="Attrs.MergeProps(null, PropsSizeSelect)" />
+            <PageSizeSelect Value="size" ValueChanged="SetSizeAsync" Options="PageSizeOptions" Size="Size" Disabled="Disabled" @attributes="Attrs.MergeProps(null, PropsSizeSelect)" />
         }
         @if (ShowJump && pageCount > 1)
         {
-            <PageJump Page="page.Value" PageChanged="page.SetAsync" PageCount="pageCount" Size="Size"
+            <PageJump Page="page.Value" PageChanged="page.SetAsync" PageCount="pageCount" Size="Size" Disabled="Disabled"
                       @attributes="Attrs.MergeProps(parts[PaginationBarPart.Jump], PropsJump)" />
         }
     </div>
 </div>
 
 @code {
+    /// <summary>不可用：页码、每页条数、跳页都不能操作。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
     /// <summary>当前页，从 1 开始（<c>@bind-Page</c>）。</summary>
     [Parameter] public int Page { get; set; } = 1;
 

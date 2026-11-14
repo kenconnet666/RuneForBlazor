@@ -21,7 +21,7 @@
     {
         <div @attributes="Attrs.Merge(parts[TransferPart.Search])">
             <CascadingValue TValue="FieldContext" Value="null" IsFixed="true">
-                <TextField Type="search" Icon="BuiltInIcons.Search" Variant="InputVariant.Soft" Size="UI.Size.Sm" Immediate="true" Disabled="Disabled"
+                <SearchField Variant="InputVariant.Soft" Size="UI.Size.Sm" Disabled="Disabled"
                            Value="@Search" ValueChanged="SearchChanged" Sx="TransferStyles.SearchField"
                            placeholder="@Config.Lang.SelectSearch" aria-label="@($"{Config.Lang.SelectSearch} {Title}")" @attributes="Attrs.MergeProps(null, PropsSearch)" />
             </CascadingValue>

@@ -173,7 +173,8 @@ public static class ChartStyles
 /// <summary>图表 SVG 的共用样式（同 vue-tsx-pro 的 chartSvgStyles、chartMarkStyles）：颜色、字号都是主题 tokens，进场的时长是 durations。</summary>
 internal static class ChartSvgStyles
 {
-    internal static Style Svg => Css.Define(static () => new Style { Display = Display.Block, Overflow = Overflow.Visible, UserSelect = UserSelect.None, TouchAction = TouchAction.PanY });
+    // 坐标是物理方向（时间从左到右）：从右到左的页面里不镜像，不然 text-anchor 的 start / end 左右对调
+    internal static Style Svg => Css.Define(static () => new Style { Display = Display.Block, Overflow = Overflow.Visible, UserSelect = UserSelect.None, TouchAction = TouchAction.PanY, Direction = Direction.Ltr });
 
     // 进场：整张图淡入
     internal static Style FadeIn => Css.Define(static () => new Style

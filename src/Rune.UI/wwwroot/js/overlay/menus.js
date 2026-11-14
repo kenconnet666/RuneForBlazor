@@ -132,15 +132,14 @@ function inTriangle(p, a, b, c) {
 
 /** 右键（Shift+F10、菜单键）：在区域（data-rune-context-menu）里从指针位置弹出它的菜单 */
 export function openContextMenu(event) {
+  // 浏览器自己发了 contextmenu（桌面的右键、Android 的长按）：不用等长按的计时
+  cancelContextPress();
   const target = event.target;
-  if (!(target instanceof Element)) return;
-  const region = target.closest('[data-rune-context-menu]');
-  // 菜单渲染在区域里：在菜单上右键不再打开
-  if (!region || region.hasAttribute('data-disabled') || target.closest('[role="menu"]')) return;
-  const menu = region.querySelector(`:scope > ${MENU}`);
+  // 里面的元素自己处理了右键（画布、地图、第三方控件调了 preventDefault）：不抢
+  if (event.defaultPrevented || !(target instanceof Element)) return;
+  const menu = contextMenuOf(target);
   if (!menu) return;
   event.preventDefault();
-  if (!menu.matches(':popover-open')) contextOrigins.set(menu, document.activeElement instanceof HTMLElement ? document.activeElement : null);
   // 键盘打开时没有指针坐标：从获得焦点的元素左下角弹出
   let { clientX: x, clientY: y } = event;
   if (x === 0 && y === 0) {
@@ -148,11 +147,57 @@ export function openContextMenu(event) {
     x = rect.left;
     y = rect.bottom;
   }
+  showContextMenu(menu, x, y);
+}
+
+/** 这个元素所在的右键区域的菜单；区域不可用、元素在菜单里（菜单渲染在区域里，在菜单上右键不再打开）时没有 */
+function contextMenuOf(target) {
+  const region = target.closest('[data-rune-context-menu]');
+  if (!region || region.hasAttribute('data-disabled') || target.closest('[role="menu"]')) return null;
+  return region.querySelector(`:scope > ${MENU}`);
+}
+
+function showContextMenu(menu, x, y) {
+  if (!menu.matches(':popover-open')) contextOrigins.set(menu, document.activeElement instanceof HTMLElement ? document.activeElement : null);
   menu.dataset.pointX = String(x);
   menu.dataset.pointY = String(y);
   // 已经开着时换到新的位置
   if (menu.matches(':popover-open')) anchorFloating(menu);
   else menu.showPopover();
+}
+
+// 长按：iOS 的 Safari 长按不发 contextmenu，触屏、触控笔按住不动一会儿当作右键（同 Radix 的 ContextMenu）
+const LONG_PRESS = 700;
+// 长按期间手指挪动超过多少（px）就不算
+const PRESS_SLOP = 10;
+let press = null;
+
+export function onContextPressStart(event) {
+  cancelContextPress();
+  if (event.pointerType === 'mouse' || !(event.target instanceof Element)) return;
+  const menu = contextMenuOf(event.target);
+  if (!menu) return;
+  const { clientX: x, clientY: y } = event;
+  press = {
+    x,
+    y,
+    timer: setTimeout(() => {
+      press = null;
+      if (menu.isConnected) showContextMenu(menu, x, y);
+    }, LONG_PRESS),
+  };
+}
+
+/** 手指挪开了（在滚动、拖动）：不算长按 */
+export function onContextPressMove(event) {
+  if (press && Math.hypot(event.clientX - press.x, event.clientY - press.y) > PRESS_SLOP) cancelContextPress();
+}
+
+/** 手指抬起来了、被系统打断了 */
+export function cancelContextPress() {
+  if (!press) return;
+  clearTimeout(press.timer);
+  press = null;
 }
 
 /** 右键菜单关上了：焦点还没被移到别处时还给打开前的元素 */

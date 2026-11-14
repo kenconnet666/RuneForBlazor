@@ -2,7 +2,7 @@
     步骤条（同 vue-tsx-pro 的 Steps，ol）：多步流程里的位置（下单、注册、配置向导、任务的流转）。当前步骤带 aria-current="step"，
     已完成的步骤显示对勾，出错的步骤显示警示图标；已完成、未开始、出错另有读屏文字，不只靠颜色。
     <Steps Current="1" Items="@([new("填写信息"), new("确认订单"), new("完成")])" />
-    <Steps @bind-Current="step" Items="items" Navigable="true" />               已完成的步骤可以点回去
+    <Steps @bind-Current="step" Items="items" Navigable="true" />               已完成、出错的步骤可以点回去
     <Steps Current="2" Items="@([new("概览", Href: "task/1"), …])" />           已完成的步骤是链接
     每一步的状态默认按 Current 推出（之前已完成、当前、之后未开始），StepItem 的 Status 可以改：出错的一步、非线性的流程。
     未声明的属性落到 ol 上；aria-label 是步骤条的名称。
@@ -18,7 +18,7 @@
         var item = Items[index];
         var at = index;
         var state = item.Status ?? (index < current.Value ? StepState.Complete : index == current.Value ? StepState.Current : StepState.Upcoming);
-        var reachable = state == StepState.Complete && !item.Disabled;
+        var reachable = state is (StepState.Complete or StepState.Error) && !item.Disabled;
         var link = reachable && item.Href is not null;
         var parts = StepsStyles.Of(new(Orientation, state, link), Config.Styles);
         <li @key="@(item.Key ?? index.ToString(System.Globalization.CultureInfo.InvariantCulture))" aria-current="@(state == StepState.Current ? "step" : null)"
@@ -59,7 +59,7 @@
     /// <summary>字号档位：圆圈、文字随之缩放；不写时继承上下文字号。</summary>
     [Parameter] public Size? Size { get; set; }
 
-    /// <summary>已完成的步骤可以点击回去：点了写回 Current。</summary>
+    /// <summary>已完成、出错的步骤可以点击回去：点了写回 Current。</summary>
     [Parameter] public bool Navigable { get; set; }
 
     /// <summary>每个步骤（li）的部件属性。</summary>

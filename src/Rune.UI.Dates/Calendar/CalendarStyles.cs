@@ -140,6 +140,8 @@ public static class CalendarStyles
         [When.Attribute("[data-in-range], [data-preview]")] = new()
         {
             BackgroundColor = Tones.Accent.Soft,
+            // 高对比下背景色被系统换掉：区间用系统的高亮色（格子里的字跟着换，见 CellButton）
+            [Media.ForcedColors] = new() { BackgroundColor = CssColors.Highlight, ForcedColorAdjust = ForcedColorAdjust.None },
             [new Condition(":first-of-type")] = new() { BorderStartStartRadius = Radii.Md, BorderEndStartRadius = Radii.Md },
             [new Condition(":last-of-type")] = new() { BorderStartEndRadius = Radii.Md, BorderEndEndRadius = Radii.Md },
         },
@@ -161,16 +163,30 @@ public static class CalendarStyles
         [When.Hover] = new() { BackgroundColor = Colors.FillHover },
         [When.Attribute("[data-period]")] = new() { Width = CssLength.Percent(100), Height = $"max(3em, {Sizes.MinTarget})" },
         [When.Attribute("[data-outside]")] = new() { Color = Colors.TextMuted },
-        [When.Attribute("[data-today]")] = new() { FontWeight = FontWeights.Semibold, BoxShadow = $"inset 0 0 0 {BorderWidths.Xs} {Tones.Accent.Border}" },
+        // 高对比下阴影画的那一圈没有了：加下划线
+        [When.Attribute("[data-today]")] = new()
+        {
+            FontWeight = FontWeights.Semibold,
+            BoxShadow = $"inset 0 0 0 {BorderWidths.Xs} {Tones.Accent.Border}",
+            [Media.ForcedColors] = new() { TextDecorationLine = TextDecorationLine.Underline },
+        },
         [When.Attribute("[data-unavailable]")] = new() { Color = Colors.TextMuted, TextDecorationLine = TextDecorationLine.LineThrough },
         // 区间中间的格：按钮透明，底色是 td 的那一条
-        [When.Attribute("[data-in-range], [data-preview]")] = new() { BackgroundColor = CssColors.Transparent, Color = Tones.Accent.Text, [When.Hover] = new() { BackgroundColor = Tones.Accent.SoftHover } },
+        [When.Attribute("[data-in-range], [data-preview]")] = new()
+        {
+            BackgroundColor = CssColors.Transparent,
+            Color = Tones.Accent.Text,
+            [When.Hover] = new() { BackgroundColor = Tones.Accent.SoftHover },
+            [Media.ForcedColors] = new() { Color = CssColors.HighlightText },
+        },
         [When.Attribute("[data-selected], [data-anchor], [data-preview-start], [data-preview-end]")] = new()
         {
             BackgroundColor = Tones.Accent.Solid,
             Color = Tones.Accent.Contrast,
             BoxShadow = BoxShadow.None,
-            [When.Hover] = new() { BackgroundColor = Tones.Accent.SolidHover },
+            [When.Hover] = new() { BackgroundColor = Tones.Accent.SolidHover, [Media.ForcedColors] = new() { BackgroundColor = CssColors.Highlight } },
+            // 高对比下背景色被系统换掉、和没选的一样：选中的用系统的高亮色
+            [Media.ForcedColors] = new() { BackgroundColor = CssColors.Highlight, Color = CssColors.HighlightText, ForcedColorAdjust = ForcedColorAdjust.None },
         },
         [When.Attribute("[aria-disabled=\"true\"]")] = new()
         {

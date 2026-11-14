@@ -10,6 +10,14 @@ const TRIGGER = '[data-rune-tooltip], [data-rune-hovercard]';
 
 const PANEL = '[data-rune-hover-panel]';
 
+const PRESS = 'data-rune-tooltip-press';
+
+// 点触发元素开关的卡片（紧凑导航的分组）：触屏没有悬停，点图标弹出子项，再点收起
+const TOGGLE = 'data-rune-hover-toggle';
+
+/** 按下那一刻开着没有：按下时浮层先被关了，点击要按“按下之前”的状态切换 */
+const openBeforePress = new WeakMap();
+
 const timers = new WeakMap();
 
 /** 每组正显示的浮层与上次关掉的时间：tooltip、card */
@@ -80,18 +88,44 @@ export function onHoverPointerOver(event) {
 }
 
 export function onHoverPointerOut(event) {
-  if (!(event.target instanceof Element)) return;
+  // 触屏抬手也会发 pointerout：点开的卡片不因此收起
+  if (event.pointerType === 'touch' || !(event.target instanceof Element)) return;
   const owner = event.target.closest(`${TRIGGER}, ${PANEL}`);
   if (!owner || owner.contains(event.relatedTarget)) return;
   const panel = owner.matches(PANEL) ? owner : hoverPanelOf(owner);
   if (panel) schedule(panel, false, closeDelayOf(panel));
 }
 
-/** 按下触发元素时隐藏它的浮层。 */
+/** 按下触发元素时隐藏它的浮层；点按就要看提示的（缩写，data-rune-tooltip-press）不隐藏。 */
 export function onHoverPointerDown(event) {
-  const trigger = event.target instanceof Element ? event.target.closest(TRIGGER) : null;
-  const panel = trigger && hoverPanelOf(trigger);
-  if (panel) hidePanel(panel);
+  const target = event.target instanceof Element ? event.target : null;
+  const trigger = target?.closest(TRIGGER) ?? null;
+  // 点在点开的卡片外面（触屏上没有“指针移开”）：收起
+  const card = groups.card.shown;
+  if (card && target && !card.contains(target) && hoverTriggerOf(card)?.hasAttribute(TOGGLE) && hoverTriggerOf(card) !== trigger) hidePanel(card);
+  const panel = trigger && !trigger.hasAttribute(PRESS) && hoverPanelOf(trigger);
+  if (!panel) return;
+  if (trigger.hasAttribute(TOGGLE)) openBeforePress.set(trigger, panel.matches(':popover-open'));
+  hidePanel(panel);
+}
+
+/**
+ * 点击：
+ * - 点按显示的提示（data-rune-tooltip-press）：触屏没有悬停，点按得到的焦点也不算键盘聚焦，点一下由这里打开；再点别处失焦时提示自己关；
+ * - 点触发元素开关的卡片（data-rune-hover-toggle）：按下之前关着的打开、开着的收起；键盘的回车、空格没有按下那一步（detail 是 0），
+ *   聚焦时已经开了，保持开着（Esc 收起）；点了卡片里的链接（换页）收起。
+ */
+export function onHoverClick(target, event) {
+  const pressed = target.closest(`[${PRESS}]`);
+  const tip = pressed && hoverPanelOf(pressed);
+  if (tip) schedule(tip, true, 0);
+
+  const toggler = target.closest(`[${TOGGLE}]`);
+  const card = toggler && hoverPanelOf(toggler);
+  if (card && (event.detail === 0 || !openBeforePress.get(toggler))) schedule(card, true, 0);
+
+  const inside = target.closest('a[href]')?.closest(PANEL);
+  if (inside && hoverTriggerOf(inside)?.hasAttribute(TOGGLE)) hidePanel(inside);
 }
 
 /** Esc 隐藏正显示的提示与卡片。 */

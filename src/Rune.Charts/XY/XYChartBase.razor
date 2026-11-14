@@ -259,7 +259,9 @@
     private protected static (string D, Sx Grow) BarShape(XYContext<TItem> context, double start, double width, double low, double high, double radius, bool round, bool? down = null)
     {
         var negative = down ?? (high <= 0 && low < 0);
-        var (a, b) = (context.Value(low), context.Value(high));
+        // 夹到数值轴的范围内：轴不从 0 起时（ValueMin / ValueMax、瀑布图的 FromZero="false"），从 0 起画的柱子不冲出绘图区
+        var (floor, ceiling) = (Math.Min(context.Domain.Start, context.Domain.End), Math.Max(context.Domain.Start, context.Domain.End));
+        var (a, b) = (context.Value(Math.Clamp(low, floor, ceiling)), context.Value(Math.Clamp(high, floor, ceiling)));
         var end = context.Horizontal ? negative ? BarEnd.Left : BarEnd.Right : negative ? BarEnd.Bottom : BarEnd.Top;
         var d = context.Horizontal
             ? ChartShapes.Bar(Math.Min(a, b), start, Math.Abs(b - a), width, radius, round ? end : BarEnd.None)

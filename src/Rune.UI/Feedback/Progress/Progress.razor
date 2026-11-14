@@ -7,6 +7,9 @@
     <Progress Value="60" aria-label="上传进度" />                只有进度条
     <Progress aria-label="正在加载" />                            不确定进度
     <Progress Shape="ProgressShape.Circle" Value="72" Target="80" Label="本月销售完成率" />
+    <Progress Value="used" Max="quota" Label="磁盘占用" Bands="@([new(70, Tone.Success), new(90, Tone.Warning), new(100, Tone.Danger)])" />
+    Bands 是量表的用法（HTML 的 meter）：值落在哪一段就用哪一段的色调，角色换成 role="meter"——它量的是一个数（占用、评分、强度），
+    不是任务做到哪了。仪表盘样子的量表用 Gauge。
     使用方写的属性落在 progressbar 上；有标签时外层用 PropsRoot。
 *@
 @namespace Rune.UI
@@ -14,7 +17,7 @@
 @using System.Globalization
 @{
     var defaults = Config.Defaults.Get<ProgressDefaults>();
-    var tone = Tone ?? defaults?.Tone ?? UI.Tone.Accent;
+    var tone = BandOf(Value)?.Tone ?? Tone ?? defaults?.Tone ?? UI.Tone.Accent;
     var size = Size ?? defaults?.Size;
     var radius = Radius ?? defaults?.Radius ?? UI.Radius.Full;
     var determinate = Value is not null;
@@ -30,7 +33,8 @@
     var spoken = determinate ? ValueText?.Invoke(clamped, Max) ?? PercentText(percent) : null;
     var progressbar = new Attrs
     {
-        Role = "progressbar",
+        // 有区间的是量表：量的是一个数，不是任务的进度
+        Role = Bands is null ? "progressbar" : "meter",
         ["aria-valuemin"] = "0",
         ["aria-valuemax"] = Max.ToString(CultureInfo.InvariantCulture),
         ["aria-valuenow"] = determinate ? clamped.ToString(CultureInfo.InvariantCulture) : null,
@@ -97,6 +101,21 @@ else
 
     /// <summary>色调，默认品牌色。</summary>
     [Parameter] public Tone? Tone { get; set; }
+
+    /// <summary>
+    /// 量表的区间（按 To 从小到大）：值落在哪一段就用哪一段的色调（盖过 <see cref="Tone"/>），角色是 meter。
+    /// 磁盘占用、密码强度、评分这类“量出来的数”用它；任务的完成进度不写。
+    /// </summary>
+    [Parameter] public IReadOnlyList<ProgressBand>? Bands { get; set; }
+
+    // 值所在的那一段；超过最后一段的算最后一段
+    ProgressBand? BandOf(decimal? value)
+    {
+        if (value is not { } number || Bands is not { Count: > 0 } bands) return null;
+        foreach (var band in bands)
+            if (number <= band.To) return band;
+        return bands[^1];
+    }
 
     /// <summary>字号档位：进度条的粗细、环的直径随之缩放；不写时继承。</summary>
     [Parameter] public Size? Size { get; set; }

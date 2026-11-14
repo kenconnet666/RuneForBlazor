@@ -37,10 +37,11 @@ import { toggleDisclosure, watchCollapse } from '../layout/collapse.js';
 import { grabResizeHandle, grabSplitter, keyResizeHandle, keySplitter, resetResizeHandle, resetSplitter, watchResizeHandle } from '../layout/resize.js';
 import { grabSlider, keySlider, watchSlider } from '../input/slider.js';
 import { chooseTheme, fillTokenValue, installTheme, reapplyTheme, watchThemeSwitcher } from './theme.js';
-import { exitFullscreenOnEscape, onFullscreenChange, releaseFullscreen, syncFullscreen } from './fullscreen.js';
+import { exitFullscreenOnEscape, followFullscreenFocus, onFullscreenChange, releaseFullscreen, syncFullscreen } from './fullscreen.js';
 import { closeOnLink, closeOrRequest, focusArrivedContent, grabDialog, onDialogCancel, onDialogClose, onPopoverToggle, open, syncOpen, watchCloseWhen } from '../overlay/overlays.js';
-import { clickSubMenuTrigger, hoverSubMenu, leaveSubMenu, moveInMenu, openContextMenu, openMenuFromTrigger, rootMenuOf } from '../overlay/menus.js';
-import { onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from '../overlay/hover-layers.js';
+import { cancelContextPress, clickSubMenuTrigger, hoverSubMenu, leaveSubMenu, moveInMenu, onContextPressMove, onContextPressStart, openContextMenu, openMenuFromTrigger, rootMenuOf } from '../overlay/menus.js';
+import { markEmbed, startEmbed, startVideo } from '../display/media.js';
+import { onHoverClick, onHoverEscape, onHoverFocusIn, onHoverFocusOut, onHoverPointerDown, onHoverPointerOut, onHoverPointerOver } from '../overlay/hover-layers.js';
 
 /**
  * 装上事件委托与 DOM 变化监听（入口在 Blazor 启动后调用一次）。document 上的事件经入口的 on(事件, 处理函数, 是否捕获) 挂到
@@ -96,6 +97,7 @@ export function install(blazor, on) {
   on('load', (event) => {
     markImage(event.target);
     showLightboxImage(event.target);
+    markEmbed(event.target);
   }, true);
   on('error', (event) => markImage(event.target), true);
   // 输入法组合期间的 input 不交给 C#（不拿拼音字母去过滤，验证码与分组显示的输入框也不在组合中改写），组合结束补发一次
@@ -128,6 +130,11 @@ export function install(blazor, on) {
   on('pointerover', hoverSubMenu);
   on('pointerout', leaveSubMenu);
   on('contextmenu', openContextMenu);
+  // 触屏长按当作右键（iOS 的 Safari 长按不发 contextmenu）
+  on('pointerdown', onContextPressStart);
+  on('pointermove', onContextPressMove);
+  on('pointerup', cancelContextPress);
+  on('pointercancel', cancelContextPress);
   on('pointerover', previewRating);
   on('pointerout', onHoverPointerOut);
   on('pointerout', endRatingPreview);
@@ -174,6 +181,8 @@ const watched = [
   ['[data-rune-collapse]', watchCollapse],
   ['[data-rune-resize]', watchResizeHandle],
   ['img[data-rune-image]', (image) => image.complete && markImage(image)],
+  ['iframe[data-rune-embed]', startEmbed],
+  ['video[data-rune-autoplay]', startVideo],
   ['[data-rune-lightbox-viewport]', watchLightbox],
   ['img[data-rune-lightbox-image]', (image) => image.complete && showLightboxImage(image)],
   ['code[data-rune-highlight]', highlightCode],
@@ -244,7 +253,10 @@ function onMutations(mutations) {
       else if (mutation.attributeName === 'data-rune-autosize') autosize(mutation.target);
       else if (mutation.attributeName === 'data-rune-query') onQueryChanged(mutation.target);
       else if (mutation.attributeName === 'aria-busy') syncHideEmpty(mutation.target.closest('[role="listbox"]'));
-      else if (mutation.attributeName === 'data-rune-fullscreen') syncFullscreen(mutation.target);
+      else if (mutation.attributeName === 'data-rune-fullscreen') {
+        syncFullscreen(mutation.target);
+        followFullscreenFocus(mutation.target);
+      }
       else if (mutation.attributeName === 'data-rune-watermark') drawWatermark(mutation.target);
       else if (mutation.attributeName === 'data-rune-upload-previews') releaseFilePreviews(mutation.target);
       else if (mutation.attributeName === 'data-value') { if (mutation.target.hasAttribute('data-rune-tween')) onTweenValueChanged(mutation.target); }
@@ -310,6 +322,7 @@ function onClick(event) {
   onMentionsClick(target);
   toggleFromShell(target);
   clickToastClose(target);
+  onHoverClick(target, event);
 
   refocusFrom(target);
   toggleReveal(target);

@@ -17,6 +17,9 @@ export function copyFrom(button) {
       clearTimeout(copyTimers.get(button));
       const timeout = Number(button.getAttribute('data-rune-copy-timeout')) || 2000;
       copyTimers.set(button, setTimeout(() => button.removeAttribute('data-state'), timeout));
+    } else {
+      // 失败（没有剪贴板权限、不是安全上下文）不能和成功一样安静：不然用户以为已经复制了
+      speak(button.getAttribute('data-rune-copy-failed-text') || '', true);
     }
     button.dispatchEvent(new CustomEvent('rune-copied', { bubbles: true, detail: { success } }));
   };

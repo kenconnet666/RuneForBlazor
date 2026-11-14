@@ -13,7 +13,7 @@
         @if (Icon is { } icon)
         {
             <div id="@actionsId" @attributes="Attrs.Merge(open.Value ? FloatButtonStyles.Actions : FloatButtonStyles.ActionsHidden, PropsActions)">@ChildContent</div>
-            <FloatButton Icon="@(open.Value ? BuiltInIcons.X : icon)" Label="@(Label ?? "")" Variant="ButtonVariant.Solid" Tone="UI.Tone.Accent" ShowTooltip="false"
+            <FloatButton Icon="@(open.Value ? BuiltInIcons.X : icon)" Label="@(Label ?? Config.Lang.FloatButtonMore)" Variant="ButtonVariant.Solid" Tone="UI.Tone.Accent" ShowTooltip="false"
                          aria-expanded="@(open.Value ? "true" : "false")" aria-controls="@actionsId" data-rune-speed-dial-trigger
                          @onclick="() => open.SetAsync(!open.Value)" @attributes="Attrs.MergeProps(null, PropsTrigger)" />
         }
