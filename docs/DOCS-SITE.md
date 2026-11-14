@@ -31,6 +31,8 @@
 ## 还缺的页面与示例
 
 2026-11-13 按 vue `95ceb0d8` 用 `columns.mjs`、`titles.mjs` 核对过一遍：两边都有的 110 页，排布、侧栏顺序、示例的 id 一致；标题只剩下面“有意不同”的几条。
+2026-11-15 跟到 vue 0.26.0（`c42b2f39`）：新增 figure（插图、视频与嵌入）、page-header 两页，text 的行内语义、text-field 的搜索框、image 的备选源、
+progress 的量表照着补了；视频示例的片段同 vue 在浏览器里现录（`wwwroot/clip.js`）。这一批没有再跑 `columns.mjs` / `titles.mjs`。
 
 - 阶段 6：13 个页面组合组件的页面（ActionBar、AuthLayout、CommentThread、ConditionBuilder、DataImport、FilterBar、FormDialog、KanbanBoard、NotificationCenter、
   PeoplePicker、QueryTable、SlideCaptcha、StepsForm）与 PageTemplates；ThemeCustomizer 之后的主题定制页与 theme-switcher 的 thumbnail、customizer 示例；

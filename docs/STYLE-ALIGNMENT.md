@@ -55,7 +55,8 @@
 
 - SearchField 继承 TextField（参数全部沿用），回车用输入框的 change 接（不用 keydown：那样每次按键都要交给 C#），所以失去焦点时还在等停手的那次也会立即触发。
 - Embed 的地址由 JS 在接上 load 之后写到 iframe 上（`data-rune-embed`），加载完没有写在外层的 `data-state`、样式跟着它，没有往返；
-  vue 是挂载后才渲染 iframe。Embed、Video 自己给 iframe / video 写了宽高 100%：外层的 `data-scope` 是 embed / video，AspectRatio 那条“里面的元素铺满”的规则选不中它。
+  vue 是挂载后才渲染 iframe。Embed、Video 自己给 iframe / video 写了宽高 100%：外层的 `data-scope` 是 embed / video，AspectRatio 那条“里面的元素铺满”的规则选不中它
+  （vue 0.26.0 里 iframe 因此是 300 × 150、没有铺满，已开 issue kenconnet666/vue-tsx-pro#7，等它定了再对齐）。
 - Video 的自动播放由 JS 判断（`data-rune-autoplay`）：标记里不写 autoplay，减少动态效果时不播、显示控制条。
 - Abbr 的点按显示、紧凑导航分组的触屏点开都在悬停层的 JS 里（`data-rune-tooltip-press`、`data-rune-hover-toggle`），状态不经过 C#。
 - 内容参数：Blockquote 的 `Source`、Figure 的 `Caption` 是文字，要放链接时用 `SourceContent` / `CaptionContent`；PageHeader 的标题是文字，`Meta`、`Description`、`Actions` 是内容片段。
