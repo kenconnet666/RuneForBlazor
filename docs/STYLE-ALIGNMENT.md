@@ -104,3 +104,9 @@
    - StepsForm 的只读回看（Rune 还没有 StepsForm）。
    - Autocomplete 去掉 `empty`：Rune 的 Autocomplete 继承 Combobox，`Empty` 参数还在（没有建议时本来就不弹出，写了也显示不出来）。
    - 文档站 Popover 页的“自己算位置”（拖动锚点看 computePlacement 的结果）、Autocomplete 与 Mentions 新加的示例，见 DOCS-SITE.md。
+8. vue 0.29.0（`0de173eb`）还没跟：
+   - Video 自绘控制条认不知道时长的视频（直播、边录边播）：时间只显示已播了多久，进度条不可用，方向键不跳回开头；有可回看的范围时取范围末尾当时长
+     （vue 的 `lengthOf`）。Rune 现在按时长 0 处理（进度条不可用、显示 0:00 / 0:00），要在 `js/display/video.js` 的 send 里同样取 seekable 的末尾，C# 按“不知道时长”显示。
+   - Affix 的根元素补部件标记（`data-scope="affix"`、`data-part="root"`）：Rune 的 Affix 也没有，改成走 Recipe。
+   - 部件属性去掉原生元素专用的绑定（`_value`、`_checked`…）：TS 类型层面的，Blazor 的参数本来就是各组件自己声明的，不用跟。
+   - 文档站：Combobox“表单提交与自定义匹配”、Cascader“显示、搜索的匹配与状态”、TagsInput 状态示例补的 AcceptOnBlur / Radius / Name、Affix“贴在底部的提交栏”。
