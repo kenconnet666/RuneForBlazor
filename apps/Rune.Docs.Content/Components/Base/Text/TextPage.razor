@@ -1,5 +1,5 @@
 @page "/components/text"
-@attribute [DocMeta("Text 文字与列表", "正文、链接、标题与列表：字号、字重、色调、截断与换行；Paragraph、Strong、Em、Small、TextLink、Mark、Kbd、Blockquote、H1–H6，正文里的 List、OrderedList。", DocCategory.Base, Order = 0)]
+@attribute [DocMeta("Text 文字与列表", "正文、链接、标题与列表：字号、字重、色调、截断与换行；Paragraph、Strong、Em、Small、Sub、Sup、Del、Ins、Strike、Abbr、TextLink、Mark、Kbd、Blockquote、H1–H6，正文里的 List、OrderedList。", DocCategory.Base, Order = 0)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Base.Text.Demo
 
@@ -26,7 +26,9 @@
         </ExampleColumn>
         <ExampleColumn>
             <Example Id="inline" Title="行内语义" Demo="typeof(InlineExample)">
-                一个元素一个组件：Strong、Em、Small、Mark（高亮）、Kbd（按键）、Code（行内代码）、Blockquote（引用）。
+                一个元素一个组件：Strong、Em、Small、Mark（高亮）、Kbd（按键）、Code（行内代码）、Blockquote（引用，<Code>Source</Code> 写出处）。
+                <Code>Sub</Code>、<Code>Sup</Code> 是上下标，不撑高所在的行；<Code>Strike</Code> 是不再有效的内容（原价），文档的增删用 <Code>Del</Code>、<Code>Ins</Code>
+                （加进来的是浅绿底，不用下划线，免得和链接分不清）。<Code>Abbr</Code> 是缩写：全称在提示里，悬停、键盘聚焦、触屏点按都看得到（原生的 title 只有鼠标悬停才有）。
             </Example>
             <Example Id="links" Title="链接" Demo="typeof(LinksExample)">
                 TextLink 默认带下划线（WCAG 1.4.1：正文里的链接不能只靠颜色区分）；导航这类上下文明确的地方可以 Underline="Hover" 或 None。按钮样式的链接用 LinkButton。
@@ -39,5 +41,5 @@
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(Blockquote), typeof(Kbd), typeof(Mark), typeof(List), typeof(OrderedList), typeof(ListItem)]" />
+    <ApiReference Types="[typeof(Abbr), typeof(Blockquote), typeof(Kbd), typeof(Mark), typeof(List), typeof(OrderedList), typeof(ListItem)]" />
 </DocPage>

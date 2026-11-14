@@ -1,0 +1,33 @@
+@page "/components/figure"
+@attribute [DocMeta("Figure 插图、视频与嵌入", "带说明的插图（figure）、固定宽高比的框（AspectRatio）、视频（Video）、嵌入的页面（Embed，iframe）：说明是内容的名称，比例框加载前就占好位置。", DocCategory.Display, Order = 8.5)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Display.Figure.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="captions" Title="图片与表格的说明" Demo="typeof(CaptionsExample)">
+                <Code>Figure</Code> 是 figure 元素，<Code>Caption</Code> 是 figcaption：读屏把说明当作这块内容的名称。
+                图片、图表的说明在下面；表格的说明习惯放上面（<Code>CaptionSide="FigureCaptionSide.Top"</Code>）。<Code>Align</Code> 让内容与说明一起对齐。
+                说明里要放链接时用 <Code>CaptionContent</Code>。
+            </Example>
+            <Example Id="embed" Title="嵌入的页面" Demo="typeof(EmbeddedExample)">
+                <Code>Embed</Code> 是带外框的 iframe：<Code>Title</Code> 必填（读屏靠它知道这一块是什么），默认延迟加载（滚到附近才加载）、
+                <Code>referrerpolicy</Code> 是 strict-origin-when-cross-origin，加载完之前显示骨架。嵌入不受信任的页面时写 <Code>sandbox</Code>，只放开需要的权限；
+                <Code>allow</Code>、<Code>srcdoc</Code> 这些原生属性照常落到 iframe 上。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="video" Title="视频" Demo="typeof(ClipExample)">
+                <Code>Video</Code> 用浏览器自己的控制条，外面是定比例的框（<Code>Ratio</Code>），画面完整放进去、四周黑底；<Code>Poster</Code> 是封面，
+                <Code>Sources</Code> 给几种格式，<Code>Tracks</Code> 是字幕。<Code>Autoplay</Code> 默认静音、行内播放，系统要求减少动态效果时不自动播放并显示控制条。
+                倍速、清晰度这类自绘的控制条不在这里。
+            </Example>
+            <Example Id="ratio" Title="固定宽高比" Demo="typeof(RatioExample)">
+                <Code>AspectRatio</Code> 的宽度跟着容器，高度按比例算，里面的元素铺满它（图片、视频按 cover 裁切）。封面、地图、播放器在加载前就占好位置，
+                加载完不把下面的内容顶开。<Code>Ratio</Code> 是 CSS 的写法（<Code>"16 / 9"</Code>、<Code>"4 / 3"</Code>、<Code>"1"</Code>）。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(Figure), typeof(AspectRatio), typeof(Video), typeof(Embed)]" />
+</DocPage>

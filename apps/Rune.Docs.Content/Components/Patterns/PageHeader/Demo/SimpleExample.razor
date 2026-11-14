@@ -1,0 +1,21 @@
+@inherits RuneComponent
+
+@* 列表页、表单页的页头：标题、说明、一个主要操作；下面接标签页。
+   示例嵌在文档页的一节里，标题降到 h3；整页的页头不用写（默认 h1） *@
+<Tabs @bind-Value="tab">
+    <PageHeader Title="采购申请" HeadingLevel="3">
+        <Description>提交后先由部门经理审批，金额超过 5 万元时加签财务。</Description>
+        <Actions><Button Icon="Lucide.Plus">新建申请</Button></Actions>
+        <ChildContent>
+            <TabList aria-label="采购申请">
+                <Tab Value="all">全部</Tab>
+                <Tab Value="mine">我提交的</Tab>
+                <Tab Value="todo">待我审批</Tab>
+            </TabList>
+        </ChildContent>
+    </PageHeader>
+</Tabs>
+
+@code {
+    string tab = "all";
+}

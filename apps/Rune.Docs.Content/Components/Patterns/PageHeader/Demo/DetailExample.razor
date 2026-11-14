@@ -1,0 +1,26 @@
+@inherits RuneComponent
+
+@* 详情页的页头：面包屑、返回、标题后面的状态、说明、结束边的操作，下面接摘要。
+   示例嵌在文档页的一节里，标题降到 h3；整页的页头不用写（默认 h1） *@
+<PageHeader Title="PO-2026-0187" HeadingLevel="3" Breadcrumbs="crumbs" OnBack="() => backs++">
+    <Meta><Badge Tone="Tone.Success">已到货</Badge></Meta>
+    <Description>华辰精密 · 2026-10-20 下单 · 含税 86,400.00 元</Description>
+    <Actions>
+        <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Pencil">编辑</Button>
+        <Button Icon="Lucide.Truck">催单</Button>
+    </Actions>
+    <ChildContent>
+        <Descriptions Columns="3">
+            <DescriptionsItem Label="采购员" Value="林小满" />
+            <DescriptionsItem Label="交货日期" Value="2026-11-05" />
+            <DescriptionsItem Label="付款方式" Value="月结 30 天" />
+        </Descriptions>
+        <TextSpan Tone="TextTone.Muted" Size="Size.Sm">点了 @backs 次返回</TextSpan>
+    </ChildContent>
+</PageHeader>
+
+@code {
+    static readonly IReadOnlyList<BreadcrumbItem> crumbs = [new("采购", "#purchase"), new("采购单", "#orders"), new("PO-2026-0187")];
+
+    int backs;
+}

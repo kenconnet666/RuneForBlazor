@@ -1,0 +1,22 @@
+@page "/components/page-header"
+@attribute [DocMeta("PageHeader 页头", "页面开头的那一块：面包屑、返回、标题与状态、说明、结束边的操作，下面接摘要或标签页；列表页、详情页、表单页不用各自拿 Flex 拼。", DocCategory.Patterns, Order = 1.5)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Patterns.PageHeader.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="detail" Title="详情页" Demo="typeof(DetailExample)">
+                <Code>Breadcrumbs</Code> 是面包屑（最后一项是当前页），<Code>Meta</Code> 放标题后面的状态、标签，<Code>Actions</Code> 靠结束边、放不下时整块换到标题下面。
+                给了 <Code>OnBack</Code> 就有返回按钮；给 <Code>BackHref</Code> 时返回是链接，能在新标签页打开。<Code>ChildContent</Code> 排在最下面，放摘要。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="simple" Title="列表页：标题、说明与标签页" Demo="typeof(SimpleExample)">
+                只写 <Code>Title</Code> 就是一个 h1；标题与 <Code>Description</Code> 在 hgroup 里。标签页放在 <Code>ChildContent</Code>。
+                页头嵌在页面里的一块（抽屉、分栏的右侧）时用 <Code>HeadingLevel</Code> 把标题降到 h2、h3。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(PageHeader)]" />
+</DocPage>

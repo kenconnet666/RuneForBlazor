@@ -169,7 +169,7 @@ const SLOTS = [
   ['click', true], ['click', false], ['dblclick', false], ['auxclick', false], ['contextmenu', false],
   ['keydown', false], ['keyup', false], ['input', true], ['input', false], ['change', true], ['change', false],
   ['compositionend', false], ['paste', false], ['focusin', false], ['focusout', false], ['fullscreenchange', false],
-  ['pointerdown', false], ['pointermove', false], ['pointerover', false], ['pointerout', false],
+  ['pointerdown', false], ['pointermove', false], ['pointerup', false], ['pointercancel', false], ['pointerover', false], ['pointerout', false],
   ['dragenter', false], ['dragleave', false], ['drop', false],
 ];
 const slots = new Map();

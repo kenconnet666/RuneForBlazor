@@ -7,7 +7,7 @@
     <Examples>
         <ExampleColumn>
             <Example Id="progress" Title="进度条" Demo="typeof(ProgressExample)">
-                <Code>Value</Code> 与 <Code>Max</Code>（默认 100）算完成比例，超出时夹住；<Code>Tone</Code> 表示状态。<Code>Label</Code> 显示在上方，同时是进度条的名称；右侧默认是按语言格式化的百分比，<Code>ValueLabel</Code> 换成自己的文字（只是显示），读屏念的用 <Code>ValueText</Code> 改，<Code>ShowValueLabel="false"</Code> 不显示。
+                <Code>Value</Code> 与 <Code>Max</Code>（默认 100）算完成比例，超出时夹住；<Code>Tone</Code> 表示状态。<Code>Bands</Code> 是量表的用法（磁盘占用、配额、评分这类量出来的数）：值落在哪一段就用哪一段的色调，角色换成 <Code>role="meter"</Code>；仪表盘样子的量表用 Gauge。<Code>Label</Code> 显示在上方，同时是进度条的名称；右侧默认是按语言格式化的百分比，<Code>ValueLabel</Code> 换成自己的文字（只是显示），读屏念的用 <Code>ValueText</Code> 改，<Code>ShowValueLabel="false"</Code> 不显示。
             </Example>
             <Example Id="rings" Title="环形与目标" Demo="typeof(RingsExample)">
                 <Code>ProgressShape.Circle</Code> 是环形：中间显示数值，<Code>Label</Code> 在下方，直径随 <Code>Size</Code> 缩放，适合仪表盘与卡片里的完成率；不写 <Code>Value</Code> 时一段弧一直转。<Code>Target</Code> 是目标值：条上画一条竖线、环上画一道刻度，读屏念成“60%，目标 80%”。

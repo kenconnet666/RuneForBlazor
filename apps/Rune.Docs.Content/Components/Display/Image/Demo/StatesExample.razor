@@ -15,6 +15,10 @@
         <Small Tone="TextTone.Muted">Radius="Radius.Full"</Small>
     </Flex>
     <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Image Src="@Drawings.All[3].Src" Sources="@([new ImageSource(Drawings.All[4].Src, Media: "(max-width: 40rem)")])" Alt="窄屏换一张图" Width="140" Height="105" />
+        <Small Tone="TextTone.Muted">Sources：窄屏换图</Small>
+    </Flex>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
         <Image Src="/missing/drawing.png" Alt="不存在的图纸" Width="140" Height="105" data-testid="missing" />
         <Small Tone="TextTone.Muted">加载失败</Small>
     </Flex>

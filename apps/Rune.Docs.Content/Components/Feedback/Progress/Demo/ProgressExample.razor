@@ -5,7 +5,7 @@
         <Strong>套餐用量</Strong>
         @foreach (var (name, used, total, unit) in quotas)
         {
-            <Progress @key="name" Value="used" Max="total" Tone="ToneOf(used / total)" Label="@name"
+            <Progress @key="name" Value="used" Max="total" Bands="BandsOf(total)" Label="@name"
                       ValueLabel="@($"{used:#,0.#} / {total:#,0} {unit}")" ValueText="@((value, max) => $"{value} / {max} {unit}")"
                       PropsValueLabel="@(used > total ? Over : null)" data-testid="@name" />
         }
@@ -27,6 +27,6 @@
     // 超出用量时数值标红（交给 TextSpan 的 Tone 参数）
     static readonly Attrs Over = new() { ["Tone"] = TextTone.Danger };
 
-    // 用量越接近上限越醒目：80% 以上警告，超出为危险
-    static Tone ToneOf(decimal ratio) => ratio > 1 ? Tone.Danger : ratio >= 0.8m ? Tone.Warning : Tone.Accent;
+    // 用量是量出来的数（量表）：越接近上限越醒目——八成以内正常，到上限为止警告，超出为危险
+    static IReadOnlyList<ProgressBand> BandsOf(decimal total) => [new(total * 0.8m, Tone.Accent), new(total, Tone.Warning), new(decimal.MaxValue, Tone.Danger)];
 }

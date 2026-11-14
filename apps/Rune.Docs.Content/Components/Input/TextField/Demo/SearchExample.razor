@@ -1,0 +1,24 @@
+@inherits RuneComponent
+
+@* 搜索框：值每敲一个字都更新（本地过滤用它）；OnSearch 只在停手、回车、清空时调用（发请求用它） *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <SearchField @bind-Value="keyword" OnSearch="Record" placeholder="搜索零件" aria-label="搜索零件" />
+    <List>
+        @foreach (var part in parts.Where(part => part.Contains((keyword ?? "").Trim(), StringComparison.Ordinal)))
+        {
+            <ListItem @key="part">@part</ListItem>
+        }
+    </List>
+    <Small Tone="TextTone.Muted">
+        列表跟着每个字过滤；OnSearch 只在停手 300ms、回车、清空时调用，最近几次：@(requests.Count > 0 ? string.Join("、", requests) : "还没有")
+    </Small>
+</Flex>
+
+@code {
+    static readonly string[] parts = ["显示器支架", "支架底座", "铰链盖板", "夹持环", "加强筋", "防尘罩"];
+
+    string? keyword = "";
+    List<string> requests = [];
+
+    void Record(string text) => requests = [.. requests.TakeLast(2), text.Length > 0 ? text : "（清空）"];
+}

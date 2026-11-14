@@ -1,5 +1,5 @@
 @page "/components/text-field"
-@attribute [DocMeta("TextField 文本框", "单行的 TextField 与自动增高的 Textarea：前后图标、固定的前后缀、一键清空、显示密码、字数计数；放进 Field 自动关联标签、说明与错误。", DocCategory.Input, Order = 1)]
+@attribute [DocMeta("TextField 文本框", "单行的 TextField、搜索框 SearchField 与自动增高的 Textarea：前后图标、固定的前后缀、一键清空、显示密码、字数计数；放进 Field 自动关联标签、说明与错误。", DocCategory.Input, Order = 1)]
 @inherits DocPageBase
 @using Rune.Docs.Components.Input.TextField.Demo
 
@@ -20,6 +20,11 @@
             <Example Id="adornments" Title="图标、前后缀、清空与字数" Demo="typeof(AdornmentsExample)">
                 Icon / IconEnd 放在框的两头，Prefix / Suffix 是不算在值里的固定文字，Clearable 有内容时显示清空按钮。Field 的 Error 让框标红并把错误作为说明。自己做的输入组件用 CharacterCount 显示字数。
             </Example>
+            <Example Id="search" Title="搜索框" Demo="typeof(SearchExample)">
+                <Code>SearchField</Code> 是 <Code>type="search"</Code> 的 TextField：带搜索图标、清空按钮，名称与占位文字默认是“搜索”。值每敲一个字都更新，
+                本地过滤直接用它；<Code>OnSearch</Code> 只在该查的时候调用——停手 <Code>Delay</Code>（默认 300ms）、按回车、清空，同一个词不重复，发请求用它。
+                下拉、穿梭框、树、表头筛选里的搜索框都是它。
+            </Example>
             <Example Id="formats" Title="手机号、身份证号、银行卡号" Demo="typeof(FormatsExample)">
                 <Code>Format</Code> 让输入时自动分组显示（<Code>TextFormat.Phone</Code>、<Code>IdCard</Code>、<Code>BankCard</Code>，别的 new 一个 <Code>TextFormat</Code>）：
                 值是去掉分隔的原文，过滤掉不接受的字符、截到最长，在中间插字光标也不跳。只管显示，校验写在模型上：
@@ -27,5 +32,6 @@
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(CharacterCount), typeof(Textarea), typeof(TextField)]" />
+    <KeyboardReference Keys="@([("Enter", "搜索框：立即触发 OnSearch（不等停手）")])" />
+    <ApiReference Types="[typeof(CharacterCount), typeof(SearchField), typeof(Textarea), typeof(TextField)]" />
 </DocPage>

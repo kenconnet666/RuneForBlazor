@@ -1,0 +1,33 @@
+@inherits RuneComponent
+@using Rune.Docs.Components.Display.Image.Demo
+
+@* 固定宽高比：宽度跟着容器，高度按比例；里面的图片铺满、按 cover 裁切 *@
+<Grid MinItemWidth="@("10rem")" Gap="SpaceScale.Lg">
+    @foreach (var (label, ratio, index) in cases)
+    {
+        <Flex @key="label" Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+            <AspectRatio Ratio="@ratio" Sx="Frame">
+                @if (index < 2)
+                {
+                    <img src="@Drawings.All[index + 1].Src" alt="@Drawings.All[index + 1].Title" />
+                }
+                else
+                {
+                    <div @attributes="Attrs.Merge(NoteLayer)">任意内容</div>
+                }
+            </AspectRatio>
+            <Small Tone="TextTone.Muted">Ratio：@label</Small>
+        </Flex>
+    }
+</Grid>
+
+@code {
+    static readonly (string Label, string Ratio, int Index)[] cases = [("16 / 9（默认）", "16 / 9", 0), ("4 / 3", "4 / 3", 1), ("1", "1", 2)];
+
+    static Style Frame => Css.Define(static () => new Style { BorderRadius = Radii.Md });
+
+    static readonly Attrs NoteLayer = new()
+    {
+        Sx = Css.Define(static () => new Style { Display = Display.Grid, PlaceItems = PlaceItems.Center, BackgroundColor = Colors.Fill, Color = Colors.TextMuted }),
+    };
+}

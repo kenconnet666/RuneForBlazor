@@ -1,0 +1,23 @@
+@inherits RuneComponent
+@using Rune.Docs.Components.Display.Image.Demo
+
+@* 图片的说明在下面，表格的说明在上面：读屏把说明当作这块内容的名称 *@
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xl">
+    <Figure Caption="@($"图 1：{drawing.Title}（{drawing.Code}）")">
+        <Image Src="@drawing.Src" Alt="@drawing.Title" Width="240" Height="160" />
+    </Figure>
+    <Figure Caption="表 1：各供应商的平均交付周期" CaptionSide="FigureCaptionSide.Top">
+        <ColumnTable Items="leads" GetKey="lead => lead.Supplier">
+            <PropertyColumn Property="lead => lead.Supplier" Title="供应商" />
+            <PropertyColumn Property="lead => lead.Days" Title="平均交付（天）" />
+        </ColumnTable>
+    </Figure>
+</Flex>
+
+@code {
+    static readonly Drawing drawing = Drawings.All[0];
+
+    static readonly IReadOnlyList<Lead> leads = [new("华辰精密", 12), new("远山钣金", 18), new("北辰电子", 9)];
+
+    sealed record Lead(string Supplier, int Days);
+}

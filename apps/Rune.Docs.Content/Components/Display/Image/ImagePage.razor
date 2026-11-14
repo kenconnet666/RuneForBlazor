@@ -14,6 +14,8 @@
         <Code>Width</Code>、<Code>Height</Code> 是框的大小（数字是 px），<Code>Fit</Code> 是图片在框里怎么放；
         加载完之前框里是扫光的占位，加载完淡入；默认 <Code>loading="lazy"</Code>（滚到附近才加载）。
         地址错了时显示占位与 Alt，读屏念出 Alt 与“图片加载失败”；<Code>Fallback</Code> 换成自己的内容。
+        <Code>Sources</Code> 让它渲染成 picture：新格式回退（avif、webp 排在前面，都不认时用 <Code>Src</Code>）、窄屏或暗色换一张图（<Code>Media</Code>）；
+        只是同一张图的不同尺寸时，直接写 <Code>srcset</Code>、<Code>sizes</Code>。
         加载状态由 JS 写在图片上，静态 SSR 也一样。第一张不在组里，也能点开：它自己带一个预览。
     </Example>
     <Example Id="attachments" Title="单独用 Lightbox" Demo="typeof(AttachmentsExample)">
@@ -31,5 +33,5 @@
     ])">
         大图里的工具栏按钮都能用 <Kbd>Tab</Kbd> 走到；焦点在大图里循环（模态）。
     </KeyboardReference>
-    <ApiReference Types="[typeof(Rune.UI.Image), typeof(ImageGroup), typeof(Lightbox), typeof(LightboxItem)]" />
+    <ApiReference Types="[typeof(Rune.UI.Image), typeof(ImageSource), typeof(ImageGroup), typeof(Lightbox), typeof(LightboxItem)]" />
 </DocPage>
