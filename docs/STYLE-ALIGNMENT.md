@@ -97,3 +97,25 @@
    - 对 Rune 要核对的：预渲染（服务器）与交互接管（浏览器）之间有同样三样只有浏览器知道的东西——时区、今天、存在浏览器里的状态（同上一条的 0.24.0）。
      预渲染时用确定的值（时区 UTC、渲染那一刻的今天），交互就绪后换成浏览器的；不在预渲染时取服务器本地时区。文档站是静态导出的，“今天停在构建那天”
      在 Rune 的日历页上多半也有。核对办法：浏览器时区设成和服务器不同、把系统日期往后拨几天再打开预渲染的页面，看相对时间的 title、日历的今天标记。
+8. vue 0.26.0（`fffc0c7f..c42b2f39`），2026-11-14 收到通知，还没跟（细节以 vue 的 CHANGELOG.md 的 0.26.0 一节为准）：新增 8 个组件、统一搜索框、Collapse 不被内容撑宽。
+   - 新组件，文字（Text 家族，属性同 Text）：Sub、Sup（position: relative、font-size 0.75em、line-height 0、vertical-align baseline，sub 用 bottom -0.25em、sup 用 top -0.5em）；
+     Del（划线 + 次要色）、Ins（浅绿底 successSoft、不用下划线、padding-inline 0.15em、圆角 xs）；Strike（s 元素，只是划线）。
+   - 新组件 Abbr（abbr）：点状下划线、cursor: help、tabindex=0；全称放在 Tooltip 里（不写原生 title），悬停、聚焦、点按都打开，aria-describedby 指向提示。属性 title（必填）、propsTooltip。
+   - 新组件 Figure（figure + figcaption）：caption、captionSide（bottom 默认 / top，用 column-reverse）、align（start / center / end）、propsCaption；去掉 figure 的默认外边距。
+   - 新组件 AspectRatio（div）：ratio（数或 CSS 写法，默认 16 / 9）；里面的元素铺满，img、video 默认 object-fit: cover。
+   - 新组件 Embed（iframe）：src、title（必填）、ratio（默认 16 / 9，null 不定比例）、onLoad、propsRoot、propsPlaceholder；默认 loading=lazy、
+     referrerpolicy=strict-origin-when-cross-origin；加载完之前显示骨架、iframe 透明；data-state=loading / loaded。
+   - 新组件 Video（video）：src 或 sources、poster、tracks、ratio（默认 16 / 9）、controls（默认 true）、autoplay（默认静音 + playsinline；系统要求减少动态效果时不自动播放并显示控制条）；
+     preload 默认 metadata；画面 object-fit: contain、黑底。
+   - 新组件 SearchField（input type=search）：TextField 的预设——搜索图标、clearable 默认开、名称与占位文字默认 selectSearch、enterkeyhint=search；
+     onSearch（停手 delay 毫秒、回车、清空时调用，同一个词不重复，回车与清空立即）、delay（默认 300，0 是每次输入都触发）；父级从外面改值不触发 onSearch。
+   - 新组件 PageHeader（patterns）：header 里依次是面包屑、标题行（返回按钮、hgroup［标题 + 标记一行、说明］、结束边的操作）、children。
+     属性 title、description、headingLevel（1 默认 / 2 / 3，标题字号固定 xxl）、breadcrumbs、meta、actions、onBack、backHref（给了是链接）、各部件的 propsXxx。
+   - Collapse（连带 Collapsible、Accordion、FormSection 的折叠、CodePreview 的源码区）：网格列是 minmax(0, 1fr)、内容层 min-width: 0，内容区不再被里面最宽的内容撑开
+     （展开后长代码行把整块撑宽，手机上看不全也滚不了）——Rune 文档站的源码区要核对有没有同样的问题。
+   - Select、Cascader、TreeSelect、Transfer、PeoplePicker、JsonViewer、表头筛选里的搜索框都换成 SearchField（有了清空按钮）；propsSearch 的类型跟着变。
+     表头关键字筛选的“停手 300ms 生效”（第 6 条里的 0.23.0）就是 SearchField 的 onSearch。
+   - 新属性：Blockquote 的 source（引用下面一行出处：footer 里“— ”加 cite，小一号，cite 不用斜体）、propsSource；Image 的 sources（渲染成 picture；每项 srcset、type、media、sizes）；
+     Progress 的 bands（[{ to, tone }]，值落在哪一段用哪一段的色调、盖过 tone，超过最后一段算最后一段；有 bands 时 role="meter"）。
+   - 文案：页面组合的文案新增 pageHeaderBack（“返回” / “Back”）；语言包主体没有新键，主题 token 没有变。
+   - 文档站：新增页面 Figure 插图、视频与嵌入（display）、PageHeader 页头（patterns）；Text 页补行内组件，TextField 页加搜索框，页面模板里的页头换成 PageHeader。
