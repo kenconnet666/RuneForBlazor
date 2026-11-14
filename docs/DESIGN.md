@@ -238,10 +238,12 @@
   静态 SSR 里弹出框、菜单、用 Trigger 打开的对话框都能用。
 - **原生 toggle / close 事件不冒泡**，Blazor 内置的 `@ontoggle` 也不带新状态，所以转发成 `rune-toggle`（`OverlayToggleEventArgs.Open`）。
   Chromium 在渲染更新时才派发这两个事件：页面不渲染（被隐藏的预览窗格）时收不到，测试时注意。
-- **锚定浮层用 Floating UI 定位**（与 vue-tsx-pro 同一个库、同一个版本，`tools/vendor-gen` 放进 `wwwroot/vendor`，第一次打开浮层时才 `import()`）：
-  浮层带 `data-rune-floating="bottom-start"`（`Placement` 12 种），打开时 offset、flip、shift，可选 arrow 与 size（`data-fit-height`、之后下拉框的 `data-match-width`），
-  `autoUpdate` 跟随；最终方向写到 `data-side` / `data-align`，缩放原点朝向触发元素。最初用的是 CSS 锚点定位（`position-area` 加翻面），
-  做不到贴着视口平移（shift），也不知道最终翻到了哪边（箭头、缩放原点没法跟着），Firefox 还要 JS 兜底，与 vue-tsx-pro 对齐时换掉。
+- **锚定浮层的定位自己算**（`js/overlay/floating.js`，同 vue-tsx-pro 0.27.0 的 `utils/dom/floating`，两边算法逐行对应）：
+  浮层带 `data-rune-floating="bottom-start"`（`Placement` 12 种），纯函数 `computePlacement` 按想要的一侧放，放不下换对侧，都放不下选空间大的一侧
+  （floating-ui 选溢出最少的，这是唯一有意的差别），再沿对齐方向挪回视口；可选箭头（对准锚点中间）、`data-fit-height`（限高到这一侧剩下的空间）、
+  `data-match-width`；坐标对齐到设备像素。`autoUpdate` 在页面或锚点的祖先滚动、视口变化、锚点或浮层变了大小、锚点挪了位置（交叉观察器）时重算；
+  最终方向写到 `data-side` / `data-align`，缩放原点朝向触发元素。浮层都在顶层、`position: fixed`，所以不用管定位祖先与裁剪祖先，floating-ui 为这些做的部分用不到。
+  更早用过 CSS 锚点定位（`position-area` 加翻面），做不到贴着视口平移，也不知道最终翻到了哪边（箭头、缩放原点没法跟着）。
   定位好之前浮层透明、不接指针（`opacity: 0`、`pointer-events: none`），焦点在定位之后才移进去（菜单的第一项、对话框类浮层的 autofocus 或第一个可聚焦元素）。
   不用 `visibility: hidden`：原生 popover 打开时就按 autofocus 聚焦了里面的搜索框，元素一藏就失焦，定位期间打的字落到页面上丢了（TreeSelect 的 E2E 发现）；
   第一次打开才渲染内容的浮层打开时还是空的，JS 等内容渲染出来（最多 1 秒）再定位，不先按空盒子定位闪一下。

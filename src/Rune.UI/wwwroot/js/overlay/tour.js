@@ -3,7 +3,7 @@
 // 找不到目标时整页遮罩、卡片居中（data-dimmed、data-centered）。→ / ← 经命令交给 C# 换步骤（焦点在输入框里时不处理）。
 // 打开、关闭、焦点圈在里面、Esc 同对话框（overlays.js）。
 
-import { followElement, loadFloatingUi } from './floating.js';
+import { autoUpdate, followElement } from './floating.js';
 import { TYPING } from '../core/hotkeys.js';
 import { isRtl, sendCommand } from '../core/shared.js';
 
@@ -40,8 +40,8 @@ async function follow(dialog) {
   }
   target.scrollIntoView({ block: 'center', inline: 'nearest' });
   const padding = Number(dialog.getAttribute('data-padding') ?? 6);
-  const card = followElement(target, panel, dialog.getAttribute('data-placement') ?? 'bottom', padding + 8);
-  const { autoUpdate } = await loadFloatingUi();
+  // 主方向与对侧都放不下时（窄屏上放在右侧的大卡片）改到上下
+  const card = followElement(target, panel, { placement: dialog.getAttribute('data-placement') ?? 'bottom', offset: padding + 8, crossAxisFallback: true });
   const stopSpotlight = autoUpdate(target, spotlight, () => {
     const box = target.getBoundingClientRect();
     Object.assign(spotlight.style, {

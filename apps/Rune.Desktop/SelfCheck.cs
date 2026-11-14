@@ -117,7 +117,7 @@ static class SelfCheck
             await web.ExecuteScriptAsync($"Blazor.navigateTo({JsonSerializer.Serialize(page.Path)})");
             await Task.Delay(1500);
             var loaded = await StateAsync();
-            // 打开页面上第一个浮层（菜单、下拉、气泡）再关上：浮层定位的脚本（floating-ui）第一次打开时才加载
+            // 打开页面上第一个浮层（菜单、下拉、气泡）再关上：定位、焦点这些脚本只在浮层打开时走到
             var opened = JsonSerializer.Deserialize<string>(await web.ExecuteScriptAsync(
                 "(() => { const b = document.querySelector('main [aria-haspopup]:not([disabled])'); b?.click(); return b ? b.getAttribute('aria-label') ?? b.textContent.trim().slice(0, 20) : ''; })()"));
             await Task.Delay(600);

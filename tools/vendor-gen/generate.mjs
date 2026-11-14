@@ -4,9 +4,6 @@
 //   --check   只比较不写入；任一生成文件与现有内容不一致（或多出、缺少文件）时以非零状态退出（CI 用）
 //
 // 生成的内容：
-//   wwwroot/vendor/floating-ui.core.js    @floating-ui/core 的浏览器构建（已内联 @floating-ui/utils，没有 import）
-//   wwwroot/vendor/floating-ui.dom.js     @floating-ui/dom 的浏览器构建，import 改指同目录的 core
-//   wwwroot/vendor/LICENSE-floating-ui.txt
 //   wwwroot/vendor/shiki/                 Shiki（代码高亮）：shiki.js 是核心与 JavaScript 正则引擎，langs/ 下每种语言一个模块，
 //                                         共用的语法在 chunks/ 里；用 tools/vendor-gen/shiki 的锁文件安装、esbuild 打包
 //   Rune.Three 的 wwwroot/vendor/three/   three.js：three.js 是整个 three 的导出，addons.js 是 ModelViewer 用的 GLTFLoader 与 RoomEnvironment，
@@ -14,17 +11,14 @@
 //
 // 扩展名一律 .js：Blazor Hybrid（MAUI 等）的静态文件不认 .mjs，按 application/octet-stream 返回，浏览器拒绝当模块执行。
 //
-// 依赖：node 内置模块；Floating UI 用 npm pack 与 tar 下载，Shiki、three.js 用 npm ci 装到临时目录。来源与许可见 NOTICE.md。
+// 依赖：node 内置模块；Shiki、three.js 用 npm ci 装到临时目录。来源与许可见 NOTICE.md。
 
-import { execFileSync, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
-
-/** Floating UI 的版本：与 vue-tsx-pro 的依赖一致；升级时改这里并重新生成 */
-const FLOATING_UI_VERSION = '1.8.0';
 
 /** Shiki 打包的语言（@shikijs/langs 里的名字）；别名在 js/display/highlight.js 里 */
 /** three.js 的版本：与 vue-tsx-pro 的依赖一致（tools/vendor-gen/three 的锁文件里是同一个版本） */
@@ -40,32 +34,6 @@ const threeVendorDir = resolve(import.meta.dirname, '../../src/Rune.Three/wwwroo
 const threeDir = join(threeVendorDir, 'three');
 
 const temp = mkdtempSync(join(tmpdir(), 'rune-vendor-'));
-
-/** 下载并解压一个 npm 包，返回包目录 */
-function unpack(name, version) {
-  // Windows 上 npm 是 npm.cmd，要经 shell 执行；命令里只有固定的包名与版本号
-  const file = execSync(`npm pack ${name}@${version} --silent`, { cwd: temp, encoding: 'utf8' }).trim().split('\n').pop();
-  // 解压到相对目录：Windows 的 tar 把绝对路径里的 C: 当成远程主机
-  const dir = name.split('/').pop();
-  mkdirSync(join(temp, dir));
-  execFileSync('tar', ['-xzf', file, '-C', dir], { cwd: temp, stdio: 'inherit' });
-  return join(temp, dir, 'package');
-}
-
-function floatingUi() {
-  const core = unpack('@floating-ui/core', FLOATING_UI_VERSION);
-  const dom = unpack('@floating-ui/dom', FLOATING_UI_VERSION);
-  const coreSource = readFileSync(join(core, 'dist/floating-ui.core.browser.min.mjs'), 'utf8');
-  if (/\bfrom\s*"/.test(coreSource)) throw new Error('@floating-ui/core 的浏览器构建出现了 import，要改成打包');
-  const domSource = readFileSync(join(dom, 'dist/floating-ui.dom.browser.min.mjs'), 'utf8');
-  if (!domSource.includes('from"@floating-ui/core"')) throw new Error('@floating-ui/dom 的浏览器构建不再 import "@floating-ui/core"，检查生成方式');
-  const banner = (name) => `// ${name}@${FLOATING_UI_VERSION}（MIT，见 LICENSE-floating-ui.txt）；由 tools/vendor-gen 生成，不要手改\n`;
-  return [
-    [join(vendorDir, 'floating-ui.core.js'), banner('@floating-ui/core') + coreSource.trimEnd() + '\n'],
-    [join(vendorDir, 'floating-ui.dom.js'), banner('@floating-ui/dom') + domSource.replace('from"@floating-ui/core"', 'from"./floating-ui.core.js"').trimEnd() + '\n'],
-    [join(vendorDir, 'LICENSE-floating-ui.txt'), readFileSync(join(dom, 'LICENSE'), 'utf8')],
-  ];
-}
 
 /**
  * 用 tools/vendor-gen/{name} 的锁文件装好依赖（npm ci 到临时目录），把 entries（出口名 → 入口模块的源码）用 esbuild 打包进 outDir：
@@ -160,7 +128,7 @@ function filesUnder(dir) {
 
 let outputs;
 try {
-  outputs = [...floatingUi(), ...(await shiki()), ...(await three())];
+  outputs = [...(await shiki()), ...(await three())];
 } finally {
   rmSync(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }
@@ -194,4 +162,4 @@ for (const path of leftovers) {
 if (stale) process.exit(1);
 console.log(values.check
   ? '生成文件均为最新'
-  : `已写入 ${outputs.length} 个文件（Floating UI ${FLOATING_UI_VERSION}、Shiki ${SHIKI_LANGUAGES.length} 种语言、three.js ${THREE_VERSION}）${leftovers.length ? `，删除 ${leftovers.length} 个旧文件` : ''}`);
+  : `已写入 ${outputs.length} 个文件（Shiki ${SHIKI_LANGUAGES.length} 种语言、three.js ${THREE_VERSION}）${leftovers.length ? `，删除 ${leftovers.length} 个旧文件` : ''}`);
