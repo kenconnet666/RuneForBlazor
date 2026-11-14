@@ -12,8 +12,14 @@
     <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
   </PropertyGroup>
 
-  <!-- 只有部分页面用到的程序集：启动时不下载，进入那些页面前由 Routes 加载（LazyAssemblies） -->
-  <ItemGroup>
+  <!-- 只有部分页面用到的程序集：启动时不下载，进入那些页面前由 Routes 加载（LazyAssemblies）。
+       AOT（-p:RunAOTCompilation=true）时不懒加载：启动时懒加载的程序集还没到，依赖它们的 AOT 模块（内容项目、收着全部泛型实例的
+       aot-instances）整个不可用、退回解释执行，而方法的 IL 在 AOT 后已经剥掉，一启动就报 function signature mismatch
+       或解释器的断言（dotnet/runtime#109550） -->
+  <PropertyGroup Condition="'$(RunAOTCompilation)' != 'true'">
+    <DefineConstants>$(DefineConstants);LAZY_ASSEMBLIES</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(RunAOTCompilation)' != 'true'">
     <BlazorWebAssemblyLazyLoad Include="Rune.Charts.wasm" />
     <BlazorWebAssemblyLazyLoad Include="Rune.Charts.Maps.wasm" />
     <BlazorWebAssemblyLazyLoad Include="Rune.UI.Area.wasm" />

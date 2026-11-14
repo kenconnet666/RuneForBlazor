@@ -15,9 +15,18 @@ static class LazyAssemblies
     static readonly string[] Area = ["Rune.UI.Area.wasm"];
     static readonly string[] Three = ["Rune.Three.wasm"];
 
+    // AOT 的构建不懒加载（见项目文件）：这些程序集随启动一起下载，没有要等的
+    static readonly bool Enabled =
+#if LAZY_ASSEMBLIES
+        true;
+#else
+        false;
+#endif
+
     /// <summary>打开这个地址（相对站点根，如 components/line-chart、frame/app-shell/admin）前要加载的程序集。</summary>
     public static IReadOnlyList<string> For(string path)
     {
+        if (!Enabled) return [];
         var parts = path.Split('?', '#')[0].Trim('/').Split('/');
         // 整页示例 frame/{页面}/{名字} 跟着它所在的页面
         var page = parts is ["frame", var slug, ..] ? DocsCatalog.Find(slug) : DocsCatalog.FindByPath(string.Join('/', parts));
