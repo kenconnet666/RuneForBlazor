@@ -120,10 +120,15 @@ public abstract class VisualTests(DemoServer demo, VisualServer visual) : IClass
         {
             var name = await canvas.EvaluateAsync<string>("element => element.closest('section')?.querySelector('h2')?.id ?? 'example'");
             await canvas.ScrollIntoViewIfNeededAsync();
-            if (await canvas.Locator("iframe").CountAsync() > 0)
-                await canvas.Locator("iframe").First.ContentFrame.Locator("html[data-rune-ready]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
-            // 3D 画布（Rune.Three）的画面有随机（粒子的位置）、随显卡与驱动不同：盖住，只比外层的排版
-            shots.Add((name, await canvas.ScreenshotAsync(new() { Animations = ScreenshotAnimations.Disabled, Mask = [canvas.Locator("[data-rune-three] > canvas")] })));
+            // 演示页的框架（AppShell 这类整页示例）等它的 Rune 接管；Embed 嵌的是别的页面，等外层从骨架换成内容
+            var frames = canvas.Locator("iframe:not([data-rune-embed])");
+            if (await frames.CountAsync() > 0)
+                await frames.First.ContentFrame.Locator("html[data-rune-ready]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
+            foreach (var embed in await canvas.Locator("[data-rune-embed]").AllAsync())
+                await embed.Locator("xpath=..").And(tab.Locator("[data-state=loaded]")).WaitForAsync(new() { State = WaitForSelectorState.Attached });
+            // 3D 画布（Rune.Three）的画面有随机（粒子的位置）、随显卡与驱动不同；视频的画面随解码进度：盖住，只比外层的排版
+            ILocator[] masks = [canvas.Locator("[data-rune-three] > canvas"), canvas.Locator("video")];
+            shots.Add((name, await canvas.ScreenshotAsync(new() { Animations = ScreenshotAnimations.Disabled, Mask = masks })));
         }
         return shots;
     }
