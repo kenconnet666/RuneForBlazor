@@ -4,6 +4,8 @@
 1.0 之前次版本号的升级可能带破坏性改动，会写在对应版本的“破坏性改动”里。发版见 `.github/workflows/release.yml`：
 推送 `v` 开头的 tag（与 `Directory.Build.props` 的 `VersionPrefix` 一致、这里有对应的一节），CI 通过后推送到 nuget.org。
 
+## [Unreleased]
+
 ## [0.19.0] - 2026-11-15
 
 对齐 vue-tsx-pro 0.29.0（`c2be5550..0de173eb`）。
