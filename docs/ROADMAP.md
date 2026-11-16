@@ -74,7 +74,7 @@
 - [x] 输入：ConditionBuilder（条件树与 `TableQuery` 共用一份类型）、PeoplePicker / PeoplePickerPanel（用户、部门、角色）
 - [x] FilterBar（基本筛选 + 接 ConditionBuilder 的高级筛选）、ActionBar、QueryTable（FilterBar + DataTable + 工具栏：密度、列设置、刷新、全屏；查询状态进地址栏）；
   照 vue 的新版布局（STYLE-ALIGNMENT 的待跟进）
-- [ ] FormDialog（对话框里的 EditForm：确认时校验、提交中拦住关闭）、StepsForm、DataImport（CSV）已做；SchemaForm（按 C# 模型生成，先出方案）
+- [!] FormDialog（对话框里的 EditForm：确认时校验、提交中拦住关闭）、StepsForm、DataImport（CSV）已做；SchemaForm（按 C# 模型生成）的方案见“待决”
 - [x] AuthLayout、NotificationCenter、CommentThread（接 Mentions）、KanbanBoard（Sortable 多容器）、SlideCaptcha
 - [ ] ThemeCustomizer、ThemeThumbnail、选主题网格已做（ThemeSwitcher 页的示例）；还没做：文档站的主题定制页、ThemeSwitcher 的局部主题
 
@@ -115,3 +115,12 @@
 ## 待决
 
 （执行中遇到的停顿点记在这里：日期、项号、卡在哪、需要用户决定什么。）
+
+- 2026-11-16 · 阶段 6 · SchemaForm（vue 的 SchemaForm / SchemaFields / SchemaView / schemaFilters，约 1500 行）：vue 从 zod schema 推字段，C# 没有 zod，
+  要定“字段描述从哪来”。两个方向：
+  1. **反射 + 特性**：读模型的属性与 DataAnnotations（`[Display(Name, Description, GroupName, Order)]`、`[Required]`、`[StringLength]`、`[Range]`、
+     `[DataType]`、枚举），控件、栏宽、选项写在新的 `[FormField(Control, Span, …)]` 上；`TModel` 标 `[DynamicallyAccessedMembers]`。
+     做得快、用法最像 vue；但嵌套对象、对象列表的属性类型拿不到裁剪注解（WebAssembly 裁剪后可能丢属性），只能要求嵌套类型也标注或用 `[DynamicDependency]`。
+  2. **源生成器**（Rune.Generators 已有）：`[FormSchema] partial class Model` 生成字段描述（标签、控件、读写委托、嵌套与列表），裁剪安全、没有反射开销，
+     同 `JsonTypeInfo` 的做法；工作量大一倍，生成器要随 DataAnnotations 的写法逐条支持。
+  建议 2（与“组件不靠反射、裁剪友好”的取向一致，StepsForm 已因为反射取嵌套字段放弃过）；visibleWhen / requiredWhen 用 `ConditionExpression`，明细表、页签、SchemaView、schemaFilters 随后。
