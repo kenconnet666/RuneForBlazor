@@ -1,0 +1,393 @@
+@*
+    人员与组织选择面板（同 vue-tsx-pro 的 PeoplePickerPanel）：左边按组织架构一层层找（面包屑回到上层），或搜索、看角色与最近选过的，勾选；
+    右边是已选的，可以移除、清空。PeoplePicker 把它放进对话框；也可以直接放在页面、抽屉里。数据见 PeopleSource。
+    <PeoplePickerPanel Source="source" @bind-Value="members" Types="[PeopleType.User, PeopleType.Department]" RecentKey="project-members" />
+    - 部门的“下级”进到下一层（不能选部门时点整行也是进去），面包屑点哪一级回到哪一级。
+    - 搜索框有字时列表换成搜索结果（输入停下 300 ms 再搜，只采用最后一次），清空回到原来的页。
+    - Types 决定能勾哪几种；Max 限制个数，1 时勾一个就换掉原来的。勾过的记进“最近”（RecentKey，存在浏览器里，最多 20 个）。
+    - 多选时列表上方有“全选”，只管这一页能勾的。
+    读屏：左右两个列表各有名称；每行的勾选框以名字为名；“下级”按钮的名称是“下级：某部门”，进去后焦点落到列表上。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@implements IDisposable
+@{
+    var parts = PeoplePickerPanelStyles.Of(Config.Styles);
+    var lang = Config.Lang;
+    var selectedKeys = SelectedKeys;
+}
+
+<div @attributes="Attrs.Merge(parts[PeoplePickerPanelPart.Root], Rest)">
+    @if (RecentKey is not null)
+    {
+        <LocalSetting Key="@($"rune.people.recent.{RecentKey}")" @bind-Value="recent" TypeInfo="UIJson.Default.IReadOnlyListPeopleEntry" />
+    }
+    <div @attributes="Attrs.Merge(parts[PeoplePickerPanelPart.Grid])">
+        @Browse(parts, lang, selectedKeys)
+        @Chosen(parts, lang)
+    </div>
+</div>
+
+@code {
+    /// <summary>“最近”最多记几个。</summary>
+    const int RecentLimit = 20;
+
+    ElementReference list;
+    bool focusList;
+    PeoplePage page = PeoplePage.Org;
+    string query = "";
+    List<PeopleEntry> path = [];
+    IReadOnlyList<PeopleEntry> recent = [];
+    // 搜索结果对应的搜索词：防抖等待时请求还没发出，不先显示“没有找到”
+    string? foundFor;
+    RemoteItems<PeopleEntry>? level, found, roles;
+    PeopleSource? loadedSource;
+
+    /// <summary>数据来源。</summary>
+    [Parameter, EditorRequired] public PeopleSource Source { get; set; } = default!;
+
+    /// <summary>选中的（<c>@bind-Value</c>）。</summary>
+    [Parameter] public IReadOnlyList<PeopleEntry> Value { get; set; } = [];
+
+    /// <summary>选择变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<PeopleEntry>> ValueChanged { get; set; }
+
+    /// <summary>能选哪几种（<see cref="PeopleType"/>），默认只有人员。</summary>
+    [Parameter] public IReadOnlyList<string> Types { get; set; } = [PeopleType.User];
+
+    /// <summary>最多选几个；1 时勾一个就换掉原来的。</summary>
+    [Parameter] public int? Max { get; set; }
+
+    /// <summary>记“最近选过的”用的键（存在浏览器里）；不写时没有“最近”页。</summary>
+    [Parameter] public string? RecentKey { get; set; }
+
+    /// <summary>两边列表的高度（CSS 长度），默认 20rem。</summary>
+    [Parameter] public string ListHeight { get; set; } = "20rem";
+
+    /// <summary>左边的部件属性。</summary>
+    [Parameter] public Attrs? PropsBrowse { get; set; }
+
+    /// <summary>右边的部件属性。</summary>
+    [Parameter] public Attrs? PropsSelected { get; set; }
+
+    /// <summary>搜索框的部件属性（交给 SearchField）。</summary>
+    [Parameter] public Attrs? PropsSearch { get; set; }
+
+    /// <summary>行首的头像（人员是头像，部门、角色是图标）的部件属性（交给 Avatar）。</summary>
+    [Parameter] public Attrs? PropsAvatar { get; set; }
+
+    /// <summary>每一行的勾选框的部件属性（交给 Checkbox）。</summary>
+    [Parameter] public Attrs? PropsCheckbox { get; set; }
+
+    /// <summary>“全选”勾选框的部件属性（交给 Checkbox）。</summary>
+    [Parameter] public Attrs? PropsSelectAll { get; set; }
+
+    /// <summary>部门行“下级”按钮的部件属性（交给 Button）。</summary>
+    [Parameter] public Attrs? PropsDrill { get; set; }
+
+    /// <summary>已选一侧“清空”按钮的部件属性（交给 Button）。</summary>
+    [Parameter] public Attrs? PropsClear { get; set; }
+
+    /// <summary>已选的每一项“移除”按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsRemove { get; set; }
+
+    enum PeoplePage { Org, Roles, Recent }
+
+    Bindable<IReadOnlyList<PeopleEntry>> value { get => field ??= new(this, () => Value, () => ValueChanged); }
+
+    IReadOnlyList<PeopleEntry> Selected => value.Value;
+
+    HashSet<string> SelectedKeys => [.. Selected.Select(entry => entry.Key)];
+
+    bool Searching => Source.Search is not null && query.Trim().Length > 0;
+
+    IEnumerable<PeoplePage> Pages =>
+        new[] { PeoplePage.Org, PeoplePage.Roles, PeoplePage.Recent }.Where(item => item switch
+        {
+            PeoplePage.Roles => Source.Roles is not null,
+            PeoplePage.Recent => RecentKey is not null,
+            _ => true,
+        });
+
+    string PageLabel(PeoplePage item) => item switch
+    {
+        PeoplePage.Roles => Config.Lang.PeopleRoles,
+        PeoplePage.Recent => Config.Lang.PeopleRecent,
+        _ => Config.Lang.PeopleOrg,
+    };
+
+    bool Pickable(PeopleEntry entry) => Types.Contains(entry.Type);
+
+    static bool Drillable(PeopleEntry entry) => entry.Type == PeopleType.Department && entry.HasChildren != false;
+
+    bool Full => Max is > 1 && Selected.Count >= Max;
+
+    Func<Task> Changed => () => InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        // 换了数据来源：从最上层重新取
+        if (ReferenceEquals(Source, loadedSource)) return;
+        loadedSource = Source;
+        path = [];
+        query = "";
+        DisposeRequests();
+        level = new(Changed);
+        found = new(Changed);
+        roles = new(Changed);
+        _ = LoadLevelAsync();
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!focusList) return;
+        focusList = false;
+        if (RendererInfo.IsInteractive) await list.FocusAsync(preventScroll: true);
+    }
+
+    Task LoadLevelAsync()
+    {
+        var parent = path.Count > 0 ? path[^1] : null;
+        return level!.RequestAsync(async (_, token) => await Source.Children(parent, token), "", debounce: false);
+    }
+
+    async Task SearchAsync(string? text)
+    {
+        query = text ?? "";
+        var trimmed = query.Trim();
+        if (Source.Search is not { } search || trimmed.Length == 0)
+        {
+            found!.Cancel();
+            return;
+        }
+        await found!.RequestAsync(async (q, token) =>
+        {
+            var result = await search(q, token);
+            foundFor = q;
+            return result;
+        }, trimmed, debounce: true);
+    }
+
+    async Task ChangePageAsync(string? next)
+    {
+        if (!Enum.TryParse<PeoplePage>(next, out var parsed)) return;
+        page = parsed;
+        if (page == PeoplePage.Roles && roles!.Data is null && !roles.Loading && Source.Roles is { } load)
+            await roles.RequestAsync(async (_, token) => await load(token), "", debounce: false);
+    }
+
+    // 现在列出的：搜索结果，或当前页
+    (IReadOnlyList<PeopleEntry> Items, bool Loading, bool Failed) Shown()
+    {
+        if (Searching)
+        {
+            var current = foundFor == query.Trim();
+            return (current ? found!.Data ?? [] : [], found!.Loading || !current && !found.Failed, current && found.Failed);
+        }
+        return page switch
+        {
+            PeoplePage.Roles => (roles!.Data ?? [], roles.Loading, roles.Failed),
+            PeoplePage.Recent => (recent, false, false),
+            _ => (level!.Data ?? [], level.Loading, level.Failed),
+        };
+    }
+
+    void Remember(PeopleEntry entry)
+    {
+        if (RecentKey is null) return;
+        recent = [entry.ToValue(), .. recent.Where(item => item.Key != entry.Key).Take(RecentLimit - 1)];
+    }
+
+    async Task ToggleAsync(PeopleEntry entry)
+    {
+        var key = entry.Key;
+        if (Selected.Any(item => item.Key == key))
+        {
+            await value.SetAsync([.. Selected.Where(item => item.Key != key)]);
+            return;
+        }
+        if (Max == 1) await value.SetAsync([entry.ToValue()]);
+        else if (Full) return;
+        else await value.SetAsync([.. Selected, entry.ToValue()]);
+        Remember(entry);
+    }
+
+    // 全选这一页能勾的；都勾上了时全部取消。有上限时加到满为止
+    async Task ToggleAllAsync(IReadOnlyList<PeopleEntry> items)
+    {
+        var keys = SelectedKeys;
+        var candidates = items.Where(Pickable).ToList();
+        if (candidates.All(entry => keys.Contains(entry.Key)))
+        {
+            var drop = candidates.Select(entry => entry.Key).ToHashSet();
+            await value.SetAsync([.. Selected.Where(item => !drop.Contains(item.Key))]);
+            return;
+        }
+        var adding = candidates.Where(entry => !keys.Contains(entry.Key)).ToList();
+        var room = Max is { } max ? Math.Max(0, max - Selected.Count) : adding.Count;
+        await value.SetAsync([.. Selected, .. adding.Take(room).Select(entry => entry.ToValue())]);
+    }
+
+    // 进到一个部门：从搜索结果进去时面包屑只有它（不知道它的上级）
+    async Task OpenAsync(PeopleEntry department)
+    {
+        path = Searching ? [department] : [.. path, department];
+        query = "";
+        found!.Cancel();
+        page = PeoplePage.Org;
+        focusList = true;
+        await LoadLevelAsync();
+    }
+
+    Task NavigateAsync(int index)
+    {
+        if (index >= path.Count) return Task.CompletedTask;
+        path = path[..index];
+        return LoadLevelAsync();
+    }
+
+    Task OnRowClickAsync(PeopleEntry entry) =>
+        Pickable(entry) ? ToggleAsync(entry) : Drillable(entry) ? OpenAsync(entry) : Task.CompletedTask;
+
+    void DisposeRequests()
+    {
+        level?.Dispose();
+        found?.Dispose();
+        roles?.Dispose();
+    }
+
+    /// <inheritdoc/>
+    public void Dispose() => DisposeRequests();
+
+    // 行首的圆形标记：人员是头像，部门、角色是图标
+    RenderFragment Badge(PeopleEntry entry) => entry.Type == PeopleType.User
+        ? @<Avatar Name="@entry.Name" Src="@entry.Avatar" Size="Size.Sm" @attributes="Attrs.MergeProps(null, PropsAvatar)" />
+        : @<Avatar Size="Size.Sm" Fallback="@(entry.Type == PeopleType.Department ? DepartmentIcon : RoleIcon)" @attributes="Attrs.MergeProps(null, PropsAvatar)" />;
+
+    static readonly RenderFragment DepartmentIcon = @<Icon Data="BuiltInIcons.Building" />;
+    static readonly RenderFragment RoleIcon = @<Icon Data="BuiltInIcons.BriefcaseBusiness" />;
+
+    RenderFragment Row(PartLayers<PeoplePickerPanelPart> parts, PeopleEntry entry, HashSet<string> selectedKeys)
+    {
+        var isChecked = selectedKeys.Contains(entry.Key);
+        var full = Full;
+        return @<ItemListItem @key="entry.Key" Title="@entry.Name" Description="@entry.Description" @onclick="() => OnRowClickAsync(entry)">
+            <Start>
+                @* 勾选框、按钮自己处理点击：不再冒泡到整行 *@
+                <span @onclick:stopPropagation="true" @attributes="Attrs.Merge(parts[PeoplePickerPanelPart.Start])">
+                    @if (Pickable(entry))
+                    {
+                        <Checkbox Value="isChecked" ValueChanged="_ => ToggleAsync(entry)" Disabled="@(!isChecked && full)" aria-label="@entry.Name"
+                                  @attributes="Attrs.MergeProps(null, PropsCheckbox)" />
+                    }
+                    @Badge(entry)
+                </span>
+            </Start>
+            <End>
+                @if (Drillable(entry))
+                {
+                    <span @onclick:stopPropagation="true">
+                        <Button Variant="ButtonVariant.Ghost" Size="Size.Sm" IconEnd="BuiltInIcons.ChevronRight" aria-label="@Config.Lang.PeopleOpen(entry.Name)"
+                                @onclick="() => OpenAsync(entry)" @attributes="Attrs.MergeProps(null, PropsDrill)">@Config.Lang.PeopleChildren</Button>
+                    </span>
+                }
+            </End>
+        </ItemListItem>;
+    }
+
+    RenderFragment Browse(PartLayers<PeoplePickerPanelPart> parts, Lang lang, HashSet<string> selectedKeys)
+    {
+        var (items, loading, failed) = Shown();
+        var candidates = items.Where(Pickable).ToList();
+        var checkedCount = candidates.Count(entry => selectedKeys.Contains(entry.Key));
+        var searching = Searching;
+        return @<div @attributes="Attrs.Merge(parts[PeoplePickerPanelPart.Browse], PropsBrowse)">
+            @if (Source.Search is not null)
+            {
+                <SearchField Value="@query" ValueChanged="SearchAsync" placeholder="@lang.PeopleSearch" aria-label="@lang.PeopleSearch"
+                             @attributes="Attrs.MergeProps(null, PropsSearch)" />
+            }
+            @if (!searching && Pages.Count() > 1)
+            {
+                <ToggleGroup Value="@(page.ToString())" ValueChanged="ChangePageAsync" Required="true" Size="Size.Sm" aria-label="@lang.PeoplePages">
+                    @foreach (var item in Pages)
+                    {
+                        <ToggleItem @key="item" Value="@item.ToString()">@PageLabel(item)</ToggleItem>
+                    }
+                </ToggleGroup>
+            }
+            @if (!searching && page == PeoplePage.Org)
+            {
+                <Breadcrumbs Items="@([new BreadcrumbItem(lang.PeopleRoot, Key: ""), .. path.Select(d => new BreadcrumbItem(d.Name, Key: d.Key))])" OnNavigate="NavigateAsync" />
+            }
+            @if (Max != 1 && candidates.Count > 1)
+            {
+                <Checkbox Size="Size.Sm" Value="@(checkedCount == candidates.Count)" Indeterminate="@(checkedCount > 0 && checkedCount < candidates.Count)"
+                          ValueChanged="_ => ToggleAllAsync(items)" @attributes="Attrs.MergeProps(parts[PeoplePickerPanelPart.SelectAll], PropsSelectAll)">@lang.PeopleSelectAll</Checkbox>
+            }
+            <ScrollArea Focusable="false" style="@($"height: {ListHeight}")" @attributes="Attrs.MergeProps(parts[PeoplePickerPanelPart.List])">
+                <div @ref="list" tabindex="-1" @attributes="Attrs.Merge(ListViewportLayer)">
+                    @if (loading)
+                    {
+                        <div @attributes="Attrs.Merge(parts[PeoplePickerPanelPart.Status])"><Spinner Label="@lang.Loading" /></div>
+                    }
+                    else if (failed)
+                    {
+                        <Small @attributes="Attrs.MergeProps(parts[PeoplePickerPanelPart.Status])">@lang.ListLoadFailed</Small>
+                    }
+                    else if (items.Count == 0)
+                    {
+                        <Small @attributes="Attrs.MergeProps(parts[PeoplePickerPanelPart.Status])">@(searching ? lang.PeopleNoResult : lang.PeopleEmpty)</Small>
+                    }
+                    else
+                    {
+                        <ItemList Hoverable="true" Density="ItemListDensity.Compact" aria-label="@PageLabel(searching ? PeoplePage.Org : page)">
+                            @foreach (var entry in items)
+                            {
+                                @Row(parts, entry, selectedKeys)
+                            }
+                        </ItemList>
+                    }
+                </div>
+            </ScrollArea>
+        </div>;
+    }
+
+    static readonly Attrs ListViewportLayer = new() { Sx = PeoplePickerPanelStyles.ListViewport };
+
+    RenderFragment Chosen(PartLayers<PeoplePickerPanelPart> parts, Lang lang)
+    {
+        var selected = Selected;
+        return @<div @attributes="Attrs.Merge(parts[PeoplePickerPanelPart.Selected], PropsSelected)">
+            <div @attributes="Attrs.Merge(parts[PeoplePickerPanelPart.Header])">
+                <Strong Size="Size.Sm">@lang.PeopleCount(selected.Count, Max)</Strong>
+                @if (selected.Count > 0)
+                {
+                    <Button Variant="ButtonVariant.Link" Size="Size.Sm" @onclick="() => value.SetAsync([])" @attributes="Attrs.MergeProps(null, PropsClear)">@lang.Clear</Button>
+                }
+            </div>
+            <ScrollArea style="@($"height: {ListHeight}")" @attributes="Attrs.MergeProps(parts[PeoplePickerPanelPart.List])">
+                @if (selected.Count == 0)
+                {
+                    <Small @attributes="Attrs.MergeProps(parts[PeoplePickerPanelPart.Status])">@lang.PeopleNothingSelected</Small>
+                }
+                else
+                {
+                    <ItemList Density="ItemListDensity.Compact" Inset="SpaceScale.Sm" aria-label="@lang.PeopleSelected">
+                        @foreach (var entry in selected)
+                        {
+                            <ItemListItem @key="entry.Key" Start="Badge(entry)" Title="@entry.Name" Description="@(entry.Description ?? lang.PeopleTypes.GetValueOrDefault(entry.Type) ?? entry.Type)">
+                                <End>
+                                    <IconButton Icon="BuiltInIcons.X" Variant="ButtonVariant.Ghost" Size="Size.Sm" Label="@lang.PeopleRemove(entry.Name)"
+                                                @onclick="() => ToggleAsync(entry)" @attributes="Attrs.MergeProps(null, PropsRemove)" />
+                                </End>
+                            </ItemListItem>
+                        }
+                    </ItemList>
+                }
+            </ScrollArea>
+        </div>;
+    }
+}

@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（96 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（99 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -28,6 +28,10 @@ public static partial class BuiltInIcons
     public static IconData Asterisk => field ??= new("asterisk", "<path d=\"M12 5v14\"/><path d=\"m18.065 8.496-12.125 7\"/><path d=\"m5.94 8.504 12.125 7\"/>");
     /// <summary>Lucide 图标 <c>ban</c>（cancel、no、stop、forbidden、prohibited、error、incorrect、mistake）。</summary>
     public static IconData Ban => field ??= new("ban", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M4.929 4.929 19.07 19.071\"/>");
+    /// <summary>Lucide 图标 <c>briefcase-business</c>（work、bag、baggage、folder、portfolio）。</summary>
+    public static IconData BriefcaseBusiness => field ??= new("briefcase-business", "<path d=\"M12 12h.01\"/><path d=\"M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2\"/><path d=\"M22 13a18.15 18.15 0 0 1-20 0\"/><rect width=\"20\" height=\"14\" x=\"2\" y=\"6\" rx=\"2\"/>");
+    /// <summary>Lucide 图标 <c>building</c>（organisation、organization）。</summary>
+    public static IconData Building => field ??= new("building", "<path d=\"M12 10h.01\"/><path d=\"M12 14h.01\"/><path d=\"M12 6h.01\"/><path d=\"M16 10h.01\"/><path d=\"M16 14h.01\"/><path d=\"M16 6h.01\"/><path d=\"M8 10h.01\"/><path d=\"M8 14h.01\"/><path d=\"M8 6h.01\"/><path d=\"M9 22v-3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3\"/><rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\"/>");
     /// <summary>Lucide 图标 <c>calendar-days</c>（day、date、month、year、timestamp、event、birthday、birthdate）。</summary>
     public static IconData CalendarDays => field ??= new("calendar-days", "<path d=\"M8 2v3\"/><path d=\"M16 2v3\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18\"/><path d=\"M8 13h.01\"/><path d=\"M12 13h.01\"/><path d=\"M16 13h.01\"/><path d=\"M8 17h.01\"/><path d=\"M12 17h.01\"/><path d=\"M16 17h.01\"/>");
     /// <summary>Lucide 图标 <c>calendar-range</c>（day、date、month、year、timestamp、event、birthday、birthdate）。</summary>
@@ -190,6 +194,8 @@ public static partial class BuiltInIcons
     public static IconData Upload => field ??= new("upload", "<path d=\"M12 3v12\"/><path d=\"m17 8-5-5-5 5\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/>");
     /// <summary>Lucide 图标 <c>user</c>（user、people、identity、individual、personal、person、account、contact）。</summary>
     public static IconData User => field ??= new("user", "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/>");
+    /// <summary>Lucide 图标 <c>users-round</c>（user、people、identity、individual、personal、person、account、contact）。</summary>
+    public static IconData UsersRound => field ??= new("users-round", "<path d=\"M18 21a8 8 0 0 0-16 0\"/><circle cx=\"10\" cy=\"8\" r=\"5\"/><path d=\"M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3\"/>");
     /// <summary>Lucide 图标 <c>volume-2</c>（music、sound、mute、speaker）。</summary>
     public static IconData Volume2 => field ??= new("volume-2", "<path d=\"M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z\"/><path d=\"M16 9a5 5 0 0 1 0 6\"/><path d=\"M19.364 18.364a9 9 0 0 0 0-12.728\"/>");
     /// <summary>Lucide 图标 <c>volume-x</c>（music、sound、mute、speaker）。</summary>

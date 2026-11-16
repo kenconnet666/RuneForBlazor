@@ -1,0 +1,147 @@
+@*
+    人员与组织选择器（表单字段，同 vue-tsx-pro 的 PeoplePicker）：触发框里是已选的标签，点开对话框里的 PeoplePickerPanel 挑选，按“确定”才写回，“取消”放弃这次的改动。
+    <Field Label="抄送"><PeoplePicker Source="source" @bind-Value="cc" Types="[PeopleType.User, PeopleType.Department]" RecentKey="cc" /></Field>
+    <PeoplePicker Source="source" @bind-Value="owner" Max="1" Placeholder="选择经办人" />      只选一个：值仍是列表，最多一项
+    触发框同 Select 的外壳：多选时已选的标签排在触发按钮前面（可移除），按钮里只留给读屏的文字；一个时直接显示名字。
+    键盘：触发按钮上 Enter / 空格 / ↓ 打开，Backspace 移除最后一个；对话框里的键盘见 PeoplePickerPanel。未声明的属性落到触发按钮上，外壳用 PropsRoot。
+*@
+@namespace Rune.UI
+@inherits InputControl<IReadOnlyList<PeopleEntry>>
+@{
+    var shell = InputStyles.Of(Appearance with { Picker = true }, Config.Styles);
+    var parts = SelectStyles.Of(Config.Styles);
+    var values = Selected;
+    var title = Placeholder ?? Config.Lang.PeoplePlaceholder;
+    var tagged = Max != 1 && values.Count > 0;
+}
+
+<div @attributes="Attrs.Merge(shell[InputPart.Root], RootUserAttrs, ShellManaged)">
+    @if (tagged)
+    {
+        <SelectedTags Tags="@([.. values.Select(entry => new ListboxOption(entry.Key, entry.Name))])" MaxTagCount="MaxTagCount"
+                      OnRemove="@(Locked ? default : RemoveCallback)" @attributes="Attrs.MergeProps(null, PropsTags)" />
+    }
+    <button @ref="Element" @attributes="Attrs.Merge(parts[SelectPart.Trigger], InputUserAttrs, TriggerManaged(tagged))">
+        <span @attributes="Attrs.Merge(parts[SelectPart.Value], PropsValue)">
+            @if (values.Count == 0)
+            {
+                <span @attributes="Attrs.Merge(parts[SelectPart.Placeholder])">@title</span>
+            }
+            else if (tagged)
+            {
+                <span @attributes="Attrs.Merge(VisuallyHiddenLayer)">@Config.Lang.SelectSummary([.. values.Select(entry => entry.Name)])</span>
+            }
+            else
+            {
+                @values[0].Name
+            }
+        </span>
+    </button>
+    <Icon Data="BuiltInIcons.UsersRound" @attributes="Attrs.MergeProps(shell[InputPart.Icon], PropsIcon)" />
+    <FormValue Name="@FieldName" Value="@(values.Select(entry => entry.Key).ToList())" Disabled="IsDisabled" />
+</div>
+<Dialog Open="open" OpenChanged="OpenChangedAsync" Title="@title" Size="DialogSize.Lg" OnConfirm="ConfirmAsync" @attributes="Attrs.MergeProps(null, PropsDialog)">
+    <PeoplePickerPanel Source="Source" @bind-Value="draft" Types="Types" Max="Max" RecentKey="@RecentKey"
+                       PropsSearch="SearchAutofocus" @attributes="Attrs.MergeProps(null, PropsPanel)" />
+</Dialog>
+
+@code {
+    static readonly Attrs VisuallyHiddenLayer = new() { Sx = SharedStyles.VisuallyHidden };
+    // 打开对话框时焦点在搜索框里，直接就能输入
+    static readonly Attrs SearchAutofocus = new() { ["autofocus"] = true };
+
+    Memo<(Attrs Control, bool Open, bool Locked, bool ReadOnly, bool Tagged), Attrs> triggerManaged;
+    Memo<(bool Open, bool Disabled), Attrs> shellManaged;
+    EventCallback<string>? removeCallback;
+    bool open;
+    // 对话框里改的是草稿：确定才写回
+    IReadOnlyList<PeopleEntry> draft = [];
+
+    /// <summary>数据来源。</summary>
+    [Parameter, EditorRequired] public PeopleSource Source { get; set; } = default!;
+
+    /// <summary>能选哪几种（<see cref="PeopleType"/>），默认只有人员。</summary>
+    [Parameter] public IReadOnlyList<string> Types { get; set; } = [PeopleType.User];
+
+    /// <summary>最多选几个；1 时只选一个（值仍是列表）。</summary>
+    [Parameter] public int? Max { get; set; }
+
+    /// <summary>记“最近选过的”用的键（存在浏览器里）。</summary>
+    [Parameter] public string? RecentKey { get; set; }
+
+    /// <summary>没有选时的占位，也是对话框的标题；默认“选择人员”。</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>多选时最多显示几个标签，其余收进“+N”；<see cref="TagLimit.Responsive"/> 时排成一行、按宽度放。</summary>
+    [Parameter] public TagLimit? MaxTagCount { get; set; }
+
+    /// <summary>标签那一排的部件属性（交给 SelectedTags）。</summary>
+    [Parameter] public Attrs? PropsTags { get; set; }
+
+    /// <summary>触发按钮里已选内容那一层的部件属性。</summary>
+    [Parameter] public Attrs? PropsValue { get; set; }
+
+    /// <summary>触发框图标的部件属性（交给 Icon）。</summary>
+    [Parameter] public Attrs? PropsIcon { get; set; }
+
+    /// <summary>对话框的部件属性（交给 Dialog）。</summary>
+    [Parameter] public Attrs? PropsDialog { get; set; }
+
+    /// <summary>面板的部件属性（交给 PeoplePickerPanel）。</summary>
+    [Parameter] public Attrs? PropsPanel { get; set; }
+
+    IReadOnlyList<PeopleEntry> Selected => CurrentValue ?? [];
+
+    // 不能打开、不能改：不可用，或只读（只读时仍能聚焦、看到已选的）
+    bool Locked => IsDisabled || IsReadOnly;
+
+    EventCallback<string> RemoveCallback => removeCallback ??= EventCallback.Factory.Create<string>(this, RemoveAsync);
+
+    // 外壳：点在空白处时 JS 把焦点交给触发按钮并点它（data-rune-control）
+    Attrs ShellManaged => shellManaged.Get((open, IsDisabled), static k => Attrs.Merge(ShellAttrs, new Attrs
+    {
+        ["data-state"] = k.Open ? "open" : "closed",
+        ["data-disabled"] = k.Disabled ? true : null,
+    }));
+
+    // 弹出对话框的组合框（ARIA 1.2）：按钮本身不能带必填、只读、出错这些状态
+    Attrs TriggerManaged(bool tagged) => triggerManaged.Get((ControlAttrs, open, Locked, IsReadOnly, tagged), this, static (k, owner) => new Attrs
+    {
+        Sx = k.Tagged ? SelectStyles.TriggerBehindTags : (Sx?)null,
+        Id = k.Control.Id,
+        Role = "combobox",
+        ["type"] = "button",
+        ["disabled"] = k.Control["disabled"],
+        ["aria-haspopup"] = "dialog",
+        ["aria-expanded"] = k.Open ? "true" : "false",
+        ["aria-invalid"] = k.Control["aria-invalid"],
+        ["aria-required"] = k.Control["aria-required"],
+        ["aria-readonly"] = k.ReadOnly ? "true" : null,
+        AriaDescribedBy = k.Control.AriaDescribedBy,
+        ["data-rune-arrow-down"] = k.Locked ? null : "open",
+        ["data-rune-backspace"] = k.Locked ? null : "remove-last",
+        ["onclick"] = EventCallback.Factory.Create(owner, owner.Show),
+        ["onrunecommand"] = EventCallback.Factory.Create<CommandEventArgs>(owner, owner.CommandAsync),
+    });
+
+    void Show()
+    {
+        if (Locked) return;
+        draft = Selected;
+        open = true;
+    }
+
+    void OpenChangedAsync(bool next) => open = next;
+
+    Task ConfirmAsync(ConfirmEventArgs _) => SetValueAsync(draft);
+
+    Task RemoveAsync(string key) => SetValueAsync([.. Selected.Where(entry => entry.Key != key)]);
+
+    Task CommandAsync(CommandEventArgs e)
+    {
+        if (Locked) return Task.CompletedTask;
+        if (e.Name == "open") Show();
+        else if (e.Name == "remove-last" && Selected.Count > 0) return SetValueAsync([.. Selected.Take(Selected.Count - 1)]);
+        return Task.CompletedTask;
+    }
+}

@@ -98,6 +98,9 @@
 - DataImport：没有 zod，vue 的 `schema` 拆成 `Validate`（字段名 → 原因，在 Required、数字检查之后）与 `ToRow`（通过校验的值 → 行）；值是 object，数字是 decimal。
   “下载模板”是链接 `TemplateHref`（下载接口，或 `Sheets.CsvDataUrl` 生成的 data URL），不是 vue 的 `onTemplate` 回调：C# 触发浏览器下载要 JS 互操作，链接在静态 SSR 里也能用。
   只自带 CSV 的读写（`Sheets.ReadCsvAsync`、`ToCsv`）；vue 的 xlsx 子路径（ExcelJS）没有对应，Excel 由调用方选库读成矩阵后交给 `Sheets.FromMatrix`（Parse 参数）。
+- PeoplePicker：`PeopleEntry` 的 Id 是文字（vue 是文字或数字），类型是文字常量 `PeopleType.User / Department / Role`（扩展类型直接写名字，名称进语言包的 PeopleTypes，vue 是接口合并）；
+  `PeopleSource` 是带委托的 record（Children 必填，Search、Roles 可选），取消用 CancellationToken；整棵在内存里时用 `PeopleSource.Local`（vue 的 localPeopleSource）。
+  “最近”经 LocalSetting 存，键是 `rune.people.recent.{RecentKey}`（vue 是 `vtp.people.recent.…`）。触发按钮上的 ↓ 经 `data-rune-arrow-down` 交给 C# 打开对话框。
 
 ### 外观与文档站
 
@@ -115,7 +118,7 @@
 4. 随阶段 6 的组件一起做（Rune 还没有这些组件）：
    - FilterBar / QueryTable 的新版布局：第一排是标题、放得下的条件（常用在前、more 在后）与按钮（展开、重置、查询），不加竖线；放不下的收进“展开”，
      全放得下不出“展开”；展开的几排与第一排每格同宽，minFieldWidth 默认 14em；按钮区与 QueryTable 工具栏 minWidth 0、maxWidth 100%
-   - FormDialog 的 select 支持 multiple（返回数组）、选项分组、多选默认值给数组；PeoplePicker 的触发框 role=combobox
+   - FormDialog 的 select 支持 multiple（返回数组）、选项分组、多选默认值给数组
    - 语言包新键 formRowLabel / formRowActions / formTabs / formValueTrue / formValueFalse / formValueEmpty（随 SchemaForm）
    - SchemaForm 一族（visibleWhen / requiredWhen / readonlyWhen、access、明细表与合计、formSources、页签、SchemaView、focusControl 发 beforematch）：先出方案
    - KanbanBoard 把手的悬停；NotificationList / NotificationCenter、CommentThread 的 RelativeTime

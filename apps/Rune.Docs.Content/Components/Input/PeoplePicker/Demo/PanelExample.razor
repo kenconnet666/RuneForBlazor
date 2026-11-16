@@ -1,0 +1,8 @@
+@* 直接放在页面里的面板：流程节点的处理人选角色（角色收件箱），Types 是角色与人员时都能勾，
+   最多 3 个；勾满之后其余的勾选框不可用。“角色”页列出全部角色，“全选”只管这一页能勾的 *@
+
+<PeoplePickerPanel Source="OrgData.Source" @bind-Value="assignees" Types="[PeopleType.Role, PeopleType.User]" Max="3" ListHeight="16rem" aria-label="处理人" />
+
+@code {
+    IReadOnlyList<PeopleEntry> assignees = [new("r-buyer", PeopleType.Role, "采购专员") { Description = "采购部" }];
+}

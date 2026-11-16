@@ -143,6 +143,10 @@ const BUILT_IN = [
   // ConditionBuilder：删除整组；FilterBar 的高级筛选
   'trash',
   'list-filter',
+  // PeoplePicker：触发框的图标，部门、角色的标记
+  'users-round',
+  'building',
+  'briefcase-business',
 ];
 
 /** 文档注释里最多列几个关键词 */

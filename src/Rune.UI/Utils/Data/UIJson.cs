@@ -17,6 +17,8 @@ namespace Rune.UI;
 [JsonSerializable(typeof(IReadOnlyDictionary<string, double>))]
 [JsonSerializable(typeof(IReadOnlyDictionary<string, string>))]
 [JsonSerializable(typeof(IReadOnlyDictionary<string, ColumnSticky?>))]
+// PeoplePickerPanel 的“最近”
+[JsonSerializable(typeof(IReadOnlyList<PeopleEntry>))]
 internal sealed partial class UIJson : JsonSerializerContext
 {
     // 文字原样写进属性（Blazor 会转义属性值），不转成 \uXXXX

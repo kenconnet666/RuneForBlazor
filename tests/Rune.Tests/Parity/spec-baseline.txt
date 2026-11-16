@@ -137,8 +137,6 @@ PageScrollbar.Type
 PageSizeSelect.OnOpenChange
 PageSizeSelect.OnSizeChange
 PageSizeSelect.ValueContent
-PeoplePickerPanel（组件）
-PeoplePicker（组件）
 Popconfirm.OnOpenChange
 Popover.OnOpenChange
 Provider.FormSources

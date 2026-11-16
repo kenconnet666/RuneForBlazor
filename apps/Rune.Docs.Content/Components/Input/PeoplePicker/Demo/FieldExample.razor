@@ -1,0 +1,22 @@
+@* 表单字段：抄送可以选人员与部门，触发框里是已选的标签；点开对话框，按组织架构一层层找或搜索，右边是已选的，
+   按“确定”才写回。RecentKey 记下最近选过的（“最近”页）。经办人 Max="1" 只选一个，触发框里直接是名字 *@
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Field Label="抄送">
+        <PeoplePicker Source="OrgData.Source" @bind-Value="cc" Types="[PeopleType.User, PeopleType.Department]" RecentKey="docs-cc" />
+    </Field>
+    <Field Label="经办人" Description="只能选一个人">
+        <PeoplePicker Source="OrgData.Source" @bind-Value="owner" Max="1" Placeholder="选择经办人" />
+    </Field>
+    <Small Tone="TextTone.Muted">抄送：@(cc.Count == 0 ? "无" : string.Join("、", cc.Select(e => $"{e.Name}（{(e.Type == PeopleType.User ? "人员" : "部门")}）")))</Small>
+</Flex>
+
+@code {
+    IReadOnlyList<PeopleEntry> cc =
+    [
+        new("u-lin", PeopleType.User, "林晓") { Description = "采购部 · 经理" },
+        new("d-qa", PeopleType.Department, "质量部") { Description = "公司" },
+    ];
+
+    IReadOnlyList<PeopleEntry> owner = [];
+}

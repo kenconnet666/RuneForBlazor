@@ -1,0 +1,24 @@
+@* 远程数据：PeopleSource 的几个函数按自己的接口实现（这里用延时模拟请求），令牌在换了部门、改了搜索词、关掉对话框时取消；
+   加载中显示转圈。真实接口常是 GET /org/children?parent=…、GET /org/search?q=… *@
+
+<Field Label="项目成员">
+    <PeoplePicker Source="source" @bind-Value="members" MaxTagCount="TagLimit.Responsive" />
+</Field>
+
+@code {
+    // 等一会儿再给结果；被取消时 Task.Delay 抛出 OperationCanceledException
+    static readonly PeopleSource source = new(async (parent, token) =>
+    {
+        await Task.Delay(600, token);
+        return await OrgData.Source.Children(parent, token);
+    })
+    {
+        Search = async (query, token) =>
+        {
+            await Task.Delay(600, token);
+            return await OrgData.Source.Search!(query, token);
+        },
+    };
+
+    IReadOnlyList<PeopleEntry> members = [];
+}

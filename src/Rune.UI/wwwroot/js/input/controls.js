@@ -59,7 +59,8 @@ function firstInvalidControl(form) {
  * 要 C# 处理的按键转成命令（不用每次按键都往返一次）；在列表的键盘处理之后调用，按键已经被用掉（defaultPrevented）时不发：
  * Backspace 时取 data-rune-backspace（输入框里是空的时候，多选移除最后一项）；
  * Esc 时取 data-rune-escape（弹层关着、输入框里有字的时候，Combobox 清空；弹层开着时 Esc 先关弹层）；
- * Enter 时取 data-rune-enter（输入框里有字、列表没有选中高亮项的时候，TagsInput 把文字加成标签）。
+ * Enter 时取 data-rune-enter（输入框里有字、列表没有选中高亮项的时候，TagsInput 把文字加成标签）；
+ * ↓ 时取 data-rune-arrow-down（弹出对话框的组合框，PeoplePicker 打开）。
  */
 export function sendKeyCommand(event) {
   const target = event.target;
@@ -69,6 +70,7 @@ export function sendKeyCommand(event) {
   if (event.key === 'Backspace' && !(target instanceof HTMLInputElement && target.value !== '')) name = target.getAttribute('data-rune-backspace');
   else if (event.key === 'Escape' && typed && !popoverOfHost(target)?.matches(':popover-open')) name = target.getAttribute('data-rune-escape');
   else if (event.key === 'Enter' && typed) name = target.getAttribute('data-rune-enter');
+  else if (event.key === 'ArrowDown') name = target.getAttribute('data-rune-arrow-down');
   if (!name) return;
   event.preventDefault();
   sendCommand(target, name);
