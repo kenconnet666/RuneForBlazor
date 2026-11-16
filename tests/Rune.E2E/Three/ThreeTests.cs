@@ -70,8 +70,8 @@ public class ThreeTests(DemoServer demo) : E2ETest(demo)
             await performance.GetByRole(AriaRole.Button, new() { Name = name }).ClickAsync();
             await Assertions.Expect(Canvas(performance)).ToHaveAttributeAsync("data-state", "running");
         }
-        // 换掉的效果交还了上下文：数量没有越换越多
-        Assert.Equal(before, await ActiveContextsAsync(page));
+        // 换掉的效果交还了上下文：数量没有越换越多（页面上别的画布离开视口后也会交还，所以可能变少）
+        Assert.InRange(await ActiveContextsAsync(page), 0, before);
 
         var controls = page.Locator("#mesh-gradient-controls-preview");
         await controls.ScrollIntoViewIfNeededAsync();
