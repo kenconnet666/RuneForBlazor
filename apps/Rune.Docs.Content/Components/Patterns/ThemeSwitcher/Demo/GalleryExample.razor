@@ -1,0 +1,18 @@
+@* 选主题：一组单选卡片，每张是主题自己的底色、表面、主色画的缩略图（设置页、引导流程） *@
+@inherits UIComponent
+
+<RadioGroup TValue="string" @bind-Value="picked" Card="true" Orientation="Orientation.Horizontal" MinItemWidth="@CssLength.Rem(10)" aria-label="选择主题">
+    @foreach (var theme in Themes.All)
+    {
+        <Radio @key="theme.Name" Value="@theme.Name">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                <ThemeThumbnail Theme="theme" />
+                <Small>@(Themes.LabelOf(Config.Lang, theme.Name) ?? theme.Name)</Small>
+            </Flex>
+        </Radio>
+    }
+</RadioGroup>
+
+@code {
+    string? picked = "paper";
+}

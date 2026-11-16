@@ -170,7 +170,7 @@ Splitter.Start
 StepsForm.Form
 Switch.Checked
 TagsInput.OnOpenChange
-ThemeCustomizer（组件）
+ThemeCustomizer.ContrastTarget
 ThemeSwitcher.Lazy
 ThemeSwitcher.Offset
 ThemeSwitcher.OnOpenChange
@@ -180,7 +180,6 @@ ThemeSwitcher.Point
 ThemeSwitcher.Preference
 ThemeSwitcher.Ripple
 ThemeSwitcher.Size
-ThemeThumbnail（组件）
 TimeField.ValueType
 TimePicker.OnOpenChange
 TimePicker.Open

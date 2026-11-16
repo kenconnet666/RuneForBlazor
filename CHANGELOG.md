@@ -17,6 +17,9 @@
   - PeoplePicker、PeoplePickerPanel（按组织架构找人、部门、角色，搜索、最近选过的；数据来源 `PeopleSource`）
   - NotificationCenter、NotificationList（铃铛与通知列表）、CommentThread、CommentComposer（留言与回复、提及、附件）：在 Rune.UI.Dates 包里（用到相对时间）
   - KanbanBoard（列间拖动、列内排序、键盘与读屏）、SlideCaptcha（拼图滑块验证）
+  - ThemeCustomizer（品牌色、中性色、圆角、缩放、字体、动效，对比度检查与导出代码）、ThemeThumbnail（主题缩略图）；
+    主题定制的模型 `ThemeSettings`、`ThemeCustomization`、`ThemeContrast`（Radix 色阶，随 Rune.UI 带 MIT 许可），内置主题名 `Themes.LabelOf`
+- `Theme` 新增按运行时算出的取值创建的构造函数；`ColorContrast`（WCAG 对比度、按对比度挑文字色、混色）
 - Textarea、Mentions 新增 `Immediate`（每次输入都更新值）
 
 ## [0.19.0] - 2026-11-15

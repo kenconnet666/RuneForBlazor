@@ -1,0 +1,206 @@
+@*
+    主题编辑器（同 vue-tsx-pro 的 ThemeCustomizer）：几个旋钮（品牌色、中性色、圆角、缩放、字体、动效）调出自己的主题，实时检查对比度，给出可以粘贴的代码。
+    只管设置（ThemeSettings）；把设置套到主题上由使用方做（ThemeCustomization.Apply），这样设置可以记在本地、和主题偏好组合：
+    <ThemeCustomizer @bind-Settings="settings" Base="Themes.Light" />
+    <RuneProvider Theme="ThemeCustomization.Apply(Themes.Light, settings)">…</RuneProvider>
+    旋钮分成颜色、形状与尺寸、字体与动效、检查与导出四组；每个选项带示意（色块与名字、圆角的角、字号、字体），当前取值写在旋钮名称旁边。
+    对比度按 ThemeContrast.Pairs 检查套用设置后的主题，改了设置、换了基础主题都会重新检查。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using System.Globalization
+@{
+    var parts = ThemeCustomizerStyles.Of(Config.Styles);
+    var lang = Config.Lang.ThemeCustomizer;
+    var current = settings.Value;
+    var dark = Base.IsDark;
+    var exported = ThemeCustomization.Code(Base, current);
+    var issues = Issues(current);
+    var radius = current.Radius ?? ThemeRadius.Medium;
+    var scaling = current.Scaling ?? 1;
+    var font = current.Font ?? ThemeFont.Sans;
+    var motion = current.Motion ?? ThemeMotion.Normal;
+}
+
+<div @attributes="Attrs.Merge(parts[ThemeCustomizerPart.Root], Rest)">
+    <section @attributes="Attrs.Merge(parts[ThemeCustomizerPart.Group], PropsGroup)">
+        @GroupHeader(parts, lang.GroupColor, lang.GroupColorHint)
+        @Field(parts, lang.Accent, ScaleText(current.Accent?.ToString(), dark), ScaleOptions(Enum.GetValues<AccentScale>().Select(s => (s.ToString(), ThemeCustomization.Swatch(s, dark)))),
+            current.Accent?.ToString() ?? "", next => Set(current with { Accent = Enum.TryParse<AccentScale>(next, out var value) ? value : null }), swatches: true)
+        @Field(parts, lang.Neutral, ScaleText(current.Neutral?.ToString(), dark), ScaleOptions(Enum.GetValues<NeutralScale>().Select(s => (s.ToString(), ThemeCustomization.Swatch(s, dark)))),
+            current.Neutral?.ToString() ?? "", next => Set(current with { Neutral = Enum.TryParse<NeutralScale>(next, out var value) ? value : null }), swatches: true)
+    </section>
+    <section @attributes="Attrs.Merge(parts[ThemeCustomizerPart.Group], PropsGroup)">
+        @GroupHeader(parts, lang.GroupShape, lang.GroupShapeHint)
+        @Field(parts, lang.Radius, RadiusLabel(radius), [.. Enum.GetValues<ThemeRadius>().Select(value => new Option(value.ToString(), RadiusLabel(value),
+            Preview: b => b.AddMarkupContent(0, ""), PreviewLayer: Sx.Of(ThemeCustomizerStyles.CornerOf(value)), PreviewPart: ThemeCustomizerPart.Corner))],
+            radius.ToString(), next => Set(current with { Radius = Enum.Parse<ThemeRadius>(next) }))
+        @Field(parts, lang.Scaling, Percent(scaling), [.. ThemeCustomization.Scalings.Select(factor => new Option(factor.ToString(CultureInfo.InvariantCulture), Percent(factor),
+            Preview: b => b.AddContent(0, "Aa"), PreviewStyle: string.Create(CultureInfo.InvariantCulture, $"font-size: {factor}em"), PreviewPart: ThemeCustomizerPart.Sample))],
+            scaling.ToString(CultureInfo.InvariantCulture), next => Set(current with { Scaling = double.Parse(next, CultureInfo.InvariantCulture) }))
+    </section>
+    <section @attributes="Attrs.Merge(parts[ThemeCustomizerPart.Group], PropsGroup)">
+        @GroupHeader(parts, lang.GroupType, lang.GroupTypeHint)
+        @Field(parts, lang.Font, FontLabel(font), [.. Enum.GetValues<ThemeFont>().Select(value => new Option(value.ToString(), FontLabel(value),
+            Preview: b => b.AddContent(0, "Aa"), PreviewLayer: Sx.Of(ThemeCustomizerStyles.FontOf(value)), PreviewPart: ThemeCustomizerPart.Sample))],
+            font.ToString(), next => Set(current with { Font = Enum.Parse<ThemeFont>(next) }))
+        @Field(parts, lang.Motion, MotionLabel(motion), [.. Enum.GetValues<ThemeMotion>().Select(value => new Option(value.ToString(), MotionLabel(value)))],
+            motion.ToString(), next => Set(current with { Motion = Enum.Parse<ThemeMotion>(next) }))
+    </section>
+    <section @attributes="Attrs.Merge(parts[ThemeCustomizerPart.Group], PropsGroup)">
+        @GroupHeader(parts, lang.GroupExport, lang.GroupExportHint)
+        @if (issues is not null)
+        {
+            <Alert Tone="@(issues.Count == 0 ? Tone.Success : Tone.Warning)" Title="@lang.Contrast" @attributes="Attrs.MergeProps(null, PropsContrast)">
+                @if (issues.Count == 0)
+                {
+                    @lang.ContrastOk(ThemeContrast.Pairs.Count)
+                }
+                else
+                {
+                    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+                        @foreach (var issue in issues)
+                        {
+                            <span @key="@($"{issue.Pair.Foreground}-{issue.Pair.Background}-{issue.Pair.Minimum}")">
+                                @lang.ContrastIssue($"{issue.Pair.Foreground} / {issue.Pair.Background}", issue.Ratio.ToString("0.00", Culture), issue.Pair.Minimum)
+                            </span>
+                        }
+                    </Flex>
+                }
+            </Alert>
+        }
+        <CodeBlock Title="@lang.Code" Code="@exported" Lang="csharp" @attributes="Attrs.MergeProps(null, PropsCode)" />
+        <Flex Gap="SpaceScale.Sm" Wrap="true">
+            <LinkButton Href="@("data:text/plain;charset=utf-8," + Uri.EscapeDataString(exported))" download="MyTheme.cs" Variant="ButtonVariant.Soft" Icon="BuiltInIcons.Download"
+                        @attributes="Attrs.MergeProps(null, PropsDownload)">@lang.Download</LinkButton>
+            <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral" Icon="BuiltInIcons.RotateCcw" Disabled="current.IsEmpty" @onclick="() => Set(new())"
+                    @attributes="Attrs.MergeProps(null, PropsReset)">@lang.Reset</Button>
+        </Flex>
+    </section>
+</div>
+
+@code {
+    /// <summary>设置（<c>@bind-Settings</c>）。</summary>
+    [Parameter] public ThemeSettings Settings { get; set; } = new();
+
+    /// <summary>设置变了。</summary>
+    [Parameter] public EventCallback<ThemeSettings> SettingsChanged { get; set; }
+
+    /// <summary>设置套在哪套主题上：决定色块取亮色还是暗色色阶、圆角按谁缩放、导出代码里的基础主题，对比度也按套用后的它检查。</summary>
+    [Parameter, EditorRequired] public Theme Base { get; set; } = default!;
+
+    /// <summary>每个分组（section）的部件属性。</summary>
+    [Parameter] public Attrs? PropsGroup { get; set; }
+
+    /// <summary>对比度检查结果（Alert）的部件属性；色调由检查结果决定。</summary>
+    [Parameter] public Attrs? PropsContrast { get; set; }
+
+    /// <summary>导出代码（CodeBlock）的部件属性；代码与语言由组件管理。</summary>
+    [Parameter] public Attrs? PropsCode { get; set; }
+
+    /// <summary>下载代码的链接（LinkButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsDownload { get; set; }
+
+    /// <summary>恢复默认按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsReset { get; set; }
+
+    /// <summary>一个选项：值、名字、示意与悬停提示。</summary>
+    sealed record Option(string Value, string Label, RenderFragment? Preview = null, Sx? PreviewLayer = null, string? PreviewStyle = null,
+        ThemeCustomizerPart PreviewPart = ThemeCustomizerPart.Swatch, string? Title = null);
+
+    static readonly Attrs SwatchesLayer = new() { Sx = ThemeCustomizerStyles.Swatches };
+    static readonly Attrs SwatchOptionLayer = new() { Sx = ThemeCustomizerStyles.SwatchOption };
+
+    Bindable<ThemeSettings> settings { get => field ??= new(this, () => Settings, () => SettingsChanged); }
+
+    CultureInfo Culture => CultureInfo.GetCultureInfo(Config.Lang.Code);
+
+    Task Set(ThemeSettings next) => settings.SetAsync(next);
+
+    string Percent(double factor) => factor.ToString("P0", Culture);
+
+    // 套用设置后的主题的对比度问题；有读不懂的颜色时不检查（不显示“全部通过”）
+    IReadOnlyList<ContrastIssue>? Issues(ThemeSettings current)
+    {
+        try
+        {
+            return ThemeContrast.Check(ThemeCustomization.Apply(Base, current));
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+    }
+
+    string RadiusLabel(ThemeRadius value) => value switch
+    {
+        ThemeRadius.None => Config.Lang.ThemeCustomizer.RadiusNone,
+        ThemeRadius.Small => Config.Lang.ThemeCustomizer.RadiusSmall,
+        ThemeRadius.Large => Config.Lang.ThemeCustomizer.RadiusLarge,
+        _ => Config.Lang.ThemeCustomizer.RadiusMedium,
+    };
+
+    string FontLabel(ThemeFont value) => value == ThemeFont.SerifHeadings ? Config.Lang.ThemeCustomizer.FontSerifHeadings : Config.Lang.ThemeCustomizer.FontSans;
+
+    string MotionLabel(ThemeMotion value) => value switch
+    {
+        ThemeMotion.None => Config.Lang.ThemeCustomizer.MotionNone,
+        ThemeMotion.Fast => Config.Lang.ThemeCustomizer.MotionFast,
+        ThemeMotion.Slow => Config.Lang.ThemeCustomizer.MotionSlow,
+        _ => Config.Lang.ThemeCustomizer.MotionNormal,
+    };
+
+    string ColorName(string scale) => Config.Lang.ThemeCustomizer.ColorNames.GetValueOrDefault(scale.ToLowerInvariant()) ?? scale;
+
+    // 色阶在当前语言下的名字与色值：“靛蓝 #3e63dd”；没选（主题默认）时是“主题默认”
+    string ScaleText(string? scale, bool dark) => scale is null
+        ? Config.Lang.ThemeCustomizer.ThemeDefault
+        : $"{ColorName(scale)} {(Enum.TryParse<AccentScale>(scale, out var accent) ? ThemeCustomization.Swatch(accent, dark) : ThemeCustomization.Swatch(Enum.Parse<NeutralScale>(scale), dark))}";
+
+    // 色阶选项：第一项是“主题默认”，其余是色块；名字与色值在悬停提示与读屏文字里
+    IReadOnlyList<Option> ScaleOptions(IEnumerable<(string Scale, string Color)> scales) =>
+    [
+        new("", Config.Lang.ThemeCustomizer.ThemeDefault, Preview: b => b.AddMarkupContent(0, ""), PreviewLayer: Sx.Of(ThemeCustomizerStyles.SwatchDefault),
+            Title: Config.Lang.ThemeCustomizer.ThemeDefault),
+        .. scales.Select(s => new Option(s.Scale, ColorName(s.Scale), Preview: b => b.AddMarkupContent(0, ""), PreviewLayer: Sx.Of(SwatchStyles.Ring),
+            PreviewStyle: $"background-color: {s.Color}", Title: $"{ColorName(s.Scale)}（{s.Scale.ToLowerInvariant()}）{s.Color}")),
+    ];
+
+    RenderFragment GroupHeader(PartLayers<ThemeCustomizerPart> parts, string title, string hint) =>
+        @<div @attributes="Attrs.Merge(parts[ThemeCustomizerPart.GroupHeader])">
+            <TextSpan Weight="Weight.Semibold">@title</TextSpan>
+            <TextSpan Size="Size.Sm" Tone="TextTone.Muted">@hint</TextSpan>
+        </div>;
+
+    // 一个旋钮：名称与当前取值，下面是选项网格（单选、至少选一项）；色板只放色块，名字给读屏
+    RenderFragment Field(PartLayers<ThemeCustomizerPart> parts, string label, string current, IReadOnlyList<Option> options, string value, Func<string, Task> onChange, bool swatches = false) =>
+        @<div @attributes="Attrs.Merge(parts[ThemeCustomizerPart.Field])">
+            <div @attributes="Attrs.Merge(parts[ThemeCustomizerPart.FieldHeader])">
+                <TextSpan Size="Size.Sm" Weight="Weight.Medium">@label</TextSpan>
+                <TextSpan Size="Size.Xs" Tone="TextTone.Muted">@current</TextSpan>
+            </div>
+            <ToggleGroup Value="@value" ValueChanged="@(next => onChange(next ?? value))" Required="true" Size="Size.Sm" aria-label="@label"
+                         @attributes="Attrs.MergeProps(parts[ThemeCustomizerPart.Options], swatches ? SwatchesLayer : null)">
+                @foreach (var option in options)
+                {
+                    <ToggleItem @key="option.Value" Value="@option.Value" title="@option.Title" @attributes="Attrs.MergeProps(parts[ThemeCustomizerPart.Option], swatches ? SwatchOptionLayer : null)">
+                        @if (swatches)
+                        {
+                            <span style="@option.PreviewStyle" @attributes="Attrs.Merge(parts[ThemeCustomizerPart.Swatch], new Attrs { Sx = option.PreviewLayer })"></span>
+                            <VisuallyHidden>@option.Label</VisuallyHidden>
+                        }
+                        else
+                        {
+                            <span @attributes="Attrs.Merge(parts[ThemeCustomizerPart.OptionContent])">
+                                @if (option.Preview is not null)
+                                {
+                                    <span style="@option.PreviewStyle" @attributes="Attrs.Merge(parts[option.PreviewPart], new Attrs { Sx = option.PreviewLayer })">@option.Preview</span>
+                                }
+                                <span @attributes="Attrs.Merge(parts[ThemeCustomizerPart.OptionLabel])">@option.Label</span>
+                            </span>
+                        }
+                    </ToggleItem>
+                }
+            </ToggleGroup>
+        </div>;
+}

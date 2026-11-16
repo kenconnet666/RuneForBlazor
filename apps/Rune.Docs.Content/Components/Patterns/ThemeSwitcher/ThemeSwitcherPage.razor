@@ -9,7 +9,18 @@
             <Example Id="switcher" Title="主题切换按钮" Demo="typeof(SwitcherExample)">
                 <Code>AddRuneUI</Code> 里设置 <Code>ThemeChoices</Code> 给出可选的主题（最外层的 RuneProvider 输出每套的变量），head 里放 <Code>ThemeBootScript</Code>（页面显示前按记住的选择设好，不闪默认主题）；<Code>ThemeSwitcher</Code> 列出“跟随系统”与各套主题，选中后记进 localStorage，新主题从按钮处圆形展开。切换全在浏览器里，没有往返，静态 SSR 也能用。
             </Example>
+            <Example Id="thumbnail" Title="主题缩略图" Demo="typeof(GalleryExample)">
+                <Code>ThemeThumbnail</Code> 用主题自己的底色、表面、主色画一张小卡片，它是装饰（aria-hidden），名称写在旁边的文字里（内置主题的名字见 <Code>Themes.LabelOf</Code>）。
+                选主题的网格用 RadioGroup 的 <Code>Card</Code>：缩略图与名称放在每张单选卡片里，键盘与表单照常。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="customizer" Title="主题编辑器" Demo="typeof(CustomizerExample)">
+                <Code>ThemeCustomizer</Code> 调品牌色、中性色、圆角、缩放、字体与动效，实时检查对比度（<Code>ThemeContrast</Code>），可以导出 C# 代码；
+                设置（<Code>ThemeSettings</Code>）交给 <Code>ThemeCustomization.Apply</Code> 生成新主题，交给 RuneProvider 的 <Code>Theme</Code>——这里只交给右边这块。
+                品牌色、中性色是 Radix Colors 的色阶，内置主题就是按同一张表从 indigo 与 slate 取的。
+            </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(ThemeSwitcher)]" />
+    <ApiReference Types="[typeof(ThemeSwitcher), typeof(ThemeThumbnail), typeof(ThemeCustomizer), typeof(ThemeSettings)]" />
 </DocPage>

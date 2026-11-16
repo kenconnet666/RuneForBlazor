@@ -114,6 +114,11 @@
   `children(item, state)` 对应 `ChildContent`（`context.Item`、`context.Dragging`），回调是 EventCallback（KanbanMove、KanbanReject 记录），按列、按卡片的部件属性是 `PropsColumnFor`、`PropsCardFor`。
 - SlideCaptcha：拖动、键盘微调与轨迹在 JS 里（`js/display/slide-captcha.js`），位置只画在页面上，松手才把 SlideResult 交给 C#；
   状态是枚举 `SlideStatus`，JS 从 `data-status`、`data-challenge` 看出换图、回到 Idle 与没对准（晃一下）。拼图的宽度经 `--rune-slide-piece` 写在画面上。
+- 主题定制：vue 的 customizeTheme / themeSettingsCode 对应 `ThemeCustomization.Apply` / `Code`（导出的是 C# 的 `new Theme(…, basedOn: Themes.X) { … }`），
+  设置是 record `ThemeSettings`，色阶是枚举 `AccentScale`、`NeutralScale`（tools/palette-gen 从 @radix-ui/colors 生成）。圆角按基础主题对象里的取值缩放（vue 放进页面里量）。
+  对比度检查（`ThemeContrast`）从主题对象读颜色（内置主题的颜色都是字面量），不读页面上生效的样式，所以没有 `contrastTarget`；
+  减少动态效果时主题的条件块照样把时长写成 0，没有 vue 的 `reducedMotion` 选项。“下载”是带 data URL 的链接（同 DataImport 的模板）。
+  ThemeSwitcher 的局部主题（vue 的 createThemePreference 交给某块区域）还没做：Rune 的切换是浏览器里改根元素的 data-theme。
 
 ### 外观与文档站
 
@@ -134,7 +139,7 @@
 5. 不跟：vue 的流程引擎（与组件无关）；CSP nonce 等阶段计划时再定。
 6. vue 0.23.0–0.26.0（`6e6f831d..c42b2f39`）已跟（2026-11-15，CI 的 `VUE_TSX_PRO_REF` 在 `c42b2f39`）。没有对应、留到以后的：
    - 随组件一起做（Rune 还没有）：CodeEditor、Diagram、SchemaForm、
-     ThemeCustomizer、ErrorBoundary、表格导出 xlsx 的那几条（StepsForm、DataImport、ActionBar、QueryTable、ConditionBuilder、NotificationCenter、CommentThread、KanbanBoard、SlideCaptcha 已在阶段 6 做了）。
+     ErrorBoundary、表格导出 xlsx 的那几条（StepsForm、DataImport、ActionBar、QueryTable、ConditionBuilder、NotificationCenter、CommentThread、KanbanBoard、SlideCaptcha、ThemeCustomizer 已在阶段 6 做了）。
    - 交互模式是 Server 时拿不到浏览器的时区：时刻按 `Lang.TimeZone`，没配置时是服务器的时区（WebAssembly 里是浏览器的）。
      预渲染的页面里时刻、日历的“今天”同样按服务器当时的；交互接管是重新渲染一遍，不会像 vue 水合那样留着旧的属性（0.25.0 修的那个问题 Rune 没有），
      但永远不交互的静态页会停在渲染那一刻。要准的话配置 `Lang.TimeZone`，或者传 `Now` / `Today`。

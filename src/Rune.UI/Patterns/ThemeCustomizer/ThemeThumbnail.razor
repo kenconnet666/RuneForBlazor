@@ -1,0 +1,28 @@
+@*
+    主题缩略图（span，同 vue-tsx-pro 的 ThemeThumbnail）：用这套主题画一个缩小的页面：底色上一张卡片，卡片里标题、正文两行字和一个品牌色按钮。
+    <ThemeThumbnail Theme="Themes.Forest" />
+    主题选择器、主题列表里代替主题名旁边的色点，一眼看出底色、表面、文字与品牌色的搭配。颜色来自套在它上面的主题类，换主题不用重画；
+    纯装饰，对读屏隐藏，名字由使用方写在旁边。尺寸用 em，随字号缩放。未声明的属性落到外层 span 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = ThemeThumbnailStyles.Of(Config.Styles); }
+
+<span @attributes="Attrs.Merge(parts[ThemeThumbnailPart.Root], Rest, Managed)">
+    <span @attributes="Attrs.Merge(parts[ThemeThumbnailPart.Card], PropsCard)">
+        <span @attributes="Attrs.Merge(parts[ThemeThumbnailPart.Title])"></span>
+        <span @attributes="Attrs.Merge(parts[ThemeThumbnailPart.Line])"></span>
+        <span @attributes="Attrs.Merge(parts[ThemeThumbnailPart.Button])"></span>
+    </span>
+</span>
+
+@code {
+    /// <summary>画哪一套主题。</summary>
+    [Parameter, EditorRequired] public Theme Theme { get; set; } = default!;
+
+    /// <summary>卡片的部件属性。</summary>
+    [Parameter] public Attrs? PropsCard { get; set; }
+
+    // 套上这套主题的变量（类名与主题一一对应）；纯装饰
+    Attrs Managed => new() { ["class"] = ThemeStyles.ClassFor(Theme), ["data-theme"] = Theme.Name, ["aria-hidden"] = "true" };
+}

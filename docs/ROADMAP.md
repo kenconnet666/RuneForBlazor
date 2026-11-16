@@ -76,7 +76,7 @@
   照 vue 的新版布局（STYLE-ALIGNMENT 的待跟进）
 - [ ] FormDialog（对话框里的 EditForm：确认时校验、提交中拦住关闭）、StepsForm、DataImport（CSV）已做；SchemaForm（按 C# 模型生成，先出方案）
 - [x] AuthLayout、NotificationCenter、CommentThread（接 Mentions）、KanbanBoard（Sortable 多容器）、SlideCaptcha
-- [ ] ThemeCustomizer、ThemeThumbnail，接着做文档站的主题定制页；ThemeSwitcher 的局部主题与选主题网格
+- [ ] ThemeCustomizer、ThemeThumbnail、选主题网格已做（ThemeSwitcher 页的示例）；还没做：文档站的主题定制页、ThemeSwitcher 的局部主题
 
 ## 阶段 7：扩展（2026-11-16 起不做，three 已完成并保留）
 
