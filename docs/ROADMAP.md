@@ -71,11 +71,11 @@
 
 ## 阶段 6：页面组合与主题定制
 
-- [ ] 输入：ConditionBuilder（条件树与 `TableQuery` 共用一份类型）、PeoplePicker / PeoplePickerPanel（用户、部门、角色）
-- [ ] FilterBar（基本筛选 + 接 ConditionBuilder 的高级筛选）、ActionBar、QueryTable（FilterBar + DataTable + 工具栏：密度、列设置、刷新、全屏；查询状态进地址栏）；
+- [x] 输入：ConditionBuilder（条件树与 `TableQuery` 共用一份类型）、PeoplePicker / PeoplePickerPanel（用户、部门、角色）
+- [x] FilterBar（基本筛选 + 接 ConditionBuilder 的高级筛选）、ActionBar、QueryTable（FilterBar + DataTable + 工具栏：密度、列设置、刷新、全屏；查询状态进地址栏）；
   照 vue 的新版布局（STYLE-ALIGNMENT 的待跟进）
-- [ ] FormDialog（对话框里的 EditForm：确认时校验、提交中拦住关闭）、StepsForm、DataImport（CSV）；SchemaForm（按 C# 模型生成，先出方案）
-- [ ] AuthLayout、NotificationCenter、CommentThread（接 Mentions）、KanbanBoard（Sortable 多容器）、SlideCaptcha
+- [ ] FormDialog（对话框里的 EditForm：确认时校验、提交中拦住关闭）、StepsForm、DataImport（CSV）已做；SchemaForm（按 C# 模型生成，先出方案）
+- [x] AuthLayout、NotificationCenter、CommentThread（接 Mentions）、KanbanBoard（Sortable 多容器）、SlideCaptcha
 - [ ] ThemeCustomizer、ThemeThumbnail，接着做文档站的主题定制页；ThemeSwitcher 的局部主题与选主题网格
 
 ## 阶段 7：扩展（2026-11-16 起不做，three 已完成并保留）

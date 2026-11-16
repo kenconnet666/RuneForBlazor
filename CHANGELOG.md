@@ -6,6 +6,19 @@
 
 ## [Unreleased]
 
+### 新增
+
+- 阶段 6 的页面组合（同 vue-tsx-pro 的 patterns，与 vue 写法不同的地方见 STYLE-ALIGNMENT“阶段 6”）：
+  - ActionBar（长表单底部的操作栏、批量操作栏，盖着内容时有分隔）、AuthLayout（登录、注册页的版式）
+  - FormDialog 与 `DialogService.PromptAsync`（对话框里的表单：确认时校验、后端拒绝时留着）；StepsForm（分步表单，下一步只校验这一步）；Form 新增 `BeforeSubmit`
+  - FilterBar（放不下的条件收进“展开”、高级筛选）、QueryTable（查询栏 + 工具栏 + 表格 + 分页，列设置与行高记在浏览器里，全屏）
+  - ConditionBuilder 与 `ConditionExpression`（条件树：比较、全部、任一、否定；前端求值 `Conditions.Matches`，一句话摘要 `Conditions.Describe`）
+  - DataImport（上传 CSV、对应列、逐行校验与就地改、导入）与 `Sheets`（CSV 读写、多行表头与拆行）
+  - PeoplePicker、PeoplePickerPanel（按组织架构找人、部门、角色，搜索、最近选过的；数据来源 `PeopleSource`）
+  - NotificationCenter、NotificationList（铃铛与通知列表）、CommentThread、CommentComposer（留言与回复、提及、附件）：在 Rune.UI.Dates 包里（用到相对时间）
+  - KanbanBoard（列间拖动、列内排序、键盘与读屏）、SlideCaptcha（拼图滑块验证）
+- Textarea、Mentions 新增 `Immediate`（每次输入都更新值）
+
 ## [0.19.0] - 2026-11-15
 
 对齐 vue-tsx-pro 0.29.0（`c2be5550..0de173eb`）。
