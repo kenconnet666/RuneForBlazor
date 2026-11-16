@@ -83,6 +83,10 @@
 - StepsForm：表单同 Form 用 `Model` / `EditContext`、`OnValidSubmit`，一步的 `Fields` 是模型上的属性名（vue 是字段路径，含子路径前缀；Blazor 的嵌套字段要拿到所在对象，
   反射取属性在裁剪后不可靠，所以只认顶层属性）。“下一步”经 Form 新增的 `BeforeSubmit`（返回 false 时不校验、不提交）把提交换成下一步，
   只校验这一步：对这几个字段 NotifyFieldChanged，校验器只校验它们。Form 的错误汇总在分步表单里关掉，没通过时焦点到这一步第一个出错的控件。
+- FilterBar：Blazor 的内容片段拆不成一个个节点，常用条件与 More 放在同一个栅格里（More 外面一层 display: contents），JS（`js/layout/filter-bar.js`，
+  算法同 vue 的 measure / layoutFields）把列数写成 `--rune-filter-template`、收起时把放不下的藏起来；展开后下面几排的列宽与第一排相同，但只排在条件区里，
+  不伸到按钮区下面（vue 的第二排起铺满整宽），所以没有 `PropsMore`。量出来之前 More 收着，常用条件按最小宽度自动排。
+  高级筛选（ConditionFields、Condition）等 ConditionBuilder 做完再接，暂记在规格比对的基线里。
 - ActionBar 是否盖着下面的内容由 JS 看（`data-rune-action-bar`，affix.js），写 `data-stuck`。
 
 ### 外观与文档站

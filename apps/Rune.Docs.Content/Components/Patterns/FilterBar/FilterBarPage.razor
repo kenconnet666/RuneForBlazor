@@ -1,0 +1,16 @@
+@page "/components/filter-bar"
+@attribute [DocMeta("FilterBar 查询栏", "列表页上方的筛选条件：自动排成栅格，查询与重置在栅格的结束边，不常用的条件收起，在输入框里回车就是查询。", DocCategory.Patterns, Order = 3)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Patterns.FilterBar.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="tasks" Title="项目任务的查询" Demo="typeof(TasksExample)">
+        条件是 Field。默认只显示一排：按钮在结束边，按剩下的宽度量出放得下几个条件（每个不窄于 <Code>MinFieldWidth</Code>，默认 14em），常用条件在前、<Code>More</Code> 在后，
+        放得下的铺满这一排；其余的都收进“展开”，展开后排在下面，列宽与第一排的每格相同。全部放得下时不出“展开”。比一格宽的条件（一排单选）包一层 <Code>GridItem Span="2"</Code> 跨两格。
+        <Code>Actions</Code> 是加在“重置”前面的按钮，<Code>End</Code> 接在“查询”后面（QueryTable 的工具栏按钮），<Code>Start</Code> 在条件前面（标题）。
+        标签默认在起始边、宽度随文字（<Code>LabelWidth</Code> 默认 auto，控件紧跟着标签；条件多、要几行对齐时写固定宽度）。
+        <Code>MoreActive</Code> 是收起的条件里已经填了几项，显示在“展开”旁边，免得忘了还有条件生效。外层是 <Code>role="search"</Code> 的表单：在输入框里按回车就是 <Code>OnSearch</Code>，
+        <Code>Loading</Code> 时“查询”显示加载中。
+    </Example>
+    <ApiReference Types="[typeof(FilterBar)]" />
+</DocPage>

@@ -1,0 +1,107 @@
+@* 项目任务的查询栏：常用的三个条件，不常用的收起；收起时“展开”旁提示已经填了几项。
+   在输入框里按回车就是查询；重置回到初始条件再查一次 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Card>
+        <FilterBar aria-label="项目任务查询" OnSearch="SearchAsync" OnReset="ResetAsync" Loading="loading" MoreActive="MoreActive">
+            <ChildContent>
+                <Field Label="项目名称"><TextField @bind-Value="query.Keyword" Icon="Lucide.Search" placeholder="名称或编码" /></Field>
+                <Field Label="任务类别"><Select Items="categories" @bind-Value="query.Category" Placeholder="全部" Clearable="true" /></Field>
+                <Field Label="状态">
+                    <Select Items="Statuses.Options()" SelectionMode="SelectionMode.Multiple" @bind-Values="query.Status" Placeholder="全部" Clearable="true" />
+                </Field>
+            </ChildContent>
+            <More>
+                <Field Label="完成年度"><Select Items="years" @bind-Value="query.Year" Placeholder="全部" Clearable="true" /></Field>
+                <Field Label="责任团队"><Select Items="teams" @bind-Value="query.Team" Placeholder="全部" Clearable="true" /></Field>
+                @* 一排单选比一格宽：跨两格，不折行 *@
+                <GridItem Span="2">
+                    <Field Label="涉构型更改">
+                        <RadioGroup TValue="string" @bind-Value="query.Config" Orientation="Orientation.Horizontal">
+                            <Radio Value="@("any")">不限</Radio>
+                            <Radio Value="@("yes")">是</Radio>
+                            <Radio Value="@("no")">否</Radio>
+                        </RadioGroup>
+                    </Field>
+                </GridItem>
+            </More>
+        </FilterBar>
+    </Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs">
+        <Small Tone="TextTone.Muted">找到 @Results.Count() 项</Small>
+        @foreach (var task in Results)
+        {
+            <Flex @key="task.Name" Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <StatusBadge Statuses="Statuses" Value="task.Status" Radius="Radius.Full" />
+                <Small>@task.Name</Small>
+                <Small Tone="TextTone.Muted">@task.Category · @task.Team · @task.Year</Small>
+            </Flex>
+        }
+    </Flex>
+</Flex>
+
+@code {
+    sealed record ProjectTask(string Name, string Category, string Team, string Year, string Status, bool Config);
+
+    sealed record Query
+    {
+        public string? Keyword { get; set; }
+        public string? Category { get; set; }
+        public IReadOnlyList<string> Status { get; set; } = [];
+        public string? Year { get; set; }
+        public string? Team { get; set; }
+        public string Config { get; set; } = "any";
+    }
+
+    static readonly StatusMap<string> Statuses = new()
+    {
+        ["pending"] = new("待启动"),
+        ["designing"] = new("设计中", Tone.Info),
+        ["verifying"] = new("测试中", Tone.Info),
+        ["awaiting"] = new("待验收", Tone.Warning),
+        ["closed"] = new("关闭", Tone.Success),
+    };
+
+    static readonly string[] categories = ["产品改进", "供应商切换", "流程优化"];
+    static readonly string[] teams = ["研发中心", "产品部", "运营部"];
+    static readonly string[] years = ["2026", "2027"];
+
+    static readonly ProjectTask[] tasks =
+    [
+        new("华东门店陈列改造", "产品改进", "研发中心", "2026", "verifying", true),
+        new("仓库拣货流程优化", "流程优化", "产品部", "2026", "closed", false),
+        new("包装纸箱第二供应商", "供应商切换", "运营部", "2026", "awaiting", false),
+        new("会员小程序改版", "产品改进", "研发中心", "2027", "designing", true),
+        new("仓库盘点流程优化", "流程优化", "产品部", "2027", "pending", false),
+    ];
+
+    Query query = new();
+    Query applied = new();
+    bool loading;
+
+    // 收起的条件里填了几项：完成年度、责任团队、是否涉构型更改
+    int MoreActive => new[] { query.Year is not null, query.Team is not null, query.Config != "any" }.Count(on => on);
+
+    IEnumerable<ProjectTask> Results => tasks.Where(task =>
+        task.Name.Contains(applied.Keyword ?? "", StringComparison.Ordinal) &&
+        (applied.Category is null || task.Category == applied.Category) &&
+        (applied.Status.Count == 0 || applied.Status.Contains(task.Status)) &&
+        (applied.Year is null || task.Year == applied.Year) &&
+        (applied.Team is null || task.Team == applied.Team) &&
+        (applied.Config == "any" || task.Config == (applied.Config == "yes")));
+
+    async Task SearchAsync()
+    {
+        loading = true;
+        await Task.Delay(500);
+        applied = query with { };
+        loading = false;
+    }
+
+    async Task ResetAsync()
+    {
+        query = new();
+        await SearchAsync();
+    }
+}

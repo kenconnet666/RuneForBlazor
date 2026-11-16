@@ -1,0 +1,153 @@
+@*
+    查询栏（form role="search"，同 vue-tsx-pro 的 FilterBar）：列表页上方的一排筛选条件，最后是“查询”“重置”；条件多时其余的收起来，点“展开”再显示。
+    <FilterBar OnSearch="SearchAsync" OnReset="Reset" MoreActive="2">
+        <ChildContent>
+            <Field Label="项目名称"><TextField @bind-Value="query.Name" /></Field>
+            <Field Label="任务类别"><Select … /></Field>
+        </ChildContent>
+        <More>…不常用的条件…</More>
+    </FilterBar>
+    默认只显示一排：Start（QueryTable 的标题）、条件、按钮区。按钮全在这一排的结束边；JS 按剩下的宽度量出放得下几个条件（每个不窄于 MinFieldWidth），
+    常用条件在前、More 在后，放得下的铺满这一排，其余的收进“展开”，展开后排在下面、列宽与第一排的每格相同。全部放得下时不出“展开”。
+    窄到一个条件也放不下时，条件独占一排、按钮区换到下面一行。按钮区依次是展开、Actions、重置、查询，再是 End（QueryTable 的工具栏按钮）。
+    MoreActive 是收起的条件里已经填了几项，显示在“展开”旁边。默认标签在起始边、宽度随文字。在输入框里按回车就是查询（表单提交）。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = FilterBarStyles.Of(Config.Styles);
+    var lang = Config.Lang.Patterns;
+    var defaults = Config.Defaults.Get<FilterBarDefaults>();
+}
+
+<CascadingValue Value="LayoutOf(defaults)">
+    <form @onsubmit="SearchAsync" @onsubmit:preventDefault @attributes="Attrs.Merge(parts[FilterBarPart.Root], Rest, RootManaged(defaults))">
+        @if (Start is not null)
+        {
+            <div @attributes="Attrs.Merge(parts[FilterBarPart.Start], PropsStart)">@Start</div>
+        }
+        <div @attributes="Attrs.Merge(parts[FilterBarPart.Body], PropsBody)">
+            <div @attributes="Attrs.Merge(parts[FilterBarPart.Row], PropsRow)">
+                @* 常用条件与 More 在同一个栅格里（More 外面一层 display: contents）：JS 量出第一排放得下几格，收起时把其余的藏起来。
+                   量出来之前（预渲染、脚本接管前）More 收着，常用条件都在第一排 *@
+                <div @attributes="Attrs.Merge(parts[FilterBarPart.Fields], PropsFields)">
+                    @ChildContent
+                    @if (More is not null)
+                    {
+                        <div @attributes="Attrs.Merge(Expanded ? MoreShown : MoreCollapsed)">@More</div>
+                    }
+                </div>
+                <div @attributes="Attrs.Merge(parts[FilterBarPart.Actions], PropsActions)">
+                    <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" IconEnd="BuiltInIcons.ChevronDown" PropsIconEnd="Expanded ? FlippedChevron : Chevron"
+                            aria-expanded="@(Expanded ? "true" : "false")" @onclick="ToggleAsync" @attributes="Attrs.MergeProps(parts[FilterBarPart.Toggle], PropsToggle)">
+                        @(Expanded ? lang.FilterCollapse : lang.FilterExpand)
+                        @if (!Expanded && MoreActive > 0)
+                        {
+                            <Badge Tone="Tone.Accent" Radius="Radius.Full" @attributes="Attrs.MergeProps(parts[FilterBarPart.Count])">@lang.FilterActive(MoreActive)</Badge>
+                        }
+                    </Button>
+                    @Actions
+                    <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" @onclick="ResetAsync" @attributes="Attrs.MergeProps(parts[FilterBarPart.Reset], PropsReset)">@lang.FilterReset</Button>
+                    <Button Type="submit" Loading="Loading" @attributes="Attrs.MergeProps(parts[FilterBarPart.Search], PropsSearch)">@lang.FilterSearch</Button>
+                    @End
+                </div>
+            </div>
+        </div>
+    </form>
+</CascadingValue>
+
+@code {
+    static readonly Attrs Chevron = new() { Sx = DisclosureStyles.Icon };
+    static readonly Attrs FlippedChevron = new() { Sx = Sx.Of(DisclosureStyles.Icon, DisclosureStyles.Flip) };
+    static readonly Attrs MoreCollapsed = new() { Sx = FilterBarStyles.MoreCollapsed, ["data-part"] = "more" };
+    static readonly Attrs MoreShown = new() { Sx = FilterBarStyles.MoreShown, ["data-part"] = "more" };
+
+    Memo<(FieldLabelPlacement? Placement, CssLength? Width), FieldLayout> layout;
+    Memo<(string Min, bool Expanded), Attrs> rootManaged;
+
+    /// <summary>点“查询”或在输入框里按回车。</summary>
+    [Parameter] public EventCallback OnSearch { get; set; }
+
+    /// <summary>点“重置”：清空条件由使用方做（改回初始值，再查询一次）。</summary>
+    [Parameter] public EventCallback OnReset { get; set; }
+
+    /// <summary>查询中：“查询”按钮显示加载中。</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>常用的条件：Field 们。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>不常用的条件：排在常用条件后面，第一排放不下的点“展开”才显示。</summary>
+    [Parameter] public RenderFragment? More { get; set; }
+
+    /// <summary>是否展开了第一排放不下的条件（@bind-Expanded）。</summary>
+    [Parameter] public bool Expanded { get; set; }
+
+    /// <summary>展开、收起。</summary>
+    [Parameter] public EventCallback<bool> ExpandedChanged { get; set; }
+
+    /// <summary>收起的条件里已经填了几项：大于 0 时显示在“展开”旁边。</summary>
+    [Parameter] public int MoreActive { get; set; }
+
+    /// <summary>按钮区额外的按钮：放在“重置”前面（如“导出筛选结果”）。</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>第一排起始边的内容：在条件前面（QueryTable 的标题）。</summary>
+    [Parameter] public RenderFragment? Start { get; set; }
+
+    /// <summary>按钮区最后的内容：在“查询”后面（QueryTable 的工具栏按钮）。</summary>
+    [Parameter] public RenderFragment? End { get; set; }
+
+    /// <summary>标签位置，默认在起始边（FilterBarDefaults 可以全站改）。</summary>
+    [Parameter] public FieldLabelPlacement? LabelPlacement { get; set; }
+
+    /// <summary>标签宽度，默认随文字（auto：控件紧跟着标签）；要几行对齐时写固定宽度。</summary>
+    [Parameter] public CssLength? LabelWidth { get; set; }
+
+    /// <summary>每个条件的最小宽度，默认 14em。</summary>
+    [Parameter] public CssLength? MinFieldWidth { get; set; }
+
+    /// <summary>Start 右边那一列的部件属性。</summary>
+    [Parameter] public Attrs? PropsBody { get; set; }
+
+    /// <summary>第一排（条件与按钮区）的部件属性。</summary>
+    [Parameter] public Attrs? PropsRow { get; set; }
+
+    /// <summary>Start 外层的部件属性。</summary>
+    [Parameter] public Attrs? PropsStart { get; set; }
+
+    /// <summary>条件的栅格的部件属性。</summary>
+    [Parameter] public Attrs? PropsFields { get; set; }
+
+    /// <summary>按钮区的部件属性。</summary>
+    [Parameter] public Attrs? PropsActions { get; set; }
+
+    /// <summary>查询按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsSearch { get; set; }
+
+    /// <summary>重置按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsReset { get; set; }
+
+    /// <summary>展开收起按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsToggle { get; set; }
+
+    // 标签默认在起始边、宽度随文字
+    FieldLayout LayoutOf(FilterBarDefaults? defaults) => layout.Get(
+        (LabelPlacement ?? defaults?.LabelPlacement ?? FieldLabelPlacement.Start, LabelWidth ?? defaults?.LabelWidth ?? CssLength.Auto),
+        static k => new FieldLayout(k.Placement, k.Width));
+
+    // role="search"；JS 按 data-rune-filter-bar（每个条件的最小宽度）排第一排
+    Attrs RootManaged(FilterBarDefaults? defaults) => rootManaged.Get(
+        ((MinFieldWidth ?? defaults?.MinFieldWidth ?? CssLength.Em(14)).ToString(), Expanded),
+        static k => new Attrs { Role = "search", ["data-rune-filter-bar"] = k.Min, ["data-expanded"] = k.Expanded ? "true" : "false" });
+
+    Task SearchAsync() => OnSearch.InvokeAsync();
+
+    Task ResetAsync() => OnReset.InvokeAsync();
+
+    async Task ToggleAsync()
+    {
+        Expanded = !Expanded;
+        await ExpandedChanged.InvokeAsync(Expanded);
+    }
+}

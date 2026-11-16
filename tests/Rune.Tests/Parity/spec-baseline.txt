@@ -85,7 +85,12 @@ Field.Name
 Field.ValueProp
 FieldCompare.Fields
 FileDrop.OnFiles
-FilterBar（组件）
+FilterBar.Condition
+FilterBar.ConditionFields
+FilterBar.PropsAdvanced
+FilterBar.PropsAdvancedToggle
+FilterBar.PropsClearAdvanced
+FilterBar.PropsMore
 FloatButton.Type
 Form.Controller
 FormDialog.Controller
