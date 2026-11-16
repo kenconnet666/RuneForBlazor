@@ -1,0 +1,44 @@
+@* 顶栏的铃铛：未读数、按类型筛选、只看未读、点一条标为已读、全部标为已读；读过的状态由使用方保存 *@
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Card Padding="SpaceScale.Sm">
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Md">
+            <AppShellBrand Href="#top-bar" Icon="Lucide.Plane">采购管理平台</AppShellBrand>
+            <TextField Icon="Lucide.Search" Size="Size.Sm" placeholder="搜索编号、名称" aria-label="搜索" style="flex-grow: 1; max-width: 20em; margin-inline-start: auto" />
+            <NotificationCenter Items="items" Types="types" Now="now" OnRead="Read" OnItemClick="Clicked">
+                <Footer><Button Size="Size.Sm" Variant="ButtonVariant.Link" @onclick="Restore">恢复演示数据</Button></Footer>
+            </NotificationCenter>
+            <Menu>
+                <Trigger Context="t"><UserButton Name="林小满" Compact="true" @attributes="t" /></Trigger>
+                <ChildContent><MenuItem Icon="Lucide.LogOut" Tone="Tone.Danger">退出登录</MenuItem></ChildContent>
+            </Menu>
+        </Flex>
+    </Card>
+    <Small Tone="TextTone.Muted">@Status</Small>
+</Flex>
+
+@code {
+    static readonly DateTimeOffset now = DateTimeOffset.Parse("2026-10-21T10:00:00+08:00");
+
+    static readonly IReadOnlyList<NotificationType> types = [new("todo", "待办"), new("returned", "退回"), new("remind", "催办")];
+
+    static IReadOnlyList<NotificationItem> Seed() =>
+    [
+        new("1", "新的待办：资料审核", DateTimeOffset.Parse("2026-10-21T09:42:00+08:00")) { Description = "PO-2026-0187 · 办公椅供应商切换", Type = "todo" },
+        new("2", "被退回：方案设计", DateTimeOffset.Parse("2026-10-21T08:10:00+08:00")) { Description = "PO-2026-0214 · 验收报告缺少试验报告", Type = "returned", Tone = Tone.Warning },
+        new("3", "催办：财务复核", DateTimeOffset.Parse("2026-10-20T16:30:00+08:00")) { Description = "PO-2026-0233 · 请今天内验收", Type = "remind", Tone = Tone.Danger },
+        new("4", "财务部收件箱有新的待办：费用核算", DateTimeOffset.Parse("2026-10-19T11:00:00+08:00")) { Description = "PO-2026-0179 · 包装纸箱第二供应商", Type = "todo", Read = true },
+        new("5", "计划调整已通过：货架紧固件减量", DateTimeOffset.Parse("2026-10-18T15:20:00+08:00")) { Description = "PO-2026-0276 · 计划完成改为 2026-12-15", Type = "todo", Read = true },
+    ];
+
+    IReadOnlyList<NotificationItem> items = Seed();
+    string? clicked;
+
+    string Status => clicked is not null ? $"点了：{clicked}" : $"{items.Count(item => !item.Read)} 条未读，点铃铛打开";
+
+    void Read(IReadOnlyList<string> ids) => items = [.. items.Select(item => ids.Contains(item.Id) ? item with { Read = true } : item)];
+
+    void Clicked(NotificationItem item) => clicked = item.Title;
+
+    void Restore() => items = Seed();
+}

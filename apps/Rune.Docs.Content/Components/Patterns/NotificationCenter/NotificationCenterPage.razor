@@ -1,0 +1,39 @@
+@page "/components/notification-center"
+@attribute [DocMeta("NotificationCenter 通知中心", "顶栏的铃铛与通知列表：未读数、按类型筛选、只看未读、标为已读、点了去对应的页面；列表也能直接放在通知页面、抽屉里。和 Toast 不同，通知留着、可以回头看。", DocCategory.Patterns, Order = 6)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Patterns.NotificationCenter.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn Wide="true">
+            <Example Id="top-bar" Title="顶栏的铃铛" Demo="typeof(TopBarExample)">
+                <Code>Items</Code> 是通知（新的在前，组件不排序）：标题、补充说明、时间、类型、读没读、地址与色调。点一条报告 <Code>OnRead</Code> 并收起，
+                有 <Code>Href</Code> 时去那里；“全部标为已读”报告全部未读的。通知存在哪、怎么算已读由应用决定（接口、推送），组件只管显示与报告。
+                铃铛的名称带未读数；<Code>Footer</Code> 放“打开收件箱”这类入口。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="inbox" Title="通知页面" Demo="typeof(InboxExample)">
+                同一份列表 <Code>NotificationList</Code> 直接放进卡片、抽屉，不进弹出层。写了 <Code>Types</Code> 时有按类型筛选的按钮，“只看未读”在后面；
+                <Code>HideTitle</Code> 去掉标题行，“全部标为已读”挪到筛选那一行。未读的前面一个色点（<Code>Tone</Code>：超时、被退回用 Danger、Warning），读屏念“未读”；
+                时间写成相对现在、在行末，悬停看完整时间，<Code>Now</Code> 固定“现在”（演示数据、截图）。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="widget" Title="工作台的小卡片" Demo="typeof(WidgetExample)">
+                要显示哪些由应用筛好再交给 <Code>Items</Code>（这里只有要我处理的提醒）；<Code>Title</Code> 换成卡片的标题，没写 <Code>Types</Code> 就没有类型筛选，
+                <Code>Empty</Code> 是全部处理完后的说明，<Code>Footer</Code> 链到收件箱。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <KeyboardReference Keys="@([
+        ("Enter / Space", "在铃铛上：打开通知面板"),
+        ("Tab", "在类型筛选、“只看未读”、“全部已读”与各条通知之间移动"),
+        ("Enter", "在通知上：标为已读，有 Href 时去那里"),
+        ("Space", "没有 Href 的通知（按钮）：同 Enter"),
+        ("Esc", "关闭面板，焦点回到铃铛"),
+    ])">
+        铃铛的名称带着未读数；每条通知是链接（有 Href）或按钮，未读的在标题前念出“未读”。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(NotificationCenter), typeof(NotificationList), typeof(NotificationItem)]" />
+</DocPage>

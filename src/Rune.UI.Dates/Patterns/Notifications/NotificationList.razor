@@ -1,0 +1,188 @@
+@*
+    通知列表（同 vue-tsx-pro 的 NotificationList）：标题行、筛选、通知（新的在前）、底部；直接放在通知页面、抽屉里，或由 NotificationCenter 放进弹出层。
+    <NotificationList Items="notices" Types="types" OnRead="MarkRead" />
+    - 按类型筛选（写了 Types 时）、只看未读、全部标为已读；点一条报告 OnRead、OnItemClick，有 Href 时去那里（链接），没有时是按钮。
+    - 通知存在哪、何时算已读由应用决定：组件只报告。时间写成相对现在（3 分钟前、昨天），悬停看完整时间。
+    - 未读的前面一个色点（Tone，默认 Accent），读屏念“未读”。列表为空时显示 Empty（默认“没有通知”）；有通知、只是筛掉了时说“没有符合条件的”。
+    和 Toast 的分工：Toast 是此刻发生的事、几秒后消失；通知是留着、可以回头看的。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = NotificationListStyles.Of(Config.Styles);
+    var lang = Config.Lang.Patterns;
+    var unread = Items.Count(item => !item.Read);
+    var shown = Items.Where(item => (type.Length == 0 || item.Type == type) && (!unreadOnly || !item.Read)).ToList();
+    RenderFragment markAll = @<Button Size="Size.Xs" Variant="ButtonVariant.Ghost" Disabled="unread == 0" @onclick="MarkAllAsync"
+                                      @attributes="Attrs.MergeProps(parts[NotificationListPart.MarkAll], PropsMarkAll)">@lang.NotificationsMarkAllRead</Button>;
+}
+
+<div @attributes="Attrs.Merge(parts[NotificationListPart.Root], Rest)">
+    @if (!HideTitle)
+    {
+        <div @attributes="Attrs.Merge(parts[NotificationListPart.Head], PropsHead)">
+            <span @attributes="Attrs.Merge(parts[NotificationListPart.Title])">@(Title ?? lang.Notifications)</span>
+            @markAll
+        </div>
+    }
+    <div @attributes="Attrs.Merge(parts[NotificationListPart.Filters], PropsFilters)">
+        @if (Types.Count > 0)
+        {
+            <ToggleGroup Value="@(type.Length == 0 ? "all" : type)" ValueChanged="ChangeType" Size="Size.Xs" aria-label="@lang.Notifications"
+                         @attributes="Attrs.MergeProps(parts[NotificationListPart.Types], PropsTypes)">
+                <ToggleItem Value="all">@lang.NotificationsAll</ToggleItem>
+                @foreach (var item in Types)
+                {
+                    <ToggleItem @key="item.Key" Value="@item.Key">@item.Label</ToggleItem>
+                }
+            </ToggleGroup>
+        }
+        <Switch @bind-Value="unreadOnly" Size="Size.Sm" PropsRoot="parts[NotificationListPart.UnreadOnly]" @attributes="Attrs.MergeProps(null, PropsUnreadOnly)">@lang.NotificationsUnreadOnly</Switch>
+        @if (HideTitle)
+        {
+            @markAll
+        }
+    </div>
+    @if (shown.Count == 0)
+    {
+        <div @attributes="Attrs.Merge(parts[NotificationListPart.Empty], PropsEmpty)">
+            @* 有通知、只是筛掉了：说“没有符合条件的”，不让人以为通知被清空了 *@
+            @if (Items.Count > 0)
+            {
+                <Empty Size="Size.Sm" Title="@(b => b.AddContent(0, lang.NotificationsNoMatch))" />
+            }
+            else if (Empty is not null)
+            {
+                @Empty
+            }
+            else
+            {
+                <Empty Size="Size.Sm" Title="@(b => b.AddContent(0, lang.NotificationsEmpty))" />
+            }
+        </div>
+    }
+    else
+    {
+        <ScrollArea @attributes="Attrs.MergeProps(parts[NotificationListPart.Scroll], PropsScroll)">
+            <ul @attributes="Attrs.Merge(parts[NotificationListPart.List], PropsList)">
+                @foreach (var item in shown)
+                {
+                    <li @key="item.Id">@Row(parts, item)</li>
+                }
+            </ul>
+        </ScrollArea>
+    }
+    @if (Footer is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[NotificationListPart.Footer], PropsFooter)">@Footer</div>
+    }
+</div>
+
+@code {
+    static readonly Attrs UnreadTitle = new() { Sx = NotificationListStyles.Unread };
+
+    string type = "";
+    bool unreadOnly;
+
+    /// <summary>通知：新的在前（组件不排序）。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<NotificationItem> Items { get; set; } = [];
+
+    /// <summary>类型：写了时列表上方有按类型筛选的按钮。</summary>
+    [Parameter] public IReadOnlyList<NotificationType> Types { get; set; } = [];
+
+    /// <summary>这些通知读过了：点了一条、全部标为已读。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> OnRead { get; set; }
+
+    /// <summary>点了一条（标为已读之后）；有 Href 时还会去那里。</summary>
+    [Parameter] public EventCallback<NotificationItem> OnItemClick { get; set; }
+
+    /// <summary>列表下面的内容（“查看全部”）。</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>没有通知时显示的内容，默认是“没有通知”。</summary>
+    [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <summary>相对时间以哪个时刻为现在，默认此刻；演示数据固定日期时传。</summary>
+    [Parameter] public DateTimeOffset? Now { get; set; }
+
+    /// <summary>标题，默认“通知”。</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>不要标题行（“全部标为已读”挪到筛选那一行）：放进有自己标题的卡片时用。</summary>
+    [Parameter] public bool HideTitle { get; set; }
+
+    /// <summary>标题行的部件属性。</summary>
+    [Parameter] public Attrs? PropsHead { get; set; }
+
+    /// <summary>“全部标为已读”按钮的部件属性（交给 Button）。</summary>
+    [Parameter] public Attrs? PropsMarkAll { get; set; }
+
+    /// <summary>筛选行的部件属性。</summary>
+    [Parameter] public Attrs? PropsFilters { get; set; }
+
+    /// <summary>类型筛选按钮组的部件属性（交给 ToggleGroup）。</summary>
+    [Parameter] public Attrs? PropsTypes { get; set; }
+
+    /// <summary>“只看未读”开关的部件属性（交给 Switch）。</summary>
+    [Parameter] public Attrs? PropsUnreadOnly { get; set; }
+
+    /// <summary>列表（ul）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>列表外面的滚动区域的部件属性（交给 ScrollArea）：最大高度给它。</summary>
+    [Parameter] public Attrs? PropsScroll { get; set; }
+
+    /// <summary>每一条的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    /// <summary>按条计算的部件属性，叠在 <see cref="PropsItem"/> 之后。</summary>
+    [Parameter] public Func<NotificationItem, Attrs?>? PropsItemFor { get; set; }
+
+    /// <summary>列表为空时那一块的部件属性。</summary>
+    [Parameter] public Attrs? PropsEmpty { get; set; }
+
+    /// <summary>列表下面那一行的部件属性。</summary>
+    [Parameter] public Attrs? PropsFooter { get; set; }
+
+    void ChangeType(string? next) => type = next is null or "all" ? "" : next;
+
+    Task MarkAllAsync() => OnRead.InvokeAsync([.. Items.Where(item => !item.Read).Select(item => item.Id)]);
+
+    async Task SelectAsync(NotificationItem item)
+    {
+        if (!item.Read) await OnRead.InvokeAsync([item.Id]);
+        await OnItemClick.InvokeAsync(item);
+    }
+
+    RenderFragment Row(PartLayers<NotificationListPart> parts, NotificationItem item)
+    {
+        var lang = Config.Lang.Patterns;
+        var own = Attrs.Layer(PropsItem, PropsItemFor?.Invoke(item));
+        RenderFragment content = @<text>
+            <span @attributes="Attrs.Merge(parts[NotificationListPart.Dot])">
+                @if (!item.Read)
+                {
+                    <StatusDot Tone="@(item.Tone ?? Tone.Accent)" />
+                }
+            </span>
+            <span @attributes="Attrs.Merge(parts[NotificationListPart.Body])">
+                <span @attributes="Attrs.Merge(parts[NotificationListPart.ItemTitle], item.Read ? null : UnreadTitle)">
+                    @if (!item.Read)
+                    {
+                        <VisuallyHidden>@lang.NotificationUnreadMark </VisuallyHidden>
+                    }
+                    @item.Title
+                </span>
+                @if (item.Description is not null)
+                {
+                    <span @attributes="Attrs.Merge(parts[NotificationListPart.Description])">@item.Description</span>
+                }
+            </span>
+            <RelativeTime Value="item.Time" Now="Now" @attributes="Attrs.MergeProps(parts[NotificationListPart.Time])" />
+        </text>;
+        // 有地址是链接（Blazor 的导航接管点击），没有时是按钮：Enter、空格都是浏览器自己的
+        return item.Href is { } href
+            ? @<a href="@href" data-state="@(item.Read ? "read" : "unread")" @onclick="() => SelectAsync(item)" @attributes="Attrs.Merge(parts[NotificationListPart.Item], own)">@content</a>
+            : @<button type="button" data-state="@(item.Read ? "read" : "unread")" @onclick="() => SelectAsync(item)" @attributes="Attrs.Merge(parts[NotificationListPart.Item], own)">@content</button>;
+    }
+}

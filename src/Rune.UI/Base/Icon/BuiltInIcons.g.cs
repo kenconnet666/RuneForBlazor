@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（99 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（100 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -28,6 +28,8 @@ public static partial class BuiltInIcons
     public static IconData Asterisk => field ??= new("asterisk", "<path d=\"M12 5v14\"/><path d=\"m18.065 8.496-12.125 7\"/><path d=\"m5.94 8.504 12.125 7\"/>");
     /// <summary>Lucide 图标 <c>ban</c>（cancel、no、stop、forbidden、prohibited、error、incorrect、mistake）。</summary>
     public static IconData Ban => field ??= new("ban", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M4.929 4.929 19.07 19.071\"/>");
+    /// <summary>Lucide 图标 <c>bell</c>（alarm、notification、sound、reminder）。</summary>
+    public static IconData Bell => field ??= new("bell", "<path d=\"M10.268 21a2 2 0 0 0 3.464 0\"/><path d=\"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326\"/>");
     /// <summary>Lucide 图标 <c>briefcase-business</c>（work、bag、baggage、folder、portfolio）。</summary>
     public static IconData BriefcaseBusiness => field ??= new("briefcase-business", "<path d=\"M12 12h.01\"/><path d=\"M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2\"/><path d=\"M22 13a18.15 18.15 0 0 1-20 0\"/><rect width=\"20\" height=\"14\" x=\"2\" y=\"6\" rx=\"2\"/>");
     /// <summary>Lucide 图标 <c>building</c>（organisation、organization）。</summary>

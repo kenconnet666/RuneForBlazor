@@ -1,0 +1,45 @@
+@* 通知页面：NotificationList 直接放在卡片里，不进弹出层；时间在每行末尾，列表限高滚动；标题行换成卡片自己的标题 *@
+
+<Card Padding="SpaceScale.None">
+    <Header>
+        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+            <H3 Size="Size.Md">我的通知</H3>
+            @if (Unread > 0)
+            {
+                <Badge Tone="Tone.Accent">@Unread 条未读</Badge>
+            }
+        </Flex>
+    </Header>
+    <ChildContent>
+        <NotificationList HideTitle="true" Items="items" Types="types" Now="now" OnRead="Read" PropsScroll="ScrollHeight" />
+    </ChildContent>
+</Card>
+
+@code {
+    static readonly DateTimeOffset now = DateTimeOffset.Parse("2026-10-21T10:00:00+08:00");
+
+    static readonly Attrs ScrollHeight = new() { ["style"] = "max-height: 22rem" };
+
+    static readonly IReadOnlyList<NotificationType> types = [new("todo", "待办"), new("returned", "退回"), new("remind", "催办与超时")];
+
+    static NotificationItem At(string id, string title, int day, string time, string description, string type, bool read = false, Tone? tone = null) =>
+        new(id, title, DateTimeOffset.Parse($"2026-10-{day:00}T{time}:00+08:00")) { Description = description, Type = type, Read = read, Tone = tone };
+
+    IReadOnlyList<NotificationItem> items =
+    [
+        At("a", "新的待办：资料审核", 21, "09:42", "PO-2026-0187 · 办公椅供应商切换", "todo"),
+        At("b", "被退回：方案设计", 21, "08:10", "PO-2026-0214 · 验收报告缺少试验报告", "returned", tone: Tone.Warning),
+        At("c", "催办：财务复核", 20, "16:30", "PO-2026-0233 · 请今天内验收", "remind", tone: Tone.Danger),
+        At("d", "超时：结算已超过 30 天", 20, "09:00", "PO-2026-0102 · 供应商乙对账未回复", "remind", tone: Tone.Danger),
+        At("e", "会签已完成：多级审批", 19, "17:45", "PO-2026-0249 · 4 个节点全部通过", "todo", read: true),
+        At("f", "财务部收件箱有新的待办：费用核算", 19, "11:00", "PO-2026-0179 · 包装纸箱第二供应商", "todo", read: true),
+        At("g", "被退回：费用核算", 18, "16:05", "PO-2026-0166 · 测算口径需按实际节省", "returned", read: true, tone: Tone.Warning),
+        At("h", "计划调整已通过：货架紧固件减量", 18, "15:20", "PO-2026-0276 · 计划完成改为 2026-12-15", "todo", read: true),
+        At("i", "催办：方案设计", 17, "10:30", "PO-2026-0211 · 主办已两天未处理", "remind", read: true),
+        At("j", "新的待办：验证实施", 16, "14:12", "PO-2026-0308 · 线束卡箍合并规格", "todo", read: true),
+    ];
+
+    int Unread => items.Count(item => !item.Read);
+
+    void Read(IReadOnlyList<string> ids) => items = [.. items.Select(item => ids.Contains(item.Id) ? item with { Read = true } : item)];
+}

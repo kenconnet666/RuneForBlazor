@@ -1,0 +1,22 @@
+@* 工作台上的一张卡片：只放要我处理的提醒（应用自己筛出来），自定义标题、没有类型筛选，底部链到收件箱 *@
+
+<Card Padding="SpaceScale.None">
+    <NotificationList Title="要我处理的提醒" Items="items" Now="now" OnRead="Read">
+        <Empty>都处理完了</Empty>
+        <Footer><TextLink Href="#inbox">打开收件箱</TextLink></Footer>
+    </NotificationList>
+</Card>
+
+@code {
+    static readonly DateTimeOffset now = DateTimeOffset.Parse("2026-10-21T10:00:00+08:00");
+
+    IReadOnlyList<NotificationItem> items =
+    [
+        new("r1", "催办：财务复核", DateTimeOffset.Parse("2026-10-20T16:30:00+08:00")) { Description = "PO-2026-0233 · 请今天内验收", Tone = Tone.Danger },
+        new("r2", "超时：结算已超过 30 天", DateTimeOffset.Parse("2026-10-20T09:00:00+08:00")) { Description = "PO-2026-0102 · 供应商乙对账未回复", Tone = Tone.Danger },
+        new("r3", "今天到期：资料审核", DateTimeOffset.Parse("2026-10-21T08:00:00+08:00")) { Description = "PO-2026-0187 · 办公椅供应商切换", Tone = Tone.Warning },
+    ];
+
+    // 处理过的提醒从卡片上拿掉
+    void Read(IReadOnlyList<string> ids) => items = [.. items.Where(item => !ids.Contains(item.Id))];
+}

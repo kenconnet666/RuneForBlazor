@@ -147,6 +147,8 @@ const BUILT_IN = [
   'users-round',
   'building',
   'briefcase-business',
+  // NotificationCenter：顶栏的铃铛
+  'bell',
 ];
 
 /** 文档注释里最多列几个关键词 */

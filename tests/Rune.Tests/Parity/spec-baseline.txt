@@ -126,8 +126,7 @@ MenuItem.OnAction
 MenuSub.OnOpenChange
 ModalCore（组件）
 ModelViewer.Object
-NotificationCenter（组件）
-NotificationList（组件）
+NotificationCenter.OnOpenChange
 NumberField.ValueType
 NumberRangeField.ValueType
 OtpField.ChildContent

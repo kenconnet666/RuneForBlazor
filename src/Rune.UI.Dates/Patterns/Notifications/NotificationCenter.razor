@@ -1,0 +1,91 @@
+@*
+    通知中心（同 vue-tsx-pro 的 NotificationCenter）：顶栏的铃铛（右上角是未读数），点开是 NotificationList；点了一条就收起。
+    <NotificationCenter Items="notices" Types="types" OnRead="MarkRead">
+        <Footer><TextLink Href="/inbox">打开收件箱</TextLink></Footer>
+    </NotificationCenter>
+    铃铛的名称带着未读数（“通知，未读 3 条”）。列表的参数（Items、Types、OnRead、OnItemClick、Footer、Empty、Now）原样交给 NotificationList。
+    未声明的属性落到弹出层的面板上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = NotificationCenterStyles.Of(Config.Styles);
+    var lang = Config.Lang.Patterns;
+    var unread = Items.Count(item => !item.Read);
+}
+
+<Popover Open="open.Value" OpenChanged="open.SetAsync" Placement="Placement" Offset="Offset" Arrow="Arrow" PropsArrow="PropsArrow" Lazy="Lazy" Role="@Role" @attributes="Attrs.MergeProps(parts[NotificationCenterPart.Panel], Rest)">
+    <Trigger Context="trigger">
+        <Indicator Count="unread" Label="@lang.NotificationsUnread(unread)" @attributes="Attrs.MergeProps(parts[NotificationCenterPart.Indicator])">
+            <IconButton Icon="BuiltInIcons.Bell" Label="@lang.NotificationsUnread(unread)"
+                        @attributes="Attrs.MergeProps(parts[NotificationCenterPart.Trigger], PropsTrigger, trigger)" />
+        </Indicator>
+    </Trigger>
+    <ChildContent>
+        <NotificationList Items="Items" Types="Types" OnRead="OnRead" OnItemClick="ItemClickedAsync" Footer="Footer" Empty="Empty" Now="Now"
+                          PropsScroll="ListLayer(parts)" @attributes="Attrs.MergeProps(null, PropsNotificationList)" />
+    </ChildContent>
+</Popover>
+
+@code {
+    /// <summary>通知：新的在前（组件不排序）。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<NotificationItem> Items { get; set; } = [];
+
+    /// <summary>类型：写了时列表上方有按类型筛选的按钮。</summary>
+    [Parameter] public IReadOnlyList<NotificationType> Types { get; set; } = [];
+
+    /// <summary>这些通知读过了：点了一条、全部标为已读。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> OnRead { get; set; }
+
+    /// <summary>点了一条（标为已读之后，面板随后收起）；有 Href 时还会去那里。</summary>
+    [Parameter] public EventCallback<NotificationItem> OnItemClick { get; set; }
+
+    /// <summary>列表下面的内容（“打开收件箱”）。</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>没有通知时显示的内容，默认是“没有通知”。</summary>
+    [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <summary>相对时间以哪个时刻为现在，默认此刻。</summary>
+    [Parameter] public DateTimeOffset? Now { get; set; }
+
+    /// <summary>弹出位置，默认下方、与结束边对齐。</summary>
+    [Parameter] public Placement Placement { get; set; } = Placement.BottomEnd;
+
+    /// <summary>与铃铛的距离（px），默认取主题。</summary>
+    [Parameter] public int? Offset { get; set; }
+
+    /// <summary>带指向铃铛的小箭头。</summary>
+    [Parameter] public bool Arrow { get; set; }
+
+    /// <summary>箭头的部件属性。</summary>
+    [Parameter] public Attrs? PropsArrow { get; set; }
+
+    /// <summary>第一次打开才渲染面板里的列表，默认 true。</summary>
+    [Parameter] public bool Lazy { get; set; } = true;
+
+    /// <summary>面板的角色，默认 dialog。</summary>
+    [Parameter] public string Role { get; set; } = "dialog";
+
+    /// <summary>打开状态（<c>@bind-Open</c>）。</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>打开或关闭后。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>铃铛按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsTrigger { get; set; }
+
+    /// <summary>面板里的通知列表的部件属性（交给 NotificationList）。</summary>
+    [Parameter] public Attrs? PropsNotificationList { get; set; }
+
+    Bindable<bool> open { get => field ??= new(this, () => Open, () => OpenChanged); }
+
+    static Attrs ListLayer(PartLayers<NotificationCenterPart> parts) => parts[NotificationCenterPart.List];
+
+    async Task ItemClickedAsync(NotificationItem item)
+    {
+        await OnItemClick.InvokeAsync(item);
+        await open.SetAsync(false);
+    }
+}
