@@ -1,0 +1,16 @@
+@page "/components/auth-layout"
+@attribute [DocMeta("AuthLayout 认证页版式", "登录、注册、找回密码的整页版式：宽屏左边品牌区、右边表单，窄屏品牌区收成顶部一块，登录卡片不被挤到第二屏。", DocCategory.Patterns, Order = 11)]
+@inherits DocPageBase
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="login" Title="登录页" Demo="typeof(Frames.Login)" Frame="40rem">
+                <Code>Hero</Code> 是品牌区（标志、口号、背景动画），铺满它那一半；<Code>Tools</Code> 放在表单区的结束边上角（主题切换、语言切换）。
+                分栏的断点与 AppShell 一致（<Code>Breakpoints.Lg</Code>，64rem）；不写 <Code>Hero</Code> 时表单居中，不分栏。表单区宽屏时垂直居中，窄屏时贴近顶部。
+                示例在单独的页面里打开，窗口缩窄可以看到品牌区收到顶部。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(AuthLayout)]" />
+</DocPage>

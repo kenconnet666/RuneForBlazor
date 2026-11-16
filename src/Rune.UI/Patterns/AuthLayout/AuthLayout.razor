@@ -1,0 +1,49 @@
+@*
+    认证页版式（div，同 vue-tsx-pro 的 AuthLayout）：登录、注册、找回密码的整页版式。宽屏时左边是品牌区（Hero）、右边是表单，
+    窄屏时品牌区收成顶部一块、表单紧跟其后。
+    <AuthLayout>
+        <Hero><LoginHero /></Hero>
+        <Tools><ThemeSwitcher /></Tools>
+        <ChildContent><Card>…登录表单…</Card></ChildContent>
+    </AuthLayout>
+    Hero 是品牌区的内容（标志、口号、背景动画），铺满它那一半；不写 Hero 时表单居中，不分栏。Tools 放在整页的结束边上角（主题切换、语言切换）：
+    宽屏时就是表单这一半的上角，窄屏时落在顶部品牌区那一条上，不压住表单。表单区把内容垂直居中（宽屏）或贴近顶部（窄屏，登录卡片不被品牌区挤到第二屏）。
+    分栏的断点是 Breakpoints.Lg（64rem），与 AppShell 一致。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = AuthLayoutStyles.Of(Hero is not null, Config.Styles); }
+
+<div @attributes="Attrs.Merge(parts[AuthLayoutPart.Root], Rest)">
+    @if (Hero is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[AuthLayoutPart.Hero], PropsHero)">@Hero</div>
+    }
+    <main @attributes="Attrs.Merge(parts[AuthLayoutPart.Main], PropsMain)">
+        @if (Tools is not null)
+        {
+            <div @attributes="Attrs.Merge(parts[AuthLayoutPart.Tools], PropsTools)">@Tools</div>
+        }
+        @ChildContent
+    </main>
+</div>
+
+@code {
+    /// <summary>品牌区：宽屏在左半边，窄屏在顶部；不写时不分栏。</summary>
+    [Parameter] public RenderFragment? Hero { get; set; }
+
+    /// <summary>整页结束边上角的工具（主题切换、语言切换）：宽屏在表单区上角，窄屏在顶部品牌区上。</summary>
+    [Parameter] public RenderFragment? Tools { get; set; }
+
+    /// <summary>品牌区（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHero { get; set; }
+
+    /// <summary>表单区（main）的部件属性。</summary>
+    [Parameter] public Attrs? PropsMain { get; set; }
+
+    /// <summary>工具区（div）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTools { get; set; }
+
+    /// <summary>表单。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

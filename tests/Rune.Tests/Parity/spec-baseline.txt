@@ -3,7 +3,6 @@ AreaChart.Index
 AreaChart.IndexFormat
 AreaChart.Stacked
 AreaChart.ValueDomain
-AuthLayout（组件）
 Autocomplete.OnOpenChange
 BackTop.Type
 BarChart.Data

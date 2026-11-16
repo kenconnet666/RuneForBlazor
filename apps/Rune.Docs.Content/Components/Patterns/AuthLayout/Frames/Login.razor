@@ -1,0 +1,42 @@
+@*
+    AuthLayout 的登录页示例（整页，在 iframe 里打开）：同 vue-tsx-pro 文档站 AuthLayout 的 frames/Login。
+    左边品牌区、右边表单，工具在表单区的上角；窄屏时品牌区收成顶部一块
+*@
+@attribute [DocFrame("auth-layout", "login")]
+@inherits RuneComponent
+
+<AuthLayout PropsHero="HeroLayer">
+    <Hero>
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                <Icon Data="Lucide.TrendingDown" />
+                联合降本
+            </Flex>
+            <H1 Size="Size.Xl">让每一笔降本都看得见</H1>
+            <Paragraph Tone="TextTone.Muted">品牌区铺满左半边，窄屏时收成顶部一块。</Paragraph>
+        </Flex>
+    </Hero>
+    <Tools><ThemeSwitcher /></Tools>
+    <ChildContent>
+        <Card style="width: min(24rem, 100%)">
+            <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+                <H2 Size="Size.Lg">账号登录</H2>
+                <TextField placeholder="工号" aria-label="工号" />
+                <TextField Type="password" placeholder="密码" aria-label="密码" />
+                <Button>登录</Button>
+            </Flex>
+        </Card>
+    </ChildContent>
+</AuthLayout>
+
+@code {
+    static readonly Attrs HeroLayer = new() { Sx = HeroStyle };
+
+    static Style HeroStyle => Css.Define(static () => new Style
+    {
+        BoxSizing = BoxSizing.BorderBox,
+        Height = CssLength.Percent(100),
+        Padding = Space.Xl,
+        BackgroundColor = Tones.Accent.Soft,
+    });
+}
