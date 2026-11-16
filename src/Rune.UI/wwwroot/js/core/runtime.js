@@ -1,7 +1,7 @@
 // JS 初始化器的主体（入口 RuneForBlazor.UI.lib.module.js 在后台加载它，各个 data-rune-* 属性的约定写在入口的开头）：
 // 挂全局的事件委托与 DOM 变化监听，再分给同目录下的各模块。
 
-import { autosize, focusAtEnd, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from '../input/controls.js';
+import { autosize, focusAtEnd, focusFirst, focusInvalid, focusOnShell, formatInput, onFocusLink, refocusFrom, sendKeyCommand, sendPasteCommand, spin, syncIndeterminate, toggleReveal, updateCount } from '../input/controls.js';
 import { blockInert, copyFrom, drawCheckOnChange, drawIcon, startDismiss, startRipple } from './effects.js';
 import { createFilePreviews, onFileDragEnter, onFileDragLeave, onFileDrop, pasteFiles, releaseDetachedPreviews, releaseFilePreviews, sendRelativePaths } from '../input/files.js';
 import { guardLeave } from './leave.js';
@@ -191,6 +191,7 @@ const watched = [
   ['[data-rune-loading-bar]', watchLoadingBar],
   ['[data-rune-hotkey-label]', formatHotkeyLabel],
   ['[data-rune-focus-end]', focusAtEnd],
+  ['[data-rune-focus-first]', focusFirst],
   ['dialog[data-rune-close-when]', watchCloseWhen],
   ['[data-rune-fullscreen="true"]', syncFullscreen],
   ['[data-rune-theme-switcher]', watchThemeSwitcher],

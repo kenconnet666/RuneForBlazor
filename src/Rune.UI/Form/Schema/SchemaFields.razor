@@ -1,0 +1,345 @@
+@*
+    按模型生成字段（同 vue-tsx-pro 的 SchemaFields）：放在 Form 里，模型标了 [FormSchema]（源生成器给出字段描述，见 FormSchemaAttribute）。
+    <Form Model="application" OnValidSubmit="SubmitAsync">
+        <SchemaFields Model="application" Pick="@([nameof(Application.Company), nameof(Application.Contact)])" Columns="2" />
+        <Field Label="地区"><Cascader Options="regions" @bind-Value="application.Region" /></Field>    其余手写
+    </Form>
+    - 布局：没分组的字段在最前面一组，[Display(GroupName)] 相同的放进一个 FormSection（组名是标题）；Columns 是最多几栏，窄时自动减少，
+      [FormField(Span / FullRow)] 跨栏。写了 Tab 的字段放进页签（页签里照旧分组）。嵌套的对象是一个 FormSection，对象的列表是可增删的行或明细表。
+    - 条件与权限：VisibleWhen 不成立、Access 是 Hidden 的不显示；ReadOnlyWhen、ReadOnly 只读；RequiredWhen、Required 时标必填，
+      空着时随表单的校验报“必填”（DataAnnotations 之外另加的错误）。有条件的字段不要写 [Required]。
+    - Fields 按字段路径（Lines.Price）换掉控件：给的内容放进字段（标签、错误）里，值自己绑定。
+    - 加一行后焦点到新行的第一个控件，删一行后焦点到“添加”按钮（不然焦点掉回页面开头）。
+*@
+@namespace Rune.UI
+@typeparam TModel where TModel : class, IFormSchema<TModel>
+@inherits UIComponent
+@implements IDisposable
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Forms
+@{
+    var parts = SchemaFormStyles.Of(Config.Styles);
+    var model = Model ?? CascadedEditContext?.Model as TModel ?? throw new InvalidOperationException("SchemaFields 要有 Model，或放在 Model 是它的 Form 里");
+    var fields = SchemaLayout.Pick(TModel.FormSchemaFields, Pick, Omit);
+    var tabs = fields.Select(f => f.Info.Tab).OfType<string>().Distinct().ToList();
+    var locked = Layout?.ReadOnly == true || Layout?.Disabled == true;
+    currentTab ??= tabs.FirstOrDefault();
+}
+
+@Groups(parts, fields.Where(f => f.Info.Tab is null), model, "", locked)
+@if (tabs.Count > 0)
+{
+    <Tabs @bind-Value="currentTab">
+        <TabList aria-label="@Config.Lang.FormTabs">
+            @foreach (var tab in tabs)
+            {
+                <Tab @key="tab" Value="@tab">@tab</Tab>
+            }
+        </TabList>
+        @foreach (var tab in tabs)
+        {
+            <TabPanel @key="tab" Value="@tab">
+                <div @attributes="Attrs.Merge(parts[SchemaFormPart.TabPanel])">@Groups(parts, fields.Where(f => f.Info.Tab == tab), model, "", locked)</div>
+            </TabPanel>
+        }
+    </Tabs>
+}
+
+@code {
+    string? currentTab;
+    object? justAdded;
+    int addFocus;
+    string? focusAdd;
+    ValidationMessageStore? store;
+    EditContext? subscribed;
+
+    /// <summary>模型；不写时取所在 Form 的模型。</summary>
+    [Parameter] public TModel? Model { get; set; }
+
+    /// <summary>数据来源（字典与远程选项、人员、上传）。</summary>
+    [Parameter] public FormSources? Sources { get; set; }
+
+    /// <summary>只生成这些顶层字段，按这里的顺序（属性名）。</summary>
+    [Parameter] public IReadOnlyList<string>? Pick { get; set; }
+
+    /// <summary>不生成这些顶层字段。</summary>
+    [Parameter] public IReadOnlyList<string>? Omit { get; set; }
+
+    /// <summary>换掉某些字段的控件：字段路径（<c>Region</c>、<c>Lines.Price</c>）→ 控件，值自己绑定。</summary>
+    [Parameter] public IReadOnlyDictionary<string, RenderFragment>? Fields { get; set; }
+
+    /// <summary>最多几栏（每组各自），容器窄时自动减少；默认 1。</summary>
+    [Parameter] public int Columns { get; set; } = 1;
+
+    /// <summary>字段的权限：字段路径（不带行号，<c>Lines.Price</c>）→ 权限；明细表的列没写时跟着明细表。</summary>
+    [Parameter] public IReadOnlyDictionary<string, SchemaFieldAccess>? Access { get; set; }
+
+    /// <summary>每一组（FormSection）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSection { get; set; }
+
+    /// <summary>列表、明细表“添加一行”按钮的部件属性（交给 Button）。</summary>
+    [Parameter] public Attrs? PropsAddRow { get; set; }
+
+    /// <summary>列表、明细表每一行“删除”按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsRemoveRow { get; set; }
+
+    [CascadingParameter] EditContext? CascadedEditContext { get; set; }
+
+    [CascadingParameter] FieldLayout? Layout { get; set; }
+
+    FormSources AllSources => Sources ?? FormSources.Empty;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(CascadedEditContext, subscribed)) return;
+        Unsubscribe();
+        if (CascadedEditContext is not { } context) return;
+        subscribed = context;
+        store = new ValidationMessageStore(context);
+        context.OnValidationRequested += Validate;
+        context.OnFieldChanged += Revalidate;
+    }
+
+    // 条件必填与权限必填：空着的报“必填”（模型上 [Required] 的由 DataAnnotations 报）
+    void Validate(object? sender, ValidationRequestedEventArgs e) => Check(touchedOnly: false);
+
+    void Revalidate(object? sender, FieldChangedEventArgs e) => Check(touchedOnly: true);
+
+    void Check(bool touchedOnly)
+    {
+        if (store is null || subscribed is null) return;
+        var model = Model ?? subscribed.Model as TModel;
+        if (model is null) return;
+        store.Clear();
+        foreach (var (owner, key, state, blank, required) in SchemaLayout.Walk(SchemaLayout.Pick(TModel.FormSchemaFields, Pick, Omit), model, "", Access))
+        {
+            if (!state.Visible || state.ReadOnly || !state.Required || required || !blank) continue;
+            var identifier = new FieldIdentifier(owner, key);
+            // 边填边校验时只报改过的字段：没碰过的不先标红
+            if (touchedOnly && !subscribed.IsModified(identifier)) continue;
+            store.Add(identifier, Config.Lang.FormRequired);
+        }
+        subscribed.NotifyValidationStateChanged();
+    }
+
+    void Unsubscribe()
+    {
+        if (subscribed is null) return;
+        subscribed.OnValidationRequested -= Validate;
+        subscribed.OnFieldChanged -= Revalidate;
+        store?.Clear();
+        subscribed = null;
+        store = null;
+    }
+
+    /// <inheritdoc/>
+    public void Dispose() => Unsubscribe();
+
+    SchemaFieldState StateOf<TM>(SchemaField<TM> field, TM model, string path) => SchemaLayout.StateOf(field, model, Access?.GetValueOrDefault(path));
+
+    // 字段按分组排成几组：没分组的在最前面，组按第一次出现的先后
+    RenderFragment Groups<TM>(PartLayers<SchemaFormPart> parts, IEnumerable<SchemaField<TM>> fields, TM model, string prefix, bool locked) => __builder =>
+    {
+        foreach (var group in fields.GroupBy(f => f.Info.Group).OrderBy(g => g.Key is null ? 0 : 1))
+        {
+            <FormSection @key="@(prefix + group.Key)" Title="@group.Key" Columns="Columns" @attributes="Attrs.MergeProps(null, PropsSection)">
+                @Items(group, model, prefix, locked)
+            </FormSection>
+        }
+    };
+
+    RenderFragment Items<TM>(IEnumerable<SchemaField<TM>> fields, TM model, string prefix, bool locked) => __builder =>
+    {
+        var visitor = new Renderer(this, prefix, locked);
+        foreach (var field in fields)
+        {
+            @field.Accept(model, visitor)
+        }
+    };
+
+    // 一个值字段：Field 里放控件；不显示的不渲染，只读、必填按条件与权限
+    RenderFragment ValueField<TM, TV>(SchemaValueField<TM, TV> field, TM model, string path, bool locked)
+    {
+        var state = StateOf(field, model, path);
+        if (!state.Visible) return Nothing;
+        var info = field.Info;
+        var args = new SchemaControlArgs<TV>(info, field.Get(model), EventCallback.Factory.Create<TV>(this, value => field.Set(model, value)),
+            field.Expression(model), AllSources, this);
+        var control = Fields?.GetValueOrDefault(path) ?? field.Control(args);
+        RenderFragment node = @<Field @key="path" Label="@info.Label" LabelHidden="@(info.Control == SchemaControl.Checkbox)" Description="@info.Description"
+                                      ReadOnly="@(state.ReadOnly || locked)" Required="@(info.Required || state.Required ? true : null)">@control</Field>;
+        return info.Span is not null || info.FullRow ? @<GridItem Span="info.Span" FullRow="info.FullRow">@node</GridItem> : node;
+    }
+
+    // 嵌套的对象：一组字段，标题是字段的标签
+    RenderFragment ObjectField<TM, TC>(SchemaObjectField<TM, TC> field, TM model, string path, bool locked) where TC : class, IFormSchema<TC>
+    {
+        var state = StateOf(field, model, path);
+        if (!state.Visible || field.Get(model) is not { } child) return Nothing;
+        return @<GridItem @key="path" FullRow="true">
+            <FormSection Title="@field.Info.Label" Description="@field.Info.Description" Columns="Columns" ReadOnly="state.ReadOnly" @attributes="Attrs.MergeProps(null, PropsSection)">
+                @Items(SchemaObjectField<TM, TC>.Fields, child, path + ".", locked || state.ReadOnly)
+            </FormSection>
+        </GridItem>;
+    }
+
+    // 对象的列表：每一行是一组字段加删除按钮（List），或一行一条的明细表（Table）；标题旁是添加按钮，只读时不能增删行
+    RenderFragment ListField<TM, TI>(SchemaListField<TM, TI> field, TM model, string path, bool locked) where TI : class, IFormSchema<TI>, new()
+    {
+        var state = StateOf(field, model, path);
+        if (!state.Visible || field.Get(model) is not { } items) return Nothing;
+        var parts = SchemaFormStyles.Of(Config.Styles);
+        var readOnly = state.ReadOnly || locked;
+        var info = field.Info;
+        var lang = Config.Lang;
+        RenderFragment? add = readOnly ? null : @<Button @key="@($"{path}:{addFocus}")" Size="Size.Sm" Variant="ButtonVariant.Soft" Icon="BuiltInIcons.Plus"
+                                                         data-rune-focus-first="@(focusAdd == path ? "" : null)" @onclick="() => AddRow(items, path)"
+                                                         @attributes="Attrs.MergeProps(parts[SchemaFormPart.AddRow], PropsAddRow)">@lang.FormAddRow(info.Label)</Button>;
+        RenderFragment Remove(int index) => @<IconButton Icon="BuiltInIcons.Trash" Variant="ButtonVariant.Ghost" Tone="Tone.Danger" Label="@lang.FormRemoveRow(info.Label, index + 1)"
+                                                        @onclick="() => RemoveRow(items, index, path)" @attributes="Attrs.MergeProps(info.Control == SchemaControl.Table ? null : parts[SchemaFormPart.RemoveRow], PropsRemoveRow)" />;
+        return @<GridItem @key="path" FullRow="true" @attributes="Attrs.MergeProps(parts[SchemaFormPart.Rows])">
+            <FormSection Title="@info.Label" Description="@info.Description" Extra="add" @attributes="Attrs.MergeProps(null, PropsSection)">
+                <GridItem FullRow="true">
+                    @if (info.Control == SchemaControl.Table)
+                    {
+                        @Table(parts, field, items, path, readOnly, Remove)
+                    }
+                    else
+                    {
+                        <div @attributes="Attrs.Merge(parts[SchemaFormPart.List])">
+                            @for (var index = 0; index < items.Count; index++)
+                            {
+                                var item = items[index];
+                                var at = index;
+                                <div @key="item" data-rune-focus-first="@(ReferenceEquals(item, justAdded) ? "" : null)" @attributes="Attrs.Merge(parts[SchemaFormPart.Row])">
+                                    <div @attributes="Attrs.Merge(parts[SchemaFormPart.RowFields])">
+                                        <FormSection Columns="Columns" @attributes="Attrs.MergeProps(null, PropsSection)">
+                                            @Items(SchemaListField<TM, TI>.Fields, item, path + ".", readOnly)
+                                        </FormSection>
+                                    </div>
+                                    @if (!readOnly)
+                                    {
+                                        @Remove(at)
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </GridItem>
+            </FormSection>
+        </GridItem>;
+    }
+
+    // 明细表：格子里是去掉标签的控件（标签留给读屏），整列都不显示时不出这一列；列写了 Sum 时表底是合计行
+    RenderFragment Table<TM, TI>(PartLayers<SchemaFormPart> parts, SchemaListField<TM, TI> field, IList<TI> items, string path, bool readOnly, Func<int, RenderFragment> remove)
+        where TI : class, IFormSchema<TI>, new()
+    {
+        var lang = Config.Lang;
+        var columns = SchemaListField<TM, TI>.Fields
+            .Where(column => items.Count == 0 || items.Any(item => StateOf(column, item, $"{path}.{column.Info.Key}").Visible)).ToList();
+        var totals = columns.Any(column => column.Info.Sum);
+        return @<Table aria-label="@field.Info.Label" data-part="table">
+            <TableHead>
+                <TableRow>
+                    @foreach (var column in columns)
+                    {
+                        <TableHeaderCell @key="column.Info.Key" Align="@(column.Info.Sum ? TableAlign.End : TableAlign.Start)">@column.Info.Label</TableHeaderCell>
+                    }
+                    @if (!readOnly)
+                    {
+                        <TableHeaderCell @attributes="Attrs.MergeProps(parts[SchemaFormPart.TableActions])"><VisuallyHidden>@lang.FormRowActions</VisuallyHidden></TableHeaderCell>
+                    }
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                @if (items.Count == 0)
+                {
+                    <TableRow><TableCell colspan="@(columns.Count + (readOnly ? 0 : 1))">@lang.TableEmpty</TableCell></TableRow>
+                }
+                @for (var index = 0; index < items.Count; index++)
+                {
+                    var item = items[index];
+                    var at = index;
+                    <TableRow @key="item" data-rune-focus-first="@(ReferenceEquals(item, justAdded) ? "" : null)">
+                        @foreach (var column in columns)
+                        {
+                            <TableCell @key="column.Info.Key" @attributes="Attrs.MergeProps(parts[SchemaFormPart.TableCell])">
+                                @column.Accept(item, new Renderer(this, path + ".", readOnly, lang.FormRowLabel(field.Info.Label, at + 1)))
+                            </TableCell>
+                        }
+                        @if (!readOnly)
+                        {
+                            <TableCell @attributes="Attrs.MergeProps(parts[SchemaFormPart.TableActions])">@remove(at)</TableCell>
+                        }
+                    </TableRow>
+                }
+            </TableBody>
+            @if (totals && items.Count > 0)
+            {
+                <TableFoot>
+                    <TableRow>
+                        @for (var i = 0; i < columns.Count; i++)
+                        {
+                            var column = columns[i];
+                            var first = i == 0;
+                            var sum = SchemaLayout.Total(column, items);
+                            <TableCell @key="column.Info.Key" Align="@(column.Info.Sum ? TableAlign.End : TableAlign.Start)" @attributes="Attrs.MergeProps(parts[SchemaFormPart.TableTotal])">
+                                @(sum ?? (first ? lang.TableSummary : null))
+                            </TableCell>
+                        }
+                        @if (!readOnly)
+                        {
+                            <TableCell />
+                        }
+                    </TableRow>
+                </TableFoot>
+            }
+        </Table>;
+    }
+
+    // 明细表的一格：只有控件（标签只给读屏：“单价（第 2 行）”）
+    RenderFragment CellField<TM, TV>(SchemaValueField<TM, TV> field, TM model, string path, bool locked, string row)
+    {
+        var state = StateOf(field, model, path);
+        if (!state.Visible) return Nothing;
+        var info = field.Info;
+        var args = new SchemaControlArgs<TV>(info, field.Get(model), EventCallback.Factory.Create<TV>(this, value => field.Set(model, value)),
+            field.Expression(model), AllSources, this);
+        var control = Fields?.GetValueOrDefault(path) ?? field.Control(args);
+        return @<Field Label="@($"{info.Label}（{row}）")" LabelHidden="true" ReadOnly="@(state.ReadOnly || locked)" Required="@(info.Required || state.Required ? true : null)">@control</Field>;
+    }
+
+    void AddRow<TI>(IList<TI> items, string path) where TI : new()
+    {
+        var item = new TI();
+        items.Add(item);
+        justAdded = item;
+        focusAdd = null;
+    }
+
+    void RemoveRow<TI>(IList<TI> items, int index, string path)
+    {
+        items.RemoveAt(index);
+        justAdded = null;
+        // 换一个 @key：“添加”按钮重新插入，带着 data-rune-focus-first 把焦点接过去
+        focusAdd = path;
+        addFocus++;
+    }
+
+    static readonly RenderFragment Nothing = _ => { };
+
+    /// <summary>按字段的类型交给组件里对应的渲染方法；明细表的格子只要控件。</summary>
+    sealed class Renderer(SchemaFields<TModel> owner, string prefix, bool locked, string? row = null) : ISchemaVisitor<RenderFragment>
+    {
+        public RenderFragment Value<TM, TV>(SchemaValueField<TM, TV> field, TM model) => row is null
+            ? owner.ValueField(field, model, prefix + field.Info.Key, locked)
+            : owner.CellField(field, model, prefix + field.Info.Key, locked, row);
+
+        public RenderFragment Object<TM, TC>(SchemaObjectField<TM, TC> field, TM model) where TC : class, IFormSchema<TC> =>
+            owner.ObjectField(field, model, prefix + field.Info.Key, locked);
+
+        public RenderFragment List<TM, TI>(SchemaListField<TM, TI> field, TM model) where TI : class, IFormSchema<TI>, new() =>
+            owner.ListField(field, model, prefix + field.Info.Key, locked);
+    }
+}

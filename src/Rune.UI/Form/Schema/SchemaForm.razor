@@ -1,0 +1,85 @@
+@*
+    按模型生成的整份表单（同 vue-tsx-pro 的 SchemaForm）：错误汇总、字段（SchemaFields）、重置与提交按钮。模型标了 [FormSchema]。
+    <SchemaForm Model="application" Columns="2" SubmitText="提交申请" OnValidSubmit="SubmitAsync" OnReset="Reset">
+        @message                                                   按钮那一行起始边的内容：提交结果、说明
+    </SchemaForm>
+    校验照旧由 DataAnnotations（模型上的 [Required]、[StringLength]……）与 SchemaFields 的条件必填负责；提交中提交按钮转圈。
+    写了 OnReset 时有重置按钮（模型怎样回到初始值由使用方决定：C# 里没有通用的深拷贝）。其余参数同 SchemaFields。未声明的属性落到 form 上。
+*@
+@namespace Rune.UI
+@typeparam TModel where TModel : class, IFormSchema<TModel>
+@inherits UIComponent
+@using Microsoft.AspNetCore.Components.Forms
+@{ var parts = SchemaFormStyles.Of(Config.Styles); }
+
+<Form Model="Model" OnValidSubmit="OnValidSubmit" OnInvalidSubmit="OnInvalidSubmit" @attributes="Attrs.MergeProps(parts[SchemaFormPart.Form], PropsForm, Rest)">
+    <SchemaFields TModel="TModel" Model="Model" Sources="Sources" Pick="Pick" Omit="Omit" Fields="Fields" Columns="Columns" Access="Access"
+                  PropsSection="PropsSection" PropsAddRow="PropsAddRow" PropsRemoveRow="PropsRemoveRow" />
+    <div @attributes="Attrs.Merge(parts[SchemaFormPart.Actions], PropsActions)">
+        <div aria-live="polite" @attributes="Attrs.Merge(parts[SchemaFormPart.ActionsStart])">@ChildContent</div>
+        @if (OnReset.HasDelegate)
+        {
+            <Button Variant="ButtonVariant.Soft" Tone="Tone.Neutral" @onclick="OnReset" @attributes="Attrs.MergeProps(null, PropsReset)">@Config.Lang.FormReset</Button>
+        }
+        <Button Type="submit" @attributes="Attrs.MergeProps(null, PropsSubmit)">@(SubmitText ?? Config.Lang.FormSubmit)</Button>
+    </div>
+</Form>
+
+@code {
+    /// <summary>模型。</summary>
+    [Parameter, EditorRequired] public TModel Model { get; set; } = default!;
+
+    /// <summary>提交且校验通过。</summary>
+    [Parameter] public EventCallback<EditContext> OnValidSubmit { get; set; }
+
+    /// <summary>提交但校验没通过（焦点已到错误汇总）。</summary>
+    [Parameter] public EventCallback<EditContext> OnInvalidSubmit { get; set; }
+
+    /// <summary>点了重置：写了才有重置按钮，模型回到初始值由使用方做。</summary>
+    [Parameter] public EventCallback OnReset { get; set; }
+
+    /// <summary>提交按钮的文字，默认“提交”。</summary>
+    [Parameter] public string? SubmitText { get; set; }
+
+    /// <summary>按钮那一行起始边的内容：提交结果、说明（礼貌的实时区域）。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>数据来源（字典与远程选项、人员、上传）。</summary>
+    [Parameter] public FormSources? Sources { get; set; }
+
+    /// <summary>只生成这些顶层字段，按这里的顺序。</summary>
+    [Parameter] public IReadOnlyList<string>? Pick { get; set; }
+
+    /// <summary>不生成这些顶层字段。</summary>
+    [Parameter] public IReadOnlyList<string>? Omit { get; set; }
+
+    /// <summary>换掉某些字段的控件：字段路径 → 控件，值自己绑定。</summary>
+    [Parameter] public IReadOnlyDictionary<string, RenderFragment>? Fields { get; set; }
+
+    /// <summary>最多几栏，容器窄时自动减少；默认 1。</summary>
+    [Parameter] public int Columns { get; set; } = 1;
+
+    /// <summary>字段的权限：字段路径 → 权限。</summary>
+    [Parameter] public IReadOnlyDictionary<string, SchemaFieldAccess>? Access { get; set; }
+
+    /// <summary>表单（Form）的部件属性：标签的位置、宽度、只读等。</summary>
+    [Parameter] public Attrs? PropsForm { get; set; }
+
+    /// <summary>每一组（FormSection）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSection { get; set; }
+
+    /// <summary>“添加一行”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsAddRow { get; set; }
+
+    /// <summary>每一行“删除”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsRemoveRow { get; set; }
+
+    /// <summary>按钮那一行的部件属性。</summary>
+    [Parameter] public Attrs? PropsActions { get; set; }
+
+    /// <summary>提交按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsSubmit { get; set; }
+
+    /// <summary>重置按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsReset { get; set; }
+}

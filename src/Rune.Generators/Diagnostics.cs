@@ -60,6 +60,21 @@ internal static class Diagnostics
         "RUNE010", "给组件的属性层要经 Attrs.MergeProps",
         "'{0}' 直接展开给了组件：Sx 会先合成普通的类，落在组件自己的样式层里，可能被它盖住；写成 Attrs.MergeProps({0})，样式作为组件的 Sx 参数交下去",
         Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor FormSchemaType = new(
+        "RUNE011", "[FormSchema] 要标在 partial 的非泛型类上",
+        "'{0}' 标了 [FormSchema]：它与包含它的类型都要是 partial，不能是静态类、泛型或结构体（源生成器要为它补上 IFormSchema 的实现）",
+        Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor FormSchemaProperty = new(
+        "RUNE012", "属性生成不了表单字段",
+        "'{0}' 没有生成字段：{1}",
+        Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor FormSchemaCondition = new(
+        "RUNE013", "表单字段的条件找不到",
+        "条件 '{0}' 要是 {1} 上的 bool 属性或无参的 bool 方法（实例成员）",
+        Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
 }
 
 /// <summary>

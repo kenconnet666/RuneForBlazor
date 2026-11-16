@@ -90,6 +90,12 @@ function keyCommand(target, event) {
   return name;
 }
 
+/** 出现时把焦点放进来（data-rune-focus-first）：自己能聚焦就是自己，否则是里面第一个能 Tab 到的（表单加了一行、删了一行后）*/
+export function focusFirst(element) {
+  const target = element.matches(TABBABLE) ? element : element.querySelector(TABBABLE);
+  target?.focus();
+}
+
 /** 出现时聚焦、光标放到末尾（data-rune-focus-end）：点了“回复”，输入框里已有“@作者 ”，接着往后写 */
 export function focusAtEnd(element) {
   if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) return;

@@ -14,3 +14,6 @@ RUNE007 | Rune | Disabled | 组件内部的长度不要用 px
 RUNE008 | Rune | Warning | for 循环变量被延后执行的内容捕获
 RUNE009 | Rune | Error | 不要在静态初始化里调用 Attrs.Merge
 RUNE010 | Rune | Error | 给组件的属性层要经 Attrs.MergeProps
+RUNE011 | Rune | Error | [FormSchema] 要标在 partial 的非泛型类上
+RUNE012 | Rune | Warning | 属性生成不了表单字段
+RUNE013 | Rune | Error | 表单字段的条件找不到
