@@ -1,0 +1,211 @@
+@*
+    看板（同 vue-tsx-pro 的 KanbanBoard）：一列一个状态（或阶段、负责人），卡片在列之间移动。任务看板、招聘流程、工单。
+    <KanbanBoard aria-label="任务看板" Columns="columns" Items="tasks" GetKey="t => t.Code" GetColumn="t => t.Status" GetLabel="t => t.Name"
+                 CanMove="@((t, to) => to == Next(t.Status) ? null : &quot;只能拖到下一列&quot;)" OnMove="OpenProcessDialogAsync">
+        <TaskCard Task="context.Item" />
+    </KanbanBoard>
+    - 数据由使用方控制：看板不自己挪卡片，只在放下时报告 OnMove（卡片、目标列、位置），使用方处理完、改了数据，卡片才换列。
+    - CanMove 返回不能移动的原因（null 是可以）：拖动经过的列按它标出能不能放（不能放的标红并写出原因），落点画一条插入线；
+      放在不能放的列上时卡片弹回、读屏播报原因，并报告 OnReject。给了 OnReorder 时列内也能排序（写回整个列表）。
+    - 指针：在卡片上按下拖动（点在卡片里的链接、按钮上不算；触屏从把手拖），影子卡跟着指针，原位留着变淡的卡片；
+      键盘：每张卡片有把手按钮，空格 / Enter 拿起，← / → 换列（从右到左排版下镜像），↑ / ↓ 调整位置，空格 / Enter 放下，Esc 取消；每一步都有读屏播报。
+      拖动、键盘、播报、自动滚动都在 JS 里（data-rune-kanban），放下时才交给 C#。
+    - 列多时整块横向滚动，每列里的卡片多时列自己竖向滚动。未声明的属性落到外层 div 上；aria-label 是看板的名称。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@inherits UIComponent
+@{
+    var parts = KanbanBoardStyles.Of(Config.Styles);
+    var lang = Config.Lang;
+}
+
+<div role="group" data-rune-kanban data-texts="@KanbanTexts.Of(lang)" data-reorderable="@(OnReorder.HasDelegate ? "" : null)" @onrunecommand="CommandAsync"
+     @attributes="Attrs.Merge(parts[KanbanBoardPart.Root], Rest)">
+    <ScrollArea Axis="ScrollAxis.X">
+        <div data-rune-kanban-board @attributes="Attrs.Merge(parts[KanbanBoardPart.Board], PropsBoard)">
+            @foreach (var column in Columns)
+            {
+                var cards = Items.Where(item => GetColumn(item) == column.Key).ToList();
+                var headingId = $"{instructionsId}-{column.Key}";
+                <section @key="column.Key" data-rune-kanban-column="@column.Key" data-label="@column.Label" aria-labelledby="@headingId"
+                         style="@($"flex: 1 0 {ColumnWidth}; min-width: {ColumnWidth}")" @attributes="Attrs.Merge(parts[KanbanBoardPart.Column], Attrs.Layer(PropsColumn, PropsColumnFor?.Invoke(column)))">
+                    <div @attributes="Attrs.Merge(parts[KanbanBoardPart.Header], PropsHeader)">
+                        <span id="@headingId" @attributes="Attrs.Merge(parts[KanbanBoardPart.Title])">@column.Label</span>
+                        <Badge Radius="UI.Radius.Full" Tone="@(cards.Count > 0 ? column.Tone ?? Tone.Neutral : Tone.Neutral)"
+                               @attributes="Attrs.MergeProps(parts[KanbanBoardPart.Count], PropsCount)">@cards.Count</Badge>
+                    </div>
+                    <div data-rune-kanban-reason @attributes="Attrs.Merge(parts[KanbanBoardPart.Reason], PropsReason)"></div>
+                    <ScrollArea style="@($"max-height: {ColumnHeight}")">
+                        <ul @attributes="Attrs.Merge(parts[KanbanBoardPart.List], PropsList)">
+                            @if (cards.Count == 0)
+                            {
+                                <li @attributes="Attrs.Merge(parts[KanbanBoardPart.Empty], PropsEmpty)">@(Empty ?? (b => b.AddContent(0, Config.Lang.Patterns.KanbanEmpty)))</li>
+                            }
+                            @foreach (var item in cards)
+                            {
+                                var key = GetKey(item);
+                                var label = LabelOf(item);
+                                var state = new KanbanCard<TItem>(item, key == active);
+                                <li @key="key" data-rune-kanban-card="@key" data-label="@label" data-deny="@DenyOf(item, column.Key)"
+                                    data-state="@(state.Dragging ? "dragging" : null)" @attributes="Attrs.Merge(parts[KanbanBoardPart.Card], Attrs.Layer(PropsCard, PropsCardFor?.Invoke(state)))">
+                                    <div>@ChildContent?.Invoke(state)</div>
+                                    @* 拖动的把手不出波纹 *@
+                                    <ButtonBase Ripple="false" data-rune-kanban-handle aria-label="@lang.SortableHandle(label)" aria-describedby="@instructionsId" aria-pressed="false"
+                                                @attributes="Attrs.MergeProps(parts[KanbanBoardPart.Handle], PropsHandle)">
+                                        <Icon Data="BuiltInIcons.GripVertical" />
+                                    </ButtonBase>
+                                </li>
+                            }
+                        </ul>
+                    </ScrollArea>
+                </section>
+            }
+        </div>
+    </ScrollArea>
+    <div data-rune-kanban-indicator aria-hidden="true" @attributes="Attrs.Merge(parts[KanbanBoardPart.Indicator])"></div>
+    <div data-rune-kanban-ghost aria-hidden="true" @attributes="Attrs.Merge(parts[KanbanBoardPart.Ghost])"></div>
+    <VisuallyHidden id="@instructionsId">@lang.Patterns.KanbanInstructions</VisuallyHidden>
+</div>
+
+@code {
+    readonly string instructionsId = UniqueId.Next("kanban");
+    // 正在拖动或被键盘拿起的卡片（JS 在拿起、放下时告诉 C#）：卡片内容按它换写法
+    string? active;
+
+    /// <summary>各列：从起始边排。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<KanbanColumn> Columns { get; set; } = [];
+
+    /// <summary>全部卡片的数据。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    /// <summary>卡片的标识。</summary>
+    [Parameter, EditorRequired] public Func<TItem, string> GetKey { get; set; } = default!;
+
+    /// <summary>卡片在哪一列。</summary>
+    [Parameter, EditorRequired] public Func<TItem, string> GetColumn { get; set; } = default!;
+
+    /// <summary>卡片的名称：把手的名称、读屏播报；默认是标识。</summary>
+    [Parameter] public Func<TItem, string>? GetLabel { get; set; }
+
+    /// <summary>能不能移到某一列：返回不能的原因，null 是可以。</summary>
+    [Parameter] public Func<TItem, string, string?>? CanMove { get; set; }
+
+    /// <summary>放到了可以放的列：使用方处理（打开处理的对话框、调接口），完成后改数据。</summary>
+    [Parameter] public EventCallback<KanbanMove<TItem>> OnMove { get; set; }
+
+    /// <summary>列内排序：写回新的列表（所有列的卡片）；不写时列内不能排序。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<TItem>> OnReorder { get; set; }
+
+    /// <summary>放到了不能放的列：卡片已经弹回，可以在这里提示原因。</summary>
+    [Parameter] public EventCallback<KanbanReject<TItem>> OnReject { get; set; }
+
+    /// <summary>每列至少多宽（CSS 长度），默认 16rem：放得下时各列平分整行，放不下时横向滚动。</summary>
+    [Parameter] public string ColumnWidth { get; set; } = "16rem";
+
+    /// <summary>每列的最大高度（CSS 长度），默认 70vh：卡片多时列里竖向滚动。</summary>
+    [Parameter] public string ColumnHeight { get; set; } = "70vh";
+
+    /// <summary>一列没有卡片时显示的内容，默认“没有”。</summary>
+    [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <summary>卡片的内容：拿到数据与是否正在拖动。</summary>
+    [Parameter] public RenderFragment<KanbanCard<TItem>>? ChildContent { get; set; }
+
+    /// <summary>各列横排那一层的部件属性。</summary>
+    [Parameter] public Attrs? PropsBoard { get; set; }
+
+    /// <summary>每一列（section）的部件属性。</summary>
+    [Parameter] public Attrs? PropsColumn { get; set; }
+
+    /// <summary>按列计算的部件属性，叠在 <see cref="PropsColumn"/> 之后。</summary>
+    [Parameter] public Func<KanbanColumn, Attrs?>? PropsColumnFor { get; set; }
+
+    /// <summary>列头（名称与数量）的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>列头数量的部件属性（交给 Badge）。</summary>
+    [Parameter] public Attrs? PropsCount { get; set; }
+
+    /// <summary>不能放时列头下面的原因的部件属性。</summary>
+    [Parameter] public Attrs? PropsReason { get; set; }
+
+    /// <summary>卡片列表（ul）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>空列的提示的部件属性。</summary>
+    [Parameter] public Attrs? PropsEmpty { get; set; }
+
+    /// <summary>每张卡片（li）的部件属性。</summary>
+    [Parameter] public Attrs? PropsCard { get; set; }
+
+    /// <summary>按卡片计算的部件属性，叠在 <see cref="PropsCard"/> 之后。</summary>
+    [Parameter] public Func<KanbanCard<TItem>, Attrs?>? PropsCardFor { get; set; }
+
+    /// <summary>卡片的拖动把手的部件属性（交给 ButtonBase）。</summary>
+    [Parameter] public Attrs? PropsHandle { get; set; }
+
+    string LabelOf(TItem item) => GetLabel?.Invoke(item) ?? GetKey(item);
+
+    TItem? Find(string key, out bool found)
+    {
+        foreach (var item in Items)
+        {
+            if (GetKey(item) != key) continue;
+            found = true;
+            return item;
+        }
+        found = false;
+        return default;
+    }
+
+    // 不能放进哪些列与原因：交给 JS，拖动经过时不用往返
+    string? DenyOf(TItem item, string own)
+    {
+        if (CanMove is null) return null;
+        var denied = new Dictionary<string, string>();
+        foreach (var column in Columns)
+        {
+            if (column.Key != own && CanMove(item, column.Key) is { } reason) denied[column.Key] = reason;
+        }
+        return denied.Count == 0 ? null : System.Text.Json.JsonSerializer.Serialize(denied, UIJson.Relaxed.DictionaryStringString);
+    }
+
+    async Task CommandAsync(CommandEventArgs e)
+    {
+        var parts = (e.Text ?? "").Split('\n');
+        switch (e.Name)
+        {
+            case "grab":
+                active = e.Text;
+                return;
+            case "release":
+                active = null;
+                return;
+            case "move" when parts.Length == 3 && Find(parts[0], out var found) is var item && found
+                && int.TryParse(parts[2], System.Globalization.CultureInfo.InvariantCulture, out var index):
+                await OnMove.InvokeAsync(new(item!, parts[1], index));
+                return;
+            case "reject" when parts.Length == 2 && Find(parts[0], out var found) is var item && found:
+                await OnReject.InvokeAsync(new(item!, parts[1], CanMove?.Invoke(item!, parts[1]) ?? ""));
+                return;
+            case "reorder" when parts.Length == 2 && Find(parts[0], out var found) is var item && found
+                && int.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var index):
+                await OnReorder.InvokeAsync(Reordered(item!, index));
+                return;
+        }
+    }
+
+    // 在自己的列里把卡片移到第 index 位：插到列里第 index 张（不算它自己）的前面；放在列尾时接在列的最后一张后面
+    List<TItem> Reordered(TItem item, int index)
+    {
+        var key = GetKey(item);
+        var column = GetColumn(item);
+        var list = Items.Where(other => GetKey(other) != key).ToList();
+        var siblings = list.Where(other => GetColumn(other) == column).ToList();
+        index = Math.Clamp(index, 0, siblings.Count);
+        var at = index < siblings.Count ? list.IndexOf(siblings[index]) : siblings.Count > 0 ? list.IndexOf(siblings[^1]) + 1 : list.Count;
+        list.Insert(at, item);
+        return list;
+    }
+}

@@ -1,0 +1,73 @@
+@* 招聘看板：放下后先确认（DialogService.PromptAsync 填意见），确认了才改数据，取消就什么都不变；拖动中卡片换一种写法 *@
+@inject DialogService Dialogs
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <KanbanBoard TItem="Candidate" aria-label="招聘进度" Columns="columns" Items="candidates" GetKey="c => c.Id" GetColumn="c => c.Stage" GetLabel="c => c.Name"
+                 OnMove="MoveAsync" ColumnWidth="14rem" ColumnHeight="24rem">
+        <Empty>还没有人</Empty>
+        <ChildContent>
+            <Flex Align="ItemAlign.Start" Gap="SpaceScale.Sm">
+                <Avatar Name="@context.Item.Name" Size="Size.Sm" />
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Grow="true">
+                    <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                        <TextSpan Size="Size.Sm" Weight="Weight.Medium">@context.Item.Name</TextSpan>
+                        <Badge Size="Size.Xs" Variant="StatusVariant.Soft" Tone="Tone.Neutral">@context.Item.Source</Badge>
+                    </Flex>
+                    <Small Tone="TextTone.Muted">@(context.Dragging ? "放到要去的阶段" : $"{context.Item.Role} · {context.Item.Years} 年")</Small>
+                    @if (context.Item.Next is not null && !context.Dragging)
+                    {
+                        <Small Tone="TextTone.Info">@context.Item.Next</Small>
+                    }
+                </Flex>
+            </Flex>
+        </ChildContent>
+    </KanbanBoard>
+    <Small Tone="TextTone.Muted" aria-live="polite">@message</Small>
+</Flex>
+
+@code {
+    sealed record Candidate(string Id, string Name, string Role, int Years, string Source, string Stage, string? Next = null);
+
+    static readonly IReadOnlyList<KanbanColumn> columns =
+    [
+        new("screen", "简历筛选"),
+        new("interview", "面试"),
+        new("offer", "录用") { Tone = Tone.Success },
+        new("rejected", "未通过") { Tone = Tone.Danger },
+    ];
+
+    static string Label(string key) => columns.First(column => column.Key == key).Label;
+
+    IReadOnlyList<Candidate> candidates =
+    [
+        new("c1", "韩亦舟", "前端工程师", 5, "内推", "screen"),
+        new("c2", "唐可", "测试工程师", 3, "招聘网站", "screen"),
+        new("c3", "白露", "数据分析师", 2, "校招", "screen"),
+        new("c4", "顾北辰", "产品经理", 7, "猎头", "interview", "10-22 14:00 二面"),
+        new("c5", "江屿", "后端工程师", 6, "内推", "interview", "10-23 10:00 终面"),
+        new("c6", "沈念", "交互设计师", 4, "招聘网站", "offer", "11-01 入职"),
+        new("c7", "叶舒", "前端工程师", 1, "校招", "rejected"),
+    ];
+
+    string message = "拖一张卡片到别的阶段，确认后才移动";
+
+    async Task MoveAsync(KanbanMove<Candidate> move)
+    {
+        var candidate = move.Item;
+        var values = await Dialogs.PromptAsync(new()
+        {
+            Title = $"{candidate.Name}：{Label(candidate.Stage)} → {Label(move.To)}",
+            Description = $"{candidate.Role} · {candidate.Years} 年经验",
+            ConfirmText = "确认移动",
+            Tone = move.To == "rejected" ? Tone.Danger : Tone.Accent,
+            Fields = [new("note", "意见") { Type = FormDialogFieldType.Textarea, Required = true }],
+        });
+        if (values is null)
+        {
+            message = $"{candidate.Name} 没有移动";
+            return;
+        }
+        candidates = [.. candidates.Select(item => item.Id == candidate.Id ? item with { Stage = move.To, Next = null } : item)];
+        message = $"{candidate.Name} 移到了“{Label(move.To)}”：{values["note"]}";
+    }
+}

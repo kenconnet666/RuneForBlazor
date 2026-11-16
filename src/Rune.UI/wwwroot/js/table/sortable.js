@@ -335,7 +335,7 @@ export function grabSortable(event) {
 }
 
 /** 指针靠近 scroller 的边缘时朝那边滚一步；滚了返回 true */
-function edgeScroll(scroller, pointer) {
+export function edgeScroll(scroller, pointer) {
   const rect = scroller === document.scrollingElement ? new DOMRect(0, 0, innerWidth, innerHeight) : scroller.getBoundingClientRect();
   const speed = (along, low, high) => along < low + EDGE ? -MAX_SCROLL_STEP * (1 - (along - low) / EDGE)
     : along > high - EDGE ? MAX_SCROLL_STEP * (1 - (high - along) / EDGE)
@@ -349,7 +349,7 @@ function edgeScroll(scroller, pointer) {
 }
 
 /** 最近的能滚动的祖先（含自己）；都不能滚时是页面 */
-function scrollParent(element) {
+export function scrollParent(element) {
   for (let current = element; current; current = current.parentElement) {
     const { overflowX, overflowY } = getComputedStyle(current);
     const scrollable = /auto|scroll|overlay/;

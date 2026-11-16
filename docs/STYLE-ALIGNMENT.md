@@ -107,6 +107,11 @@
 - CommentThread / CommentComposer 同样在 Rune.UI.Dates 里（RelativeTime）。上传函数叫 `UploadAsync`（同 Upload），`OnSend` 是 EventCallback（抛出异常即失败）；
   身份 `Role`、补充 `Extra` 是 RenderFragment，`actions` 是 `RenderFragment<CommentItem> Actions`。输入框要边输边判断能不能发送，Textarea 与 Mentions 为此加了 `Immediate`；
   Ctrl + Enter 与 Esc 由 JS 转成命令（`data-rune-ctrl-enter`、`data-rune-cancel`），回复时“光标放到末尾”由 `data-rune-focus-end` 做（vue 在 onMounted 里 setSelectionRange）。
+- KanbanBoard：拖动、键盘、播报都在 JS 里（`js/layout/kanban.js`，算法同 vue 的 useSortable 分组部分），放下时才把 move / reject / reorder 交给 C#。
+  CanMove 在渲染时对每张卡片、每个别的列算一次（`data-deny`），拖动经过时不用往返，所以它要便宜、只看数据。
+  列内排序不是拖动中实时重排（vue 每越过一张就改数据、布局动画让位），而是同别的列一样画插入线，放下时写回一次（键盘 ↑ / ↓ 也是移动落点）。
+  影子卡是卡片元素的副本（vue 用 dragging=true 再渲染一次）；卡片内容拿到的 `Dragging` 由拿起、放下时的 grab / release 命令更新。
+  `children(item, state)` 对应 `ChildContent`（`context.Item`、`context.Dragging`），回调是 EventCallback（KanbanMove、KanbanReject 记录），按列、按卡片的部件属性是 `PropsColumnFor`、`PropsCardFor`。
 
 ### 外观与文档站
 
@@ -121,17 +126,13 @@
 1. 文档站逐页示例调整（vue P2.2 / P2.3）：示例改用组件库组件、卡片网格落单等；Splitter、ScrollArea、Tabs 里手写的可点行改用 ItemList。
 2. TabPanel 听 `beforematch` 切到自己（页内查找命中隐藏的页签时）；现在只有 Collapse 处理。
 3. 紧凑密度 = 主题 scaling 0.9，不另设密度开关。
-4. 随阶段 6 的组件一起做（Rune 还没有这些组件）：
-   - FilterBar / QueryTable 的新版布局：第一排是标题、放得下的条件（常用在前、more 在后）与按钮（展开、重置、查询），不加竖线；放不下的收进“展开”，
-     全放得下不出“展开”；展开的几排与第一排每格同宽，minFieldWidth 默认 14em；按钮区与 QueryTable 工具栏 minWidth 0、maxWidth 100%
-   - FormDialog 的 select 支持 multiple（返回数组）、选项分组、多选默认值给数组
+4. 随阶段 6 剩下的组件一起做（FilterBar / QueryTable 的新版布局、FormDialog 的多选已随组件做了）：
    - 语言包新键 formRowLabel / formRowActions / formTabs / formValueTrue / formValueFalse / formValueEmpty（随 SchemaForm）
    - SchemaForm 一族（visibleWhen / requiredWhen / readonlyWhen、access、明细表与合计、formSources、页签、SchemaView、focusControl 发 beforematch）：先出方案
-   - KanbanBoard 把手的悬停
 5. 不跟：vue 的流程引擎（与组件无关）；CSP nonce 等阶段计划时再定。
 6. vue 0.23.0–0.26.0（`6e6f831d..c42b2f39`）已跟（2026-11-15，CI 的 `VUE_TSX_PRO_REF` 在 `c42b2f39`）。没有对应、留到以后的：
-   - 随组件一起做（Rune 还没有）：KanbanBoard、CodeEditor、Diagram、SchemaForm、SlideCaptcha、
-     ThemeCustomizer、ErrorBoundary、表格导出 xlsx 的那几条（StepsForm、DataImport、ActionBar、QueryTable、ConditionBuilder、NotificationCenter、CommentThread 已在阶段 6 做了）。
+   - 随组件一起做（Rune 还没有）：CodeEditor、Diagram、SchemaForm、SlideCaptcha、
+     ThemeCustomizer、ErrorBoundary、表格导出 xlsx 的那几条（StepsForm、DataImport、ActionBar、QueryTable、ConditionBuilder、NotificationCenter、CommentThread、KanbanBoard 已在阶段 6 做了）。
    - 交互模式是 Server 时拿不到浏览器的时区：时刻按 `Lang.TimeZone`，没配置时是服务器的时区（WebAssembly 里是浏览器的）。
      预渲染的页面里时刻、日历的“今天”同样按服务器当时的；交互接管是重新渲染一遍，不会像 vue 水合那样留着旧的属性（0.25.0 修的那个问题 Rune 没有），
      但永远不交互的静态页会停在渲染那一刻。要准的话配置 `Lang.TimeZone`，或者传 `Now` / `Today`。

@@ -96,7 +96,6 @@ Icon.Icon
 IconButton.Type
 ImageCropper.Handle
 ItemListItem.Align
-KanbanBoard（组件）
 Label（组件）
 LineChart.Data
 LineChart.Index

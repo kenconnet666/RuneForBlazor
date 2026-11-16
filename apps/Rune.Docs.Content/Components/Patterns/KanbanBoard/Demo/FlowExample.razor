@@ -1,0 +1,83 @@
+@* 工单看板：只能挪到相邻的列（CanMove 写出原因），放下时报告 OnMove，使用方改了数据卡片才换列；卡片带优先级、处理人与时限 *@
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+    <KanbanBoard TItem="Ticket" aria-label="工单看板" Columns="columns" Items="tickets" GetKey="t => t.Id" GetColumn="t => t.Stage" GetLabel="@(t => $"{t.Id} {t.Title}")"
+                 CanMove="Adjacent" OnMove="Move" OnReorder="next => tickets = next" OnReject="Reject" ColumnWidth="14rem" ColumnHeight="32rem">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                <TextSpan Mono="true" Size="Size.Xs" Tone="TextTone.Muted">@context.Item.Id</TextSpan>
+                <Badge Size="Size.Xs" Variant="StatusVariant.Soft" Tone="@priorities[context.Item.Priority].Tone">@priorities[context.Item.Priority].Label</Badge>
+            </Flex>
+            <TextSpan Size="Size.Sm" Weight="Weight.Medium">@context.Item.Title</TextSpan>
+            <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Sm">
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                    <Avatar Name="@context.Item.Owner" Size="Size.Xs" />
+                    <Small Tone="TextTone.Muted">@context.Item.Owner</Small>
+                </Flex>
+                @if (context.Item.Stage == "done")
+                {
+                    <Small Tone="TextTone.Muted">已关闭</Small>
+                }
+                else
+                {
+                    <DeadlineBadge Due="context.Item.Due" Today="today" />
+                }
+            </Flex>
+        </Flex>
+    </KanbanBoard>
+    <Small Tone="TextTone.Muted" aria-live="polite">@message</Small>
+</Flex>
+
+@code {
+    sealed record Ticket(string Id, string Title, string Stage, string Owner, string Priority, DateOnly Due);
+
+    static readonly DateOnly today = new(2026, 10, 21);
+
+    static readonly IReadOnlyList<KanbanColumn> columns =
+    [
+        new("todo", "待处理"),
+        new("doing", "处理中"),
+        new("review", "待验收") { Tone = Tone.Warning },
+        new("done", "已完成") { Tone = Tone.Success },
+    ];
+
+    static readonly List<string> order = [.. columns.Select(column => column.Key)];
+
+    static readonly Dictionary<string, (string Label, Tone Tone)> priorities = new()
+    {
+        ["high"] = ("高", Tone.Danger),
+        ["medium"] = ("中", Tone.Warning),
+        ["low"] = ("低", Tone.Neutral),
+    };
+
+    IReadOnlyList<Ticket> tickets =
+    [
+        new("T-101", "登录页验证码不刷新", "todo", "林小满", "high", new(2026, 10, 22)),
+        new("T-102", "导出 Excel 列宽错乱", "todo", "周一航", "medium", new(2026, 10, 28)),
+        new("T-104", "收件箱批量认领后计数不刷新", "todo", "韩笑", "medium", new(2026, 10, 30)),
+        new("T-105", "台账筛选条件刷新后丢失", "todo", "陆川", "low", new(2026, 11, 6)),
+        new("T-098", "首页统计卡片加载慢", "doing", "宋知行", "high", today),
+        new("T-099", "审批意见附件预览空白", "doing", "方圆", "medium", new(2026, 10, 24)),
+        new("T-100", "流程图在窄屏下重叠", "doing", "许悠", "low", new(2026, 10, 19)),
+        new("T-095", "通知中心未读数不准", "review", "许悠", "high", new(2026, 10, 20)),
+        new("T-096", "暗色主题下图表网格看不清", "review", "周宁", "low", new(2026, 10, 27)),
+        new("T-090", "表格列设置记不住", "done", "林小满", "medium", new(2026, 10, 17)),
+        new("T-091", "日期选择器跨年显示错月", "done", "周一航", "high", new(2026, 10, 15)),
+    ];
+
+    string message = "只能往后挪一列，或者退回上一列";
+
+    static string? Adjacent(Ticket ticket, string to) => Math.Abs(order.IndexOf(to) - order.IndexOf(ticket.Stage)) == 1 ? null : "只能挪到相邻的一列";
+
+    // 看板不自己挪：改数据，卡片才换列（真实页面里是调接口、刷新）。插到落点：目标列第 Index 张的前面
+    void Move(KanbanMove<Ticket> move)
+    {
+        var rest = tickets.Where(item => item.Id != move.Item.Id).ToList();
+        var anchor = rest.Where(item => item.Stage == move.To).ElementAtOrDefault(move.Index);
+        rest.Insert(anchor is null ? rest.Count : rest.IndexOf(anchor), move.Item with { Stage = move.To });
+        tickets = rest;
+        message = $"{move.Item.Id} 移到了“{columns.First(column => column.Key == move.To).Label}”第 {move.Index + 1} 位";
+    }
+
+    void Reject(KanbanReject<Ticket> reject) => message = $"{reject.Item.Id} 没有移动：{reject.Reason}";
+}
