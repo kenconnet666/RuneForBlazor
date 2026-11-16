@@ -162,7 +162,6 @@ Select.OnOpenChange
 Select.ValueContent
 SignaturePad.Handle
 SkipLink.Href
-SlideCaptcha（组件）
 Sortable.GetKey
 Sortable.GetLabel
 Sparkline.Domain

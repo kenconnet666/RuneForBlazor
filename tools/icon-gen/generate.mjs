@@ -151,6 +151,8 @@ const BUILT_IN = [
   'bell',
   // CommentThread：附件
   'paperclip',
+  // SlideCaptcha：滑块
+  'chevrons-right',
 ];
 
 /** 文档注释里最多列几个关键词 */

@@ -1,0 +1,102 @@
+@*
+    拼图滑块验证（同 vue-tsx-pro 的 SlideCaptcha）：画面是服务端生成的背景图（有一个缺口）和一块拼图，拖动下面的滑块让拼图对准缺口，
+    松手后把位置和拖动轨迹交给服务端判定。组件只负责交互，不判对错：答案在服务端，每次给一张新图。
+    <SlideCaptcha Challenge="challenge" Status="status" OnRelease="VerifyAsync" OnRefresh="LoadAsync" />
+    - Challenge：Background、Piece 是图片地址（data URL 或普通地址），Width、Height 是背景图的像素尺寸，PieceWidth 是拼图图片的宽度；
+      拼图图片和背景一样高，左边缘就是缺口的左边缘，所以位置换算成像素直接就是答案。
+    - OnRelease 交出 SlideResult（X、Track、Duration）：Track 是（毫秒，位置）序列，真人拖动有加减速和抖动，服务端据此区分脚本。
+    - Status 由父级控制：Verifying 时不能拖，Success 时锁定，Error 时滑块晃一下；换了新的 Challenge 或设回 Idle 时滑块回到起点。
+    - 拖动、键盘与轨迹在 JS 里（data-rune-slide-captcha），松手才交给 C#。键盘：聚焦滑块后 ←/→ 微调、Home/End、Enter 或空格松手。
+      这类验证对读屏和运动障碍的用户不友好，应用应当另外提供别的方式。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = SlideCaptchaStyles.Of(Status, Config.Styles);
+    var lang = Config.Lang.Patterns;
+    var locked = Challenge is null || Status != SlideStatus.Idle;
+    var text = Status switch
+    {
+        SlideStatus.Verifying => lang.SlideVerifying,
+        SlideStatus.Success => lang.SlideSuccess,
+        SlideStatus.Error => ErrorText ?? lang.SlideError,
+        _ => Hint ?? lang.SlideHint,
+    };
+    var icon = Status switch { SlideStatus.Success => BuiltInIcons.Check, SlideStatus.Error => BuiltInIcons.X, _ => BuiltInIcons.ChevronsRight };
+    var travel = Challenge is null ? 0 : Challenge.Width - Challenge.PieceWidth;
+}
+
+<div data-rune-slide-captcha data-status="@StatusName" data-challenge="@(Challenge?.Id ?? "")" data-travel="@travel" data-width="@(Challenge?.Width ?? 0)"
+     aria-busy="@(Status == SlideStatus.Verifying ? "true" : null)" @onrunecommand="CommandAsync" @attributes="Attrs.Merge(parts[SlideCaptchaPart.Root], Rest)">
+    <div style="@PictureStyle" @attributes="Attrs.Merge(parts[SlideCaptchaPart.Picture])">
+        @if (Challenge is not null)
+        {
+            <img src="@Challenge.Background" alt="" draggable="false" @attributes="Attrs.Merge(parts[SlideCaptchaPart.Image])" />
+            <img @key="Challenge.Id" data-rune-slide-piece src="@Challenge.Piece" alt="" draggable="false" @attributes="Attrs.Merge(parts[SlideCaptchaPart.Piece])" />
+        }
+        else
+        {
+            <div @attributes="Attrs.Merge(parts[SlideCaptchaPart.Loading])"><Spinner />@lang.SlideLoading</div>
+        }
+        @* 贴着图的角，图为圆角裁掉了溢出：焦点环画在里面 *@
+        <IconButton Icon="BuiltInIcons.RefreshCw" Size="Size.Sm" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Label="@lang.SlideRefresh"
+                    Disabled="Status == SlideStatus.Verifying" @onclick="OnRefresh" @attributes="Attrs.MergeProps(parts[SlideCaptchaPart.Refresh], PropsRefresh)" />
+        @if (Status is SlideStatus.Success or SlideStatus.Error)
+        {
+            <div @attributes="Attrs.Merge(parts[SlideCaptchaPart.Banner])">@text</div>
+        }
+    </div>
+    <div data-rune-slide-track @attributes="Attrs.Merge(parts[SlideCaptchaPart.Track])">
+        <div data-rune-slide-fill @attributes="Attrs.Merge(parts[SlideCaptchaPart.Fill])"></div>
+        <span data-rune-slide-hint aria-hidden="true" @attributes="Attrs.Merge(parts[SlideCaptchaPart.Hint])">@text</span>
+        <div data-rune-slide-handle role="slider" aria-label="@lang.SlideLabel" aria-valuemin="0" aria-valuemax="@travel" aria-valuenow="0"
+             aria-valuetext="@lang.SlidePosition(0)" data-valuetext="@lang.SlidePosition(900001)" aria-disabled="@(locked ? "true" : null)" tabindex="@(locked ? -1 : 0)"
+             @attributes="Attrs.Merge(parts[SlideCaptchaPart.Handle])">
+            <Icon Data="icon" />
+        </div>
+    </div>
+    <VisuallyHidden aria-live="polite">@(Status == SlideStatus.Idle ? "" : text)</VisuallyHidden>
+</div>
+
+@code {
+    /// <summary>当前的拼图；还没拿到时为 null，显示加载中。</summary>
+    [Parameter] public SlideChallenge? Challenge { get; set; }
+
+    /// <summary>状态，默认 Idle。</summary>
+    [Parameter] public SlideStatus Status { get; set; }
+
+    /// <summary>滑块条上的提示，默认“向右拖动滑块，让拼图对准缺口”。</summary>
+    [Parameter] public string? Hint { get; set; }
+
+    /// <summary>没对准时的提示（图片底部和滑块条上），默认“没对准，请再试一次”；服务端给了具体原因时用它。</summary>
+    [Parameter] public string? ErrorText { get; set; }
+
+    /// <summary>松手：把结果发给服务端判定。</summary>
+    [Parameter] public EventCallback<SlideResult> OnRelease { get; set; }
+
+    /// <summary>点了“换一张”。</summary>
+    [Parameter] public EventCallback OnRefresh { get; set; }
+
+    /// <summary>“换一张”按钮的部件属性（交给 IconButton）。</summary>
+    [Parameter] public Attrs? PropsRefresh { get; set; }
+
+    string StatusName => Status switch
+    {
+        SlideStatus.Verifying => "verifying",
+        SlideStatus.Success => "success",
+        SlideStatus.Error => "error",
+        _ => "idle",
+    };
+
+    // 画面按图的比例缩放，拼图的宽度按它占背景的比例
+    string PictureStyle => Challenge is { } challenge
+        ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"aspect-ratio: {challenge.Width} / {challenge.Height}; --rune-slide-piece: {challenge.PieceWidth * 100.0 / challenge.Width}%")
+        : "aspect-ratio: 2";
+
+    Task CommandAsync(CommandEventArgs e)
+    {
+        if (e.Name != "release" || e.Text is null) return Task.CompletedTask;
+        var result = System.Text.Json.JsonSerializer.Deserialize(e.Text, UIJson.Default.SlideResult);
+        return result is null ? Task.CompletedTask : OnRelease.InvokeAsync(result);
+    }
+}

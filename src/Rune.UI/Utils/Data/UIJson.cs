@@ -19,6 +19,8 @@ namespace Rune.UI;
 [JsonSerializable(typeof(IReadOnlyDictionary<string, ColumnSticky?>))]
 // PeoplePickerPanel 的“最近”
 [JsonSerializable(typeof(IReadOnlyList<PeopleEntry>))]
+// SlideCaptcha 松手时 JS 交来的结果
+[JsonSerializable(typeof(SlideResult))]
 internal sealed partial class UIJson : JsonSerializerContext
 {
     // 文字原样写进属性（Blazor 会转义属性值），不转成 \uXXXX

@@ -203,6 +203,7 @@ const watched = [
   ['[data-rune-action-bar]', watchActionBar],
   ['form[data-rune-filter-bar]', lazy(() => import('../layout/filter-bar.js'), 'watchFilterBar')],
   ['[data-rune-kanban]', lazy(() => import('../layout/kanban.js'), 'watchKanban')],
+  ['[data-rune-slide-captcha]', lazy(() => import('../display/slide-captcha.js'), 'watchSlideCaptcha')],
   ['[data-rune-back-top]', watchBackTop],
   ['[data-rune-ellipsis-text]', watchEllipsis],
   ['[data-rune-marquee]', watchMarquee],

@@ -1,0 +1,71 @@
+@* 拼图滑块验证：这里在 C# 里自己出题、自己判对错，只为演示；真实应用的图和答案都在服务端。
+   题目在交互开始后才出（同真实应用开始后去取），预渲染的是还没拿到题目的样子；随机数有固定的种子，截图每次一样 *@
+@using System.Globalization
+@inherits UIComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start" style="max-width: 20rem">
+    <SlideCaptcha Challenge="challenge" Status="status" OnRelease="VerifyAsync" OnRefresh="Next" />
+    <Small Tone="TextTone.Muted">@(message ?? "拖动滑块，让拼图对准缺口")</Small>
+    @if (status == SlideStatus.Success)
+    {
+        <Button Variant="ButtonVariant.Outline" Size="Size.Sm" @onclick="Next">再来一次</Button>
+    }
+</Flex>
+
+@code {
+    const int W = 320;
+    const int H = 160;
+    const int Hole = 46;
+    const int PieceWidth = Hole + 11;
+    const int Tolerance = 4;
+
+    readonly Random random = new(7);
+    SlideChallenge? challenge;
+    int answer;
+    SlideStatus status;
+    string? message;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender || !RendererInfo.IsInteractive) return;
+        Next();
+        StateHasChanged();
+    }
+
+    static string DataUrl(string svg) => "data:image/svg+xml;charset=utf-8," + Uri.EscapeDataString(svg);
+
+    static string N(double value) => value.ToString("0", CultureInfo.InvariantCulture);
+
+    // 随机色相的渐变加几个圆；缺口的左边缘位置是答案
+    void Next()
+    {
+        var hue = random.Next(360);
+        var x = PieceWidth + 40 + random.Next(W - 2 * PieceWidth - 52);
+        var y = 12 + random.Next(H - Hole - 24);
+        var circles = string.Concat(Enumerable.Range(0, 8).Select(_ =>
+            $"""<circle cx="{N(random.NextDouble() * W)}" cy="{N(random.NextDouble() * H)}" r="{N(10 + random.NextDouble() * 28)}" fill="hsl({random.Next(360)} 80% 70%)" fill-opacity="0.35"/>"""));
+        var scene = $"""<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl({hue} 70% 58%)"/><stop offset="1" stop-color="hsl({(hue + 60) % 360} 70% 40%)"/></linearGradient></defs><rect width="{W}" height="{H}" fill="url(#g)"/>{circles}""";
+        var shape = $"""<rect x="{x}" y="{y}" width="{Hole}" height="{Hole}" rx="6"/>""";
+        var background = $"""<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}"><defs><mask id="m"><rect width="{W}" height="{H}" fill="white"/><rect x="{x}" y="{y}" width="{Hole}" height="{Hole}" rx="6" fill="black"/></mask></defs><g mask="url(#m)">{scene}</g><rect x="{x}" y="{y}" width="{Hole}" height="{Hole}" rx="6" fill="rgb(0 0 0 / 0.32)" stroke="white" stroke-opacity="0.7"/></svg>""";
+        var piece = $"""<svg xmlns="http://www.w3.org/2000/svg" width="{PieceWidth}" height="{H}" viewBox="{x} 0 {PieceWidth} {H}"><defs><clipPath id="c">{shape}</clipPath></defs><g clip-path="url(#c)">{scene}</g><rect x="{x}" y="{y}" width="{Hole}" height="{Hole}" rx="6" fill="none" stroke="white" stroke-opacity="0.9"/></svg>""";
+        answer = x;
+        challenge = new(random.Next().ToString(CultureInfo.InvariantCulture), DataUrl(background), DataUrl(piece), W, H, PieceWidth);
+        status = SlideStatus.Idle;
+        message = null;
+    }
+
+    // 真实应用在这里把结果发给服务端，服务端按位置和轨迹判定
+    async Task VerifyAsync(SlideResult result)
+    {
+        status = SlideStatus.Verifying;
+        StateHasChanged();
+        await Task.Delay(400);
+        var ok = Math.Abs(result.X - answer) <= Tolerance && result.Duration >= 280;
+        status = ok ? SlideStatus.Success : SlideStatus.Error;
+        message = $"位置 {result.X}px（答案 {answer}px），用时 {result.Duration}ms，轨迹 {result.Track.Count} 点";
+        if (ok) return;
+        StateHasChanged();
+        await Task.Delay(900);
+        Next();
+    }
+}

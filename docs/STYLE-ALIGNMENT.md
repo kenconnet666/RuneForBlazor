@@ -112,6 +112,8 @@
   列内排序不是拖动中实时重排（vue 每越过一张就改数据、布局动画让位），而是同别的列一样画插入线，放下时写回一次（键盘 ↑ / ↓ 也是移动落点）。
   影子卡是卡片元素的副本（vue 用 dragging=true 再渲染一次）；卡片内容拿到的 `Dragging` 由拿起、放下时的 grab / release 命令更新。
   `children(item, state)` 对应 `ChildContent`（`context.Item`、`context.Dragging`），回调是 EventCallback（KanbanMove、KanbanReject 记录），按列、按卡片的部件属性是 `PropsColumnFor`、`PropsCardFor`。
+- SlideCaptcha：拖动、键盘微调与轨迹在 JS 里（`js/display/slide-captcha.js`），位置只画在页面上，松手才把 SlideResult 交给 C#；
+  状态是枚举 `SlideStatus`，JS 从 `data-status`、`data-challenge` 看出换图、回到 Idle 与没对准（晃一下）。拼图的宽度经 `--rune-slide-piece` 写在画面上。
 
 ### 外观与文档站
 
@@ -131,8 +133,8 @@
    - SchemaForm 一族（visibleWhen / requiredWhen / readonlyWhen、access、明细表与合计、formSources、页签、SchemaView、focusControl 发 beforematch）：先出方案
 5. 不跟：vue 的流程引擎（与组件无关）；CSP nonce 等阶段计划时再定。
 6. vue 0.23.0–0.26.0（`6e6f831d..c42b2f39`）已跟（2026-11-15，CI 的 `VUE_TSX_PRO_REF` 在 `c42b2f39`）。没有对应、留到以后的：
-   - 随组件一起做（Rune 还没有）：CodeEditor、Diagram、SchemaForm、SlideCaptcha、
-     ThemeCustomizer、ErrorBoundary、表格导出 xlsx 的那几条（StepsForm、DataImport、ActionBar、QueryTable、ConditionBuilder、NotificationCenter、CommentThread、KanbanBoard 已在阶段 6 做了）。
+   - 随组件一起做（Rune 还没有）：CodeEditor、Diagram、SchemaForm、
+     ThemeCustomizer、ErrorBoundary、表格导出 xlsx 的那几条（StepsForm、DataImport、ActionBar、QueryTable、ConditionBuilder、NotificationCenter、CommentThread、KanbanBoard、SlideCaptcha 已在阶段 6 做了）。
    - 交互模式是 Server 时拿不到浏览器的时区：时刻按 `Lang.TimeZone`，没配置时是服务器的时区（WebAssembly 里是浏览器的）。
      预渲染的页面里时刻、日历的“今天”同样按服务器当时的；交互接管是重新渲染一遍，不会像 vue 水合那样留着旧的属性（0.25.0 修的那个问题 Rune 没有），
      但永远不交互的静态页会停在渲染那一刻。要准的话配置 `Lang.TimeZone`，或者传 `Now` / `Today`。
