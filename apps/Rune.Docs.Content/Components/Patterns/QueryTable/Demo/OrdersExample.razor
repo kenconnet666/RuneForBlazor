@@ -1,0 +1,125 @@
+@* 采购单列表：一个 QueryTable 拼好查询栏、工具栏（新建、导出、刷新、行高、列设置、全屏）、批量操作、表格与分页；
+   数据来自假的服务端（300–600 ms 延迟、按条件筛、按几列排序、分页），按住 Shift 点列标题追加排序列，品类、供应商的表头筛选也交给服务端，
+   列设置与行高记在浏览器里。真的接口用 query.ToParameters() 把这些写成参数（见“请求与数据”指南） *@
+@using System.ComponentModel
+@inherits RuneComponent
+@implements IDisposable
+
+<QueryTable TItem="PurchaseOrder" TFilters="OrderFilters" Query="orders" GetKey="o => o.Id" Title="采购单" PersistKey="docs:query-table-orders" MultiSort="true"
+            SelectionMode="SelectionMode.Multiple" @bind-Selected="selected">
+    <Filters Context="draft">
+        <Field Label="关键字"><TextField @bind-Value="draft.Keyword" placeholder="单号或供应商" Clearable="true" /></Field>
+        <Field Label="品类"><Select Items="Categories" @bind-Value="draft.Category" Placeholder="全部" Clearable="true" /></Field>
+        <Field Label="状态"><Select Items="StatusOptions" @bind-Value="draft.Status" Placeholder="全部" Clearable="true" /></Field>
+    </Filters>
+    <MoreFilters Context="draft">
+        <Field Label="采购员"><TextField @bind-Value="draft.Buyer" placeholder="姓名" Clearable="true" /></Field>
+    </MoreFilters>
+    <Toolbar>
+        <Button Icon="Lucide.Plus">新建采购单</Button>
+        <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" Icon="Lucide.Download">导出</Button>
+    </Toolbar>
+    <BatchActions Context="keys">
+        <Button Size="Size.Sm" Variant="ButtonVariant.Outline" Tone="Tone.Neutral">批量催单（@keys.Count）</Button>
+        <Button Size="Size.Sm" Variant="ButtonVariant.Soft" Tone="Tone.Danger">批量作废</Button>
+    </BatchActions>
+    <Columns>
+        <PropertyColumn Property="o => o.Id" Key="id" Width="150" Sticky="ColumnSticky.Start" Sortable="true" />
+        <PropertyColumn Property="o => o.Supplier" Key="supplier" Sortable="true" Filter="ColumnFilterKind.Keyword" />
+        <PropertyColumn Property="o => o.Category" Key="category" Width="110" Filter="ColumnFilterKind.Values" FilterOptions="CategoryOptions" />
+        <PropertyColumn Property="o => o.Buyer" Key="buyer" Width="110" />
+        <StatusColumn Property="o => o.Status" Key="status" Statuses="Statuses" Width="110" />
+        <PropertyColumn Property="o => o.Amount" Key="amount" Width="140" Type="ColumnType.Currency" Sortable="true" />
+        <PropertyColumn Property="o => o.OrderedAt" Key="orderedAt" Width="140" Type="ColumnType.Date" Sortable="true" />
+    </Columns>
+</QueryTable>
+
+@code {
+    enum OrderStatus { Draft, Approving, Ordered, Received }
+
+    sealed record PurchaseOrder(
+        [property: DisplayName("采购单号")] string Id,
+        [property: DisplayName("供应商")] string Supplier,
+        [property: DisplayName("品类")] string Category,
+        [property: DisplayName("采购员")] string Buyer,
+        [property: DisplayName("状态")] OrderStatus Status,
+        [property: DisplayName("金额")] decimal Amount,
+        [property: DisplayName("下单日期")] DateOnly OrderedAt);
+
+    // 查询栏的条件：控件绑定它的属性
+    sealed class OrderFilters
+    {
+        public string? Keyword { get; set; }
+        public string? Category { get; set; }
+        public string? Status { get; set; }
+        public string? Buyer { get; set; }
+    }
+
+    static readonly StatusMap<OrderStatus> Statuses = new()
+    {
+        [OrderStatus.Draft] = new("草稿"),
+        [OrderStatus.Approving] = new("审批中", Tone.Warning),
+        [OrderStatus.Ordered] = new("已下单", Tone.Info),
+        [OrderStatus.Received] = new("已到货", Tone.Success),
+    };
+
+    static readonly string[] Suppliers = ["华辰精密", "启航塑胶", "远山钣金", "恒通紧固件", "北辰电子", "青禾线缆"];
+    static readonly string[] Categories = ["机械件", "塑料件", "钣金件", "标准件", "线缆"];
+    static readonly string[] Buyers = ["林小满", "周一航", "陈默", "许悠", "王晴", "赵浩然"];
+    static readonly IReadOnlyList<ListboxOption> CategoryOptions = [.. Categories.Select(c => new ListboxOption(c, c))];
+    static readonly IReadOnlyList<ListboxOption> StatusOptions = [.. Statuses.Keys.Select(k => new ListboxOption(k.ToString(), Statuses[k].Label))];
+
+    // 假的服务端数据：368 张采购单
+    static readonly PurchaseOrder[] All = [.. Enumerable.Range(0, 368).Select(index => new PurchaseOrder(
+        $"PO-2026-{2000 + index}",
+        Suppliers[index * 5 % Suppliers.Length],
+        Categories[index * 7 % Categories.Length],
+        Buyers[index * 11 % Buyers.Length],
+        Statuses.Keys[index * 3 % Statuses.Keys.Count],
+        index * 7919 % 90_000 + 1200,
+        new DateOnly(2026, 10, 21).AddDays(-(index * 13 % 90))))];
+
+    TableQueryState<PurchaseOrder, OrderFilters> orders = default!;
+    IReadOnlyList<string> selected = [];
+
+    protected override Task OnInitializedAsync()
+    {
+        orders = new(FetchAsync, new() { Filters = new OrderFilters(), PageSize = 10 }, () => InvokeAsync(StateHasChanged));
+        return orders.RefreshAsync();
+    }
+
+    // 假的查询接口：按查询栏与表头的条件筛、按几列排序（前面的优先）、分页，300–600 ms 后返回
+    static async Task<TablePage<PurchaseOrder>> FetchAsync(TableQuery<OrderFilters> query, CancellationToken cancellation)
+    {
+        await Task.Delay(300 + Random.Shared.Next(300), cancellation);
+        var f = query.Filters;
+        var categoryIn = query.ColumnFilters.GetValueOrDefault("category") ?? [];
+        var supplierHas = query.ColumnFilters.GetValueOrDefault("supplier") is [var text, ..] ? text.Trim() : "";
+        IEnumerable<PurchaseOrder> matched = All.Where(order =>
+            (string.IsNullOrEmpty(f.Keyword) || order.Id.Contains(f.Keyword) || order.Supplier.Contains(f.Keyword)) &&
+            (f.Category is null || order.Category == f.Category) &&
+            (f.Status is null || order.Status.ToString() == f.Status) &&
+            (string.IsNullOrEmpty(f.Buyer) || order.Buyer.Contains(f.Buyer)) &&
+            (categoryIn.Count == 0 || categoryIn.Contains(order.Category)) &&
+            (supplierHas.Length == 0 || order.Supplier.Contains(supplierHas)));
+        IOrderedEnumerable<PurchaseOrder>? sorted = null;
+        foreach (var sort in query.Sorts)
+        {
+            Func<PurchaseOrder, IComparable> key = sort.Key switch
+            {
+                "supplier" => o => o.Supplier,
+                "amount" => o => o.Amount,
+                "orderedAt" => o => o.OrderedAt,
+                _ => o => o.Id,
+            };
+            var descending = sort.Direction == SortDirection.Descending;
+            sorted = sorted is null
+                ? descending ? matched.OrderByDescending(key) : matched.OrderBy(key)
+                : descending ? sorted.ThenByDescending(key) : sorted.ThenBy(key);
+        }
+        var list = (sorted ?? matched).ToList();
+        return new([.. list.Skip((query.Page - 1) * query.PageSize).Take(query.PageSize)], list.Count);
+    }
+
+    public void Dispose() => orders.Dispose();
+}

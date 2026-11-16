@@ -1,0 +1,17 @@
+@page "/components/query-table"
+@attribute [DocMeta("QueryTable 查询表格", "列表页的整块：查询栏、工具栏（刷新、行高、列设置、全屏）、批量操作、表格与分页，状态都在 TableQueryState 里。", DocCategory.Patterns, Order = 4)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Patterns.QueryTable.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="orders" Title="采购单列表" Demo="typeof(OrdersExample)">
+        <Code>Query</Code> 是 <Code>TableQueryState</Code>：页码、每页条数、排序（交给服务端；<Code>MultiSort</Code> 时按住 Shift 点列标题追加一列，写在 <Code>Query.Sorts</Code>）、
+        已应用的条件、总数与加载都在里面。<Code>Filters</Code> 拿到草稿，控件绑定它的属性，点“查询”（或在输入框里回车）才交给 <Code>Query.SearchAsync</Code>；
+        “重置”回到 <Code>BlankFilters</Code>（不写时是一开始的条件）并查询；<Code>MoreFilters</Code> 是不常用的条件，排在常用条件后面，第一排放不下的收进“展开”。
+        有查询栏时标题与工具栏并进查询栏的第一排，按钮都在这一排：起始边是 <Code>Title</Code>（也是表格的名称），重置、查询后面是 <Code>Toolbar</Code>（自己的按钮），
+        结尾是刷新、行高、列设置（勾选显示、拖动排序、重置）与全屏。列标题带列菜单（固定、前后移动、隐藏），列宽可以拖动；<Code>PersistKey</Code> 把列设置与行高记在浏览器里。
+        <Code>SelectionMode="SelectionMode.Multiple"</Code> 时勾选后出现批量操作栏，<Code>BatchActions</Code> 拿到已选的 key 给出按钮。
+        列设置也可以单独用：<Code>ColumnSettings</Code> 与 DataTable 绑定同一份 <Code>Hidden</Code>、<Code>Order</Code>。
+    </Example>
+    <ApiReference Types="[typeof(QueryTable<,>), typeof(ColumnSettings)]" />
+</DocPage>

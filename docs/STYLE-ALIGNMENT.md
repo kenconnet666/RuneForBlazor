@@ -87,6 +87,9 @@
   算法同 vue 的 measure / layoutFields）把列数写成 `--rune-filter-template`、收起时把放不下的藏起来；展开后下面几排的列宽与第一排相同，但只排在条件区里，
   不伸到按钮区下面（vue 的第二排起铺满整宽），所以没有 `PropsMore`。量出来之前 More 收着，常用条件按最小宽度自动排。
   高级筛选（ConditionFields、Condition）等 ConditionBuilder 做完再接，暂记在规格比对的基线里。
+- QueryTable：列是 `Columns` 里的列组件（同 DataTable），列设置要的列由 QueryTable 经 DataTable 的列收集通知拿到；TItem、TFilters 要写出来（Razor 推断出的类型参数传不到列里）。
+  草稿是 `Query.Filters` 的浅拷贝（MemberwiseClone，vue 是深拷贝 cloneValue；列表类的条件由控件整个换掉）。加载失败的提示统一是“加载失败，请重试”（vue 按错误码说明原因）。
+  全屏由 fullscreen.js 让表格区域自己进浏览器全屏（`data-rune-fullscreen-element`）；浏览器不让时区域照样铺满窗口。
 - ActionBar 是否盖着下面的内容由 JS 看（`data-rune-action-bar`，affix.js），写 `data-stuck`。
 
 ### 外观与文档站

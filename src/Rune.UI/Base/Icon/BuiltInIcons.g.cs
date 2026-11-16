@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（92 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（94 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -152,10 +152,14 @@ public static partial class BuiltInIcons
     public static IconData Play => field ??= new("play", "<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\"/>");
     /// <summary>Lucide 图标 <c>plus</c>（plus、add、new、create、+、increase、increment、extra）。</summary>
     public static IconData Plus => field ??= new("plus", "<path d=\"M5 12h14\"/><path d=\"M12 5v14\"/>");
+    /// <summary>Lucide 图标 <c>refresh-cw</c>（synchronize、synchronise、refresh、reload、update、reconnect、retry、renew）。</summary>
+    public static IconData RefreshCw => field ??= new("refresh-cw", "<path d=\"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8\"/><path d=\"M21 3v5h-5\"/><path d=\"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16\"/><path d=\"M8 16H3v5\"/>");
     /// <summary>Lucide 图标 <c>rotate-ccw</c>（arrow、left、counter-clockwise、restart、reload、rerun、refresh、backup）。</summary>
     public static IconData RotateCcw => field ??= new("rotate-ccw", "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/><path d=\"M3 3v5h5\"/>");
     /// <summary>Lucide 图标 <c>rotate-cw</c>（arrow、right、clockwise、refresh、reload、rerun、redo）。</summary>
     public static IconData RotateCw => field ??= new("rotate-cw", "<path d=\"M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8\"/><path d=\"M21 3v5h-5\"/>");
+    /// <summary>Lucide 图标 <c>rows-3</c>（lines、list、queue、preview、paragraphs、parallel、series、split）。</summary>
+    public static IconData Rows3 => field ??= new("rows-3", "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M21 9H3\"/><path d=\"M21 15H3\"/>");
     /// <summary>Lucide 图标 <c>scroll-text</c>（paper、log、scripture、document、notes、parchment、list、long）。</summary>
     public static IconData ScrollText => field ??= new("scroll-text", "<path d=\"M15 12h-5\"/><path d=\"M15 8h-5\"/><path d=\"M19 17V5a2 2 0 0 0-2-2H4\"/><path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\"/>");
     /// <summary>Lucide 图标 <c>search</c>（search、magnifier、scan、scanning、browsing、finding、find、lookup）。</summary>

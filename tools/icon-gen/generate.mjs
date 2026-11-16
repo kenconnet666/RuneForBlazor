@@ -137,6 +137,9 @@ const BUILT_IN = [
   'volume-x',
   'captions',
   'gauge',
+  // QueryTable 的工具栏：刷新、行高（全屏在上面）
+  'refresh-cw',
+  'rows-3',
 ];
 
 /** 文档注释里最多列几个关键词 */

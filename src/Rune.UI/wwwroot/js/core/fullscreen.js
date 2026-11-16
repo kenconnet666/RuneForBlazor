@@ -1,4 +1,5 @@
-// AppShell 的全屏（data-rune-fullscreen="true|false" 写在外壳上）：状态在 C#，浏览器全屏只是顺带的。
+// AppShell、QueryTable 的全屏（data-rune-fullscreen="true|false" 写在外壳、表格区域上）：状态在 C#，浏览器全屏只是顺带的。
+// 带 data-rune-fullscreen-element 的是这个元素自己进全屏（QueryTable 只全屏表格那一块），否则是整页（AppShell 藏起顶栏、侧栏）。
 // 变成 true 时请求浏览器全屏（点击后不久，仍在用户激活的时限内），变回 false 时退出；浏览器不让全屏（iframe 没有 allow="fullscreen"）时照样只隐藏顶栏和侧栏。
 // 用户自己离开浏览器全屏（Esc、F11），或没进浏览器全屏时按 Esc：发出冒泡的 rune-command（fullscreen-exit），由 C# 改回状态。
 
@@ -9,7 +10,8 @@ export function syncFullscreen(shell) {
   if (shell.getAttribute('data-rune-fullscreen') === 'true') {
     if (active === shell || document.fullscreenElement) return;
     active = shell;
-    const request = document.documentElement.requestFullscreen?.();
+    const target = shell.hasAttribute('data-rune-fullscreen-element') ? shell : document.documentElement;
+    const request = target.requestFullscreen?.();
     if (!request) active = null;
     else request.catch(() => {
       if (active === shell) active = null;

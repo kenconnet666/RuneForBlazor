@@ -1,0 +1,268 @@
+@*
+    查询表格（列表页的整块，同 vue-tsx-pro 的 QueryTable）：查询栏（FilterBar）+ 工具栏（标题、自己的按钮、刷新、行高、列设置、全屏）+ 批量操作栏 + 数据表格 + 分页栏。
+    有查询栏时标题与工具栏并进查询栏的第一排：标题 常用条件 … 展开 重置 查询 │ 自己的按钮 刷新 行高 列设置 全屏；不常用的条件放进 MoreFilters。
+    没有查询栏、或全屏（全屏的只有表格那一块）时，工具栏是表格上方单独的一行。Fill 时整块占满到窗口底边（ViewportFill），行多了在表格里滚动。
+    状态都在 TableQueryState 里（服务端分页、排序、条件）。
+    <QueryTable TItem="WorkItem" TFilters="TaskFilters" Query="tasks" Title="任务台账" GetKey="t => t.Id" PersistKey="tasks">
+        <Filters Context="draft"><Field Label="关键字"><TextField @bind-Value="draft.Keyword" /></Field></Filters>
+        <Toolbar><Button Icon="Lucide.Plus">新建</Button></Toolbar>
+        <Columns><PropertyColumn Property="t => t.Title" Title="标题" Sortable="true" />…</Columns>
+    </QueryTable>
+    - TItem、TFilters 要写出来：Razor 推断出的类型参数传不到 Columns 里的列（列靠它推断自己的 TItem）。
+    - 查询栏的条件改的是草稿（Query.Filters 的浅拷贝），点“查询”（或回车）才交给 Query.SearchAsync；“重置”回到 BlankFilters（不写时是一开始的条件）并查询。
+    - 表头排序、表头筛选交给服务端（ManualSort、ManualFilter，写回 Query 的 Sort / Sorts / ColumnFilters），分页栏绑定 Page / PageSize / Total。
+    - PersistKey：列设置（显示、顺序、固定、列宽）与行高记在浏览器里（LocalSetting），下次打开还是这样。
+    - SelectionMode 为多选时勾选行，表格上方出现批量操作栏，BatchActions 拿到已选的 key 给出按钮。
+*@
+@namespace Rune.UI
+@typeparam TItem
+@typeparam TFilters where TFilters : class
+@inherits UIComponent
+@implements IDataTableColumnsListener<TItem>
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@{
+    var parts = QueryTableStyles.Of(Fill, Config.Styles);
+    var lang = Config.Lang.Patterns;
+}
+
+@if (PersistKey is { } key)
+{
+    <LocalSetting Key="@($"{key}:hidden")" @bind-Value="hidden" />
+    <LocalSetting Key="@($"{key}:order")" @bind-Value="order" />
+    <LocalSetting Key="@($"{key}:pins")" @bind-Value="pins" />
+    <LocalSetting Key="@($"{key}:widths")" @bind-Value="widths" />
+    <LocalSetting Key="@($"{key}:density")" @bind-Value="density" />
+}
+@if (Fill)
+{
+    <ViewportFill>@Root(parts, lang)</ViewportFill>
+}
+else
+{
+    @Root(parts, lang)
+}
+
+@code {
+    static readonly System.Reflection.MethodInfo CloneMethod =
+        typeof(object).GetMethod("MemberwiseClone", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+
+    TFilters draft = default!;
+    TFilters initial = default!;
+    IReadOnlyList<string> hidden = [];
+    IReadOnlyList<string> order = [];
+    IReadOnlyDictionary<string, ColumnSticky?> pins = new Dictionary<string, ColumnSticky?>();
+    IReadOnlyDictionary<string, double> widths = new Dictionary<string, double>();
+    string density = nameof(TableDensity.Standard);
+    bool fullscreen;
+    IReadOnlyList<ListboxOption> columnOptions = [];
+    Func<CommandEventArgs, Task>? onCommand;
+    Memo<(bool Fullscreen, Attrs Part, Attrs? Props), Attrs> panelAttrs;
+
+    /// <summary>列表状态（TableQueryState）：页面持有它，变化时让页面重新渲染。</summary>
+    [Parameter, EditorRequired] public TableQueryState<TItem, TFilters> Query { get; set; } = default!;
+
+    /// <summary>行的 key。</summary>
+    [Parameter, EditorRequired] public Func<TItem, string> GetKey { get; set; } = default!;
+
+    /// <summary>表格的名称（工具栏起始边的标题，也是表格的 aria-label）。</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>列（DataTable 的列：PropertyColumn、TemplateColumn……）。</summary>
+    [Parameter, EditorRequired] public RenderFragment? Columns { get; set; }
+
+    /// <summary>查询栏的条件：拿到草稿，控件绑定它的属性（<c>@bind-Value="draft.Keyword"</c>）；不写时没有查询栏。</summary>
+    [Parameter] public RenderFragment<TFilters>? Filters { get; set; }
+
+    /// <summary>收起的条件（不常用的），点“展开”才显示。</summary>
+    [Parameter] public RenderFragment<TFilters>? MoreFilters { get; set; }
+
+    /// <summary>“重置”回到的条件；不写时是 Query 一开始的条件。</summary>
+    [Parameter] public TFilters? BlankFilters { get; set; }
+
+    /// <summary>占满到窗口底边（列表页的整页）：行多了在表格里滚动，分页一直在一屏里。</summary>
+    [Parameter] public bool Fill { get; set; }
+
+    /// <summary>工具栏上自己的按钮（新建、导出），在标题之后、内置按钮之前。</summary>
+    [Parameter] public RenderFragment? Toolbar { get; set; }
+
+    /// <summary>列设置与行高记在浏览器里的键；不写时只在这次打开里有效。</summary>
+    [Parameter] public string? PersistKey { get; set; }
+
+    /// <summary>多列排序：按住 Shift 点列标题追加一列，排序写在 Query.Sorts。</summary>
+    [Parameter] public bool MultiSort { get; set; }
+
+    /// <summary>勾选行：多选时表格上方出现批量操作栏。</summary>
+    [Parameter] public SelectionMode? SelectionMode { get; set; }
+
+    /// <summary>已选行的 key（@bind-Selected）。</summary>
+    [Parameter] public IReadOnlyList<string>? Selected { get; set; }
+
+    /// <summary>已选的行变了。</summary>
+    [Parameter] public EventCallback<IReadOnlyList<string>> SelectedChanged { get; set; }
+
+    /// <summary>批量操作栏里的按钮：拿到已选的 key。</summary>
+    [Parameter] public RenderFragment<IReadOnlyList<string>>? BatchActions { get; set; }
+
+    /// <summary>查询栏（FilterBar）的部件属性。</summary>
+    [Parameter] public Attrs? PropsFilterBar { get; set; }
+
+    /// <summary>工具栏与表格所在区域的部件属性（全屏的就是它）。</summary>
+    [Parameter] public Attrs? PropsPanel { get; set; }
+
+    /// <summary>工具栏的部件属性。</summary>
+    [Parameter] public Attrs? PropsToolbar { get; set; }
+
+    /// <summary>表格（DataTable）的部件属性：详情行、行的色调、Resizable、ColumnMenu 等；数据、排序、筛选、勾选与列设置由这里接到查询上。</summary>
+    [Parameter] public Attrs? PropsTable { get; set; }
+
+    /// <summary>列设置（ColumnSettings）的部件属性。</summary>
+    [Parameter] public Attrs? PropsColumnSettings { get; set; }
+
+    /// <summary>批量操作栏（SelectionBar）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSelectionBar { get; set; }
+
+    /// <summary>分页栏（PaginationBar）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPagination { get; set; }
+
+    /// <summary>加载失败时表格上方的提示条（Alert）的部件属性。</summary>
+    [Parameter] public Attrs? PropsError { get; set; }
+
+    /// <summary>工具栏内置按钮（刷新、行高、全屏）的部件属性。</summary>
+    [Parameter] public Attrs? PropsToolbarButton { get; set; }
+
+    /// <summary>加载出错时“重试”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsRetry { get; set; }
+
+    IReadOnlyList<string> SelectedKeys => Selected ?? [];
+
+    /// <inheritdoc/>
+    protected override void OnInitialized()
+    {
+        // 查询栏改的是草稿：点“查询”才交给 Query
+        initial = Clone(Query.Filters);
+        draft = Clone(initial);
+    }
+
+    // 浅拷贝：条件里的列表由控件整个换掉，不在原处改
+    static TFilters Clone(TFilters filters) => (TFilters)CloneMethod.Invoke(filters, null)!;
+
+    Task SearchAsync() => Query.SearchAsync(Clone(draft));
+
+    Task ResetAsync()
+    {
+        draft = Clone(BlankFilters ?? initial);
+        return SearchAsync();
+    }
+
+    void IDataTableColumnsListener<TItem>.ColumnsCollected(IReadOnlyList<DataTableColumn<TItem>> columns)
+    {
+        columnOptions = [.. columns.Select(static column => new ListboxOption(column.ColumnKey, column.Label))];
+        StateHasChanged();
+    }
+
+    TableDensity Density => Enum.TryParse<TableDensity>(density, out var value) ? value : TableDensity.Standard;
+
+    Attrs PanelAttrs(Attrs part) => panelAttrs.Get((fullscreen, part, PropsPanel), this, static (k, owner) => Attrs.Layer(Attrs.Layer(k.Part, k.Props), new Attrs
+    {
+        // 全屏的只有这一块：JS 让它自己进浏览器全屏；离开（Esc、F11）时发 fullscreen-exit 回来
+        ["data-rune-fullscreen"] = k.Fullscreen ? "true" : "false",
+        ["data-rune-fullscreen-element"] = true,
+        ["onrunecommand"] = owner.onCommand ??= owner.OnCommandAsync,
+    }));
+
+    Task OnCommandAsync(CommandEventArgs e)
+    {
+        if (e.Name == "fullscreen-exit") fullscreen = false;
+        return Task.CompletedTask;
+    }
+
+    RenderFragment Root(PartLayers<QueryTablePart> parts, PatternsMessages lang) =>
+        @<div @attributes="Attrs.Merge(parts[QueryTablePart.Root], Rest)">
+            @if (Filters is not null)
+            {
+                <FilterBar OnSearch="SearchAsync" OnReset="ResetAsync" aria-label="@lang.QueryTableSearch(Title)"
+                           Start="@(fullscreen ? null : TitleOf(parts))" End="@(fullscreen ? null : ToolbarOf(parts, lang))"
+                           More="@(MoreFilters?.Invoke(draft))" @attributes="Attrs.MergeProps(parts[QueryTablePart.FilterBar], PropsFilterBar)">
+                    @Filters(draft)
+                </FilterBar>
+            }
+            <div @attributes="Attrs.Merge(PanelAttrs(parts[QueryTablePart.Panel]))">
+                @if (Filters is null || fullscreen)
+                {
+                    <div @attributes="Attrs.Merge(parts[QueryTablePart.ToolbarRow])">
+                        @TitleOf(parts)
+                        @ToolbarOf(parts, lang)
+                    </div>
+                }
+                @if (SelectionMode == UI.SelectionMode.Multiple)
+                {
+                    <SelectionBar Count="SelectedKeys.Count" OnClear="() => SelectedChanged.InvokeAsync([])"
+                                  @attributes="Attrs.MergeProps(parts[QueryTablePart.SelectionBar], PropsSelectionBar)">
+                        @BatchActions?.Invoke(SelectedKeys)
+                    </SelectionBar>
+                }
+                @if (Query.Error is not null)
+                {
+                    @* 加载失败：保留上一次的行，给一个重试 *@
+                    <Alert Tone="Tone.Danger" Live="AlertLive.Assertive" Description="@(b => b.AddContent(0, Config.Lang.ListLoadFailed))"
+                           @attributes="Attrs.MergeProps(null, PropsError)">
+                        <Action>
+                            <Button Size="Size.Sm" Variant="ButtonVariant.Outline" Tone="Tone.Danger" @onclick="Query.RefreshAsync"
+                                    @attributes="Attrs.MergeProps(null, PropsRetry)">@lang.QueryTableRetry</Button>
+                        </Action>
+                    </Alert>
+                }
+                <CascadingValue TValue="IDataTableColumnsListener<TItem>" Value="this" IsFixed="true">
+                    <DataTable TItem="TItem" Items="Query.Rows" GetKey="GetKey" aria-label="@Title" Flexible="Fill || fullscreen" Resizable="true" ColumnMenu="true"
+                               EmptyText="@(Query.Error is not null ? Config.Lang.ListLoadFailed : null)"
+                               ManualSort="true" MultiSort="MultiSort" Sort="Query.Sort" SortChanged="sort => Query.Sort = sort"
+                               Sorts="Query.Sorts" SortsChanged="sorts => Query.Sorts = sorts"
+                               ManualFilter="true" Filters="Query.ColumnFilters" FiltersChanged="filters => Query.ColumnFilters = filters"
+                               Loading="Query.Loading" Density="Density" SelectionMode="SelectionMode" Selected="SelectedKeys" SelectedChanged="SelectedChanged"
+                               @bind-HiddenColumns="hidden" @bind-ColumnOrder="order" @bind-ColumnPins="pins" @bind-ColumnWidths="widths"
+                               @attributes="Attrs.MergeProps(parts[QueryTablePart.Table], PropsTable)">
+                        @Columns
+                    </DataTable>
+                </CascadingValue>
+                <PaginationBar Page="Query.Page" PageChanged="page => Query.Page = page" PageSize="Query.PageSize" PageSizeChanged="size => Query.PageSize = size"
+                               Total="@((int)Math.Min(Query.Total, int.MaxValue))" aria-label="@lang.QueryTablePagination(Title)"
+                               @attributes="Attrs.MergeProps(parts[QueryTablePart.Pagination], PropsPagination)" />
+            </div>
+        </div>;
+
+    RenderFragment TitleOf(PartLayers<QueryTablePart> parts) => @<div @attributes="Attrs.Merge(parts[QueryTablePart.Title])">@Title</div>;
+
+    // 工具栏：自己的按钮，再是刷新、行高、列设置、全屏
+    RenderFragment ToolbarOf(PartLayers<QueryTablePart> parts, PatternsMessages lang) =>
+        @<div @attributes="Attrs.Merge(parts[QueryTablePart.Toolbar], PropsToolbar)">
+            @Toolbar
+            <div @attributes="Attrs.Merge(parts[QueryTablePart.Tools])">
+                <IconButton Icon="BuiltInIcons.RefreshCw" Label="@lang.QueryTableRefresh" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="Query.RefreshAsync"
+                            @attributes="Attrs.MergeProps(null, PropsToolbarButton)" />
+                <Menu Placement="Placement.BottomEnd">
+                    <Trigger Context="t">
+                        <IconButton Icon="BuiltInIcons.Rows3" Label="@lang.QueryTableDensity" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral"
+                                    @attributes="Attrs.MergeProps(null, PropsToolbarButton, t)" />
+                    </Trigger>
+                    <ChildContent>
+                        <MenuRadioGroup Value="@density" ValueChanged="v => density = v ?? density">
+                            <MenuRadioItem Value="@nameof(TableDensity.Compact)">@lang.QueryTableDensityCompact</MenuRadioItem>
+                            <MenuRadioItem Value="@nameof(TableDensity.Standard)">@lang.QueryTableDensityStandard</MenuRadioItem>
+                            <MenuRadioItem Value="@nameof(TableDensity.Comfortable)">@lang.QueryTableDensityComfortable</MenuRadioItem>
+                        </MenuRadioGroup>
+                    </ChildContent>
+                </Menu>
+                <ColumnSettings Columns="columnOptions" @bind-Hidden="hidden" @bind-Order="order" Changed="pins.Count > 0 || widths.Count > 0"
+                                OnReset="ResetColumns" PropsTrigger="PropsToolbarButton" @attributes="Attrs.MergeProps(null, PropsColumnSettings)" />
+                <IconButton Icon="@(fullscreen ? BuiltInIcons.Minimize : BuiltInIcons.Maximize)" Label="@(fullscreen ? lang.QueryTableExitFullscreen : lang.QueryTableFullscreen)"
+                            aria-pressed="@(fullscreen ? "true" : "false")" Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => fullscreen = !fullscreen"
+                            @attributes="Attrs.MergeProps(null, PropsToolbarButton)" />
+            </div>
+        </div>;
+
+    void ResetColumns()
+    {
+        pins = new Dictionary<string, ColumnSticky?>();
+        widths = new Dictionary<string, double>();
+    }
+}
