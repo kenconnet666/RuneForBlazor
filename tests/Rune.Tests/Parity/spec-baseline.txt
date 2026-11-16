@@ -52,7 +52,8 @@ CommentThread（组件）
 ConfigScope（组件）
 ContextMenu.Menu
 ContextMenu.OnOpenChange
-DataImport（组件）
+DataImport.OnTemplate
+DataImport.Schema
 DataTable.ColumnGroups
 DataTable.Columns
 DataTable.Handle

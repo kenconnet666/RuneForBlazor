@@ -1,0 +1,68 @@
+@* 零件批量导入（CSV）。“下载模板”是 Sheets.CsvDataUrl 生成的 data URL：表头与几行示例（料号一列故意空着一行、数量写错一格）；
+   导入时按名称与别名对上列，Validate 逐行校验，有错的格子就地改；导入的行显示在下面的清单里 *@
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Card>
+        <DataImport TRow="Part" Fields="fields" ToRow="ToPart" Validate="Check" OnImport="ImportAsync"
+                    TemplateHref="@template" TemplateFileName="零件导入模板.csv" />
+    </Card>
+    @if (imported.Count > 0)
+    {
+        <Flex Gap="SpaceScale.Xs" Wrap="true" Align="ItemAlign.Center">
+            <Small Tone="TextTone.Muted">已导入：</Small>
+            @foreach (var part in imported)
+            {
+                <Tag @key="part.Code">@part.Code @part.Name × @part.Quantity</Tag>
+            }
+        </Flex>
+    }
+</Flex>
+
+@code {
+    sealed record Part(string Code, string Name, string Category, int Quantity, decimal Price);
+
+    static readonly string[] categories = ["机械件", "塑料件", "钣金件", "标准件", "线缆"];
+
+    static readonly IReadOnlyList<ImportField> fields =
+    [
+        new("part", "零件号") { Required = true, Aliases = ["料号", "Part No."], Width = 120 },
+        new("name", "名称") { Required = true, Width = 160 },
+        new("category", "品类") { Required = true, Width = 100 },
+        new("quantity", "数量") { Type = ImportFieldType.Number, Width = 100 },
+        new("price", "单价") { Type = ImportFieldType.Number, Width = 100 },
+    ];
+
+    // 模板：表头与几行示例（故意留两处错，导入时能看到校验）
+    static readonly string template = Sheets.CsvDataUrl(
+    [
+        ["料号", "名称", "品类", "数量（件）", "单价（元）"],
+        ["P-101", "显示器支架", "机械件", 40, 128],
+        ["P-102", "铰链底座", "机械件", 80, 76.5m],
+        [null, "检修口盖板", "钣金件", 24, 212],
+        ["P-104", "线束卡箍", "线缆", "三百", 3.2m],
+        ["P-105", "加强筋", "塑料件", 60, 45],
+    ]);
+
+    List<Part> imported = [];
+
+    // Required、数字的检查组件先做了：这里只写业务规则，返回字段名 → 原因
+    static IReadOnlyDictionary<string, string>? Check(IReadOnlyDictionary<string, object?> row)
+    {
+        var errors = new Dictionary<string, string>();
+        if (row["part"] is string code && !System.Text.RegularExpressions.Regex.IsMatch(code, @"^P-\d{3,}$")) errors["part"] = "零件号是 P- 加数字";
+        if (row["category"] is string category && !categories.Contains(category)) errors["category"] = "品类只能是：" + string.Join("、", categories);
+        if (row["quantity"] is decimal quantity && (quantity <= 0 || quantity != decimal.Truncate(quantity))) errors["quantity"] = "数量是大于 0 的整数";
+        if (row["price"] is decimal price && price < 0) errors["price"] = "单价不能为负";
+        return errors;
+    }
+
+    static Part ToPart(IReadOnlyDictionary<string, object?> row) => new(
+        (string)row["part"]!, (string)row["name"]!, (string)row["category"]!,
+        (int)((decimal?)row["quantity"] ?? 0), (decimal?)row["price"] ?? 0);
+
+    async Task ImportAsync(IReadOnlyList<Part> rows)
+    {
+        await Task.Delay(500);
+        imported = [.. imported, .. rows];
+    }
+}

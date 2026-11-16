@@ -95,6 +95,9 @@
   求值按字段名取值由调用方给（C# 没有按名字取属性的便宜办法）。还没有与 vue 的 JSON 写法互转的转换器。
   ConditionBuilder 的日期是浏览器自带的日期输入（Rune.UI 不依赖 Rune.UI.Dates），要 DatePicker 时写字段的 Input。
 - ActionBar 是否盖着下面的内容由 JS 看（`data-rune-action-bar`，affix.js），写 `data-stuck`。
+- DataImport：没有 zod，vue 的 `schema` 拆成 `Validate`（字段名 → 原因，在 Required、数字检查之后）与 `ToRow`（通过校验的值 → 行）；值是 object，数字是 decimal。
+  “下载模板”是链接 `TemplateHref`（下载接口，或 `Sheets.CsvDataUrl` 生成的 data URL），不是 vue 的 `onTemplate` 回调：C# 触发浏览器下载要 JS 互操作，链接在静态 SSR 里也能用。
+  只自带 CSV 的读写（`Sheets.ReadCsvAsync`、`ToCsv`）；vue 的 xlsx 子路径（ExcelJS）没有对应，Excel 由调用方选库读成矩阵后交给 `Sheets.FromMatrix`（Parse 参数）。
 
 ### 外观与文档站
 
@@ -118,8 +121,8 @@
    - KanbanBoard 把手的悬停；NotificationList / NotificationCenter、CommentThread 的 RelativeTime
 5. 不跟：vue 的流程引擎（与组件无关）；CSP nonce 等阶段计划时再定。
 6. vue 0.23.0–0.26.0（`6e6f831d..c42b2f39`）已跟（2026-11-15，CI 的 `VUE_TSX_PRO_REF` 在 `c42b2f39`）。没有对应、留到以后的：
-   - 随组件一起做（Rune 还没有）：StepsForm、KanbanBoard、CodeEditor、Diagram、DataImport、SchemaForm、SlideCaptcha、ActionBar、QueryTable、
-     ConditionBuilder、NotificationList / NotificationCenter、ThemeCustomizer、ErrorBoundary、表格导出 xlsx 的那几条。
+   - 随组件一起做（Rune 还没有）：KanbanBoard、CodeEditor、Diagram、SchemaForm、SlideCaptcha、
+     NotificationList / NotificationCenter、ThemeCustomizer、ErrorBoundary、表格导出 xlsx 的那几条（StepsForm、DataImport、ActionBar、QueryTable、ConditionBuilder 已在阶段 6 做了）。
    - 交互模式是 Server 时拿不到浏览器的时区：时刻按 `Lang.TimeZone`，没配置时是服务器的时区（WebAssembly 里是浏览器的）。
      预渲染的页面里时刻、日历的“今天”同样按服务器当时的；交互接管是重新渲染一遍，不会像 vue 水合那样留着旧的属性（0.25.0 修的那个问题 Rune 没有），
      但永远不交互的静态页会停在渲染那一刻。要准的话配置 `Lang.TimeZone`，或者传 `Now` / `Today`。

@@ -1,0 +1,400 @@
+@*
+    数据导入（同 vue-tsx-pro 的 DataImport）：上传文件 → 对应列 → 逐行校验与预览（有错的格子就地改）→ 确认导入。批量导入零件、报价、人员这类数据用它。
+    <DataImport TRow="PartRow" Fields="fields" ToRow="v => new PartRow((string)v[&quot;part&quot;]!, (decimal)v[&quot;quantity&quot;]!)"
+                Validate="CheckRow" OnImport="ImportAsync" />
+    - 上传：选文件或拖进来，Parse 读成表（SheetTable）；几张工作表时先选一张。默认读 CSV（Sheets.ReadCsvAsync）。
+    - 对应列：按字段的 Label、Key 与 Aliases 自动对上文件里的列，可以改；必填的字段没对上时不能往下走。
+    - 校验：空的格子（空字符串、只有空白）是 null；按 Required、Type（数字列要是数字）检查，再交给 Validate（字段名 → 原因）。
+      有错的格子可以直接改（表格就地编辑），改完重新校验；“只看有错的行”筛出要处理的。
+    - 导入：ToRow 把通过校验的值（字段名 → 值，数字是 decimal）转成行，交给 OnImport；执行期间按钮加载中，抛出异常时留在预览、显示原因。
+*@
+@namespace Rune.UI
+@typeparam TRow
+@inherits UIComponent
+@{
+    var parts = DataImportStyles.Of(Config.Styles);
+    var lang = Config.Lang.Patterns;
+    var (total, valid, invalid) = Counts;
+}
+
+<div @attributes="Attrs.Merge(parts[DataImportPart.Root], Rest)">
+    <Steps Items="StepItems(lang)" Current="step" @attributes="Attrs.MergeProps(parts[DataImportPart.Steps], PropsSteps)" />
+    <div @ref="panel" tabindex="-1" role="group" aria-label="@lang.DataImportSteps[step]" @attributes="Attrs.Merge(parts[DataImportPart.Panel])">
+        @switch (step)
+        {
+            case 0:
+                <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                    <FileDrop Accept="@Accept" ValueChanged="OnFilesAsync" Description="@(b => b.AddContent(0, lang.DataImportAccept(string.Join(", ", Accept.Split(',')))))"
+                              @attributes="Attrs.MergeProps(null, PropsDrop)" />
+                    @if (parseError is not null)
+                    {
+                        <Alert Tone="Tone.Danger" Description="@(b => b.AddContent(0, parseError))" />
+                    }
+                    @if (TemplateHref is not null)
+                    {
+                        <Flex Justify="ContentJustify.End">
+                            <LinkButton Href="@TemplateHref" download="@(TemplateFileName ?? "")" Size="Size.Sm" Variant="ButtonVariant.Ghost" Icon="BuiltInIcons.Download"
+                                        @attributes="Attrs.MergeProps(null, PropsTemplate)">@lang.DataImportTemplate</LinkButton>
+                        </Flex>
+                    }
+                </Flex>
+                break;
+            case 1:
+                @Mapping(lang)
+                break;
+            case 2:
+                @Preview(parts, lang, total, valid, invalid)
+                break;
+            default:
+                <Alert Tone="Tone.Success" Title="@lang.DataImportDone(imported)">
+                    <Button Size="Size.Sm" Variant="ButtonVariant.Soft" @onclick="Restart" @attributes="Attrs.MergeProps(null, PropsAgain)">@lang.DataImportAgain</Button>
+                </Alert>
+                break;
+        }
+    </div>
+    @if (step == 2 && importError is not null)
+    {
+        <Alert Tone="Tone.Danger" Live="AlertLive.Assertive" Title="@lang.DataImportFailed" Description="@(b => b.AddContent(0, importError))" />
+    }
+    @if (step is 1 or 2)
+    {
+        <Flex Justify="ContentJustify.End" Gap="SpaceScale.Sm" @attributes="Attrs.MergeProps(parts[DataImportPart.Actions], PropsActions)">
+            <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="Previous" @attributes="Attrs.MergeProps(null, PropsPrevious)">@lang.StepsFormPrevious</Button>
+            @if (step == 1)
+            {
+                <Button Disabled="Unmapped.Count > 0" @onclick="ShowPreview" @attributes="Attrs.MergeProps(null, PropsNext)">@lang.StepsFormNext</Button>
+            }
+            else
+            {
+                <Button Disabled="valid == 0" Loading="importing" @onclick="SubmitAsync" @attributes="Attrs.MergeProps(null, PropsSubmit)">@lang.DataImportSubmit(valid)</Button>
+            }
+        </Flex>
+    }
+</div>
+
+@code {
+    ElementReference panel;
+    int step;
+    bool focusPanel;
+    IReadOnlyList<SheetTable> sheets = [];
+    string? sheetName;
+    Dictionary<string, string?> mapping = [];
+    string? parseError;
+    bool onlyErrors;
+    bool importing;
+    string? importError;
+    int imported;
+    List<ImportRow> rows = [];
+
+    /// <summary>要导入的字段，按显示的顺序。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ImportField> Fields { get; set; } = [];
+
+    /// <summary>通过校验的值（字段名 → 值）转成一行。</summary>
+    [Parameter, EditorRequired] public Func<IReadOnlyDictionary<string, object?>, TRow> ToRow { get; set; } = default!;
+
+    /// <summary>逐行校验（在 Required、Type 的检查之后）：返回字段名 → 原因，没有错时 null 或空的。</summary>
+    [Parameter] public Func<IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, string>?>? Validate { get; set; }
+
+    /// <summary>读文件：返回各工作表；默认读 CSV（UTF-8）。读 Excel 时自己给。</summary>
+    [Parameter] public Func<Microsoft.AspNetCore.Components.Forms.IBrowserFile, Task<IReadOnlyList<SheetTable>>>? Parse { get; set; }
+
+    /// <summary>能选的文件类型，默认 .csv。</summary>
+    [Parameter] public string Accept { get; set; } = ".csv";
+
+    /// <summary>导入通过校验的行：执行期间按钮加载中；抛出异常时留在预览，异常的说明显示出来。</summary>
+    [Parameter, EditorRequired] public EventCallback<IReadOnlyList<TRow>> OnImport { get; set; }
+
+    /// <summary>
+    /// 模板的地址：写了就在上传区旁边放“下载模板”链接。可以是下载接口，也可以是 <see cref="Sheets.CsvDataUrl"/> 生成的 data URL（不经服务器、静态页也能用）。
+    /// </summary>
+    [Parameter] public string? TemplateHref { get; set; }
+
+    /// <summary>下载下来的模板文件名（a 的 download）；不写时浏览器按地址取名。</summary>
+    [Parameter] public string? TemplateFileName { get; set; }
+
+    /// <summary>步骤条的部件属性。</summary>
+    [Parameter] public Attrs? PropsSteps { get; set; }
+
+    /// <summary>选文件区域（FileDrop）的部件属性。</summary>
+    [Parameter] public Attrs? PropsDrop { get; set; }
+
+    /// <summary>预览表（DataTable）的部件属性。</summary>
+    [Parameter] public Attrs? PropsPreview { get; set; }
+
+    /// <summary>按钮行（Flex）的部件属性。</summary>
+    [Parameter] public Attrs? PropsActions { get; set; }
+
+    /// <summary>导入按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsSubmit { get; set; }
+
+    /// <summary>“下载模板”链接（LinkButton）的部件属性。</summary>
+    [Parameter] public Attrs? PropsTemplate { get; set; }
+
+    /// <summary>“上一步”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsPrevious { get; set; }
+
+    /// <summary>“下一步”（对好列、去预览）按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsNext { get; set; }
+
+    /// <summary>导入完成后“再导入一次”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsAgain { get; set; }
+
+    /// <summary>预览里“只看有错的行”开关的部件属性。</summary>
+    [Parameter] public Attrs? PropsOnlyErrors { get; set; }
+
+    static IReadOnlyList<StepItem> StepItems(PatternsMessages lang) => [.. lang.DataImportSteps.Select(title => new StepItem(title))];
+
+    SheetTable? Sheet => sheets.FirstOrDefault(sheet => sheet.Name == sheetName);
+
+    IReadOnlyList<string> Unmapped => [.. Fields.Where(item => item.Required && mapping.GetValueOrDefault(item.Key) is null).Select(item => item.Label)];
+
+    (int Total, int Valid, int Invalid) Counts
+    {
+        get
+        {
+            var invalid = rows.Count(row => row.Errors.Count > 0);
+            return (rows.Count, rows.Count - invalid, invalid);
+        }
+    }
+
+    void Go(int next)
+    {
+        step = next;
+        // 换了一步：原来聚焦的东西（拖放区、“导入”按钮）没有了，焦点跟到这一步的内容上，不掉回页面开头
+        focusPanel = true;
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!focusPanel) return;
+        focusPanel = false;
+        if (RendererInfo.IsInteractive) await panel.FocusAsync(preventScroll: true);
+    }
+
+    // 文字规范化后比较：去掉空白、括号与大小写（“零件号 (必填)”也认作“零件号”）
+    static string Normalize(string text) =>
+        System.Text.RegularExpressions.Regex.Replace(System.Text.RegularExpressions.Regex.Replace(text.ToLowerInvariant(), @"[（(][^）)]*[）)]", ""), @"[\s_*]", "");
+
+    // 按名称、字段名与别名对上文件里的列
+    Dictionary<string, string?> AutoMap(IReadOnlyList<string> headers)
+    {
+        var taken = new HashSet<string>();
+        var result = new Dictionary<string, string?>();
+        foreach (var field in Fields)
+        {
+            var names = new[] { field.Label, field.Key }.Concat(field.Aliases).Select(Normalize).ToHashSet();
+            var header = headers.FirstOrDefault(item => !taken.Contains(item) && names.Contains(Normalize(item)));
+            if (header is not null) taken.Add(header);
+            result[field.Key] = header;
+        }
+        return result;
+    }
+
+    static bool IsEmpty(object? value) => value is null || (value is string text && string.IsNullOrWhiteSpace(text));
+
+    async Task OnFilesAsync(IReadOnlyList<Microsoft.AspNetCore.Components.Forms.IBrowserFile> files)
+    {
+        if (files.Count == 0) return;
+        var lang = Config.Lang.Patterns;
+        parseError = null;
+        try
+        {
+            var read = (Parse is null ? await Sheets.ReadCsvAsync(files[0]) : await Parse(files[0])).Where(sheet => sheet.Rows.Count > 0).ToList();
+            if (read.Count == 0)
+            {
+                parseError = lang.DataImportEmpty;
+                return;
+            }
+            sheets = read;
+            sheetName = read[0].Name;
+            mapping = AutoMap(read[0].Headers);
+            Go(1);
+        }
+        catch (Exception error) when (error is IOException or InvalidOperationException or FormatException or System.Text.DecoderFallbackException)
+        {
+            parseError = lang.DataImportParseFailed(error.Message);
+        }
+    }
+
+    void ChangeSheet(string? name)
+    {
+        sheetName = name;
+        if (Sheet is { } sheet) mapping = AutoMap(sheet.Headers);
+    }
+
+    // 校验一行：Required、Type，再交给 Validate
+    void Check(ImportRow row)
+    {
+        var lang = Config.Lang;
+        var errors = new Dictionary<string, string>();
+        var values = new Dictionary<string, object?>();
+        foreach (var field in Fields)
+        {
+            var cell = row.Raw.GetValueOrDefault(field.Key);
+            if (IsEmpty(cell))
+            {
+                if (field.Required) errors[field.Key] = lang.FormRequired;
+                values[field.Key] = null;
+            }
+            else if (field.Type == ImportFieldType.Number)
+            {
+                var number = cell is decimal d ? d
+                    : decimal.TryParse(Conditions.ToText(cell).Replace(",", ""), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var parsed) ? parsed
+                    : (decimal?)null;
+                if (number is null) errors[field.Key] = lang.Patterns.DataImportNotNumber;
+                values[field.Key] = number;
+            }
+            else values[field.Key] = cell is string text ? text.Trim() : cell;
+        }
+        // 前面的检查优先：Validate 只补上还没有错的字段
+        foreach (var (key, message) in Validate?.Invoke(values) ?? new Dictionary<string, string>())
+            errors.TryAdd(key, message);
+        row.Errors = errors;
+        row.Values = values;
+    }
+
+    // 对应完：按对应关系取出各行并校验，进入预览
+    void ShowPreview()
+    {
+        if (Sheet is not { } sheet) return;
+        rows = [.. sheet.Rows.Select((source, index) =>
+        {
+            var raw = Fields.ToDictionary(field => field.Key, field => mapping.GetValueOrDefault(field.Key) is { } header && source.GetValueOrDefault(header) is { } value && !IsEmpty(value) ? value : null);
+            var row = new ImportRow(index + 1, raw);
+            Check(row);
+            return row;
+        })];
+        onlyErrors = false;
+        Go(2);
+    }
+
+    // 就地改了一格：改原值、重新校验这一行
+    void EditCell(CellChange<ImportRow> change)
+    {
+        change.Item.Raw[change.Key] = IsEmpty(change.Value) ? null : change.Value;
+        Check(change.Item);
+    }
+
+    async Task SubmitAsync()
+    {
+        var accepted = rows.Where(row => row.Errors.Count == 0).ToList();
+        importing = true;
+        importError = null;
+        try
+        {
+            await OnImport.InvokeAsync([.. accepted.Select(row => ToRow(row.Values))]);
+            imported = accepted.Count;
+            Go(3);
+        }
+        catch (Exception error) when (error is not OperationCanceledException)
+        {
+            // 留在预览，把原因说出来：不然按钮转完圈什么都没发生，用户不知道是没导进去
+            importError = error.Message;
+        }
+        finally
+        {
+            importing = false;
+        }
+    }
+
+    void Previous()
+    {
+        if (step == 1) Restart();
+        else Go(1);
+    }
+
+    void Restart()
+    {
+        sheets = [];
+        sheetName = null;
+        rows = [];
+        importError = null;
+        Go(0);
+    }
+
+    RenderFragment Mapping(PatternsMessages lang)
+    {
+        var sheet = Sheet;
+        var headers = sheet?.Headers ?? [];
+        var missing = Unmapped;
+        string SampleOf(string? header) => header is null ? "" : string.Join("、", (sheet?.Rows ?? []).Take(2)
+            .Select(row => row.GetValueOrDefault(header)).Where(value => !IsEmpty(value)).Select(Conditions.ToText));
+        return @<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+            @if (sheets.Count > 1)
+            {
+                <Flex Align="ItemAlign.Center" Gap="SpaceScale.Sm">
+                    <Small Tone="TextTone.Muted">@lang.DataImportSheet</Small>
+                    <Select Items="@(sheets.Select(s => s.Name).ToList())" Value="@sheetName" ValueChanged="ChangeSheet" aria-label="@lang.DataImportSheet" Size="Size.Sm" />
+                </Flex>
+            }
+            <ColumnTable Items="Fields" GetKey="field => field.Key" aria-label="@lang.DataImportSteps[1]">
+                <TemplateColumn Key="label" Title="@lang.DataImportField" Context="field">
+                    <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                        @field.Label
+                        @if (field.Required)
+                        {
+                            <Badge Tone="Tone.Danger" data-part="required">*</Badge>
+                        }
+                    </Flex>
+                </TemplateColumn>
+                <TemplateColumn Key="column" Title="@lang.DataImportColumn" Width="240" Context="field">
+                    <Select Items="headers" Value="@mapping.GetValueOrDefault(field.Key)" ValueChanged="header => mapping[field.Key] = header"
+                            Placeholder="@lang.DataImportSkip" Clearable="true" Size="Size.Sm" aria-label="@($"{field.Label}：{lang.DataImportColumn}")" />
+                </TemplateColumn>
+                <TemplateColumn Key="sample" Title="@lang.DataImportSample" Context="field">
+                    <Small Tone="TextTone.Muted">@SampleOf(mapping.GetValueOrDefault(field.Key))</Small>
+                </TemplateColumn>
+            </ColumnTable>
+            @if (missing.Count > 0)
+            {
+                <Alert Tone="Tone.Warning" Description="@(b => b.AddContent(0, lang.DataImportUnmapped(missing)))" />
+            }
+        </Flex>;
+    }
+
+    RenderFragment Preview(PartLayers<DataImportPart> parts, PatternsMessages lang, int total, int valid, int invalid)
+    {
+        IReadOnlyList<ImportRow> shown = onlyErrors ? [.. rows.Where(row => row.Errors.Count > 0)] : rows;
+        return @<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+            <Flex Align="ItemAlign.Center" Justify="ContentJustify.Between" Gap="SpaceScale.Md" Wrap="true">
+                <Small>@lang.DataImportSummary(total, valid, invalid)</Small>
+                @if (invalid > 0)
+                {
+                    <Switch @bind-Value="onlyErrors" @attributes="Attrs.MergeProps(null, PropsOnlyErrors)">@lang.DataImportOnlyErrors</Switch>
+                }
+            </Flex>
+            <DataTable TItem="ImportRow" Items="shown" GetKey="row => row.Line.ToString(System.Globalization.CultureInfo.InvariantCulture)" Density="TableDensity.Compact"
+                       RowTone="@(row => row.Errors.Count > 0 ? Tone.Danger : null)" ValidateRow="row => row.Errors" OnCellChange="EditCell"
+                       aria-label="@lang.DataImportPreview" @attributes="Attrs.MergeProps(parts[DataImportPart.Preview], PropsPreview)">
+                <PropertyColumn Property="row => row.Line" Key="line" Title="@lang.DataImportRow" Width="72" />
+                <TemplateColumn Key="status" Title="@lang.DataImportStatus" Width="200" Context="row">
+                    @if (row.Errors.Count > 0)
+                    {
+                        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                            <Icon Data="BuiltInIcons.CircleExclamationPoint" Tone="TextTone.Danger" />
+                            <Small Tone="TextTone.Danger">@row.Errors.Values.First()</Small>
+                        </Flex>
+                    }
+                    else
+                    {
+                        <Flex Align="ItemAlign.Center" Gap="SpaceScale.Xs">
+                            <Icon Data="BuiltInIcons.CircleCheck" Tone="TextTone.Success" />
+                            <Small Tone="TextTone.Muted">@lang.DataImportValid</Small>
+                        </Flex>
+                    }
+                </TemplateColumn>
+                @foreach (var field in Fields)
+                {
+                    var key = field.Key;
+                    <PropertyColumn @key="key" Property="row => row.Text(key)" Key="@key" Title="@field.Label" Width="field.Width" MinWidth="120"
+                                    Type="@(field.Type == ImportFieldType.Number ? ColumnType.Number : null)" Editable="true" />
+                }
+            </DataTable>
+            @if (invalid > 0)
+            {
+                <Small Tone="TextTone.Muted">@lang.DataImportEditHint</Small>
+            }
+        </Flex>;
+    }
+}
