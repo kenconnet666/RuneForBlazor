@@ -402,7 +402,7 @@ function onKeyDown(event) {
   keySplitter(event);
   keyTabs(event);
   // 列表没用掉的按键再转成命令（Enter 选中了高亮项时不再加标签）
-  if (event.key === 'Backspace' || event.key === 'Escape' || event.key === 'Enter') sendKeyCommand(event);
+  if (event.key === 'Backspace' || event.key === 'Escape' || event.key === 'Enter' || event.key === 'ArrowDown') sendKeyCommand(event);
 }
 
 function onFocusIn(event) {
