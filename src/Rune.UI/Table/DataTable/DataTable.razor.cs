@@ -63,7 +63,7 @@ public partial class DataTable<TItem>
     (int Index, ScrollAlign Align, int Sequence) scrollRequest;
 
     DelayedLoading? delayedLoading;
-    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged), () => RendererInfo.IsInteractive);
 
     /// <summary>数据。</summary>
     [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];

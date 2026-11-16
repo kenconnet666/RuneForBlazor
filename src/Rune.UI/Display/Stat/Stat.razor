@@ -89,7 +89,7 @@
     public static readonly NumberFormat DefaultChangeFormat = new() { Style = NumberStyle.Percent, MaximumFractionDigits = 1, SignDisplay = SignDisplay.ExceptZero };
 
     DelayedLoading? delayedLoading;
-    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged), () => RendererInfo.IsInteractive);
     bool revealing;
 
     [CascadingParameter(Name = StatGroup.CascadeName)] bool Grouped { get; set; }

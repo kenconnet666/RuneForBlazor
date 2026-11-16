@@ -67,7 +67,7 @@ public partial class Tree<TItem>
     Bindable<IReadOnlyList<string>> checkedKeys { get => field ??= new(this, () => Checked ?? [], () => CheckedChanged); }
 
     DelayedLoading? delayedLoading;
-    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged), () => RendererInfo.IsInteractive);
 
     RenderFragment? defaultEmpty;
     RenderFragment DefaultEmpty => defaultEmpty ??= builder =>

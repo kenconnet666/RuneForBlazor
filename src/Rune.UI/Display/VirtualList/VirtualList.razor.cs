@@ -68,7 +68,7 @@ public partial class VirtualList<TItem>
     (int Index, double Offset, ScrollAlign Align, bool ByOffset, int Sequence) scrollRequest;
 
     DelayedLoading? delayedLoading;
-    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged), () => RendererInfo.IsInteractive);
 
     /// <summary>数据。</summary>
     [Parameter, EditorRequired] public IReadOnlyList<TItem> Items { get; set; } = [];

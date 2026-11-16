@@ -76,7 +76,7 @@ else
         }
     };
     DelayedLoading? delayedLoading;
-    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged), () => RendererInfo.IsInteractive);
 
     /// <summary>样式，默认表面色加细边框。</summary>
     [Parameter] public CardVariant? Variant { get; set; }

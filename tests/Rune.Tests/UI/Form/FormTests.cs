@@ -78,6 +78,8 @@ public class FormTests : BunitContext
     [Fact]
     public void 开关_轨道里的文字对读屏隐藏_切换中拦下点击并转圈()
     {
+        // 推迟显示只在可交互的渲染里有
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         var cut = Render<Switch>(p => p
             .Add(x => x.CheckedContent, b => b.AddContent(0, "开"))
             .Add(x => x.UncheckedContent, b => b.AddContent(0, "关"))

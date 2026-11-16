@@ -94,7 +94,7 @@ else
         @<Empty Size="Size.Sm" HideIcon Description="@(b => b.AddContent(0, EmptyText ?? Config.Lang.SelectEmpty))" @attributes="Attrs.MergeProps(PropsEmpty)" />;
 
     DelayedLoading? delayedLoading;
-    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged), () => RendererInfo.IsInteractive);
 
     Memo<IReadOnlyList<ListEntry<TItem>>, ListRow[]> rows;
     Memo<IReadOnlyList<ListEntry<TItem>>, string> optionTable;

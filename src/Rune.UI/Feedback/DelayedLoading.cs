@@ -3,15 +3,20 @@ namespace Rune.UI;
 /// <summary>
 /// 加载指示防闪烁（同 vue-tsx-pro 的 useDelayedLoading、Ant Design Spin 的 delay）：很快完成的加载不出现指示，
 /// 出现了就至少显示一段时间。只管视觉：aria-busy、禁止点击等仍按真实的 loading 立即生效。
-/// 第一次更新时已经在加载就立即显示（没有内容可看，空白比指示更糟；静态 SSR 只有这一次）。
+/// 第一次更新时已经在加载就立即显示（没有内容可看，空白比指示更糟）。
+/// 不可交互的渲染（静态 SSR、预渲染）不推迟：响应发出去以后计时器到点也没有下一次渲染，“至少显示一会儿”会让指示一直留在页面上。
 /// <code>
-/// readonly DelayedLoading indicator = new(() => InvokeAsync(StateHasChanged));
+/// DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged), () => RendererInfo.IsInteractive);
 /// protected override void OnParametersSet() => indicator.Update(Loading);   // 渲染里用 indicator.Shown
 /// public void Dispose() => indicator.Dispose();
 /// </code>
 /// </summary>
 /// <param name="rerender">显示状态在计时器里变了之后调用：组件据此重新渲染。</param>
-public sealed class DelayedLoading(Func<Task> rerender) : IDisposable
+/// <param name="interactive">
+/// 组件是否在可交互地渲染（<c>RendererInfo.IsInteractive</c>）；否则显示状态始终等于真实的 loading。
+/// 加载状态第二次变化时才读（第一次总是立即跟随），读一次。
+/// </param>
+public sealed class DelayedLoading(Func<Task> rerender, Func<bool>? interactive = null) : IDisposable
 {
     /// <summary>开始加载后过多久才显示。</summary>
     public static readonly TimeSpan Delay = TimeSpan.FromMilliseconds(200);
@@ -20,6 +25,7 @@ public sealed class DelayedLoading(Func<Task> rerender) : IDisposable
     public static readonly TimeSpan MinDuration = TimeSpan.FromMilliseconds(500);
 
     bool? loading;
+    bool? isInteractive;
     // 显示出来的时间戳（单调时钟，不受改系统时间影响）
     long shownAt;
     CancellationTokenSource? pending;
@@ -33,7 +39,7 @@ public sealed class DelayedLoading(Func<Task> rerender) : IDisposable
         if (this.loading == loading) return;
         var first = this.loading is null;
         this.loading = loading;
-        if (first)
+        if (first || !(isInteractive ??= interactive?.Invoke() ?? true))
         {
             Shown = loading;
             if (loading) shownAt = TimeProvider.System.GetTimestamp();

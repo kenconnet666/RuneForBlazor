@@ -74,6 +74,20 @@ public class SkeletonTests : BunitContext
     }
 
     [Fact]
+    public void 延迟显示_不可交互的渲染里跟着真实的加载状态_不留到响应发出之后()
+    {
+        var renders = 0;
+        using var indicator = new DelayedLoading(() => { renders++; return Task.CompletedTask; }, interactive: () => false);
+        indicator.Update(true);
+        Assert.True(indicator.Shown);
+        indicator.Update(false);
+        Assert.False(indicator.Shown);
+        indicator.Update(true);
+        Assert.True(indicator.Shown);
+        Assert.Equal(0, renders);
+    }
+
+    [Fact]
     public void 卡片加载中_正文换成骨架_带aria_busy()
     {
         var cut = Render<Card>(p => p

@@ -24,6 +24,12 @@
     `[FormField]` 写控件、栏宽、页签、单位、条件、合计与选项来源，`SchemaConditions.FieldsOf<T>()` 给条件构造器；新诊断 RUNE011–RUNE013
 - Textarea、Mentions 新增 `Immediate`（每次输入都更新值）
 
+### 修复
+
+- 静态 SSR、预渲染里加载很快完成时（DataTable、QueryTable、Card、Stat、Tree、VirtualList、Listbox、LoadingOverlay、Switch），
+  加载指示不再一直留在页面上：“至少显示一会儿”只在可交互的渲染里有（`DelayedLoading` 新增参数 `interactive`）
+- FilterBar：按钮区变宽（字体晚到）时重新计算第一排放几个条件
+
 ## [0.19.0] - 2026-11-15
 
 对齐 vue-tsx-pro 0.29.0（`c2be5550..0de173eb`）。

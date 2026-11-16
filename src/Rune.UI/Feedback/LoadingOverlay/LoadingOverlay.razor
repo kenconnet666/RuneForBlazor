@@ -27,7 +27,7 @@
     static readonly Attrs Busy = new() { ["aria-busy"] = "true" };
 
     DelayedLoading? delayedLoading;
-    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged));
+    DelayedLoading indicator => delayedLoading ??= new(() => InvokeAsync(StateHasChanged), () => RendererInfo.IsInteractive);
 
     /// <summary>加载中：盖上遮罩。</summary>
     [Parameter] public bool Loading { get; set; }
