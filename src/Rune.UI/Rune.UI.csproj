@@ -32,6 +32,7 @@
   <!-- 内置的一小组图标（BuiltInIcons.g.cs）是 Lucide 的数据：随包带上它的 ISC 许可 -->
   <ItemGroup>
     <None Include="..\Rune.Icons\LICENSE-lucide.txt" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="LICENSE-radix-colors.txt" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

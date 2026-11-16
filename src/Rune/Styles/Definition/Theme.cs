@@ -32,6 +32,16 @@ public sealed class Theme
         BasedOn = basedOn;
     }
 
+    /// <summary>
+    /// 在基础主题上覆盖运行时算出来的一组取值（主题编辑器）：键是 token（<c>var(--…)</c>，如 <c>Radii.Md.ToString()</c>），值是 CSS 文本。
+    /// 亮暗同基础主题；基础主题的条件块（减少动态效果）照样生效。
+    /// </summary>
+    public Theme(string name, Theme basedOn, IEnumerable<KeyValuePair<string, string>> values) : this(name, basedOn)
+    {
+        IsDark = basedOn.IsDark;
+        foreach (var (token, value) in values) own[VariableOf(token)] = value;
+    }
+
     /// <summary>名字。</summary>
     public string Name { get; }
 

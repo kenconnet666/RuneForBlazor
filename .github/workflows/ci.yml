@@ -223,6 +223,10 @@ jobs:
       - name: 检查 wwwroot/vendor 里的第三方脚本
         run: node tools/vendor-gen/generate.mjs --check
 
+      # 主题编辑器的 Radix 色阶（版本写在脚本里），同样用 npm pack 下载比对
+      - name: 检查 RadixColors.g.cs 与许可文件
+        run: node tools/palette-gen/generate.mjs --check
+
   css-gen:
     name: 样式属性表、内置主题、语言包与 vue-tsx-pro 一致
     runs-on: ubuntu-latest
@@ -235,13 +239,14 @@ jobs:
           repository: kenconnet666/vue-tsx-pro
           ref: ${{ env.VUE_TSX_PRO_REF }}
           path: .deps/vue-tsx-pro
-          # patterns、docs-kit 里有页面级组件自带的文案表（messages.ts，lang-gen 生成 PatternsMessages、DocsKitMessages）
+          # patterns、docs-kit、theme-customize 里有页面级组件自带的文案表（messages.ts，lang-gen 生成 PatternsMessages、DocsKitMessages、ThemeCustomizerMessages）
           sparse-checkout: |
             packages/tsx/src/styles
             packages/ui/src/config/theme
             packages/ui/src/config/lang
             packages/ui/src/patterns
             packages/ui/src/docs-kit
+            packages/ui/src/theme-customize
             packages/ui/src/area
 
       - uses: actions/setup-node@v7

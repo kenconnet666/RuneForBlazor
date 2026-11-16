@@ -33,7 +33,6 @@ const SKIPPED = {
   formIssues: '表单校验文案由 zod 生成；Blazor 用 DataAnnotations 等自己的校验文案',
   messages: '页面级组件（主题编辑器、文档站）自带的文案表，做到这些组件时再定',
   diagram: '流程图模块不移植',
-  themeCustomizer: '主题编辑器的文案，做到时再定',
 };
 
 /**
@@ -43,6 +42,7 @@ const SKIPPED = {
 const MESSAGE_TABLES = [
   { key: 'patterns', file: 'patterns/messages.ts', iface: 'PatternsMessages', table: 'patternsMessages', summary: '页面组合（AppShell……）的文案' },
   { key: 'docsKit', file: 'docs-kit/messages.ts', iface: 'DocsKitMessages', table: 'docsKitMessages', summary: '文档站组件（CodePreview、PropsTable……）的文案' },
+  { key: 'themeCustomizer', file: 'theme-customize/messages.ts', iface: 'ThemeCustomizerMessages', table: 'themeCustomizerMessages', summary: '主题编辑器（ThemeCustomizer）的文案' },
 ];
 
 /** 内置的语言：文件名、导出名、C# 属性名、说明 */

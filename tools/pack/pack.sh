@@ -23,6 +23,7 @@ unzip -p "$(package RuneForBlazor.UI)" RuneForBlazor.UI.nuspec | grep '<dependen
 # 浮层等 JS 初始化器在组件库包里，文件名要等于包 ID（SDK 只认 {PackageId}.lib.module.js）；Lucide 的许可随两个带图标数据的包
 unzip -p "$(package RuneForBlazor.UI)" build/Microsoft.AspNetCore.StaticWebAssets.props | grep "<AssetTraitValue>JSLibraryModule</AssetTraitValue>" >/dev/null
 unzip -l "$(package RuneForBlazor.UI)" | grep "LICENSE-lucide.txt" >/dev/null
+unzip -l "$(package RuneForBlazor.UI)" | grep "LICENSE-radix-colors.txt" >/dev/null
 unzip -l "$(package RuneForBlazor.Icons)" | grep "LICENSE-lucide.txt" >/dev/null
 # three.js 随 3D 包（静态资源，用到时才下载），许可在旁边
 unzip -l "$(package RuneForBlazor.Three)" | grep "staticwebassets/vendor/three/three.js" >/dev/null
