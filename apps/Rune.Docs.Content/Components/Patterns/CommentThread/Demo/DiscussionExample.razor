@@ -1,5 +1,6 @@
 @* 建议详情的沟通：留言与回复、身份标记（供应商 / 内部岗位）、@ 提及、附件。发出去的留言直接加进列表（乐观更新），
    内容里写“失败”会模拟接口出错：内容保留并提示。自己的留言可以删除（Actions） *@
+@inherits UIComponent
 
 <Card>
     <CommentThread Comments="comments" People="people" CurrentUser="me" UploadAsync="UploadAsync" OnSend="SendAsync">
@@ -72,7 +73,7 @@
     {
         await Task.Delay(500);
         if (draft.Content.Contains("失败")) throw new InvalidOperationException("网络错误");
-        var comment = new CommentItem($"new-{++sequence}", me.Name, draft.Content, DateTimeOffset.Now)
+        var comment = new CommentItem($"new-{++sequence}", me.Name, draft.Content, TimeSource.GetUtcNow())
         {
             Avatar = me.Avatar,
             Role = Internal("财务分析师"),
