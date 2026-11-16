@@ -1,5 +1,7 @@
 @*
     查询栏（form role="search"，同 vue-tsx-pro 的 FilterBar）：列表页上方的一排筛选条件，最后是“查询”“重置”；条件多时其余的收起来，点“展开”再显示。
+    高级筛选：给了 ConditionFields 时按钮区多一个“高级筛选”，展开后在查询栏下面用 ConditionBuilder 编辑条件树（@bind-Condition），
+    能表达固定条件表达不了的组合（任一满足、介于、不包含）；收起时有条件就写成一句话，带“清空”；“重置”同时把条件清成 null。
     <FilterBar OnSearch="SearchAsync" OnReset="Reset" MoreActive="2">
         <ChildContent>
             <Field Label="项目名称"><TextField @bind-Value="query.Name" /></Field>
@@ -46,12 +48,38 @@
                             <Badge Tone="Tone.Accent" Radius="Radius.Full" @attributes="Attrs.MergeProps(parts[FilterBarPart.Count])">@lang.FilterActive(MoreActive)</Badge>
                         }
                     </Button>
+                    @if (ConditionFields is not null)
+                    {
+                        <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Icon="BuiltInIcons.ListFilter" aria-expanded="@(advancedOpen ? "true" : "false")"
+                                aria-controls="@(advancedOpen ? advancedId : null)" @onclick="() => advancedOpen = !advancedOpen"
+                                @attributes="Attrs.MergeProps(parts[FilterBarPart.AdvancedToggle], PropsAdvancedToggle)">
+                            @lang.FilterAdvanced
+                            @if (!advancedOpen && Condition is not null)
+                            {
+                                <Badge Tone="Tone.Accent" Radius="Radius.Full" @attributes="Attrs.MergeProps(parts[FilterBarPart.Count])">@lang.FilterActive(Conditions.CountRules(Condition))</Badge>
+                            }
+                        </Button>
+                    }
                     @Actions
                     <Button Variant="ButtonVariant.Outline" Tone="Tone.Neutral" @onclick="ResetAsync" @attributes="Attrs.MergeProps(parts[FilterBarPart.Reset], PropsReset)">@lang.FilterReset</Button>
                     <Button Type="submit" Loading="Loading" @attributes="Attrs.MergeProps(parts[FilterBarPart.Search], PropsSearch)">@lang.FilterSearch</Button>
                     @End
                 </div>
             </div>
+            @if (ConditionFields is not null && advancedOpen)
+            {
+                <ConditionBuilder id="@advancedId" Fields="ConditionFields" Value="Condition" ValueChanged="ConditionChanged" aria-label="@lang.FilterAdvanced"
+                                  @attributes="Attrs.MergeProps(parts[FilterBarPart.Advanced], PropsAdvanced)" />
+            }
+            else if (ConditionFields is not null && Condition is not null)
+            {
+                @* 收起时有条件就写成一句话，带“清空” *@
+                <div @attributes="Attrs.Merge(parts[FilterBarPart.Summary])">
+                    <Small Tone="TextTone.Muted">@lang.FilterAdvanced：@Conditions.Describe(Condition, ConditionFields, Config.Lang)</Small>
+                    <Button Variant="ButtonVariant.Link" Size="Size.Sm" @onclick="() => ConditionChanged.InvokeAsync(null)"
+                            @attributes="Attrs.MergeProps(parts[FilterBarPart.ClearAdvanced], PropsClearAdvanced)">@Config.Lang.Clear</Button>
+                </div>
+            }
         </div>
     </form>
 </CascadingValue>
@@ -62,6 +90,8 @@
     static readonly Attrs MoreCollapsed = new() { Sx = FilterBarStyles.MoreCollapsed, ["data-part"] = "more" };
     static readonly Attrs MoreShown = new() { Sx = FilterBarStyles.MoreShown, ["data-part"] = "more" };
 
+    readonly string advancedId = UniqueId.Next("filter-advanced");
+    bool advancedOpen;
     Memo<(FieldLabelPlacement? Placement, CssLength? Width), FieldLayout> layout;
     Memo<(string Min, bool Expanded), Attrs> rootManaged;
 
@@ -107,6 +137,24 @@
     /// <summary>每个条件的最小宽度，默认 14em。</summary>
     [Parameter] public CssLength? MinFieldWidth { get; set; }
 
+    /// <summary>高级筛选的字段：给了时按钮区多一个“高级筛选”，展开后在查询栏下面用 ConditionBuilder 编辑 Condition。</summary>
+    [Parameter] public IReadOnlyList<ConditionField>? ConditionFields { get; set; }
+
+    /// <summary>高级筛选的条件（@bind-Condition）；没有时是 null，“重置”时清成 null。</summary>
+    [Parameter] public ConditionExpression? Condition { get; set; }
+
+    /// <summary>高级筛选的条件变了。</summary>
+    [Parameter] public EventCallback<ConditionExpression?> ConditionChanged { get; set; }
+
+    /// <summary>高级筛选按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsAdvancedToggle { get; set; }
+
+    /// <summary>高级筛选那一行（ConditionBuilder）的部件属性。</summary>
+    [Parameter] public Attrs? PropsAdvanced { get; set; }
+
+    /// <summary>收起高级筛选后“清空”条件的按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsClearAdvanced { get; set; }
+
     /// <summary>Start 右边那一列的部件属性。</summary>
     [Parameter] public Attrs? PropsBody { get; set; }
 
@@ -143,7 +191,12 @@
 
     Task SearchAsync() => OnSearch.InvokeAsync();
 
-    Task ResetAsync() => OnReset.InvokeAsync();
+    // “重置”同时把高级筛选的条件清成 null
+    async Task ResetAsync()
+    {
+        if (ConditionFields is not null && Condition is not null) await ConditionChanged.InvokeAsync(null);
+        await OnReset.InvokeAsync();
+    }
 
     async Task ToggleAsync()
     {

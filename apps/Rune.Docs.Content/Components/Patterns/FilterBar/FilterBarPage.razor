@@ -12,5 +12,10 @@
         <Code>MoreActive</Code> 是收起的条件里已经填了几项，显示在“展开”旁边，免得忘了还有条件生效。外层是 <Code>role="search"</Code> 的表单：在输入框里按回车就是 <Code>OnSearch</Code>，
         <Code>Loading</Code> 时“查询”显示加载中。
     </Example>
+    <Example Id="advanced" Title="高级筛选" Demo="typeof(AdvancedExample)">
+        <Code>ConditionFields</Code> 给出能组合的字段时，按钮区多一个“高级筛选”，展开后在查询栏下面用 <TextLink Href="components/condition-builder">ConditionBuilder</TextLink> 编辑
+        <Code>@@bind-Condition</Code>，写出任一满足、介于、不包含这类固定条件写不出的组合。收起时有条件就写成一句话，带“清空”；“重置”同时把条件清成 null。
+        条件交给后端，或用 <Code>Conditions.Matches</Code> 在前端筛。
+    </Example>
     <ApiReference Types="[typeof(FilterBar)]" />
 </DocPage>

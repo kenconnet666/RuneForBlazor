@@ -6,7 +6,7 @@
 namespace Rune.UI;
 
 /// <summary>
-/// 组件库自己要用的 Lucide 图标（94 个）；需要更多图标时引用 Rune.Icons 包。
+/// 组件库自己要用的 Lucide 图标（96 个）；需要更多图标时引用 Rune.Icons 包。
 /// </summary>
 public static partial class BuiltInIcons
 {
@@ -120,6 +120,8 @@ public static partial class BuiltInIcons
     public static IconData Inbox => field ??= new("inbox", "<polyline points=\"22 12 16 12 14 15 10 15 8 12 2 12\"/><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\"/>");
     /// <summary>Lucide 图标 <c>info</c>（alphabet、character、text、font、typography、about、advice、clue）。</summary>
     public static IconData Info => field ??= new("info", "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>");
+    /// <summary>Lucide 图标 <c>list-filter</c>（options）。</summary>
+    public static IconData ListFilter => field ??= new("list-filter", "<path d=\"M2 5h20\"/><path d=\"M6 12h12\"/><path d=\"M9 19h6\"/>");
     /// <summary>Lucide 图标 <c>loader-circle</c>（loading、wait、busy、progress、spinner、spinning、throbber、circle）。</summary>
     public static IconData LoaderCircle => field ??= new("loader-circle", "<path d=\"M21 12a9 9 0 1 1-6.219-8.56\"/>");
     /// <summary>Lucide 图标 <c>maximize</c>（fullscreen、expand、dashed）。</summary>
@@ -172,6 +174,8 @@ public static partial class BuiltInIcons
     public static IconData Star => field ??= new("star", "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\"/>");
     /// <summary>Lucide 图标 <c>sun</c>（brightness、weather、light、summer）。</summary>
     public static IconData Sun => field ??= new("sun", "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2\"/><path d=\"M12 20v2\"/><path d=\"m4.93 4.93 1.41 1.41\"/><path d=\"m17.66 17.66 1.41 1.41\"/><path d=\"M2 12h2\"/><path d=\"M20 12h2\"/><path d=\"m6.34 17.66-1.41 1.41\"/><path d=\"m19.07 4.93-1.41 1.41\"/>");
+    /// <summary>Lucide 图标 <c>trash</c>（minus、remove、delete、cancel、erase、subtract、reduce、clear）。</summary>
+    public static IconData Trash => field ??= new("trash", "<path d=\"M10 11v6\"/><path d=\"M14 11v6\"/><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\"/><path d=\"M3 6h18\"/><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/>");
     /// <summary>Lucide 图标 <c>trees</c>（tree、forest、park、nature）。</summary>
     public static IconData Trees => field ??= new("trees", "<path d=\"M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z\"/><path d=\"M7 16v6\"/><path d=\"M13 19v3\"/><path d=\"M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5\"/>");
     /// <summary>Lucide 图标 <c>trending-down</c>（diagram、graph、visualization、data、analytics、analysis、statistics、presentation）。</summary>

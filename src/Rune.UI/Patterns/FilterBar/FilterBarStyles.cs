@@ -34,6 +34,18 @@ public enum FilterBarPart
 
     /// <summary>“展开”旁边收起的条件里填了几项。</summary>
     Count,
+
+    /// <summary>高级筛选的按钮。</summary>
+    AdvancedToggle,
+
+    /// <summary>高级筛选那一行（ConditionBuilder）。</summary>
+    Advanced,
+
+    /// <summary>收起后高级筛选的摘要。</summary>
+    Summary,
+
+    /// <summary>摘要后面“清空”的按钮。</summary>
+    ClearAdvanced,
 }
 
 /// <summary>查询栏的默认值（全站的查询栏）。</summary>
@@ -70,6 +82,8 @@ public static class FilterBarStyles
             FilterBarPart.Row => Row,
             FilterBarPart.Fields => Fields,
             FilterBarPart.Actions => Actions,
+            FilterBarPart.Advanced => Advanced,
+            FilterBarPart.Summary => Summary,
             _ => Sx.Of((Style?)null),
         });
 
@@ -126,6 +140,18 @@ public static class FilterBarStyles
 
     /// <inheritdoc cref="MoreCollapsed"/>
     internal static Style MoreShown => Css.Define(static () => new Style { Display = Display.Contents });
+
+    static Style Advanced => Css.Define(static () => new Style
+    {
+        Padding = Space.Md,
+        BackgroundColor = Colors.SurfaceMuted,
+        BorderWidth = BorderWidths.Xs,
+        BorderStyle = BorderStyle.Solid,
+        BorderColor = Colors.BorderMuted,
+        BorderRadius = Radii.Md,
+    });
+
+    static Style Summary => Css.Define(static () => new Style { Display = Display.Flex, AlignItems = AlignItems.Baseline, Gap = Space.Sm, MinWidth = 0 });
 
     // 不收缩，但不宽过整排：按钮多（QueryTable 的工具栏放在这里）、屏幕窄时在里面换行，不把页面撑宽
     static Style Actions => Css.Define(static () => new Style

@@ -140,6 +140,9 @@ const BUILT_IN = [
   // QueryTable 的工具栏：刷新、行高（全屏在上面）
   'refresh-cw',
   'rows-3',
+  // ConditionBuilder：删除整组；FilterBar 的高级筛选
+  'trash',
+  'list-filter',
 ];
 
 /** 文档注释里最多列几个关键词 */

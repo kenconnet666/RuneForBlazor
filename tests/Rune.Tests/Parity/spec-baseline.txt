@@ -49,7 +49,6 @@ Combobox.OnOpenChange
 CommandPalette.OptionContent
 CommentComposer（组件）
 CommentThread（组件）
-ConditionBuilder（组件）
 ConfigScope（组件）
 ContextMenu.Menu
 ContextMenu.OnOpenChange
@@ -85,11 +84,6 @@ Field.Name
 Field.ValueProp
 FieldCompare.Fields
 FileDrop.OnFiles
-FilterBar.Condition
-FilterBar.ConditionFields
-FilterBar.PropsAdvanced
-FilterBar.PropsAdvancedToggle
-FilterBar.PropsClearAdvanced
 FilterBar.PropsMore
 FloatButton.Type
 Form.Controller

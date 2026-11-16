@@ -1,0 +1,33 @@
+@* 审批条件：金额、品类、供应商、加急、交货日期五个字段，比较方式随字段类型（数字有大小与介于，日期是早于、晚于，
+   选项是“是其中之一”），值的输入也随之换（数字框、日期、多选）。组里还能加组，表头选全部、任一、都不、不全满足。
+   下面是 Conditions.Describe 写成的一句话 *@
+@inherits UIComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ConditionBuilder Fields="fields" @bind-Value="condition" aria-label="审批条件" />
+    <Small Tone="TextTone.Muted">@(condition is null ? "没有条件：全部通过" : Conditions.Describe(condition, fields, Config.Lang))</Small>
+</Flex>
+
+@code {
+    static readonly IReadOnlyList<ConditionField> fields =
+    [
+        new("amount", "金额", ConditionFieldType.Number),
+        new("category", "品类", ConditionFieldType.Select)
+        {
+            Options = [new("steel", "钢材"), new("aluminum", "铝材"), new("fastener", "紧固件"), new("service", "服务")],
+        },
+        new("supplier", "供应商", ConditionFieldType.Text),
+        new("urgent", "加急", ConditionFieldType.Boolean),
+        new("delivery", "交货日期", ConditionFieldType.Date),
+    ];
+
+    ConditionExpression? condition = new ConditionAll(
+    [
+        new ConditionRule("amount", ConditionOp.Gte, 100000m),
+        new ConditionAny(
+        [
+            new ConditionRule("category", ConditionOp.In, new List<object?> { "steel", "aluminum" }),
+            new ConditionRule("urgent", ConditionOp.Eq, true),
+        ]),
+    ]);
+}

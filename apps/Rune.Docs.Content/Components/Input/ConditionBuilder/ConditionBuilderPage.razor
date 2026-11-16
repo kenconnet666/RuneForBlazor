@@ -1,0 +1,26 @@
+@page "/components/condition-builder"
+@attribute [DocMeta("ConditionBuilder 条件构造器", "编辑“字段 · 比较方式 · 值”加全部、任一、都不满足组合的条件树：流程连线的条件、列表的高级筛选。条件可以在前端求值，也能交给后端。", DocCategory.Input, Order = 17)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Input.ConditionBuilder.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="approval" Title="审批条件" Demo="typeof(ApprovalExample)">
+        <Code>Fields</Code> 给出字段的名字、显示名与类型（文字、数字、日期、选项、是否）。比较方式随类型（日期是早于、晚于，选项是“是其中之一”），
+        值的输入随类型与比较方式（介于是两个框，是其中之一是多选）。组的表头选满足方式，组里还能加组。<Code>@@bind-Value</Code> 只写回填完整的比较，一条也没有时是 null；
+        <Code>Conditions.Describe</Code> 把条件写成一句话（收起时的摘要、流程连线上的文字）。条件的类型叫 <Code>ConditionExpression</Code>（样式引擎里已有 Condition）。
+    </Example>
+    <Example Id="filter" Title="筛选本地数据" Demo="typeof(FilterExample)">
+        <Code>Conditions.Matches(条件, 字段名 => 值)</Code> 在前端求值：同一份条件交给后端按同样的规则求值，结果一致。<Code>MaxDepth="1"</Code> 不能加组，<Code>Size="Size.Sm"</Code> 用小一档的控件。
+    </Example>
+    <Example Id="custom-input" Title="自己画值的输入" Demo="typeof(CustomInputExample)">
+        字段的 <Code>Input</Code> 换掉值的输入（人员选择器、带单位的数字、DatePicker），比较方式仍按 <Code>Type</Code>；<Code>Format</Code> 决定摘要里值的写法，<Code>Group</Code> 把字段列表分组。
+        日期默认是浏览器自带的日期输入（Rune.UI 不依赖 Rune.UI.Dates），要 DatePicker 时写在 Input 里。
+    </Example>
+    <KeyboardReference Keys="@([
+        ("Tab", "依次经过满足方式、每条的字段、比较方式、值、删除，最后是“添加条件”“添加条件组”"),
+        ("↓ / Enter / Space", "打开字段、比较方式的列表（同 Select）"),
+    ])">
+        整个构造器与每个嵌套的组是 role="group"，每条比较也是一组（“条件 2”）。三个控件各有名称（“字段”“比较方式”“金额的值”）。加了一条之后焦点落到它的字段上，删掉之后落到所在组的“添加条件”上。
+    </KeyboardReference>
+    <ApiReference Types="[typeof(ConditionBuilder), typeof(ConditionField)]" />
+</DocPage>

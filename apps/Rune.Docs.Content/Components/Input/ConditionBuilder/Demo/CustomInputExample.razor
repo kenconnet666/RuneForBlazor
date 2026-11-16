@@ -1,0 +1,45 @@
+@* 自己画值的输入：经办人字段的 Input 换成带搜索的 Select（真实场景接人员选择器），类型仍是 Select，
+   比较方式（是、不是、是其中之一）与摘要照旧；Format 决定摘要里值的写法。字段的 Group 把字段列表分成两组 *@
+@inherits UIComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <ConditionBuilder Fields="fields" @bind-Value="condition" aria-label="提级条件" />
+    <Small Tone="TextTone.Muted">@(condition is null ? "没有条件" : Conditions.Describe(condition, fields, Config.Lang))</Small>
+</Flex>
+
+@code {
+    sealed record Person(string Id, string Name, string Dept);
+
+    static readonly Person[] people = [new("u01", "林晓", "采购部"), new("u02", "陈思雨", "质量部"), new("u03", "王建国", "财务部"), new("u04", "赵一凡", "采购部")];
+
+    static ListboxOption ToOption(Person person) => new(person.Id, person.Name, Description: person.Dept);
+
+    static string NameOf(object? id) => people.FirstOrDefault(person => Equals(person.Id, id))?.Name ?? Conditions.ToText(id);
+
+    IReadOnlyList<ConditionField> fields = [];
+
+    // 字段的 Input 是这个组件里的模板：在实例里建
+    protected override void OnInitialized() => fields =
+    [
+        new("amount", "金额", ConditionFieldType.Number) { Group = "申请单" },
+        new("reason", "事由", ConditionFieldType.Text) { Group = "申请单" },
+        new("owner", "经办人", ConditionFieldType.Select)
+        {
+            Group = "流程变量",
+            Format = NameOf,
+            Input = context => context.Op is ConditionOp.In or ConditionOp.NotIn
+                ? @<Select Items="people" ToOption="ToOption" SelectionMode="SelectionMode.Multiple" Searchable="true" aria-label="@context.Label"
+                           Values="@((context.Value as IReadOnlyList<object?> ?? []).OfType<string>().ToList())"
+                           ValuesChanged="values => context.OnChange(values.Cast<object?>().ToList())" />
+                : @<Select Items="people" ToOption="ToOption" Searchable="true" aria-label="@context.Label"
+                           Value="@(context.Value as string)" ValueChanged="value => context.OnChange(value)" />,
+        },
+        new("round", "协商轮次", ConditionFieldType.Number) { Group = "流程变量" },
+    ];
+
+    ConditionExpression? condition = new ConditionAny(
+    [
+        new ConditionRule("owner", ConditionOp.In, new List<object?> { "u01", "u04" }),
+        new ConditionRule("round", ConditionOp.Gte, 3m),
+    ]);
+}

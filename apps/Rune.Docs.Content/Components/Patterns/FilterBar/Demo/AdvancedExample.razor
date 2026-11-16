@@ -1,0 +1,74 @@
+@* 高级筛选：常用的关键字之外，ConditionFields 给出能组合的字段，“高级筛选”展开条件构造器（@bind-Condition），
+   能写“金额介于、品类是其中之一、或者加急”这类固定条件写不出的组合；收起时下面是一句话的摘要，带“清空”。
+   这里点“查询”时用 Conditions.Matches 在前端筛，接后端时把同一份条件交给接口 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+    <Card>
+        <FilterBar aria-label="订单查询" OnSearch="Search" OnReset="Reset" ConditionFields="fields" @bind-Condition="condition">
+            <Field Label="关键字"><TextField @bind-Value="keyword" placeholder="订单号、供应商" /></Field>
+        </FilterBar>
+    </Card>
+    <Small Tone="TextTone.Muted">@rows.Count / @orders.Length 张订单</Small>
+    <DataTable Items="rows" GetKey="o => o.Id" aria-label="订单">
+        <PropertyColumn Property="o => o.Id" Title="订单号" Width="100" />
+        <PropertyColumn Property="o => o.Supplier" Title="供应商" Width="120" />
+        <PropertyColumn Property="o => o.Category" Title="品类" Width="80" />
+        <PropertyColumn Property="o => o.Amount" Title="金额（元）" Width="120" Format="Whole" />
+        <PropertyColumn Property="o => o.UrgentText" Key="urgent" Title="加急" Width="72" />
+        <PropertyColumn Property="o => o.Delivery" Title="交货日期" Width="120" />
+    </DataTable>
+</Flex>
+
+@code {
+    sealed record Order(string Id, string Supplier, string Category, decimal Amount, bool Urgent, string Delivery)
+    {
+        public string UrgentText => Urgent ? "是" : "";
+    }
+
+    static readonly NumberFormat Whole = new() { MaximumFractionDigits = 0 };
+
+    static readonly Order[] orders =
+    [
+        new("PO-1031", "华东钢铁", "钢材", 128000, false, "2026-11-03"),
+        new("PO-1032", "西南铝业", "铝材", 86500, true, "2026-11-12"),
+        new("PO-1033", "华东钢铁", "钢材", 42000, false, "2026-10-28"),
+        new("PO-1034", "精工紧固件", "紧固件", 6800, true, "2026-11-01"),
+        new("PO-1035", "北方检测", "服务", 15000, false, "2026-12-15"),
+        new("PO-1036", "西南铝业", "铝材", 213000, false, "2026-12-02"),
+    ];
+
+    static readonly IReadOnlyList<ConditionField> fields =
+    [
+        new("amount", "金额", ConditionFieldType.Number),
+        new("category", "品类", ConditionFieldType.Select) { Options = [.. new[] { "钢材", "铝材", "紧固件", "服务" }.Select(name => new ConditionOption(name, name))] },
+        new("urgent", "加急", ConditionFieldType.Boolean),
+        new("delivery", "交货日期", ConditionFieldType.Date),
+    ];
+
+    string? keyword;
+    ConditionExpression? condition = new ConditionAny([new ConditionRule("amount", ConditionOp.Between, new List<object?> { 50000m, 150000m }), new ConditionRule("urgent", ConditionOp.Eq, true)]);
+    IReadOnlyList<Order> rows = orders;
+
+    protected override void OnInitialized() => Search();
+
+    static object? Read(Order order, string name) => name switch
+    {
+        "amount" => order.Amount,
+        "category" => order.Category,
+        "urgent" => order.Urgent,
+        "delivery" => order.Delivery,
+        _ => null,
+    };
+
+    void Search() => rows = [.. orders.Where(order =>
+        (string.IsNullOrEmpty(keyword) || order.Id.Contains(keyword) || order.Supplier.Contains(keyword)) &&
+        (condition is null || Conditions.Matches(condition, name => Read(order, name))))];
+
+    void Reset()
+    {
+        keyword = null;
+        condition = null;
+        Search();
+    }
+}

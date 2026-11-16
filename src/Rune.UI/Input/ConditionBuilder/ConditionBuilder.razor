@@ -1,0 +1,381 @@
+@*
+    条件构造器（同 vue-tsx-pro 的 ConditionBuilder）：编辑全部 / 任一 / 否定加比较的条件树（ConditionExpression）。每条是“字段 · 比较方式 · 值”，
+    比较方式随字段类型、值的输入随字段类型与比较方式；组的表头选满足方式（全部、任一、都不、不全），组里还能再加组。
+    <ConditionBuilder Fields="fields" @bind-Value="condition" aria-label="审批条件" />
+    - 写回的是只含填完整的比较的条件：没选字段、没填值的那几条留在界面上，不进 Value；一条也没有时是 null。
+    - 根总是一个组（全部、任一；都不满足是 Not(Any)，不全满足是 Not(All)）；传进来的单条比较、嵌套的否定按同样的规则读成组。
+      父级改了 Value（与上次写回的不同）时整棵重读。
+    - 值的输入：文字 TextField，数字 NumberField（介于时 NumberRangeField），选项、是否 Select（一组时多选），文字、数字的一组 TagsInput，
+      日期是浏览器自带的日期输入（Rune.UI 不依赖 Rune.UI.Dates；要 DatePicker 时写字段的 Input）。
+    - 读屏：根与每个嵌套的组是 role="group"，每条比较也是一组（“条件 2”），三个控件各有名称（“字段”“比较方式”“金额的值”）。
+      加了一条之后焦点落到它的字段上；删掉之后落到组的“添加条件”上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = ConditionBuilderStyles.Of(Config.Styles);
+    var lang = Config.Lang;
+}
+
+<div @attributes="Attrs.Merge(parts[ConditionBuilderPart.Root], Rest, RootManaged)">
+    @Group(tree, 0, null, parts, lang)
+</div>
+
+@code {
+    static readonly Attrs RootManaged = new() { Role = "group" };
+    static readonly string[] Modes = ["all", "any", "none", "notAll"];
+
+    int nextId;
+    GroupNode tree = default!;
+    // 上次写回的值：父级改成别的才整棵重读，自己写回的不重读（没填完的那几条还要留在界面上）
+    ConditionExpression? emitted;
+    bool emittedSet;
+    readonly Dictionary<int, Select<ListboxOption>> fieldSelects = [];
+    readonly Dictionary<int, Button> addButtons = [];
+    // 渲染之后把焦点移到哪里：新加的那条的字段，或删掉之后组的“添加条件”
+    int? focusRule;
+    int? focusGroup;
+
+    /// <summary>能参与比较的字段。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<ConditionField> Fields { get; set; } = [];
+
+    /// <summary>条件（@bind-Value）；没有填完整的比较时是 null。</summary>
+    [Parameter] public ConditionExpression? Value { get; set; }
+
+    /// <summary>条件变了。</summary>
+    [Parameter] public EventCallback<ConditionExpression?> ValueChanged { get; set; }
+
+    /// <summary>组最多嵌套几层，默认 2（根组里还能加一层组）；1 时不能加组。</summary>
+    [Parameter] public int MaxDepth { get; set; } = 2;
+
+    /// <summary>控件与按钮的字号档位，不写时继承。</summary>
+    [Parameter] public Size? Size { get; set; }
+
+    /// <summary>不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>每个组的部件属性。</summary>
+    [Parameter] public Attrs? PropsGroup { get; set; }
+
+    /// <summary>每条比较的部件属性。</summary>
+    [Parameter] public Attrs? PropsRule { get; set; }
+
+    /// <summary>“添加条件”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsAddRule { get; set; }
+
+    /// <summary>“添加分组”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsAddGroup { get; set; }
+
+    /// <summary>每条比较“删除”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsRemoveRule { get; set; }
+
+    /// <summary>嵌套组“删除整组”按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsRemoveGroup { get; set; }
+
+    // 所在的 Field、Form 整组不可用或只读时：里面的控件各自跟着，增删条件、分组的按钮由这里管
+    [CascadingParameter] FieldLayout? Layout { get; set; }
+
+    bool IsDisabled => Disabled || Layout?.Disabled == true;
+
+    bool Locked => IsDisabled || Layout?.ReadOnly == true;
+
+    /// <inheritdoc/>
+    protected override void OnParametersSet()
+    {
+        if (emittedSet && Equals(Value, emitted)) return;
+        emittedSet = true;
+        emitted = Value;
+        tree = Value is null ? NewGroup("all") : ToGroup(Value);
+    }
+
+    sealed class RuleNode
+    {
+        public int Id;
+        public string? Field;
+        public ConditionOp? Op;
+        public object? Value;
+    }
+
+    sealed class GroupNode
+    {
+        public int Id;
+        public string Mode = "all";
+        public List<object> Children = [];
+    }
+
+    RuleNode NewRule(string? field = null, ConditionOp? op = null, object? value = null) => new() { Id = ++nextId, Field = field, Op = op, Value = value };
+
+    GroupNode NewGroup(string mode, IEnumerable<object>? children = null) => new() { Id = ++nextId, Mode = mode, Children = [.. children ?? []] };
+
+    // 条件读成界面上的组：否定包着任一是“都不满足”、包着全部是“不全满足”，包着单条比较是只有它的“都不满足”
+    GroupNode ToGroup(ConditionExpression condition) => condition switch
+    {
+        ConditionAll all => NewGroup("all", all.Items.Select(ToNode)),
+        ConditionAny any => NewGroup("any", any.Items.Select(ToNode)),
+        ConditionNot { Inner: ConditionNot inner } => ToGroup(inner.Inner),
+        ConditionNot { Inner: ConditionAny any } => NewGroup("none", any.Items.Select(ToNode)),
+        ConditionNot { Inner: ConditionAll all } => NewGroup("notAll", all.Items.Select(ToNode)),
+        ConditionNot not => NewGroup("none", [ToNode(not.Inner)]),
+        _ => NewGroup("all", [ToNode(condition)]),
+    };
+
+    object ToNode(ConditionExpression condition) => condition is ConditionRule rule ? NewRule(rule.Field, rule.Op, rule.Value) : ToGroup(condition);
+
+    // 界面上的组写回条件：只留填完整的比较，空的组去掉
+    static ConditionExpression? ToCondition(GroupNode node)
+    {
+        var list = new List<ConditionExpression>();
+        foreach (var child in node.Children)
+        {
+            if (child is GroupNode nested)
+            {
+                if (ToCondition(nested) is { } inner) list.Add(inner);
+            }
+            else if (child is RuleNode { Field: { } field, Op: { } op } rule)
+            {
+                var item = new ConditionRule(field, op, Conditions.ShapeOf(op) == ConditionValueShape.None ? null : rule.Value);
+                if (Conditions.IsComplete(item)) list.Add(item);
+            }
+        }
+        if (list.Count == 0) return null;
+        return node.Mode switch
+        {
+            "any" => new ConditionAny(list),
+            "none" => new ConditionNot(new ConditionAny(list)),
+            "notAll" => new ConditionNot(new ConditionAll(list)),
+            _ => new ConditionAll(list),
+        };
+    }
+
+    // 换比较方式时把值换成新的形状：一个值 ↔ 一组值 ↔ 范围，尽量留住已经填的
+    static object? Reshape(object? value, ConditionOp op)
+    {
+        var items = value as IReadOnlyList<object?>;
+        var first = items is not null ? items.FirstOrDefault(item => item is not null and not "") : value;
+        return Conditions.ShapeOf(op) switch
+        {
+            ConditionValueShape.None => null,
+            ConditionValueShape.List => items is not null ? items.Where(item => item is not null).ToList() : first is null ? new List<object?>() : new List<object?> { first },
+            ConditionValueShape.Range => items is { Count: 2 } ? items : new List<object?> { first, null },
+            _ => first,
+        };
+    }
+
+    async Task CommitAsync()
+    {
+        var next = ToCondition(tree);
+        emitted = next;
+        Value = next;
+        await ValueChanged.InvokeAsync(next);
+    }
+
+    ConditionField? FieldOf(string? name) => Fields.FirstOrDefault(field => field.Name == name);
+
+    void AddRule(GroupNode parent)
+    {
+        var added = NewRule();
+        parent.Children.Add(added);
+        focusRule = added.Id;
+    }
+
+    void AddGroup(GroupNode parent)
+    {
+        var added = NewRule();
+        parent.Children.Add(NewGroup("all", [added]));
+        focusRule = added.Id;
+    }
+
+    async Task RemoveAsync(GroupNode parent, object child)
+    {
+        parent.Children.Remove(child);
+        focusGroup = parent.Id;
+        await CommitAsync();
+    }
+
+    async Task SetFieldAsync(RuleNode node, string? name)
+    {
+        var field = FieldOf(name);
+        node.Field = name;
+        var ops = field is null ? [] : Conditions.OperatorsOf(field);
+        if (node.Op is not { } op || !ops.Contains(op)) node.Op = ops.Count > 0 ? ops[0] : null;
+        // 换了字段，原来的值多半不适用：清空，是否型默认“是”
+        node.Value = node.Op is { } next ? Reshape(field?.Type == ConditionFieldType.Boolean ? true : null, next) : null;
+        await CommitAsync();
+    }
+
+    async Task SetOpAsync(RuleNode node, string? key)
+    {
+        if (!Enum.TryParse<ConditionOp>(key, ignoreCase: true, out var op)) return;
+        node.Op = op;
+        node.Value = Reshape(node.Value, op);
+        await CommitAsync();
+    }
+
+    async Task SetValueAsync(RuleNode node, object? value)
+    {
+        node.Value = value;
+        await CommitAsync();
+    }
+
+    async Task SetModeAsync(GroupNode node, string? mode)
+    {
+        if (mode is null) return;
+        node.Mode = mode;
+        await CommitAsync();
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (focusRule is { } rule && fieldSelects.TryGetValue(rule, out var select))
+        {
+            focusRule = null;
+            await select.FocusAsync();
+        }
+        else if (focusGroup is { } group && addButtons.TryGetValue(group, out var button))
+        {
+            focusGroup = null;
+            await button.FocusAsync();
+        }
+    }
+
+    // 选项的值写成文字（Select 的值是文字），选中后再换回原来的值
+    static IReadOnlyList<ConditionOption> OptionsOf(ConditionField field, Lang lang) => field.Type == ConditionFieldType.Boolean
+        ? [new(true, lang.ConditionTrue), new(false, lang.ConditionFalse)]
+        : field.Options;
+
+    RenderFragment? ValueInput(RuleNode node, ConditionField field, ConditionOp op, Lang lang)
+    {
+        var label = lang.ConditionValue(field.Label);
+        var shape = Conditions.ShapeOf(op);
+        if (shape == ConditionValueShape.None) return null;
+        if (field.Input is { } input) return input(new ConditionInputContext(field, op, node.Value, value => _ = InvokeAsync(() => SetValueAsync(node, value)), label));
+        var list = node.Value as IReadOnlyList<object?> ?? [];
+
+        if (field.Type is ConditionFieldType.Select or ConditionFieldType.Boolean)
+        {
+            var options = OptionsOf(field, lang);
+            IReadOnlyList<ListboxOption> items = [.. options.Select(option => new ListboxOption(Conditions.ToText(option.Value), option.Label))];
+            object? Back(string? key) => options.FirstOrDefault(option => Conditions.ToText(option.Value) == key)?.Value;
+            return shape == ConditionValueShape.List
+                ? @<Select TItem="ListboxOption" Items="items" SelectionMode="SelectionMode.Multiple" MaxTagCount="TagLimit.Responsive" Size="Size" Disabled="IsDisabled" aria-label="@label"
+                           Values="@([.. list.Select(Conditions.ToText)])" ValuesChanged="keys => SetValueAsync(node, keys.Select(Back).ToList())" />
+                : @<Select TItem="ListboxOption" Items="items" Size="Size" Disabled="IsDisabled" aria-label="@label"
+                           Value="@(node.Value is null ? null : Conditions.ToText(node.Value))" ValueChanged="key => SetValueAsync(node, Back(key))" />;
+        }
+        if (shape == ConditionValueShape.List)
+        {
+            var number = field.Type == ConditionFieldType.Number;
+            return @<TagsInput TItem="string" Size="Size" Disabled="IsDisabled" aria-label="@label" Value="@([.. list.Select(Conditions.ToText)])"
+                               ValueChanged="values => SetValueAsync(node, values.Select(v => number && decimal.TryParse(v, System.Globalization.CultureInfo.InvariantCulture, out var n) ? (object?)n : number ? null : v).Where(v => v is not null).ToList())" />;
+        }
+        if (field.Type == ConditionFieldType.Number)
+        {
+            decimal? NumberAt(int index) => list.Count > index && list[index] is { } item && decimal.TryParse(Conditions.ToText(item), System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : null;
+            return shape == ConditionValueShape.Range
+                ? @<NumberRangeField TValue="decimal?" Size="Size" Disabled="IsDisabled" aria-label="@label" Value="@(new NumberRange<decimal?>(NumberAt(0), NumberAt(1)))"
+                                     ValueChanged="range => SetValueAsync(node, new List<object?> { range.Low, range.High })" />
+                : @<NumberField TValue="decimal?" Size="Size" Disabled="IsDisabled" aria-label="@label"
+                                Value="@(node.Value is { } v && decimal.TryParse(Conditions.ToText(v), System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : null)"
+                                ValueChanged="value => SetValueAsync(node, value)" />;
+        }
+        if (field.Type == ConditionFieldType.Date)
+        {
+            string? TextAt(int index) => list.Count > index ? list[index] as string : null;
+            return shape == ConditionValueShape.Range
+                ? @<Flex Gap="SpaceScale.Xs" Align="ItemAlign.Center">
+                    <TextField Type="date" Size="Size" Disabled="IsDisabled" aria-label="@label" Value="@TextAt(0)"
+                               ValueChanged="v => SetValueAsync(node, new List<object?> { string.IsNullOrEmpty(v) ? null : v, TextAt(1) })" />
+                    <span aria-hidden="true">@lang.ConditionTo</span>
+                    <TextField Type="date" Size="Size" Disabled="IsDisabled" aria-label="@label" Value="@TextAt(1)"
+                               ValueChanged="v => SetValueAsync(node, new List<object?> { TextAt(0), string.IsNullOrEmpty(v) ? null : v })" />
+                </Flex>
+                : @<TextField Type="date" Size="Size" Disabled="IsDisabled" aria-label="@label" Value="@(node.Value as string)"
+                              ValueChanged="v => SetValueAsync(node, string.IsNullOrEmpty(v) ? null : v)" />;
+        }
+        return @<TextField Size="Size" Disabled="IsDisabled" aria-label="@label" Value="@(node.Value as string)" ValueChanged="v => SetValueAsync(node, v)" />;
+    }
+
+    RenderFragment Rule(GroupNode parent, RuleNode node, int index, PartLayers<ConditionBuilderPart> parts, Lang lang)
+    {
+        var field = FieldOf(node.Field);
+        var ops = field is null ? [] : Conditions.OperatorsOf(field);
+        IReadOnlyList<ListboxOption> fieldItems = [.. Fields.Select(item => new ListboxOption(item.Name, item.Label, Group: item.Group))];
+        IReadOnlyList<ListboxOption> opItems = [.. ops.Select(op => new ListboxOption(op.ToString(), Conditions.OperatorLabel(lang, field!.Type, op)))];
+        return @<div @attributes="Attrs.Merge(parts[ConditionBuilderPart.Rule], PropsRule, RuleManaged(lang.ConditionRule(index + 1), node.Id))">
+            <Select TItem="ListboxOption" @ref="fieldSelects[node.Id]" Items="fieldItems" Value="@node.Field" ValueChanged="name => SetFieldAsync(node, name)"
+                    Searchable="Fields.Count > 8" Placeholder="@lang.ConditionField" aria-label="@lang.ConditionField" Size="Size" Disabled="IsDisabled"
+                    PropsRoot="parts[ConditionBuilderPart.Field]" />
+            <Select TItem="ListboxOption" Items="opItems" Value="@node.Op?.ToString()" ValueChanged="key => SetOpAsync(node, key)" aria-label="@lang.ConditionOperator"
+                    Size="Size" Disabled="IsDisabled || field is null" PropsRoot="parts[ConditionBuilderPart.Operator]" />
+            @if (field is not null && node.Op is { } op && Conditions.ShapeOf(op) != ConditionValueShape.None)
+            {
+                <div @attributes="Attrs.Merge(parts[ConditionBuilderPart.Value])">@ValueInput(node, field, op, lang)</div>
+            }
+            <IconButton Icon="BuiltInIcons.X" Label="@lang.ConditionRemoveRule" Variant="ButtonVariant.Ghost" Size="Size" Disabled="Locked"
+                        @onclick="() => RemoveAsync(parent, node)" @attributes="Attrs.MergeProps(null, PropsRemoveRule)" />
+        </div>;
+    }
+
+    static Attrs RuleManaged(string label, int id) => new() { Role = "group", AriaLabel = label, ["data-condition-rule"] = id };
+
+    RenderFragment Group(GroupNode node, int depth, GroupNode? parent, PartLayers<ConditionBuilderPart> parts, Lang lang)
+    {
+        var nested = depth > 0;
+        var joiner = node.Mode is "any" or "none" ? lang.ConditionOr : lang.ConditionAnd;
+        IReadOnlyList<ListboxOption> modeItems = [.. Modes.Select(mode => new ListboxOption(mode, lang.ConditionModes.GetValueOrDefault(mode, mode)))];
+        return @<div @attributes="Attrs.Merge(nested ? parts[ConditionBuilderPart.NestedGroup] : parts[ConditionBuilderPart.Group], PropsGroup, GroupManaged(nested ? lang.ConditionGroup : null, node.Id))">
+            @if (node.Children.Count > 0 || nested)
+            {
+                <div @attributes="Attrs.Merge(parts[ConditionBuilderPart.Header])">
+                    <Select TItem="ListboxOption" Items="modeItems" Value="@node.Mode" ValueChanged="mode => SetModeAsync(node, mode)" aria-label="@lang.ConditionMode"
+                            Size="Size" Disabled="IsDisabled" />
+                    @if (nested && parent is not null)
+                    {
+                        <IconButton Icon="BuiltInIcons.Trash" Label="@lang.ConditionRemoveGroup" Variant="ButtonVariant.Ghost" Size="Size" Disabled="Locked"
+                                    @onclick="() => RemoveAsync(parent, node)" @attributes="Attrs.MergeProps(parts[ConditionBuilderPart.RemoveGroup], PropsRemoveGroup)" />
+                    }
+                </div>
+            }
+            @if (node.Children.Count == 0)
+            {
+                if (!nested)
+                {
+                    <Small Tone="TextTone.Muted">@lang.ConditionEmpty</Small>
+                }
+            }
+            else
+            {
+                <div @attributes="Attrs.Merge(parts[ConditionBuilderPart.Rows])">
+                    @for (var i = 0; i < node.Children.Count; i++)
+                    {
+                        var index = i;
+                        var child = node.Children[i];
+                        <div @key="child" @attributes="Attrs.Merge(parts[ConditionBuilderPart.Row])">
+                            <span aria-hidden="true" @attributes="Attrs.Merge(parts[ConditionBuilderPart.Joiner])">@(index > 0 ? joiner : "")</span>
+                            @if (child is RuleNode rule)
+                            {
+                                @Rule(node, rule, index, parts, lang)
+                            }
+                            else
+                            {
+                                @Group((GroupNode)child, depth + 1, node, parts, lang)
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            <div @attributes="Attrs.Merge(node.Children.Count == 0 ? parts[ConditionBuilderPart.RootActions] : parts[ConditionBuilderPart.Actions])">
+                <Button @ref="addButtons[node.Id]" Variant="ButtonVariant.Ghost" Size="Size" Icon="BuiltInIcons.Plus" Disabled="Locked" @onclick="() => AddRule(node)"
+                        @attributes="Attrs.MergeProps(null, PropsAddRule)">@lang.ConditionAddRule</Button>
+                @if (depth + 1 < MaxDepth)
+                {
+                    <Button Variant="ButtonVariant.Ghost" Size="Size" Icon="BuiltInIcons.Plus" Disabled="Locked" @onclick="() => AddGroup(node)"
+                            @attributes="Attrs.MergeProps(null, PropsAddGroup)">@lang.ConditionAddGroup</Button>
+                }
+            </div>
+        </div>;
+    }
+
+    static Attrs GroupManaged(string? label, int id) => new() { Role = label is null ? null : "group", AriaLabel = label, ["data-condition-group"] = id };
+}
