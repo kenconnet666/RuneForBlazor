@@ -268,6 +268,34 @@ public sealed class DialogService
     /// <summary>要填理由：确认得到填的理由，取消、Esc 得到 null；必填没填时提示且不关闭。</summary>
     public Task<string?> ConfirmAsync(ConfirmOptions options, ConfirmReason reason) => AskAsync(options, reason);
 
+    /// <summary>
+    /// 命令式的小表单对话框（同 vue-tsx-pro 的 useFormDialog）：一个操作前要填一两个字段（退回的原因、改派给谁、驳回的说明），
+    /// 不值得为它单独写一个对话框组件。提交（OnSubmit 返回 true）时得到填好的值，取消、Esc 时得到 null。
+    /// <code>
+    /// var values = await Dialogs.PromptAsync(new() { Title = "退回收件箱", ConfirmText = "退回",
+    ///     Fields = [new("reason", "原因") { Type = FormDialogFieldType.Textarea, Required = true }] });
+    /// if (values is not null) await ReleaseAsync(id, values["reason"]);
+    /// </code>
+    /// 必填的没填、Validate 返回说明时错误落在字段下面、不提交；在字段里按 Enter 也是提交。
+    /// </summary>
+    public async Task<FormDialogValues?> PromptAsync(FormDialogOptions options)
+    {
+        var link = new FormDialogPrompt.PromptLink();
+        var handle = Open<FormDialogPrompt>(
+            new DialogOptions
+            {
+                Title = options.Title,
+                Description = options.Description,
+                Size = options.Size ?? DialogSize.Sm,
+                Tone = options.Tone,
+                ConfirmText = options.ConfirmText,
+                OnConfirm = args => link.Confirm(args),
+            },
+            new Dictionary<string, object?> { [nameof(FormDialogPrompt.Options)] = options, [nameof(FormDialogPrompt.Link)] = link });
+        await handle.Closed;
+        return link.Submitted;
+    }
+
     Task<string?> AskAsync(ConfirmOptions options, ConfirmReason? reason)
     {
         var request = new ConfirmRequest(options, reason);

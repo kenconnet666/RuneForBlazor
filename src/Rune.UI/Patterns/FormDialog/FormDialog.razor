@@ -1,0 +1,158 @@
+@*
+    表单对话框（同 vue-tsx-pro 的 FormDialog）：Dialog 加 Form 加错误汇总，确认按钮就是提交——校验没通过时留在对话框里（焦点到错误汇总），
+    OnSubmit 进行时确认按钮显示加载中，完成后关闭；OnSubmit 里设了 KeepOpen（后端拒绝了）时留着。
+    字段多、有联动、要自己排版的表单用它；一两个字段的小表单用命令式的 DialogService.PromptAsync。
+    <FormDialog @bind-Open="editing" Title="新建菜单" Model="menu" OnSubmit="SaveAsync" Error="@saveError" Size="DialogSize.Md">
+        <Field Label="名称" Required="true"><TextField @bind-Value="menu.Name" /></Field>
+    </FormDialog>
+    - 确认按钮是表单的提交按钮（form 属性指向里面的 form）：点它与在字段里按 Enter 走同一条路，Enter 提交成功后同样关上。
+    - Error 是提交被拒绝时的说明（“名称已存在”），显示在表单顶上的提示条里；打开前由调用方准备好 Model（新建是空白的，修改是当前记录的副本）。
+    - 对话框的参数（Size、Description、ConfirmText、Tone、Draggable……）与部件属性（PropsBody……）同 Dialog，未声明的属性也交给它；
+      表单的标签布局等写在 PropsForm 里。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using Microsoft.AspNetCore.Components.Forms
+
+<Dialog Open="Open" OpenChanged="OpenChanged" OnOpenChange="OnOpenChange" Title="@Title" Description="@Description" Size="Size" Tone="Tone"
+        ConfirmText="@ConfirmText" CancelText="@CancelText" Draggable="Draggable" Closable="Closable" Dismissible="Dismissible" BeforeClose="BeforeClose"
+        Trigger="Trigger" Footer="Footer" Lazy="Lazy" OnConfirm="ConfirmAsync" PropsConfirm="ConfirmAttrs" PropsCancel="PropsCancel" PropsHeader="PropsHeader"
+        PropsTitle="PropsTitle" PropsDescription="PropsDescription" PropsClose="PropsClose" PropsBody="PropsBody" PropsFooter="PropsFooter"
+        @attributes="Attrs.MergeProps(Rest)">
+    <Form id="@formId" Model="Model" EditContext="EditContext" OnValidSubmit="SubmitAsync" OnInvalidSubmit="Rejected" PropsSummary="PropsSummary"
+          @attributes="Attrs.MergeProps(null, PropsForm)">
+        @if (Error is not null)
+        {
+            <Alert Tone="Tone.Danger" Description="@(b => b.AddContent(0, Error))" />
+        }
+        @ChildContent
+    </Form>
+</Dialog>
+
+@code {
+    readonly string formId = UniqueId.Next("form-dialog");
+    Memo<(string Form, Attrs? Props), Attrs> confirmAttrs;
+    // 点了确认、在等表单的 submit 事件：校验与 OnSubmit 的结果（true 关上）交回给 Dialog 的确认
+    TaskCompletionSource<bool>? pending;
+
+    /// <summary>是否打开（@bind-Open）。</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>开关变化。</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>标题，同时是对话框的名称。</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>标题下的说明。</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>宽度档位（同 Dialog），默认 Xs。</summary>
+    [Parameter] public DialogSize? Size { get; set; }
+
+    /// <summary>确认按钮的色调，默认 Accent。</summary>
+    [Parameter] public Tone Tone { get; set; } = Tone.Accent;
+
+    /// <summary>确认按钮的文字，默认取语言包。</summary>
+    [Parameter] public string? ConfirmText { get; set; }
+
+    /// <summary>取消按钮的文字，默认取语言包。</summary>
+    [Parameter] public string? CancelText { get; set; }
+
+    /// <summary>可以拖动（同 Dialog）。</summary>
+    [Parameter] public bool Draggable { get; set; }
+
+    /// <summary>标题行的关闭按钮，默认显示。</summary>
+    [Parameter] public bool Closable { get; set; } = true;
+
+    /// <summary>点遮罩关闭，默认是；填了一半的表单不想被误点关掉时写 false。</summary>
+    [Parameter] public bool Dismissible { get; set; } = true;
+
+    /// <summary>用户要关闭时先问它（有未保存的改动时确认），返回 false 就不关。</summary>
+    [Parameter] public Func<OverlayChangeReason, Task<bool>>? BeforeClose { get; set; }
+
+    /// <summary>开了、关了（带原因）。</summary>
+    [Parameter] public EventCallback<OverlayOpenChange> OnOpenChange { get; set; }
+
+    /// <summary>触发元素（不写 Open、用按钮打开时）。</summary>
+    [Parameter] public RenderFragment<Attrs>? Trigger { get; set; }
+
+    /// <summary>页脚（排在“取消 / 确认”前面）。</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>第一次打开才渲染内容，默认是（同 Dialog）。</summary>
+    [Parameter] public bool Lazy { get; set; } = true;
+
+    /// <summary>取消按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsCancel { get; set; }
+
+    /// <summary>标题行的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>标题的部件属性。</summary>
+    [Parameter] public Attrs? PropsTitle { get; set; }
+
+    /// <summary>说明的部件属性。</summary>
+    [Parameter] public Attrs? PropsDescription { get; set; }
+
+    /// <summary>关闭按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsClose { get; set; }
+
+    /// <summary>正文的部件属性。</summary>
+    [Parameter] public Attrs? PropsBody { get; set; }
+
+    /// <summary>页脚的部件属性。</summary>
+    [Parameter] public Attrs? PropsFooter { get; set; }
+
+    /// <summary>表单绑定的对象（与 <see cref="EditContext"/> 二选一）。</summary>
+    [Parameter] public object? Model { get; set; }
+
+    /// <summary>自己创建的 EditContext（要在外面校验、监听变化时）。</summary>
+    [Parameter] public EditContext? EditContext { get; set; }
+
+    /// <summary>校验通过后提交：执行期间确认按钮加载中；参数的 KeepOpen 设为 true 时对话框留着（同时给 <see cref="Error"/> 说明原因）。</summary>
+    [Parameter] public EventCallback<FormDialogSubmitEventArgs> OnSubmit { get; set; }
+
+    /// <summary>提交被拒绝时的说明（后端的业务错误），显示在表单顶上；没有时为 null。</summary>
+    [Parameter] public string? Error { get; set; }
+
+    /// <summary>表单（Form）的部件属性：标签的布局（LabelPlacement、LabelWidth）等写在这里。</summary>
+    [Parameter] public Attrs? PropsForm { get; set; }
+
+    /// <summary>错误汇总的部件属性（交给 Form 的 PropsSummary）。</summary>
+    [Parameter] public Attrs? PropsSummary { get; set; }
+
+    /// <summary>确认按钮的部件属性（交给 Dialog）；type 与 form 由组件管理。</summary>
+    [Parameter] public Attrs? PropsConfirm { get; set; }
+
+    /// <summary>字段。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // 确认按钮提交里面的表单：在 Dialog 的确认之后浏览器发出 submit，表单校验、调 OnSubmit
+    Attrs ConfirmAttrs => confirmAttrs.Get((formId, PropsConfirm), static k => Attrs.Layer(k.Props, new Attrs { ["Type"] = "submit", ["form"] = k.Form }));
+
+    async Task ConfirmAsync(ConfirmEventArgs args)
+    {
+        pending = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        args.KeepOpen = !await pending.Task;
+    }
+
+    void Rejected() => Finish(false);
+
+    async Task SubmitAsync(EditContext context)
+    {
+        var args = new FormDialogSubmitEventArgs(context);
+        await OnSubmit.InvokeAsync(args);
+        // 点确认来的：交给 Dialog 关；在字段里按 Enter 来的：自己关
+        if (Finish(!args.KeepOpen) || args.KeepOpen) return;
+        await OpenChanged.InvokeAsync(false);
+    }
+
+    // 交回结果；没有在等的（Enter 提交的）返回 false
+    bool Finish(bool close)
+    {
+        var waiting = pending;
+        pending = null;
+        return waiting?.TrySetResult(close) == true;
+    }
+}

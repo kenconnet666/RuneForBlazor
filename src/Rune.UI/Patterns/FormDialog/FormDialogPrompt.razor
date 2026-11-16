@@ -1,0 +1,110 @@
+@*
+    DialogService.PromptAsync 的对话框正文（同 vue-tsx-pro useFormDialog 的 FormDialogBody）：字段、校验、提交。
+    对话框的确认经 Link 交到这里；在字段里按 Enter 走同一条路，成功后自己关上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+
+@* 同 Form 的 novalidate：错误由 Field 显示，不弹浏览器自带的气泡；隐藏的提交按钮让几个字段时按 Enter 也能提交 *@
+<form id="@formId" novalidate @onsubmit="SubmitAsync" @onsubmit:preventDefault>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
+        @for (var i = 0; i < Options.Fields.Count; i++)
+        {
+            var field = Options.Fields[i];
+            var first = i == 0;
+            <Field @key="field.Name" Label="@field.Label" Description="@field.Description" Required="field.Required" Error="@errors.GetValueOrDefault(field.Name)">
+                @Control(field, first)
+            </Field>
+        }
+    </Flex>
+    <button type="submit" hidden tabindex="-1"></button>
+</form>
+
+@code {
+    readonly string formId = UniqueId.Next("form-dialog");
+    readonly Dictionary<string, string> texts = [];
+    readonly Dictionary<string, IReadOnlyList<string>> lists = [];
+    Dictionary<string, string> errors = [];
+
+    /// <summary>选项。</summary>
+    [Parameter, EditorRequired] public FormDialogOptions Options { get; set; } = default!;
+
+    /// <summary>与 DialogService 之间的连接：对话框的确认交到这里，提交的值交回去。</summary>
+    [Parameter, EditorRequired] public PromptLink Link { get; set; } = default!;
+
+    [CascadingParameter] DialogHandle? Dialog { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnInitialized()
+    {
+        // 初始值只取一次：对话框打开后由用户填
+        foreach (var field in Options.Fields)
+        {
+            if (field.Multiple) lists[field.Name] = field.DefaultValues;
+            else texts[field.Name] = field.DefaultValue ?? "";
+        }
+        Link.Confirm = async args => args.KeepOpen = !await TrySubmitAsync();
+    }
+
+    RenderFragment Control(FormDialogField field, bool autofocus) => field.Type switch
+    {
+        FormDialogFieldType.Textarea =>
+            @<Textarea Value="@texts[field.Name]" ValueChanged="v => texts[field.Name] = v ?? string.Empty" Rows="3" placeholder="@field.Placeholder"
+                       maxlength="@field.MaxLength" autofocus="@autofocus" />,
+        FormDialogFieldType.Date =>
+            @<TextField Type="date" Value="@texts[field.Name]" ValueChanged="v => texts[field.Name] = v ?? string.Empty" min="@field.Min" max="@field.Max" autofocus="@autofocus" />,
+        FormDialogFieldType.Select when field.Multiple =>
+            @<Select TItem="ListboxOption" Items="field.Options" SelectionMode="SelectionMode.Multiple" Values="lists[field.Name]"
+                     ValuesChanged="v => lists[field.Name] = v" Placeholder="@field.Placeholder" />,
+        FormDialogFieldType.Select =>
+            @<Select TItem="ListboxOption" Items="field.Options" Value="@(texts[field.Name] is { Length: > 0 } value ? value : null)"
+                     ValueChanged="v => texts[field.Name] = v ?? string.Empty" Placeholder="@field.Placeholder" />,
+        _ =>
+            @<TextField Value="@texts[field.Name]" ValueChanged="v => texts[field.Name] = v ?? string.Empty" placeholder="@field.Placeholder"
+                        maxlength="@field.MaxLength" autofocus="@autofocus" />,
+    };
+
+    // 校验没过、OnSubmit 返回 false 时返回 false（对话框留着）
+    async Task<bool> TrySubmitAsync()
+    {
+        var trimmed = texts.ToDictionary(pair => pair.Key, pair => pair.Value.Trim());
+        errors = Options.Fields
+            .Select(field => (field.Name, Message: MessageOf(field, trimmed)))
+            .Where(item => item.Message is not null)
+            .ToDictionary(item => item.Name, item => item.Message!);
+        if (errors.Count > 0)
+        {
+            StateHasChanged();
+            return false;
+        }
+        var values = new FormDialogValues(trimmed, new Dictionary<string, IReadOnlyList<string>>(lists));
+        if (Options.OnSubmit is not null && !await Options.OnSubmit(values)) return false;
+        Link.Submitted = values;
+        return true;
+    }
+
+    // validate 只看单值字段：多选的值是一组
+    string? MessageOf(FormDialogField field, IReadOnlyDictionary<string, string> trimmed)
+    {
+        if (field.Multiple) return field.Required && lists[field.Name].Count == 0 ? Config.Lang.FormRequired : null;
+        var value = trimmed[field.Name];
+        if (field.Required && value.Length == 0) return Config.Lang.FormRequired;
+        return field.Validate?.Invoke(value, trimmed);
+    }
+
+    // 在字段里按 Enter：提交成功后自己关上
+    async Task SubmitAsync()
+    {
+        if (await TrySubmitAsync()) Dialog?.Close(Link.Submitted);
+    }
+
+    /// <summary>DialogService 与正文之间的连接。</summary>
+    public sealed class PromptLink
+    {
+        /// <summary>对话框的确认：正文渲染后接上。</summary>
+        public Func<ConfirmEventArgs, Task> Confirm { get; set; } = _ => Task.CompletedTask;
+
+        /// <summary>提交成功的值；取消、Esc 时是 null。</summary>
+        public FormDialogValues? Submitted { get; set; }
+    }
+}

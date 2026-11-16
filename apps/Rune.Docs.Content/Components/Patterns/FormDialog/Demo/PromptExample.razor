@@ -1,0 +1,57 @@
+@* 命令式的小表单对话框：退回要写原因（必填、至少 6 个字），改派从名单里选 *@
+@inherits RuneComponent
+@inject DialogService Dialogs
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Flex Gap="SpaceScale.Sm" Wrap="true">
+        <Button Variant="ButtonVariant.Outline" Tone="Tone.Danger" Icon="Lucide.Undo2" @onclick="GiveBackAsync">退回收件箱</Button>
+        <Button Variant="ButtonVariant.Outline" Icon="Lucide.UserRoundCog" @onclick="ReassignAsync">指定承办人</Button>
+    </Flex>
+    <Small Tone="TextTone.Muted">@(result ?? "点一个按钮")</Small>
+</Flex>
+
+@code {
+    string? result;
+
+    async Task GiveBackAsync()
+    {
+        var values = await Dialogs.PromptAsync(new()
+        {
+            Title = "退回收件箱",
+            Description = "退回后这一条回到岗位收件箱，你不能再认领它。",
+            ConfirmText = "退回",
+            Tone = Tone.Danger,
+            Fields =
+            [
+                new("reason", "原因")
+                {
+                    Type = FormDialogFieldType.Textarea,
+                    Required = true,
+                    MaxLength = 200,
+                    Validate = (value, _) => value.Length < 6 ? "至少写 6 个字，说清为什么" : null,
+                },
+            ],
+            OnSubmit = async _ =>
+            {
+                await Task.Delay(600);
+                return true;
+            },
+        });
+        result = values is null ? "取消了" : $"已退回：{values["reason"]}";
+    }
+
+    async Task ReassignAsync()
+    {
+        var values = await Dialogs.PromptAsync(new()
+        {
+            Title = "指定承办人",
+            ConfirmText = "指定",
+            Fields =
+            [
+                new("who", "承办人") { Type = FormDialogFieldType.Select, Required = true, Options = [new("E50913", "王晴"), new("E50377", "唐可")] },
+                new("note", "留言") { Placeholder = "可以不写" },
+            ],
+        });
+        result = values is null ? "取消了" : $"已指定 {values["who"]}{(values["note"].Length > 0 ? $"：{values["note"]}" : "")}";
+    }
+}

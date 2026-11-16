@@ -88,7 +88,7 @@ FileDrop.OnFiles
 FilterBar（组件）
 FloatButton.Type
 Form.Controller
-FormDialog（组件）
+FormDialog.Controller
 Gauge.ValueLabel
 HoverCard.OnOpenChange
 HoverCard.Open

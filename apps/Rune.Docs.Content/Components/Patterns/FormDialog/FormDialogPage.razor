@@ -1,0 +1,30 @@
+@page "/components/form-dialog"
+@attribute [DocMeta("FormDialog 表单对话框", "命令式的小表单对话框：退回要写原因、改派要选人、调整日期要说明理由，一行 await 拿到填好的值，不用为每个操作单独写一个对话框。", DocCategory.Patterns, Order = 5)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Patterns.FormDialog.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="prompt" Title="退回与改派" Demo="typeof(PromptExample)">
+                注入 <Code>DialogService</Code>，<Code>await Dialogs.PromptAsync(options)</Code> 得到填好的值，取消或 <Kbd>Esc</Kbd> 时是 null；单值字段用 <Code>values["名字"]</Code>，
+                多选用 <Code>values.All("名字")</Code>。<Code>Required</Code> 与 <Code>Validate</Code> 的错误落在字段下面、不提交；<Code>Tone</Code> 是确认按钮的色调，退回、驳回这类用 Danger。
+                对话框由布局里的 DialogHost 显示，沿用那里的主题与语言。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="reschedule" Title="日期、带说明的选项与提交失败" Demo="typeof(RescheduleExample)">
+                <Code>Type</Code> 有 Text、Textarea、Select、Date：日期的值是 ISO 字符串，<Code>Min</Code> / <Code>Max</Code> 限定可选范围（用浏览器自带的日期输入）；选项的 <Code>Description</Code> 是第二行说明。
+                <Code>Validate</Code> 的第二个参数是全部单值字段的值，可以做跨字段校验（选了“其他”才要求说明）。<Code>OnSubmit</Code> 执行时确认按钮显示加载中，返回 false 时对话框留着，由调用方提示原因，改完再提交。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="component" Title="FormDialog 组件：自己排版的表单" Demo="typeof(ComponentExample)">
+                字段多、有联动、要自己排版时用组件 <Code>FormDialog</Code>：<Code>Model</Code>（或 <Code>EditContext</Code>）管值和校验，确认按钮就是提交。
+                没通过校验时对话框留着，错误汇总出现；<Code>OnSubmit</Code> 进行时按钮显示加载中，完成后关闭；后端拒绝（如“名称已存在”）时设 <Code>KeepOpen</Code>、把说明交给 <Code>Error</Code>，显示在表单顶上，改完再提交。
+                打开前准备好表单的对象：新建是空白的，修改是当前记录的副本。在字段里按 Enter 也是提交，成功后同样关上。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(FormDialog), typeof(FormDialogOptions), typeof(FormDialogField)]" />
+</DocPage>

@@ -1,0 +1,54 @@
+@* 表单对话框（组件）：字段多、有联动时自己排版，确认就是提交；这里模拟后端：名称重复时拒绝，说明显示在表单顶上 *@
+@using System.ComponentModel.DataAnnotations
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" Align="ItemAlign.Start">
+    <Button @onclick="Create">新建部门</Button>
+    <Small Tone="TextTone.Muted">已建：@(created.Count > 0 ? string.Join("、", created) : "还没有")（试试“采购部”，会被后端拒绝）</Small>
+    <FormDialog @bind-Open="open" Title="新建部门" Model="department" OnSubmit="SaveAsync" Error="@error" ConfirmText="保存" Size="DialogSize.Sm">
+        <Field Label="部门名称"><TextField @bind-Value="department.Name" placeholder="例如：质量部" /></Field>
+        <Field Label="类型"><Select Items="kinds" @bind-Value="department.Kind" /></Field>
+    </FormDialog>
+</Flex>
+
+@code {
+    sealed class Department
+    {
+        [Required(ErrorMessage = "请填部门名称"), MaxLength(20, ErrorMessage = "最多 20 个字")]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "请选类型")]
+        public string? Kind { get; set; } = "business";
+    }
+
+    static readonly string[] taken = ["采购部", "财务部"];
+    static readonly ListboxOption[] kinds = [new("business", "业务部门"), new("support", "职能部门")];
+
+    Department department = new();
+    readonly List<string> created = [];
+    bool open;
+    string? error;
+
+    // 打开前准备好表单的对象：新建是空白的，修改是当前记录的副本
+    void Create()
+    {
+        department = new();
+        error = null;
+        open = true;
+    }
+
+    async Task SaveAsync(FormDialogSubmitEventArgs args)
+    {
+        await Task.Delay(400);
+        var name = department.Name!.Trim();
+        // 后端的业务拒绝：说明显示在表单顶上，对话框留着
+        if (taken.Contains(name))
+        {
+            error = $"部门名称已存在：{name}";
+            args.KeepOpen = true;
+            return;
+        }
+        error = null;
+        created.Add(name);
+    }
+}

@@ -73,6 +73,15 @@
   菜单里的按键全交给菜单（vue 在菜单里按 M、F、K 也会执行）。
 - NativeSelect 的值是任意类型、按位置对应选项（之前就是这样），分组与不可用用 `ItemGroup`、`ItemDisabled` 给（vue 是选项对象的 group、disabled）。
 
+### 阶段 6（页面组合）与 vue 不同的写法
+
+- FormDialog：表单用 `Model` / `EditContext`（同 Form），没有 vue 的 controller；提交是 `OnSubmit`（`FormDialogSubmitEventArgs`），后端拒绝时设 `KeepOpen`、把说明交给 `Error`
+  （vue 是 onSubmit 抛出带业务错误码的 HttpError、读 controller.formError）。确认按钮是表单的提交按钮：点它时 Dialog 的确认等着表单的 submit 事件交回结果，
+  在字段里按 Enter 提交成功后组件自己关上（vue 要调用方在 onSubmit 里写 open = false）。Dialog 的参数逐个声明再交下去：带类型的参数不能经未声明的属性转交（Razor 当成字符串）。
+- useFormDialog 对应 `DialogService.PromptAsync(FormDialogOptions)`：结果是 `FormDialogValues`（`values["名字"]`、多选 `values.All("名字")`），
+  `OnSubmit` 返回 false 时对话框留着（同 `ConfirmOptions.OnConfirm`；vue 是 reject）；日期字段用浏览器自带的日期输入（Rune.UI 不依赖 Rune.UI.Dates）。
+- ActionBar 是否盖着下面的内容由 JS 看（`data-rune-action-bar`，affix.js），写 `data-stuck`。
+
 ### 外观与文档站
 
 - 界面文字的字重是 500（标题、数字、Result 的页面级标题仍是 600）；以后做的组件照此。组件库只用系统字体栈。

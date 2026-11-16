@@ -1,0 +1,78 @@
+@* 申请调整计划日期：日期字段限定范围，原因从带说明的选项里选，“其他”时说明必填（跨字段校验）；推迟超过 30 天时提交被拒、对话框留着 *@
+@inherits RuneComponent
+@inject DialogService Dialogs
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md" Align="ItemAlign.Start">
+    <Button Variant="ButtonVariant.Outline" Icon="Lucide.CalendarClock" @onclick="RescheduleAsync">调整计划日期</Button>
+    <Small Tone="@(failed ? TextTone.Danger : TextTone.Muted)">@(result ?? $"当前计划完成：{Iso(planned)}")</Small>
+</Flex>
+
+@code {
+    static readonly DateOnly Original = new(2026, 11, 20);
+
+    DateOnly planned = Original;
+    string? result;
+    bool failed;
+
+    static string Iso(DateOnly date) => date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+
+    async Task RescheduleAsync()
+    {
+        var values = await Dialogs.PromptAsync(new()
+        {
+            Title = "申请调整计划完成日期",
+            Description = $"当前计划 {Iso(planned)}。提交后由项目经理审批，审批通过前仍按原计划考核。",
+            ConfirmText = "提交申请",
+            Size = DialogSize.Md,
+            Fields =
+            [
+                new("due", "新的完成日期")
+                {
+                    Type = FormDialogFieldType.Date,
+                    Required = true,
+                    DefaultValue = Iso(planned.AddDays(7)),
+                    Min = Iso(planned.AddDays(1)),
+                    Max = Iso(planned.AddDays(90)),
+                    Description = "只能推迟，最多 90 天",
+                },
+                new("cause", "原因")
+                {
+                    Type = FormDialogFieldType.Select,
+                    Required = true,
+                    Options =
+                    [
+                        new("supplier", "供应商交付延迟", Description: "附上供应商的书面说明"),
+                        new("design", "设计变更", Description: "写明变更单号"),
+                        new("test", "验证不通过", Description: "需要重新试制"),
+                        new("other", "其他", Description: "在说明里写清楚"),
+                    ],
+                },
+                new("note", "说明")
+                {
+                    Type = FormDialogFieldType.Textarea,
+                    MaxLength = 300,
+                    Placeholder = "选“其他”时必填",
+                    Validate = (value, all) => all["cause"] == "other" && value.Length == 0 ? "原因选了“其他”，写一下具体情况" : null,
+                },
+            ],
+            // 后端的规则：推迟超过 30 天要走分级审批，这里直接拒绝；拒绝时对话框留着，可以改日期再提交
+            OnSubmit = async submitted =>
+            {
+                await Task.Delay(600);
+                var days = DateOnly.Parse(submitted["due"], System.Globalization.CultureInfo.InvariantCulture).DayNumber - planned.DayNumber;
+                failed = days > 30;
+                result = failed ? "提交失败：推迟超过 30 天要走分级审批，改一下日期再提交" : null;
+                StateHasChanged();
+                return !failed;
+            },
+        });
+        if (values is null)
+        {
+            result = "取消了";
+            failed = false;
+            return;
+        }
+        planned = DateOnly.Parse(values["due"], System.Globalization.CultureInfo.InvariantCulture);
+        result = $"已提交：推迟到 {Iso(planned)}（{planned.DayNumber - Original.DayNumber} 天）";
+    }
+}
