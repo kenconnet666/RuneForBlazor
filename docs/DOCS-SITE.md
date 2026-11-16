@@ -42,7 +42,7 @@ select 页加“原生下拉框”，选组件指南加原生下拉框、搜索�
 - 阶段 6：13 个页面组合组件的页面（ActionBar、AuthLayout、CommentThread、ConditionBuilder、DataImport、FilterBar、FormDialog、KanbanBoard、NotificationCenter、
   PeoplePicker、QueryTable、SlideCaptcha、StepsForm）与 PageTemplates；ThemeCustomizer 之后的主题定制页与 theme-switcher 的 thumbnail、customizer 示例；
   form 的 generated、conditional、sources、read-view 四个示例（随 SchemaForm）。
-- 阶段 7：Diagram、Workflow、CodeEditor、图表的统计看板（Dashboard）；全栈、移动端两组随阶段 8、7（3D 一组已有，分类“3D · three.js”）。
+- 不做（阶段 7 与移动端不做，2026-11-16）：Diagram、Workflow、CodeEditor、图表的统计看板（Dashboard）、移动端一组；全栈一组随阶段 8（3D 一组已有，分类“3D · three.js”）。
 - 不做的页面：ClientOnly、ErrorBoundary（Blazor 自带对应的做法）；指南的 Testing（vue 的 `/testing` 驱动没有对应物，bUnit 的写法以后另写）、Playground。
 - signature-pad 的 export 示例（导出 SVG 的 handle）：本库的 SignaturePad 没有这个方法，那一格是自己的 pens 示例。
 - 本库多出来的示例（vue 没有、有意留着）：app-shell 的 desktop、button 的 icon-states 与 icon-links、code 的 text、date-picker 的 offset、image 的 attachments、
@@ -57,4 +57,4 @@ select 页加“原生下拉框”，选组件指南加原生下拉框、搜索�
   首次加载的体积与改法见 PERFORMANCE.md 第 3 节。
 - [ ] 每页的 title、description 检查一遍（预渲染全部地址 docs-export 已有）。
 - [ ] SEO：sitemap.xml 已有（导出时按页面清单生成）；canonical、Open Graph 还没做；不加第三方统计。
-- [ ] 部署：`docs.yml` 部署到 https://rune-for-blazor.zerodep.dpdns.org（自定义域名的 DNS 与证书由 wrangler 建）；版本（只放最新版，或按大版本分目录）待定。
+- [x] 部署：`docs.yml` 部署到 https://rune-for-blazor.zerodep.dpdns.org（自定义域名的 DNS 与证书由 wrangler 建），只放最新版。

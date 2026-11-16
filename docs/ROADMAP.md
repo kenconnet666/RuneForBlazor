@@ -27,7 +27,7 @@
 | 5 | 命名 | 组件名、参数名照 vue-tsx-pro（PascalCase），参数与事件的**形状**按“Blazor 化的约定”；与 Razor / HTML 冲突时改名并记在 DESIGN（TextSpan、TextLink、NativeSelect） |
 | 6 | 语言 | 组件里的文字进语言包（`UIConfig.Lang`），内置 zh-CN（默认）与 en-US，由 lang-gen 从 vue-tsx-pro 生成；拼音匹配做成可选的扩展（阶段 7，接 `UIConfig.TextMatcher`） |
 | 7 | 演示 | 文档页的路由、示例的场景与顺序照 vue-tsx-pro 文档站，方便逐页对照；渲染模式测试台 Rune.Demo 保留，与文档站共用 Rune.Docs.Content 的页面 |
-| 8 | 范围（2026-11-06 修订） | code-editor、diagram、three、xlsx、演练场、拼音、storage、mobile、流程的前端都做（阶段 7）。mini（Vue 渲染器跑进小程序）与 kit（Nitro 上的全栈框架）是 Vue / Node 专用的：kit 的角色由 Blazor Web App 本身与阶段 8 的全栈示例承担，mini 不做。完整的流程引擎暂不做 |
+| 8 | 范围（2026-11-16 修订） | 阶段 7 的扩展与移动端组件库不做（2026-11-16 用户决定；已做的 three 留着）。mini（Vue 渲染器跑进小程序）与 kit（Nitro 上的全栈框架）是 Vue / Node 专用的：kit 的角色由 Blazor Web App 本身与阶段 8 的全栈示例承担，mini 不做。完整的流程引擎暂不做 |
 | 9 | 地图数据 | 图表的 Map 用公有领域或许可明确的来源（如 Natural Earth）导出，来源与许可写进 NOTICE |
 | 10 | 部署 | 文档站导出静态文件，部署到 Cloudflare Workers 的静态资源（https://rune-for-blazor.zerodep.dpdns.org，同 vue-tsx-pro 的做法）；`docs.yml` 只手动触发，令牌 `CLOUDFLARE_API_TOKEN` 在只允许 master 的 `docs` 环境里 |
 | 11 | 发布与版本（2026-11-09 修订） | 推 `v*` tag 由 `release.yml` 经 nuget.org 的可信发布推送，步骤见 rune-dev skill。版本号自己走（0.12.0 起），不跟 vue-tsx-pro 的版本号；对齐的 vue 版本写在 CHANGELOG 每一节 |
@@ -64,7 +64,7 @@
 
 ## 执行顺序
 
-6 → 7 → 8 → 9；阶段 9 的质量项贯穿全程，跟进 vue-tsx-pro 不单列阶段（见 STYLE-ALIGNMENT 的“待跟进”）。某一项进入待决时，跳到下一个不依赖它的项。
+6 → 8 → 9（阶段 7 不做）；阶段 9 的质量项贯穿全程，跟进 vue-tsx-pro 不单列阶段（见 STYLE-ALIGNMENT 的“待跟进”）。某一项进入待决时，跳到下一个不依赖它的项。
 已有页面里等其他组件的示例缺口，记在提供那个组件的阶段里，做到时补上。
 
 ---
@@ -78,9 +78,9 @@
 - [ ] AuthLayout、NotificationCenter、CommentThread（接 Mentions）、KanbanBoard（Sortable 多容器）、SlideCaptcha
 - [ ] ThemeCustomizer、ThemeThumbnail，接着做文档站的主题定制页；ThemeSwitcher 的局部主题与选主题网格
 
-## 阶段 7：扩展
+## 阶段 7：扩展（2026-11-16 起不做，three 已完成并保留）
 
-各自成包或成可选模块，WebAssembly 下能懒加载；做之前先读 vue 对应包的现状，照它的 API 与示例。
+下面各项留作记录，不再排期。
 
 - [ ] 拼音匹配：`UIConfig.TextMatcher` 的拼音实现（全拼、首字母、多音字），Select、Combobox、CommandPalette、Transfer 的搜索都能用；字表的来源与许可写进 NOTICE
 - [ ] 表格导出 xlsx（vue 的 xlsx：自己写 OOXML，不引第三方库；C# 用 `System.IO.Compression`）
@@ -104,7 +104,7 @@
 - [ ] 对照工具跑全部页面（亮、暗），改掉差异；之前留下的：transfer 的 members、progress、card 的 effects
 - [ ] 代码走查（单独提交）：过长或职责混杂的文件（`js/core/runtime.js`、`lists.js`、`overlays.js`、`Cascader.razor.cs`、`ToastService.cs`）、重复的样式片段与死代码；入口顶部的 data 属性总表与实际用到的核对一遍
 - [ ] 端到端覆盖全部有键盘、焦点、拖动逻辑的组件；输入法用例（组字中的回车不提交、不选中：Combobox、TagsInput、Mentions、Textarea）；axe-core 无障碍检查跑全部示例（亮、暗主题）
-- [ ] 截图基线加暗色主题
+- [x] 截图基线加暗色主题（每个示例亮、暗各一张）
 - [ ] 文档站上线前的几项（程序集懒加载、裁剪与体积预算、SEO、部署）：见 [DOCS-SITE.md](DOCS-SITE.md)
 - [ ] 性能：大列表、表格的渲染与内存基准；组件库样式预生成静态 CSS（可选，DESIGN 第 12 节）
 - [ ] API 冻结前的审计：全部公共 API 对一遍“Blazor 化的约定”与 vue-tsx-pro 的名字，出清单逐条改
