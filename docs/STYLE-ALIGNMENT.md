@@ -80,6 +80,9 @@
   在字段里按 Enter 提交成功后组件自己关上（vue 要调用方在 onSubmit 里写 open = false）。Dialog 的参数逐个声明再交下去：带类型的参数不能经未声明的属性转交（Razor 当成字符串）。
 - useFormDialog 对应 `DialogService.PromptAsync(FormDialogOptions)`：结果是 `FormDialogValues`（`values["名字"]`、多选 `values.All("名字")`），
   `OnSubmit` 返回 false 时对话框留着（同 `ConfirmOptions.OnConfirm`；vue 是 reject）；日期字段用浏览器自带的日期输入（Rune.UI 不依赖 Rune.UI.Dates）。
+- StepsForm：表单同 Form 用 `Model` / `EditContext`、`OnValidSubmit`，一步的 `Fields` 是模型上的属性名（vue 是字段路径，含子路径前缀；Blazor 的嵌套字段要拿到所在对象，
+  反射取属性在裁剪后不可靠，所以只认顶层属性）。“下一步”经 Form 新增的 `BeforeSubmit`（返回 false 时不校验、不提交）把提交换成下一步，
+  只校验这一步：对这几个字段 NotifyFieldChanged，校验器只校验它们。Form 的错误汇总在分步表单里关掉，没通过时焦点到这一步第一个出错的控件。
 - ActionBar 是否盖着下面的内容由 JS 看（`data-rune-action-bar`，affix.js），写 `data-stuck`。
 
 ### 外观与文档站

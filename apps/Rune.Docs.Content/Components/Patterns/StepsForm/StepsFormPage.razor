@@ -1,0 +1,17 @@
+@page "/components/steps-form"
+@attribute [DocMeta("StepsForm 分步表单", "一份表单分几步填：步骤条、这一步的字段、上一步 / 下一步 / 提交；下一步只校验这一步，提交没通过时跳回出错的步骤。", DocCategory.Patterns, Order = 5)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Patterns.StepsForm.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Example Id="onboarding" Title="供应商开户" Demo="typeof(OnboardingExample)">
+        整份是一个 <Code>Model</Code>（或 <Code>EditContext</Code>）：<Code>Steps</Code> 每一步写标题、<Code>Fields</Code>（这一步的字段，模型上的属性名）与内容。
+        “下一步”只校验这一步的字段，通过才往后走，没通过的错误立即显示；走过的步骤在步骤条上可以点回去。最后一步是“提交”：整份校验没通过时跳到第一个有错的步骤，那一步在步骤条上标成出错。
+        换步后焦点移到这一步的内容上，读屏念出“第 2 步，共 3 步”。<Code>@@bind-Current</Code> 可以双向绑定（提交成功后回到第一步）。只确认、不填的一步把 <Code>Fields</Code> 写成空的。
+    </Example>
+    <Example Id="review" Title="标签在左、只读回看" Demo="typeof(ReviewExample)">
+        标签布局、只读、不可用同 Form：<Code>LabelPlacement="FieldLabelPlacement.Start"</Code> 把标签排在左边，<Code>LabelWidth</Code> 定宽、<Code>LabelAlign</Code> 对齐。
+        <Code>ReadOnly</Code> 用来回看已经提交的单子：控件都改不了，“下一步”不校验，步骤条上哪一步都能点，最后一步没有提交按钮。<Code>Disabled</Code> 时各步同样可以翻看，提交按钮不可用。
+    </Example>
+    <ApiReference Types="[typeof(StepsForm), typeof(FormStep)]" />
+</DocPage>

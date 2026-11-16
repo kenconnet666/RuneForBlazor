@@ -1,0 +1,180 @@
+@*
+    分步表单（同 vue-tsx-pro 的 StepsForm）：一份表单分成几步填（开户、准入申请、配置向导），上方是步骤条，下方是这一步的字段与“上一步 / 下一步 / 提交”。
+    <StepsForm Model="application" @bind-Current="step" OnValidSubmit="SubmitAsync"
+               Steps="@([new("企业信息", ["Company", "Contact"], @<CompanyFields Model="application" />),
+                        new("账号", ["Password", "Confirm"], @<AccountFields Model="application" />)])" />
+    - “下一步”只校验这一步的字段（Fields 是模型上的属性名），通过才往后走，没通过的错误立即显示、焦点到第一个出错的控件上；
+      输入框里按回车也是下一步（最后一步才是提交）；走过的步骤可以点回去。
+    - 最后一步是“提交”（表单的提交）：整份校验没通过时跳到第一个有错的步骤，那一步在步骤条上标成出错。
+    - 换了一步焦点移到这一步的内容上（读屏念出第几步），键盘接着往下填。
+    - 只读（回看已提交的单子）、不可用时不校验、各步随便切换；只读时最后一步没有提交按钮，不可用时提交按钮不可用。
+    未声明的属性交给 Form（form 元素）；标签布局、只读、不可用同 Form。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@using Microsoft.AspNetCore.Components.Forms
+@{
+    var parts = StepsFormStyles.Of(Config.Styles);
+    var lang = Config.Lang.Patterns;
+    var step = Current >= 0 && Current < Steps.Count ? Steps[Current] : null;
+    var last = Current >= Steps.Count - 1;
+}
+
+<Form Model="Model" EditContext="EditContext" BeforeSubmit="BeforeSubmitAsync" OnValidSubmit="OnValidSubmit" OnInvalidSubmit="InvalidAsync"
+      Disabled="Disabled" ReadOnly="ReadOnly" LabelPlacement="LabelPlacement" LabelWidth="LabelWidth" LabelAlign="LabelAlign" ErrorSummary="false"
+      @attributes="Attrs.MergeProps(Rest)">
+    <div @attributes="Attrs.Merge(parts[StepsFormPart.Root])">
+        <Steps Items="Items" Current="Current" CurrentChanged="GoAsync" Navigable="true" @attributes="Attrs.MergeProps(parts[StepsFormPart.Steps], PropsSteps)" />
+        <div @ref="panel" @attributes="Attrs.Merge(parts[StepsFormPart.Panel], PropsPanel, PanelManaged(lang.StepsFormStep(Current + 1, Steps.Count)))">@step?.Content</div>
+        <Flex Justify="ContentJustify.End" Gap="SpaceScale.Sm" @attributes="Attrs.MergeProps(parts[StepsFormPart.Actions], PropsActions)">
+            @if (Current > 0)
+            {
+                <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" @onclick="() => GoAsync(Current - 1)"
+                        @attributes="Attrs.MergeProps(parts[StepsFormPart.Previous], PropsPrevious)">@lang.StepsFormPrevious</Button>
+            }
+            @if (!last)
+            {
+                @* 它是表单的提交按钮：输入框里按回车也走它，BeforeSubmit 把它换成下一步 *@
+                <Button Type="submit" @attributes="Attrs.MergeProps(parts[StepsFormPart.Next], PropsNext)">@lang.StepsFormNext</Button>
+            }
+            else if (!ReadOnly)
+            {
+                @* 只读是回看：没有提交 *@
+                <Button Type="submit" Disabled="Disabled" @attributes="Attrs.MergeProps(parts[StepsFormPart.Submit], PropsSubmit)">@(SubmitText ?? lang.StepsFormSubmit)</Button>
+            }
+        </Flex>
+    </div>
+</Form>
+
+@code {
+    ElementReference panel;
+    EditContext? context;
+    // 下一步没通过的次数：写在内容外层的 data-rune-invalid-submit 上，JS 把焦点移到这一步第一个出错的控件
+    int invalidSteps;
+    bool focusPanel;
+    Memo<(string Label, int Invalid), Attrs> panelManaged;
+
+    /// <summary>表单绑定的对象（与 <see cref="EditContext"/> 二选一）。</summary>
+    [Parameter] public object? Model { get; set; }
+
+    /// <summary>自己创建的 EditContext（要在外面校验、监听变化时）。</summary>
+    [Parameter] public EditContext? EditContext { get; set; }
+
+    /// <summary>各步。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<FormStep> Steps { get; set; } = [];
+
+    /// <summary>当前第几步，从 0 开始（@bind-Current）。</summary>
+    [Parameter] public int Current { get; set; }
+
+    /// <summary>换了一步。</summary>
+    [Parameter] public EventCallback<int> CurrentChanged { get; set; }
+
+    /// <summary>最后一步整份校验通过后提交：执行期间提交按钮显示加载中。</summary>
+    [Parameter] public EventCallback<EditContext> OnValidSubmit { get; set; }
+
+    /// <summary>提交按钮的文字，默认取语言包（提交）。</summary>
+    [Parameter] public string? SubmitText { get; set; }
+
+    /// <summary>不可用：各步可以翻看，提交按钮不可用。</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>只读（回看已提交的单子）：不校验、各步随便切换，没有提交按钮。</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <summary>标签位置（同 Form）。</summary>
+    [Parameter] public FieldLabelPlacement? LabelPlacement { get; set; }
+
+    /// <summary>标签在起始边时标签列的宽度（同 Form）。</summary>
+    [Parameter] public CssLength? LabelWidth { get; set; }
+
+    /// <summary>标签在起始边时文字的对齐（同 Form）。</summary>
+    [Parameter] public FieldLabelAlign? LabelAlign { get; set; }
+
+    /// <summary>步骤条（Steps）的部件属性。</summary>
+    [Parameter] public Attrs? PropsSteps { get; set; }
+
+    /// <summary>这一步内容外层的部件属性。</summary>
+    [Parameter] public Attrs? PropsPanel { get; set; }
+
+    /// <summary>按钮行（Flex）的部件属性。</summary>
+    [Parameter] public Attrs? PropsActions { get; set; }
+
+    /// <summary>上一步按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsPrevious { get; set; }
+
+    /// <summary>下一步按钮的部件属性；它是表单的提交按钮（回车也走它）。</summary>
+    [Parameter] public Attrs? PropsNext { get; set; }
+
+    /// <summary>提交按钮的部件属性。</summary>
+    [Parameter] public Attrs? PropsSubmit { get; set; }
+
+    // 只读、不可用：只是看——不校验，各步随便切换
+    bool Locked => ReadOnly || Disabled;
+
+    // 只能点回走过的步骤；只读、不可用时是回看，哪一步都能点
+    IReadOnlyList<StepItem> Items => [.. Steps.Select((step, index) => new StepItem(step.Title, step.Description,
+        Status: HasError(step) ? StepState.Error : null, Disabled: !Locked && index > Current))];
+
+    // 换步后焦点在内容上：读屏念出第几步
+    Attrs PanelManaged(string label) => panelManaged.Get((label, invalidSteps), static k => new Attrs
+    {
+        ["tabindex"] = "-1",
+        Role = "group",
+        AriaLabel = k.Label,
+        ["data-rune-invalid-submit"] = k.Invalid > 0 ? k.Invalid : null,
+    });
+
+    async Task GoAsync(int index)
+    {
+        if (index == Current) return;
+        Current = index;
+        focusPanel = true;
+        // 换步多半来自里面 Form 的提交事件：那时只有 Form 重新渲染，这里也要
+        StateHasChanged();
+        await CurrentChanged.InvokeAsync(index);
+    }
+
+    // 不在最后一步时，表单的提交（点“下一步”、输入框里按回车）是下一步，不是整份提交：
+    // 不然只有一个输入框的步骤里按回车会直接提交整份表单，后面没填的步骤全报错
+    async Task<bool> BeforeSubmitAsync(EditContext editContext)
+    {
+        context = editContext;
+        var last = Current >= Steps.Count - 1;
+        // 只读、不可用的表单不提交（只有一个输入框的步骤里按回车也会触发提交）
+        if (last) return !Locked;
+        if (Locked || ValidateStep(editContext, Steps[Current])) await GoAsync(Current + 1);
+        else
+        {
+            invalidSteps++;
+            StateHasChanged();
+        }
+        return false;
+    }
+
+    // 整份提交没通过：跳到第一个有错的步骤
+    async Task InvalidAsync(EditContext editContext)
+    {
+        context = editContext;
+        var first = Steps.Select((step, index) => (step, index)).FirstOrDefault(item => HasError(item.step), (null!, -1)).Item2;
+        if (first >= 0 && first != Current && !HasError(Steps[Current])) await GoAsync(first);
+    }
+
+    // 只校验这一步的字段：通知它们“变了”，校验器（DataAnnotationsValidator）只校验这几个
+    static bool ValidateStep(EditContext editContext, FormStep step)
+    {
+        foreach (var name in step.Fields) editContext.NotifyFieldChanged(editContext.Field(name));
+        return !HasError(editContext, step);
+    }
+
+    bool HasError(FormStep step) => context is { } editContext && HasError(editContext, step);
+
+    static bool HasError(EditContext editContext, FormStep step) => step.Fields.Any(name => editContext.GetValidationMessages(editContext.Field(name)).Any());
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!focusPanel) return;
+        focusPanel = false;
+        if (RendererInfo.IsInteractive) await panel.FocusAsync(preventScroll: true);
+    }
+}

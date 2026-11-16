@@ -173,7 +173,7 @@ Sortable.GetLabel
 Sparkline.Domain
 Splitter.End
 Splitter.Start
-StepsForm（组件）
+StepsForm.Form
 Switch.Checked
 TagsInput.OnOpenChange
 ThemeCustomizer（组件）

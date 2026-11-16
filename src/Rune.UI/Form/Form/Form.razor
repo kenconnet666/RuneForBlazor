@@ -52,6 +52,12 @@
     /// <summary>校验通过后提交：回调执行期间提交按钮显示加载中。</summary>
     [Parameter] public EventCallback<EditContext> OnValidSubmit { get; set; }
 
+    /// <summary>
+    /// 提交时先问它（点提交按钮、输入框里按 Enter）：返回 false 时这次提交不校验、不调 OnValidSubmit / OnInvalidSubmit。
+    /// 分步表单（StepsForm）用它把不在最后一步时的提交换成“下一步”。
+    /// </summary>
+    [Parameter] public Func<EditContext, Task<bool>>? BeforeSubmit { get; set; }
+
     /// <summary>校验未通过时。</summary>
     [Parameter] public EventCallback<EditContext> OnInvalidSubmit { get; set; }
 
@@ -119,6 +125,7 @@
 
     async Task HandleSubmitAsync(EditContext editContext)
     {
+        if (BeforeSubmit is not null && !await BeforeSubmit(editContext)) return;
         if (!editContext.Validate())
         {
             state.ShowErrors = true;

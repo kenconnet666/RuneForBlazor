@@ -1,0 +1,50 @@
+@* 标签布局、只读、不可用同 Form：LabelPlacement 把标签排在左边（LabelWidth 定宽、LabelAlign 对齐）；
+   ReadOnly 用来回看已经提交的单子——各步照常切换，控件都改不了，最后一步没有“提交”可点 *@
+@using System.ComponentModel.DataAnnotations
+@inherits RuneComponent
+
+<Card>
+    <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+        <Switch @bind-Value="readOnly" Description="关掉后可以修改并重新提交">只读回看</Switch>
+        <StepsForm Model="request" LabelPlacement="FieldLabelPlacement.Start" LabelWidth="CssLength.Em(6)" LabelAlign="FieldLabelAlign.End"
+                   ReadOnly="readOnly" SubmitText="重新提交" OnValidSubmit="SubmitAsync" Steps="steps" />
+    </Flex>
+</Card>
+
+@code {
+    sealed class Request
+    {
+        [Required(ErrorMessage = "请填写申请名称"), MinLength(2, ErrorMessage = "请填写申请名称")] public string? Title { get; set; } = "二号线冲压机更换";
+        [Required(ErrorMessage = "请选择事由")] public string? Reason { get; set; } = "设备更新";
+        [Required(ErrorMessage = "请填写金额"), Range(1, double.MaxValue, ErrorMessage = "金额要大于 0")] public decimal? Amount { get; set; } = 386000;
+        [Required(ErrorMessage = "请选择日期")] public DateOnly? NeedBy { get; set; } = new(2024, 9, 30);
+        [MaxLength(200, ErrorMessage = "最多 200 字")] public string? Note { get; set; } = "旧设备已超期服役两年，故障停机每月超过 20 小时。";
+    }
+
+    static readonly string[] reasons = ["设备更新", "产能扩充", "安全整改", "研发试制"];
+
+    readonly Request request = new();
+    bool readOnly = true;
+    IReadOnlyList<FormStep> steps = [];
+
+    protected override void OnInitialized() => steps =
+    [
+        new("申请内容", [nameof(Request.Title), nameof(Request.Reason)],
+            @<text>
+                <Field Label="申请名称"><TextField @bind-Value="request.Title" /></Field>
+                <Field Label="事由"><Select Items="reasons" @bind-Value="request.Reason" /></Field>
+            </text>),
+        new("金额与时间", [nameof(Request.Amount), nameof(Request.NeedBy), nameof(Request.Note)],
+            @<text>
+                <Field Label="金额（元）"><NumberField @bind-Value="request.Amount" /></Field>
+                <Field Label="最晚到位"><DatePicker @bind-Value="request.NeedBy" /></Field>
+                <Field Label="说明"><Textarea @bind-Value="request.Note" Rows="2" /></Field>
+            </text>),
+    ];
+
+    async Task SubmitAsync()
+    {
+        await Task.Delay(400);
+        readOnly = true;
+    }
+}

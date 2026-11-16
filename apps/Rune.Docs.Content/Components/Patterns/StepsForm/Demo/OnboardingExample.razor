@@ -1,0 +1,73 @@
+@* 供应商开户：三步——企业信息、联系人与账号、确认提交。“下一步”只校验这一步的字段；第三步是只读的汇总，
+   提交没通过（第一步的信用代码被改坏）时跳回出错的那一步 *@
+@using System.ComponentModel.DataAnnotations
+@inherits RuneComponent
+
+<Card>
+    <StepsForm Model="model" @bind-Current="step" SubmitText="确认开户" OnValidSubmit="SubmitAsync" Steps="steps" />
+    @if (result is not null)
+    {
+        <Small Tone="TextTone.Success" aria-live="polite">@result</Small>
+    }
+</Card>
+
+@code {
+    sealed class Onboarding
+    {
+        [Required(ErrorMessage = "请填写公司全称"), MinLength(2, ErrorMessage = "请填写公司全称")] public string? Company { get; set; }
+        [Required(ErrorMessage = "请填写统一社会信用代码"), RegularExpression("^[0-9A-Z]{18}$", ErrorMessage = "统一社会信用代码是 18 位数字或大写字母")] public string? CreditCode { get; set; }
+        [Required(ErrorMessage = "请选择供货品类")] public string? Category { get; set; }
+        [Required(ErrorMessage = "请填写月产能"), Range(1, int.MaxValue, ErrorMessage = "至少 1 件")] public int? Capacity { get; set; }
+        [Required(ErrorMessage = "请填写联系人")] public string? Contact { get; set; }
+        [Required(ErrorMessage = "请填写手机号"), RegularExpression(@"^1\d{10}$", ErrorMessage = "手机号是 11 位数字")] public string? Phone { get; set; }
+        [Required(ErrorMessage = "请填写登录密码"), MinLength(8, ErrorMessage = "至少 8 位")] public string? Password { get; set; }
+        [Required(ErrorMessage = "请再输入一次密码"), Compare(nameof(Password), ErrorMessage = "两次输入的密码不一致")] public string? Confirm { get; set; }
+    }
+
+    static readonly string[] categories = ["机械件", "塑料件", "钣金件", "标准件", "线缆"];
+
+    Onboarding model = new();
+    int step;
+    string? result;
+    IReadOnlyList<FormStep> steps = [];
+
+    protected override void OnInitialized() => steps =
+    [
+        new("企业信息", [nameof(Onboarding.Company), nameof(Onboarding.CreditCode), nameof(Onboarding.Category), nameof(Onboarding.Capacity)],
+            @<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Md">
+                <Field Label="公司全称"><TextField @bind-Value="model.Company" /></Field>
+                <Field Label="统一社会信用代码"><TextField @bind-Value="model.CreditCode" placeholder="18 位" /></Field>
+                <Field Label="供货品类"><Select Items="categories" @bind-Value="model.Category" Placeholder="请选择" /></Field>
+                <Field Label="月产能（件）"><NumberField @bind-Value="model.Capacity" /></Field>
+            </Grid>) { Description = "名称、资质与产能" },
+        new("联系人与账号", [nameof(Onboarding.Contact), nameof(Onboarding.Phone), nameof(Onboarding.Password), nameof(Onboarding.Confirm)],
+            @<Grid MinItemWidth="@("16rem")" Gap="SpaceScale.Md">
+                <Field Label="联系人"><TextField @bind-Value="model.Contact" /></Field>
+                <Field Label="手机号"><TextField @bind-Value="model.Phone" Type="tel" /></Field>
+                <Field Label="登录密码"><TextField @bind-Value="model.Password" Type="password" /></Field>
+                <Field Label="确认密码"><TextField @bind-Value="model.Confirm" Type="password" /></Field>
+            </Grid>) { Description = "登录账号发到手机" },
+        // 只确认、不填的一步：Fields 是空的
+        new("确认提交", [],
+            @<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm">
+                <Descriptions Columns="2">
+                    <DescriptionsItem Label="公司全称" Value="@model.Company" />
+                    <DescriptionsItem Label="信用代码" Value="@model.CreditCode" />
+                    <DescriptionsItem Label="供货品类" Value="@model.Category" />
+                    <DescriptionsItem Label="月产能" Value="@($"{model.Capacity?.ToString() ?? "—"} 件")" />
+                    <DescriptionsItem Label="联系人" Value="@model.Contact" />
+                    <DescriptionsItem Label="手机号" Value="@model.Phone" />
+                </Descriptions>
+                <Small Tone="TextTone.Muted">提交前可以点上方已完成的步骤回去修改。</Small>
+            </Flex>) { Description = "核对后开户" },
+    ];
+
+    async Task SubmitAsync()
+    {
+        await Task.Delay(600);
+        result = $"{model.Company} 已开户，账号已发到 {model.Phone}";
+        // 提交成功后回到第一步、清空表单
+        model = new();
+        step = 0;
+    }
+}
