@@ -11,7 +11,7 @@ import { releasePointer, trackPointer, watchPointer } from './pointer.js';
 import { clickToastClose, focusToaster, grabToast, keyToast, onToasterFocusIn, onToasterFocusOut } from '../overlay/toast.js';
 import { watchEllipsis, watchGrid, watchMarquee, watchSize, watchViewportFill } from '../layout/layout.js';
 import { onTweenValueChanged, watchTween } from './tween.js';
-import { clickBackTop, watchAffix, watchBackTop } from '../layout/affix.js';
+import { clickBackTop, watchActionBar, watchAffix, watchBackTop } from '../layout/affix.js';
 import { closeSpeedDialsOutside, keySpeedDial } from '../layout/float-button.js';
 import { drawWatermark } from '../layout/watermark.js';
 import { blurSortable, grabSortable, keySortable } from '../table/sortable.js';
@@ -199,6 +199,7 @@ const watched = [
   ['[data-rune-tween]', watchTween],
   ['[data-rune-viewport-fill]', watchViewportFill],
   ['[data-rune-affix]', watchAffix],
+  ['[data-rune-action-bar]', watchActionBar],
   ['[data-rune-back-top]', watchBackTop],
   ['[data-rune-ellipsis-text]', watchEllipsis],
   ['[data-rune-marquee]', watchMarquee],

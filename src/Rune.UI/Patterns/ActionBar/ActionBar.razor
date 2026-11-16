@@ -1,0 +1,43 @@
+@*
+    吸底的操作栏（div，同 vue-tsx-pro 的 ActionBar）：长表单、详情页底部的“取消 / 保存草稿 / 提交”，滚动时一直贴在滚动区域的底边，不用滚到底才能提交。
+    <ActionBar>
+        <Start>@(dirty ? "有未保存的改动" : null)</Start>
+        <ChildContent>
+            <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral">取消</Button>
+            <Button Type="submit" Loading="submitting">提交</Button>
+        </ChildContent>
+    </ActionBar>
+    放在要跟着滚动的内容的最后（表单里、卡片里、页面主区里都行）：position: sticky 贴着最近的滚动容器的底边。
+    下面还有被盖住的内容时（贴在底边、还没滚到它原本的位置）带阴影、data-stuck（JS 看它是否完整可见），提示还能往下滚；滚到底时与内容平齐。
+    Start 是起始边的说明（未保存的改动、校验汇总），ChildContent 是结束边的按钮。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{ var parts = ActionBarStyles.Of(Sticky, Config.Styles); }
+
+<div @attributes="Attrs.Merge(parts[ActionBarPart.Root], Rest, Sticky ? StickyManaged : null)">
+    @if (Start is not null)
+    {
+        <div @attributes="Attrs.Merge(parts[ActionBarPart.Start], PropsStart)">@Start</div>
+    }
+    <div @attributes="Attrs.Merge(parts[ActionBarPart.Actions], PropsActions)">@ChildContent</div>
+</div>
+
+@code {
+    static readonly Attrs StickyManaged = new() { ["data-rune-action-bar"] = true };
+
+    /// <summary>起始边的内容：未保存的改动、已选几项、校验汇总。</summary>
+    [Parameter] public RenderFragment? Start { get; set; }
+
+    /// <summary>贴在滚动区域的底边，默认 true；false 时是普通的一行（如对话框里已经固定的底栏）。</summary>
+    [Parameter] public bool Sticky { get; set; } = true;
+
+    /// <summary>起始边内容的部件属性。</summary>
+    [Parameter] public Attrs? PropsStart { get; set; }
+
+    /// <summary>按钮区的部件属性。</summary>
+    [Parameter] public Attrs? PropsActions { get; set; }
+
+    /// <summary>按钮：靠结束边排开。</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

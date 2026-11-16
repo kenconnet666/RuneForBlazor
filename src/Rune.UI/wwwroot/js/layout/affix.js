@@ -33,6 +33,23 @@ export function watchAffix(element) {
   affixObservers.set(element, observer);
 }
 
+// 吸底的操作栏（data-rune-action-bar，同 vue-tsx-pro 的 ActionBar）：sticky 贴底时往下多出一条线宽露在滚动区域外，
+// 没有完整可见就是盖着下面的内容，写 data-stuck（阴影提示还能往下滚）。观察的根是视口，滚动容器的裁切照样算进交叉比例
+const actionBars = new WeakSet();
+
+export function watchActionBar(bar) {
+  if (actionBars.has(bar) || typeof IntersectionObserver === 'undefined') return;
+  actionBars.add(bar);
+  const observer = new IntersectionObserver(([entry]) => {
+    if (!bar.isConnected) {
+      observer.disconnect();
+      return;
+    }
+    bar.toggleAttribute('data-stuck', entry.isIntersecting && entry.intersectionRatio < 1);
+  }, { threshold: [0, 1] });
+  observer.observe(bar);
+}
+
 // 回到顶部（data-rune-back-top="阈值 px"）：滚过阈值写 data-shown（CSS 淡入）、去掉 aria-hidden；data-target 是滚动容器的 id，不写时是整页
 const pageBackTops = new Set();
 const watchedScrollers = new WeakSet();

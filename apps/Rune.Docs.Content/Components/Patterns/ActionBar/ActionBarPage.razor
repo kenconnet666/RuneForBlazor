@@ -1,0 +1,22 @@
+@page "/components/action-bar"
+@attribute [DocMeta("ActionBar 操作栏", "长表单、详情页底部的“撤销 / 保存 / 提交”：贴在滚动区域的底边，不用滚到底才能提交；起始边写未保存的改动、已选几项。", DocCategory.Patterns, Order = 4)]
+@inherits DocPageBase
+@using Rune.Docs.Components.Patterns.ActionBar.Demo
+
+<DocPage Meta="Meta" Wide="true">
+    <Examples>
+        <ExampleColumn>
+            <Example Id="long-form" Title="长表单" Demo="typeof(LongFormExample)">
+                放在要跟着滚动的内容的最后：<Code>position: sticky</Code> 贴着最近的滚动容器（这里是 ScrollArea，页面里就是整页）的底边。
+                下面还有被盖住的字段时带阴影、<Code>data-stuck</Code>，提示还能往下滚；滚到底与内容平齐。<Code>Start</Code> 是起始边的说明（这里和上次保存的值比，写出改了几处）；
+                按钮放在 ChildContent 里，靠结束边排。
+            </Example>
+        </ExampleColumn>
+        <ExampleColumn>
+            <Example Id="batch" Title="批量操作" Demo="typeof(BatchExample)">
+                <Code>Sticky="false"</Code> 是普通的一行：内容不长、或者外面已经固定了（对话框的底栏）时用。卡片写 <Code>Padding="SpaceScale.None"</Code>，操作栏的上边线与卡片的边对齐。
+            </Example>
+        </ExampleColumn>
+    </Examples>
+    <ApiReference Types="[typeof(ActionBar)]" />
+</DocPage>

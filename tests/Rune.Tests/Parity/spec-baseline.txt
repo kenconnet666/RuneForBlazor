@@ -1,4 +1,3 @@
-ActionBar（组件）
 AreaChart.Data
 AreaChart.Index
 AreaChart.IndexFormat

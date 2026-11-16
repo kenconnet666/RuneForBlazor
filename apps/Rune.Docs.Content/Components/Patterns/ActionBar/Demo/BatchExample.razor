@@ -1,0 +1,44 @@
+@* 批量操作：列表下面一行（Sticky="false"，不随滚动贴底），起始边是已选几项，选了才能操作 *@
+@inherits RuneComponent
+
+<Card Padding="SpaceScale.None">
+    <CheckboxGroup TItem="string" @bind-Value="selected" aria-label="待认领的建议">
+        <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Sm" style="padding: var(--rune-space-lg)">
+            @foreach (var item in items)
+            {
+                <Checkbox @key="item.Id" GroupValue="@item.Id">
+                    <Flex Gap="SpaceScale.Sm" Align="ItemAlign.Baseline" Wrap="true">
+                        @item.Title
+                        <Small Tone="TextTone.Muted">@item.Id · @item.Due</Small>
+                    </Flex>
+                </Checkbox>
+            }
+        </Flex>
+    </CheckboxGroup>
+    <ActionBar Sticky="false">
+        <Start>@(selected.Count > 0 ? $"已选 {selected.Count} 项" : done ?? "勾选要处理的建议")</Start>
+        <ChildContent>
+            <Button Variant="ButtonVariant.Outline" Tone="Tone.Danger" Icon="Lucide.Undo2" Disabled="selected.Count == 0" @onclick="@(() => Act("退回"))">退回</Button>
+            <Button Icon="Lucide.CheckCheck" Disabled="selected.Count == 0" @onclick="@(() => Act("认领"))">认领</Button>
+        </ChildContent>
+    </ActionBar>
+</Card>
+
+@code {
+    static readonly (string Id, string Title, string Due)[] items =
+    [
+        ("PO-2026-0187", "显示器支架改为一体成型", "剩 2 个工作日"),
+        ("PO-2026-0192", "包装胶带换国产料号", "今天到期"),
+        ("PO-2026-0203", "线束卡箍合并规格", "剩 5 个工作日"),
+        ("PO-2026-0211", "货架紧固件减量", "剩 9 个工作日"),
+    ];
+
+    IReadOnlyList<string> selected = [];
+    string? done;
+
+    void Act(string verb)
+    {
+        done = $"已{verb} {selected.Count} 项：{string.Join("、", selected)}";
+        selected = [];
+    }
+}
