@@ -13,7 +13,7 @@ public static class ExampleSource
     static readonly ConcurrentDictionary<Type, string> cache = new();
 
     /// <summary>
-    /// 示例组件的源码。旁边有同名的 JS 模块（<c>XxxExample.razor.js</c>，ThreeCanvas 的场景、ModelViewer 的对象）时接在后面：
+    /// 示例组件的源码。旁边有同名的代码后置（<c>XxxExample.razor.cs</c>）、JS 模块（<c>XxxExample.razor.js</c>，ThreeCanvas 的场景、ModelViewer 的对象）时接在后面：
     /// 包在 script 里只是为了按 JS 高亮，它是单独的文件，示例按地址引用它（_content/Rune.Docs.Content/…）。
     /// </summary>
     public static string Of(Type example) => cache.GetOrAdd(example, static type =>
@@ -23,6 +23,9 @@ public static class ExampleSource
             throw new ArgumentException($"{type.FullName} 不在 {ContentNamespace} 下，取不到源码", nameof(example));
         var path = $"examples/{ns[ContentNamespace.Length..].Replace('.', '/')}/{type.Name}.razor";
         var source = Read(path) ?? throw new InvalidOperationException($"找不到示例的源码 {path}");
+        // 代码后置（[FormSchema] 的模型要写在 .cs 里，源生成器才看得到）：同样接在后面，按 C# 高亮
+        if (Read(path + ".cs") is { } code)
+            source += $"\n@* {type.Name}.razor.cs：示例的模型（单独的文件，这里一起显示） *@\n@code {{\n{code}}}\n";
         if (Read(path + ".js") is { } module)
             source += $"\n@* {type.Name}.razor.js：示例用到的 JS 模块（单独的文件，这里一起显示） *@\n<script type=\"module\">\n{module}</script>\n";
         return source;

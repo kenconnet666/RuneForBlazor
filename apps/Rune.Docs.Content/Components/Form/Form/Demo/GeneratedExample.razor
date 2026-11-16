@@ -1,0 +1,17 @@
+@* 同一份供应商准入申请，按模型生成：标签、占位、分组写在 [Display] 上，栏宽、控件写在 [FormField] 上，SchemaForm 按类型选控件
+   （文字、下拉、日期、复选框）；必填标记、错误汇总、跨字段规则（IValidatableObject）照旧来自 DataAnnotations *@
+@inherits RuneComponent
+
+<SchemaForm Model="model" Columns="2" SubmitText="提交申请" OnValidSubmit="SubmitAsync">@result</SchemaForm>
+
+@code {
+    AdmissionForm model = new();
+    string? result;
+
+    async Task SubmitAsync()
+    {
+        await Task.Delay(600);
+        result = $"{model.Company} 的准入申请已提交";
+        model = new();
+    }
+}

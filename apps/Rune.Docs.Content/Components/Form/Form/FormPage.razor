@@ -10,6 +10,27 @@
         点哪一项跳到那个字段，改对一项就少一项（GOV.UK 的 Error summary）。跨字段的规则写在模型的 <Code>IValidatableObject.Validate</Code> 里，
         <Code>ValidationResult</Code> 的成员名指到要标错的字段。
     </Example>
+    <Example Id="generated" Title="按模型生成：SchemaForm" Demo="typeof(GeneratedExample)">
+        模型标 <Code>[FormSchema]</Code>（写在 .cs 里，partial）：源生成器为它给出字段的描述，<Code>SchemaForm</Code> 按描述生成整份表单，不用反射（裁剪安全）。
+        标签、说明、占位、分组、顺序写在 DataAnnotations 的 <Code>[Display(Name, Description, Prompt, GroupName, Order)]</Code> 上，
+        控件、栏宽、页签、单位写在 <Code>[FormField]</Code> 上；控件按类型选：文字（最长超过 100 时多行）、数字、开关、枚举（下拉，选项取成员的 <Code>[Display(Name)]</Code>）、
+        日期（DatePicker，要引用 Rune.UI.Dates）。必填标记、错误汇总、跨字段规则照旧来自 DataAnnotations；<Code>Columns</Code> 是最多几栏，<Code>FullRow</Code> 占满一行。
+        只生成一部分时在 Form 里放 <Code>SchemaFields</Code>（<Code>Pick</Code> / <Code>Omit</Code>），其余手写；<Code>Fields</Code> 按字段路径换掉控件。
+    </Example>
+    <Example Id="conditional" Title="字段的条件与权限" Demo="typeof(ConditionalExample)">
+        <Code>[FormField(VisibleWhen, RequiredWhen, ReadOnlyWhen)]</Code> 写模型上 bool 属性的名字：不显示的不校验，必填条件成立且空着时报“必填”
+        （有条件的字段不写 <Code>[Required]</Code>）。<Code>Access</Code> 按字段路径给权限（Hidden、ReadOnly、Required），流程的环节权限直接映射过来；
+        明细表（<Code>Control = SchemaControl.Table</Code>）的列跟着明细表的权限，写了 <Code>Sum</Code> 的列表底合计。
+        Blazor 的 DataAnnotationsValidator 不进列表的行，行里的 <Code>[Required]</Code> 由 SchemaFields 报。
+    </Example>
+    <Example Id="sources" Title="数据来源：字典、远程搜索、人员、附件" Demo="typeof(SourcesExample)">
+        <Code>[FormField(Source = "名字")]</Code> 的选项从 <Code>Sources</Code>（<Code>FormSources</Code>）取：<Code>Options</Code> 是固定的字典，<Code>Remote</Code> 是按搜索词远程取；
+        <Code>IReadOnlyList&lt;PeopleEntry&gt;</Code> 的字段是 PeoplePicker（<Code>People</Code>），<Code>IReadOnlyList&lt;UploadFile&gt;</Code> 是 Upload（<Code>Upload</Code>）。
+    </Example>
+    <Example Id="read-view" Title="页签与只读视图" Demo="typeof(ReadViewExample)">
+        写了 <Code>Tab</Code> 的字段放进标签页（页签里照旧分组，没写的排在前面）。<Code>SchemaView</Code> 是同一份值的只读视图：选项显示文字、开关显示是否、
+        人员显示名字、附件显示文件名，明细表带合计，<Code>Access</Code> 隐藏的不列。查询栏的条件用 <Code>SchemaFilters</Code>，高级筛选的字段用 <Code>SchemaConditions.FieldsOf</Code>（见 FilterBar）。
+    </Example>
     <Examples>
         <ExampleColumn>
             <Example Id="signup" Title="注册：校验与异步校验" Demo="typeof(SignupExample)">
@@ -66,5 +87,5 @@
             </Example>
         </ExampleColumn>
     </Examples>
-    <ApiReference Types="[typeof(Form), typeof(FormErrorSummary), typeof(Field), typeof(FormValue), typeof(LeaveConfirmation), typeof(FormSection)]" />
+    <ApiReference Types="[typeof(Form), typeof(FormErrorSummary), typeof(Field), typeof(FormValue), typeof(LeaveConfirmation), typeof(FormSection), typeof(SchemaForm<>), typeof(SchemaFields<>), typeof(SchemaView<>), typeof(SchemaFilters<>), typeof(FormFieldAttribute)]" />
 </DocPage>

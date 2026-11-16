@@ -24,6 +24,7 @@
     <EmbeddedResource Include="..\Rune.Docs.Content\Components\**\*.razor" LogicalName="examples/Components/%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
     <!-- 示例旁边的 JS 模块（ThreeCanvas 的场景）：跟在示例的源码后面一起显示 -->
     <EmbeddedResource Include="..\Rune.Docs.Content\Components\**\*.razor.js" LogicalName="examples/Components/%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+    <EmbeddedResource Include="..\Rune.Docs.Content\Components\**\*.razor.cs" LogicalName="examples/Components/%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
     <EmbeddedResource Include="..\Rune.Docs.Content\Guide\Demo\**\*.razor" LogicalName="examples/Guide/Demo/%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
   </ItemGroup>
 

@@ -1,0 +1,196 @@
+@*
+    按模型只读地显示一份值（同 vue-tsx-pro 的 SchemaView）：审批单的查看、打印、提交前的核对。模型标了 [FormSchema]。
+    <SchemaView Model="order" Access="@(new Dictionary<string, SchemaFieldAccess> { ["Cost"] = SchemaFieldAccess.Hidden })" />
+    标签与值排成 Descriptions，按分组各一块（页签里的字段也照分组排：只读、打印时一次看全）；选择题显示选项的文字（含登记的字典），
+    开关、复选框显示是否，人员显示名字，附件显示文件名（有地址时是链接），空着的显示占位；嵌套的对象展开成“对象 · 字段”，
+    对象的列表（列表、明细表）排成表格，写了 Sum 的列有合计。权限与条件同 SchemaFields：不显示的不列。
+*@
+@namespace Rune.UI
+@typeparam TModel where TModel : class, IFormSchema<TModel>
+@inherits UIComponent
+@using System.Collections
+@using System.Globalization
+@{
+    var parts = SchemaFormStyles.Of(Config.Styles);
+    var fields = SchemaLayout.Pick(TModel.FormSchemaFields, Pick, Omit);
+}
+
+@foreach (var group in fields.GroupBy(f => f.Info.Group ?? f.Info.Tab))
+{
+    <Descriptions @key="@(group.Key ?? "")" Title="@group.Key" MinItemWidth="@CssLength.Em(16)" @attributes="Attrs.MergeProps(null, PropsDescriptions)">
+        @foreach (var field in group)
+        {
+            @field.Accept(Model, new Viewer(this, parts, "", field.Info.Label))
+        }
+    </Descriptions>
+}
+
+@code {
+    /// <summary>要显示的值。</summary>
+    [Parameter, EditorRequired] public TModel Model { get; set; } = default!;
+
+    /// <summary>字段的权限：Hidden 的不列。</summary>
+    [Parameter] public IReadOnlyDictionary<string, SchemaFieldAccess>? Access { get; set; }
+
+    /// <summary>只显示这些顶层字段，按这里的顺序。</summary>
+    [Parameter] public IReadOnlyList<string>? Pick { get; set; }
+
+    /// <summary>不显示这些顶层字段。</summary>
+    [Parameter] public IReadOnlyList<string>? Omit { get; set; }
+
+    /// <summary>数据来源（字典的选项文字）。</summary>
+    [Parameter] public FormSources? Sources { get; set; }
+
+    /// <summary>每一块（Descriptions）的部件属性：栏数、样式。</summary>
+    [Parameter] public Attrs? PropsDescriptions { get; set; }
+
+    CultureInfo Culture => CultureInfo.GetCultureInfo(Config.Lang.Code);
+
+    bool Visible<TM>(SchemaField<TM> field, TM model, string path) => SchemaLayout.StateOf(field, model, Access?.GetValueOrDefault(path)).Visible;
+
+    // 一个值显示成什么（列表、对象另排）
+    RenderFragment Display(SchemaFieldInfo info, object? value)
+    {
+        var lang = Config.Lang;
+        if (info.Control is SchemaControl.Switch or SchemaControl.Checkbox) return Text(value is true ? lang.FormValueTrue : lang.FormValueFalse);
+        if (SchemaLayout.IsBlank(value)) return Text(lang.FormValueEmpty);
+        var items = value is IEnumerable list and not string ? list.Cast<object?>().ToList() : [value];
+        var sources = Sources ?? FormSources.Empty;
+        switch (info.Control)
+        {
+            case SchemaControl.Select or SchemaControl.Radio or SchemaControl.MultiSelect or SchemaControl.Checkboxes:
+                var options = sources.OptionsOf(info);
+                return Text(string.Join("、", items.Select(item => options.FirstOrDefault(o => o.Value == item?.ToString())?.Label ?? item?.ToString())));
+            case SchemaControl.People:
+                return Text(string.Join("、", items.OfType<PeopleEntry>().Select(entry => entry.Name)));
+            case SchemaControl.File:
+                return __builder =>
+                {
+                    var index = 0;
+                    foreach (var file in items.OfType<UploadFile>())
+                    {
+                        if (index++ > 0)
+                        {
+                            @("、")
+                        }
+                        if (file.Url is { } url)
+                        {
+                            <TextLink @key="file.Id" Href="@url" External="true">@file.Name</TextLink>
+                        }
+                        else
+                        {
+                            @file.Name
+                        }
+                    }
+                };
+            default:
+                var text = value switch
+                {
+                    DateOnly date => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    DateTime time => time.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+                    DateTimeOffset time => time.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+                    IFormattable formattable => formattable.ToString(null, Culture),
+                    _ => value?.ToString() ?? "",
+                };
+                return Text(info.Unit is { } unit ? $"{text} {unit}" : text);
+        }
+    }
+
+    static RenderFragment Text(string? text) => builder => builder.AddContent(0, text);
+
+    // 对象的列表排成表格：列是行里显示着的字段，写了 Sum 的列有合计
+    RenderFragment Table<TM, TI>(PartLayers<SchemaFormPart> parts, SchemaListField<TM, TI> field, IList<TI> rows, string path) where TI : class, IFormSchema<TI>, new()
+    {
+        if (rows.Count == 0) return Text(Config.Lang.FormValueEmpty);
+        var columns = SchemaListField<TM, TI>.Fields.Where(column => rows.Any(row => Visible(column, row, $"{path}.{column.Info.Key}"))).ToList();
+        var totals = columns.Any(column => column.Info.Sum);
+        return @<Table aria-label="@field.Info.Label">
+            <TableHead>
+                <TableRow>
+                    @foreach (var column in columns)
+                    {
+                        <TableHeaderCell @key="column.Info.Key" Align="@(column.Info.Sum ? TableAlign.End : TableAlign.Start)">@column.Info.Label</TableHeaderCell>
+                    }
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                @foreach (var row in rows)
+                {
+                    <TableRow @key="row">
+                        @foreach (var column in columns)
+                        {
+                            <TableCell @key="column.Info.Key" Align="@(column.Info.Sum ? TableAlign.End : TableAlign.Start)">
+                                @if (Visible(column, row, $"{path}.{column.Info.Key}"))
+                                {
+                                    @Display(column.Info, column.Read(row))
+                                }
+                            </TableCell>
+                        }
+                    </TableRow>
+                }
+            </TableBody>
+            @if (totals)
+            {
+                <TableFoot>
+                    <TableRow>
+                        @for (var i = 0; i < columns.Count; i++)
+                        {
+                            var column = columns[i];
+                            var first = i == 0;
+                            <TableCell @key="column.Info.Key" Align="@(column.Info.Sum ? TableAlign.End : TableAlign.Start)" @attributes="Attrs.MergeProps(parts[SchemaFormPart.TableTotal])">
+                                @(SchemaLayout.Total(column, rows) ?? (first ? Config.Lang.TableSummary : null))
+                            </TableCell>
+                        }
+                    </TableRow>
+                </TableFoot>
+            }
+        </Table>;
+    }
+
+    /// <summary>一个字段排成的描述项：值字段一项，对象展开成几项，列表是占满一行的表格。</summary>
+    sealed class Viewer(SchemaView<TModel> owner, PartLayers<SchemaFormPart> parts, string prefix, string label) : ISchemaVisitor<RenderFragment>
+    {
+        public RenderFragment Value<TM, TV>(SchemaValueField<TM, TV> field, TM model)
+        {
+            var path = prefix + field.Info.Key;
+            if (!owner.Visible(field, model, path)) return _ => { };
+            var span = field.Info.FullRow ? 99 : field.Info.Span ?? 1;
+            return builder =>
+            {
+                builder.OpenComponent<DescriptionsItem>(0);
+                builder.SetKey(path);
+                builder.AddComponentParameter(1, nameof(DescriptionsItem.Label), label);
+                builder.AddComponentParameter(2, nameof(DescriptionsItem.Span), span);
+                builder.AddComponentParameter(3, nameof(DescriptionsItem.ChildContent), owner.Display(field.Info, field.Get(model)));
+                builder.CloseComponent();
+            };
+        }
+
+        public RenderFragment Object<TM, TC>(SchemaObjectField<TM, TC> field, TM model) where TC : class, IFormSchema<TC>
+        {
+            var path = prefix + field.Info.Key;
+            if (!owner.Visible(field, model, path) || field.Get(model) is not { } child) return _ => { };
+            return builder =>
+            {
+                foreach (var inner in SchemaObjectField<TM, TC>.Fields)
+                    builder.AddContent(0, inner.Accept(child, new Viewer(owner, parts, path + ".", $"{label} · {inner.Info.Label}")));
+            };
+        }
+
+        public RenderFragment List<TM, TI>(SchemaListField<TM, TI> field, TM model) where TI : class, IFormSchema<TI>, new()
+        {
+            var path = prefix + field.Info.Key;
+            if (!owner.Visible(field, model, path)) return _ => { };
+            var rows = field.Get(model) ?? [];
+            return builder =>
+            {
+                builder.OpenComponent<DescriptionsItem>(0);
+                builder.SetKey(path);
+                builder.AddComponentParameter(1, nameof(DescriptionsItem.Label), label);
+                builder.AddComponentParameter(2, nameof(DescriptionsItem.Span), 99);
+                builder.AddComponentParameter(3, nameof(DescriptionsItem.ChildContent), owner.Table(parts, field, rows, path));
+                builder.CloseComponent();
+            };
+        }
+    }
+}

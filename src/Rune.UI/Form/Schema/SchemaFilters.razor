@@ -1,0 +1,57 @@
+@*
+    按模型给出查询栏的一组条件（同 vue-tsx-pro 的 schemaFilters）：每个字段一个 Field 加控件，值直接读写 Model（QueryTable 的草稿、自己的条件对象），
+    文字与选择可以清空。嵌套的对象、列表、人员、附件不生成。模型标了 [FormSchema]。
+    <FilterBar OnSearch="Search" OnReset="Reset">
+        <SchemaFilters Model="query" Pick="@([nameof(OrderQuery.Keyword), nameof(OrderQuery.Status)])" />
+        <MoreFilters><SchemaFilters Model="query" Omit="@([nameof(OrderQuery.Keyword), nameof(OrderQuery.Status)])" /></MoreFilters>
+    </FilterBar>
+    高级筛选的字段用 SchemaConditions.FieldsOf（同一份描述交给 ConditionBuilder、FilterBar 的 ConditionFields）。
+*@
+@namespace Rune.UI
+@typeparam TModel where TModel : class, IFormSchema<TModel>
+@inherits UIComponent
+
+@foreach (var field in SchemaLayout.Pick(TModel.FormSchemaFields, Pick, Omit).Where(f => Filterable(f.Info.Control)))
+{
+    @field.Accept(Model, new Renderer(this))
+}
+
+@code {
+    /// <summary>条件的值：控件直接读写它。</summary>
+    [Parameter, EditorRequired] public TModel Model { get; set; } = default!;
+
+    /// <summary>只要这些字段，按这里的顺序（常用的放查询栏，其余的放 MoreFilters）。</summary>
+    [Parameter] public IReadOnlyList<string>? Pick { get; set; }
+
+    /// <summary>不要这些字段。</summary>
+    [Parameter] public IReadOnlyList<string>? Omit { get; set; }
+
+    /// <summary>换掉某些字段的控件：属性名 → 控件，值自己绑定。</summary>
+    [Parameter] public IReadOnlyDictionary<string, RenderFragment>? Fields { get; set; }
+
+    /// <summary>数据来源（字典与远程选项）。</summary>
+    [Parameter] public FormSources? Sources { get; set; }
+
+    static bool Filterable(SchemaControl control) => control is not (SchemaControl.Object or SchemaControl.List or SchemaControl.Table or SchemaControl.People or SchemaControl.File);
+
+    // 查询栏里能清空的控件
+    static bool Clearable(SchemaControl control) => control is SchemaControl.Text or SchemaControl.Select or SchemaControl.MultiSelect;
+
+    RenderFragment ValueField<TV>(SchemaValueField<TModel, TV> field)
+    {
+        var info = field.Info;
+        var args = new SchemaControlArgs<TV>(info, field.Get(Model), EventCallback.Factory.Create<TV>(this, value => field.Set(Model, value)), null,
+            Sources ?? FormSources.Empty, this, Clearable(info.Control));
+        var control = Fields?.GetValueOrDefault(info.Key) ?? field.Control(args);
+        return @<Field @key="info.Key" Label="@info.Label" LabelHidden="@(info.Control == SchemaControl.Checkbox)" Description="@info.Description">@control</Field>;
+    }
+
+    sealed class Renderer(SchemaFilters<TModel> owner) : ISchemaVisitor<RenderFragment>
+    {
+        public RenderFragment Value<TM, TV>(SchemaValueField<TM, TV> field, TM model) => owner.ValueField((SchemaValueField<TModel, TV>)(object)field);
+
+        public RenderFragment Object<TM, TC>(SchemaObjectField<TM, TC> field, TM model) where TC : class, IFormSchema<TC> => _ => { };
+
+        public RenderFragment List<TM, TI>(SchemaListField<TM, TI> field, TM model) where TI : class, IFormSchema<TI>, new() => _ => { };
+    }
+}

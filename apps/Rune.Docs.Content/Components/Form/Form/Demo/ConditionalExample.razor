@@ -1,0 +1,45 @@
+@* 费用报销单：显示、必填、只读的条件是模型上的 bool 属性（[FormField(VisibleWhen, RequiredWhen, ReadOnlyWhen)]），
+   Access 按字段路径给权限（同流程的环节权限：申请人填写、财务只改核定金额）；不显示的不校验；
+   明细表排成表格（Control = Table），金额列表底合计（Sum），列跟着明细表的权限 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <RadioGroup TValue="string" @bind-Value="step" Orientation="Orientation.Horizontal" aria-label="环节">
+        <Radio Value="@("apply")">申请人填写</Radio>
+        <Radio Value="@("review")">财务审核</Radio>
+    </RadioGroup>
+    <SchemaForm Model="model" Columns="2" Access="Steps[step!]" SubmitText="@(step == "apply" ? "提交" : "审核通过")" OnValidSubmit="SubmitAsync">@result</SchemaForm>
+</Flex>
+
+@code {
+    string? step = "apply";
+    string? result;
+
+    readonly ExpenseClaim model = new()
+    {
+        Kind = ExpenseKind.Travel,
+        Lines = [new() { Item = "高铁", Cost = 553 }, new() { Item = "酒店", Cost = 1260.5m }],
+    };
+
+    // 两个环节的字段权限：申请人填写时看不到核定金额，财务审核时只改核定金额
+    static readonly Dictionary<string, IReadOnlyDictionary<string, SchemaFieldAccess>> Steps = new()
+    {
+        ["apply"] = new Dictionary<string, SchemaFieldAccess> { ["Approved"] = SchemaFieldAccess.Hidden },
+        ["review"] = new Dictionary<string, SchemaFieldAccess>
+        {
+            ["Kind"] = SchemaFieldAccess.ReadOnly,
+            ["City"] = SchemaFieldAccess.ReadOnly,
+            ["Guests"] = SchemaFieldAccess.ReadOnly,
+            ["Amount"] = SchemaFieldAccess.ReadOnly,
+            ["Note"] = SchemaFieldAccess.ReadOnly,
+            ["Lines"] = SchemaFieldAccess.ReadOnly,
+            ["Approved"] = SchemaFieldAccess.Required,
+        },
+    };
+
+    async Task SubmitAsync()
+    {
+        await Task.Delay(400);
+        result = step == "apply" ? "已提交，等财务审核" : "已审核";
+    }
+}

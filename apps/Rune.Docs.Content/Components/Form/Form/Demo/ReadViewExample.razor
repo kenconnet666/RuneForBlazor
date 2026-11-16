@@ -1,0 +1,37 @@
+@* 出差申请：字段按 [FormField(Tab)] 分进标签页（没写的排在页签前面）；“查看”是同一份值的只读视图（SchemaView），
+   审批时看单据、打印都用它：选项显示文字、开关显示是否、明细表带合计，Access 隐藏的不列 *@
+@inherits RuneComponent
+
+<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Lg">
+    <RadioGroup TValue="string" @bind-Value="mode" Orientation="Orientation.Horizontal" aria-label="视图">
+        <Radio Value="@("edit")">填写</Radio>
+        <Radio Value="@("view")">查看</Radio>
+    </RadioGroup>
+    @if (mode == "edit")
+    {
+        <SchemaForm Model="model" Columns="2" OnValidSubmit="Submit">@result</SchemaForm>
+    }
+    else
+    {
+        <SchemaView Model="model" Access="hidden" PropsDescriptions="Bordered" />
+    }
+</Flex>
+
+@code {
+    string? mode = "edit";
+    string? result;
+
+    static readonly IReadOnlyDictionary<string, SchemaFieldAccess> hidden = new Dictionary<string, SchemaFieldAccess> { ["Account"] = SchemaFieldAccess.Hidden };
+
+    static readonly Attrs Bordered = new() { [nameof(Descriptions.Bordered)] = true };
+
+    readonly TripRequest model = new()
+    {
+        Title = "华东区客户回访",
+        Transport = Transport.Train,
+        Advance = true,
+        Lines = [new() { Item = "高铁", Cost = 553 }, new() { Item = "酒店", Cost = 1260.5m }],
+    };
+
+    void Submit() => result = "已提交";
+}

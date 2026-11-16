@@ -1,0 +1,43 @@
+@* 采购申请：选项、人员、上传都来自 Sources：成本中心是字典（固定的列表），供应商按搜索词远程取，经办人从组织架构里选，附件交给上传函数。
+   字段的 [FormField(Source)] 只写名字 *@
+@inherits RuneComponent
+@using Rune.Docs.Components.Input.PeoplePicker.Demo
+
+<SchemaForm Model="model" Columns="2" Sources="sources" OnValidSubmit="Submit">@result</SchemaForm>
+
+@code {
+    readonly PurchaseRequest model = new();
+    string? result;
+
+    static readonly string[] suppliers = ["华东钢材", "华南电子", "北方塑胶", "西部线缆", "东海标准件", "中原包装"];
+
+    static readonly FormSources sources = new()
+    {
+        Options = new Dictionary<string, IReadOnlyList<ListboxOption>>
+        {
+            ["costCenters"] = [new("rd", "研发中心"), new("mfg", "制造部"), new("sales", "销售部")],
+        },
+        // 远程搜索：真实应用里是请求（令牌用来取消被顶掉的那次）
+        Remote = new Dictionary<string, OptionsLoader<ListboxOption>>
+        {
+            ["suppliers"] = async (query, token) =>
+            {
+                await Task.Delay(300, token);
+                return suppliers.Where(name => name.Contains(query)).Select(name => new ListboxOption(name, name));
+            },
+        },
+        People = OrgData.Source,
+        // 上传：真实应用里传到文件服务，返回的结果记在文件上
+        Upload = async (file, progress, token) =>
+        {
+            for (var step = 1; step <= 4; step++)
+            {
+                await Task.Delay(150, token);
+                progress.Report(step / 4.0);
+            }
+            return $"/files/{file.Name}";
+        },
+    };
+
+    void Submit() => result = $"已提交：{model.Title}";
+}

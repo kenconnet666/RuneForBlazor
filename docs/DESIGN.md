@@ -420,6 +420,13 @@
   使用方默认是建议，本仓库经 `rune.globalconfig` 提到警告。RUNE007 长度写成 px（非零数字或带 px 的字符串，边框、描边、焦点环属性除外），
   默认关闭、Rune.UI 经 `components.globalconfig` 打开：使用方的页面写 px 没问题，组件内部要随字号缩放。只看字面量，`CssWide.Inherit` 这类常量不报。
   代码修复要引用 Workspaces，单独一个程序集（生成器的程序集引用它会在命令行构建时加载失败，RS1038）。
+- **[FormSchema]**（`FormSchemaGenerator`）：为 partial 类实现 `IFormSchema<T>`（静态抽象成员 `FormSchemaFields`），每个公开的可读写属性一个字段描述：
+  元数据（`SchemaFieldInfo`，取自 `[Display]`、`[Required]`、`[StringLength]` / `[MaxLength]`、`[DataType(MultilineText)]` 与 `[FormField]`）、读写委托、
+  绑定表达式（`static m => () => m.X`，Field 据此找校验错误）与控件渲染函数（`SchemaControls.X<T>`，按属性的静态类型选好，组件里没有反射与 MakeGenericType）。
+  嵌套的 `[FormSchema]` 对象、`List<T>` / `IList<T>` 的行用 `SchemaObjectField`、`SchemaListField`，组件经 `ISchemaVisitor` 拿回各字段的静态类型。
+  条件写 bool 成员的名字，生成 `static m => m.X`。日期控件只在引用了 Rune.UI.Dates（编译里有 `SchemaDateControls`）时可用。
+  生成的文件 `#nullable disable`（方法组的可空注解与属性对不齐时不出警告）。只读属性（算出来的值、条件用的 bool）不是字段；生成不了的属性报 RUNE012 并跳过。
+  生成器看不到 `.razor` 的 `@code`：模型写在 `.cs` 里（文档站的示例放在 `XxxExample.razor.cs`，源码显示时接在 `.razor` 后面）。
 - 新增诊断要登记在 `AnalyzerReleases.Unshipped.md`。
 - 生成器与代码修复随 Rune 包发布（`analyzers/dotnet/cs`），仓库里的项目各自以分析器方式引用它们。
 

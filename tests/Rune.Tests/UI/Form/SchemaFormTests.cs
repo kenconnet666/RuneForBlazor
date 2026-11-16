@@ -120,4 +120,41 @@ public partial class SchemaFormTests : BunitContext
         Assert.DoesNotContain(cut.FindAll("button"), b => b.TextContent.Contains("添加"));
         Assert.DoesNotContain(Labels(cut), l => l == "备注");
     }
+
+    [Fact]
+    public void 只读显示_选项写文字_开关写是否_空着写占位_明细表带合计_不显示的不列()
+    {
+        var model = new Application
+        {
+            Company = "华辰",
+            Category = Category.Plastic,
+            Lines = [new() { Part = "P-1", Quantity = 3 }, new() { Part = "P-2", Quantity = 4 }],
+        };
+        var cut = Render<SchemaView<Application>>(p => p.Add(x => x.Model, model)
+            .Add(x => x.Access, new Dictionary<string, SchemaFieldAccess> { ["Note"] = SchemaFieldAccess.Hidden }));
+
+        string ValueOf(string label) => cut.FindAll("dt").Single(dt => dt.TextContent.Trim() == label).NextElementSibling!.TextContent.Trim();
+        Assert.Equal("塑料件", ValueOf("供货品类"));
+        Assert.Equal(Lang.ZhCn.FormValueFalse, ValueOf("境外企业"));
+        Assert.DoesNotContain(cut.FindAll("dt"), dt => dt.TextContent.Contains("境外注册号") || dt.TextContent.Contains("备注"));
+        Assert.Equal("7 件", cut.Find("tfoot td:nth-child(2)").TextContent.Trim());
+        Assert.Contains("企业信息", cut.Markup);
+    }
+
+    [Fact]
+    public void 查询栏_值直接写进模型_文字能清空_列表不生成_条件字段按控件定类型()
+    {
+        var query = new Application();
+        var cut = Render<SchemaFilters<Application>>(p => p.Add(x => x.Model, query).Add(x => x.Pick, ["Company", "Category", "Lines"]));
+
+        Assert.Equal(["公司全称", "供货品类"], cut.FindAll("label").Select(l => l.TextContent.Trim()));
+        cut.Find("input").Change("华辰");
+        Assert.Equal("华辰", query.Company);
+
+        var fields = SchemaConditions.FieldsOf<Application>(omit: ["Note"]);
+        Assert.Equal(["Company", "Category", "Overseas", "ForeignId"], fields.Select(f => f.Name));
+        Assert.Equal(ConditionFieldType.Select, fields[1].Type);
+        Assert.Equal(["机械件", "塑料件"], fields[1].Options.Select(o => o.Label));
+        Assert.Equal(ConditionFieldType.Boolean, fields[2].Type);
+    }
 }

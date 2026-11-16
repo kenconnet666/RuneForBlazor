@@ -153,9 +153,11 @@ ScatterChart.Data
 ScatterChart.Index
 ScatterChart.IndexFormat
 ScatterChart.ValueDomain
-SchemaFields（组件）
-SchemaForm（组件）
-SchemaView（组件）
+SchemaFields.Controller
+SchemaForm.Controller
+SchemaForm.Resettable
+SchemaView.Schema
+SchemaView.Values
 ScrollArea.Type
 SegmentedField（组件）
 Select.OnOpenChange

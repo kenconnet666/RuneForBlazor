@@ -8,6 +8,7 @@
       [FormField(Span / FullRow)] 跨栏。写了 Tab 的字段放进页签（页签里照旧分组）。嵌套的对象是一个 FormSection，对象的列表是可增删的行或明细表。
     - 条件与权限：VisibleWhen 不成立、Access 是 Hidden 的不显示；ReadOnlyWhen、ReadOnly 只读；RequiredWhen、Required 时标必填，
       空着时随表单的校验报“必填”（DataAnnotations 之外另加的错误）。有条件的字段不要写 [Required]。
+      Blazor 的 DataAnnotationsValidator 不进嵌套的对象与列表的行：那里的 [Required] 也由这里报，别的规则（长度、范围）要自己校验。
     - Fields 按字段路径（Lines.Price）换掉控件：给的内容放进字段（标签、错误）里，值自己绑定。
     - 加一行后焦点到新行的第一个控件，删一行后焦点到“添加”按钮（不然焦点掉回页面开头）。
 *@
@@ -114,7 +115,10 @@
         store.Clear();
         foreach (var (owner, key, state, blank, required) in SchemaLayout.Walk(SchemaLayout.Pick(TModel.FormSchemaFields, Pick, Omit), model, "", Access))
         {
-            if (!state.Visible || state.ReadOnly || !state.Required || required || !blank) continue;
+            // 模型本身的 [Required] 由 DataAnnotationsValidator 报；它不进嵌套的对象与列表的行，那里的 [Required] 由这里报
+            var nested = !ReferenceEquals(owner, model);
+            if (!state.Visible || state.ReadOnly || !blank) continue;
+            if (!(state.Required && !required) && !(nested && required)) continue;
             var identifier = new FieldIdentifier(owner, key);
             // 边填边校验时只报改过的字段：没碰过的不先标红
             if (touchedOnly && !subscribed.IsModified(identifier)) continue;

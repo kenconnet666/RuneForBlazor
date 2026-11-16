@@ -20,6 +20,8 @@
   - ThemeCustomizer（品牌色、中性色、圆角、缩放、字体、动效，对比度检查与导出代码）、ThemeThumbnail（主题缩略图）；
     主题定制的模型 `ThemeSettings`、`ThemeCustomization`、`ThemeContrast`（Radix 色阶，随 Rune.UI 带 MIT 许可），内置主题名 `Themes.LabelOf`
 - `Theme` 新增按运行时算出的取值创建的构造函数；`ColorContrast`（WCAG 对比度、按对比度挑文字色、混色）
+  - SchemaForm、SchemaFields、SchemaView、SchemaFilters：按标了 `[FormSchema]` 的模型生成表单、只读视图与查询栏（源生成器，不用反射）；
+    `[FormField]` 写控件、栏宽、页签、单位、条件、合计与选项来源，`SchemaConditions.FieldsOf<T>()` 给条件构造器；新诊断 RUNE011–RUNE013
 - Textarea、Mentions 新增 `Immediate`（每次输入都更新值）
 
 ## [0.19.0] - 2026-11-15

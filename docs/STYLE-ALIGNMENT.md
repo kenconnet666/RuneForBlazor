@@ -119,6 +119,13 @@
   对比度检查（`ThemeContrast`）从主题对象读颜色（内置主题的颜色都是字面量），不读页面上生效的样式，所以没有 `contrastTarget`；
   减少动态效果时主题的条件块照样把时长写成 0，没有 vue 的 `reducedMotion` 选项。“下载”是带 data URL 的链接（同 DataImport 的模板）。
   ThemeSwitcher 的局部主题（vue 的 createThemePreference 交给某块区域）还没做：Rune 的切换是浏览器里改根元素的 data-theme。
+- SchemaForm：vue 从 zod schema 推字段，Rune 从标了 `[FormSchema]` 的 C# 模型推（源生成器，见 DESIGN 第 10 节）。meta 对应：title / description / placeholder / group
+  → `[Display(Name / Description / Prompt / GroupName)]`，control / span / tab / unit / total / source → `[FormField]`（`span: 'full'` 是 `FullRow`，`total: 'sum'` 是 `Sum`），
+  枚举的 options → 成员的 `[Display(Name)]`。条件不是 Condition JSON，是模型上 bool 成员的名字（`VisibleWhen = nameof(IsMeal)`）；列表行里的条件只看到这一行。
+  没有 useForm 的 controller：SchemaForm / SchemaFields 用 `Model`（或所在 Form 的模型），`Access` 是参数；重置要写 `OnReset`（C# 没有通用的深拷贝回到初始值）。
+  校验仍是 DataAnnotations：条件必填、权限必填与嵌套对象、列表行里的 `[Required]` 由 SchemaFields 加进 EditContext（DataAnnotationsValidator 不进嵌套），行里别的规则要自己校验。
+  `formSources` 不在全局配置里，是 SchemaForm / SchemaFields / SchemaView / SchemaFilters 的 `Sources`；远程选项单独在 `Remote` 里。
+  schemaFilters 是 `SchemaFilters` 组件（值直接写进 Model），schemaConditionFields 是 `SchemaConditions.FieldsOf<T>()`。多选的值要是 `IReadOnlyList<string / 枚举>`。
 
 ### 外观与文档站
 
@@ -134,11 +141,10 @@
 2. TabPanel 听 `beforematch` 切到自己（页内查找命中隐藏的页签时）；现在只有 Collapse 处理。
 3. 紧凑密度 = 主题 scaling 0.9，不另设密度开关。
 4. 随阶段 6 剩下的组件一起做（FilterBar / QueryTable 的新版布局、FormDialog 的多选已随组件做了）：
-   - 语言包新键 formRowLabel / formRowActions / formTabs / formValueTrue / formValueFalse / formValueEmpty（随 SchemaForm）
-   - SchemaForm 一族（visibleWhen / requiredWhen / readonlyWhen、access、明细表与合计、formSources、页签、SchemaView、focusControl 发 beforematch）：先出方案
+   - SchemaForm 提交没通过时焦点到别的页签里的控件（focusControl 发 beforematch，TabPanel 切过去）：随 TabPanel 的 beforematch 一起做
 5. 不跟：vue 的流程引擎（与组件无关）；CSP nonce 等阶段计划时再定。
 6. vue 0.23.0–0.26.0（`6e6f831d..c42b2f39`）已跟（2026-11-15，CI 的 `VUE_TSX_PRO_REF` 在 `c42b2f39`）。没有对应、留到以后的：
-   - 随组件一起做（Rune 还没有）：CodeEditor、Diagram、SchemaForm、
+   - 随组件一起做（Rune 还没有）：CodeEditor、Diagram、
      ErrorBoundary、表格导出 xlsx 的那几条（StepsForm、DataImport、ActionBar、QueryTable、ConditionBuilder、NotificationCenter、CommentThread、KanbanBoard、SlideCaptcha、ThemeCustomizer 已在阶段 6 做了）。
    - 交互模式是 Server 时拿不到浏览器的时区：时刻按 `Lang.TimeZone`，没配置时是服务器的时区（WebAssembly 里是浏览器的）。
      预渲染的页面里时刻、日历的“今天”同样按服务器当时的；交互接管是重新渲染一遍，不会像 vue 水合那样留着旧的属性（0.25.0 修的那个问题 Rune 没有），
