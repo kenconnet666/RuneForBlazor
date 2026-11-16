@@ -72,7 +72,10 @@ export function watchFilterBar(form) {
     if (!frame) frame = requestAnimationFrame(layout);
   };
 
-  new ResizeObserver(schedule).observe(row);
+  // 按钮区也看：字体加载完、按钮文字变了时它变宽，这一排的宽度却没变（只看这一排时第一次量的结果就留着，随字体加载的先后不同）
+  const resize = new ResizeObserver(schedule);
+  resize.observe(row);
+  resize.observe(actions);
   new MutationObserver(schedule).observe(form, { attributes: true, attributeFilter: ['data-expanded', 'data-rune-filter-bar'] });
   new MutationObserver(schedule).observe(fields, { childList: true, subtree: true });
   layout();
