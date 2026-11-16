@@ -149,6 +149,8 @@ const BUILT_IN = [
   'briefcase-business',
   // NotificationCenter：顶栏的铃铛
   'bell',
+  // CommentThread：附件
+  'paperclip',
 ];
 
 /** 文档注释里最多列几个关键词 */

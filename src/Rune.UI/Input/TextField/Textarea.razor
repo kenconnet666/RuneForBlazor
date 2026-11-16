@@ -1,7 +1,7 @@
 @*
     多行文本框：<Textarea @bind-Value="note" placeholder="备注" />、<Textarea @bind-Value="note" Rows="3" MaxRows="8" />
     外壳同 TextField；高度随内容增长，在 Rows 与 MaxRows 之间（JS 初始化器按 scrollHeight 设高度，各浏览器一致）；
-    Fixed 时固定为 Rows 行，可以拖动右下角改变高度。值在失去焦点时更新。
+    Fixed 时固定为 Rows 行，可以拖动右下角改变高度。值在失去焦点时更新；要边输边用（留言框的发送按钮）写 Immediate="true"。
 *@
 @namespace Rune.UI
 @inherits InputControl<string?>
@@ -31,7 +31,7 @@
     static readonly Attrs stackedCountPlacement = new() { Sx = Sx.Of(TextareaStyles.Count, TextareaStyles.StackedCount) };
     static readonly Attrs TrailingLayer = new() { Sx = TextareaStyles.Trailing };
 
-    Memo<(Attrs Control, string? Value, bool Fixed, string? CountId), Attrs> inputManaged;
+    Memo<(Attrs Control, string? Value, bool Fixed, bool Immediate, string? CountId), Attrs> inputManaged;
     Memo<(string Id, bool Stacked), Attrs> clearManaged;
     string? countId;
 
@@ -80,14 +80,17 @@
     /// <summary>不随内容增高，固定为 Rows 行（可以拖动右下角改变高度）。</summary>
     [Parameter] public bool Fixed { get; set; }
 
+    /// <summary>每次输入都更新值；默认失去焦点时更新（Server 模式下每次按键一次往返）。</summary>
+    [Parameter] public bool Immediate { get; set; }
+
     // textarea 上由组件管理的属性：表单状态、值与自动增高的标记。
     // 值变了换一个新的 data-rune-autosize：JS 看到属性变化就重新量高度（使用方改值时也跟着变）
-    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Fixed, ShowCount ? CountId : null), this,
+    Attrs InputManaged => inputManaged.Get((ControlAttrs, CurrentValue, Fixed, Immediate, ShowCount ? CountId : null), this,
         static (k, owner) => Attrs.Merge(k.Control, new Attrs
         {
             ["value"] = k.Value,
             ["data-rune-autosize"] = k.Fixed ? null : (k.Value?.Length ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture),
-            ["onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync((string?)e.Value)),
+            [k.Immediate ? "oninput" : "onchange"] = (Func<ChangeEventArgs, Task>)(e => owner.SetValueAsync((string?)e.Value)),
             AriaDescribedBy = CharacterCounting.DescribedBy(k.Control.AriaDescribedBy, k.CountId),
             ["data-rune-count"] = k.CountId,
         }));

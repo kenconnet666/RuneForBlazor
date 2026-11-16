@@ -1,0 +1,208 @@
+@*
+    留言（同 vue-tsx-pro 的 CommentThread）：一串留言与回复（沟通记录、协商的逐条回应、审批时的讨论），下面是写留言的输入框。
+    <CommentThread Comments="comments" People="people" UploadAsync="UploadAsync" CurrentUser="me" OnSend="SendAsync" />
+    - 留言里可以 @ 人（Mentions）、带附件（Upload）；回复只分一层：回复一条回复时仍挂在那串下面，开头写上“@作者 ”。
+    - OnSend 收到 CommentDraft（内容、提及、附件、回复哪一串）；不写时只读（没有输入框与回复按钮）。留言存在哪、发出去以后怎样出现在 Comments 里由应用决定。
+    - 时间写成相对现在（3 分钟前），悬停看完整时间。Actions 给每条留言加操作（编辑、删除、标为已解决）。
+    单独的输入框用 CommentComposer。未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = CommentStyles.Of(Config.Styles);
+    var lang = Config.Lang.Patterns;
+}
+
+<div @attributes="Attrs.Merge(parts[CommentThreadPart.Root], Rest)">
+    @if (Comments.Count == 0)
+    {
+        @if (Empty is not null)
+        {
+            @Empty
+        }
+        else
+        {
+            <Empty Size="Size.Sm" Title="@(b => b.AddContent(0, lang.CommentsEmpty))" @attributes="Attrs.MergeProps(parts[CommentThreadPart.Empty], PropsEmpty)" />
+        }
+    }
+    else
+    {
+        <ul aria-label="@lang.Comments" @attributes="Attrs.Merge(parts[CommentThreadPart.List], PropsList)">
+            @foreach (var comment in Comments)
+            {
+                @Item(parts, comment, comment)
+            }
+        </ul>
+    }
+    @if (OnSend.HasDelegate)
+    {
+        <CommentComposer People="People" UploadAsync="UploadAsync" Author="CurrentUser" OnSend="OnSend" @attributes="Attrs.MergeProps(null, PropsComposer)" />
+    }
+</div>
+
+@code {
+    // 正在回复：哪一串（第一条的 Id）与回复谁
+    (string Thread, string To)? replying;
+
+    /// <summary>留言，旧的在前；回复在各自的 Replies 里。</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<CommentItem> Comments { get; set; } = [];
+
+    /// <summary>可以 @ 的人：输入框的候选，也是留言里“@名字”高亮的依据。</summary>
+    [Parameter] public IReadOnlyList<ListboxOption> People { get; set; } = [];
+
+    /// <summary>发送一条留言或回复；不写时只读（没有输入框与回复按钮）。执行期间按钮转圈，抛出异常时保留内容并提示。</summary>
+    [Parameter] public EventCallback<CommentDraft> OnSend { get; set; }
+
+    /// <summary>上传附件；不给时不能带附件。</summary>
+    [Parameter] public UploadHandler? UploadAsync { get; set; }
+
+    /// <summary>当前用户：输入框前面的头像。</summary>
+    [Parameter] public CommentAuthor? CurrentUser { get; set; }
+
+    /// <summary>每条留言的操作（编辑、删除、标为已解决），在回复按钮后面。</summary>
+    [Parameter] public RenderFragment<CommentItem>? Actions { get; set; }
+
+    /// <summary>没有留言时显示的内容，默认取文案。</summary>
+    [Parameter] public RenderFragment? Empty { get; set; }
+
+    /// <summary>相对时间以哪个时刻为现在，默认此刻（文档与测试里固定它）。</summary>
+    [Parameter] public DateTimeOffset? Now { get; set; }
+
+    /// <summary>列表（ul）的部件属性。</summary>
+    [Parameter] public Attrs? PropsList { get; set; }
+
+    /// <summary>每条留言（li）的部件属性。</summary>
+    [Parameter] public Attrs? PropsItem { get; set; }
+
+    /// <summary>按条计算的部件属性，叠在 <see cref="PropsItem"/> 之后。</summary>
+    [Parameter] public Func<CommentItem, Attrs?>? PropsItemFor { get; set; }
+
+    /// <summary>头像的部件属性（交给 Avatar）。</summary>
+    [Parameter] public Attrs? PropsAvatar { get; set; }
+
+    /// <summary>附件链接的部件属性（交给 TextLink）。</summary>
+    [Parameter] public Attrs? PropsAttachment { get; set; }
+
+    /// <summary>“回复”按钮的部件属性（交给 Button）。</summary>
+    [Parameter] public Attrs? PropsReply { get; set; }
+
+    /// <summary>头像右边的内容（article）的部件属性。</summary>
+    [Parameter] public Attrs? PropsBody { get; set; }
+
+    /// <summary>作者、身份、时间那一行的部件属性。</summary>
+    [Parameter] public Attrs? PropsHeader { get; set; }
+
+    /// <summary>作者名的部件属性。</summary>
+    [Parameter] public Attrs? PropsAuthor { get; set; }
+
+    /// <summary>留言内容的部件属性（交给 MentionText）。</summary>
+    [Parameter] public Attrs? PropsContent { get; set; }
+
+    /// <summary>附件列表（ul）的部件属性。</summary>
+    [Parameter] public Attrs? PropsAttachments { get; set; }
+
+    /// <summary>回复按钮与 Actions 那一行的部件属性。</summary>
+    [Parameter] public Attrs? PropsActions { get; set; }
+
+    /// <summary>回复列表（ul）的部件属性。</summary>
+    [Parameter] public Attrs? PropsReplies { get; set; }
+
+    /// <summary>没有留言时的 Empty 的部件属性。</summary>
+    [Parameter] public Attrs? PropsEmpty { get; set; }
+
+    /// <summary>输入框的部件属性（交给 CommentComposer，回复的输入框也用它）。</summary>
+    [Parameter] public Attrs? PropsComposer { get; set; }
+
+    // 回复的输入框以“回复 某人”为名（嵌套的部件属性按规则合并，使用方的 PropsMentions 照样生效）
+    Attrs ReplyNamed(string to) => new() { [nameof(CommentComposer.PropsMentions)] = new Attrs { ["aria-label"] = Config.Lang.Patterns.CommentReplyTo(to) } };
+
+    async Task SendReplyAsync(string thread, CommentDraft draft)
+    {
+        await OnSend.InvokeAsync(draft with { ReplyTo = thread });
+        replying = null;
+    }
+
+    RenderFragment Item(PartLayers<CommentThreadPart> parts, CommentItem comment, CommentItem thread) => __builder =>
+    {
+        var lang = Config.Lang.Patterns;
+        var own = Attrs.Layer(PropsItem, PropsItemFor?.Invoke(comment));
+        <li @key="comment.Id" @attributes="Attrs.Merge(parts[CommentThreadPart.Item], own)">
+            @* 名字就在旁边，头像只是装饰 *@
+            <Avatar Name="@comment.Author" Src="@comment.Avatar" Size="Size.Sm" Decorative="true" @attributes="Attrs.MergeProps(parts[CommentThreadPart.Avatar], PropsAvatar)" />
+            <article aria-label="@comment.Author" @attributes="Attrs.Merge(parts[CommentThreadPart.Body], PropsBody)">
+                <div @attributes="Attrs.Merge(parts[CommentThreadPart.Header], PropsHeader)">
+                    <span @attributes="Attrs.Merge(parts[CommentThreadPart.Author], PropsAuthor)">@comment.Author</span>
+                    @comment.Role
+                    <RelativeTime Value="comment.Time" Now="Now" @attributes="Attrs.MergeProps(parts[CommentThreadPart.Meta])" />
+                    @if (comment.Edited)
+                    {
+                        <span @attributes="Attrs.Merge(parts[CommentThreadPart.Meta])">@lang.CommentEdited</span>
+                    }
+                </div>
+                <MentionText Text="@comment.Content" Options="People" @attributes="Attrs.MergeProps(parts[CommentThreadPart.Content], PropsContent)" />
+                @if (comment.Attachments.Count > 0)
+                {
+                    <ul aria-label="@lang.CommentAttachments" @attributes="Attrs.Merge(parts[CommentThreadPart.Attachments], PropsAttachments)">
+                        @foreach (var file in comment.Attachments)
+                        {
+                            <li @key="file.Name" @attributes="Attrs.Merge(parts[CommentThreadPart.Attachment])">
+                                <Icon Data="BuiltInIcons.Paperclip" />
+                                @if (file.Url is not null)
+                                {
+                                    <TextLink Href="@file.Url" Underline="LinkUnderline.Hover" @attributes="Attrs.MergeProps(null, PropsAttachment)">@file.Name</TextLink>
+                                }
+                                else
+                                {
+                                    @file.Name
+                                }
+                                @if (file.Size is { } size)
+                                {
+                                    <span @attributes="Attrs.Merge(parts[CommentThreadPart.Meta])">@LangFormat.FileSize(size, Config.Lang.Code)</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+                @comment.Extra
+                @if (OnSend.HasDelegate || Actions is not null)
+                {
+                    <div @attributes="Attrs.Merge(parts[CommentThreadPart.Actions], PropsActions)">
+                        @if (OnSend.HasDelegate)
+                        {
+                            <Button Variant="ButtonVariant.Link" Tone="Tone.Neutral" Size="Size.Sm" @onclick="() => replying = (thread.Id, comment.Author)"
+                                    @attributes="Attrs.MergeProps(null, PropsReply)">@lang.CommentReply</Button>
+                        }
+                        @Actions?.Invoke(comment)
+                    </div>
+                }
+                @if (ReferenceEquals(comment, thread))
+                {
+                    @Replies(parts, thread)
+                }
+            </article>
+        </li>
+    };
+
+    // 一串的回复与回复的输入框
+    RenderFragment Replies(PartLayers<CommentThreadPart> parts, CommentItem thread) => __builder =>
+    {
+        var lang = Config.Lang.Patterns;
+        var open = replying is { } r && r.Thread == thread.Id && OnSend.HasDelegate;
+        if (thread.Replies.Count > 0)
+        {
+            <ul aria-label="@lang.CommentReplies(thread.Replies.Count)" @attributes="Attrs.Merge(parts[CommentThreadPart.Replies], PropsReplies)">
+                @foreach (var reply in thread.Replies)
+                {
+                    @Item(parts, reply, thread)
+                }
+            </ul>
+        }
+        if (open)
+        {
+            var to = replying!.Value.To;
+            <CommentComposer @key="@($"{thread.Id}:{to}")" People="People" UploadAsync="UploadAsync" Author="CurrentUser" InitialText="@($"@{to} ")" Autofocus="true"
+                             OnSend="draft => SendReplyAsync(thread.Id, draft)" OnCancel="() => replying = null"
+                             @attributes="Attrs.MergeProps(null, PropsComposer, ReplyNamed(to))" />
+        }
+    };
+}

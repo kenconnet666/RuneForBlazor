@@ -47,8 +47,8 @@ ComboChart.Stacked
 ComboChart.ValueDomain
 Combobox.OnOpenChange
 CommandPalette.OptionContent
-CommentComposer（组件）
-CommentThread（组件）
+CommentComposer.Upload
+CommentThread.Upload
 ConfigScope（组件）
 ContextMenu.Menu
 ContextMenu.OnOpenChange

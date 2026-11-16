@@ -1,0 +1,59 @@
+@* 协商的逐条回应（只读）：供应商每一条异议下面是财务部的回应，回应的结论（采纳 / 不采纳）与改了的字段放在 Extra；
+   不给 OnSend 时没有输入框与回复按钮 *@
+
+<Card>
+    <CommentThread Comments="comments" Now="@DateTimeOffset.Parse("2026-10-24T09:00:00+08:00")" />
+</Card>
+
+@code {
+    sealed record Estimate(decimal UnitPrice, double ScrapRate);
+
+    static readonly Estimate v2 = new(119.35m, 0.032);
+    static readonly Estimate v3 = new(116.8m, 0.025);
+
+    // 回应的结论与改了的字段
+    static RenderFragment Verdict(bool accepted, Estimate? before = null, Estimate? after = null) =>
+        @<Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Xs" Align="ItemAlign.Start">
+            <Badge Tone="@(accepted ? Tone.Success : Tone.Neutral)" Size="Size.Sm">@(accepted ? "采纳" : "不采纳")</Badge>
+            @if (before is not null && after is not null)
+            {
+                <FieldCompare Before="before" After="after" Layout="FieldCompareLayout.List">
+                    <PropertyColumn Property="e => e.UnitPrice" Title="单价" Type="ColumnType.Currency" Better="CompareBetter.Lower" />
+                    <PropertyColumn Property="e => e.ScrapRate" Title="废品率" Type="ColumnType.Percent" Better="CompareBetter.Lower" />
+                </FieldCompare>
+            }
+        </Flex>;
+
+    static readonly RenderFragment objection = @<Badge Tone="Tone.Warning" Size="Size.Sm">第 1 轮异议</Badge>;
+
+    static readonly RenderFragment finance = @<Badge Size="Size.Sm">财务部</Badge>;
+
+    static readonly IReadOnlyList<CommentItem> comments =
+    [
+        new("o1", "华辰-李工", "废品率按 3.2% 偏高，我们产线近 6 个月平均 2.5%，统计表见附件。", DateTimeOffset.Parse("2026-10-19T10:20:00+08:00"))
+        {
+            Role = objection,
+            Attachments = [new("近 6 个月废品统计.xlsx") { Url = "#", Size = 52_000 }],
+            Replies =
+            [
+                new("r1", "方圆", "核对过统计表，按 2.5% 重新测算，单价随之调整。", DateTimeOffset.Parse("2026-10-20T15:02:00+08:00"))
+                {
+                    Role = finance,
+                    Extra = Verdict(true, v2, v3),
+                },
+            ],
+        },
+        new("o2", "华辰-李工", "模具摊销按 3 年太短，建议按 5 年摊。", DateTimeOffset.Parse("2026-10-19T10:26:00+08:00"))
+        {
+            Role = objection,
+            Replies =
+            [
+                new("r2", "方圆", "该零件的项目寿命只有 3 年，摊销年限不能超过项目寿命，维持原测算。", DateTimeOffset.Parse("2026-10-20T15:10:00+08:00"))
+                {
+                    Role = finance,
+                    Extra = Verdict(false),
+                },
+            ],
+        },
+    ];
+}

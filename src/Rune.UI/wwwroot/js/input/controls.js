@@ -60,20 +60,41 @@ function firstInvalidControl(form) {
  * Backspace 时取 data-rune-backspace（输入框里是空的时候，多选移除最后一项）；
  * Esc 时取 data-rune-escape（弹层关着、输入框里有字的时候，Combobox 清空；弹层开着时 Esc 先关弹层）；
  * Enter 时取 data-rune-enter（输入框里有字、列表没有选中高亮项的时候，TagsInput 把文字加成标签）；
- * ↓ 时取 data-rune-arrow-down（弹出对话框的组合框，PeoplePicker 打开）。
+ * ↓ 时取 data-rune-arrow-down（弹出对话框的组合框，PeoplePicker 打开）；
+ * Ctrl / ⌘ + Enter 时取 data-rune-ctrl-enter（留言框发送）；没有别的 Esc 命令时取 data-rune-cancel（取消这条回复）。
+ * 输入法组合中的按键（选候选的 Enter、取消候选的 Esc）不算。
  */
 export function sendKeyCommand(event) {
   const target = event.target;
-  if (!(target instanceof Element) || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+  if (!(target instanceof Element) || event.defaultPrevented || event.isComposing || event.altKey) return;
+  const command = (event.ctrlKey || event.metaKey) ? modifiedKeyCommand(target, event) : keyCommand(target, event);
+  if (!command) return;
+  event.preventDefault();
+  sendCommand(target, command);
+}
+
+function modifiedKeyCommand(target, event) {
+  return event.key === 'Enter' ? target.getAttribute('data-rune-ctrl-enter') : null;
+}
+
+function keyCommand(target, event) {
   const typed = target instanceof HTMLInputElement && target.value.trim() !== '';
   let name = null;
   if (event.key === 'Backspace' && !(target instanceof HTMLInputElement && target.value !== '')) name = target.getAttribute('data-rune-backspace');
-  else if (event.key === 'Escape' && typed && !popoverOfHost(target)?.matches(':popover-open')) name = target.getAttribute('data-rune-escape');
+  else if (event.key === 'Escape') {
+    if (typed && !popoverOfHost(target)?.matches(':popover-open')) name = target.getAttribute('data-rune-escape');
+    name ??= target.getAttribute('data-rune-cancel');
+  }
   else if (event.key === 'Enter' && typed) name = target.getAttribute('data-rune-enter');
   else if (event.key === 'ArrowDown') name = target.getAttribute('data-rune-arrow-down');
-  if (!name) return;
-  event.preventDefault();
-  sendCommand(target, name);
+  return name;
+}
+
+/** 出现时聚焦、光标放到末尾（data-rune-focus-end）：点了“回复”，输入框里已有“@作者 ”，接着往后写 */
+export function focusAtEnd(element) {
+  if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) return;
+  element.focus();
+  element.setSelectionRange(element.value.length, element.value.length);
 }
 
 /**

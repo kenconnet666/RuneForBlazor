@@ -1,0 +1,88 @@
+@* 建议详情的沟通：留言与回复、身份标记（供应商 / 内部岗位）、@ 提及、附件。发出去的留言直接加进列表（乐观更新），
+   内容里写“失败”会模拟接口出错：内容保留并提示。自己的留言可以删除（Actions） *@
+
+<Card>
+    <CommentThread Comments="comments" People="people" CurrentUser="me" UploadAsync="UploadAsync" OnSend="SendAsync">
+        <Actions Context="comment">
+            @if (comment.Author == me.Name)
+            {
+                <Button Variant="ButtonVariant.Link" Tone="Tone.Danger" Size="Size.Sm" Icon="Lucide.Trash" @onclick="() => Remove(comment.Id)">删除</Button>
+            }
+        </Actions>
+    </CommentThread>
+</Card>
+
+@code {
+    static readonly IReadOnlyList<ListboxOption> people =
+    [
+        new("E2007", "方圆", Description: "财务分析师", Group: "财务部"),
+        new("E2015", "韩笑", Description: "财务部负责人", Group: "财务部"),
+        new("E1031", "陆川", Description: "采购经理", Group: "采购部"),
+        new("S0088", "华辰-李工", Description: "供应商技术", Group: "供应商"),
+    ];
+
+    static readonly RenderFragment supplier = @<Badge Tone="Tone.Warning" Size="Size.Sm">供应商</Badge>;
+
+    static RenderFragment Internal(string role) => @<Badge Size="Size.Sm">@role</Badge>;
+
+    static readonly CommentAuthor me = new("方圆", DemoPeople.Photo("#10b981", "#0d9488"));
+
+    List<CommentItem> comments =
+    [
+        new("c1", "华辰-李工", "支架改用 6063-T5 后壁厚可以从 3.0 减到 2.6，强度校核见附件。@方圆 麻烦确认一下测算里的材料单价是否按新牌号。",
+            DateTimeOffset.Parse("2026-10-21T09:12:00+08:00"))
+        {
+            Role = supplier,
+            Attachments = [new("支架强度校核.pdf") { Url = "#", Size = 1_240_000 }, new("6063 报价.xlsx") { Url = "#", Size = 38_000 }],
+            Replies =
+            [
+                new("c2", "方圆", "已按 6063-T5 的 10 月均价重算，单价降到 ¥116.80。@韩笑 请过目。", DateTimeOffset.Parse("2026-10-21T14:30:00+08:00"))
+                {
+                    Avatar = me.Avatar,
+                    Role = Internal("财务分析师"),
+                },
+                new("c3", "韩笑", "@方圆 年用量按 Q4 排产补到 45,500，其余没问题。", DateTimeOffset.Parse("2026-10-22T10:05:00+08:00"))
+                {
+                    Role = Internal("财务部负责人"),
+                    Edited = true,
+                },
+            ],
+        },
+        new("c4", "陆川", "换供应商的话交期能不能保证？@华辰-李工 请给一下首批的排产计划。", DateTimeOffset.Parse("2026-10-23T16:40:00+08:00"))
+        {
+            Role = Internal("采购经理"),
+        },
+    ];
+
+    int sequence;
+
+    // 模拟上传：一秒内完成
+    static async Task<object?> UploadAsync(Microsoft.AspNetCore.Components.Forms.IBrowserFile file, IProgress<double> progress, CancellationToken cancellation)
+    {
+        for (var fraction = 0.25; fraction <= 1; fraction += 0.25)
+        {
+            await Task.Delay(200, cancellation);
+            progress.Report(fraction);
+        }
+        return $"/files/{Uri.EscapeDataString(file.Name)}";
+    }
+
+    // 模拟接口：半秒后成功；内容里有“失败”时出错
+    async Task SendAsync(CommentDraft draft)
+    {
+        await Task.Delay(500);
+        if (draft.Content.Contains("失败")) throw new InvalidOperationException("网络错误");
+        var comment = new CommentItem($"new-{++sequence}", me.Name, draft.Content, DateTimeOffset.Now)
+        {
+            Avatar = me.Avatar,
+            Role = Internal("财务分析师"),
+            Attachments = [.. draft.Attachments.Select(file => new CommentAttachment(file.Name) { Size = file.Size, Url = file.Response as string })],
+        };
+        comments = draft.ReplyTo is { } thread
+            ? [.. comments.Select(item => item.Id == thread ? item with { Replies = [.. item.Replies, comment] } : item)]
+            : [.. comments, comment];
+    }
+
+    // 删掉自己的一条（回复也行）
+    void Remove(string id) => comments = [.. comments.Where(thread => thread.Id != id).Select(thread => thread with { Replies = [.. thread.Replies.Where(reply => reply.Id != id)] })];
+}

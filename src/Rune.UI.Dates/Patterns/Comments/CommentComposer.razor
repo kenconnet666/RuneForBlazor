@@ -1,0 +1,156 @@
+@*
+    写留言的输入框（同 vue-tsx-pro 的 CommentComposer）：提及（Mentions）、附件（Upload）、发送。协商回复、审批意见单独用它，CommentThread 下面也是它。
+    <CommentComposer People="people" UploadAsync="UploadAsync" Author="me" OnSend="SendAsync" />
+    - 发送：按钮或 Ctrl + Enter；OnSend 执行期间按钮转圈，成功后清空，抛出异常时保留内容并提示。还有附件在上传时不能发送。
+    - OnCancel 写了时有取消按钮，按 Esc 也是取消（提及列表开着时 Esc 先关列表；输入法组合中的 Esc 是取消候选）。
+    未声明的属性落到外层 div 上。
+*@
+@namespace Rune.UI
+@inherits UIComponent
+@{
+    var parts = CommentStyles.ComposerOf(Author is not null, Config.Styles);
+    var lang = Config.Lang.Patterns;
+}
+
+<div @attributes="Attrs.Merge(parts[CommentComposerPart.Root], Rest)">
+    @if (Author is not null)
+    {
+        <Avatar Name="@Author.Name" Src="@Author.Avatar" Size="Size.Sm" Decorative="true" @attributes="Attrs.MergeProps(parts[CommentComposerPart.Avatar], PropsAvatar)" />
+    }
+    <div @attributes="Attrs.Merge(parts[CommentComposerPart.Main], PropsMain)">
+        <Mentions TItem="ListboxOption" Items="People" @bind-Value="text" @bind-Mentioned="mentioned" Rows="2" MaxRows="10" Immediate="true"
+                  placeholder="@(Placeholder ?? lang.CommentPlaceholder)" aria-label="@lang.Comments"
+                  @attributes="Attrs.MergeProps(null, PropsMentions, TextareaManaged)" />
+        @if (UploadAsync is not null && attaching)
+        {
+            <Upload @bind-Value="files" UploadAsync="UploadAsync" Multiple="true" @attributes="Attrs.MergeProps(null, PropsUpload)" />
+        }
+        @if (failed)
+        {
+            <div role="alert" @attributes="Attrs.Merge(parts[CommentComposerPart.Error], PropsError)">@lang.CommentSendFailed</div>
+        }
+        <div @attributes="Attrs.Merge(parts[CommentComposerPart.Footer], PropsFooter)">
+            <div @attributes="Attrs.Merge(parts[CommentComposerPart.Tools])">
+                @if (UploadAsync is not null)
+                {
+                    <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="Size.Sm" Icon="BuiltInIcons.Paperclip" aria-pressed="@(attaching ? "true" : "false")"
+                            @onclick="() => attaching = !attaching" @attributes="Attrs.MergeProps(null, PropsAttach)">@(files.Count > 0 ? $"{lang.CommentAttach} {files.Count}" : lang.CommentAttach)</Button>
+                }
+                <span @attributes="Attrs.Merge(parts[CommentComposerPart.Hint])">@lang.CommentSendHint</span>
+            </div>
+            <div @attributes="Attrs.Merge(parts[CommentComposerPart.Tools])">
+                @if (OnCancel.HasDelegate)
+                {
+                    <Button Variant="ButtonVariant.Ghost" Tone="Tone.Neutral" Size="Size.Sm" @onclick="OnCancel" @attributes="Attrs.MergeProps(null, PropsCancel)">@lang.CommentCancel</Button>
+                }
+                <Button Size="Size.Sm" Loading="sending" Disabled="!Sendable" @onclick="SendAsync" @attributes="Attrs.MergeProps(null, PropsSend)">@lang.CommentSend</Button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    string? text;
+    IReadOnlyList<string> mentioned = [];
+    IReadOnlyList<UploadFile> files = [];
+    bool attaching;
+    bool sending;
+    bool failed;
+
+    /// <summary>发送：执行期间按钮转圈，成功后清空；抛出异常时保留内容并提示。</summary>
+    [Parameter, EditorRequired] public EventCallback<CommentDraft> OnSend { get; set; }
+
+    /// <summary>取消（回复时）：写了时显示取消按钮，按 Esc 也是取消。</summary>
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    /// <summary>可以 @ 的人。</summary>
+    [Parameter] public IReadOnlyList<ListboxOption> People { get; set; } = [];
+
+    /// <summary>上传附件；不给时不能带附件。</summary>
+    [Parameter] public UploadHandler? UploadAsync { get; set; }
+
+    /// <summary>写留言的人：输入框前面的头像。</summary>
+    [Parameter] public CommentAuthor? Author { get; set; }
+
+    /// <summary>一开始的内容（回复时的“@作者 ”）：只取第一次的值，之后由用户编辑。</summary>
+    [Parameter] public string? InitialText { get; set; }
+
+    /// <summary>出现时聚焦输入框、光标放到末尾（点了回复）。</summary>
+    [Parameter] public bool Autofocus { get; set; }
+
+    /// <summary>输入框的提示，默认取文案。</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>输入框（Mentions）的部件属性；它的 aria-label 是输入框的名称。</summary>
+    [Parameter] public Attrs? PropsMentions { get; set; }
+
+    /// <summary>头像的部件属性（交给 Avatar）。</summary>
+    [Parameter] public Attrs? PropsAvatar { get; set; }
+
+    /// <summary>头像右边那一列的部件属性。</summary>
+    [Parameter] public Attrs? PropsMain { get; set; }
+
+    /// <summary>附件上传的部件属性（交给 Upload）。</summary>
+    [Parameter] public Attrs? PropsUpload { get; set; }
+
+    /// <summary>发送失败的提示的部件属性。</summary>
+    [Parameter] public Attrs? PropsError { get; set; }
+
+    /// <summary>底部那一行的部件属性。</summary>
+    [Parameter] public Attrs? PropsFooter { get; set; }
+
+    /// <summary>附件按钮的部件属性（交给 Button）。</summary>
+    [Parameter] public Attrs? PropsAttach { get; set; }
+
+    /// <summary>取消按钮的部件属性（交给 Button）。</summary>
+    [Parameter] public Attrs? PropsCancel { get; set; }
+
+    /// <summary>发送按钮的部件属性（交给 Button）。</summary>
+    [Parameter] public Attrs? PropsSend { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnInitialized() => text = InitialText;
+
+    // 还在上传的附件：等它完成才能发送
+    bool Uploading => files.Any(file => file.Status is UploadStatus.Uploading or UploadStatus.Selected);
+
+    bool Sendable => !string.IsNullOrWhiteSpace(text) && !Uploading && !sending;
+
+    // 文本框上的按键命令：Ctrl + Enter 发送，Esc 取消（JS 转成命令，不用每次按键往返一次）
+    Attrs TextareaManaged => new()
+    {
+        ["data-rune-ctrl-enter"] = "send",
+        ["data-rune-cancel"] = OnCancel.HasDelegate ? "cancel" : null,
+        ["data-rune-focus-end"] = Autofocus ? true : null,
+        ["onrunecommand"] = EventCallback.Factory.Create<CommandEventArgs>(this, CommandAsync),
+    };
+
+    Task CommandAsync(CommandEventArgs e) => e.Name switch
+    {
+        "send" => SendAsync(),
+        "cancel" => OnCancel.InvokeAsync(),
+        _ => Task.CompletedTask,
+    };
+
+    async Task SendAsync()
+    {
+        if (!Sendable) return;
+        sending = true;
+        failed = false;
+        try
+        {
+            await OnSend.InvokeAsync(new(text!.Trim(), mentioned, [.. files.Where(file => file.Status == UploadStatus.Done)]));
+            text = "";
+            files = [];
+            attaching = false;
+        }
+        catch (Exception error) when (error is not OperationCanceledException)
+        {
+            failed = true;
+        }
+        finally
+        {
+            sending = false;
+        }
+    }
+}
