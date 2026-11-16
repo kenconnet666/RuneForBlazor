@@ -1,11 +1,11 @@
 @* 主题编辑器：调品牌色、中性色、圆角、缩放、字体，实时检查对比度、导出代码；
-   设置交给 ThemeCustomization.Apply 生成新主题，这里只作用于右边的预览 *@
+   设置交给 ThemeCustomization.Apply 生成新主题，这里只作用于右边的预览（固定用亮色：编辑的是亮色主题） *@
 
 <Grid MinItemWidth="@("18rem")" Gap="SpaceScale.Lg">
     <ScrollArea style="height: 26rem" aria-label="主题设置">
         <ThemeCustomizer @bind-Settings="settings" Base="Themes.Light" />
     </ScrollArea>
-    <RuneProvider Theme="ThemeCustomization.Apply(Themes.Light, settings)">
+    <RuneProvider Theme="ThemeCustomization.Apply(Themes.Light, settings)" ColorScheme="ColorScheme.Light">
         <Card>
             <Flex Direction="LayoutDirection.Column" Gap="SpaceScale.Md">
                 <Strong>预览</Strong>
