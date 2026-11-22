@@ -16,7 +16,7 @@
     <PackageId>RuneForBlazor$(MSBuildProjectName.Substring(4))</PackageId>
     <Authors>kenconnet666</Authors>
     <Copyright>Copyright (c) 2026 kenconnet666</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <!-- 包页面的“项目网站”是文档站；源码仓库在 RepositoryUrl -->
     <PackageProjectUrl>https://rune-for-blazor.zerodep.dpdns.org/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kenconnet666/RuneForBlazor</RepositoryUrl>
